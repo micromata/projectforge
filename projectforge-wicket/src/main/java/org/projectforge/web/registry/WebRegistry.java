@@ -256,12 +256,6 @@ public class WebRegistry
     addMountPages(DaoConst.ACCOUNT, KontoListPage.class, KontoEditPage.class);
     register(DaoConst.ACCOUNTING_RECORD, AccountingRecordListPage.class);
     addMountPages(DaoConst.ACCOUNTING_RECORD, AccountingRecordListPage.class, AccountingRecordEditPage.class);
-    register(DaoConst.COST1, Kost1ListPage.class);
-    addMountPages(DaoConst.COST1, Kost1ListPage.class, Kost1EditPage.class);
-    register(DaoConst.COST2, Kost2ListPage.class);
-    addMountPages(DaoConst.COST2, Kost2ListPage.class, Kost2EditPage.class);
-    register(DaoConst.COST2_Type, Kost2ArtListPage.class);
-    addMountPages(DaoConst.COST2_Type, Kost2ArtListPage.class, Kost2ArtEditPage.class);
     // The customer (Kunde) list and edit have been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/customer* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     register(DaoConst.PROJECT, ProjektListPage.class);

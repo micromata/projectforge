@@ -60,8 +60,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
-    // Migrated to projectforge-next; the Wicket page (wa/cost1List) stays reachable through the escape
-    // hatch next to the page title, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", getListUrl("cost2Type")), //

@@ -1189,10 +1189,7 @@
         "add": "New cost 1",
         "edit": "Edit cost 1",
         "heading": "Cost 1 id",
-        "list": {
-          "_": "List of cost 1 ids",
-          "select": "Choose cost 1"
-        }
+        "list": "List of cost 1 ids"
       }
     },
     "kost2": {
@@ -1208,10 +1205,7 @@
         "add": "New cost 2",
         "edit": "Edit cost 2",
         "heading": "Cost 2",
-        "list": {
-          "_": "List of cost 2 ids",
-          "select": "Choose cost 2"
-        }
+        "list": "List of cost 2 ids"
       },
       "workFraction": "Work time fraction"
     },

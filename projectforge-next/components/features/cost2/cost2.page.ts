@@ -4,6 +4,7 @@ import { Cost2NumberField } from "./cost2-number-field";
 import { Cost2ProjectField } from "./cost2-project-field";
 import { cost2Schema, COST2_FIELDS, type Cost2Values } from "./cost2-schema";
 import { emptyCost2Values, toFormValues } from "./cost2-values";
+import { Cost2ListActions } from "./cost2-list-actions";
 import type { Cost2Detail, Cost2ListRow } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
@@ -79,6 +80,7 @@ export const COST2_PAGE = definePage<
     { name: "created", size: 130, hiddenByDefault: true },
     { name: "lastUpdate", size: 130, hiddenByDefault: true },
   ],
+  listActions: Cost2ListActions,
   // Mass update of a selection: status, description and comment (Kost2MultiSelectedPageRest, /cost2Selected).
   massUpdate: {
     endpoint: "cost2Selected",

@@ -28,20 +28,30 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.KostStatusFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.Date
 
 @RestController
 @RequestMapping("${Rest.URL}/cost1")
@@ -117,7 +127,41 @@ class Kost1EntityRest : AbstractDTOEntityRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao
 
     override val autoCompleteSearchFields = arrayOf("description", "nummer", "rawNumberString")
 
+    /**
+     * The filtered list as the Excel file of Wicket's `Kost1ListPage` ("exportAsXls"): number, description
+     * and status, in that order. The rows come from [getResultList], i.e. through the same pipeline the list
+     * itself uses. An empty result answers 404 rather than a file.
+     */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        val list = getResultList(filter)
+        if (list.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
+        ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("fibu.kost1.kost1s"))
+            sheet.registerColumn(translate("fibu.kost1"), COL_NUMBER).withSize(14)
+            sheet.registerColumn(translate("description"), COL_DESCRIPTION).withSize(60)
+            sheet.registerColumn(translate("status"), COL_STATUS).withSize(14)
+            ExcelUtils.addHeadRow(sheet)
+            list.forEach { kost1 ->
+                val row = sheet.createRow()
+                row.getCell(COL_NUMBER)?.setCellValue(kost1.formattedNumber)
+                row.getCell(COL_DESCRIPTION)?.setCellValue(kost1.description)
+                kost1.kostentraegerStatus?.let { row.getCell(COL_STATUS)?.setCellValue(translate(it.i18nKey)) }
+            }
+            sheet.setAutoFilter()
+            val filename = "ProjectForge-Kost1Export_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            return RestUtils.downloadFile(filename, workbook.asByteArrayOutputStream.toByteArray())
+        }
+    }
+
     companion object {
+        private const val COL_NUMBER = "number"
+        private const val COL_DESCRIPTION = "description"
+        private const val COL_STATUS = "status"
+
         /** The parts of the cost number, most significant first — [Kost1DO.formattedNumber] in columns. */
         private val NUMBER_PROPERTIES = listOf("nummernkreis", "bereich", "teilbereich", "endziffer")
     }
