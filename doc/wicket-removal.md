@@ -124,7 +124,8 @@ Each item: build in next, or decide with the product owner that it goes away.
       entries). `wa/userPrefList`/`wa/userPrefEdit` redirect to the next start page (`OrphanedLinkFilter`).
       The `UserPrefArea`s:
       - `TASK_FAVORITE` kept: next reads and writes it (`TaskFavoritesService`/`TaskFavoritesRest`,
-        `TaskFavoritesMenu` in the task select field).
+        `TaskFavoritesMenu` in the task select field: create, apply, rename, overwrite with the picked task,
+        delete).
       - `TIMESHEET_TEMPLATE` kept read-only: `TimesheetFavoritesService` migrates the entries into the JSON
         timesheet favorites (automatically and via the "old templates" button of the timesheet form).
       - `KUNDE_FAVORITE`, `PROJEKT_FAVORITE`, `USER_FAVORITE` dropped (with `KundeFavorite`,

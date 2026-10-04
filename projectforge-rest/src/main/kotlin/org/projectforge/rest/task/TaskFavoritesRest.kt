@@ -55,7 +55,7 @@ class TaskFavoritesRest {
      * label the recent list and the search hits carry). The path is resolved per favorite because the
      * stored favorite keeps only the task id.
      */
-    class TaskFavoriteInfo(val id: Long?, val name: String?, val pathAsString: String?)
+    class TaskFavoriteInfo(val id: Long?, val name: String?, val pathAsString: String?, val taskId: Long?)
 
     @AccessChecked("Own user prefs")
     @GetMapping("list")
@@ -138,9 +138,17 @@ class TaskFavoritesRest {
     }
 
     /**
-     * The favorites with the referenced task's whole path resolved for the tooltip. The favorite keeps
-     * only the task id, so the path is looked up per favorite (the list is a handful of entries).
+     * Points an existing favorite at another task (keeping its name). Only offered to the Next.js frontend,
+     * so there is no GET variant.
      */
+    @AccessChecked("Own user prefs; task select access")
+    @PostMapping("update")
+    fun updatePost(@RequestParam("id", required = true) id: Long, @RequestParam("taskId", required = true) taskId: Long): List<TaskFavoriteInfo> {
+        checkTaskAccess(taskId)
+        taskFavorites.updateFavorite(id, taskId)
+        return toInfoList()
+    }
+
     /**
      * The favorite is the user's own, but the answer carries the task's path: only a task the user may
      * select may be stored, otherwise any id would reveal the titles of its path.
@@ -150,9 +158,13 @@ class TaskFavoritesRest {
         taskDao.hasLoggedInUserSelectAccess(task, true)
     }
 
+    /**
+     * The favorites with the referenced task's whole path resolved for the tooltip. The favorite keeps
+     * only the task id, so the path is looked up per favorite (the list is a handful of entries).
+     */
     private fun toInfoList(): List<TaskFavoriteInfo> {
         return taskFavorites.getListWithTaskId().map { favorite ->
-            TaskFavoriteInfo(favorite.id, favorite.name, formatPath(favorite.taskId))
+            TaskFavoriteInfo(favorite.id, favorite.name, formatPath(favorite.taskId), favorite.taskId)
         }
     }
 
