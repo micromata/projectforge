@@ -21,7 +21,7 @@ import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * Which occurrences of a series an edit touches — the inline "all / all future / only this event" radios
- * the legacy form showed once a recurring event was changed (`TeamEventPagesRest.createEditLayout`).
+ * the legacy form showed once a recurring event was changed.
  *
  * Shown only when editing a *stored* recurring event: a new one or a non-recurring one has no series to
  * scope. The choice between "all" and "all future" follows the server's own rule — a later occurrence

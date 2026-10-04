@@ -8,10 +8,10 @@ import type { TimesheetDetail } from "../../types";
 /**
  * The sheet's tag, chosen from the ones the installation configures (`ConfigurationParam.TIMESHEET_TAGS`).
  *
- * A select and not a free string: the legacy form offers a fixed list (`createTagUISelect`), and so does
+ * A select and not a free string: the legacy form offered a fixed list, and so does
  * this. Shown only where there is something to choose — the tags the server put on the DTO (see
  * `TimesheetDetail.tags`), which also carry the sheet's own tag on after it left the configuration. Where
- * none is configured the field is not rendered at all, exactly as the UILayout leaves it out.
+ * none is configured the field is not rendered at all, as the legacy form did.
  *
  * Optional, so the select keeps the ✕ that clears it (`!required` from the metadata, see SelectField).
  */

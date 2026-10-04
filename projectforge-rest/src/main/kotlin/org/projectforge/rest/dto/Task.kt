@@ -135,7 +135,7 @@ class Task(id: Long? = null,
      * What [copyFrom] would add and no column reads: [description] and [parentTask]/[ganttPredecessor] as
      * whole nested tasks, the kost2 black/white list, the Gantt fields, [progress], [maxHours], the two
      * dates and the access flags — the last ones being the edit form's business (see
-     * [kost2AndBookingStatusWriteAccess], filled only in edit mode by `TaskPagesRest.transformFromDB`,
+     * [kost2AndBookingStatusWriteAccess], filled only in edit mode by `TaskEntityRest.transformFromDB`,
      * which this path does not run through).
      *
      * Three of the ten columns are not properties of `TaskDO` at all and are computed here, from the task

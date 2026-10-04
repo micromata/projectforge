@@ -70,7 +70,7 @@ export function WizardGroupStepCard({
           the step below, and leaving the wizard would throw away the choices already made. The
           group's own page definition is what the dialog renders — the one place this feature reaches
           into another one, because "create a group here" *is* a reference to the group page, and
-          rebuilding its form would be a second form to keep in step with GroupPagesRest. */}
+          rebuilding its form would be a second form to keep in step with GroupEntityRest. */}
       <HintTooltip text={t("task.wizard.button.createGroup.tooltip")}>
         <button
           type="button"

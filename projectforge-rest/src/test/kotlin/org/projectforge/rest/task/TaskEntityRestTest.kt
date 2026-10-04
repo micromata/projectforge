@@ -52,9 +52,9 @@ import java.time.LocalDate
  * `writeAccess`/`deleteAccess` are not tested here: they are not this class's, they are filled for every
  * entity by `AbstractEntityRest.getById` (see `EntityAccessSupport`).
  */
-class TaskPagesRestTest : AbstractTestBase() {
+class TaskEntityRestTest : AbstractTestBase() {
     @Autowired
-    private lateinit var taskPagesRest: TaskPagesRest
+    private lateinit var taskEntityRest: TaskEntityRest
 
     @Autowired
     private lateinit var projektDao: ProjektDao
@@ -68,15 +68,15 @@ class TaskPagesRestTest : AbstractTestBase() {
         // connection and would deadlock against the still uncommitted writer.
         val task = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            val task = initTestDB.addTask("taskPagesRestAccess", "root")
+            val task = initTestDB.addTask("taskEntityRestAccess", "root")
             val projectManagers = initTestDB.addGroup(
-                "taskPagesRestAccessGroup",
+                "taskEntityRestAccessGroup",
                 TEST_PROJECT_MANAGER_USER,
                 TEST_PROJECT_ASSISTANT_USER,
             )
             initTestDB.createGroupTaskAccess(projectManagers, task, AccessType.TASKS, true, true, true, true)
             val projekt = ProjektDO()
-            projekt.name = "taskPagesRestAccess"
+            projekt.name = "taskEntityRestAccess"
             projekt.internKost2_4 = 765
             projekt.nummer = 2
             projekt.projektManagerGroup = projectManagers
@@ -130,11 +130,11 @@ class TaskPagesRestTest : AbstractTestBase() {
     fun `a list row carries no flags`() {
         val task = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            initTestDB.addTask("taskPagesRestListRow", "root")
+            initTestDB.addTask("taskEntityRestListRow", "root")
         }
         logon(TEST_FINANCE_USER)
 
-        val dto = taskPagesRest.transformFromDB(task, editMode = false)
+        val dto = taskEntityRest.transformFromDB(task, editMode = false)
         assertFalse(dto.kost2AndBookingStatusWriteAccess)
         assertFalse(dto.protectTimesheetsUntilWriteAccess)
     }
@@ -265,17 +265,17 @@ class TaskPagesRestTest : AbstractTestBase() {
 
     private fun assertNoError(dto: Task) {
         val errors = mutableListOf<ValidationError>()
-        taskPagesRest.validate(errors, dto)
+        taskEntityRest.validate(errors, dto)
         assertTrue(errors.isEmpty(), "Expected no validation error, but got: $errors")
     }
 
     private fun assertError(dto: Task, messageId: String, fieldId: String) {
         val errors = mutableListOf<ValidationError>()
-        taskPagesRest.validate(errors, dto)
+        taskEntityRest.validate(errors, dto)
         assertEquals(1, errors.size, "Expected exactly one validation error, but got: $errors")
         assertEquals(messageId, errors[0].messageId)
         assertEquals(fieldId, errors[0].fieldId, "The message must land at its field, not in the general area.")
     }
 
-    private fun transformFromDB(task: TaskDO) = taskPagesRest.transformFromDB(task, editMode = true)
+    private fun transformFromDB(task: TaskDO) = taskEntityRest.transformFromDB(task, editMode = true)
 }

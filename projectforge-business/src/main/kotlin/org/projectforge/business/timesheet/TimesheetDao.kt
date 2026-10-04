@@ -160,7 +160,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      *
      * One `SELECT` of four columns, no lazy relations and no row hydration: the id list of a server-side paged
      * list can be thousands of sheets, and loading them whole (all columns, in `IN` batches) only to sum
-     * durations is exactly what this avoids (see `TimesheetPagesRest.aggregate`). Access is already checked -
+     * durations is exactly what this avoids (see `TimesheetEntityRest.aggregate`). Access is already checked -
      * the ids come from the access-filtered id list of the paged result.
      */
     open fun selectStatisticsData(ids: Collection<Long>): List<TimesheetDO> {

@@ -1,5 +1,5 @@
 /**
- * The one call of the group page (`GroupPagesRest`) that is neither a list, a read nor a write:
+ * The one call of the group page (`GroupEntityRest`) that is neither a list, a read nor a write:
  * the next free LDAP gid.
  *
  * Same `PostData` envelope and `ResponseAction` answer as a write (see ./entity.ts), but nothing is

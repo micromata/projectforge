@@ -9,7 +9,7 @@ import type { TimesheetDetail } from "../../types";
 
 /**
  * The configured AI-time-savings note, shown below the form — the legacy UILayout's `layoutBelowActions`
- * alert (`TimesheetPagesRest.createEditLayout`). The backend fills `timeSavingsByAINote` only when the
+ * alert. The backend fills `timeSavingsByAINote` only when the
  * installation tracks AI time savings and a note is configured, so an absent text renders nothing.
  *
  * The note is authored (from the admin configuration) as markdown that may carry HTML — the legacy alert

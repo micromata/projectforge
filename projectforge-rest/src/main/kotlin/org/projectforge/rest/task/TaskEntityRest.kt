@@ -28,7 +28,6 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.task.TaskStatus
-import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -36,19 +35,24 @@ import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Task
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The tasks, served to the hand built list and edit page of projectforge-next (layout free, see
+ * [AbstractDTOEntityRest]). The tree perspective is served by [TaskServicesRest] under the same path.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/task")
-class TaskPagesRest
-    : AbstractDTOPagesRest<TaskDO, Task, TaskDao>(
+class TaskEntityRest
+    : AbstractDTOEntityRest<TaskDO, Task, TaskDao>(
         TaskDao::class.java,
         "task.title") {
 
@@ -207,32 +211,5 @@ class TaskPagesRest
                 ValidationError(translate(i18nKey), fieldId = "endDate", messageId = i18nKey)
             )
         }
-    }
-
-    /**
-     * LAYOUT List page
-     *
-     * One column on purpose. The ten columns of Wicket's `TaskListPage` are declared in the next page
-     * (`components/features/task/task.page.tsx`), where a hand built list's columns belong: they carry their
-     * own cells (the consumption bar, the order links), their own visibility (see
-     * [addVariablesForListPage]) and their own sizes, none of which a `UITable` column can express. Adding
-     * them here as well would serve only `/react/task`, which the menu no longer points at.
-     */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-        layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "title"))
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Task, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(
-                    lc, "parentTask", "title", "status", "priority", "responsibleUser", "shortDescription",
-                    "reference", "description", "protectTimesheetsUntil"
-                )
-        Favorites.addTranslations(layout.translations)
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

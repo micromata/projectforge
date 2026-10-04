@@ -1,6 +1,6 @@
 /**
  * The one call a team event form needs beyond the generic entity ones: the writable calendars its
- * calendar select offers (`TeamEventPagesRest.getCalendars`).
+ * calendar select offers (`TeamEventEntityRest.getCalendars`).
  *
  * Reads and writes of the event itself are not here: they are the generic `fetchOne`/`fetchNew`
  * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category — a
@@ -11,7 +11,7 @@ import { request } from "./client";
 
 const ENTITY = "teamEvent";
 
-/** A team calendar as the select offers it (`TeamEventPagesRest.CalendarSelectValue`). */
+/** A team calendar as the select offers it (`TeamEventEntityRest.CalendarSelectValue`). */
 export interface TeamCalendarOption {
   id: number;
   title: string;

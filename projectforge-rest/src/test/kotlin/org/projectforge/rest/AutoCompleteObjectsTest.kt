@@ -45,7 +45,7 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
     private lateinit var groupDao: GroupDao
 
     @Autowired
-    private lateinit var groupPagesRest: GroupPagesRest
+    private lateinit var groupEntityRest: GroupEntityRest
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -65,14 +65,14 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         group.name = "dhl-pop.$PREFIX"
         groupDao.insert(group)
         listOf("dhl-pop", "dhl-po", "dhl-", "dhl", "pop", "dhl pop").forEach { searchString ->
-            val result = autoComplete(groupPagesRest, searchString)
+            val result = autoComplete(groupEntityRest, searchString)
             Assertions.assertTrue(
                 result.any { it.id == group.id },
                 "Group '${group.name}' not offered for '$searchString': $result",
             )
         }
         Assertions.assertTrue(
-            autoComplete(groupPagesRest, "dxl-pop").none { it.id == group.id },
+            autoComplete(groupEntityRest, "dxl-pop").none { it.id == group.id },
             "A word the name doesn't hold offers nothing: the search is still a search.",
         )
     }

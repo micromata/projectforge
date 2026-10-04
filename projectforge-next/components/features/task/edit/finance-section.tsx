@@ -43,7 +43,7 @@ export function FinanceSection({ id }: { id: number | null }) {
     useNewEntryParams(TASK_NEW_ENTRY_PARAMS)
   ).data;
   // Read for a new task as well, where they are the rights on the parent it is added below (see
-  // TaskPagesRest.newBaseDTO): a subtask of a task somebody else's project owns is not writable here
+  // TaskEntityRest.newBaseDTO): a subtask of a task somebody else's project owns is not writable here
   // just because it has no id yet. Locked until the answer is in — the fields are enabled by a right,
   // not by a pending request.
   const kost2Access = task?.kost2AndBookingStatusWriteAccess === true;

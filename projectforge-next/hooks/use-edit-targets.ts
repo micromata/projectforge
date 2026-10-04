@@ -29,7 +29,7 @@ export interface EditTargets {
    * The entity wide question, not the entry's: for most entities the backend answers it with true and
    * whether *this* entry may be written travels on its DTO (`writeAccess`, see lib/rs/entity-access.ts),
    * which is what makes the form read-only. Only an entity that refuses every write to a whole class of
-   * users answers false here (`AbstractEntityRest.listUpdateAccess`, overridden by `GroupPagesRest`), and
+   * users answers false here (`AbstractEntityRest.listUpdateAccess`, overridden by `GroupEntityRest`), and
    * then a row that opens a form nobody may save is a dead end worth not offering.
    */
   canOpen: boolean;

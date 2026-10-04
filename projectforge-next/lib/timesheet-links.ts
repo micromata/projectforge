@@ -25,7 +25,7 @@ export const TIMESHEET_TASK_NAME_PARAM = "taskName";
  * app/(authenticated)/timesheet/page.tsx) and seeds a transient, cleared filter — the drill-down Wicket's
  * `MonthlyEmployeeReportPage` did with `userId`/`kost2Id`/`taskId`/`startTime`/`stopTime`/`storeFilter=false`.
  * The Kost2 drill-down uses the cost unit's exact id (`kost2.id`), not a number search — the backend runs
- * the same DB query the report total does (see TimesheetPagesRest.preProcessMagicFilter).
+ * the same DB query the report total does (see TimesheetEntityRest.preProcessMagicFilter).
  */
 export const TIMESHEET_USER_ID_PARAM = "userId";
 export const TIMESHEET_USER_NAME_PARAM = "userName";
@@ -88,7 +88,7 @@ export function timesheetListHref(taskId: number, taskName?: string): string {
 
 /**
  * The add-a-time-sheet form, preset to one task. The id rides the add url and is handed to the new-entry
- * preset (`taskId` in the timesheet page's `newEntryParams`; `TimesheetPagesRest.newBaseDTO` resolves it
+ * preset (`taskId` in the timesheet page's `newEntryParams`; `TimesheetEntityRest.newBaseDTO` resolves it
  * into the sheet's task, letting the form auto-pick the single cost unit).
  */
 export function timesheetAddHref(taskId: number): string {

@@ -1,7 +1,7 @@
 /**
  * The calls a time sheet form needs beyond the generic entity ones — the two the legacy form reached
  * through `UICustomized` widgets, and the two autocompletions of its free-text fields
- * (`org.projectforge.rest.TimesheetPagesRest`).
+ * (`org.projectforge.rest.TimesheetEntityRest`).
  *
  * Reads and writes of the entity itself are not here: they are the generic `fetchOne`/`fetchNew`
  * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category —
@@ -29,7 +29,7 @@ export function downloadTimesheetExcel(
 
 /**
  * What the PDF export should contain, chosen in the PDF-export dialog and remembered per user by the
- * backend (`TimesheetPagesRest.TimesheetPdfExportSettings`). `showFilterSettings` toggles the first-page
+ * backend (`TimesheetEntityRest.TimesheetPdfExportSettings`). `showFilterSettings` toggles the first-page
  * filter-summary block; the rest toggle the optional table columns. The User column is always printed and
  * has no flag. Mirrors the Kotlin DTO field for field.
  */
@@ -44,7 +44,7 @@ export interface TimesheetPdfExportSettings {
   description: boolean;
 }
 
-/** React Query key of the remembered PDF-export settings (`TimesheetPagesRest.getPdfExportSettings`). */
+/** React Query key of the remembered PDF-export settings (`TimesheetEntityRest.getPdfExportSettings`). */
 export const TIMESHEET_PDF_EXPORT_SETTINGS_QUERY_KEY = [
   "timesheet",
   "pdfExportSettings",
@@ -82,7 +82,7 @@ export function downloadTimesheetPdf(
 /**
  * The subscription URL of the time sheet calendar feed — the legacy list's "ics export". It carries the
  * user's personal, encrypted token, so it is shown for the user to subscribe to rather than downloaded
- * (`TimesheetPagesRest.getIcsExportUrl`, see calendar.icsExport.securityAdvice). The logged-in user by
+ * (`TimesheetEntityRest.getIcsExportUrl`, see calendar.icsExport.securityAdvice). The logged-in user by
  * default.
  */
 export function fetchTimesheetIcsUrl(
@@ -97,7 +97,7 @@ export function fetchTimesheetIcsUrl(
   );
 }
 
-/** What `timesheet/recentList` answers with (`TimesheetPagesRest.RecentTimesheets`). */
+/** What `timesheet/recentList` answers with (`TimesheetEntityRest.RecentTimesheets`). */
 export interface RecentTimesheets {
   /**
    * The user's last time sheets, most recent first, each with a `counter` the backend numbered them
@@ -136,7 +136,7 @@ interface SelectRecentResult {
  * its cost units and its consumption (`TaskServicesRest.createTask`).
  *
  * A write in shape only: it stores nothing, but posting the sheet on screen is how the backend knows
- * what to merge the entry *into*. Unlike the save endpoints, `TimesheetPagesRest.selectRecent` takes
+ * what to merge the entry *into*. Unlike the save endpoints, `TimesheetEntityRest.selectRecent` takes
  * the sheet as a bare `@RequestBody` (no `{ data }` envelope) — the same raw shape the favorites
  * endpoints accept — so it goes through `request`, not the enveloping entity-action helper.
  */

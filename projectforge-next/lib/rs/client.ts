@@ -227,7 +227,7 @@ export function fetchOne<O>(
  * server-rendered edit layout, which a hand-built page has no use for.
  *
  * @param params Query parameters for the preset. `newBaseDO` is handed the request, so an entity may
- *   read one: `TaskPagesRest` takes `parentTaskId` and presets the parent of a new subtask, which is
+ *   read one: `TaskEntityRest` takes `parentTaskId` and presets the parent of a new subtask, which is
  *   the only way the tree can say "add below *this* task". Null and undefined are dropped, so a
  *   caller may pass an unresolved id without special-casing it.
  */
@@ -439,7 +439,7 @@ export function fetchListData(
 
 /**
  * @param search extra query parameters to forward verbatim (without `id`), e.g. the `startDate`/
- *   `endDate`/`firstHour` a calendar hands a new timesheet: `TimesheetPagesRest` reads them from
+ *   `endDate`/`firstHour` a calendar hands a new timesheet: `TimesheetEntityRest` reads them from
  *   the request to preset the times. `id` travels as its own argument, so it never belongs here.
  */
 export function fetchDynamic(

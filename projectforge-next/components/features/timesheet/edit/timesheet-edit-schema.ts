@@ -15,7 +15,7 @@ const m = fromMetadata(TIMESHEET_METADATA);
  * has neither the field set nor the names of the DO. What each field *allows* is not.
  *
  * The server validates too and has the last word (`TimesheetDao.onInsertOrModify` and
- * `TimesheetPagesRest.validate`, HTTP 406 → see lib/validation/server-errors.ts). The rules it owns are
+ * `TimesheetEntityRest.validate`, HTTP 406 → see lib/validation/server-errors.ts). The rules it owns are
  * deliberately absent here, because none of them is the client's to know: whether the task is bookable
  * at all, whether a cost unit is required for it, whether the period collides with another sheet of the
  * same user, whether it violates the task's time sheet protection, and the maximum duration. What is

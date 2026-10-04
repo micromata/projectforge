@@ -364,7 +364,7 @@ export interface SectionDef<M extends EntityMetadata> {
   /**
    * Whether the form has this section at all — for one whose subject may not exist in this
    * installation or may not be administered by this user: a group's LDAP card only where posix
-   * accounts are configured (`GroupPagesRest.useLdapStuff`).
+   * accounts are configured (`GroupEntityRest.useLdapStuff`).
    *
    * The counterpart of [ColumnBase.visible] on the edit page, and the same rule: the answer is the
    * backend's and comes as it is — a flag on the loaded entity, which is also the preset of a new one
@@ -660,7 +660,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * Query parameters of the *add* url that are handed on to the preset (`{entity}/newEntry`).
    *
    * `newBaseDO` is given the request, so an entity may preset a field from a parameter: the tree's
-   * "add subtask" opens `/task/new?parentTaskId=42`, and `TaskPagesRest` puts that task in as the
+   * "add subtask" opens `/task/new?parentTaskId=42`, and `TaskEntityRest` puts that task in as the
    * parent. Declared by name rather than forwarded wholesale, for the same reason [returnTargets] is a
    * whitelist — everything else in the url (`returnTo`) is the page's own business and has nothing to
    * do with the entity.

@@ -81,7 +81,7 @@ export function taskHref(id: number, options?: { returnTo?: string }): string {
  *
  * `parentTaskId` is not a value of the form but a parameter of the *preset*: the backend resolves the
  * parent (and with it the project the cost unit block needs, and the rights the finance section is
- * gated on) and answers `{entity}/newEntry` with a filled task — see `TaskPagesRest.newBaseDO`,
+ * gated on) and answers `{entity}/newEntry` with a filled task — see `TaskEntityRest.newBaseDO`,
  * `newBaseDTO` and useNewEntryParams. Left out, the form opens with its required parent field empty and
  * the user picks one, which is what the tree's own "add" button does, as Wicket's does.
  */

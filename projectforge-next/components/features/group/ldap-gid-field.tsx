@@ -14,7 +14,7 @@ import type { GroupValues } from "./group-schema";
 
 /**
  * The LDAP part of the group form: the posix `gidNumber` and the button that proposes a free one —
- * the fieldset `GroupPagesRest.createEditLayout` adds only where posix accounts are configured.
+ * shown only where posix accounts are configured.
  *
  * Whether that is the case is the backend's decision and travels with the entity
  * (`Group.ldapPosixConfigured`): it depends on the LDAP configuration and on the user being an

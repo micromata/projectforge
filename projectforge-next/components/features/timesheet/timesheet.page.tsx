@@ -28,7 +28,7 @@ export const TIMESHEET_ENTITY = "timesheet";
 /** React Query key of the list, so a write from the edit page refreshes it once the list is built. */
 export const TIMESHEET_LIST_QUERY_KEY = ["timesheet"] as const;
 /**
- * Where the preset reads from (see TimesheetPagesRest.newBaseDTO): the calendar's slot select passes the
+ * Where the preset reads from (see TimesheetEntityRest.newBaseDTO): the calendar's slot select passes the
  * period, user and first hour; the task form's "add a time sheet" cross-link passes `taskId` to preset the
  * task (see timesheetAddHref).
  */
@@ -54,7 +54,7 @@ const ReferenceJiraLinks = makeJiraFieldLinks("reference");
  * the calendar's edit form carries (see `editBanner` below), so nothing of the legacy list is left behind.
  *
  * The edit page the calendar opens (see toTimesheetRoute). Its fields follow
- * the legacy form (`TimesheetPagesRest.createEditLayout`) — the task and its cost unit, the period, the
+ * the legacy form — the task and its cost unit, the period, the
  * texts — with the templates/recent bar above them and the AI-time-savings block only where the
  * installation tracks it (`timeSavingsByAIEnabled`).
  */
@@ -71,7 +71,7 @@ export const TIMESHEET_PAGE = definePage<
   // Served one page at a time (POST listPage): the list sorts only on DB columns and its onlyBillable option
   // is a CustomResultFilter that runs inside the query pipeline, so nothing narrows or re-sorts after it — the
   // page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
-  // aggregate hook over the full id list (see TimesheetPagesRest.aggregate, PageDef.serverPaging).
+  // aggregate hook over the full id list (see TimesheetEntityRest.aggregate, PageDef.serverPaging).
   serverPaging: true,
   // The period filter pages a week at a time as well — a sheet is read by its week (the list's KW
   // column), so "Woche" leads the arts before the calendar month, the terms and "Jahr bis heute"
@@ -86,8 +86,7 @@ export const TIMESHEET_PAGE = definePage<
   // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
   categoryKey: "menu.projectmanagement",
   titleKey: "menu.timesheetList",
-  // The fields that identify a sheet, in the order the legacy list shows them
-  // (`TimesheetPagesRest.createListLayout`).
+  // The fields that identify a sheet, in the order the legacy list showed them.
   columns: [
     // Both are entity references the row carries as `{ id, displayName }`, not a plain value, so each
     // names the string it shows rather than letting the default cell stringify the object. The sort id
@@ -102,7 +101,7 @@ export const TIMESHEET_PAGE = definePage<
     },
     // The cost unit, shown only where cost accounting is configured — the Wicket column the list gates on
     // `Configuration.isCostConfigured` (the `kost2Configured` list variable, see
-    // TimesheetPagesRest.addVariablesForListPage). Its formatted number is the label ("5.100.01.02"), the
+    // TimesheetEntityRest.addVariablesForListPage). Its formatted number is the label ("5.100.01.02"), the
     // description the tooltip. No database column holds the formatted number, so ordering by the `kost2`
     // association directly would sort by its foreign key; the backend expands a `kost2` sort into the
     // number's real parts for any entity with a cost-unit column (MagicFilterProcessor.expandSortProperty),
@@ -152,7 +151,7 @@ export const TIMESHEET_PAGE = definePage<
     // The whole booked span as one "date fromTime-toTime" column, as the Wicket list shows it instead of
     // separate start/stop columns — pre-formatted by the backend. Its id is `startTime` so the header
     // sorts the server-side pages by the start (the legacy column's `sortField`); the period filter is a
-    // filter of its own (see TimesheetPagesRest), so this column offers none.
+    // filter of its own (see TimesheetEntityRest), so this column offers none.
     {
       id: "startTime",
       labelKey: "timePeriod",
@@ -202,7 +201,7 @@ export const TIMESHEET_PAGE = definePage<
       cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
     },
     // The tag, shown only where any tag is configured — the Wicket column gated on a non-empty tag list
-    // (the `tagsConfigured` list variable, see TimesheetPagesRest.addVariablesForListPage). Off by default
+    // (the `tagsConfigured` list variable, see TimesheetEntityRest.addVariablesForListPage). Off by default
     // like the reference; the two gates compose — the column exists only where tags are configured, and
     // even then starts hidden until the user switches it on.
     {
@@ -219,7 +218,7 @@ export const TIMESHEET_PAGE = definePage<
     },
   ],
   // The list's footer between the toolbar and the table: the summed duration and, where the installation
-  // tracks it, the AI share — the two numbers the legacy list shows (TimesheetPagesRest.postProcessResultSet).
+  // tracks it, the AI share — the two numbers the legacy list shows (TimesheetEntityRest.postProcessResultSet).
   // The cast is where the untyped `ResultSet.statistics` becomes what the rest class sends (see
   // PageDef.statistics for why this is the place for it).
   statistics: ({ statistics, isFetching }) => (
@@ -267,14 +266,14 @@ export const TIMESHEET_PAGE = definePage<
     // period are usually preset from the calendar slot or a template (see useFocusFirstField).
     autoFocus: "description",
     newEntryParams: NEW_ENTRY_PARAMS,
-    // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport = AUTOSAVE). The button saves a
+    // Offer the clone, as Wicket does (TimesheetEntityRest.cloneSupport = AUTOSAVE). The button saves a
     // copy of the sheet on screen straight away (`/clone`, honouring AUTOSAVE) rather than opening it
     // as a new entry: a sheet dragged onto another day and cloned persists there in one step, and the
     // dialog closes back onto the calendar. Where the copy overlaps another sheet the backend can't
     // save it and the form is simply left standing to adjust (see runClone / cloneAndSaveEntity).
     clone: "autosave",
     // "In Termin umwandeln" — build a calendar event from this sheet's span and texts and open it as a
-    // new event (TimesheetPagesRest.switch2CalendarEvent → TeamEventPagesRest.cloneFromTimesheet). The
+    // new event (TimesheetEntityRest.switch2CalendarEvent → TeamEventEntityRest.cloneFromTimesheet). The
     // team event is named, not imported, so the two features don't depend on each other in a circle.
     convert: {
       action: "switch2CalendarEvent",
@@ -293,7 +292,7 @@ export const TIMESHEET_PAGE = definePage<
     editBanner: TemplatesRecentBar,
     // Below the form: the configured AI-time-savings note the legacy UILayout put in
     // `layoutBelowActions`, shown only where the installation tracks AI savings and a text is
-    // configured (see AiNoteFooter, TimesheetPagesRest.timeSavingsByAINote).
+    // configured (see AiNoteFooter, TimesheetEntityRest.timeSavingsByAINote).
     editFooter: AiNoteFooter,
     sections: [
       {

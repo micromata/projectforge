@@ -220,7 +220,7 @@ class TimesheetFavoritesService {
 
     /**
      * The area the template favorites historically shared with the react list's filter favorites (the entity category
-     * of [org.projectforge.rest.TimesheetPagesRest]). Read-only, for one-time adoption of orphaned template favorites.
+     * of [org.projectforge.rest.TimesheetEntityRest]). Read-only, for one-time adoption of orphaned template favorites.
      */
     private const val LEGACY_SHARED_AREA = "timesheet"
   }

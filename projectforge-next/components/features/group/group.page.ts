@@ -14,8 +14,7 @@ export const GROUP_LIST_QUERY_KEY = ["group"] as const;
 /**
  * The whole group page — list and edit — as data (see lib/page-def/types.ts).
  *
- * The columns are those of `GroupPagesRest.createListLayout` in its order, the form is its
- * `createEditLayout`; every label and every rule comes from GroupDO through the generated metadata.
+ * The columns and the form follow the former server side layout of the group page; every label and every rule comes from GroupDO through the generated metadata.
  * Declared here is order and width, plus the three fields the declaration cannot describe because
  * GroupDO has no such property: the members, the LDAP gid and the computed mail addresses.
  *
@@ -54,7 +53,7 @@ export const GROUP_PAGE = definePage<
     },
     {
       // What the LDAP sync wrote — only worth a column where posix accounts are in use and only for an
-      // administrator, which is what the backend answers (`GroupPagesRest.addVariablesForListPage`).
+      // administrator, which is what the backend answers (`GroupEntityRest.addVariablesForListPage`).
       name: "ldapValues",
       size: 200,
       visible: (ctx) => ctx.variables?.ldapPosixConfigured === true,

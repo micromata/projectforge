@@ -10,7 +10,7 @@ import { ExportButton } from "@/components/shared/export-button";
 import { useAuth } from "@/hooks/use-auth";
 
 /**
- * The Excel export of the group list, as `GroupPagesRest` offers it
+ * The Excel export of the group list, as `GroupEntityRest` offers it
  * (`layout.excelExportSupported` for an administrator).
  *
  * Acts on the filter the list is showing, which is why it lives in its toolbar and is handed that

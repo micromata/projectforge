@@ -55,7 +55,7 @@ function TimesheetListBody() {
   }
   if (startDate) {
     // The DATE range picker sends day-only bounds as `from`/`to`; the backend widens them to whole days
-    // and matches by overlap (see TimesheetPagesRest.preProcessMagicFilter).
+    // and matches by overlap (see TimesheetEntityRest.preProcessMagicFilter).
     entries.push({ field: "period", value: { from: startDate, to: endDate } });
   }
   if (kost2Id > 0) {

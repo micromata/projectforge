@@ -16,7 +16,7 @@ import { useRecentTasks } from "./use-recent-tasks";
 
 /**
  * Where the type-ahead searches: `TaskServicesRest.autosearch`, not the inherited `task/autosearch`
- * of `TaskPagesRest` (which has no search fields configured and would answer an error). It answers
+ * of `TaskEntityRest` (which has no search fields configured and would answer an error). It answers
  * the same `DisplayObject` as any other category, with the task's whole path as its `displayName`.
  */
 const TASK_LOOKUP_URL = "task/tree/autosearch?search=:search";

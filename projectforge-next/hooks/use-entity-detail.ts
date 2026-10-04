@@ -51,7 +51,7 @@ export type NewEntryParams = Record<
  * same for both.
  *
  * @param newParams Parameters for the preset, ignored for an existing entity — the tree's "add
- *   subtask" passes `{parentTaskId}`, which `TaskPagesRest.newBaseDO` reads. Part of the query key,
+ *   subtask" passes `{parentTaskId}`, which `TaskEntityRest.newBaseDO` reads. Part of the query key,
  *   so two presets of the same entity are two cache entries; a call without them keeps the plain
  *   `[entity, id]` key that every cache read of a loaded entity uses.
  */
@@ -78,7 +78,7 @@ export function useEntityDetail<T>(
     // stop a refetch from overwriting a form the user has already begun to fill in. `gcTime: 0` drops
     // it the moment the dialog closes (observer count → 0), so *reopening* the add dialog re-reads the
     // backend's preset instead of serving the frozen first response: that preset depends on live data
-    // — a timesheet's start rolls to the day's last booking's stop (TimesheetPagesRest.presetStartStopTime)
+    // — a timesheet's start rolls to the day's last booking's stop (TimesheetEntityRest.presetStartStopTime)
     // — and was otherwise stale until a full page reload cleared the whole cache.
     staleTime: isNew ? Infinity : undefined,
     gcTime: isNew ? 0 : undefined,

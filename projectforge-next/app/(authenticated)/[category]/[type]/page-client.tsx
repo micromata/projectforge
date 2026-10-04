@@ -6,7 +6,7 @@ import { DynamicFormPage } from "@/components/dynamic/dynamic-form-page";
 /**
  * Renders a server-laid-out create page whose defaults ride the query string rather than an id,
  * e.g. a new timesheet the calendar opens for a slot: `/next/timesheet/edit?startDate=…&firstHour=…`
- * (TimesheetPagesRest reads those from the request). The three-segment sibling handles the id-carrying
+ * (TimesheetEntityRest reads those from the request). The three-segment sibling handles the id-carrying
  * variant; both share {@link DynamicFormPage}, which reads the query string itself.
  *
  * Category and type are read from the url at runtime because the static export pre-renders a single

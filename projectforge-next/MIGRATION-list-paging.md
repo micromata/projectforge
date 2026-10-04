@@ -246,7 +246,7 @@ both page completeness and `totalSize`: `MyScriptPagesRest.filterList` and
 `BankAccountRecordPagesRest.postProcessResultSet` (`doublets`, `checksumErrors`). Convert to
 `CustomResultFilter`s (`match(list, element)` receives the accumulated list, which is how
 `AuftragsPositionsArtFilter` works) or opt those two entities out of paging. Separately,
-`TimesheetPagesRest.postProcessResultSet` folds the whole result set into `resultInfo` statistics —
+`TimesheetEntityRest.postProcessResultSet` folds the whole result set into `resultInfo` statistics —
 under paging that silently becomes "sum of this page", so suppress `resultInfo` for paged responses (a
 proper aggregate hook is Stage 5).
 

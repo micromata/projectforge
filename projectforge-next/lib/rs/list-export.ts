@@ -6,7 +6,7 @@
  * runs the query the list ran and writes its whole result set, so the export needs nothing but the filter.
  * Which lists offer it is the frontend's decision (see PageDef.listActions) — the endpoint exists per
  * `*PagesRest` that implements it, and each of them checks the rights itself
- * (`GroupPagesRest.exportAsExcel` requires an administrator).
+ * (`GroupEntityRest.exportAsExcel` requires an administrator).
  */
 
 import { downloadPost } from "./download";

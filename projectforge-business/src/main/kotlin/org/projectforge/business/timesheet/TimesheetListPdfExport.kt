@@ -98,7 +98,7 @@ open class TimesheetListPdfExport {
 
     /**
      * What the export should contain, chosen by the user in the Next PDF-export dialog and remembered per
-     * user (see [org.projectforge.rest.TimesheetPagesRest]). [showFilterSettings] toggles the first-page
+     * user (see [org.projectforge.rest.TimesheetEntityRest]). [showFilterSettings] toggles the first-page
      * filter-summary block; the column flags toggle the optional table columns. The User column is always
      * printed and has no flag. Every flag defaults to true, so a caller that omits [Options] gets the full
      * export the list produced before the dialog existed.

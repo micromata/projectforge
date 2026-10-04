@@ -38,7 +38,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.*
-import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -62,7 +61,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     private lateinit var timesheetDao: TimesheetDao
 
     @Autowired
-    private lateinit var timesheetPagesRest: TimesheetPagesRest
+    private lateinit var timesheetEntityRest: TimesheetEntityRest
 
     override val layoutContext: LayoutContext = LayoutContext(TimesheetDO::class.java)
 
@@ -70,22 +69,20 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
     @PostConstruct
     private fun postConstruct() {
-        pagesRest = timesheetPagesRest
+        pagesRest = timesheetEntityRest
     }
 
     /**
-     * The layout-free field set for a client (the next frontend) that renders the form itself - the
-     * counterpart of the `createAndAddFields` calls in [fillForm].
+     * The layout-free field set for the next frontend, which renders the form itself.
      *
-     * The task/kost2 picker is a custom component ([UICustomized]) the hand built page renders on its own;
-     * only the plain fields are declared here. The tag is declared as a select of the configured tags
-     * (built at runtime, hence [MassUpdateFieldDeclaration.values]), so the layout free frontend renders
-     * it as a combobox with a delete option - the same [UISelect] the [fillForm] path builds. The AI
-     * fields are only offered when the feature is enabled, exactly as [fillForm] adds them.
+     * The task/kost2 picker is a custom component the hand built page renders on its own; only its position
+     * is declared here. The tag is declared as a select of the configured tags (built at runtime, hence
+     * [MassUpdateFieldDeclaration.values]), so the frontend renders it as a combobox with a delete option.
+     * The AI fields are only offered when the feature is enabled.
      */
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         val declarations = mutableListOf(
-            // reference has length 1.000 and description 4.000, see [fillForm].
+            // reference has length 1.000 and description 4.000.
             MassUpdateFieldDeclaration("location", minLengthOfTextArea = 1001),
             MassUpdateFieldDeclaration("reference", minLengthOfTextArea = 1001),
             MassUpdateFieldDeclaration("description", minLengthOfTextArea = 1001),
@@ -95,8 +92,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             MassUpdateFieldDeclaration("taskAndKost2", custom = true),
         )
         // Only where tags are configured at all - no timesheet is known here, so the current tag of one
-        // cannot be added (see [TimesheetDao.getTags]); an empty list means the field is left out entirely,
-        // exactly as [TimesheetPagesRest.createTagUISelect] returns null.
+        // cannot be added (see [TimesheetDao.getTags]); without any tag the field is left out entirely.
         timesheetDao.getTags(null)?.takeIf { it.isNotEmpty() }?.let { tags ->
             declarations.add(
                 MassUpdateFieldDeclaration(
@@ -119,34 +115,34 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     }
 
     /**
-     * The selection's statistics as pre-rendered markdown for the legacy UILayout form (see [fillForm]): the
-     * same summed duration / AI-savings line the list footer shows, over the selected time sheets.
+     * The selection's statistics as pre-rendered markdown: the same summed duration / AI-savings line the
+     * list footer shows, over the selected time sheets (see [getStatisticsData] for the typed values).
      */
     override fun getStatistics(selectedIds: Collection<Serializable>?): String {
-        return timesheetPagesRest.buildStatisticsMarkdown(buildStatistics(selectedIds))
+        return timesheetEntityRest.buildStatisticsMarkdown(buildStatistics(selectedIds))
     }
 
     /**
      * The selection's statistics as typed values for the hand-built next page, which renders them with the
      * same [org.projectforge.rest.dto.Timesheet] statistics line the list uses (reusing
-     * [TimesheetPagesRest.TimesheetListStatistics] so both pages show the identical line).
+     * [TimesheetEntityRest.TimesheetListStatistics] so both pages show the identical line).
      */
     override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
         return buildStatistics(selectedIds)
     }
 
-    private fun buildStatistics(selectedIds: Collection<Serializable>?): TimesheetPagesRest.TimesheetListStatistics {
+    private fun buildStatistics(selectedIds: Collection<Serializable>?): TimesheetEntityRest.TimesheetListStatistics {
         // Lean four-column projection, not a full select: this runs live on every debounced selection
-        // change, and buildStatistics reads only duration and the AI fields (see TimesheetPagesRest
+        // change, and buildStatistics reads only duration and the AI fields (see TimesheetEntityRest
         // .aggregate, which sums the whole list the same way).
         val ids = selectedIds?.mapNotNull { (it as? Number)?.toLong() }.orEmpty()
-        return timesheetPagesRest.buildStatistics(timesheetDao.selectStatisticsData(ids))
+        return timesheetEntityRest.buildStatistics(timesheetDao.selectStatisticsData(ids))
     }
 
     /**
      * Start values for the hand built next page: the task and cost unit the selected time sheets have in
      * common, so the picker opens on them and a change against them is what the run acts on (see
-     * [sharedTaskAndKost2]). The counterpart of what [fillForm] pre-computes for the legacy form.
+     * [sharedTaskAndKost2]).
      *
      * The cost unit is offered only when it is reachable from the shared task ([TaskTree.getKost2List]);
      * otherwise the client would drop it on load (the picker keeps a value only while the task allows it),
@@ -168,8 +164,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     /**
      * The task and cost unit the given time sheets share, or null where they do not: the task is the
      * deepest common ancestor of all their tasks, the cost unit the one they all book on (none if it
-     * differs). Extracted from [fillForm] so the legacy form and the layout-free [initialParams] compute
-     * the same preset the same way.
+     * differs).
      */
     internal fun sharedTaskAndKost2(timesheets: List<TimesheetDO>?): Pair<Long?, Long?> {
         if (timesheets.isNullOrEmpty()) {
@@ -215,83 +210,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             }
         }
         return taskNode?.id to kost2Id
-    }
-
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        var taskNode: TaskNode? = taskTree.getTaskNodeById(massUpdateData["task"]?.id)
-        var kost2Id: Long? = massUpdateData["kost2"]?.id
-        val timesheets = timesheetDao.select(selectedIds)
-        if (taskNode == null && timesheets != null) {
-            val (sharedTaskId, sharedKost2Id) = sharedTaskAndKost2(timesheets)
-            taskNode = taskTree.getTaskNodeById(sharedTaskId)
-            if (kost2Id == null) {
-                kost2Id = sharedKost2Id
-            }
-        }
-        // The same duration / AI-savings summary the next page and the list footer show, as markdown.
-        layout.add(UIAlert("'${getStatistics(selectedIds)}", color = UIColor.LIGHT, markdown = true))
-
-        kost2Id?.let {
-            ensureMassUpdateParam(massUpdateData, "kost2", "fibu.kost2").id = it
-        }
-        taskNode?.id?.let { taskId ->
-            TaskServicesRest.createTask(taskId)?.let { task ->
-                ensureMassUpdateParam(massUpdateData, "task", "task").id = taskId
-                variables["task"] = if (taskNode.isRootNode) {
-                    // Don't show. If task is null, the React page will not be updated from time to time (workaround)
-                    TaskServicesRest.Task("")
-                } else {
-                    task
-                }
-            }
-        }
-        val myOptions = mutableListOf<UIElement>(
-            UICheckbox(
-                "taskAndKost2.change",
-                label = "update",
-                tooltip = "timesheet.massupdate.updateTask",
-            )
-        )
-        layout.add(
-            createInputFieldRow(
-                "taskAndKost2",
-                UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2.id")),
-                massUpdateData,
-                myOptions = myOptions,
-                displayName = "task"
-            )
-        )
-        timesheetPagesRest.createTagUISelect(id = "tag.textValue")?.let { select ->
-            layout.add(createInputFieldRow("tag", select, massUpdateData, showDeleteOption = true))
-        }
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "location",
-            "reference",
-            "description",
-            minLengthOfTextArea = 1001, // reference has length 1.000 and description 4.000
-        )
-        if (timesheetDao.timeSavingsByAIEnabled) {
-            createAndAddFields(
-                layoutContext,
-                massUpdateData,
-                layout,
-                "timeSavedByAI",
-                "timeSavedByAIUnit",
-                "timeSavedByAIDescription",
-            )
-        }
-        if (Configuration.instance.isCostConfigured) {
-            layout.add(UIAlert(message = "timesheet.massupdate.kost.info", color = UIColor.INFO))
-        }
     }
 
     override fun checkParamHasAction(
@@ -342,8 +260,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
     /**
      * The synthetic taskAndKost2 field is no property of the entity, so the registry has no label for it and
-     * the default would capitalize the field name. Translate it as the task field, exactly as the [fillForm]
-     * path labels its row (`displayName = "task"`).
+     * the default would capitalize the field name. Translate it as task and cost unit.
      */
     override fun getFieldTranslation(field: String): String {
         if (field == "taskAndKost2") {

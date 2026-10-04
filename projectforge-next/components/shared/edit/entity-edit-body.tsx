@@ -408,8 +408,8 @@ export function EntityEditBody<
         showUndelete={Boolean(
           id != null && data && access.deleted && canInsert
         )}
-        // Wherever the entity declares a conversion — the backend adds its switch button to the layout
-        // unconditionally too (TimesheetPagesRest/TeamEventPagesRest.createEditLayout), and it acts on
+        // Wherever the entity declares a conversion — the legacy layouts offered the switch button
+        // unconditionally too, and it acts on
         // the form's values, so it needs no stored entry. A conversion only some entries allow says so
         // through its `visible` predicate (EditConvert.visible).
         showConvert={Boolean(

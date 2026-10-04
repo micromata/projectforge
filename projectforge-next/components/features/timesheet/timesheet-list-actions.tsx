@@ -32,7 +32,7 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
   const [pdfOpen, setPdfOpen] = useState(false);
 
   // The Excel export always answers with a valid file (header row even for an empty result, see
-  // TimesheetPagesRest), so a failure here is a real one — an access refusal — and is reported as such.
+  // TimesheetEntityRest), so a failure here is a real one — an access refusal — and is reported as such.
   const excel = useMutation({
     mutationFn: () => downloadTimesheetExcel(filter),
     onError: (error) =>

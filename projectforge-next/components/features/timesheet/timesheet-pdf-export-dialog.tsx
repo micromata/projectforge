@@ -49,7 +49,7 @@ const COLUMNS: { key: keyof TimesheetPdfExportSettings; labelKey: string }[] = [
 /**
  * Lets the user pick what the timesheet PDF export contains: whether the filter-settings block is printed
  * and which of the optional columns appear. The answer is stored per user by the backend
- * (`TimesheetPagesRest.exportAsPdf`), so it only has to be given once — the dialog prefills from it.
+ * (`TimesheetEntityRest.exportAsPdf`), so it only has to be given once — the dialog prefills from it.
  *
  * Modeled on the order forecast export dialog. Unlike that one the export always returns a valid file even
  * for an empty result (see `TimesheetListPdfExport`), so there is no 404/empty-result contract here.

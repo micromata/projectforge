@@ -70,7 +70,7 @@ export function toFormValues(event: TeamEventDetail): TeamEventEditValues {
  *
  * Deliberately empty of the values that matter: the calendar and the two ends of the period come from
  * `teamEvent/newEntry` — the backend presets the period from the calendar's parameters and the calendar
- * from the one the user clicked in (`TeamEventPagesRest.newBaseDTO` → `onBeforeGetItemAndLayout`).
+ * from the one the user clicked in (`TeamEventEntityRest.newBaseDTO`).
  * Guessing any of them here would mean a form that briefly shows something else than what is being
  * edited.
  */

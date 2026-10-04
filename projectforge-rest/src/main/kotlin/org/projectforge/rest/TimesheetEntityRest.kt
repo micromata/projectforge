@@ -25,36 +25,31 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
-import org.projectforge.favorites.Favorites
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jira.JiraUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalendarServicesRest
-import org.projectforge.rest.calendar.TeamEventPagesRest
+import org.projectforge.rest.calendar.TeamEventEntityRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
@@ -85,9 +80,13 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
+/**
+ * The time sheets, served to the hand built list and edit page of projectforge-next and its calendar (layout
+ * free, see [AbstractDTOEntityRest]). A clone is saved right away ([CloneSupport.AUTOSAVE]).
+ */
 @RestController
 @RequestMapping("${Rest.URL}/timesheet")
-class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, TimesheetDao>(
+class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, TimesheetDao>(
     TimesheetDao::class.java, "timesheet.title",
     cloneSupport = CloneSupport.AUTOSAVE
 ) {
@@ -109,13 +108,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private lateinit var userService: UserService
 
     @Autowired
-    private lateinit var teamEventRest: TeamEventPagesRest
+    private lateinit var teamEventRest: TeamEventEntityRest
 
     @Autowired
     private lateinit var taskTree: TaskTree
-
-    @Autowired
-    private lateinit var timesheetFavoritesService: TimesheetFavoritesService
 
     @Autowired
     private lateinit var timesheetRecentService: TimesheetRecentService
@@ -175,8 +171,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /**
      * Returning a non-null DTO opts the next list into the lean row: [createListRow] then fills only the
      * list's columns via [Timesheet.copyFrom4ListRow] instead of the whole [transformFromDB] DTO (see
-     * [org.projectforge.rest.core.AbstractDTOPagesRest.createListRow]). The React list still gets the full
-     * DTO against the kept [createListLayout], as [postProcessResultSet] keeps its own row shape for it.
+     * [org.projectforge.rest.core.AbstractDTOEntityRest.createListRow]). Any other client gets its own row
+     * shape, see [postProcessResultSet].
      */
     override fun newDTO(): Timesheet {
         return Timesheet()
@@ -204,13 +200,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return timesheetDO
     }
 
-
-    override fun getInitialList(request: HttpServletRequest): InitialListData {
-        val taskId = NumberHelper.parseLong(request.getParameter("taskId")) ?: return super.getInitialList(request)
-        val filter = MagicFilter()
-        filter.entries.add(MagicFilterEntry("task", "$taskId"))
-        return super.getInitialList(request, filter)
-    }
 
     override fun newBaseDTO(request: HttpServletRequest?): Timesheet {
         val sheet = Timesheet()
@@ -259,11 +248,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         sheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
         sheet.timeSavingsByAINote = timeSavingsByAINote()
         sheet.tags = timesheetDao.getTags(sheet.tag)
-        // The hand-built page reaches this preset through newEntry, which — unlike the UILayout edit
-        // endpoint — never runs onGetItemAndLayout. Apply the same start/stop preset here so a timesheet
-        // created from the calendar is snapped, defaulted to firstHour and rolled to the day's last sheet
-        // exactly as before (see presetStartStopTime). Idempotent, so the edit endpoint applying it again
-        // in onGetItemAndLayout does no harm.
+        // A timesheet created from the calendar is snapped, defaulted to firstHour and rolled to the day's
+        // last sheet (see presetStartStopTime).
         request?.let { presetStartStopTime(it, sheet) }
         return sheet
     }
@@ -449,9 +435,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /**
      * The gates of the hand-built next list's optional columns, read by their `visible` callbacks (see
      * `timesheet.page.tsx`): the cost unit only where cost accounting is configured, the AI time-savings
-     * only where the installation tracks it, the tag only where any tag is configured — the same three
-     * conditions the [createListLayout] UILayout guards its columns with, so the two clients cannot
-     * disagree about which columns the list has.
+     * only where the installation tracks it, the tag only where any tag is configured.
      */
     override fun addVariablesForListPage(): Map<String, Any> {
         return mapOf(
@@ -462,142 +446,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        lc.idPrefix = "timesheet."
-        val table = agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            TimesheetMultiSelectedPageRest::class.java,
-            userAccess,
-        )
-            .add(lc, "user")
-        //.add(lc, "kost2.project.customer", lcField = "kost2.projekt.kunde")
-        //.add(lc, "kost2.project", lcField = "kost2.projekt")
-        if (Configuration.instance.isCostConfigured) {
-            table.add(lc, "kost2")
-        }
-        table.add(lc, "task")
-            .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)
-            .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
-            .add("timePeriod", headerName = "timePeriod", width = 140, sortField = "timesheet.startTime")
-            .add("duration", headerName = "timesheet.duration", width = 50, sortField = "durationMillis")
-        if (baseDao.timeSavingsByAIEnabled) {
-            table.add("aiTimeSavings", headerName = "timesheet.ai.timeSavedByAI", width = 50)
-        }
-        table.add(lc, "location", "reference")
-            .withMultiRowSelection(request, magicFilter)
-        if (!baseDao.getTags().isNullOrEmpty()) {
-            table.add(lc, "tag", width = 100)
-        }
-        table.add(lc, "description", width = 1000)
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Timesheet, userAccess: UILayout.UserAccess): UILayout {
-        val dayRange = UICustomized("dayRange")
-        dayRange.add("startDateId", "startTime")
-        dayRange.add("endDateId", "stopTime")
-        dayRange.add("label", translate("timePeriod"))
-        val descriptionArea = UITextArea("description", lc, rows = 5)
-        val referenceField = UIInput(
-            "reference", lc,
-            label = "timesheet.reference",
-            tooltip = "timesheet.reference.info"
-        ).setAutoCompletion("timesheet/acReference?search=:search", mapOf("taskId" to "task.id"))
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(UICustomized("timesheet.edit.templatesAndRecent"))
-            .add(UICustomized("timesheet.edit.taskAndKost2", values = mutableMapOf("id" to "kost2")))
-            .add(lc, "user")
-            .add(dayRange)
-            .add(
-                UIRow()
-                    .add(
-                        UICol(xs = 6)
-                            .add(UICustomized("task.consumption"))
-                    )
-            )
-            .add(UIInput("location", lc).enableAutoCompletion(this))
-        val row = UIRow()
-        layout.add(row)
-        createTagUISelect(dto)?.let { select ->
-            row.add(UICol(md = 6).add(select))
-        }
-        row.add(UICol(md = 6).add(referenceField))
-        layout.add(descriptionArea)
-        if (baseDao.timeSavingsByAIEnabled) {
-            layout.add(
-                UIRow()
-                    .add(UICol(md = 3).add(lc, TimesheetDO::timeSavedByAI))
-                    .add(
-                        UICol(md = 3).add(
-                            UISelect<ScriptParameterType>(
-                                "timeSavedByAIUnit",
-                                required = true,
-                                label = "timesheet.ai.timeSavedByAIUnit",
-                                tooltip = "timesheet.ai.timeSavedByAIUnit.info",
-                            ).buildValues(
-                                TimesheetDO.TimeSavedByAIUnit::class.java
-                            )
-                        )
-                    )
-                    .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
-            )
-        }
-        timeSavingsByAINote()?.let { hint ->
-            layout.layoutBelowActions.add(
-                UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
-            )
-        }
-
-        JiraSupport.createJiraElement(dto.description, descriptionArea)
-            ?.let { layout.add(UIRow().add(UICol().add(it))) }
-        Favorites.addTranslations(layout.translations)
-        layout.addAction(
-            UIButton.createSecondaryButton(
-                id = "switch",
-                title = "plugins.teamcal.switchToTeamEventButton",
-                responseAction = ResponseAction(getRestRootPath("switch2CalendarEvent"), targetType = TargetType.POST)
-            )
-        )
-        layout.addTranslations(
-            "search.search",
-            "fibu.kost2",
-            "fibu.kunde",
-            "fibu.projekt",
-            "timesheet.description",
-            "timesheet.location",
-            "timesheet.reference",
-            "timesheet.recent",
-            "timesheet.tag",
-            "timesheet.templates",
-            "timesheet.templates.migrationOfLegacy.button",
-            "timesheet.templates.migrationOfLegacy.confirmationMessage",
-            "timesheet.templates.migrationOfLegacy.tooltip",
-            "timesheet.templates.new",
-            "timesheet.templates.new.tooltip",
-            "until",
-            "yes", "cancel", // Confirmation message
-        )
-        LayoutUtils.addTranslations4TaskSelection(layout)
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    /**
      * The configured note to show below the edit form, or null when AI time-savings tracking is off or
-     * no note is configured. The single source both the UILayout ([createEditLayout], as a
-     * [UIAlert] in `layoutBelowActions`) and the hand-built page (via [Timesheet.timeSavingsByAINote])
-     * read, so the two can never drift.
+     * no note is configured. Sent to the form via [Timesheet.timeSavingsByAINote].
      */
     private fun timeSavingsByAINote(): String? {
         if (!baseDao.timeSavingsByAIEnabled) {
@@ -668,8 +518,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+     * Turns the posted (unsaved) time sheet into a new calendar event, see
+     * [org.projectforge.rest.calendar.TeamEventEntityRest.cloneFromTimesheet].
      */
     @RequestMapping("switch2CalendarEvent")
     fun switch2CalendarEvent(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Timesheet>)
@@ -677,21 +527,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return teamEventRest.cloneFromTimesheet(request, postData.data)
     }
 
-    override fun getRestEditPath(): String {
-        return "calendar/${super.getRestEditPath()}"
-    }
-
-    @Deprecated("Will be replaced by cloneFromCalendarEvent(request, calendarEvent).")
-    fun cloneFromTeamEvent(request: HttpServletRequest, teamEvent: TeamEvent): ResponseAction {
-        val calendarEvent = TeamEvent(
-            startDate = teamEvent.startDate,
-            endDate = teamEvent.endDate,
-            location = teamEvent.location,
-            subject = teamEvent.subject
-        )
-        return cloneFromCalendarEvent(request, calendarEvent)
-    }
-
+    /**
+     * A new time sheet prepared from a calendar event (the switch from the event's form, see
+     * [org.projectforge.rest.calendar.TeamEventEntityRest.switch2Timesheet]): its period, location and subject
+     * and note as description. Nothing is saved; the prepared sheet travels under `variables.data`, where the
+     * client (`convertEntity` in projectforge-next) reads it.
+     */
     fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: TeamEvent): ResponseAction {
         val timesheet = newBaseDTO(request)
         timesheet.startTime = calendarEvent.startDate
@@ -700,32 +541,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             timesheet.location = calendarEvent.location
         if (!calendarEvent.subject.isNullOrBlank() || !calendarEvent.note.isNullOrBlank())
             timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
-        val editLayoutData = getItemAndLayout(request, timesheet, UILayout.UserAccess(false, true))
-        return ResponseAction(
-            url = "/${Constants.REACT_APP_PATH}calendar/${getRestPath(RestPaths.EDIT)}",
-            targetType = TargetType.UPDATE
-        )
-            .addVariable("data", editLayoutData.data)
-            .addVariable("ui", editLayoutData.ui)
-            .addVariable("serverData", editLayoutData.serverData)
-            .addVariable("variables", editLayoutData.variables)
+        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", timesheet)
     }
 
     /**
-     * Supports request parameters startDate and endDate for creating new time sheet entries.
-     *
-     * Supports different date formats: long number of epoch seconds
-     * or iso date time including any time zone offset.
-     * @see PFDateTimeUtils.parse for supported date formats.
-     */
-    override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
-        presetStartStopTime(request, dto)
-        super.onGetItemAndLayout(request, dto, formLayoutData)
-    }
-
-    /**
-     * Presets [Timesheet.startTime]/[Timesheet.stopTime] from the request parameters `startDate`/`endDate`,
-     * shared by the UILayout edit page ([onGetItemAndLayout]) and the hand-built page's preset ([newBaseDTO]).
+     * Presets [Timesheet.startTime]/[Timesheet.stopTime] of a new entry ([newBaseDTO]) from the request
+     * parameters `startDate`/`endDate`.
      *
      * Both parameters accept an epoch-seconds number or an ISO date-time including any zone offset
      * (see [PFDateTimeUtils.parse]). When both fall on the begin of a day — a length-less sheet dropped
@@ -778,19 +599,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         stopTime?.let {
             dto.stopTime = it.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
         }
-    }
-
-    /**
-     * Puts the task information such as path, consumption etc. as additional variable for the client, because the
-     * origin task of the timesheet is of type TaskDO and doesn't contain such data.
-     */
-    override fun addVariablesForEditPage(dto: Timesheet): MutableMap<String, Any>? {
-        val task = TaskServicesRest.createTask(dto.task?.id) ?: return null
-        return mutableMapOf(
-            "task" to task,
-            "timesheetFavorites" to timesheetFavoritesService.getList(),
-            "hasLegacyFavoritesToMigrate" to timesheetFavoritesService.hasLegacyFavoritesToMigrate(),
-        )
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -1167,20 +975,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             throw AccessException("access.exception.userHasNotRight")
         }
         return mapOf("url" to calendarFeedService.getUrl4Timesheets(id))
-    }
-
-    /**
-     * @param timesheet Only needed, if the tag of the given timesheet should be added to the tag list and is not
-     * configured (after changing configuration of tag list).
-     * @param id Field (id) is "tag" as default.
-     * @return UISelect or null, if no tags exist (neither configured nor given in timesheet).
-     */
-    fun createTagUISelect(timesheet: Timesheet? = null, id: String = "tag"): UISelect<String>? {
-        val tags = timesheetDao.getTags(timesheet?.tag)
-        if (tags.isNullOrEmpty()) {
-            return null
-        }
-        return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
     }
 
     /**

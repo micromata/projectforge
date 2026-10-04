@@ -165,7 +165,7 @@ export async function cloneEntity<D extends object>(
  * and then the very same `saveOrUpdate` a normal save does, so the clone is validated and persisted.
  *
  * Told apart from a clone that fell back to editing by the answer's `targetType`, because both come
- * back as HTTP 200: a save answers with its `REDIRECT` (`onAfterEdit`), while `AbstractPagesRest.clone`
+ * back as HTTP 200: a save answers with its `REDIRECT` (`onAfterEdit`), while `AbstractEntityRest.clone`
  * discards a failed save and re-serves the form as an `UPDATE`. So the caller reads a successful save
  * as `kind: "ok"` with `action.targetType !== "UPDATE"`, and the `UPDATE` — an overlapping time period
  * is the case — as "not saved, left on the form" (see runClone). Same `write` protocol otherwise.
@@ -180,7 +180,7 @@ export function cloneAndSaveEntity<D extends object>(
 
 /**
  * Turns this entity into a *different* one — a time sheet into a calendar event and back
- * (`TimesheetPagesRest.switch2CalendarEvent`, `TeamEventPagesRest.switch2Timesheet`).
+ * (`TimesheetEntityRest.switch2CalendarEvent`, `TeamEventEntityRest.switch2Timesheet`).
  *
  * A sibling of [cloneEntity]: nothing is saved either, the posted form travels unvalidated, and the
  * answer is the prepared new entry. It differs only in what comes back — the target entity, not this

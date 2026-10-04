@@ -8,7 +8,7 @@
  * and `/teamEvent/<id>` (see the `[id]` route), so the translation happens here, on the way to the router.
  *
  * The query is kept in both cases. A new event's `calendar`/`start`/`end` preset the form
- * (`TeamEventPagesRest.newBaseDTO`). An existing event's `startDate`/`endDate` carry the dragged or
+ * (`TeamEventEntityRest.newBaseDTO`). An existing event's `startDate`/`endDate` carry the dragged or
  * resized position and `origStartDate`/`origEndDate` the occurrence that was moved, so the event opens
  * already at its new place; `parseCalendarEditTarget` turns them into the dirtying prefill that lets the
  * move be saved (and, for a series, tells the backend which occurrence a single/future edit acts on).

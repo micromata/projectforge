@@ -97,7 +97,7 @@ export interface TimesheetDetail {
 
 /**
  * The flat list row the live `/next/timesheet` list reads — the shape the backend now ships to the
- * next client (`TimesheetPagesRest.newDTO` + `Timesheet.copyFrom4ListRow`), one field per column of
+ * next client (`TimesheetEntityRest.newDTO` + `Timesheet.copyFrom4ListRow`), one field per column of
  * `timesheet.page.tsx`. Distinct from the nested `Timesheet4ListExport` the classic React list still
  * reads via the kept UILayout.
  */
