@@ -33,10 +33,11 @@ val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
-val jacksonVersion = libs.versions.com.fasterxml.jackson.get()
+val jacksonVersion = libs.versions.com.fasterxml.jackson.asProvider().get()
 val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
 val springSecurityVersion = libs.versions.org.springframework.security.get()
+val springDataVersion = libs.versions.org.springframework.data.get()
 val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
 val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
@@ -92,6 +93,7 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:${libs.versions.org.apache.httpcomponents.core5.get()}")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
 
@@ -100,8 +102,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-json:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:$springBootVersion")
-    implementation("org.springframework.data:spring-data-jpa:$springBootVersion") // springBoot!!!
-    implementation("org.springframework.data:spring-data-commons:$springBootVersion") // springBoot!!!
+    implementation("org.springframework.data:spring-data-jpa:$springDataVersion")
+    implementation("org.springframework.data:spring-data-commons:$springDataVersion")
 
     implementation(libs.org.yaml.snakeyaml)
     implementation(libs.com.zaxxer.hikaricp)

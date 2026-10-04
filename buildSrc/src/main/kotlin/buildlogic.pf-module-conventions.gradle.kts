@@ -50,7 +50,7 @@ configurations.all {
         force("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
         force("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
         force("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-        force("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-annotations:${libs.findVersion("com.fasterxml.jackson.annotations").get().requiredVersion}")
     }
 }
 
