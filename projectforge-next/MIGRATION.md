@@ -295,8 +295,11 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `TOAST`** (`AttachmentWriteResult` = `ok | rejected`). Kein Lese-Endpunkt (steckt im
   Entitäts-DTO). Upload sequenziell (eine Datei/Call). Verschlüsselung nicht portiert.
 - **Mehrfachauswahl/Massenupdate** (`AbstractMultiSelectedPage`, `MultiSelectionSupport`,
-  `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = PagesRest-Klasse,
-  TTL 60 min) → **Sticky Sessions**.
+  `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
+  `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
+  (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
+  `fieldDeclarations()`. `fillForm` und die deprecated UILayout-Endpunkte (`dynamic`, `massUpdate`,
+  `selected`) bedienen nur noch die nicht migrierten Seiten Adresse und AddressCampaignValue.
 - **Excel-Export** generisch: `lib/rs/list-export.ts` (`downloadListExcel`).
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
@@ -440,7 +443,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Legacy-URLs, umgestellt seit der Timesheet-Migration). Bewusst ausgelassen: die
   Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) – die Auswahlfelder bieten die
   Schnellauswahl selbst.
-- **Gruppen** – vierter Fall, obwohl `GroupPagesRest` ein `UILayout` liefert (die
+- **Gruppen** – vierter Fall, obwohl `GroupEntityRest` ein `UILayout` liefert (die
   generische Route rendert nur den Grid-Knoten, ohne Filterzeile/Favoriten/Zahnrad/Excel
   wäre der Schalter ein Rückschritt). LDAP-Feld über das Anzeige-Flag
   `Group.ldapPosixConfigured`, generische Mehrfach-Entity-Auswahl
@@ -510,7 +513,7 @@ gelöscht.
   `projectforge-next/i18n/`, `messages/` (`generated.*` nicht von Hand ändern)
 - **Härtefälle:** Auftragsbuch `AuftragEditForm.kt`, `OrderEntityRest.kt`,
   `rest/dto/Auftrag.kt`; Aufgabenbaum `web/task/*`, `TaskServicesRest.kt`,
-  `TaskPagesRest.kt`, `rest/dto/Task.kt`, `components/shared/tasks/*`,
+  `TaskEntityRest.kt`, `rest/dto/Task.kt`, `components/shared/tasks/*`,
   `components/features/task/*`
 
 ## Stand & nächste Schritte

@@ -44,8 +44,6 @@ import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UISelectValue
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -83,8 +81,8 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
   }
 
   /**
-   * The same fields [fillForm] lays out, for a client (the next frontend) that renders the form itself, plus
-   * the cost 2 types ([KOST2_ARTS], next only): a custom field whose options are all cost 2 types. Its
+   * The fields of the mass update, for the next frontend that renders the form itself, including
+   * the cost 2 types ([KOST2_ARTS]): a custom field whose options are all cost 2 types. Its
    * parameter carries the picked type ids comma separated in `textValue`, with `append` to create/activate
    * their cost 2 units or `delete` to deactivate them (see [proceedMassUpdate]).
    */
@@ -95,25 +93,6 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       MassUpdateFieldDeclaration("salesManager"),
       MassUpdateFieldDeclaration("description", showAppendOption = true, minLengthOfTextArea = 1001),
       MassUpdateFieldDeclaration(KOST2_ARTS, custom = true, values = kost2ArtValues()),
-    )
-  }
-
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    createAndAddFields(
-      layoutContext,
-      massUpdateData,
-      layout,
-      "headOfBusinessManager",
-      "projectManager",
-      "salesManager",
-      "description",
-      minLengthOfTextArea = 1001, // reference has length 1.000 and description 4.000
     )
   }
 

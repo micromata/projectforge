@@ -33,16 +33,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.multiselect.*
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -82,7 +77,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   }
 
   /**
-   * The same fields [fillForm] lays out, for a client (the next frontend) that renders the form itself.
+   * The fields of the mass update, for the next frontend that renders the form itself.
    */
   override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
     return listOf(
@@ -112,53 +107,6 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       stats.add(invoice)
     }
     return IncomingInvoiceEntityRest.InvoiceStatistics(stats)
-  }
-
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    val lc = LayoutContext(EingangsrechnungDO::class.java)
-    val stats = EingangsrechnungsStatistik()
-    eingangsrechnungDao.select(selectedIds)?.forEach { invoice ->
-      stats.add(invoice)
-    }
-    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "kreditor",
-      "receiver",
-      "iban",
-      "bic",
-      "paymentType",
-      "referenz",
-      "bezahlDatum",
-      minLengthOfTextArea = 1001,
-    )
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "bemerkung",
-      showAppendOption = true,
-    )
-    layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
-
-    if (!selectedIds.isNullOrEmpty()) {
-      layout.add(
-        MenuItem(
-          "transferExport",
-          i18nKey = "fibu.rechnung.transferExport",
-          url = "${getRestPath()}/exportTransfers",
-          type = MenuItemTargetType.DOWNLOAD
-        )
-      )
-    }
   }
 
   override fun proceedMassUpdate(

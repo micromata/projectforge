@@ -40,7 +40,6 @@ import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -89,20 +88,6 @@ class ToDoMultiSelectedPageRest : AbstractMultiSelectedPage<ToDoDO>() {
             MassUpdateFieldDeclaration("description"),
             MassUpdateFieldDeclaration("comment", showAppendOption = true),
         )
-    }
-
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        createAndAddFields(layoutContext, massUpdateData, layout, "status", showDeleteOption = false)
-        createAndAddFields(layoutContext, massUpdateData, layout, "priority", "type")
-        createAndAddFields(layoutContext, massUpdateData, layout, "assignee", showDeleteOption = false)
-        createAndAddFields(layoutContext, massUpdateData, layout, "dueDate", "resubmission", "task", "group", "description")
-        createAndAddFields(layoutContext, massUpdateData, layout, "comment", showAppendOption = true)
     }
 
     /** A reference posts its id only, which [MassUpdateParameter.hasAction] doesn't count as value. */

@@ -37,10 +37,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -87,16 +85,6 @@ class GroupAccessMultiSelectedPageRest : AbstractMultiSelectedPage<GroupTaskAcce
         return listOf(
             MassUpdateFieldDeclaration("description", showAppendOption = true),
         )
-    }
-
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        createAndAddFields(layoutContext, massUpdateData, layout, "description", showAppendOption = true)
     }
 
     override fun proceedMassUpdate(
