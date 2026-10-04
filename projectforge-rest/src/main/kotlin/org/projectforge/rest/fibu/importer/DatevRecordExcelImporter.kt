@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
  * Parses the accounting records (Buchungssätze) of the tax office's original DATEV xlsx into the
  * [DatevRecordImportStorage].
  *
- * In contrast to the legacy [org.projectforge.business.fibu.datev.BuchungssatzExcelImporter] the file needn't be
+ * In contrast to the former Wicket import (BuchungssatzExcelImporter, removed) the file needn't be
  * prepared by hand:
  *  - Only sheets named by a month number (e.g. `07`) with the record columns are read; the report sheets of the
  *    tax office (`07_BWA`, `07_SuSa`, `07_USt`, `07_Kontenplan` ...) are ignored. If no such sheet exists, a sheet
@@ -347,7 +347,7 @@ class DatevRecordExcelImporter(
         override val head: String,
         override vararg val aliases: String,
     ) : de.micromata.merlin.excel.ExcelColumnName {
-        // Same heads and aliases as the legacy BuchungssatzExcelImporter.
+        // Same heads and aliases as the former BuchungssatzExcelImporter.
         SATZNR("SatzNr.", "Satz-Nr."),
         BETRAG("Betrag"),
         SH("SH", "S/H"),

@@ -24,10 +24,12 @@
 package org.projectforge.rest.fibu.importer
 
 import mu.KotlinLogging
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
@@ -44,7 +46,7 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * The layout-free DATEV import of accounting records (Buchungssätze), the next sibling of the legacy Wicket
+ * The layout-free DATEV import of accounting records (Buchungssätze), the successor of the removed Wicket
  * page `wa/datevImport`. It reads the tax office's original xlsx unchanged (see [DatevRecordExcelImporter]) and
  * answers the business assessment (BWA) of the importable records as view meta `bwa`, so the preview can be
  * checked against the tax office's BWA sheet before committing.
@@ -68,11 +70,18 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     private lateinit var kostCache: KostCache
 
     @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
     private lateinit var jobHandler: JobHandler
 
     override val fileExtensions = arrayOf("xlsx", "xls")
 
-    override val maxFileUploadSizeMB = 10L // in MB
+    override val maxFileUploadSizeMB = 10L // in MB, unused: see maxFileUploadSizeBytes
+
+    /** Configured by `projectforge.max-file-size.datev` (default `10MB`), shared by both DATEV imports. */
+    override val maxFileUploadSizeBytes: Long
+        get() = DataSizeConfig.init(configurationService.maxFileSizeDatev).toBytes()
 
     override fun checkRight() {
         DatevImportService.checkLoggedinUserRight(accessChecker)

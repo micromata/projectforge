@@ -31,8 +31,8 @@ import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.importer.ImportPairEntry
 
 /**
- * The user's log of the DATEV import, shown by the log viewer ("view log" of the import page, as the legacy Wicket
- * page offers). One subscription serves both tabs (records and chart of accounts); it collects the messages of the
+ * The user's log of the DATEV import, shown by the log viewer ("view log" of the import page, as the former Wicket
+ * page offered). One subscription serves both tabs (records and chart of accounts); it collects the messages of the
  * DATEV import classes of this package (upload, parsing, reconcile and the commit jobs, which keep the user's MDC).
  *
  * The subscription has to exist before the messages are logged, so it is ensured on every request of the import
@@ -40,8 +40,8 @@ import org.projectforge.rest.importer.ImportPairEntry
  */
 internal object DatevImportLog {
     /**
-     * Not the legacy page's title "Datev-Import": the title is the subscription's key per user, and the legacy
-     * subscription only matches the legacy importer's packages.
+     * Not the former Wicket page's title "Datev-Import": the title is the subscription's key per user, and that
+     * subscription only matched the former importer's packages.
      */
     private const val TITLE = "DATEV import (next)"
 

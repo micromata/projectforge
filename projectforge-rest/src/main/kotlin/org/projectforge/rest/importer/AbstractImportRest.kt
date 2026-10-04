@@ -86,6 +86,10 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     /** The maximum accepted upload size in MB. */
     protected abstract val maxFileUploadSizeMB: Long
 
+    /** The maximum accepted upload size in bytes, by default [maxFileUploadSizeMB]. */
+    protected open val maxFileUploadSizeBytes: Long
+        get() = maxFileUploadSizeMB * 1024 * 1024
+
     /**
      * Subclass specific metadata to travel with every [ImportView], e.g. `isPositionBasedImport`. Defaults
      * to none.
@@ -109,7 +113,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             if (file.isEmpty) {
                 return ResponseEntity.badRequest().body(mapOf("error" to translate("file.upload.error.empty")))
             }
-            FileCheck.checkFile(filename, file.size, *fileExtensions, megaBytes = maxFileUploadSizeMB)?.let { error ->
+            FileCheck.checkFile(filename, file.size, *fileExtensions, bytes = maxFileUploadSizeBytes)?.let { error ->
                 return ResponseEntity.badRequest().body(mapOf("error" to error))
             }
             val storage = file.inputStream.use { inputStream ->

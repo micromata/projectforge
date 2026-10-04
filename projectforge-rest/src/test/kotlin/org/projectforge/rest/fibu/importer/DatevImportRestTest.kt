@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
@@ -188,6 +189,7 @@ class DatevImportRestTest {
         setField(rest, "buchungssatzDao", buchungssatzDao)
         setField(rest, "kontoCache", kontoCache)
         setField(rest, "kostCache", kostCache)
+        setField(rest, "configurationService", configurationService())
         setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
         val request = MockHttpServletRequest()
         request.setSession(MockHttpSession())
@@ -238,6 +240,7 @@ class DatevImportRestTest {
         val rest = DatevAccountImportRest()
         setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
         setField(rest, "kontoDao", Mockito.mock(KontoDao::class.java))
+        setField(rest, "configurationService", configurationService())
         setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
         val request = MockHttpServletRequest()
         request.setSession(MockHttpSession())
@@ -373,6 +376,12 @@ class DatevImportRestTest {
             it.bezeichnung = bezeichnung
         }
     }
+
+    /** The upload limit of both DATEV imports, as configured by default (`projectforge.max-file-size.datev`). */
+    private fun configurationService(): ConfigurationService =
+        Mockito.mock(ConfigurationService::class.java).also {
+            Mockito.`when`(it.maxFileSizeDatev).thenReturn("10MB")
+        }
 
     private fun setField(target: Any, name: String, value: Any) {
         val field = target.javaClass.getDeclaredField(name)
