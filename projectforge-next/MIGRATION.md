@@ -427,8 +427,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (gleiche Spalten, gefilterte Liste, `.xlsx`); Knopf über `PageDef.listActions`. Die Wicket-Seiten
   (Kost1, Kost2, Kost2-Arten, `Kost2SelectPanel`) sind entfernt, der Rückweg ist zurückgezogen
   (`offerLegacyLink = false`); `wa/cost1*`, `wa/cost2*`, `wa/cost2Type*` leitet `OrphanedLinkFilter` um.
-- **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite bleibt
-  unter `wa/datevImport` gemountet, aber ohne Link aus next). Zwei Tabs über das gemeinsame
+- **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite gelöscht,
+  `wa/datevImport` leitet per `OrphanedLinkFilter` hierher um; Upload-Grenze
+  `projectforge.max-file-size.datev`, Default 10MB). Zwei Tabs über das gemeinsame
   `ImportFeature` (`DatevRecordImportRest`, `DatevAccountImportRest`), beide nehmen die
   **unveränderte Originaldatei** des Steuerbüros: Buchungssätze nur aus Monatsblättern
   (`07`), Kontenplan aus `07_Kontenplan`, Berichtsblätter (BWA, SuSa, USt …) werden

@@ -3,7 +3,8 @@ import type { ImportColumn } from "@/components/shared/import/import-types";
 /**
  * The preview columns of the DATEV accounting record import. Year/month are the booking batch (the month
  * sheet), the date is the real voucher date — they may differ, which the hint column explains. The amount is
- * signed as stored (debit negative).
+ * signed as stored (debit negative). Accounts and cost units explain themselves on hover: the account's name,
+ * the cost unit's description, customer - project and cost type (as in the former Wicket import).
  */
 export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
   { field: "year", headerKey: "calendar.year", kind: "integer", width: 70 },
@@ -40,6 +41,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
     headerKey: "fibu.buchungssatz.konto",
     kind: "integer",
     diff: true,
+    tooltipField: "kontoInfo",
     width: 90,
   },
   {
@@ -47,6 +49,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
     headerKey: "fibu.buchungssatz.gegenKonto",
     kind: "integer",
     diff: true,
+    tooltipField: "gegenKontoInfo",
     width: 100,
   },
   {
@@ -54,6 +57,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
     headerKey: "fibu.kost1",
     kind: "text",
     diff: true,
+    tooltipField: "kost1Info",
     width: 110,
   },
   {
@@ -61,6 +65,7 @@ export const DATEV_RECORD_IMPORT_COLUMNS: ImportColumn[] = [
     headerKey: "fibu.kost2",
     kind: "text",
     diff: true,
+    tooltipField: "kost2Info",
     width: 110,
   },
   {

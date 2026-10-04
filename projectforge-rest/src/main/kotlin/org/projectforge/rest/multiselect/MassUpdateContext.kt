@@ -69,6 +69,14 @@ abstract class MassUpdateContext<T>(
   }
 
   /**
+   * Counts the object of the running update as modified, although none of its fields changed: called from the
+   * `update` of [commitUpdate] when the update changed something besides the object (a project's cost 2 units).
+   */
+  fun markCurrentModified() {
+    current?.additionalModification = true
+  }
+
+  /**
    * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
    * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
    */

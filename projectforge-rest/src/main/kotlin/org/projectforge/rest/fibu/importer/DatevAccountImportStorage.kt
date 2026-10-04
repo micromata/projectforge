@@ -79,6 +79,7 @@ class DatevAccountImportStorage(
         val byNummer = accounts.mapNotNull { konto -> konto.nummer?.let { it to konto } }.toMap()
         clearEntries()
         readAccounts.forEach { read ->
+            read.kontoInfo = byNummer[read.nummer]?.let { kontoTooltip(it) }
             val stored = byNummer[read.nummer]?.let { konto ->
                 DatevAccountImportDTO(
                     nummer = konto.nummer,
@@ -96,5 +97,14 @@ class DatevAccountImportStorage(
             lastReconcileSummary = summary
             log.info { "Reconciled ${pairEntries.size} accounts of file '$filename' with the database: $summary." }
         }
+    }
+
+    companion object {
+        /** The stored account's name and remark, one line each; null if neither is given. */
+        internal fun kontoTooltip(konto: KontoDO): String? =
+            listOfNotNull(konto.bezeichnung, konto.description)
+                .filter { it.isNotBlank() }
+                .joinToString("\n")
+                .ifBlank { null }
     }
 }

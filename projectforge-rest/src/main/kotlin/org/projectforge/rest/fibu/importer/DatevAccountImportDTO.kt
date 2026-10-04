@@ -34,6 +34,11 @@ import kotlin.reflect.KProperty
 class DatevAccountImportDTO(
     var nummer: Int? = null,
     var bezeichnung: String? = null,
+    /**
+     * Preview tooltip of [nummer]: the stored account's name and remark, set on upload and refreshed during
+     * reconcile; null for a new account. Not part of the diff.
+     */
+    var kontoInfo: String? = null,
     /** The id of the matching database account, set during reconcile; null for a new account. */
     var id: Long? = null,
 ) : ImportPairEntry.Modified<DatevAccountImportDTO> {

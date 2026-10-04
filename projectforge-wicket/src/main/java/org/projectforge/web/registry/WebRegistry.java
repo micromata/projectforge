@@ -273,7 +273,6 @@ public class WebRegistry
     addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     // The system configuration has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
-    addMountPage("datevImport", DatevImportPage.class);
     addMountPage("error", ErrorPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.

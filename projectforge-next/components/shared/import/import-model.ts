@@ -90,6 +90,19 @@ export function diffOf(entry: ImportEntry, column: ImportColumn): DiffValues {
   return { current, old, hasDiff };
 }
 
+/** The cell's tooltip text from `entry.read.<tooltipField>`, if the column declares one and it is set. */
+export function tooltipOf(
+  entry: ImportEntry,
+  column: ImportColumn
+): string | undefined {
+  if (!column.tooltipField) return undefined;
+  const value = getByPath(
+    entry.read as DataObject | undefined,
+    column.tooltipField
+  );
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
 /**
  * Whether a column kind is a number — the amounts, counts, years and months. Those read right-aligned and
  * `tabular-nums` in the preview, so digits line up column-wise as they do in the invoice lists.

@@ -1,7 +1,9 @@
+import { createElement } from "react";
 import { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { ProjectCustomerField } from "./project-customer-field";
 import { ProjectKontoField } from "./project-konto-field";
+import { ProjectKost2ArtsCell } from "./project-kost2-arts-cell";
 import { ProjectKost2TypesField } from "./project-kost2-types-field";
 import { ProjectNumberField } from "./project-number-field";
 import {
@@ -104,18 +106,20 @@ export const PROJECT_PAGE = definePage<
     },
     { name: "description", size: 300, wrap: true },
     // The two-digit ids of the project's cost 2 types, collected from the cost cache per row
-    // (ProjectEntityRest.createListRow) — no property to order by.
+    // (ProjectEntityRest.createListRow) — no property to order by. The cell strikes a non-active one through
+    // and lists all with their names as its tooltip (ProjectKost2ArtsCell).
     {
       id: "kost2ArtsAsString",
       labelKey: "fibu.kost2art.kost2arten",
       accessor: (row) => row.kost2ArtsAsString ?? "",
       size: 160,
       sortable: false,
-      className: "font-mono text-muted-foreground",
+      cell: ({ row }) =>
+        createElement(ProjectKost2ArtsCell, { arts: row.original.kost2Arts }),
     },
   ],
-  // Mass update of a selection: the managers and the description (ProjectMultiSelectedPageRest,
-  // /projectSelected).
+  // Mass update of a selection: the managers, the description and the cost 2 types
+  // (ProjectMultiSelectedPageRest, /projectSelected).
   massUpdate: {
     endpoint: "projectSelected",
     route: "/project/mass-update",

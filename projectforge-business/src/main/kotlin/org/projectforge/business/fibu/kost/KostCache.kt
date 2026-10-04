@@ -314,6 +314,44 @@ class KostCache : AbstractCache() {
         }
     }
 
+    /**
+     * The ids of the projects with an active cost 2 unit ([isActive], not deleted) of any of the given types —
+     * the project list's "active cost 2 types" filter.
+     */
+    fun getProjektIdsWithActiveKost2Arts(kost2ArtIds: Collection<Long>): Set<Long> {
+        if (kost2ArtIds.isEmpty()) {
+            return emptySet()
+        }
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values
+                .filter { !it.deleted && isActive(it) && it.kost2Art?.id in kost2ArtIds }
+                .mapNotNull { it.projekt?.id }
+                .toSet()
+        }
+    }
+
+    /**
+     * The ids of the projects with an active cost 2 unit ([isActive], not deleted) of *every* given type — the
+     * complement of the project list's "non-active or missing cost 2 types" filter.
+     */
+    fun getProjektIdsWithAllActiveKost2Arts(kost2ArtIds: Collection<Long>): Set<Long> {
+        if (kost2ArtIds.isEmpty()) {
+            return emptySet()
+        }
+        val required = kost2ArtIds.toSet()
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values
+                .filter { !it.deleted && isActive(it) && it.kost2Art?.id in required }
+                .groupBy({ it.projekt?.id }, { it.kost2Art!!.id!! })
+                .filter { (projektId, artIds) -> projektId != null && artIds.toSet().containsAll(required) }
+                .keys
+                .filterNotNull()
+                .toSet()
+        }
+    }
+
     val cloneOfAllKost2Arts: List<Kost2Art>
         get() {
             checkRefresh()
@@ -388,6 +426,13 @@ class KostCache : AbstractCache() {
     companion object {
         lateinit var instance: KostCache
             private set
+
+        /**
+         * Whether a cost 2 unit is active by its own status (null counts as active), not the effective one: an
+         * ended project ends all its units anyway. Deleted or not is up to the caller.
+         */
+        fun isActive(kost2: Kost2DO): Boolean =
+            kost2.kostentraegerStatus == null || kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE
 
         internal fun setForTestCases() {
             instance = KostCache()

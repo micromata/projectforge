@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
  * Parses the chart of accounts (Kontenplan) of the tax office's original DATEV xlsx into the
  * [DatevAccountImportStorage].
  *
- * The legacy [org.projectforge.business.fibu.datev.KontenplanExcelImporter] only finds a sheet named exactly
+ * The former Wicket import (KontenplanExcelImporter, removed) only found a sheet named exactly
  * `Kontenplan`, but the tax office names it by month (`07_Kontenplan`). Here the sheet is found by its name
  * (`Kontenplan`, optionally prefixed by the month number). Only if there is no such sheet, a sheet with the
  * columns Konto and Beschriftung/Bezeichnung but without balance columns is used: the balance list (`07_SuSa`)
@@ -49,7 +49,7 @@ private val log = KotlinLogging.logger {}
  */
 class DatevAccountExcelImporter {
     private enum class Cols(override val head: String, override vararg val aliases: String) : ExcelColumnName {
-        // Same heads and aliases as the legacy KontenplanExcelImporter.
+        // Same heads and aliases as the former KontenplanExcelImporter.
         KONTO("Konto", "Konto von"),
         BEZEICHNUNG("Bezeichnung", "Beschriftung"),
         // Only registered for excluding balance sheets (SuSa) in the fallback detection.

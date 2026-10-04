@@ -1327,6 +1327,16 @@
         "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
+      "filter": {
+        "kost2ArtsActive": {
+          "_": "Active cost 2 types",
+          "tooltip": "Projects with at least one of the selected cost 2 types active."
+        },
+        "kost2ArtsNotActive": {
+          "_": "Non-active/missing cost 2 types",
+          "tooltip": "Projects with at least one of the selected cost 2 types non-active or missing."
+        }
+      },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",
       "konto": {
@@ -1336,6 +1346,16 @@
       "list": {
         "select": {
           "title": "Select project"
+        }
+      },
+      "massUpdate": {
+        "kost2Arts": {
+          "activate": "Create/activate",
+          "confirm": {
+            "activate": "{arg0}: \"{arg1}\" will be created or activated",
+            "deactivate": "{arg0}: \"{arg1}\" will be deactivated (where active in the project)"
+          },
+          "deactivate": "Deactivate"
         }
       },
       "multiselected": {

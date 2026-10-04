@@ -71,7 +71,10 @@ export interface ProjectDetail {
   bereich?: number | null;
   /** The internal range ("4.xxx") of a project without customer. */
   internKost2_4?: number | null;
-  /** All cost 2 types — filled for the edit form only, not for a list row. */
+  /**
+   * All cost 2 types for the edit form; in a list row only the project's existing ones, with `active`
+   * (struck through when not, see ProjectKost2ArtsCell).
+   */
   kost2Arts?: Kost2ArtSelection[] | null;
   /** The formatted number ("5.123.04"). Read-only. */
   kostFormatted?: string | null;
