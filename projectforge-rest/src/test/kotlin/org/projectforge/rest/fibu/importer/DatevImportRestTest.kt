@@ -145,6 +145,8 @@ class DatevImportRestTest {
         assertEquals(4400, july.konto)
         assertEquals(1L, july.kontoId)
         assertEquals(1200, july.gegenKonto)
+        assertEquals("Erlöse", july.kontoInfo, "Account tooltip: its name.")
+        assertEquals("Bank", july.gegenKontoInfo)
         assertEquals("1.400.01.00", july.kost1)
         assertEquals("5.000.01.01", july.kost2)
         assertEquals("Rechnung 4711", july.text)
@@ -244,13 +246,17 @@ class DatevImportRestTest {
         val rest = DatevAccountImportRest()
         setField(rest, "accessChecker", Mockito.mock(AccessChecker::class.java))
         setField(rest, "kontoDao", Mockito.mock(KontoDao::class.java))
+        setField(rest, "kontoCache", kontoCache)
         setField(rest, "configurationService", configurationService())
         setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
         val request = MockHttpServletRequest()
         request.setSession(MockHttpSession())
 
         val file = MockMultipartFile("file", FILENAME, XLSX_CONTENT_TYPE, buildXlsx())
-        assertEquals(HttpStatus.OK, rest.upload(request, file).statusCode)
+        val upload = rest.upload(request, file)
+        assertEquals(HttpStatus.OK, upload.statusCode)
+        val uploaded = (upload.body as ImportView<*>).entries.map { it.read as DatevAccountImportDTO }
+        assertEquals("Erlöse", uploaded.first { it.nummer == 4400 }.kontoInfo, "Tooltip already before reconcile.")
         val reconcileView = rest.reconcile(request, ImportStorage.DisplayOptions()).body as ImportView<*>
         assertEquals(2, reconcileView.entries.size)
         assertTrue(reconcileView.entries.all { it.status == ImportEntry.Status.NEW })
@@ -266,6 +272,17 @@ class DatevImportRestTest {
         assertThrows(IllegalArgumentException::class.java) {
             DatevAccountExcelImporter().parse(buildXlsx(withKontenplan = false).inputStream(), storage)
         }
+    }
+
+    @Test
+    fun `account number tooltip shows the stored account, a new account has none`() {
+        val stored = konto(1L, 4400, "Erlöse").also { it.description = "Nur Inland" }
+        val storage = DatevAccountImportStorage { listOf(stored) }
+        storage.commitEntity(DatevAccountImportDTO(nummer = 4400, bezeichnung = "Erlöse 19 %"))
+        storage.commitEntity(DatevAccountImportDTO(nummer = 4401, bezeichnung = "Neu"))
+        storage.reconcileImportStorage()
+        assertEquals("Erlöse\nNur Inland", storage.readAccounts.first { it.nummer == 4400 }.kontoInfo)
+        assertNull(storage.readAccounts.first { it.nummer == 4401 }.kontoInfo)
     }
 
     @Test

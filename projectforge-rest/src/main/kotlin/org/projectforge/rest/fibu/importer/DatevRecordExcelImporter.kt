@@ -71,8 +71,8 @@ private val log = KotlinLogging.logger {}
  * text (`dd.MM.yyyy`), cost units may be numeric or text.
  *
  * Accounts and cost units are resolved via the given lookups (memoized per distinct value); an unresolvable one
- * makes the record FAULTY, as in the legacy import. A resolved cost unit also gets its tooltip text for the
- * preview ([describeKost2], see [kost2Tooltip]).
+ * makes the record FAULTY, as in the legacy import. A resolved account or cost unit also gets its tooltip text for
+ * the preview (account name, cost unit description; [describeKost2], see [kost2Tooltip]).
  *
  * @author Kai Reinhard
  */
@@ -311,7 +311,9 @@ class DatevRecordExcelImporter(
             dto.addError(translateMsg("fibu.datev.import.error.kost2NotFound", raw.kost2 ?: ""))
         }
         dto.kontoId = konto?.id
+        dto.kontoInfo = konto?.bezeichnung?.takeIf { it.isNotBlank() }
         dto.gegenKontoId = gegenKonto?.id
+        dto.gegenKontoInfo = gegenKonto?.bezeichnung?.takeIf { it.isNotBlank() }
         dto.kost1Id = kost1?.id
         dto.kost1 = kost1?.let { formatKost1(it) } ?: raw.kost1
         dto.kost1Info = kost1?.description?.takeIf { it.isNotBlank() }

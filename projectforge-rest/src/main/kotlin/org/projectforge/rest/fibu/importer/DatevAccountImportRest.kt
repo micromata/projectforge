@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu.importer
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.common.DataSizeConfig
@@ -55,6 +56,9 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
+    private lateinit var kontoCache: KontoCache
+
+    @Autowired
     private lateinit var kontoDao: KontoDao
 
     @Autowired
@@ -82,6 +86,10 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
         val storage = DatevAccountImportStorage()
         storage.filename = filename
         DatevAccountExcelImporter().parse(inputStream, storage)
+        // The tooltips are there right after the upload, as in the record preview; reconcile refreshes them.
+        storage.readAccounts.forEach { dto ->
+            dto.kontoInfo = kontoCache.findKontoByNumber(dto.nummer)?.let { DatevAccountImportStorage.kontoTooltip(it) }
+        }
         return storage
     }
 

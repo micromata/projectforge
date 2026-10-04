@@ -56,8 +56,12 @@ class DatevRecordImportDTO(
     var sh: String? = null,
     var konto: Int? = null,
     var kontoId: Long? = null,
+    /** Preview tooltip of [konto]: its name. Not part of the diff. */
+    var kontoInfo: String? = null,
     var gegenKonto: Int? = null,
     var gegenKontoId: Long? = null,
+    /** Preview tooltip of [gegenKonto]: its name. Not part of the diff. */
+    var gegenKontoInfo: String? = null,
     /** Formatted cost unit 1 (#.###.##.##). */
     var kost1: String? = null,
     var kost1Id: Long? = null,
