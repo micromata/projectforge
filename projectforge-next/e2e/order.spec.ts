@@ -625,14 +625,15 @@ async function pickFirst(
   }
   // The list of hits is replaced once more when the debounced query settles, so the first option read
   // here may be detached by the time it is clicked. Addressed by its own text, and retried, so the
-  // click lands on whatever list is current.
+  // click lands on whatever list is current. The click needs a short timeout of its own: an option
+  // read off a stale list never comes back, and without one the click waited out the whole retry.
   let text = "";
   await expect(async () => {
     text = (await options.first().innerText()).trim();
     await popover
       .getByRole("option", { name: text, exact: true })
       .first()
-      .click();
+      .click({ timeout: 2_000 });
   }).toPass({ timeout: 20_000 });
   return text;
 }
