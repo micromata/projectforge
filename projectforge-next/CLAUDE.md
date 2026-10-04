@@ -177,6 +177,14 @@ entity, `finance-user` for the finance rights without the admin group. Not every
   dev server. The build check is skipped and the timeouts are raised (it compiles routes mid-run, so a full
   run there is slower and flakier). For a direct `npx playwright test`, set `E2E_BASE_URL=http://localhost:<n>`
   and, for a port other than 3000, `E2E_DEV_SERVER=1`.
+- **One instance per worktree (slots).** `bin/pfDev.sh <cmd> <slot>` with a slot 1–9 runs a whole stack beside
+  the main one: `setup 1` (once) creates its home `~/ProjectForge-1` from the main `projectforge.properties`
+  (own HSQLDB, mails off); `run 1` → Spring on :8081 with session cookie `JSESSIONID_1`, whose first start
+  fills the database with test data (the E2E accounts follow) and prints the admin login; `dev 1` → next dev on
+  :3001 proxying to :8081 (`PF_BACKEND_URL`); `e2e 1 …` / `e2e 1 --dev …` test against it with the slot's
+  `testAccounts.txt`; `reset 1` deletes the home. Without a slot it is the main instance (:8080/:3000,
+  `~/ProjectForge`, its configured database), unchanged. A slot runs on HSQLDB with test data — bugs that need
+  real data or Postgres stay with the main instance.
 - Each role is logged in **once per run** and its session cookie reused (`e2e/fixtures/session.ts`).
   `login(page, role, path?)` hands it to a test; `loggedInPage` starts on a blank page, so navigate first.
   Only login.spec.ts uses the form (`loginViaForm`).

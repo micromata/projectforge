@@ -1,7 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import type { UserFormat } from "./format";
 import { listRows } from "./list-table";
-import { DEFAULT_PAGE_SIZE } from "../../components/data-table/page-size-options";
 
 /**
  * The moves every structure-tree spec makes: put the account's tree state back to a known one, and
@@ -61,8 +60,8 @@ export async function resetTreeState(
  * Narrows the tree to the seeded task and answers its row together with the number of rows left.
  *
  * Necessary, not merely tidy: the tasks of every run stay in the database (see ./seed.ts), so the
- * root's children outgrow a page of the table, and the newest of them — this run's — lands on the last
- * one. A search asks the backend for the matching subtrees, which brings the row onto page one.
+ * root's children grow into a long list, and the newest of them — this run's — lands at its end. A
+ * search asks the backend for the matching subtrees only, which leaves a handful of rows.
  *
  * The count comes from here rather than from the caller, and only after the *filtered* answer has
  * arrived: the search is debounced, so for a while the table still shows the unfiltered page — a count
@@ -98,9 +97,9 @@ export async function narrowToSeeded(
   };
   const rows = listRows(page);
   // The answer says how many rows the table will have, so waiting for that number is waiting for the
-  // rendering of *this* answer rather than for an arbitrary moment of quiet. Capped at a page, since
-  // a wider result would be paginated — the seeded subtree is far below one page.
-  await expect(rows).toHaveCount(Math.min(nodes.length, DEFAULT_PAGE_SIZE), {
+  // rendering of *this* answer rather than for an arbitrary moment of quiet. All of them: the tree is
+  // never paged (see TaskTreeTable), so every node of the answer is a row.
+  await expect(rows).toHaveCount(nodes.length, {
     timeout: 20_000,
   });
   const row = rows.filter({ hasText: title }).first();

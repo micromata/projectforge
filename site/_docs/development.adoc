@@ -680,6 +680,59 @@ CREATE DATABASE pf2;
 GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
 ```
 
+=== Several instances side by side (`bin/pfDev.sh`)
+
+`bin/pfDev.sh` builds and starts the backend, the Next.js dev server and the e2e tests from any working
+directory (`bin/pfDev.sh help` lists all commands). A _slot_ number (1–9) as the first argument after the
+command runs a complete, independent stack beside the main instance, e.g. one per git worktree or branch:
+
+|===
+|Slot |Spring |`next dev` |Home dir |Database |Session cookie
+
+|none (main instance) |8080 |3000 |`~/ProjectForge` (or `$PROJECTFORGE_HOME`) |as configured there |`JSESSIONID`
+|_n_ |8080+_n_ |3000+_n_ |`~/ProjectForge-n` |own HSQLDB with test data |`JSESSIONID_n`
+|===
+
+Main instance, unchanged:
+```
+bin/pfDev.sh run            # build, then Spring on :8080
+bin/pfDev.sh dev            # next dev on :3000, proxying to :8080
+bin/pfDev.sh dev -p 3005    # next dev on :3005, proxying to :8080
+bin/pfDev.sh e2e            # e2e tests against :8080 (--dev: against the dev server on :3000)
+```
+
+A slot instance, e.g. slot 1:
+```
+bin/pfDev.sh setup 1        # once: creates ~/ProjectForge-1 (optional 2nd arg: admin password)
+bin/pfDev.sh run 1          # Spring on :8081; the first start fills the database with test data
+                            # and prints the admin login
+bin/pfDev.sh dev 1          # next dev on :3001, proxying to :8081
+bin/pfDev.sh e2e 1 login    # e2e tests against :8081 (--dev: against :3001)
+bin/pfDev.sh reset 1        # deletes ~/ProjectForge-1 (asks first), then `setup 1` again
+```
+
+Notes:
+
+* `setup` copies `projectforge.properties`, `config.xml`, `resources` and `styles` from the main home dir and
+  appends a block that switches to an own HSQLDB in `~/ProjectForge-n/database` and turns off sending mails
+  and the gateway push. Database, search index and JCR of the main instance are not copied.
+* Port, domain, base dir and cookie name are passed by `pfDev.sh` as system properties, so the main
+  instance's settings stay untouched. A slot start doesn't change the remembered default home dir either.
+* The cookie name differs per slot because browsers keep cookies per host, not per port: with the same name,
+  a login on :8081 would end the session on :8080.
+* The test accounts (`testAccounts.txt`, see `projectforge-next/CLAUDE.md`) are written into the slot's home
+  dir; `pfDev.sh e2e n` reads them from there.
+* A slot runs on HSQLDB with test data. Bugs that need real data or PostgreSQL stay with the main instance.
+* Gradle rebuilds the jar of its own checkout, which breaks a `bootRun` running from that checkout -- one
+  slot per worktree avoids that.
+
+Without `pfDev.sh`, `npm run dev` (in `projectforge-next/`) takes the port via `-p` and the backend via
+`PF_BACKEND_URL` (default `http://localhost:8080`, the main instance):
+```
+npm run dev -- -p 3005                                        # :3005 against the main instance
+PF_BACKEND_URL=http://localhost:8081 npm run dev -- -p 3001   # :3001 against slot 1
+```
+
 === Knowledge graph (graphify)
 
 Optional developer tooling: graphify builds a local knowledge graph of the code base in `graphify-out/`,

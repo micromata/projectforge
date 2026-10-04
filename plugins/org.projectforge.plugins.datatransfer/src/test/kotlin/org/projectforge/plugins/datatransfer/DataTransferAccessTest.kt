@@ -31,7 +31,7 @@ import org.mockito.Mockito
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferFilesRest
 import org.springframework.beans.factory.annotation.Autowired
 
 
@@ -40,7 +40,7 @@ class DataTransferAccessTest : AbstractTestBase() {
     private lateinit var testService: DataTransferTestService
 
     @Autowired
-    private lateinit var dataTransferPageRest: DataTransferPageRest
+    private lateinit var dataTransferFilesRest: DataTransferFilesRest
 
     private lateinit var testUser1: PFUserDO
     private lateinit var testUser2: PFUserDO
@@ -148,7 +148,7 @@ class DataTransferAccessTest : AbstractTestBase() {
                 "Download file NOT expected, but file with access found: ${file.fileName}."
             )
         }
-        // dataTransferPageRest.downloadAll(dataTransferAreaDO.id!!, response)
+        // dataTransferFilesRest.downloadAll(dataTransferAreaDO.id!!, response)
 
     }
 
@@ -156,7 +156,7 @@ class DataTransferAccessTest : AbstractTestBase() {
         val response = Mockito.mock(HttpServletResponse::class.java)
         val servletOutputStream = DataTransferTestService.MyServletOutputStream()
         Mockito.`when`(response.outputStream).thenReturn(servletOutputStream)
-        dataTransferPageRest.downloadAll(dataTransferAreaDO.id!!, response)
+        dataTransferFilesRest.downloadAll(dataTransferAreaDO.id!!, response)
         val files = DataTransferTestService.checkZipArchive(servletOutputStream.byteArray)
         Assertions.assertEquals(expectedFiles.size, files.size)
         expectedFiles.forEach {

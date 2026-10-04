@@ -1,10 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, TickDouble01Icon } from "@hugeicons/core-free-icons";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/shared/copy-button";
 import { zipModeMessageKey, type Attachment } from "@/lib/rs/attachments";
 
 interface Props {
@@ -63,15 +60,6 @@ function Field({
   value?: string | null;
   copyable?: boolean;
 }) {
-  const t = useTranslations();
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    if (!value) return;
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-  }
-
   return (
     <div className="min-w-0">
       <dt className="text-[11px] text-muted-foreground">{label}</dt>
@@ -80,19 +68,13 @@ function Field({
             as a missing field rather than a missing value. */}
         <span className="min-w-0 flex-1 break-all text-xs">{value || "–"}</span>
         {copyable && value && (
-          <Button
-            type="button"
+          <CopyButton
+            value={value}
+            label={label}
             variant="ghost"
-            size="icon"
-            className="size-6 shrink-0 text-muted-foreground"
-            aria-label={`${t("copy")}: ${label}`}
-            onClick={() => void copy()}
-          >
-            <HugeiconsIcon
-              icon={copied ? TickDouble01Icon : Copy01Icon}
-              size={12}
-            />
-          </Button>
+            className="size-6 text-muted-foreground"
+            iconSize={12}
+          />
         )}
       </dd>
     </div>

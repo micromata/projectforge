@@ -84,6 +84,12 @@ export interface Attachment {
   /** True if the user may neither rename nor delete this attachment. */
   readonly?: boolean | null;
   /**
+   * Extra values an entity's backend attaches per file. Only `expiryInfo` is read here: the data
+   * transfer areas put the time left until the file is deleted automatically, already translated
+   * ("expires in 5 days"), into it (`DataTransferAttachmentsActionListener`).
+   */
+  info?: { expiryInfo?: string | null } | null;
+  /**
    * Client side only, never sent: this file's description is not the user's to type — it marks the role
    * the file plays for its entity (the invoice PDF's `__INVOICE_PDF__`). So the row offers no rename,
    * which would replace the marker with whatever is displayed in its place, but deletes like any other

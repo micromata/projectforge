@@ -24,12 +24,18 @@
 package org.projectforge.gateway
 
 import jakarta.servlet.FilterChain
+import jakarta.servlet.ReadListener
+import jakarta.servlet.ServletInputStream
+import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
+import java.io.ByteArrayInputStream
 
 @ExtendWith(MockitoExtension::class)
 class GatewayEndpointFilterTest {
@@ -62,29 +68,60 @@ class GatewayEndpointFilterTest {
     }
 
     @Test
-    fun allowsDataTransferReactUi() {
-        assertAllowed("/react/datatransfer")
-        assertAllowed("/react/datatransferfiles/dynamic/42")
-        assertAllowed("/react/datatransferpersonalfiles/dynamic")
-        assertAllowed("/react-app.html")
-        assertAllowed("/assets/index-abc123.js")
-        assertAllowed("/manifest.json")
+    fun allowsDataTransferNextUi() {
+        assertAllowed("/next/datatransfer")
+        assertAllowed("/next/datatransfer/")
+        assertAllowed("/next/datatransfer/index.txt")
+        assertAllowed("/next/datatransfer/42/")
+        assertAllowed("/next/datatransfer/new/edit/index.txt")
+        assertAllowed("/next/datatransfer/personal-box/")
+        assertAllowed("/next/_next/static/chunks/main.js")
+        assertAllowed("/next/_next/static/media/font.woff2")
+        assertAllowed("/next/favicon.ico")
+        assertAllowed("/next/")
     }
 
     @Test
-    fun allowsRestServicesOfReactUi() {
+    fun allowsRestServicesOfNextUi() {
         assertAllowed("/rs/userStatus")
         assertAllowed("/rs/menu")
+        assertAllowed("/rs/menu/recent")
         assertAllowed("/rs/logout")
+        assertAllowed("/rs/uiSettings/theme")
+        assertAllowed("/rsPublic/systemStatus")
+        assertAllowed("/rsPublic/i18nCustomerOverrides")
         assertAllowed("/rs/user/autosearch")
         assertAllowed("/rs/group/autosearch")
-        assertAllowed("/rs/datatransferfiles/dynamic")
-        assertAllowed("/rs/datatransferaudit/dynamic")
+        assertAllowed("/rs/datatransfer/listMeta")
+        assertAllowed("/rs/datatransferfiles/42")
+        assertAllowed("/rs/datatransferaudit/42")
+        assertAllowed("/rs/datatransferpersonalfiles/box")
+    }
+
+    @Test
+    fun allowsDataTransferAttachmentsOnly() {
+        assertAllowed("/rs/attachments/upload/datatransfer/42/attachments")
+        assertAllowed("/rs/attachments/download/datatransfer/42")
+        assertAllowed("/rs/attachments/multiDownload/datatransfer/42")
+        assertBlocked("/rs/attachments/upload/book/42/attachments")
+        assertBlocked("/rs/attachments/download/contract/42")
+        assertBlocked("/rs/attachments/multiDownload/datatransferx/42")
+    }
+
+    @Test
+    fun checksCategoryInBodyOfAttachmentCalls() {
+        for (url in GatewayEndpointFilter.BODY_CATEGORY_URLS) {
+            assertAllowedWithBody(url, """{"data":{"category":"datatransfer","id":42,"fileId":"abc"}}""")
+            assertBlocked(url, """{"data":{"category":"book","id":42,"fileId":"abc"}}""")
+            assertBlocked(url, """{"data":{"id":42}}""")
+            assertBlocked(url, "no json")
+        }
     }
 
     @Test
     fun allowsLoginAndErrorPage() {
         assertAllowed("/next/login")
+        assertAllowed("/next/login/")
         assertAllowed("/error")
     }
 
@@ -93,6 +130,10 @@ class GatewayEndpointFilterTest {
         assertBlocked("/react/address")
         assertBlocked("/react/user/edit/1")
         assertBlocked("/next/address")
+        assertBlocked("/next/address/index.txt")
+        assertBlocked("/next/index.txt")
+        assertBlocked("/react/datatransfer")
+        assertBlocked("/react-app.html")
     }
 
     @Test
@@ -157,15 +198,43 @@ class GatewayEndpointFilterTest {
         verify(response, never()).sendError(anyInt())
     }
 
-    private fun assertBlocked(path: String) {
-        val request = mock(HttpServletRequest::class.java)
+    private fun assertAllowedWithBody(path: String, body: String) {
+        val request = mockRequest(path, body)
         val response = mock(HttpServletResponse::class.java)
         val chain = mock(FilterChain::class.java)
-        `when`(request.requestURI).thenReturn(path)
 
         filter.doFilter(request, response, chain)
 
-        verify(chain, never()).doFilter(request, response)
+        // The body was consumed by the filter, so the controller gets it again from a wrapper.
+        val captor = ArgumentCaptor.forClass(ServletRequest::class.java)
+        verify(chain).doFilter(captor.capture(), eq(response))
+        assertEquals(body, String(captor.value.inputStream.readAllBytes()))
+        verify(response, never()).sendError(anyInt())
+    }
+
+    private fun assertBlocked(path: String, body: String? = null) {
+        val request = mockRequest(path, body)
+        val response = mock(HttpServletResponse::class.java)
+        val chain = mock(FilterChain::class.java)
+
+        filter.doFilter(request, response, chain)
+
+        verify(chain, never()).doFilter(any(), any())
         verify(response).sendError(HttpServletResponse.SC_NOT_FOUND)
+    }
+
+    private fun mockRequest(path: String, body: String?): HttpServletRequest {
+        val request = mock(HttpServletRequest::class.java)
+        `when`(request.requestURI).thenReturn(path)
+        if (body != null) {
+            val input = ByteArrayInputStream(body.toByteArray())
+            `when`(request.inputStream).thenReturn(object : ServletInputStream() {
+                override fun read(): Int = input.read()
+                override fun isFinished(): Boolean = input.available() == 0
+                override fun isReady(): Boolean = true
+                override fun setReadListener(listener: ReadListener?) {}
+            })
+        }
+        return request
     }
 }

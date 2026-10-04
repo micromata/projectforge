@@ -12,6 +12,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Language
 - Write all code comments, KDoc/JavaDoc, commit messages and documentation in English
+- German UI texts (`*_de.properties`, `messages/de.json`, mails) never use the formal "Sie". Where it fits,
+  phrase them without direct address ("Hier kann dies und das gemacht werden" rather than "Hier kannst du
+  dies und das machen"); otherwise use "du" ("ihr"/"euch" for a plural audience, e.g. a mail to all
+  participants)
 
 ## Generated files
 - Never edit `projectforge-next/messages/generated.*.json` or

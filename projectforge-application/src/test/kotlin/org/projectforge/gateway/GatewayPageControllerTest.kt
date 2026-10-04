@@ -23,22 +23,33 @@
 
 package org.projectforge.gateway
 
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 class GatewayPageControllerTest {
     @Test
     fun acceptsDataTransferReturnUrls() {
-        assertTrue(GatewayPageController.isSafeReturnUrl("/react/datatransfer"))
-        assertTrue(GatewayPageController.isSafeReturnUrl("/react/datatransferfiles/dynamic/42?q=1"))
+        assertEquals("/next/datatransfer", GatewayPageController.safeReturnUrl("/next/datatransfer"))
+        assertEquals("/next/datatransfer/42/?q=1", GatewayPageController.safeReturnUrl("/next/datatransfer/42/?q=1"))
+    }
+
+    @Test
+    fun addsBasePathToAppRoutes() {
+        // The next client's AuthGuard names the route without the base path.
+        assertEquals("/next/datatransfer/42", GatewayPageController.safeReturnUrl("/datatransfer/42"))
+        assertEquals("/next/datatransfer/personal-box", GatewayPageController.safeReturnUrl("/datatransfer/personal-box"))
     }
 
     @Test
     fun rejectsForeignOrOtherReturnUrls() {
-        assertFalse(GatewayPageController.isSafeReturnUrl("https://evil.example.com/react/datatransfer"))
-        assertFalse(GatewayPageController.isSafeReturnUrl("//evil.example.com"))
-        assertFalse(GatewayPageController.isSafeReturnUrl("/react/datatransfer//evil.example.com"))
-        assertFalse(GatewayPageController.isSafeReturnUrl("/react/address"))
+        assertNull(GatewayPageController.safeReturnUrl("https://evil.example.com/next/datatransfer"))
+        assertNull(GatewayPageController.safeReturnUrl("//evil.example.com"))
+        assertNull(GatewayPageController.safeReturnUrl("/next/datatransfer//evil.example.com"))
+        assertNull(GatewayPageController.safeReturnUrl("/datatransfer\\evil.example.com"))
+        assertNull(GatewayPageController.safeReturnUrl("/next/datatransferX"))
+        assertNull(GatewayPageController.safeReturnUrl("/next/address"))
+        assertNull(GatewayPageController.safeReturnUrl("/address"))
+        assertNull(GatewayPageController.safeReturnUrl("/react/datatransfer"))
     }
 }

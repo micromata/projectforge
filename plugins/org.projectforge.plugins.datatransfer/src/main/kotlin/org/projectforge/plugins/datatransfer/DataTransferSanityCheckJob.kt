@@ -29,7 +29,7 @@ import org.projectforge.common.extensions.format
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -42,7 +42,7 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
@@ -62,9 +62,9 @@ class DataTransferSanityCheckJob : AbstractJob("Check data transfer files.") {
             val areaName = "'${area.displayName}'"
             try {
                 val attachments = attachmentsService.getAttachments(
-                    dataTransferAreaPagesRest.jcrPath!!,
+                    dataTransferAreaEntityRest.jcrPath!!,
                     area.id!!,
-                    dataTransferAreaPagesRest.attachmentsAccessChecker,
+                    dataTransferAreaEntityRest.attachmentsAccessChecker,
                     checkAccess = false,
                 )
                 val attachmentsCounter = area.attachmentsCounter ?: 0

@@ -493,6 +493,25 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   führen auf ihre Woche in der next-Bearbeitung, gebuchte Tage auf die Zeitberichtsliste.
   `HRViewDao` ohne N+1 (Einträge über `HRPlanningEntryDao`, Projekte/Kunden aus den Caches).
   `wa/hrList` leitet `OrphanedLinkFilter` um; die Wicket-Seite ist gelöscht.
+- **Datentransfer** (`datatransfer`, Plugin, intern; vorher React-UILayout) – vier Seiten, alle layoutfrei:
+  Liste + Admin-Formular (`DataTransferAreaEntityRest`, `/rs/datatransfer`, Kategorie der Anhänge bleibt
+  `datatransfer`), die Bereichsseite `next/datatransfer/{id}` (`DataTransferFilesRest`; `-1` = eigene Box,
+  der Client ersetzt die URL durch die echte Id), Aktivitäten als Dialog (`DataTransferAuditRest`) und
+  `next/datatransfer/personal-box` (`DataTransferPersonalBoxRest`). Die Bereichsseite hat drei Tabs in
+  `?tab=`: Dateien (Standard), Infos (Links, Beobachten, Rechte) und – nur mit `editAccess` – Bearbeiten.
+  Das Formular ist dort das geteilte `EntityEditBody` mit eigenem `renderShell` (ohne Kopf), beim ersten
+  Besuch gemountet und danach in `<Activity hidden>` gehalten, damit ein Blick auf die Dateien keine
+  Eingaben verwirft; Speichern/Abbrechen führen zurück zu den Dateien. `{id}/edit` leitet nur noch auf
+  `?tab=edit` weiter, `new` bleibt eine eigene Seite. Token/Passwort des externen Zugriffs holt das Formular beim Einschalten selbst
+  (`renewAccessToken`/`renewPassword`), statt `onWatchFieldsUpdate`. Kein Rückweg
+  (`offerLegacyLink = false`); Links alter Mails (`react/datatransferfiles/dynamic/{id}`,
+  `react/datatransferpersonalfiles/…`, `react/datatransferaudit/…`) leitet `OrphanedLinkFilter` um.
+  **Gateway-Modus** zieht mit: `GatewayEndpointFilter`/`GatewaySecurityConfig` lassen nur
+  `/next/datatransfer`, die Next-Assets, die nötigen Shell-Dienste und die Anhänge der Kategorie
+  `datatransfer` durch (bei modify/delete/encrypt steht die Kategorie im Body und wird dort geprüft).
+  Der Login läuft ohne Frontend-Änderung: der verweigerte RSC-Abruf von `/next/login` fällt auf einen
+  vollen Seitenaufruf zurück, den `GatewayPageController` bedient. Unverändert in React bleibt der
+  öffentliche externe Zugang (`/react/public/datatransfer`, `restPublic`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

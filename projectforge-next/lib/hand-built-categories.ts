@@ -24,6 +24,7 @@ export const HAND_BUILT_CATEGORIES = [
   "cost2",
   "cost2Type",
   "customer",
+  "datatransfer",
   "employeeSalary",
   "gantt",
   "group",

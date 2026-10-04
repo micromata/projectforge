@@ -143,7 +143,9 @@ class ProjectForgeHomeFinder {
    */
   private fun proceedForced(appHomeDir: String?, logMessage: String): File? {
     return if (StringUtils.isNotBlank(appHomeDir)) {
-      proceed(File(appHomeDir), logMessage, true)
+      // An explicitly given dir is a choice for this start only (e.g. a second dev instance of
+      // bin/pfDev.sh), so it doesn't replace the remembered default of later starts without it.
+      proceed(File(appHomeDir), logMessage, true, rememberAsDefault = false)
     } else null
   }
 
@@ -155,12 +157,19 @@ class ProjectForgeHomeFinder {
     return proceed(appHomeDir, logMessage, forceDirectory)
   }
 
-  private fun proceed(paramAppHomeDir: File, logMessage: String, forceDirectory: Boolean): File? {
+  private fun proceed(
+    paramAppHomeDir: File,
+    logMessage: String,
+    forceDirectory: Boolean,
+    rememberAsDefault: Boolean = true,
+  ): File? {
     var appHomeDir: File? = paramAppHomeDir
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
         log.info(logMessage.replace("\$APP_HOME_DIR", appHomeDir.path))
-        saveUserPrefHomeDir(appHomeDir)
+        if (rememberAsDefault) {
+          saveUserPrefHomeDir(appHomeDir)
+        }
         return appHomeDir
       }
       if (!forceDirectory) {

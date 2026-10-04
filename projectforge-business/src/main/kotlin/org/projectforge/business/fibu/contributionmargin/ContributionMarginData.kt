@@ -56,6 +56,15 @@ class ContributionMarginData(
    * isn't complete yet. Null if the period begins in the current month or later.
    */
   val lastMonth: String?,
+  /** The last day the sums of the period cover ([lastMonth]'s end), or null if it has no values yet. */
+  val valuesEnd: LocalDate?,
+  /**
+   * The last day the sums of the same months one year earlier cover: the end of those 12 months, the end of the
+   * previous month at the latest (not cut at [valuesEnd]). Null if they have no values yet.
+   */
+  val prevYearValuesEnd: LocalDate?,
+  /** The same as [prevYearValuesEnd] for the months two years earlier. */
+  val prevPrevYearValuesEnd: LocalDate?,
   /** Contribution margin of the same months one year earlier. */
   val prevYear: List<BigDecimal>,
   /** Contribution margin in % of the same months one year earlier, cumulated like [percentage]. */

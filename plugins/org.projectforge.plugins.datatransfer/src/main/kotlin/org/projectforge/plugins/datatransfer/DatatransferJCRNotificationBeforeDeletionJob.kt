@@ -30,7 +30,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.time.PFDay
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -51,7 +51,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     private lateinit var attachmentsService: AttachmentsService
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
@@ -88,7 +88,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
                     val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)
                     val expiryMillis = expiryDays.toLong() * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
                     val attachments = attachmentsService.internalGetAttachments(
-                        dataTransferAreaPagesRest.jcrPath!!,
+                        dataTransferAreaEntityRest.jcrPath!!,
                         id
                     )
                     val observers = StringHelper.splitToLongs(dbo.observerIds, ",")

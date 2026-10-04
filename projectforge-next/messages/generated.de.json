@@ -148,7 +148,7 @@
       "param": {
         "calendarDomain": {
           "_": "Kalenderdomäne",
-          "description": "Die Domäne wird vom Teamkalender-Modul benötigt, um weltweit eindeutige Ereignis-IDs zu erzeugen. Verwenden Sie Zeichenketten der Art 'projectforge.my-company.com' und vermeiden Sie nachträgliche Änderungen."
+          "description": "Die Domäne wird vom Teamkalender-Modul benötigt, um weltweit eindeutige Ereignis-IDs zu erzeugen. Empfohlen sind Zeichenketten der Art 'projectforge.my-company.com'; nachträgliche Änderungen sollten vermieden werden."
         },
         "countryPhonePrefix": {
           "_": "Standardländervorwahl",
@@ -260,7 +260,7 @@
           "description": "List of activated Plugins. Please don't edit directly."
         }
       },
-      "readOnly": "Sie dürfen diesen Parameter sehen, aber nicht ändern.",
+      "readOnly": "Dieser Parameter kann angesehen, aber nicht geändert werden.",
       "title": {
         "edit": "Konfigurationsparameter ändern",
         "heading": "Configuration parameter",
@@ -517,6 +517,7 @@
   },
   "contactPerson": "Ansprechpartner:in",
   "contactPersons": "Ansprechpartner:innen",
+  "copied": "Kopiert",
   "copy": "Kopieren",
   "create": "Anlegen",
   "created": "angelegt",
@@ -674,7 +675,8 @@
           "tooltip": "Der Deckungsbeitrag umfasst die 12 Monate ab dem Monat dieses Datums, verglichen mit denselben Monaten der beiden Vorjahre. Angezeigt werden die Projekte der Aufträge, die der Filter der Liste auswählt (siehe Zusammenfassung oben); sein Leistungszeitraum wird durch dieses Datum ersetzt."
         },
         "target": "Ziel {arg0} %",
-        "total": "Summe"
+        "total": "Summe",
+        "until": "bis {arg0}"
       },
       "datum": {
         "_": "Angebotsdatum",
@@ -691,7 +693,7 @@
         "auftragHatKeinePositionen": "Der Auftrag hat keine Auftragspositionen.",
         "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "Mindestens ein Datum des Zahlplans zu (den) Position(en) {arg0} liegt nicht im Leistungszeitraum (plus 3 Monate).",
         "invalidPosition": "Ungültige Auftragsposition.",
-        "invalidStatus": "Bitte wählen Sie einen Status des Auftrags; \"optional\" wird nicht unterstützt.",
+        "invalidStatus": "Bitte einen Status des Auftrags wählen; \"optional\" wird nicht unterstützt.",
         "nummerBereitsVergeben": "Die Auftragsnummer ist bereits vergeben.",
         "nummerIstNichtFortlaufend": "Die Auftragsnummer ist nicht die nächstfolgende (nicht fortlaufend).",
         "nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein": "Nur abgeschlossene Auftragspositionen können vollständig fakturiert sein.",
@@ -1009,7 +1011,7 @@
       }
     },
     "eInvoiceChecker": {
-      "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
+      "description": "Hier kann eine ZUGFeRD-PDF oder XRechnung-XML-Datei hochgeladen werden, um die enthaltenen Rechnungsdaten zu prüfen."
     },
     "eingangsrechnung": {
       "_": "Kreditorenrechnung",
@@ -1402,7 +1404,7 @@
           "create": "Bereitet eine Storno-Rechnung zu dieser Rechnung vor: Ihre Positionen werden mit negativen Beträgen übernommen und als neue, noch nicht gespeicherte Rechnung geöffnet. Storniert wird diese Rechnung erst, wenn die Storno-Rechnung gespeichert wird – wird sie nicht gespeichert, bleibt alles unverändert.",
           "original": "Diese Rechnung ist durch die Storno-Rechnung {arg0} storniert und wurde deshalb automatisch auf „storniert“ gesetzt. Um den Storno rückgängig zu machen, die Storno-Rechnung löschen: Diese Rechnung erhält dann wieder den Status „gestellt“ bzw. „bezahlt“.",
           "system": "Eine Storno-Rechnung hebt die stornierte Rechnung vollständig auf: Sie übernimmt deren Positionen mit negativen Beträgen und hat keine eigene Nummer, sondern die der stornierten Rechnung mit dem Zusatz „-S“. Beim Speichern wird die stornierte Rechnung automatisch auf „storniert“ gesetzt. Typ und stornierte Rechnung sind danach nicht mehr änderbar; wird die Storno-Rechnung gelöscht, erhält die stornierte Rechnung wieder den Status „gestellt“ bzw. „bezahlt“. Bitte beachten: Die Beträge der Storno-Rechnung werden automatisch auf negative Werte gesetzt – die Beträge also bitte nicht ändern!",
-          "unsaved": "Diese Storno-Rechnung ist nur vorbereitet und noch nicht wirksam: Die Rechnung wird erst storniert, wenn Sie diese Storno-Rechnung speichern. Ohne Speichern passiert nichts."
+          "unsaved": "Diese Storno-Rechnung ist nur vorbereitet und noch nicht wirksam: Die Rechnung wird erst storniert, wenn diese Storno-Rechnung gespeichert wird. Ohne Speichern passiert nichts."
         },
         "of": "Storno zu Rechnung {arg0}"
       },
@@ -2392,7 +2394,40 @@
       }
     },
     "datatransfer": {
+      "access": {
+        "title": "Zugriff"
+      },
+      "accessGroups": {
+        "_": "Gruppen mit Zugriff",
+        "info": "Mitglieder dieser Gruppe (wenn angegeben) haben vollen Zugriff auf Dateien dieses Bereichs."
+      },
+      "accessUsers": {
+        "_": "Benutzer mit Zugriff",
+        "info": "Diese Benutzer (wenn angegeben) haben vollen Zugriff auf Dateien dieses Bereichs."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins haben vollen Zugriff auf diesen Bereich und alle Einstellungen. Sie können diesen Bereich auch löschen und für die externe Benutzung administrieren."
+      },
       "areaName": "Bereich",
+      "audit": {
+        "_": "Aktivitätsprotokoll",
+        "action": "Aktion",
+        "display": "Aktivitätsprotokoll",
+        "downloadEvents": "Download-Ereignisse der letzten 30 Tage",
+        "downloadedBy": "Heruntergeladen von",
+        "events": "Ereignisse der letzten 30 Tage"
+      },
+      "button": {
+        "downloadAll": {
+          "_": "Alles herunterladen",
+          "info": "Alle Dateien in einem ZIP-Archiv herunterladen."
+        }
+      },
+      "capacity": {
+        "_": "Kapazität",
+        "stats": "{arg0}/{arg1} ({arg2}%)"
+      },
       "description": {
         "_": "Beschreibung",
         "info": "Diese Beschreibung ist auch für externe Benutzer über Link/Passwort einsehbar."
@@ -2402,6 +2437,9 @@
         "info": "Jede Datei dieses Bereichs wird automatisch gelöscht."
       },
       "external": {
+        "access": {
+          "title": "Externer Zugriff"
+        },
         "accessToken": {
           "_": "Zugriffstoken",
           "info": "Dieser Zugriffstoken ist Teil des Links für externe Personen. Bitte erneuern, falls dieser Zugriff in unbefugte Hände geraten sein könnte."
@@ -2409,23 +2447,68 @@
         "download": {
           "enabled": {
             "_": "Externer Download freigegeben",
-            "info": "Wenn freigegeben, können externe Personen Dateien via Link und Zugriffstoken herunterladen."
+            "info": "Wenn freigegeben, können externe Personen Dateien via Link und Zugriffstoken herunterladen.",
+            "title": "Externer Download"
+          }
+        },
+        "link": {
+          "_": "External Zugriffslink",
+          "renew": {
+            "_": "Erneuern",
+            "info": "Bitte den Link erneuern, wenn der Link in unbefugte Hände geraten sein könnte. Der alte Link wird erst durch Speichern ungültig."
           }
         },
         "password": {
           "_": "Passwort",
-          "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert."
+          "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert.",
+          "renew": {
+            "_": "Erneuern",
+            "info": "Nach Änderung des Passworts bitte alle Personen informieren."
+          }
         },
         "upload": {
           "enabled": {
             "_": "Externer Upload freigegeben",
-            "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen."
+            "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen.",
+            "title": "Externer Upload"
           }
         }
+      },
+      "gateway": {
+        "externalAccess": {
+          "edit": "Externer Zugriff kann hier nicht konfiguriert werden. Dazu muss ein Datentransferbereich auf dem Server {arg0} angelegt und administriert werden.",
+          "list": "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. Datentransferbereiche mit externem Zugriff müssen auf dem Server {arg0} angelegt und administriert werden."
+        }
+      },
+      "internal": {
+        "link": "Interner Link"
       },
       "maxUploadSize": {
         "_": "Maximale Uploadgröße",
         "info": "Maximale Uploadgröße einer Datei. Die maximale Größe dieses gesamten Bereichs beträgt den doppelten Wert."
+      },
+      "observers": {
+        "_": "Beobachter",
+        "info": "Diese Beobachter bekommen Benachrichtigungs-E-Mails, wenn in diesem Bereich Dateien hochgeladen (intern oder extern) oder von extern heruntergeladen wurden."
+      },
+      "personalBox": {
+        "_": "Persönliche Box",
+        "info": "Über die persönliche Box können Dateien direkt an andere Benutzer gesendet werden.",
+        "select": "Wähle den Benutzer, dessen persönliche Box du öffnen möchtest.",
+        "title": "Persönliche Box von {arg0}"
+      },
+      "tab": {
+        "files": "Dateien",
+        "info": "Infos"
+      },
+      "title": {
+        "add": "Neuen Bereich für Datentransfer anlegen",
+        "heading": "Bereich für Datentransfer",
+        "list": "Liste aller Bereiche für Datentransfer"
+      },
+      "userWantsToObserve": {
+        "_": "Beobachten",
+        "info": "Wenn ausgewählt, bekommst du E-Mails bei Aktivitäten durch andere Benutzer in diesem Bereich."
       }
     },
     "ihk": {
@@ -2472,7 +2555,7 @@
         "_": "Schlüssel",
         "notvisible": {
           "_": "Der Schlüssel ist nur für Besitzer und Administratoren sichtbar.",
-          "tooltip": "Bitte fügen Sie sich zuerst als Besitzer hinzu (und speichern), bevor Sie den Schlüssel sehen können."
+          "tooltip": "Der Schlüssel ist erst sichtbar, nachdem du dich als Besitzer hinzugefügt (und gespeichert) hast."
         }
       },
       "license": "Lizenz",
@@ -2593,7 +2676,7 @@
           "list": "Adresskampagnen"
         },
         "values": {
-          "format": "Bitte geben Sie eine Werteliste ein (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
+          "format": "Bitte eine Werteliste eingeben (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
           "invalidFormat": "Ungültiges Format, das Format ist: Wert 1; Wert 2; Wert 3"
         }
       }
@@ -2654,7 +2737,7 @@
         },
         "filterDialog": {
           "closeButton": {
-            "tooltip": "Zum Übernehmen der Filteränderungen können Sie irgendwo außerhalb dieses Dialogs klicken. Wenn Sie die Änderungen verwerfen möchten, so drücken Sie bitte den Abbrechen-Knopf."
+            "tooltip": "Zum Übernehmen der Filteränderungen genügt ein Klick irgendwo außerhalb dieses Dialogs. Zum Verwerfen der Änderungen bitte den Abbrechen-Knopf drücken."
           },
           "newTemplateName": "Neuer Filter",
           "title": "Kalenderfilter"
@@ -2678,7 +2761,7 @@
           "atthe": "Am",
           "change": {
             "all": "Alle Ereignisse",
-            "content": "Möchten Sie alle Ereignisse, nur zukünftige oder nur dieses einzelne Ereignis ändern?",
+            "content": "Sollen alle Ereignisse, nur zukünftige oder nur dieses einzelne Ereignis geändert werden?",
             "future": "Alle zukünftigen Ereignisse",
             "single": "Nur dieses Ereignis",
             "text": {
@@ -2687,7 +2770,7 @@
               "allFuture": "alle zukünfigen Ereignisse",
               "onlyCurrent": "nur das aktuelle Ereignis"
             },
-            "title": "Sie ändern ein wiederkehrendes Ereignis."
+            "title": "Ein wiederkehrendes Ereignis wird geändert."
           },
           "changed": "Wiederholung geändert",
           "customized": {
@@ -2780,8 +2863,8 @@
       "owner": "Eigner:in",
       "subscription": {
         "_": "Abonnement",
-        "timesheets": "Über diese URL können Sie Ihre Zeitberichte in Ihrem persönlichen Kalender abonnieren (z. B. Apple iCal oder Microsoft Outlook).",
-        "tooltip": "Über diese URL können Sie den Kalender in Ihrem persönlichen Kalender abonnieren (z. B. Apple iCal oder Microsoft Outlook)."
+        "timesheets": "Über diese URL können die eigenen Zeitberichte in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook).",
+        "tooltip": "Über diese URL kann der Kalender in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook)."
       },
       "switchToTeamEventButton": "In Termin umwandeln",
       "switchToTimesheetButton": "In Zeitbuchung umwandeln",
@@ -2801,10 +2884,10 @@
         }
       },
       "legend": {
-        "recent": "Von jemand anderem geändert, von Ihnen noch nicht gesehen"
+        "recent": "Von jemand anderem geändert, von dir noch nicht gesehen"
       },
       "notification": {
-        "tooltip": "Soll eine E-Mail an den Reporter und Bearbeiter versendet werden? Eine E-Mail wird nicht an Sie selbst versendet!"
+        "tooltip": "Soll eine E-Mail an den Reporter und Bearbeiter versendet werden? An dich selbst wird keine E-Mail versendet!"
       },
       "reporter": "Ersteller",
       "status": {
@@ -2963,6 +3046,10 @@
     "withoutTimePeriod": "Ohne Zeitangabe"
   },
   "searchString": "Suchtext",
+  "secret": {
+    "hide": "Verbergen",
+    "show": "Anzeigen"
+  },
   "select": {
     "_": "Auswählen",
     "checklist": {
@@ -3241,16 +3328,16 @@
       "action": {
         "_": "Aktion",
         "noactionRequired": "Keine Aktion notwendig, da keine Gruppen ausgewählt wurden. Demnach müssen keine Zugriffsrechte angelegt werden.",
-        "taskAndgroupsGiven": "Die notwendigen Zugriffsrechte für die oben angegebene(n) Gruppe(n) werden angelegt, nachdem der Anlegen-Button gedrückt wird. Diese können Sie jederzeit unter dem Menüpunkt Zugriffsverwaltung einsehen und ändern."
+        "taskAndgroupsGiven": "Die notwendigen Zugriffsrechte für die oben angegebene(n) Gruppe(n) werden angelegt, nachdem der Anlegen-Button gedrückt wird. Diese können jederzeit unter dem Menüpunkt Zugriffsverwaltung eingesehen und geändert werden."
       },
       "button": {
         "createGroup": {
           "_": "Gruppe anlegen",
-          "tooltip": "Sie können eine existierende Benutzergruppe wählen oder eine neue durch Anklicken dieses Buttons anlegen."
+          "tooltip": "Es kann eine existierende Benutzergruppe gewählt oder durch Anklicken dieses Buttons eine neue angelegt werden."
         },
         "createTask": {
           "_": "Strukturelement anlegen",
-          "tooltip": "Sie können ein existierendes Strukturelement wählen oder ein neues durch Anklicken dieses Buttons anlegen."
+          "tooltip": "Es kann ein existierendes Strukturelement gewählt oder durch Anklicken dieses Buttons ein neues angelegt werden."
         }
       },
       "externalGroup": {
@@ -3259,7 +3346,7 @@
         "intro": "Die externen Benutzer:innen haben Gastrechte, so dürfen sie beispielsweise nur die eigenen Zeitberichte sehen."
       },
       "finish": "Fertig stellen",
-      "intro": "Benutzen Sie diesen Assistenten, um ein neues Strukturelement anzulegen. Dieses Strukturelement kann ein Projekt o. ä. repräsentieren auf welche Nutzer und Gruppen Zugriff haben sollen (z. B. für Zeitberichtserfassungen).",
+      "intro": "Mit diesem Assistenten wird ein neues Strukturelement angelegt. Dieses Strukturelement kann ein Projekt o. ä. repräsentieren auf welche Nutzer und Gruppen Zugriff haben sollen (z. B. für Zeitberichtserfassungen).",
       "managerGroup": {
         "_": "Teammanager:in (optional)",
         "groupNameSuffix": "pm",
@@ -3340,7 +3427,7 @@
     "pdfExport": {
       "columns": "Spalten",
       "filterSettings": "Filterangaben ausgeben",
-      "info": "Wählen Sie aus, was das PDF enthalten soll. Ihre Auswahl wird gemerkt.",
+      "info": "Was soll das PDF enthalten? Die Auswahl wird gemerkt.",
       "title": "PDF-Export"
     },
     "recent": "Zuletzt verwendet",
@@ -3391,6 +3478,7 @@
     "unselectTask": "Strukturelementwahl aufheben"
   },
   "undelete": "Wiederherstellen",
+  "until": "bis",
   "untitled": "unbenannt",
   "update": "Ändern",
   "uptodate": "aktuell",
