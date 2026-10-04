@@ -288,6 +288,9 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
     // Its tooltip lists the types with their names, one per line — also hovered on the cell's padding,
     // where the pointer misses the element declaring it (see useOverflowTooltip).
     const cell = row.locator("td", { has: page.locator(".line-through") });
+    // Scrolled into view first: the scroll a hover does itself lands after its pointerover and
+    // dismisses the pending tooltip (see useOverflowTooltip's onScroll).
+    await cell.scrollIntoViewIfNeeded();
     await cell.hover({ position: { x: 2, y: 2 } });
     const tooltip = page.locator("[data-slot=tooltip-content]").first();
     await expect(tooltip).toBeVisible();
@@ -375,8 +378,16 @@ async function massUpdateKost2Arts(
     searchString: project.suffix,
     entries: [{ field: "listType", value: { values: [] } }],
   });
-  await post("/rs/projectSelected/select", { selectedIds: [project.id] });
-  return await post("/rs/projectSelected/update", { kost2Arts: param });
+  try {
+    await post("/rs/projectSelected/select", { selectedIds: [project.id] });
+    return await post("/rs/projectSelected/update", { kost2Arts: param });
+  } finally {
+    // The selection stays in the session otherwise, and the list would restore it on its next visit:
+    // selection mode, and the late `select` re-laying out the table under a pointer hovering a cell.
+    await request.get("/rs/projectSelected/cancel", {
+      headers: { "X-PF-Frontend": "next" },
+    });
+  }
 }
 
 /** The name field, by the label ProjektDO gives it. */
