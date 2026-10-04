@@ -45,7 +45,7 @@ export const PROJECT_PAGE = definePage<
   queryKey: PROJECT_LIST_QUERY_KEY,
   // Where the entry sits in the main menu: Finance > Projects (MenuCreator, PROJECT_LIST).
   categoryKey: "menu.fibu",
-  titleKey: "fibu.projekt.title.list._",
+  titleKey: "fibu.projekt.title.list",
   columns: [
     // The formatted number ("5.123.04"), read as one — the same value the legacy list leads with.
     // Keyed by the entity's computed `kost`, as the customer's number column is.
