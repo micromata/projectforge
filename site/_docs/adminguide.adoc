@@ -292,6 +292,30 @@ This is an example of using dynamic data (here a list of positions will be print
 If you don't like html-formatted e-mails, you can simply remove all html
 tags (ignore the html suffix then).
 
+=== Support error digest
+
+If a support address is configured (`projectforge.support.mail`) and sending mails is set up,
+ProjectForge collects the errors of a period and sends them to this address as one digest mail per
+interval. Nothing is sent for a period without errors. The digest collects:
+
+- unexpected errors in requests of logged-in users (no user mistakes such as validation or access errors),
+- logged errors (level ERROR),
+- external systems that aren't reachable (LDAP, IdP, gateway, SMS/phone services, SMTP, ...), recognized
+  by connection errors and timeouts, also from warnings,
+- sync runs that failed, were aborted or timed out since the last digest.
+
+Equal errors (differing only in ids or numbers) are aggregated, sorted by severity (unreachable external
+systems first). The mail body lists the groups; the attached text file contains up to five single
+occurrences per group with user, request and stack trace.
+
+*File:* `application.properties:`
+
+----
+projectforge.support.mail=support@acme.com
+# How often the digest is sent at most, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1h
+projectforge.support.errorDigest.interval=1h
+----
+
 === Configuration of Mobile Enterprise Blogging (MEB)
 
 ProjectForge supports two ways of receiving SMS: e-mail and/or

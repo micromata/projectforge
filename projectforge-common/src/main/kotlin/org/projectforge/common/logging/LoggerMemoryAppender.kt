@@ -34,6 +34,7 @@ private val log = KotlinLogging.logger {}
 class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     private var lastLogEntryOrderNumber: Long = -1
     private val logSubscriptions = CopyOnWriteArrayList<LogSubscription>()
+    private val listeners = CopyOnWriteArrayList<LogEventListener>()
 
     private val queue = LogQueue(QUEUE_SIZE)
 
@@ -45,9 +46,32 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
         logSubscriptions.forEach { subscription ->
             subscription.processEvent(eventData)
         }
+        if (listeners.isNotEmpty() && eventData.level.matches(LogLevel.WARN)) {
+            listeners.forEach { listener ->
+                try {
+                    listener.onEvent(eventData)
+                } catch (ex: Throwable) {
+                    // Not logged: an error logged here would come back to the failing listener.
+                    System.err.println("LogEventListener ${listener::class.java.name} failed: ${ex.message}")
+                }
+            }
+        }
         if (System.currentTimeMillis() - lastSubscriptionGCRun > REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS) {
             runSubscriptionsGC()
         }
+    }
+
+    /**
+     * Registers a listener for every event of level WARN and above, independent of users and subscriptions
+     * (e.g. the support error digest). Called in the logging thread, so it must be fast and must not log at
+     * WARN or above itself.
+     */
+    fun addListener(listener: LogEventListener) {
+        listeners.addIfAbsent(listener)
+    }
+
+    fun removeListener(listener: LogEventListener) {
+        listeners.remove(listener)
     }
 
     internal fun register(subscription: LogSubscription): LogSubscription {
@@ -122,4 +146,11 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
             instance = this
         }
     }
+}
+
+/**
+ * See [LoggerMemoryAppender.addListener].
+ */
+fun interface LogEventListener {
+    fun onEvent(event: LoggingEventData)
 }
