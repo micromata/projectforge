@@ -330,6 +330,14 @@ export interface ContributionMarginData {
    * complete yet. Null if the period begins in the current month or later; missing from an older backend.
    */
   lastMonth?: string | null;
+  /**
+   * The last day (`yyyy-MM-dd`) the sums of the period cover, and those of the same months one and two years
+   * earlier (their whole 12 months, the end of the previous month at the latest). Null if the respective
+   * period has no values yet; missing from an older backend.
+   */
+  valuesEnd?: string | null;
+  prevYearValuesEnd?: string | null;
+  prevPrevYearValuesEnd?: string | null;
   /** Monthly contribution margin of the same months one and two years earlier. */
   prevYear: number[];
   prevPrevYear: number[];

@@ -674,7 +674,8 @@
           "tooltip": "The contribution margin covers the 12 months starting with the month of this date, compared with the same months of the two previous years. Shown are the projects of the orders the list's filter selects (see the summary above); its period of performance is replaced by this date."
         },
         "target": "Target {arg0} %",
-        "total": "Total"
+        "total": "Total",
+        "until": "until {arg0}"
       },
       "datum": {
         "_": "Date of order",
@@ -3390,6 +3391,7 @@
     "unselectTask": "Unselect structure element"
   },
   "undelete": "Undelete",
+  "until": "until",
   "untitled": "untitled",
   "update": "Update",
   "uptodate": "up-to-date",
