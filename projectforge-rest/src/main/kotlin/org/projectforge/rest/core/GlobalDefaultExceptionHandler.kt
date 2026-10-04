@@ -31,6 +31,8 @@ import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.support.SupportErrorDigest
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
 import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.utils.RequestLog
@@ -50,7 +52,7 @@ private val log = KotlinLogging.logger {}
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
     @Autowired
-    internal lateinit var supportErrorMailer: SupportErrorMailer
+    internal lateinit var supportErrorDigest: SupportErrorDigest
 
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
@@ -102,8 +104,7 @@ internal class GlobalDefaultExceptionHandler {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
         }
-        // Mails the error to the support team unless it's a known one exempted from that (see SupportErrorMailer).
-        supportErrorMailer.report(ex)
+        reportToSupport(request, ex)
         GlobalExceptionRegistry.findExInfo(ex)?.let {
             return handleKnownException(ex, it)
         }
@@ -122,6 +123,23 @@ internal class GlobalDefaultExceptionHandler {
         )
         log.error(ex.message, ex)
         return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
+    }
+
+    /**
+     * Hands a server problem to the support error digest (see SupportErrorFilter): an unreachable remote system
+     * always, an unexpected error only of a logged-in user, as Wicket's error page was only shown to one (a bot's
+     * garbage request on a public endpoint is nothing to report).
+     */
+    private fun reportToSupport(request: HttpServletRequest, ex: Throwable) {
+        val kind = SupportErrorFilter.classify(ex) ?: return
+        if (kind == SupportErrorFilter.Kind.REQUEST && ThreadLocalUserContext.loggedInUser == null) {
+            return
+        }
+        supportErrorDigest.recordRequestError(
+            ex,
+            "${request.method} ${request.requestURI}",
+            external = kind == SupportErrorFilter.Kind.EXTERNAL,
+        )
     }
 
     private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {

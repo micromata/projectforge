@@ -286,6 +286,10 @@ object SyncStatsRegistry : SystemsStatisticsBuilderInterface {
         return registry.computeIfAbsent(type) { SyncStats(it) }
     }
 
+    /** All registered sync types (e.g. for the support error digest). */
+    @JvmStatic
+    fun all(): List<SyncStats> = registry.values.sortedBy { it.type }
+
     override fun addStatisticsEntries(stats: SystemStatisticsData) {
         registry.values.sortedBy { it.type }.forEach {
             stats.add("sync-${it.type}", GROUP, "'${it.type}", it.summary())

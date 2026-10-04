@@ -205,8 +205,14 @@ functionality). Built:
 10. The parent task is required for a new task and hidden for the root task (`ParentTaskField`).
 11. The task tree sorts its children case-insensitively.
 12. The Gantt list opens sorted by name, descending.
-14. Unexpected server errors send a mail to the support address (`SupportErrorMailer`, as Wicket's
-    `ErrorPage`), at most once per 10 minutes per exception class and message.
+14. Instead of Wicket's per-error mail (`ErrorPage`), errors are sent to the support address as a digest,
+    at most once per `projectforge.support.errorDigest.interval` (default `1h`, `0` disables it;
+    `SupportErrorDigest`). Sources: unexpected server errors of logged-in users in REST requests (no user
+    exceptions, also wrapped ones, no client mistakes, no aborted connections, nothing
+    `GlobalExceptionRegistry` exempts; `SupportErrorFilter`), ERROR log events, WARN events only when they
+    look like a connection error or timeout, and failed/aborted sync runs (`SyncStatsRegistry`). Equal errors
+    are aggregated and sorted by severity – unreachable external systems (LDAP, IdP, gateway, Sipgate, ...)
+    first; the attachment lists single occurrences with stack traces.
 15. Test-system marker: `projectforge.testsystemMode` / `projectforge.testsystemColor` show a badge in the
     header (`DevelopmentMarker`), instead of Wicket's coloured page background.
 16. Group: the "local group" flag and the type filter appear only with an external user management system

@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.framework.support.SupportErrorDigest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.io.IOException
@@ -61,8 +62,8 @@ class GlobalExceptionRegistryTest {
         })
         Assertions.assertFalse(GlobalExceptionRegistry.sendMailToDevelopers(ex))
         GlobalDefaultExceptionHandler().also { handler ->
-            // No Spring context: these exceptions are not mailed, so the mailer returns before using its beans.
-            handler.supportErrorMailer = SupportErrorMailer()
+            // No Spring context: an uninitialized digest is inactive and ignores what it gets.
+            handler.supportErrorDigest = SupportErrorDigest()
             handler.defaultErrorHandler(request, ex).let { response ->
                 response as ResponseEntity<*>
                 Assertions.assertEquals(expectedMessage, response.body)
