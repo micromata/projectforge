@@ -96,6 +96,8 @@ export interface TaskDetail {
   kost2AndBookingStatusWriteAccess?: boolean | null;
   /** `protectTimesheetsUntil` and `protectionOfPrivacy` — the finance group only. */
   protectTimesheetsUntilWriteAccess?: boolean | null;
+  /** Order positions decide the planned hours, not `maxHours` (TaskEntityRest, edit page only). */
+  maxHoursIgnoredDueToOrders?: boolean | null;
   created?: string | null;
   lastUpdate?: string | null;
 }

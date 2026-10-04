@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { GROUP_METADATA } from "@/lib/metadata/group.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
-import { INTEGER } from "@/lib/validation/markers";
+import { INTEGER, maxMarker, minMarker } from "@/lib/validation/markers";
 
 /**
  * Every rule below — maximum length, whether a field is mandatory — comes from GroupDO through
@@ -42,12 +42,15 @@ export const groupSchema = z.object({
   /**
    * The LDAP gid, editable only where posix accounts are configured (see [LdapGidField]). Whole
    * number, as `Group.gidNumber` is an `Int`; uniqueness is the backend's check
-   * (`GroupEntityRest.validate` answers `ldap.gidNumber.alreadyInUse`).
+   * (`GroupEntityRest.validate` answers `ldap.gidNumber.alreadyInUse`), as is the refusal to clear the
+   * gid of a posix group. The posix range 1..65535 is checked here too (`GroupEntityRest.GID_RANGE`).
    */
   gidNumber: z
     .number()
     .nullable()
-    .refine((v) => v == null || Number.isInteger(v), INTEGER),
+    .refine((v) => v == null || Number.isInteger(v), INTEGER)
+    .refine((v) => v == null || v >= 1, minMarker(1))
+    .refine((v) => v == null || v <= 65535, maxMarker(65535)),
   /** Read-only flag of the request, not a property of the group — see `GroupDetail`. */
   ldapPosixConfigured: z.boolean(),
   /** Computed on read (`Group.populateEmails`), shown read-only, sent back untouched. */

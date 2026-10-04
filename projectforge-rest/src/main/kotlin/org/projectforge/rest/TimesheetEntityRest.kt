@@ -37,6 +37,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -328,6 +329,10 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             limit = resultSet.limit,
             totalSizeExact = resultSet.totalSizeExact,
         )
+        if (needsMoreFilter(magicFilter)) {
+            // Why the list is empty (see needsMoreFilter), under the table of both clients.
+            myResultSet.addResultInfo(translate("timesheet.error.filter.needMore"))
+        }
         if (resultSet.offset == null) {
             // Non-paged POST list (the legacy React list and the exports): the result set is the whole result,
             // so its statistics are the whole result's, computed here in one pass.
@@ -655,6 +660,12 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // toggle can switch it off), and keep only sheets booked on a billable cost unit.
         elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
         elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+        // The legacy form's "only collisions" option: the sheets that overlap in time with another sheet of the
+        // same user (see TimesheetCollisionFilter).
+        elements.add(
+            UIFilterBooleanElement("marked", label = translate("timesheet.filter.withTimeperiodCollision"))
+                .also { it.tooltip = translate("timesheet.filter.withTimeperiodCollision.tooltip") }
+        )
         // Keep only sheets whose description or reference names a JIRA issue — the fields the next list
         // renders as JIRA links. Offered only where JIRA is configured (as IncompleteInvoiceFilter.isOffered
         // gates its pill), so the option doesn't appear on an instance that has no JIRA to link to.
@@ -772,6 +783,8 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         projectFilter.addCriterion(target, source)
         viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
         viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
+        var periodStart: Date? = null
+        var periodEnd: Date? = null
         source.entries.find { it.field == "period" }?.let { periodEntry ->
             periodEntry.synthetic = true
             // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that
@@ -781,14 +794,10 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             // Parsed via PFDayUtils.parseDate, not parseAndCreateDateTime: the latter parses to null for a string
             // without a time of day (DateParser with parseLocalDateIfNoTimeOfDayGiven=false), which would drop both
             // bounds and show every sheet.
-            val periodStart = PFDayUtils.parseDate(periodEntry.value.fromValue)?.let { PFDateTime.from(it).beginOfDay.utilDate }
-            val periodEnd = PFDayUtils.parseDate(periodEntry.value.toValue)?.let { PFDateTime.from(it).endOfDay.utilDate }
-            if (periodStart != null) {
-                target.add(QueryFilter.ge("stopTime", periodStart))
-            }
-            if (periodEnd != null) {
-                target.add(QueryFilter.le("startTime", periodEnd))
-            }
+            periodStart = PFDayUtils.parseDate(periodEntry.value.fromValue)?.let { PFDateTime.from(it).beginOfDay.utilDate }
+            periodEnd = PFDayUtils.parseDate(periodEntry.value.toValue)?.let { PFDateTime.from(it).endOfDay.utilDate }
+            periodStart?.let { target.add(QueryFilter.ge("stopTime", it)) }
+            periodEnd?.let { target.add(QueryFilter.le("startTime", it)) }
         }
         val recursiveEntry = source.entries.find { it.field == "recursive" }
         recursiveEntry?.synthetic = true
@@ -840,7 +849,37 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                 filters.add(TimesheetJiraFilter())
             }
         }
+        if (needsMoreFilter(source)) {
+            // Nothing at all rather than every sheet of every user (see needsMoreFilter): id is never null.
+            target.add(QueryFilter.isNull("id"))
+        }
+        source.entries.find { it.field == "marked" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(TimesheetCollisionFilter(timesheetDao, periodStart, periodEnd))
+            }
+        }
         return filters
+    }
+
+    /**
+     * The legacy list's start: the logged-in user's sheets of the current week (`TimesheetListFilter.reset`).
+     */
+    override fun newMagicFilter(): MagicFilter {
+        val filter = super.newMagicFilter()
+        val today = PFDay.now()
+        filter.entries.add(MagicFilterEntry("period").also {
+            it.value.fromValue = today.beginOfWeek.isoString
+            it.value.toValue = today.endOfWeek.isoString
+            it.value.periodKind = "week"
+        })
+        ThreadLocalUserContext.loggedInUser?.let { user ->
+            filter.entries.add(MagicFilterEntry("user").also {
+                it.value.id = user.id
+                it.value.displayName = user.displayName
+            })
+        }
+        return filter
     }
 
     /**
@@ -985,8 +1024,47 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             JiraUtils.hasJiraIssues(element.description) || JiraUtils.hasJiraIssues(element.reference)
     }
 
+    /**
+     * Keeps only time sheets colliding in time with another (non-deleted) sheet of the same user, the "only
+     * collisions" option of the legacy list (`TimesheetFilter.marked`) — which Wicket still offered but no longer
+     * applied since the JPA migration. The collisions are those [TimesheetDao.hasTimeOverlap] refuses on save,
+     * searched per user once ([TimesheetDao.getCollidingTimesheetIds]) and only around the list's period, if any:
+     * a partner outside the result (another task, outside the window) still makes a sheet a collision.
+     */
+    internal class TimesheetCollisionFilter(
+        private val timesheetDao: TimesheetDao,
+        private val periodStart: Date?,
+        private val periodEnd: Date?,
+    ) : CustomResultFilter<TimesheetDO> {
+        private val collidingIdsByUser = mutableMapOf<Long, Set<Long>>()
+
+        override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean {
+            val userId = element.userId ?: return false
+            val ids = collidingIdsByUser.getOrPut(userId) {
+                timesheetDao.getCollidingTimesheetIds(userId, periodStart, periodEnd)
+            }
+            return element.id in ids
+        }
+    }
+
     companion object {
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
+
+        /**
+         * The legacy list's guard (`TimesheetListForm`'s validator, `TimesheetListPage.buildList`): without a period
+         * and without a task it lists nothing and asks for more ("timesheet.error.filter.needMore") instead of every
+         * time sheet ever booked. A period is the list's own `period` or one of the literal `startTime`/`stopTime`
+         * pills; the user alone (or a search string) is not enough, as in Wicket. The start filter ([TimesheetEntityRest.newMagicFilter])
+         * and every drill-down into the list carry a period or a task.
+         */
+        internal fun needsMoreFilter(filter: MagicFilter): Boolean {
+            fun hasValue(field: String) = filter.entries.any { entry ->
+                entry.field == field && entry.value.let {
+                    !it.fromValue.isNullOrBlank() || !it.toValue.isNullOrBlank() || !it.value.isNullOrBlank() || it.id != null
+                }
+            }
+            return listOf("period", "startTime", "stopTime", "task").none { hasValue(it) }
+        }
     }
 }

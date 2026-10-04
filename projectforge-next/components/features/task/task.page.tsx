@@ -14,6 +14,7 @@ import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
 import { GanttSummary } from "./edit/gantt-summary";
+import { MaxHoursField } from "./edit/max-hours-field";
 import { TaskListActions } from "./task-list-actions";
 import {
   TaskConsumptionCell,
@@ -73,6 +74,8 @@ export const TASK_PAGE = definePage<
   // „List view", as the tree page is headed „Tree view": the two perspectives name themselves the
   // same way they name each other (see TaskPerspectiveLink).
   titleKey: "task.list.perspective",
+  // Wicket's start order (`TaskListPage`: `createDataTable(…, "title", SortOrder.DESCENDING)`).
+  defaultSort: { id: "title", desc: true },
   columns: [
     // The one column a reader looks for first, so it stays in view while the rest scrolls sideways.
     // Headed "Structure element" rather than the field's own "Title", as both Wicket pages head it
@@ -195,9 +198,8 @@ export const TASK_PAGE = definePage<
     // access-gated groups (see TaskEntityRest.newBaseDO and useNewEntryParams).
     newEntryParams: TASK_NEW_ENTRY_PARAMS,
     // The top menu of the Wicket form (`TaskEditPage.addTopMenuPanel`), in its order and with its
-    // wording. The task and timesheet targets live in this app now (both are migrated); the remaining
-    // two — Gantt and access rights — are Wicket pages, and turn into routes of this app with nothing
-    // but a changed href once they are migrated.
+    // wording. All five targets are routes of this app (task, timesheet, Gantt and access rights are
+    // migrated).
     crossLinks: [
       // The two that are worth a button of their own beside the heading (see CrossLinkDef.prominent):
       // structuring the tree and looking at what was booked on the element are what an open task is left
@@ -262,11 +264,8 @@ export const TASK_PAGE = definePage<
           // field's BOOLEAN metadata.
           {
             group: [
-              {
-                name: "maxHours",
-                maxDigits: 4,
-                hintKey: "task.edit.maxHoursIngoredDueToAssignedOrders",
-              },
+              // Custom for its warning, which is shown only where the orders decide (see MaxHoursField).
+              { custom: MaxHoursField },
               {
                 name: "maxHoursHasPriority",
                 hintKey: "task.maxHoursHasPriority.tooltip",

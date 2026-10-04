@@ -90,6 +90,13 @@ class Task(id: Long? = null,
     var protectTimesheetsUntilWriteAccess: Boolean = false
 
     /**
+     * Whether order positions are assigned to this task or below it, which then decide the planned hours
+     * instead of `maxHours` (unless `maxHoursHasPriority`): the case in which Wicket's `TaskEditForm`
+     * warns with `task.edit.maxHoursIngoredDueToAssignedOrders`. Filled for the edit page only.
+     */
+    var maxHoursIgnoredDueToOrders: Boolean = false
+
+    /**
      * The consumption bar of a list row: booked hours against `maxHours`, as the tree's column shows it.
      * Only filled by [copyFrom4ListRow] — computed from the task tree, not a property of `TaskDO`.
      */

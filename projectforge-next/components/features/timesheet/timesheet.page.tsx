@@ -86,6 +86,8 @@ export const TIMESHEET_PAGE = definePage<
   // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
   categoryKey: "menu.projectmanagement",
   titleKey: "menu.timesheetList",
+  // Newest first, as the Wicket list opens (`createDataTable(..., "startTime", DESCENDING)`).
+  defaultSort: { id: "startTime", desc: true },
   // The fields that identify a sheet, in the order the legacy list showed them.
   columns: [
     // Both are entity references the row carries as `{ id, displayName }`, not a plain value, so each
@@ -98,6 +100,25 @@ export const TIMESHEET_PAGE = definePage<
       name: "user",
       size: 140,
       cell: ({ row }) => row.original.user?.displayName ?? null,
+    },
+    // The customer and project of the sheet's cost unit, as the Wicket list shows them beside the user —
+    // only where cost accounting is configured, like the cost unit column below. The plain names
+    // (Timesheet.copyFrom4ListRow), sorted server-side by the same paths the Wicket columns sort by.
+    {
+      id: "kost2.projekt.kunde.name",
+      labelKey: "fibu.kunde._",
+      accessor: (row) => row.kost2?.project?.customer?.name ?? "",
+      size: 160,
+      filterKind: null,
+      visible: ({ variables }) => variables?.kost2Configured === true,
+    },
+    {
+      id: "kost2.projekt.name",
+      labelKey: "fibu.projekt._",
+      accessor: (row) => row.kost2?.project?.name ?? "",
+      size: 160,
+      filterKind: null,
+      visible: ({ variables }) => variables?.kost2Configured === true,
     },
     // The cost unit, shown only where cost accounting is configured — the Wicket column the list gates on
     // `Configuration.isCostConfigured` (the `kost2Configured` list variable, see

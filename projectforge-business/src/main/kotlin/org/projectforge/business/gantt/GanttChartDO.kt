@@ -52,7 +52,7 @@ class GanttChartDO : AbstractBaseDO<Long>() {
     /**
      * Free usable name.
      */
-    @PropertyInfo(i18nKey = "gantt.name")
+    @PropertyInfo(i18nKey = "gantt.name", required = true)
     @FullTextField
     @get:Column(length = 1000)
     var name: String? = null

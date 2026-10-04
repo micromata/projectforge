@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { GANTT_CHART_METADATA } from "@/lib/metadata/gantt-chart.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
-import { maxMarker, minMarker, REQUIRED } from "@/lib/validation/markers";
+import {
+  maxLengthMarker,
+  maxMarker,
+  minMarker,
+  REQUIRED,
+} from "@/lib/validation/markers";
 import type { GanttObject } from "./types";
 
 /**
@@ -20,17 +25,35 @@ function bounded(min: number, max: number) {
     .refine((v) => v == null || v <= max, maxMarker(max));
 }
 
+/**
+ * A text the Wicket form requires (`RequiredMaxLengthTextField`) although the metadata doesn't, so the
+ * input still empties it to null (GanttChartEntityRest.validate checks the same).
+ */
+function requiredText(maxLength?: number) {
+  const schema = z
+    .string()
+    .nullable()
+    .refine((v) => v != null && v.trim().length > 0, REQUIRED);
+  return maxLength === undefined
+    ? schema
+    : schema.refine(
+        (v) => v == null || v.length <= maxLength,
+        maxLengthMarker(maxLength)
+      );
+}
+
 const access = z.enum(["OWNER", "PROJECT_MANAGER", "ALL"]).nullable();
 
 export const ganttSchema = z.object({
   id: z.number().nullable(),
-  name: m.nullableString("name"),
+  name: requiredText(GANTT_CHART_METADATA.fields.name.maxLength),
   // The chart is a view of the task's sub tree, so it has none without one (GanttChartEntityRest.validate).
   task: m.entityField("task").refine((v): boolean => v != null, REQUIRED),
   owner: m.entityField("owner"),
   readAccessType: access,
   writeAccessType: access,
-  title: z.string().nullable(),
+  // GanttChartSettings' title, limited to 100 characters by the Wicket form.
+  title: requiredText(100),
   fromDate: z.string().nullable(),
   toDate: z.string().nullable(),
   showOnlyVisibles: z.boolean(),

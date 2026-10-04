@@ -68,6 +68,16 @@ export function GanttDateCell({
   );
 }
 
+/**
+ * The bounds of Wicket's tree table (`MinMaxNumberField`; the duration's is `TaskEditForm.MAX_DURATION_DAYS`).
+ * A value outside is only marked here: the tree has no form fields, so GanttChartEntityRest.validate
+ * refuses the save with a message naming the activity.
+ */
+const BOUNDS: Partial<Record<GanttTaskField, [number, number]>> = {
+  DURATION: [0, 10000],
+  PROGRESS: [0, 100],
+};
+
 export function GanttNumberCell({
   row,
   field,
@@ -87,6 +97,10 @@ export function GanttNumberCell({
     | "progress"
     | "predecessorOffset";
   const { node } = row;
+  const value = node[key] ?? null;
+  const bounds = BOUNDS[field];
+  const invalid =
+    bounds != null && value != null && (value < bounds[0] || value > bounds[1]);
   return (
     <GanttTaskValueCell
       node={node}
@@ -94,7 +108,8 @@ export function GanttNumberCell({
       taskValue={formatNumber(node.task?.[key], ctx, fractionDigits)}
     >
       <NumberBox
-        value={node[key] ?? null}
+        value={value}
+        invalid={invalid}
         onChange={(v) => editor.update(node.id, { [key]: v })}
         fractionDigits={fractionDigits}
         maxDigits={field === "PROGRESS" ? 3 : 5}

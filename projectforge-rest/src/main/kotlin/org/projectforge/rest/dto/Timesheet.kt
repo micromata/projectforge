@@ -25,6 +25,8 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.kost.KundeCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.timesheet.TimesheetDO
 import java.math.BigDecimal
@@ -139,6 +141,18 @@ class Timesheet(
         // deleted and deactivated so the frontend strikes a removed or deactivated user through: neither is
         // copied by User.copyFromMinimal (deactivated is never, deleted only for admins), so set both here.
         src.user?.let { user = User(id = it.id, displayName = it.displayName).also { dto -> dto.deleted = it.deleted; dto.deactivated = it.deactivated } }
-        src.kost2?.let { kost2 = Kost2().also { dto -> dto.copyFromMinimal(it) } }
+        src.kost2?.let { kost2DO ->
+            kost2 = Kost2().also { dto ->
+                dto.copyFromMinimal(kost2DO)
+                // The plain project and customer names for the Kunde/Projekt columns, as the Wicket list shows
+                // them (`kost2.projekt.kunde.name`, `kost2.projekt.name`) — the minimal copies carry only the
+                // display names with the numbers. Both from the caches, the cached Kost2DO is detached.
+                dto.project?.let { project ->
+                    val projektDO = ProjektCache.instance.getProjektIfNotInitialized(kost2DO.projekt)
+                    project.name = projektDO?.name
+                    project.customer?.name = KundeCache.instance.getKundeIfNotInitialized(projektDO?.kunde)?.name
+                }
+            }
+        }
     }
 }

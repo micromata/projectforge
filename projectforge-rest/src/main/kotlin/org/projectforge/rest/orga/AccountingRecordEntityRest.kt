@@ -32,13 +32,17 @@ import org.projectforge.business.fibu.kost.reporting.ReportStorage
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
@@ -47,10 +51,14 @@ import org.projectforge.rest.dto.BwaStatistics
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.Date
 
 /**
  * Hand-built REST backend for the DATEV accounting-record list ("Buchungssätze"), migrated from the Wicket
@@ -78,10 +86,12 @@ class AccountingRecordEntityRest :
      * here so the migrated page is no more permissive than the pages it replaces. The DAO's group-only
      * select access (FINANCE/CONTROLLING) is intentionally *not* enough: the reporting page reads the same
      * records through that group access and must keep working without this right, so the gate lives at these
-     * endpoints, not in [BuchungssatzDao]. Called from every read/write/meta choke point below.
+     * endpoints, not in [BuchungssatzDao]. Called from every read/write/meta choke point below. Restricted and
+     * demo users are refused as well, as by the Wicket pages.
      */
     private fun checkDatevImportAccess() {
         accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)
+        accessChecker.checkRestrictedOrDemoUser()
     }
 
     override fun transformForDB(dto: Buchungssatz): BuchungssatzDO {
@@ -229,6 +239,71 @@ class AccountingRecordEntityRest :
         return result
     }
 
+    /**
+     * The filtered list as the Excel file of Wicket's `AccountingRecordListPage` ("exportAsXls", sheet
+     * "fibu.buchungssaetze"), with the record's own fields as Wicket's generic exporter wrote them. The rows
+     * come from [getResultList], i.e. through the same pipeline (and access checks) the list itself uses. An
+     * empty result answers 404 rather than a file.
+     */
+    @AccessChecked("FIBU_DATEV_IMPORT (checkDatevImportAccess); DAO select access")
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        checkDatevImportAccess()
+        val list = getResultList(filter)
+        if (list.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
+        ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("fibu.buchungssaetze"))
+            // Excel's built-in "General" for the amount: merlin's default "#.#" shows whole numbers as "35," in
+            // German Excel. Registered at column level before any cell exists, so setCellValue(BigDecimal) keeps it.
+            val numberStyle = workbook.createOrGetCellStyle("number")
+            numberStyle.dataFormat = workbook.createDataFormat().getFormat("General")
+            sheet.registerColumn(translate("fibu.buchungssatz.satznr"), COL_SATZNR).withSize(16)
+            sheet.registerColumn(translate("date"), COL_DATE).withSize(12)
+            sheet.registerColumn(translate("fibu.common.betrag"), COL_AMOUNT).withSize(14)
+            sheet.registerColumn(translate("finance.accountingRecord.dc"), COL_DC).withSize(10)
+            sheet.registerColumn(translate("fibu.buchungssatz.konto"), COL_ACCOUNT).withSize(30)
+            sheet.registerColumn(translate("fibu.buchungssatz.gegenKonto"), COL_COUNTER_ACCOUNT).withSize(30)
+            sheet.registerColumn(translate("fibu.kost1"), COL_KOST1).withSize(14)
+            sheet.registerColumn(translate("fibu.kost2"), COL_KOST2).withSize(14)
+            sheet.registerColumn(translate("fibu.buchungssatz.beleg"), COL_VOUCHER).withSize(14)
+            sheet.registerColumn(translate("fibu.buchungssatz.text"), COL_TEXT).withSize(40)
+            sheet.registerColumn(translate("fibu.buchungssatz.menge"), COL_QUANTITY).withSize(10)
+            sheet.registerColumn(translate("comment"), COL_COMMENT).withSize(40)
+            sheet.setColumnStyle(COL_AMOUNT, numberStyle)
+            ExcelUtils.addHeadRow(sheet)
+            list.forEach { satz ->
+                val row = sheet.createRow()
+                if (satz.year != null && satz.month != null) {
+                    row.getCell(COL_SATZNR)?.setCellValue(satz.formattedSatzNummer)
+                }
+                satz.datum?.let { row.getCell(COL_DATE)?.setCellValue(it) }
+                satz.betrag?.let { row.getCell(COL_AMOUNT)?.setCellValue(it)?.setCellStyle(numberStyle) }
+                satz.sh?.let { row.getCell(COL_DC)?.setCellValue(translate(it.i18nKey)) }
+                kontoCache.getKontoIfNotInitialized(satz.konto)?.displayName
+                    ?.let { row.getCell(COL_ACCOUNT)?.setCellValue(it) }
+                kontoCache.getKontoIfNotInitialized(satz.gegenKonto)?.displayName
+                    ?.let { row.getCell(COL_COUNTER_ACCOUNT)?.setCellValue(it) }
+                satz.kost1?.let {
+                    row.getCell(COL_KOST1)
+                        ?.setCellValue(KostFormatter.instance.formatKost1(it, KostFormatter.FormatType.FORMATTED_NUMBER))
+                }
+                satz.kost2?.let {
+                    row.getCell(COL_KOST2)
+                        ?.setCellValue(KostFormatter.instance.formatKost2(it, KostFormatter.FormatType.FORMATTED_NUMBER))
+                }
+                satz.beleg?.let { row.getCell(COL_VOUCHER)?.setCellValue(it) }
+                satz.text?.let { row.getCell(COL_TEXT)?.setCellValue(it) }
+                satz.menge?.let { row.getCell(COL_QUANTITY)?.setCellValue(it) }
+                satz.comment?.let { row.getCell(COL_COMMENT)?.setCellValue(it) }
+            }
+            sheet.setAutoFilter()
+            val filename = "ProjectForge-AccountingRecords_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            return RestUtils.downloadFile(filename, workbook.asByteArrayOutputStream.toByteArray())
+        }
+    }
+
     /** Response of [getReportRecords]: the records to list plus their BWA. */
     class ReportRecordsResult(
         var records: List<Buchungssatz> = emptyList(),
@@ -244,5 +319,18 @@ class AccountingRecordEntityRest :
 
         /** The database columns the record number column sorts by, in this order. */
         private val SATZNR_SORT_COLUMNS = listOf("year", "month", SATZNR)
+
+        private const val COL_SATZNR = "satznr"
+        private const val COL_DATE = "datum"
+        private const val COL_AMOUNT = "betrag"
+        private const val COL_DC = "sh"
+        private const val COL_ACCOUNT = "konto"
+        private const val COL_COUNTER_ACCOUNT = "gegenKonto"
+        private const val COL_KOST1 = "kost1"
+        private const val COL_KOST2 = "kost2"
+        private const val COL_VOUCHER = "beleg"
+        private const val COL_TEXT = "text"
+        private const val COL_QUANTITY = "menge"
+        private const val COL_COMMENT = "comment"
     }
 }

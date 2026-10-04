@@ -31,18 +31,22 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.GroupTaskAccess
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterObjectElement
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -52,8 +56,8 @@ import org.springframework.web.bind.annotation.RestController
  * permission matrix, migrated from the Wicket `AccessListPage`/`AccessEditPage`.
  *
  * Layout free ([AbstractDTOEntityRest]): the hand built next page brings its own layout, so there is no
- * server side `createListLayout`/`createEditLayout` here. The way-back link to the classic Wicket page
- * is driven by `NextMigration` (offerLegacyLink), not by `classicsLinkListUrl`.
+ * server side `createListLayout`/`createEditLayout` here. There is no way back to the Wicket page
+ * (`NextMigration`, `offerLegacyLink = false`); its old urls are redirected by `OrphanedLinkFilter`.
  */
 @RestController
 @RequestMapping("${Rest.URL}/access")
@@ -95,6 +99,67 @@ class GroupAccessEntityRest :
         val obj = GroupTaskAccessDO()
         dto.copyTo(obj)
         return obj
+    }
+
+    /**
+     * Task and group are required (`@ManyToOne` references, which [org.projectforge.rest.core.ValidationUtils]
+     * does not check), as Wicket's AccessEditForm required them. There is one entry per task and group: a pair
+     * that already exists is refused with Wicket's message (`AccessEditPage.create`) — unless it is marked as
+     * deleted, then the save restores it ([onBeforeSave]).
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: GroupTaskAccess) {
+        super.validate(validationErrors, dto)
+        val taskId = dto.task?.id
+        val groupId = dto.group?.id
+        if (taskId == null) {
+            validationErrors.add(
+                ValidationError(translateMsg("validation.error.fieldRequired", translate("task")), fieldId = "task")
+            )
+        }
+        if (groupId == null) {
+            validationErrors.add(
+                ValidationError(translateMsg("validation.error.fieldRequired", translate("group")), fieldId = "group")
+            )
+        }
+        if (taskId == null || groupId == null) {
+            return
+        }
+        val existing = findEntry(taskId, groupId) ?: return
+        if (existing.id == dto.id || (dto.id == null && existing.deleted)) {
+            return
+        }
+        validationErrors.add(
+            ValidationError(
+                translateMsg(
+                    "access.exception.standard",
+                    caches.getTask(taskId)?.title ?: dto.task?.title,
+                    caches.getGroup(groupId)?.name ?: dto.group?.name,
+                ),
+                fieldId = "task",
+            )
+        )
+    }
+
+    /**
+     * A new entry for a task and group whose entry is marked as deleted restores that one with the posted
+     * values instead of inserting a second (refused by the unique constraint), as Wicket's
+     * `AccessEditPage.create` did. The following insertOrUpdate then is an update without changes.
+     */
+    override fun onBeforeSave(request: HttpServletRequest, obj: GroupTaskAccessDO, postData: PostData<GroupTaskAccess>) {
+        super.onBeforeSave(request, obj, postData)
+        val taskId = obj.taskId ?: return
+        val groupId = obj.groupId ?: return
+        val existing = findEntry(taskId, groupId) ?: return
+        if (existing.deleted) {
+            obj.id = existing.id
+            baseDao.undelete(obj)
+        }
+    }
+
+    private fun findEntry(taskId: Long, groupId: Long): GroupTaskAccessDO? {
+        val task = caches.getTask(taskId) ?: return null
+        val group = caches.getGroup(groupId) ?: return null
+        return baseDao.getEntry(task, group)
     }
 
     /**

@@ -24,6 +24,7 @@
 package org.projectforge.rest.gantt
 
 import jakarta.servlet.http.HttpServletRequest
+import java.math.BigDecimal
 import org.projectforge.business.gantt.GanttAccess
 import org.projectforge.business.gantt.GanttChartDO
 import org.projectforge.business.gantt.GanttChartDao
@@ -61,6 +62,16 @@ class GanttChartEntityRest :
     @Autowired
     private lateinit var taskDao: TaskDao
 
+    companion object {
+        /** The name of a new chart (Wicket's `GanttChartEditForm`). */
+        const val DEFAULT_NAME = "MyChart"
+
+        const val TITLE_MAX_LENGTH = 100
+
+        /** The bound of an activity's duration (Wicket's `TaskEditForm.MAX_DURATION_DAYS`). */
+        const val MAX_DURATION_DAYS = 10000
+    }
+
     override fun newDTO(): GanttDiagram = GanttDiagram()
 
     override fun transformFromDB(obj: GanttChartDO, editMode: Boolean): GanttDiagram {
@@ -90,10 +101,11 @@ class GanttChartEntityRest :
 
     /**
      * A new chart is owned by the logged-in user and readable/writable by them only, for the task given by
-     * the `task` parameter (the task page's "Gantt" link), as in Wicket.
+     * the `task` parameter (the task page's "Gantt" link), and named "MyChart", as in Wicket.
      */
     override fun newBaseDO(request: HttpServletRequest?): GanttChartDO {
         val obj = baseDao.newInstance()
+        obj.name = DEFAULT_NAME
         obj.readAccess = GanttAccess.OWNER
         obj.writeAccess = GanttAccess.OWNER
         baseDao.setOwner(obj, ThreadLocalUserContext.loggedInUserId!!)
@@ -139,16 +151,59 @@ class GanttChartEntityRest :
         return dto
     }
 
+    /**
+     * The rules of Wicket's `GanttChartEditForm` (task, name and title required, the title at most
+     * [TITLE_MAX_LENGTH] characters) and of its tree table (`GanttChartEditTreeTablePanel`: every activity
+     * titled, duration and progress bounded).
+     */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: GanttDiagram) {
         super.validate(validationErrors, dto)
         if (dto.task?.id == null) {
+            validationErrors.add(required("task", "task"))
+        }
+        if (dto.name.isNullOrBlank()) {
+            validationErrors.add(required("name", "gantt.name"))
+        }
+        if (dto.title.isNullOrBlank()) {
+            validationErrors.add(required("title", "title"))
+        } else if (dto.title!!.length > TITLE_MAX_LENGTH) {
             validationErrors.add(
                 ValidationError(
-                    translateMsg("validation.error.fieldRequired", translate("task")),
-                    fieldId = "task",
+                    translateMsg("validation.error.maxLength", translate("title"), TITLE_MAX_LENGTH),
+                    fieldId = "title",
                 )
             )
         }
+        dto.root?.children?.forEach { validateTree(it, validationErrors) }
+    }
+
+    private fun required(fieldId: String, labelKey: String) =
+        ValidationError(translateMsg("validation.error.fieldRequired", translate(labelKey)), fieldId = fieldId)
+
+    /**
+     * The values of the tree have no form field of their own, so their errors are field-less (shown as a
+     * toast), each naming the activity and the column.
+     */
+    private fun validateTree(node: GanttObject, validationErrors: MutableList<ValidationError>) {
+        val activity = node.title?.takeIf { it.isNotBlank() }
+        if (activity == null) {
+            validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired", translate("title"))))
+        }
+        fun outOfRange(labelKey: String, min: Int, max: Int) {
+            val message = translateMsg("validation.error.range.integerOutOfRange", min, max)
+            validationErrors.add(ValidationError("${activity ?: "?"}, ${translate(labelKey)}: $message"))
+        }
+        node.duration?.let {
+            if (it < BigDecimal.ZERO || it > BigDecimal(MAX_DURATION_DAYS)) {
+                outOfRange("gantt.duration", 0, MAX_DURATION_DAYS)
+            }
+        }
+        node.progress?.let {
+            if (it < 0 || it > 100) {
+                outOfRange("task.progress", 0, 100)
+            }
+        }
+        node.children?.forEach { validateTree(it, validationErrors) }
     }
 
     /**

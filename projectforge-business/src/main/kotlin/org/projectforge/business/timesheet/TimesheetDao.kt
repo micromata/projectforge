@@ -25,6 +25,7 @@ package org.projectforge.business.timesheet
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
+import org.projectforge.business.PfCaches
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
@@ -520,15 +521,77 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * tasks is a shared cost element (inherited) and the two time sheets don't belong to the same project.
      */
     private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
-        val released = taskTree.isTimeOverlapAllowed(timesheet.taskId) || taskTree.isTimeOverlapAllowed(other.taskId)
+        return isOverlapAllowed(timesheet.taskId, { getProjektId(timesheet) }, other.taskId, { getProjektId(other) })
+    }
+
+    private fun isOverlapAllowed(
+        taskId: Long?, projektId: () -> Long?, otherTaskId: Long?, otherProjektId: () -> Long?,
+    ): Boolean {
+        val released = taskTree.isTimeOverlapAllowed(taskId) || taskTree.isTimeOverlapAllowed(otherTaskId)
         if (!released) {
             return false
         }
-        val projektId = getProjektId(timesheet)
-        val otherProjektId = getProjektId(other)
+        val id = projektId()
         // Same project => forbidden double booking. Time sheets without project (internal tasks) never count as the
         // same project.
-        return projektId == null || projektId != otherProjektId
+        return id == null || id != otherProjektId()
+    }
+
+    /**
+     * The ids of the given user's time sheets (deleted ones ignored) that collide in time with another of the user's
+     * time sheets — the forbidden overlaps [hasTimeOverlap] refuses on save; an overlap released by a shared cost
+     * element doesn't count. Sheets saved before that check existed (or imported) may still collide, this finds them:
+     * the "only collisions" option of the time sheet list.
+     *
+     * One `SELECT` of five columns, no row hydration (a user may have many thousand sheets). [from]/[to] narrow it to
+     * the sheets that may collide with one touching that window — widened by [MAXIMUM_DURATION], the longest a sheet
+     * may last; null means unbounded. No access check: the caller filters an access checked result with it.
+     */
+    open fun getCollidingTimesheetIds(userId: Long, from: Date?, to: Date?): Set<Long> {
+        val sql = StringBuilder(
+            "SELECT t.id AS id, t.startTime AS startTime, t.stopTime AS stopTime, t.task.id AS taskId, t.kost2.id AS kost2Id" +
+                    " FROM TimesheetDO t WHERE t.user.id = :userId AND t.deleted = false"
+        )
+        val params = mutableListOf<Pair<String, Any?>>(Pair("userId", userId))
+        from?.let {
+            sql.append(" AND t.stopTime >= :from")
+            params.add(Pair("from", Date(it.time - MAXIMUM_DURATION)))
+        }
+        to?.let {
+            sql.append(" AND t.startTime <= :to")
+            params.add(Pair("to", Date(it.time + MAXIMUM_DURATION)))
+        }
+        sql.append(" ORDER BY t.startTime")
+        val sheets = persistenceService.executeQuery(sql.toString(), Tuple::class.java, *params.toTypedArray())
+            .mapNotNull { tuple ->
+                val start = (tuple.get("startTime") as Date?)?.time ?: return@mapNotNull null
+                val stop = (tuple.get("stopTime") as Date?)?.time ?: return@mapNotNull null
+                CollisionCandidate(tuple.get("id") as Long, start, stop, tuple.get("taskId") as Long?, tuple.get("kost2Id") as Long?)
+            }
+        val result = mutableSetOf<Long>()
+        // Sweep over the sheets sorted by start: the active ones are those still running at the current start, so
+        // only sheets that really overlap are compared (a handful), not every pair.
+        val active = mutableListOf<CollisionCandidate>()
+        sheets.forEach { sheet ->
+            active.removeAll { it.stop <= sheet.start }
+            active.forEach { other ->
+                // Strictly overlapping, as hasTimeOverlap (one ending when the other starts is no collision).
+                if (sheet.stop > other.start &&
+                    !isOverlapAllowed(sheet.taskId, { projektIdOf(sheet) }, other.taskId, { projektIdOf(other) })
+                ) {
+                    result.add(sheet.id)
+                    result.add(other.id)
+                }
+            }
+            active.add(sheet)
+        }
+        return result
+    }
+
+    private class CollisionCandidate(val id: Long, val start: Long, val stop: Long, val taskId: Long?, val kost2Id: Long?)
+
+    private fun projektIdOf(sheet: CollisionCandidate): Long? {
+        return taskTree.getProjekt(sheet.taskId)?.id ?: PfCaches.instance.getKost2(sheet.kost2Id)?.projekt?.id
     }
 
     private fun getProjektId(timesheet: TimesheetDO): Long? {

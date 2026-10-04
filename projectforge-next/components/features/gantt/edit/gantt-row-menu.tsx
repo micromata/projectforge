@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreVerticalIcon } from "@hugeicons/core-free-icons";
@@ -14,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { taskHref } from "@/components/shared/tasks/task-routes";
+import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { setChildrenVisible, setInvisible, type GanttRow } from "../gantt-tree";
 import { useGanttEditorContext } from "./use-gantt-editor";
 import { useGanttRowActions } from "./use-gantt-row-actions";
@@ -105,8 +106,16 @@ export function GanttRowMenu({ row, title }: { row: GanttRow; title: string }) {
               </DropdownMenuItem>
             </>
           ) : (
+            // In a new tab, as TaskEditLink does: following it in this tab would unmount the editor and
+            // throw away the unsaved changes of the chart.
             <DropdownMenuItem asChild>
-              <Link href={`/task/${node.id}`}>{t("task.title.edit")}</Link>
+              <a
+                href={toAbsoluteUrl(resolveMenuUrl(`next${taskHref(node.id)}`))}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("task.title.edit")}
+              </a>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

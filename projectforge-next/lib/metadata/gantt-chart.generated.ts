@@ -26,7 +26,7 @@ export const GANTT_CHART_METADATA = {
     name: {
       dataType: "STRING",
       i18nKey: "gantt.name",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
     owner: {

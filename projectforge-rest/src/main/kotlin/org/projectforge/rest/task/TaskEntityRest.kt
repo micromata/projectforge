@@ -71,6 +71,7 @@ class TaskEntityRest
             task.kost2AndBookingStatusWriteAccess = baseDao.hasAccessForKost2AndTimesheetBookingStatus(user, obj)
             task.protectTimesheetsUntilWriteAccess =
                 accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+            task.maxHoursIgnoredDueToOrders = obj.id != null && taskTree.hasOrderPositions(obj.id, true)
         }
         return task
     }

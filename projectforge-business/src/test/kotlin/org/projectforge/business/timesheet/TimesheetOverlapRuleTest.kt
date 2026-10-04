@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDateTime
@@ -59,7 +60,7 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
 
     @Test
     fun overlapRule() {
-        persistenceService.runInTransaction { _ ->
+        persistenceService.runInTransaction { context ->
             // Finance group required to create customers/projects; time sheets below are inserted with
             // checkAccess = false, so this login is only about the master data setup.
             logon(AbstractTestBase.TEST_FINANCE_USER)
@@ -109,6 +110,28 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
             // (d) Released + neither has a project (null project is never "the same project") => allowed.
             insert("ovl-released-np", user, date(13, 8), date(13, 16))
             insert("ovl-plain", user, date(13, 15), date(13, 18)) // overlaps, must be accepted.
+
+            // Collisions the validation would reject (legacy data), persisted directly: same project and
+            // not released. Touching periods (one ends when the next starts) are no collision.
+            val collision1 = persistRaw(context, "ovl-root-A", user, date(14, 8), date(14, 16))
+            val collision2 = persistRaw(context, "ovl-A-sub", user, date(14, 15), date(14, 18))
+            val collision3 = persistRaw(context, "ovl-root-B", user, date(15, 8), date(15, 12))
+            val collision4 = persistRaw(context, "ovl-plain", user, date(15, 11), date(15, 13))
+            persistRaw(context, "ovl-plain", user, date(16, 8), date(16, 12))
+            persistRaw(context, "ovl-root-B", user, date(16, 12), date(16, 14))
+            context.flush()
+
+            Assertions.assertEquals(
+                setOf(collision1, collision2, collision3, collision4),
+                timesheetDao.getCollidingTimesheetIds(user.id!!, date(1, 0), date(31, 0)),
+                "Only the forbidden overlaps are collisions, not the released ones (a), (d) nor touching periods.",
+            )
+            // The period limits the result; it is widened by the maximum duration of a sheet, so day 14 (ending
+            // 18:00) is outside a period starting on day 15 at 12:00.
+            Assertions.assertEquals(
+                setOf(collision3, collision4),
+                timesheetDao.getCollidingTimesheetIds(user.id!!, date(15, 12), date(15, 23)),
+            )
             null
         }
     }
@@ -120,6 +143,19 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
         ts.startTime = start
         ts.stopTime = stop
         timesheetDao.insert(ts, checkAccess = false)
+    }
+
+    /** Persists without the validation of [TimesheetDao.insert], to simulate colliding legacy data. */
+    private fun persistRaw(context: PfPersistenceContext, taskName: String, user: PFUserDO, start: Date, stop: Date): Long {
+        val ts = TimesheetDO()
+        ts.task = initTestDB.getTask(taskName)
+        ts.user = user
+        ts.startTime = start
+        ts.stopTime = stop
+        ts.created = Date()
+        ts.lastUpdate = ts.created
+        context.insert(ts)
+        return ts.id!!
     }
 
     private fun assertOverlapRejected(taskName: String, user: PFUserDO, start: Date, stop: Date) {

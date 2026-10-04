@@ -136,15 +136,13 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         val groupDO = GroupDO()
         dto.copyTo(groupDO)
         //groupDao.setNestedGroups(getData(), form.nestedGroupsListHelper.getAssignedItems());
-        dto.gidNumber.let { gidNumber ->
-            if (gidNumber != null) {
-                val values = LdapGroupValues()
-                values.gidNumber = gidNumber
-                val xml: String = groupDOConverter.getLdapValuesAsXml(values)
-                groupDO.ldapValues = xml
-            } else {
-                groupDO.ldapValues = null
-            }
+        // As Wicket's GroupEditPage: only a given gid is written (merged into the loaded values); otherwise the
+        // ldapValues stay as loaded (copyTo), so a save without the LDAP field (posix not configured) or
+        // without a gid never wipes what the LDAP sync wrote. Clearing a set gid is refused by [validate].
+        dto.gidNumber?.let { gidNumber ->
+            val values = groupDOConverter.readLdapGroupValues(dto.ldapValues) ?: LdapGroupValues()
+            values.gidNumber = gidNumber
+            groupDO.ldapValues = groupDOConverter.getLdapValuesAsXml(values)
         }
         return groupDO
     }
@@ -186,6 +184,17 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         return filters
     }
 
+    /**
+     * A copy can't keep the gid of its original, which is in use by definition; the user may let
+     * [createGid] propose a free one.
+     */
+    override fun prepareClone(dto: Group): Group {
+        super.prepareClone(dto)
+        dto.gidNumber = null
+        dto.ldapValues = null
+        return dto
+    }
+
     @PostMapping("createGid")
     fun createGid(@Valid @RequestBody postData: PostData<Group>):
             ResponseAction {
@@ -207,7 +216,28 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
                 )
             )
         }
-        dto.gidNumber?.let { gidNumber ->
+        val gidNumber = dto.gidNumber
+        if (gidNumber == null) {
+            // Once a group is a posix group, its gid can't be removed again (Wicket's GroupEditForm validator).
+            if (dto.id != null && useLdapStuff &&
+                groupDOConverter.readLdapGroupValues(dto.ldapValues)?.isPosixValuesEmpty == false
+            ) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg("validation.error.fieldRequired", translate("ldap.gidNumber")),
+                        fieldId = "gidNumber",
+                    )
+                )
+            }
+        } else if (gidNumber !in GID_RANGE) {
+            // The range of Wicket's MinMaxNumberField.
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("validation.error.range.integerOutOfRange", GID_RANGE.first, GID_RANGE.last),
+                    fieldId = "gidNumber",
+                )
+            )
+        } else {
             if (!ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
                 validationErrors.add(
                     ValidationError(
@@ -293,4 +323,9 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
             .hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured)
 
     override val autoCompleteSearchFields = arrayOf("name", "organization")
+
+    companion object {
+        /** The posix gid range, as Wicket's GroupEditForm allowed it. */
+        internal val GID_RANGE = 1..65535
+    }
 }
