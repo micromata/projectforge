@@ -15,6 +15,7 @@ import {
   createOrder,
   createProject,
   createTask,
+  markAsDeleted,
   type SeededBook,
   type SeededCost1,
   type SeededCustomer,
@@ -117,7 +118,13 @@ export const test = base.extend<
 
   seededCustomer: [
     async ({ seedRequest }, use) => {
-      await use(await createCustomer(seedRequest));
+      const customer = await createCustomer(seedRequest);
+      await use(customer);
+      // Its number is taken for good; deleted, it leaves every default list and the next run's
+      // createCustomer recycles it instead of using up another one.
+      await markAsDeleted(seedRequest, "customer", customer.id).catch(
+        () => undefined
+      );
     },
     { scope: "worker" },
   ],

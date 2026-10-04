@@ -2,7 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { waitForRow } from "./fixtures/list-table";
-import { markAsDeleted, type SeededCustomer } from "./fixtures/seed";
+import type { SeededCustomer } from "./fixtures/seed";
 import { CUSTOMER_PAGE } from "../components/features/customer/customer.page";
 import { KUNDE_METADATA } from "../lib/metadata/kunde.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
@@ -167,14 +167,6 @@ test.describe("customer page", { tag: "@lane-customer" }, () => {
       body.entries.find((entry) => entry.field === "status")?.value.values
     ).toContain("ACTIVE");
     await waitForRow(page, customer.name, 30_000);
-  });
-
-  // The seeded customer occupies its number for good; mark it deleted so it leaves every default list,
-  // and so a following run's search finds only its own row.
-  test.afterAll(async ({ seedRequest, seededCustomer }) => {
-    await markAsDeleted(seedRequest, "customer", seededCustomer.id).catch(
-      () => undefined
-    );
   });
 });
 

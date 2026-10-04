@@ -431,12 +431,14 @@ export interface SeededCustomer {
 }
 
 /**
- * Creates a customer whose number is free.
+ * Creates a customer, preferably by recycling one an earlier run left behind.
  *
  * The number is the entity's user-assigned id (`KundeDO.nummer`, 0..999 — `KundeDO.MAX_ID`), so a
- * customer cannot be inserted without inventing one. Probed descending from 999: the high end of the
- * range is the part a real chart of accounts is least likely to use, and an inserted number can never
- * be released again (`KundeDO` is historizable — `markAsDeleted` keeps the row and its number). A
+ * customer cannot be inserted without inventing one, and an inserted number can never be released
+ * again (`KundeDO` is historizable — `markAsDeleted` keeps the row and its number). Every run taking a
+ * new one would use up the range within a few dozen runs, so a deleted customer of the tests' own is
+ * undeleted and renamed first ([recycleCustomer]). Only without one is a free number probed, descending
+ * from 999: the high end of the range is the part a real chart of accounts is least likely to use. A
  * taken number is answered by the next candidate; anything else fails at once.
  */
 export async function createCustomer(
@@ -444,6 +446,10 @@ export async function createCustomer(
   suffix = uniqueSuffix()
 ): Promise<SeededCustomer> {
   const name = `${MARKER} customer ${suffix}`;
+  const recycled = await recycleCustomer(request, name);
+  if (recycled) {
+    return { ...recycled, suffix };
+  }
   for (let nummer = 999; nummer >= 900; nummer--) {
     try {
       const id = await insert(request, "customer", {
@@ -464,6 +470,53 @@ export async function createCustomer(
   throw new Error(
     "Could not find a free customer number in 900..999 — see KundeDao.onInsertOrModify."
   );
+}
+
+/**
+ * Undeletes a deleted customer of the tests' own in the probed range and gives it `name`, or answers
+ * `undefined` if there is none.
+ *
+ * Only a *deleted* one is taken: a live one may still be the seeded customer of a worker that is
+ * running. The specs that seed a customer mark it deleted when they are done (see fixtures/auth.ts).
+ */
+async function recycleCustomer(
+  request: APIRequestContext,
+  name: string
+): Promise<Omit<SeededCustomer, "suffix"> | undefined> {
+  for (let nummer = 999; nummer >= 900; nummer--) {
+    const res = await request.get(`/rs/customer/${nummer}`, {
+      headers: { "X-PF-Frontend": "next" },
+    });
+    if (!res.ok()) {
+      continue;
+    }
+    const stored = (await res.json()) as Record<string, unknown>;
+    if (stored.deleted !== true || !String(stored.name).startsWith(MARKER)) {
+      continue;
+    }
+    const undeleted = await request.put("/rs/customer/undelete", {
+      headers: await writeHeaders(request),
+      data: { data: stored },
+    });
+    if (!undeleted.ok()) {
+      throw new Error(
+        `Could not undelete customer ${nummer} for the test: HTTP ${undeleted.status()}`
+      );
+    }
+    const data = {
+      ...(await fetchEntity<Record<string, unknown>>(
+        request,
+        "customer",
+        nummer
+      )),
+      name,
+      status: "ACTIVE",
+      description: name,
+    };
+    await insert(request, "customer", data);
+    return { id: nummer, nummer, name, status: "ACTIVE" };
+  }
+  return undefined;
 }
 
 export interface SeededProject {
