@@ -242,6 +242,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
             pagesRest.attachmentsAccessChecker,
             data.listId,
             encryptionInProgress = true,
+            encryptedFileName = newFilename,
         )
         val actionListener = getListener(data.category)
         val obj = getDataObject(pagesRest, data.id) // Check data object availability.
