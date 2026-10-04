@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar.importer
 
+import org.apache.commons.lang3.time.DateUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -81,6 +82,37 @@ class TeamEventImportRestTest : AbstractTestBase() {
         // A uid twice in the file is faulty.
         view = upload(request, ics(event("uid-3", "A"), event("uid-3", "B")), calId)
         assertEquals(listOf(ImportEntry.Status.FAULTY, ImportEntry.Status.FAULTY), statuses(view))
+    }
+
+    @Test
+    fun `events without end are completed or refused`() {
+        val owner = logon(TEST_USER)
+        val calId = createCalendar("ICS import without end", owner)
+        val request = newRequest()
+        val allDay = """
+            BEGIN:VEVENT
+            UID:uid-all-day
+            DTSTAMP:20260101T080000Z
+            DTSTART;VALUE=DATE:20260105
+            SUMMARY:All day
+            END:VEVENT
+        """.trimIndent()
+        val timed = """
+            BEGIN:VEVENT
+            UID:uid-timed
+            DTSTAMP:20260101T080000Z
+            DTSTART:20260105T090000Z
+            SUMMARY:Timed
+            END:VEVENT
+        """.trimIndent()
+        // RFC 5545: an all-day event without DTEND lasts one day. A timed one would have no duration, which
+        // the DAO refuses, so it is faulty instead of failing the whole job.
+        val view = upload(request, ics(allDay, timed), calId)
+        assertEquals(listOf(ImportEntry.Status.NEW, ImportEntry.Status.FAULTY), statuses(view))
+        commitAll(request)
+        val stored = teamEventDao.getByUid(calId, "uid-all-day")!!
+        assertEquals(DateUtils.MILLIS_PER_DAY, stored.endDate!!.time - stored.startDate!!.time)
+        assertEquals(null, teamEventDao.getByUid(calId, "uid-timed"))
     }
 
     @Test

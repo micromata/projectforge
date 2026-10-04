@@ -78,6 +78,8 @@ class TeamEventImportStorage : ImportStorage<TeamEventImportDTO>(ImportSettings(
             var error: String? = null
             if (calId == null) {
                 error = translate("plugins.teamcal.import.ics.error.noCalendar")
+            } else if (!hasValidDuration(read)) {
+                error = translate("plugins.teamcal.event.duration.error")
             } else if (uid != null) {
                 if ((uidCounts[uid] ?: 0) > 1) {
                     error = translate("plugins.teamcal.import.ics.error.duplicateUid")
@@ -95,5 +97,17 @@ class TeamEventImportStorage : ImportStorage<TeamEventImportDTO>(ImportSettings(
             addEntry(pairEntry)
         }
         log.debug { "Reconciled ${pairEntries.size} ics import events against calendar #$calId." }
+    }
+
+    /**
+     * The check of `TeamEventDao.onInsertOrModify`, done here so such an event is a faulty row instead of
+     * failing the whole import job: a timed event needs an end at least a minute after its start (ics allows
+     * leaving it out), an all-day event one not before its start.
+     */
+    private fun hasValidDuration(read: TeamEventImportDTO): Boolean {
+        val event = read.event ?: return true
+        val start = event.startDate ?: return false
+        val end = event.endDate ?: return false
+        return if (event.allDay) end.time >= start.time else end.time - start.time >= 60_000
     }
 }

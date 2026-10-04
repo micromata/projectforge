@@ -34,7 +34,7 @@ export function CalendarTargetSelect({ value, onChange, disabled }: Props) {
   return (
     <div className="flex max-w-sm flex-col gap-1.5">
       <Label htmlFor={id} className="text-sm">
-        {t("plugins.teamcal.calendar")}
+        {t("plugins.teamcal.calendar._")}
       </Label>
       <Select
         value={value != null ? String(value) : ""}

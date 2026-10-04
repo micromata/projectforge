@@ -41,7 +41,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.apache.commons.lang3.time.DateUtils
 import java.io.InputStream
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -89,7 +91,15 @@ class TeamEventImportRest : AbstractImportRest<TeamEventImportDTO, TeamEventImpo
         if (events.isEmpty()) {
             throw IllegalArgumentException(translate("plugins.teamcal.import.ics.noEventsGiven"))
         }
-        events.forEach { storage.commitEntity(TeamEventImportDTO.read(it)) }
+        events.forEach { event ->
+            // RFC 5545: an all-day event without DTEND (and DURATION) lasts one day. The DAO needs the end,
+            // stored exclusive at midnight as for every other all-day event.
+            val start = event.startDate
+            if (event.allDay && event.endDate == null && start != null) {
+                event.endDate = Date(start.time + DateUtils.MILLIS_PER_DAY)
+            }
+            storage.commitEntity(TeamEventImportDTO.read(event))
+        }
         log.info { "ics file '$filename' parsed: ${events.size} events." }
         return storage
     }
