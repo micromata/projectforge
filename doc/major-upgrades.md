@@ -19,23 +19,23 @@ version exists, it is in parentheses.
 
 | Area | Current (branch) | Target | Notes |
 |---|---|---|---|
-| Spring Boot | 3.5.16 | 4.1.1 | modularised auto-configuration, new packages |
-| Spring Framework | 6.2.19 | 7.0.9 | JSpecify null-safety, requires Kotlin 2.2+ |
-| Spring Security | 6.5.11 | 7.1.1 | lambda DSL only, `PathPatternRequestMatcher` |
-| Spring Data JPA | 3.5.13 | 4.1.x (train 2026.0.1) | |
-| Tomcat | 10.1.60 | 11.0.24 (11.0.26) | Jakarta EE 11, Servlet 6.1 |
-| Hibernate ORM | 6.6.58 | 7.4.5 (7.4.12) | Jakarta Persistence 3.2 |
-| Hibernate Search | 7.2.6 | 8.x (8.4.0) | needs ORM 7, most likely a new Lucene major → full reindex |
-| Hibernate Validator | 8.0.5 | 9.1.3 (9.1.4) | Jakarta Validation 3.1 |
-| jakarta.persistence-api | 3.1.0 | 3.2.0 | |
+| Spring Boot | 4.1.1 | 4.1.1 | modularised auto-configuration, new packages |
+| Spring Framework | 7.0.9 | 7.0.9 | JSpecify null-safety, requires Kotlin 2.2+ |
+| Spring Security | 7.1.1 | 7.1.1 | lambda DSL only, `PathPatternRequestMatcher` |
+| Spring Data JPA | 4.1.1 | 4.1.x (train 2026.0.1) | |
+| Tomcat | 11.0.26 | 11.0.24 (11.0.26) | Jakarta EE 11, Servlet 6.1 |
+| Hibernate ORM | 7.4.12 | 7.4.5 (7.4.12) | Jakarta Persistence 3.2 |
+| Hibernate Search | 8.4.0 | 8.x (8.4.0) | needs ORM 7; Lucene 9.11 → 9.12 (no new major), old indexes need `lucene-backward-codecs` |
+| Hibernate Validator | 9.1.4 | 9.1.3 (9.1.4) | Jakarta Validation 3.1 |
+| jakarta.persistence-api | 3.2.0 | 3.2.0 | |
 | Jackson | 2.21.7 | 3.1.5 (3.2.3), `tools.jackson.*` | Boot 4 still manages Jackson 2 (2.21.5) as deprecated fallback |
-| jackson-datatype-hibernate | hibernate6 | hibernate7 (2.22.x or 3.x) | |
+| jackson-datatype-hibernate | hibernate7 2.21.7 | hibernate7 (2.22.x or 3.x) | |
 | webauthn4j | 0.30.3 | 0.31.x | only possible together with Jackson 3 |
-| Flyway | 11.20.3 | 12.4.0 (13.9.0) | |
+| Flyway | 11.20.3 | 12.4.0 (13.9.0) | 11 works with the Flyway auto-configuration of Boot 4.1 (Phase 3) |
 | HikariCP | 6.3.3 | 7.0.2 (7.1.0) | |
 | JUnit Jupiter / Platform | 6.0.3 | 6.0.3 (6.1.3) | Jupiter and Platform share one version from 6.0 on |
 | Kotlin | 2.3.21 | 2.3.21 (2.4.20) | **scripting engine**, see below |
-| Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts |
+| Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts; Boot 4 manages 5.0.8, pinned to 4 via `extra["groovy.version"]` until Phase 3 |
 | Gradle | 9.8.0 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
 | mockito-kotlin | 6.4.0 | 6.x | |
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
@@ -114,53 +114,75 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
 
 ## Phase 1 – Spring Boot 4, Spring 7, Hibernate 7, Tomcat 11
 
+All tests green (1516, 1 skipped) and fat jar smoke test passed on HSQLDB (pfDev slot 7). Not yet done: e2e suite,
+PostgreSQL copy of production, OAuth2 login, passkeys and the other items of "Verification".
+
 ### Build
 
-- [ ] Catalog: Boot 4.1.x, Spring 7.0.x, Security 7.1.x, Spring Data 4.1.x, Tomcat 11.0.x, Hibernate ORM
-      7.4.x, Hibernate Search 8.x, HV 9.1.x, jakarta.persistence-api 3.2.0,
-      jackson-datatype-hibernate7 (Jackson 2 line).
-- [ ] `projectforge-application/build.gradle.kts` pins many Boot and Spring modules by hand ("force to avoid
-      downgrades"). Boot 4 splits `spring-boot-autoconfigure` into many modules (`spring-boot-webmvc`,
-      `spring-boot-jdbc`, `spring-boot-hibernate`, `spring-boot-flyway`, `spring-boot-tomcat`, …) and renames
-      starters (e.g. `spring-boot-starter-web` → `spring-boot-starter-webmvc`). Rebuild the list from
-      `./gradlew :projectforge-application:dependencies` instead of patching it. Keep `spring-boot-starter-classic`
-      in mind as a transitional starter (all auto-configurations, as in Boot 3).
-- [ ] Add `spring-boot-jackson2` (Jackson 2 stays, see Phase 2).
-- [ ] Check `buildSrc` (Jackson `force`, `resolutionStrategy`) and the Kotlin compiler jars of the fat jar.
+- [x] Catalog: Boot 4.1.1, Spring 7.0.9, Security 7.1.1, Spring Data 4.1.1, Tomcat 11.0.26, Hibernate ORM
+      7.4.12, Hibernate Search 8.4.0, HV 9.1.4, jakarta.persistence-api 3.2.0, jakarta.validation-api 3.1.1,
+      jackson-datatype-hibernate7 2.21.7 (Jackson 2 line). The `spring-jcl` pin is gone (removed in Spring 7).
+- [x] Boot 4 modules: the hand-pinned list in `projectforge-application/build.gradle.kts` was kept and
+      extended instead of rebuilt. Needed beyond the starters (`spring-boot-starter-web` →
+      `spring-boot-starter-webmvc`):
+  - `spring-boot-flyway`: Flyway runs through Boot's auto-configuration (`spring.flyway.*`); without the
+    module the migrations would silently **not** run.
+  - `spring-boot-security` and `spring-boot-security-oauth2-client`: without them there is no `HttpSecurity`
+    bean for `SpringSecurityConfig`/`GatewaySecurityConfig` and no OAuth2 client registration from
+    `spring.security.oauth2.client.*`.
+  - `spring-boot-restclient` (`RestTemplateBuilder`), `spring-boot-jdbc` (`DataSourceBuilder`, projectforge-jcr),
+    `spring-boot-web-server` (`ServerProperties`, projectforge-business).
+- [x] Jackson 2 stays: `spring-boot-jackson2` instead of `spring-boot-starter-json`. The Boot 4 starters pull in
+      `spring-boot-starter-jackson` (Jackson 3); it is excluded in `buildSrc` and in the application, so the fat
+      jar contains no `tools.jackson` jar and Spring MVC keeps the Jackson 2 converter.
+- [x] `lucene-backward-codecs` (version of `org-apache-lucene`, must match Hibernate Search's Lucene): Lucene
+      9.12 moved the `Lucene99` codec of the indexes written by Hibernate Search 7 into that jar. Without it,
+      indexing fails ("Could not load codec 'Lucene99'"). With it, existing indexes are read and new segments
+      are written in the new format, so **no reindex is required** (an optional reindex removes the old
+      segments).
+- [x] `tomcat-embed-el` in projectforge-business: Hibernate Validator 9 needs an EL implementation, which no
+      longer comes transitively ("HV000183 … jakarta.el.ExpressionFactory").
+- [x] Compare the dependency tree with Phase 0 (see "Verification"): no downgrades, no two versions of one
+      artifact, no `tools.jackson`. One finding: the Boot 4 BOM manages **Groovy 5.0.8**, so every Groovy module
+      except the pinned `groovy`/`groovy-all`/`groovy-ant` (json, xml, sql, templates, …, plus jline 3 and jna
+      via `groovy-groovysh`) came as 5.0.8 next to the Groovy 4 core, also in the fat jar. Fixed like the JUnit
+      override: `extra["groovy.version"]` in `projectforge-application/build.gradle.kts`. Groovy 5 stays in
+      Phase 3. All other additions are the split Boot modules, Hibernate 7 artifacts (`hibernate-models`,
+      `jackson-datatype-hibernate7`), `jspecify`, `lucene-backward-codecs` and Netty modules of reactor-netty.
 
 ### Code
 
-- [ ] **Boot packages**: adapt the imports of `ServerProperties`, `DataSourceBuilder`,
-      `TomcatServletWebServerFactory`, `ConnectorStartFailedException`, `ErrorController`,
-      `ServletContextInitializer`/`ServletComponentScan`, `RestTemplateBuilder`, `EntityScan` (packages moved
-      with the modularisation; see the Boot 4 migration guide).
-- [ ] **Spring 7 / JSpecify**: Spring APIs are now annotated with JSpecify. Kotlin sees them as non-null or
-      nullable, so overrides of Spring interfaces (filters, `HandlerInterceptor`, converters, `Condition`, …)
-      may no longer compile. Fix the compile errors, don't suppress them.
-- [ ] **Spring MVC**: `AntPathMatcher` path matching for controllers is gone (only `PathPattern`); check
-      patterns with `**` in the middle, suffix patterns and trailing slashes. `RestEndpointAccessCheckTest`
-      (Phase 0) and the e2e tests catch differences.
-- [ ] **Spring Security 7**: `SpringSecurityConfig.kt` and `GatewaySecurityConfig.kt` – `requestMatchers(String)`
-      now uses `PathPatternRequestMatcher`; check `StrictHttpFirewall` settings, the CSRF/session handling of
-      `/rsPublic/nextLogin` and the OAuth2 client (Keycloak/Authentik).
+- [x] **Boot packages**: `ServerProperties` → `org.springframework.boot.web.server.autoconfigure` (the session
+      cookie settings are unchanged), `EntityScan` → `boot.persistence.autoconfigure`, `RestTemplateBuilder` →
+      `boot.restclient`, `ErrorController` → `boot.webmvc.error`, `TomcatServletWebServerFactory` →
+      `boot.tomcat.servlet`, `ConnectorStartFailedException` → `boot.tomcat`, `ServletComponentScan` →
+      `boot.web.server.servlet.context`. `DataSourceBuilder`, `ServletContextInitializer`,
+      `WebServerFactoryCustomizer`, `ConditionalOnProperty` and `ConfigurationProperties` kept their packages.
+- [x] **Spring 7 / JSpecify**: few compile errors. `ResponseEntity<T>` needs a non-null `T`
+      (`TwoFactorLoginNextRest`, `PasswordResetNextRest`), `exchangeToMono`/`block()` of the sipgate and d.velop
+      clients: `execute` now returns `T?` (responses with `NO_CONTENT` really have no body), the callers
+      handle `null`.
+- [ ] **Spring MVC**: `RestEndpointAccessCheckTest` is green; run the e2e suite for path patterns and trailing
+      slashes.
+- [ ] **Spring Security 7**: both configs compile unchanged and the password login of next works
+      (`/rsPublic/nextLogin`, CSRF, session cookie). Still to test: gateway mode, OAuth2 (Keycloak/Authentik),
+      WebDAV/CardDAV methods through `StrictHttpFirewall`.
 - [ ] **Hibernate 7**:
-  - [ ] removed APIs (`ClassMetadata` if not done in Phase 0, legacy `Session` methods
-        `save`/`update`/`saveOrUpdate`/`delete`/`load` – currently not used with Hibernate; the `session.save()`
-        hits in `projectforge-jcr` are JCR); internal APIs (`SqmNode`, `AbstractLazyInitializer`,
-        `SingleTableEntityPersister`, `StatisticsImplementor`) – check each call site.
-  - [ ] `merge()` of a detached entity whose row doesn't exist throws `OptimisticLockException` instead of
-        inserting. Check the entities with user-assigned primary keys (Kunde, Kost2Art, …) and the
-        `BaseDao` insert path.
-  - [ ] Stricter HQL/SQM parsing and changed type inference: run all tests that execute HQL, especially the
-        history (`de.micromata.hibernate.history`), `BaseDao` queries with `NullPrecedence`/`SortDirection`
-        and the JSON columns (`@JdbcTypeCode(SqlTypes.JSON)`).
-  - [ ] Schema: compare `hbm2ddl` validation/export on PostgreSQL and HSQLDB with the Flyway schema
-        (no new Flyway migration should be necessary; if Hibernate 7 expects different types, decide per
-        column).
-- [ ] **Hibernate Search 8**: remove deprecated APIs; check `LuceneAnalysisConfigurer` (analyzers/tokenizers
-      of a new Lucene major), bridges and `MassIndexer`. Plan a full reindex at the first start (index format).
-- [ ] **Tomcat 11**: check `TomcatServletWebServerFactory` customisations, the connector settings and
-      `ResponseHeaderFilter`.
+  - [x] `ScanResultCollector` is gone: `MyJpaWithExtLibrariesScanner` returns an empty `ScanResult`, which is
+        what the collector returned before (no archive was visited; entities come from the explicitly listed
+        class names). `hibernate-scan-jandex` isn't needed.
+  - [x] `SqmNode` was only imported by mistake (`SqmNode.log` in two files), replaced by kotlin-logging.
+        No other removed API was used.
+  - [x] `merge()` with user-assigned primary keys: inserting and updating a customer (`KundeDO`, number typed
+        by the user) and a cost type 2 (`Kost2ArtDO`) through `/rs/<category>/saveorupdate` works in the fat jar.
+  - [x] HQL/SQM: all tests green, including history and `BaseDao` queries.
+  - [ ] Schema: compare `hbm2ddl` validation/export on PostgreSQL and HSQLDB with the Flyway schema.
+- [x] **Hibernate Search 8**: `BooleanPredicateOptionsCollector` has two type parameters (`<*, *>` in
+      `DBPredicate`). Analyzers, bridges and `MassIndexer` unchanged. The global search finds old (Lucene99) and
+      new entries after the upgrade. The warnings "Search property … declared as additional field" existed
+      before.
+- [x] **Tomcat 11**: `TomcatConfig` (`maxPartCount`) only needed the new import; server starts.
+      `ResponseHeaderFilter` unchanged.
 
 ## Phase 2 – Jackson 3
 
@@ -188,7 +210,7 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
 - [ ] Flyway 12 (13): read the release notes; the migration scripts stay, check configuration/API in the 11
       files. Test on PostgreSQL **and** HSQLDB with an existing production-like database.
 - [ ] HikariCP 7.
-- [ ] Groovy 5: user scripts (`ScriptDO` type GROOVY) – run the Groovy test scripts; communicate breaking
+- [ ] Groovy 5: drop the `extra["groovy.version"]` pin in the application build; user scripts (`ScriptDO` type GROOVY) – run the Groovy test scripts; communicate breaking
       changes to script authors.
 - [ ] Jackrabbit Oak 2.x: check the storage format of the existing repositories (attachments!) and
       `RepoBackupService` backup/restore before switching.
@@ -213,7 +235,7 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 
 - `./gradlew build` (all tests) and the e2e suite (`pfDev.sh e2e <n>`).
 - Fat jar smoke test on a pfDev slot (HSQLDB) and against a copy of the production PostgreSQL database:
-  start incl. Flyway, login (password, passkey/WebAuthn, OAuth2/Keycloak), full-text search after reindex,
+  start incl. Flyway, login (password, passkey/WebAuthn, OAuth2/Keycloak), full-text search (old and new entries),
   list/edit pages of next and React, invoice PDF/ZUGFeRD (Mustang), Excel export (POI), iCal export,
   CardDAV, Kotlin and Groovy scripting, attachments (JCR/Oak), DATEV import.
 - Compare the dependency tree before and after (`./gradlew :projectforge-application:dependencies
@@ -223,4 +245,5 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
-- Window for the reindex and the Flyway run of the first Boot 4 release in production.
+- Window for the Flyway run of the first Boot 4 release in production (and optionally a reindex to drop
+  the old Lucene segments).
