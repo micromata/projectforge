@@ -474,6 +474,32 @@
     "yearToDate": "Jahr bis heute"
   },
   "cancel": "Abbrechen",
+  "changelog": {
+    "collapseAll": "Alle zuklappen",
+    "compare": "Änderungen",
+    "expandAll": "Alle aufklappen",
+    "news": "Neuigkeiten",
+    "nextMatch": "Nächster Treffer (Enter)",
+    "noMatches": "Nichts im Changelog passt zur Suche.",
+    "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
+    "snapshot": "Snapshot-Stand",
+    "tag": "Tag",
+    "title": "Changelog",
+    "type": {
+      "added": "Neu",
+      "admin": "Administration",
+      "changed": "Geändert",
+      "deprecated": "Veraltet",
+      "docker": "Docker",
+      "fixed": "Behoben",
+      "improved": "Verbessert",
+      "privacy": "Datenschutz",
+      "removed": "Entfernt",
+      "security": "Sicherheit",
+      "technology": "Technologie"
+    },
+    "website": "Changelog auf projectforge.org"
+  },
   "changes": "Änderungen",
   "charactersLeft": "Zeichen übrig.",
   "clone": "Klonen",
@@ -3130,6 +3156,20 @@
         "lastNotified": "Zuletzt gemeldet",
         "lastSeen": "Zuletzt aufgetreten",
         "location": "Stelle",
+        "logFile": {
+          "_": "In Logdateien suchen",
+          "configured": "Derzeit eingestellt:",
+          "files": "Durchsucht: {arg0}",
+          "formatWarning": "Das Format der Logdatei kann nicht vollständig gelesen werden ({arg0} Zeilen), daher fehlen evtl. Vorkommen. Empfohlen in projectforge.properties:",
+          "none": "Keine Vorkommen in den Logdateien gefunden.",
+          "source": "Fundstelle",
+          "title": "Logdateien: {arg0}",
+          "tooltip": "Durchsucht die Logdateien der letzten Tage des Problems (höchstens 7) nach seinen Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
+          "truncated": "Die Suche wurde an ihrer Grenze beendet, es kann ältere Vorkommen geben."
+        },
+        "logViewer": {
+          "tooltip": "Nur die letzten Meldungen seit dem Serverstart, aus dem Speicher."
+        },
         "message": "Meldung",
         "more": "Nur die ersten {arg0} von {arg1} Problemen werden angezeigt.",
         "mutedUntil": "Stummgeschaltet bis {arg0}",
@@ -3156,6 +3196,28 @@
           "new": "Neu",
           "open": "Offen",
           "resolved": "Erledigt"
+        },
+        "subsystem": {
+          "state": {
+            "degraded": "Gestört",
+            "down": "Ausgefallen",
+            "ok": "OK",
+            "unknown": "Noch kein Lauf"
+          }
+        },
+        "subsystems": {
+          "_": "Teilsysteme und Schnittstellen",
+          "calendars": "{arg0} Kalender",
+          "filter": "Teilsystem: {arg0}",
+          "lastError": "Letzter Fehler",
+          "lastRun": "Letzter Lauf",
+          "none": "Kein Teilsystem und keine Schnittstelle aktiv.",
+          "removeFilter": "Filter entfernen",
+          "tooltip": "Ein Klick zeigt die Probleme des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
+        },
+        "tab": {
+          "overview": "Übersicht",
+          "problems": "Probleme"
         },
         "threshold": "Schwelle (pro Stunde)",
         "title": "Problem-Dashboard",

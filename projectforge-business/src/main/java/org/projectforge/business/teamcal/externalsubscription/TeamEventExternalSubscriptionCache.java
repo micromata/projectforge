@@ -441,6 +441,14 @@ public class TeamEventExternalSubscriptionCache {
         return StringUtils.abbreviate(description, maxDescriptionLength) + separator + note;
     }
 
+    /**
+     * @return The number of subscribed calendars, e.g. whether the subscriptions are used at all.
+     */
+    public int getSubscriptionCount() {
+        init();
+        return subscriptions.size();
+    }
+
     public boolean isExternalSubscribedCalendar(final Long calendarId) {
         init();
         return subscriptions.keySet().contains(calendarId);

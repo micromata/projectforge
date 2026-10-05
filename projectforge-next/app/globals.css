@@ -114,6 +114,20 @@
   --status-bar: oklch(0.28 0 0);
   --status-bar-foreground: oklch(0.62 0 0);
 
+  /* Section types of the changelog (/next/changelog), the label colors of the website's changelog
+     (site/_data/tags.yml), white text on them in either theme. */
+  --changelog-added: #3778ff;
+  --changelog-admin: #79433d;
+  --changelog-changed: #3aaa55;
+  --changelog-deprecated: #333333;
+  --changelog-improved: #68b037;
+  --changelog-removed: #17caf0;
+  --changelog-fixed: #ff4772;
+  --changelog-privacy: #fb3434;
+  --changelog-security: #fb3434;
+  --changelog-technology: #a037ff;
+  --changelog-docker: #79433d;
+
   /*
    * Something is questionable but allowed - a cost unit outside the invoice's project, say (see
    * Kost2Warning). Brand yellow darkened, because plain `--brand-yellow` on white is 1.6:1 and
@@ -183,6 +197,8 @@
    * text and keeps its own colour. Its own token, not --warning: nothing here is questionable.
    */
   --search-match-bg: rgba(255, 203, 0, 0.5);
+  /* The match a find in page currently stands on (see useTextHighlights), stronger than the others. */
+  --search-match-current-bg: rgba(255, 140, 0, 0.75);
 
   /*
    * A task's status, as the Wicket page paints it (projectforge-css.less:
@@ -338,6 +354,7 @@
   --row-highlighted: rgba(255, 183, 77, 0.95);
   /* Fainter over the dark card, where a translucent yellow reads brighter than on white */
   --search-match-bg: rgba(255, 203, 0, 0.35);
+  --search-match-current-bg: rgba(255, 140, 0, 0.6);
   --consumption-track: oklch(0.32 0 0);
 
   /* Wicket's status colours are mixed for print; lightened to stay readable here */

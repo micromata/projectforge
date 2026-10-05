@@ -4,6 +4,7 @@ import { Activity, useEffect, useRef, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
+import { updateSearchParams } from "@/lib/search-params";
 import { EditPageTabs, TAB_PARAM, type EditPageTab } from "./edit-page-tabs";
 
 export interface EditPageShellProps {
@@ -91,10 +92,7 @@ export function EditPageShell({
       return;
     }
     pendingSection.current = index;
-    const next = new URLSearchParams(params);
-    next.delete(TAB_PARAM);
-    const query = next.toString();
-    // The native History API, not `router.push`: this changes nothing but a search parameter, which is
+    // updateSearchParams uses the native History API, not `router.push`: this changes nothing but a search parameter, which is
     // the case Next names it for ("pushState and replaceState calls integrate into the Next.js
     // Router, allowing you to sync with usePathname and useSearchParams").
     //
@@ -103,11 +101,7 @@ export function EditPageShell({
     // the push fetches the route's RSC payload and then puts the old url back, so the form never
     // reappears and the tab bar is stuck on the history. The route was prerendered under a
     // placeholder id (see useRouteParams), so there is no entry for this url for the push to commit.
-    window.history.pushState(
-      null,
-      "",
-      query ? `?${query}` : window.location.pathname
-    );
+    updateSearchParams({ [TAB_PARAM]: null }, "push");
   }
 
   return (

@@ -1,0 +1,31 @@
+---
+title: "ProjectForge 8.2 snapshot (2025-11-02)"
+date: 2025-11-02
+sort_key: "2025-11-02 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/fec48a9e1[develop@fec48a9e1], https://github.com/micromata/projectforge/compare/5094a1586..fec48a9e1[changes since 5094a1586].__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Address import/export**
+  * vCard import and export (vCard 3.0 and 4.0) including contact images, iOS compatible.
+  * Free-text import: addresses pasted as unstructured text are parsed (names, titles, salutations, addresses, phone numbers).
+  * Import reconciler for several vCards in one file, with a diff view of business, private and postal addresses.
+  * Warning about duplicates when creating new addresses; export of a single address as vCard.
+- Column settings (filter, sorting, order, widths) are saved automatically, with a reset to the server defaults.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Tables: auto scrolling.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Endless spinner after a successful two-factor authentication.
+- LDAP sync detected all users as modified.
+- Sipgate sync.

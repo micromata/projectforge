@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 
 const COMPANY_URL = "https://www.micromata.de";
 const WEBSITE_URL = "https://www.projectforge.org";
-const NEWS_URL = "https://www.projectforge.org/changelog-posts/";
 
 /**
  * The status strip pinned to the bottom of every authenticated page, mirroring Wicket's footer:
- * copyright and company on the left, version and build date on the right.
+ * copyright and company on the left, version and build date on the right. The version leads to the
+ * changelog page (`/next/changelog`; the router prepends the base path, see app/(authenticated)/changelog).
  *
  * Version and build date come from `userStatus.systemData` (via {@link useAuth}), not from the
  * public `/rsPublic/systemStatus` — the latter masks both "for security reasons" (see
@@ -41,17 +42,12 @@ export function StatusBar() {
         </a>
       </div>
       {systemData?.version ? (
-        <a
-          href={NEWS_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="shrink-0 truncate hover:underline"
-        >
+        <Link href="/changelog" className="shrink-0 truncate hover:underline">
           {t("version", {
             version: systemData.version,
             buildDate: systemData.buildDate,
           })}
-        </a>
+        </Link>
       ) : null}
     </footer>
   );

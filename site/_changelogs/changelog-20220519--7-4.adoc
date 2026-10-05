@@ -1,10 +1,14 @@
 ---
-title: ProjectForge 7.4 released
+title: "ProjectForge 7.4 released"
 date: 2022-05-19
+sort_key: "2022-05-19 0"
 ---
 :page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-2FA (SMS, Authenticator, Fidu2) now fully supported. Multi-upload with progress bars for data-transfer-areas.
+2FA (SMS, Authenticator, Fido2) now fully supported. Multi-upload with progress bars for data-transfer-areas.
+
+__Tag https://github.com/micromata/projectforge/tree/7.4-RELEASE[7.4-RELEASE].__
 
 ++++
 {% include tag.html tag="added" %}
@@ -13,7 +17,7 @@ date: 2022-05-19
 - Password reset for users implemented (it's only usable for users with configured 2FA / mail isn't supported for password reset due to security reasons).
 - Scripts may be executed by users/groups without special rights (sudo functionality is supported). You may configure reports e. g. for project managers including financial data.
 - mass update and selection of invoices for e. g. bank transfers etc.
-- Datatransfer:
+- **Datatransfer:**
   * Multiple upload with progress bars implemented. Very nice.
   * Multi selection of files for deletion and download.
   * Audit on areas added (for seeing what happened)
@@ -39,7 +43,7 @@ date: 2022-05-19
 ++++
 {% include tag.html tag="security" %}
 ++++
-- 2FA is now fully supported. You may configure:
+- **2FA is now fully supported. You may configure:**
   * 2FA after login (expires after x days after if stay-logged-in is used)
   * 2FA expiry time (from 1 minute to 90 days) for special usage (e. g. user administration, password changing, financial stuff etc.)
 

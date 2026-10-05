@@ -1,0 +1,17 @@
+---
+title: "ProjectForge 8.2 (in progress): a new frontend, the classic UI retired"
+date: 2026-10-05
+sort_key: "2026-10-05 1"
+news: true
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+Version 8.2 is still under development; snapshot builds are listed below with their commit range. It replaces the classic Wicket user interface by **projectforge-next**, a new frontend built with Next.js, and brings e-invoicing, a new identity provider integration and a modernized technology stack.
+
+- **New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.
+- **E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.
+- **Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).
+- **Finance:** contribution margins, forecast and invoicing charts, order statistics, recurring liquidity entries, DATEV and salary imports in the new frontend.
+- **Operations:** problem dashboard aggregating log events, prioritized error digest mails, a public gateway for external data transfer.
+- **Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, React 19, TanStack Table.

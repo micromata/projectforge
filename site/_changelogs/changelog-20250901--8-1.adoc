@@ -1,13 +1,16 @@
 ---
-title: ProjectForge 8.1 released
+title: "ProjectForge 8.1 released"
 date: 2025-09-01
+sort_key: "2025-09-01 0"
 ---
 :page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-**Update strongly recommended for all users** - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).
+[red]##**Update strongly recommended for all users**## - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).
 
 **Stability proven** - This release has been running stable for many weeks without interruption in two heavily used installations.
 
+__Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE].__
 
 ++++
 {% include tag.html tag="improved" %}
@@ -32,8 +35,9 @@ date: 2025-09-01
 - JCR memory leak fixes and improved repository management.
 - Enhanced user and group access control with menu visibility configuration.
 - Forecast export functionality with filtering by unit, customer, and projects.
-- Task wizard support for optional external groups.
+- Structure wizard support for optional external groups.
 - Multi-selection improvements for employees in visitor book and vacation entries.
+
 ++++
 {% include tag.html tag="fixed" %}
 ++++
@@ -43,13 +47,13 @@ date: 2025-09-01
 - Timesheet recent entries display corrected (kost2, project, customer info).
 - VacationValidator edge case handling for vacation day calculations.
 - NPE fixes in vacation account management and group services.
-- Task tree access checking improvements for timesheet editing.
+- Structure tree access checking improvements for timesheet editing.
 - Order forecast data and invoice cache handling corrections.
 - User group cache and right handling stability improvements.
 - Address forced deletion after MGC migration fixed.
 - History formatting and user comment handling corrected.
 - Various UI fixes for AG Grid tables and component rendering.
-- Excel export XML escaping for task titles in timesheet exports.
+- Excel export XML escaping for structure element titles in timesheet exports.
 - Cost assignment export improvements for invoice handling.
 - Login redirect functionality after authentication.
 - Calendar and timesheet page rendering issues resolved.
@@ -59,6 +63,7 @@ date: 2025-09-01
 - Wicket session store size increased from 100kB to 2MB: prevents session loss on large pages.
 - CSRF token handling and exception registry improvements.
 - File stream handling corrections ensuring proper resource closure.
+
 ++++
 {% include tag.html tag="admin" %}
 ++++
@@ -69,6 +74,7 @@ date: 2025-09-01
 - Configuration parameter management for AI time savings features.
 - Menu item visibility configuration by user groups.
 - Enhanced logging and exception handling for proactive error reporting.
+
 ++++
 {% include tag.html tag="security" %}
 ++++
@@ -76,6 +82,7 @@ date: 2025-09-01
 - Improved access control for addresses and address campaigns (marketing users only).
 - Enhanced user and group visibility restrictions for non-admin users.
 - CSRF protection improvements and token handling enhancements.
+
 ++++
 {% include tag.html tag="technology" %}
 ++++
@@ -92,7 +99,6 @@ date: 2025-09-01
 - Package dependency updates including security patches.
 - Gradle build system optimizations and test framework enhancements.
 - Source file headers updated to 2025 copyright year.
-++++
 
 ++++
 {% include download-link.html %}

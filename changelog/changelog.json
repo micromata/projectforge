@@ -1,0 +1,1358 @@
+{
+  "news": [
+    {
+      "version": "8.2",
+      "date": "2026-10-05",
+      "title": "ProjectForge 8.2 (in progress): a new frontend, the classic UI retired",
+      "text": "Version 8.2 is still under development; snapshot builds are listed below with their commit range. It replaces the classic Wicket user interface by **projectforge-next**, a new frontend built with Next.js, and brings e-invoicing, a new identity provider integration and a modernized technology stack.",
+      "highlights": [
+        "**New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.",
+        "**E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.",
+        "**Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).",
+        "**Finance:** contribution margins, forecast and invoicing charts, order statistics, recurring liquidity entries, DATEV and salary imports in the new frontend.",
+        "**Operations:** problem dashboard aggregating log events, prioritized error digest mails, a public gateway for external data transfer.",
+        "**Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, React 19, TanStack Table."
+      ]
+    },
+    {
+      "version": "8.1",
+      "date": "2025-09-01",
+      "title": "ProjectForge 8.1: stability and memory fixes",
+      "text": "{red}**Update strongly recommended for all users.**{/red} This release fixes a major memory leak in the data transfer module and frequent page errors caused by Wicket memory issues.",
+      "highlights": [
+        "AI time savings in time sheets with reporting.",
+        "Customizable personal menu via drag and drop.",
+        "Forecast and order book: snapshots, planning data and filterable forecast export."
+      ]
+    },
+    {
+      "version": "8.0",
+      "date": "2024-12-23",
+      "title": "ProjectForge 8.0: new persistence layer",
+      "text": "Major release with a completely refactored persistence layer and current major versions of all libraries.",
+      "highlights": [
+        "Own CardDAV server for contact synchronization.",
+        "Docker images for arm64 and amd64.",
+        "Java 17, Spring 6, Hibernate 6, jakarta namespace."
+      ]
+    },
+    {
+      "version": "7.4",
+      "date": "2022-05-19",
+      "title": "ProjectForge 7.4: two-factor authentication",
+      "text": "Two-factor authentication (SMS, mail, authenticator app, WebAuthn/FIDO2) is now fully supported.",
+      "highlights": [
+        "Multi upload with progress bars in data transfer areas.",
+        "Password reset for users with a configured second factor."
+      ]
+    },
+    {
+      "version": "7.0",
+      "date": "2021-04-07",
+      "title": "ProjectForge 7.0: new frontend and data transfer",
+      "text": "Major release with a new React frontend, the data transfer tool and Docker support.",
+      "highlights": []
+    }
+  ],
+  "releases": [
+    {
+      "id": "8-2-snapshot-20261005",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-10-05",
+      "title": "ProjectForge 8.2 snapshot (2026-10-05)",
+      "fromCommit": "e944881b0",
+      "toCommit": "203115800",
+      "intro": [
+        "The classic Wicket user interface is gone: the last pages were migrated to projectforge-next and the module projectforge-wicket was deleted."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Problem dashboard",
+              "items": [
+                "Log events are classified at the call site and aggregated in the database with a persistent problem status.",
+                "Dashboard of all problems, with links into the log viewer and an export as JSON for an AI-assisted analysis.",
+                "Prioritized error digest mails per audience (HTML, new design) instead of one mail per error; early digest for new security and data problems.",
+                "Error figures in the system statistics."
+              ]
+            },
+            "Order statistics page with its own filter, favorites, charts, data tables, budget scenario and warnings about lost budgets.",
+            "Invoicing quota as a tab in *My statistics*.",
+            "Gateway: delta sync with a nightly full sync including deletions and CardDAV favorites, public heartbeat, data transfer UI after OAuth2 login.",
+            "Kost2: shared cost flag, overriding the structure element (also in the mass update).",
+            "ICS import of team events with a diff preview; download of a team event as ics file; shared subscription dialog for time sheets, holidays and weeks of year.",
+            "Run several development instances side by side (`bin/pfDev.sh` slots)."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            {
+              "title": "Migrated to projectforge-next",
+              "items": [
+                "DATEV import with view log button, readable import log and account/cost unit tooltips.",
+                "Log viewer, HR planning, HR view, Gantt charts, report objectives, to-dos, IHK plugin and the internal data transfer UI (area page as tabs, files as a sortable table).",
+                "Calendar and team calendar pages, cost 1/2 Excel export; the remaining gaps against the Wicket pages were closed before their removal."
+              ]
+            },
+            "Configurable customer groups and business units; time sheets, invoices, projects and orders can be filtered by business unit, customer and project (checklist filters).",
+            "Order book: contribution margin tab including the year before last.",
+            "Mass update for to-dos and for the payment type of salaries.",
+            "Calendar subscriptions that keep failing are retried less often and deactivated after 90 days.",
+            "Timeouts, connection pools and sync statistics for LDAP, identity provider, iCal, SMS and Sipgate clients.",
+            "The browser window is named after the page; the open tab of list and report pages is kept in the URL.",
+            "Shift+click selects a range in attachment lists."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Subscribed calendars: DTSTAMP no longer breaks parsing; events without DTEND derive their end from DURATION; one event per holiday and week in the feeds.",
+            "MS Project export of Gantt charts repaired (mpxj upgraded).",
+            "Kotlin script classes are resolved in the fat jar again.",
+            "Password reset button, birthday mail locale and inline logo in mails.",
+            "The JCR sanity check runs only once per night.",
+            "Expected client and authentication failures are logged below error level."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Access checks for all new REST endpoints, enforced by an architecture test.",
+            "npm security advisories in next and webapp patched."
+          ]
+        },
+        {
+          "type": "removed",
+          "items": [
+            "Module projectforge-wicket including all Wicket pages, about 90 Wicket-only i18n keys and libraries no longer used."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11 (via Spring Boot 3.5 as intermediate step).",
+            "Kotlin 2.3, JUnit 6, Gradle 9.8, kotlin-logging 7."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20261002",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-10-02",
+      "title": "ProjectForge 8.2 snapshot (2026-10-02)",
+      "fromCommit": "1cc142d51",
+      "toCommit": "e944881b0",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            {
+              "title": "Migrated to projectforge-next",
+              "items": [
+                "Accounts, address campaigns and license management (Wicket pages removed).",
+                "Customers: Wicket pages removed; customer and free-text customer merged into one field."
+              ]
+            },
+            {
+              "title": "Invoices",
+              "items": [
+                "Cancellation sets the original invoice to *cancelled*; explained on the button and in the form, with a warning not to change the amounts.",
+                "Choice of the Word template for the ZUGFeRD export; the invoice PDF is rendered with LibreOffice and the installed fonts.",
+                "Empty e-invoice fields are filled from the account; cancellation invoices are supported by the Word template.",
+                "Charts show which list filter they applied; state filters are left out of the year comparison."
+              ]
+            },
+            "Order and invoice forms: customer column, highlighted head, tinted position headers, sibling cost units in the cost assignment pickers.",
+            "Labels, select values, pickers and section titles can be copied.",
+            "Monthly report: the cost type is only shown for customer cost units.",
+            "Change history shows user and group lists by name as removed/added diff.",
+            "Liquidity planning: negative balances highlighted, credit/debit bars in green/red."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Time sheets can no longer be booked on structure elements of an ended or deleted project.",
+            "Saving an invoice no longer shifts the index of its cost assignments.",
+            "Positions of orders, invoices and incoming invoices are sorted by number.",
+            "Order forecast charts and Excel select exactly the orders of the list.",
+            "Word-to-PDF conversion works again (OpenPDF dropped)."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "2FA required for the migrated system and plugin pages and the liquidity series split."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260930",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-09-30",
+      "title": "ProjectForge 8.2 snapshot (2026-09-30)",
+      "fromCommit": "81c69f854",
+      "toCommit": "1cc142d51",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            {
+              "title": "Migrated to projectforge-next",
+              "items": [
+                "Monthly employee report with month pager, week drill-downs and compact statistics; normal users can view their own report.",
+                "Customers, projects, cost 2 units, cost 2 types, accounting records, employee salaries and the salary import.",
+                "Group/structure element access rights with matrix view, analysis filter for likely erroneous entries, mass update and bulk delete/restore.",
+                "System administration, plugin administration, system configuration, first-run setup, send SMS, direct call, personal statistics and feedback.",
+                "The liquidity planning plugin."
+              ]
+            },
+            {
+              "title": "Liquidity planning",
+              "items": [
+                "Recurring series with virtual and materialized occurrences and a deliberate scope choice when editing a series.",
+                "Tri-state paid status, automatic paid flag and mass update including delete/restore."
+              ]
+            },
+            {
+              "title": "Order book and invoices",
+              "items": [
+                "Fold-out net sum calculator per order position, persisted with its breakdown.",
+                "Forecast charts tab in the order book, net sum charts for outgoing invoices, invoicing quota chart.",
+                "*To be invoiced* only counts what is due this month; filter split into this month and following months.",
+                "Over-invoiced orders are flagged red; shortfalls of orders marked as fully invoiced are shown.",
+                "Cancellation of outgoing e-invoices; cancelled invoices are struck through in the list.",
+                "Clone an order into a fresh editable draft."
+              ]
+            },
+            "Structure element picker with recently selected structure elements and structure element favorites.",
+            "Creditor invoices: bank details are filled in from the creditor.",
+            "Mass update for cost 1 and cost 2.",
+            "Compact top navigation with counter badges; search moved into the main menu.",
+            "Deleted or deactivated referenced objects are struck through in list cells.",
+            "Temporary page size of 10,000 rows for all lists.",
+            "The link to the classic version is labelled *Old version* and warns on pages that will be removed."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Several N+1 query floods (structure element favorites, access list, customer list, skill matrix, forecast, salary export, order filters).",
+            "Self-deadlocks of the project/customer caches inside write transactions.",
+            "An issued invoice is shown in its order immediately, not only after the next cache refresh.",
+            "Planned and cancelled invoices no longer count as invoiced for order positions.",
+            "Change history shows time-of-day values in the user's time zone.",
+            "Cost assignments of incoming invoices are exported again.",
+            "Expand/collapse of the classic structure tree restored."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Deleted groups never grant access rights.",
+            "2FA required for the migrated access rights, cost 2 and cost 2 type forms."
+          ]
+        },
+        {
+          "type": "removed",
+          "items": [
+            "Classic Wicket pages for search, order book, outgoing invoices, monthly report and plugin administration."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Legacy XML user preferences are migrated to the JSON store."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260913",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-09-13",
+      "title": "ProjectForge 8.2 snapshot (2026-09-13)",
+      "fromCommit": "0633fde56",
+      "toCommit": "81c69f854",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Global full-text search migrated to projectforge-next, results as collapsible tiles.",
+            {
+              "title": "Mass update in projectforge-next",
+              "items": [
+                "For incoming invoices and time sheets (structure element, Kost2, tag), with live selection statistics.",
+                "Changes are listed server-side before they are written; text actions picked from a dropdown."
+              ]
+            },
+            "Time sheet list: Kost2 filter with autocomplete, Kost2 type filter, PDF export options dialog with per-entry duration.",
+            "Structure tree can be filtered by Kost2 number (wildcards supported).",
+            "Structure elements: *max hours has priority* switch overriding ordered person days; explicit status of a child structure element overrides an inherited one.",
+            "Creditor invoices: SEPA bank transfer download.",
+            "Employee list: weekly hours column and filtered Excel export.",
+            "Calendar day/week statistics show the gross working time.",
+            "Tooltips reachable on iOS and other touch devices; list tables adapt to narrow viewports.",
+            "Start page redirects to the new calendar, including bookmarked links."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Time sheet favorites: collision of filter and template slots resolved.",
+            "Monthly report Kost2 drill-down uses the exact Kost2.",
+            "Deleted invoice positions are excluded from cached list sums.",
+            "Kost1/Kost2 and user columns sort correctly everywhere."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "History value search accelerated with pg_trgm indexes; unused Lucene index of history attributes removed.",
+            "Batch fetching of lazy associations during mass reindexing.",
+            "npm audit vulnerabilities resolved in next and webapp."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260901",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-09-01",
+      "title": "ProjectForge 8.2 snapshot (2026-09-01)",
+      "fromCommit": "e8819bffc",
+      "toCommit": "0633fde56",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            {
+              "title": "Migrated to projectforge-next",
+              "items": [
+                "Outgoing invoices with clone, Word and e-invoice export, cost assignments and attachments; creditor invoices with CSV import.",
+                "Structure tree (tree and list perspective, keyboard navigation), structure element edit page and structure wizard.",
+                "Groups, including member mail addresses and LDAP information.",
+                "Calendar with toolbar, favorites, settings, drag and drop, jump to date; team events with reminders, recurrence and series modification.",
+                "Time sheet list and edit form with recent entries, templates, location suggestions, consumption bar and PDF/Excel export."
+              ]
+            },
+            {
+              "title": "Lists and forms",
+              "items": [
+                "Multi selection with an explicit selection mode, mass update for invoices.",
+                "Period filters (month, term, year to date) with paging arrows; date pickers reaching beyond the current year.",
+                "Server-side paging of order and invoice lists; generic sorting by computed columns.",
+                "Deleted entries can be restored; links of moved pages lead to the new pages."
+              ]
+            },
+            "JIRA issue links in structure element, structure tree, order and time sheet lists and forms.",
+            "Light/dark theme toggle, logos adapted to dark mode.",
+            "Overlapping time sheets allowed for shared cost elements.",
+            "Recently used menu entries, shared by all frontends; quick access search for the menu.",
+            "Invoice statistics with a year-earlier comparison."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Order book and invoices no longer freeze when two caches refresh at once (cross-lock deadlock); invoice cache no longer refreshes inside a write transaction.",
+            "Many N+1 query floods (order list, invoice lists, data transfer audit job, vacation events, employees, books, groups).",
+            "Large ID lists are batched to stay under the database's bind parameter limit.",
+            "Project managers can save orders in the new frontend again.",
+            "Customer name search finds words inside the name.",
+            "Invoiced amounts survive a restart."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Redirect URLs can no longer smuggle in a foreign host.",
+            "Saving orders and cost centres asks for a second factor again."
+          ]
+        },
+        {
+          "type": "docker",
+          "items": [
+            "Docker container is buildable and startable again; step by step guide for a test instance."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260816",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-08-16",
+      "title": "ProjectForge 8.2 snapshot (2026-08-16)",
+      "fromCommit": "0095d878f",
+      "toCommit": "e8819bffc",
+      "intro": [
+        "First snapshot with **projectforge-next**, the new frontend that runs side by side with the existing one under `/next`."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "projectforge-next",
+              "items": [
+                "Login, two-factor authentication and password reset; `/next/login` is the only login of the application.",
+                "Tables with column reordering, pinning, persisted layouts, filter panel, removable filter pills and saved filter favorites.",
+                "Pages declared from the backend's entity metadata; field rules generated from the entities instead of being repeated.",
+                "Books, Kost1 and the order book (list, edit page with positions and payment schedule, statistics, Excel and forecast exports).",
+                "Attachments with upload progress, multi selection, ZIP download; change history as its own tab.",
+                "Every migrated page keeps a link back to its classic counterpart."
+              ]
+            },
+            "Reindexing as a cancellable job with progress indicator.",
+            "Clone button for Merlin templates."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Forecast: configurable distribution of unused budget, run-rate extrapolation for call-off and fixed-rate orders.",
+            "Order: probability of occurrence shown; positions marked red only when really due for invoicing.",
+            "Numeric columns right-aligned, time sheet periods sorted chronologically.",
+            "Response compression enabled."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "File transfer, row selection and structure tree regressions after the TanStack migration.",
+            "Identity provider ID no longer cleared on user edit.",
+            "LDAP move/rename of legacy cn-based entries.",
+            "Invoiced sums of orders no longer 0 after concurrent cache refreshes.",
+            "Login redirect no longer overwrites the return URL.",
+            "Search for a value in the change history works again.",
+            "Order notification mails no longer break saving the order."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Stay logged in: one token per device, throttling, cookie only after 2FA, purge job.",
+            "Security review of the filter chain: trusted proxies, client IP detection, throttling of public key endpoints, unbiased tokens.",
+            "CSRF protection for the REST calls of the new frontend; REST writes validate all fields including string lengths."
+          ]
+        },
+        {
+          "type": "docker",
+          "items": [
+            "The Spring profile is no longer lost via the generated environment.sh."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260802",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-08-02",
+      "title": "ProjectForge 8.2 snapshot (2026-08-02)",
+      "fromCommit": "f8aab28cd",
+      "toCommit": "0095d878f",
+      "intro": [
+        "The table framework moved from AG Grid to TanStack React Table."
+      ],
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Tables (TanStack): typed column filters with active-filter badge, date range filters, keyboard multi selection, column reordering, left pinning and row click actions.",
+            "Forecast export: comparison with the year before last.",
+            "Structure elements: title length increased from 40 to 100 characters."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Outgoing invoices: attachments on the edit page and attachment column in the list; attachment counter updated after PDF upload/deletion.",
+            "Corrupt downloads of large files.",
+            "Forecast: number of months for invoicing in the following month.",
+            "LDAP sync no longer blocks on entries moved externally.",
+            "Merlin PDF conversion handles Identity-H encoding for unregistered fonts.",
+            "CardDAV: PUT requests bypassed the filter on newer macOS versions."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Action for resetting the identity provider password synchronization of all users."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "High-severity npm vulnerabilities in projectforge-webapp fixed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260630",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-06-30",
+      "title": "ProjectForge 8.2 snapshot (2026-06-30)",
+      "fromCommit": "8f568604c",
+      "toCommit": "f8aab28cd",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Customizing the personal menu reworked."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "WLAN password hash migration includes users without a recorded password change.",
+            "Plugin menu entries no longer vanish after reloading the configuration.",
+            "Multipart uploads with many files (Tomcat maxPartCount configured).",
+            "Invoice export takes the company name from the invoice's account."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "npm vulnerabilities in projectforge-webapp fixed; esbuild, Vite, vitest and others updated."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260531",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-05-31",
+      "title": "ProjectForge 8.2 snapshot (2026-05-31)",
+      "fromCommit": "c7b37dd27",
+      "toCommit": "8f568604c",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "E-invoicing (XRechnung / ZUGFeRD)",
+              "items": [
+                "XRechnung export of outgoing invoices and ZUGFeRD PDF export with embedded XML.",
+                "E-invoice fields in a dialog with validation; PEPPOL validation warnings resolved.",
+                "Invoice attachments embedded in the e-invoice export; uploaded invoice PDF as alternative to the DOCX conversion.",
+                "E-invoice checker for displaying and validating ZUGFeRD/XRechnung files.",
+                "E-invoice fields moved from the customer to the account, plus contact person and bank account name."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Autocompletion of the customer text in invoices and orders.",
+            "Forecast template: status column; remaining budget distributed over the remaining months."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "NPE when cloning outgoing invoices.",
+            "SEPA XML namespace handling with Spring Boot 3.4."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Frontend build migrated from react-scripts to Vite, tests from Jest to Vitest."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260430",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-04-30",
+      "title": "ProjectForge 8.2 snapshot (2026-04-30)",
+      "fromCommit": "aa37d14c1",
+      "toCommit": "c7b37dd27",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Authentik support: module projectforge-keycloak refactored to projectforge-idp; WLAN password hashes migrated from LDAP to Authentik."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "LDAP uid rename crash.",
+            "Autocompletion dropdowns and the recurrence editor after the React 19 migration."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "React 18 → 19 with all frontend dependencies.",
+            "Spring Boot 3.4.13 (Spring Framework 6.2.15); Jackson/npm dependency conflicts resolved."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260331",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-03-31",
+      "title": "ProjectForge 8.2 snapshot (2026-03-31)",
+      "fromCommit": "13abcce44",
+      "toCommit": "aa37d14c1",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Keycloak integration",
+              "items": [
+                "New module projectforge-keycloak, with a login handler for a stepwise introduction.",
+                "Bidirectional, configurable attribute mappings; group attributes synchronized in both directions.",
+                "WLAN password (NT hash) synchronized on password change; locale in BCP 47 format."
+              ]
+            },
+            {
+              "title": "Scripting",
+              "items": [
+                "Script access to order book snapshots (also as uncompressed JSON).",
+                "Script access to employee data including monthly reports."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Keycloak sync: false positive updates, membership sync, invalid characters in names, missing mail addresses.",
+            "Forecast export: NPE and snapshot data.",
+            "Calendar navigation and layout.",
+            "Wicket session: a user mismatch is detected, logged and forces a new login; breadcrumbs create fresh page instances.",
+            "Concurrency and defensive checks in the structure tree hierarchy."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "System statistics show reduced information for non-admins."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20260131",
+      "version": "8.2-SNAPSHOT",
+      "date": "2026-01-31",
+      "title": "ProjectForge 8.2 snapshot (2026-01-31)",
+      "fromCommit": "0d84c2c74",
+      "toCommit": "13abcce44",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Export zip archives support a flat structure and zip encryption (also for scripts).",
+            "New example scripts: yearly time sheet export, SQL dump export.",
+            "Accounting records support Kost2 as string.",
+            "Kost2 inherits its status virtually from the project."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "AG Grid 34, Wicket 10.8.",
+            "Podman instead of Docker for the test database."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20251130",
+      "version": "8.2-SNAPSHOT",
+      "date": "2025-11-30",
+      "title": "ProjectForge 8.2 snapshot (2025-11-30)",
+      "fromCommit": "fec48a9e1",
+      "toCommit": "0d84c2c74",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Address import handles deletion, restoring and forced deletion.",
+            "Address campaigns: Excel export button only for authorized users."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Endless LDAP synchronization (empty strings normalized to null)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20251102",
+      "version": "8.2-SNAPSHOT",
+      "date": "2025-11-02",
+      "title": "ProjectForge 8.2 snapshot (2025-11-02)",
+      "fromCommit": "5094a1586",
+      "toCommit": "fec48a9e1",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Address import/export",
+              "items": [
+                "vCard import and export (vCard 3.0 and 4.0) including contact images, iOS compatible.",
+                "Free-text import: addresses pasted as unstructured text are parsed (names, titles, salutations, addresses, phone numbers).",
+                "Import reconciler for several vCards in one file, with a diff view of business, private and postal addresses.",
+                "Warning about duplicates when creating new addresses; export of a single address as vCard."
+              ]
+            },
+            "Column settings (filter, sorting, order, widths) are saved automatically, with a reset to the server defaults."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Tables: auto scrolling."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Endless spinner after a successful two-factor authentication.",
+            "LDAP sync detected all users as modified.",
+            "Sipgate sync."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20251021",
+      "version": "8.2-SNAPSHOT",
+      "date": "2025-10-21",
+      "title": "ProjectForge 8.2 snapshot (2025-10-21)",
+      "fromCommit": "348568c54",
+      "toCommit": "5094a1586",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Address list migrated to the new table with multi selection.",
+            "Tables: pinned columns, configurable resizing, reset of the user's column settings, multi-line cells, pagination info on top.",
+            "Address campaigns redesigned: edit addresses from the campaign list in a dialog, invalid addresses highlighted, filter for own entries."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "QueryFilter.like ignored the auto wildcard parameter.",
+            "Various table fixes."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "JAXB removed (SEPA XML generator migrated); MarkdownBuilder escapes its input."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20251005",
+      "version": "8.2-SNAPSHOT",
+      "date": "2025-10-05",
+      "title": "ProjectForge 8.2 snapshot (2025-10-05)",
+      "fromCommit": "f8e0e8f67",
+      "toCommit": "348568c54",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Incoming invoices can be imported from DATEV and carry a currency.",
+            "Currency conversion: exchange rates with valid-from date; the matching rate is looked up online and proposed."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Survey plugin: reminder mails improved, missing answers fixed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-2-snapshot-20250909",
+      "version": "8.2-SNAPSHOT",
+      "date": "2025-09-09",
+      "title": "ProjectForge 8.2 snapshot (2025-09-09)",
+      "fromCommit": "d3d8850e1",
+      "toCommit": "f8e0e8f67",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Search for ticket keys (e.g. `ABC-1234`) in time sheets and structure elements works again.",
+            "Cost search improved."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Classic list views showed not all search fields (e.g. Kost2 number in time sheets)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-1",
+      "version": "8.1",
+      "date": "2025-09-01",
+      "title": "ProjectForge 8.1 released",
+      "tag": "8.1-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "{red}**Update strongly recommended for all users**{/red} - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).",
+        "**Stability proven** - This release has been running stable for many weeks without interruption in two heavily used installations."
+      ],
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Groups: Description and organization of groups are now visible for non-admins.",
+            "Group Excel export: Includes email addresses of assigned users.",
+            "Menu customization: Drag & drop functionality implemented for personalized menu organization.",
+            "AI time savings tracking in timesheets with calculation and reporting features.",
+            "Cost search functionality supports plain number string searches.",
+            "Timesheet collision prevention on multiple button events.",
+            "Excel export functionality added to accounting record list page.",
+            "User registration process made more user-friendly for new employees.",
+            "Modal dialogs on calendar page support ESC key and click-outside closing.",
+            "2FA code input field with improved UX (numeric inputmode, autoComplete).",
+            "Excel export of timesheets with AI-savings data included.",
+            "Improved forecast and orderbook functionality with planning data.",
+            "History entries now support user comments for administrative changes.",
+            "Enhanced AG Grid implementation with German translations, filtering, and sorting.",
+            "Vacation validator improvements for edge cases with remaining days from previous year.",
+            "Sipgate contact synchronization service with configurable cron job scheduling.",
+            "Data transfer functionality with sanity checks and backup capabilities.",
+            "JCR memory leak fixes and improved repository management.",
+            "Enhanced user and group access control with menu visibility configuration.",
+            "Forecast export functionality with filtering by unit, customer, and projects.",
+            "Structure wizard support for optional external groups.",
+            "Multi-selection improvements for employees in visitor book and vacation entries."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "JCR memory leaks in DataTransfer module resolved.",
+            "DynamicButton disabled state during fetch operations.",
+            "Accounting record list page tooltips fixed.",
+            "Timesheet recent entries display corrected (kost2, project, customer info).",
+            "VacationValidator edge case handling for vacation day calculations.",
+            "NPE fixes in vacation account management and group services.",
+            "Structure tree access checking improvements for timesheet editing.",
+            "Order forecast data and invoice cache handling corrections.",
+            "User group cache and right handling stability improvements.",
+            "Address forced deletion after MGC migration fixed.",
+            "History formatting and user comment handling corrected.",
+            "Various UI fixes for AG Grid tables and component rendering.",
+            "Excel export XML escaping for structure element titles in timesheet exports.",
+            "Cost assignment export improvements for invoice handling.",
+            "Login redirect functionality after authentication.",
+            "Calendar and timesheet page rendering issues resolved.",
+            "Employee selection improvements without autocompletion quirks.",
+            "Mass update functionality with proper Excel modification tracking.",
+            "Multiple deadlock issues resolved in caching and logging components.",
+            "Wicket session store size increased from 100kB to 2MB: prevents session loss on large pages.",
+            "CSRF token handling and exception registry improvements.",
+            "File stream handling corrections ensuring proper resource closure."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Enhanced administration capabilities with user group cache debugging tools.",
+            "System sanity checks with automated error reporting via email.",
+            "Improved cron job scheduling using separate threads to prevent blocking.",
+            "Database testing tools accessible via admin interface.",
+            "Configuration parameter management for AI time savings features.",
+            "Menu item visibility configuration by user groups.",
+            "Enhanced logging and exception handling for proactive error reporting."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "CVE updates: Tomcat upgraded from 10.1.33 to 10.1.39.",
+            "Improved access control for addresses and address campaigns (marketing users only).",
+            "Enhanced user and group visibility restrictions for non-admin users.",
+            "CSRF protection improvements and token handling enhancements."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Wicket upgraded to version 10.5.0 with improved page store handling.",
+            "Spring framework updates and dependency management improvements.",
+            "AG Grid integration with advanced filtering, sorting, and column pinning.",
+            "React Router dependency management and compatibility fixes.",
+            "Enhanced Kotlin coroutines implementation for asynchronous operations.",
+            "JCR (Java Content Repository) improvements with RDB storage preparation.",
+            "Jackson library updates with Hibernate 6 module integration.",
+            "Excel processing improvements with Apache POI enhancements.",
+            "Database migration scripts and flyway integration updates.",
+            "Docker container improvements for multi-architecture support preparation.",
+            "Package dependency updates including security patches.",
+            "Gradle build system optimizations and test framework enhancements.",
+            "Source file headers updated to 2025 copyright year."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8-0",
+      "version": "8.0",
+      "date": "2024-12-23",
+      "title": "ProjectForge 8.0 released",
+      "tag": "8.0-RELEASE",
+      "downloadLink": true,
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Own CardDav-Implementation for synchronization of contacts (tested with Apple contacts (macOS/iOS), Thunderbird).",
+            "Sipgate interface implemented for synchronization of address.",
+            "Calendar view improved.",
+            "Excel-Export of vacations for all employees, teams and colleagues.",
+            "Birthdaybutler for monthly birthday list.",
+            "Export of timesheets as xlsx.",
+            "Attachments to books added.",
+            "lots of minor improvements."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "several bugs fixed."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Docker container available for arm64 as well as for amd64 (Linux and macOS X).",
+            "Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.",
+            "technical debt reduced.",
+            "New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-5",
+      "version": "7.5",
+      "date": "2022-10-21",
+      "title": "ProjectForge 7.5 released",
+      "tag": "7.5-RELEASE",
+      "downloadLink": true,
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "The main calendar refactored (colors, functionalities, more customizable etc.)",
+            "Datatransfer-Plugin: Notification improved",
+            {
+              "title": "Vacations",
+              "items": [
+                "support now multiple substitutions.",
+                "Shows now conflicts"
+              ]
+            },
+            "History of changes improved.",
+            "2FA-requests preserve now input fields.",
+            "lots of minor improvements."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Menu customization in classical version.",
+            "Yubikey now also supported in other browsers: Chrome, Edge etc.",
+            "several bugs fixed."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "User/group administration in new version."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Some issues from last security pen test implemented."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "New versions: Java 15, Spring, React/Router, Wicket",
+            "Separation of db table user and passwords."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-4",
+      "version": "7.4",
+      "date": "2022-05-19",
+      "title": "ProjectForge 7.4 released",
+      "tag": "7.4-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "2FA (SMS, Authenticator, Fido2) now fully supported. Multi-upload with progress bars for data-transfer-areas."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "2FA (use SMS, mail, Authenticator app or Webauthn/Fido2 as 2nd factor for much more security.)",
+            "Password reset for users implemented (it's only usable for users with configured 2FA / mail isn't supported for password reset due to security reasons).",
+            "Scripts may be executed by users/groups without special rights (sudo functionality is supported). You may configure reports e. g. for project managers including financial data.",
+            "mass update and selection of invoices for e. g. bank transfers etc.",
+            {
+              "title": "Datatransfer:",
+              "items": [
+                "Multiple upload with progress bars implemented. Very nice.",
+                "Multi selection of files for deletion and download.",
+                "Audit on areas added (for seeing what happened)",
+                "E-mail notifications improved: files being deleted and audit log on areas."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "CSRF-Handling: if session token was changed, the user is able to simply reload the page for continuing.",
+            "mass update functionality refactored and improved.",
+            "pagination for result lists of new UI introduced."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Several minor bugfixes"
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Password reset for users: Admins may enter cell numbers of users to enable password for users without any configured 2FA."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            {
+              "title": "2FA is now fully supported. You may configure:",
+              "items": [
+                "2FA after login (expires after x days after if stay-logged-in is used)",
+                "2FA expiry time (from 1 minute to 90 days) for special usage (e. g. user administration, password changing, financial stuff etc.)"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-3",
+      "version": "7.3",
+      "date": "2022-03-09",
+      "title": "ProjectForge 7.3 released",
+      "tag": "7.3-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "Data transfer combined with Merlin, scripting improved, 2FA introduced."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Combination of DataTransfer and Merlin: Serial PDFs/Words may be automatically generated and sent to the personal boxes of the users/employees.",
+            "Scripting: example-scripts, include supported, new source editor supporting Groovy and Kotlin."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Scripting functionalities improved."
+          ]
+        },
+        {
+          "type": "privacy",
+          "items": [
+            "Data protections improvements."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Several minor bugfixes"
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Ssh public key is also visible for non-admins."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "2FA introduced (will be improved soon)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-2",
+      "version": "7.2",
+      "date": "2021-08-16",
+      "title": "ProjectForge 7.2 released",
+      "tag": "release/7.2-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "Word templating (Merlin), log viewer, encryption in data transfer, privacy features."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in their personal boxes via serial execution. Example template files included for a quick start.",
+            "Log viewer added (for admins as well as for users for tracking own activity for mass updates of time-sheets, usage of Merlin or Datev-imports)",
+            "Gender for users added: Used by Merlin (word templating) for creation of personalized letters, contracts etc."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "DataTransfer-Plugin: encryption added",
+            "Exporting SEPA-cash transfers improved: special characters unsupported by banking software will be replaced/removed."
+          ]
+        },
+        {
+          "type": "privacy",
+          "items": [
+            "Features for deleting data such as addresses, employee, vacataion data etc. implemented due to privacy restrictions in the EU. The deletion includes also history entries."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Several minor bugfixes",
+            "Search for deleted entries (addresses etc.) fixed.",
+            "Search in history entries (keywords, users) fixed."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "No restart after first installation required anymore.",
+            "During Shutdown some temporarily created directories (tomcat.* and projectforge-application*) will be deleted automatically."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "using char[] instead of String for passwords."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-1-2",
+      "version": "7.1.2",
+      "date": "2021-05-25",
+      "title": "ProjectForge 7.1.2 released",
+      "tag": "7.1.2-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "Security issues of pentests, DataTransfer improved."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "The DataTransfer tool is improved: download area in one zip, more options for external users"
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "Security fixes from a penetration test."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Several minor bugfixes"
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Several minor improvements (order book etc.)"
+          ]
+        },
+        {
+          "type": "docker",
+          "items": [
+            "You can download the binaries from [Docker hub](https://hub.docker.com/r/micromata/projectforge)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-1-1",
+      "version": "7.1.1",
+      "date": "2021-05-04",
+      "title": "ProjectForge 7.1.1 released",
+      "tag": "7.1.1-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "DataTransfer supports now personal boxes for one to one exchange of files. Docker improved. Minor fixes and improvements."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Data transfer: Personal box of every user for fast exchange of large files one to one."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Docker improved."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Update of all JavaScript libs (React etc.)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-1",
+      "version": "7.1",
+      "date": "2021-04-12",
+      "title": "ProjectForge 7.1 released",
+      "tag": "7.1.0-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "Improvements, support of Java 1.13+."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "checksums for all files in data transfer as well as nightly run of sanity job."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "CardDAV support improved (cell phone numbers)",
+            "Test data in test systems: no more unique constraint violations anymore on new test systems."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Support of Java 13+.",
+            "Major updates of nearly all libraries.",
+            "Multi tenancy removed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7-0",
+      "version": "7.0",
+      "date": "2021-04-07",
+      "title": "🚀 ProjectForge 7.0 released",
+      "tag": "7.0.0-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "**Major Release:** This version contains a lot of cool stuff: new front-end, data transfer tool, docker support."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "New front-end",
+            "Data transfer tool for sharing files with other user's and external customers",
+            "New plugin: skill matrix for sharing knowledge.",
+            "Tons of new functionalities and improvements."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Available as Docker images for fastest installation ever.",
+            "Setup wizard for easy setup.",
+            "New front-end works with React.",
+            "Over 20% of the code is now developed with Kotlin.",
+            "Full Rest support for most functionality for other clients (such as a smartphone app)."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6-22",
+      "version": "6.22.0",
+      "date": "2018-07-17",
+      "title": "ProjectForge 6.22.0 released",
+      "tag": "6.22.0-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "The ProjectForge Version 6.22.0 with new Spring Boot version and some bugfixes is released.",
+        "*The ProjectForge Launcher is not working anymore. Only the projectforge-application.jar command-line starter is available.*"
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "BIC for german IBANs optional"
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Update Spring Boot version to 2.0"
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Fix round-off error in invoice",
+            "Fix session fixation",
+            "Fix access management bug",
+            "Fix team event invitation mail send",
+            "Fix call function from address list page",
+            "Fix employee status in employee list export"
+          ]
+        }
+      ]
+    }
+  ]
+}

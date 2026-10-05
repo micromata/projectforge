@@ -20,7 +20,7 @@ import {
 import { toast } from "@/lib/toast";
 import { AdminErrorActions } from "./admin-error-actions";
 import { AdminErrorFacts, DetailText } from "./admin-error-facts";
-import { logViewerUrl } from "./admin-error-log-viewer-url";
+import { logFileSearchUrl, logViewerUrl } from "./admin-error-log-viewer-url";
 import { AdminErrorStatus } from "./admin-error-status";
 import { CATEGORY_KEYS } from "./admin-errors-labels";
 import { OccurrenceChart } from "./occurrence-chart";
@@ -103,8 +103,16 @@ function DetailContent({
             label={t(LOG_LEVEL_KEYS[entry.level])}
           />
           <StatusPill tone="neutral" label={t(CATEGORY_KEYS[entry.category])} />
-          <span className="ml-auto">
-            <LogViewerLink url={logViewerUrl(detail)} />
+          <span className="ml-auto flex flex-wrap gap-2">
+            <LogViewerLink
+              url={logViewerUrl(detail)}
+              hint={t("system.admin.adminErrors.logViewer.tooltip")}
+            />
+            <LogViewerLink
+              url={logFileSearchUrl(detail)}
+              label={t("system.admin.adminErrors.logFile._")}
+              hint={t("system.admin.adminErrors.logFile.tooltip")}
+            />
           </span>
         </div>
       </DialogHeader>

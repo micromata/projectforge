@@ -1,17 +1,30 @@
 ---
-title: ProjectForge 7.1.1 released
+title: "ProjectForge 7.1.1 released"
 date: 2021-05-04
+sort_key: "2021-05-04 0"
 ---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 DataTransfer supports now personal boxes for one to one exchange of files. Docker improved. Minor fixes and improvements.
 
+__Tag https://github.com/micromata/projectforge/tree/7.1.1-RELEASE[7.1.1-RELEASE].__
+
+++++
 {% include tag.html tag="added" %}
+++++
 - Data transfer: Personal box of every user for fast exchange of large files one to one.
 
+++++
 {% include tag.html tag="improved" %}
+++++
 - Docker improved.
 
+++++
 {% include tag.html tag="technology" %}
+++++
 - Update of all JavaScript libs (React etc.)
 
+++++
 {% include download-link.html %}
+++++

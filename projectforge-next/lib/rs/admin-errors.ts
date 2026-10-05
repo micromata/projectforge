@@ -8,7 +8,7 @@
 
 import { request } from "./client";
 import { downloadPost } from "./download";
-import type { LogLevel } from "./log-viewer";
+import type { LogLevel, LogViewerEvent } from "./log-viewer";
 
 /** `org.projectforge.common.logging.LogCategory`. */
 export type LogCategory =
@@ -53,6 +53,8 @@ export interface LogGroupFilter {
   category?: LogCategory | null;
   search?: string | null;
   days?: number | null;
+  /** Only the problems of the subsystem (`SubsystemEntry.id`). */
+  subsystem?: string | null;
 }
 
 /** `LogGroupEntry`. */
@@ -126,6 +128,36 @@ export interface LogGroupDetail {
   dailyStart: number;
 }
 
+/** `SubsystemState`, ordered by severity. */
+export type SubsystemState = "OK" | "UNKNOWN" | "DEGRADED" | "DOWN";
+
+/** `SubsystemSync`: the last run of a sync since the start. */
+export interface SubsystemSync {
+  type: string;
+  runs: number;
+  lastRun?: number | null;
+  lastStatus?: "SUCCESS" | "ERRORS" | "ABORTED" | null;
+  lastDurationMs?: number | null;
+  lastError?: string | null;
+  lastErrorDate?: number | null;
+}
+
+/** `SubsystemEntry`: a tile of an active subsystem with the statistics of its problems. */
+export interface SubsystemEntry {
+  id: string;
+  /** Translated by the server. */
+  title: string;
+  detail?: string | null;
+  state: SubsystemState;
+  syncs: SubsystemSync[];
+  occurrences24h: number;
+  newProblems24h: number;
+  /** Its problems with status NEW or ACKNOWLEDGED. */
+  open: number;
+  /** As `LogGroupEntry.trend`, summed over its problems. */
+  trend: number[];
+}
+
 /** `LogGroupUpdate`. [muteDays] for MUTE, [notify] for SET_NOTIFY (null: the event's rule). */
 export interface LogGroupUpdate {
   ids: number[];
@@ -145,12 +177,55 @@ export function fetchAdminErrors(
   );
 }
 
+export function fetchAdminSubsystems(
+  signal?: AbortSignal
+): Promise<SubsystemEntry[]> {
+  return request<SubsystemEntry[]>(
+    "/rs/adminErrors/subsystems",
+    { method: "GET" },
+    signal
+  );
+}
+
 export function fetchAdminErrorDetail(
   id: number,
   signal?: AbortSignal
 ): Promise<LogGroupDetail> {
   return request<LogGroupDetail>(
     `/rs/adminErrors/detail?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** `LogFileEvent`: a record of the log file in the shape of the log viewer's `LogViewerEvent`. */
+export interface LogFileEvent extends LogViewerEvent {
+  logger: string;
+  /** Where it was found: `ProjectForge.2026-10-05.log.gz:1234`. */
+  source: string;
+}
+
+/** `LogFileSearchData`: the occurrences of a problem in the log files of its last days. */
+export interface LogFileSearchData {
+  /** Newest first. */
+  entries: LogFileEvent[];
+  searchedFiles: string[];
+  /** The search stopped at its limit (hits, time, size), older occurrences may exist. */
+  truncated: boolean;
+  /** Lines of the files aren't readable, so occurrences may be missing. */
+  formatWarning: boolean;
+  unparsedLines: number;
+  /** The `logging.pattern.file` the log file is written with, as logback has it. */
+  pattern?: string | null;
+  recommendedPattern: string;
+}
+
+export function fetchAdminErrorLogFile(
+  id: number,
+  signal?: AbortSignal
+): Promise<LogFileSearchData> {
+  return request<LogFileSearchData>(
+    `/rs/adminErrors/logFile?id=${id}`,
     { method: "GET" },
     signal
   );

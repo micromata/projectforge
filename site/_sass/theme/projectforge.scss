@@ -108,3 +108,18 @@ table td a {
   }
 }
 
+
+// Red text of the changelog ({red}…{/red} in changelog/changelog.json → [red]##…## in AsciiDoc).
+.red {
+  color: #d0021b;
+}
+
+// A news of the changelog (news: true in the front matter), shown above the releases of its version.
+.changelog-news .article-content {
+  border-left: 4px solid #1e87f0;
+  padding-left: 16px;
+}
+
+.changelog-news-label {
+  margin-bottom: 8px;
+}

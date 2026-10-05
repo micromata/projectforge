@@ -1,0 +1,34 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-03-31)"
+date: 2026-03-31
+sort_key: "2026-03-31 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/aa37d14c1[develop@aa37d14c1], https://github.com/micromata/projectforge/compare/13abcce44..aa37d14c1[changes since 13abcce44].__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Keycloak integration**
+  * New module projectforge-keycloak, with a login handler for a stepwise introduction.
+  * Bidirectional, configurable attribute mappings; group attributes synchronized in both directions.
+  * WLAN password (NT hash) synchronized on password change; locale in BCP 47 format.
+- **Scripting**
+  * Script access to order book snapshots (also as uncompressed JSON).
+  * Script access to employee data including monthly reports.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Keycloak sync: false positive updates, membership sync, invalid characters in names, missing mail addresses.
+- Forecast export: NPE and snapshot data.
+- Calendar navigation and layout.
+- Wicket session: a user mismatch is detected, logged and forces a new login; breadcrumbs create fresh page instances.
+- Concurrency and defensive checks in the structure tree hierarchy.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- System statistics show reduced information for non-admins.

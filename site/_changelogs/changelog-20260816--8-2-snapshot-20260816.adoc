@@ -1,0 +1,55 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-08-16)"
+date: 2026-08-16
+sort_key: "2026-08-16 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+First snapshot with **projectforge-next**, the new frontend that runs side by side with the existing one under `+/next+`.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/e8819bffc[develop@e8819bffc], https://github.com/micromata/projectforge/compare/0095d878f..e8819bffc[changes since 0095d878f].__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **projectforge-next**
+  * Login, two-factor authentication and password reset; `+/next/login+` is the only login of the application.
+  * Tables with column reordering, pinning, persisted layouts, filter panel, removable filter pills and saved filter favorites.
+  * Pages declared from the backend's entity metadata; field rules generated from the entities instead of being repeated.
+  * Books, Kost1 and the order book (list, edit page with positions and payment schedule, statistics, Excel and forecast exports).
+  * Attachments with upload progress, multi selection, ZIP download; change history as its own tab.
+  * Every migrated page keeps a link back to its classic counterpart.
+- Reindexing as a cancellable job with progress indicator.
+- Clone button for Merlin templates.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Forecast: configurable distribution of unused budget, run-rate extrapolation for call-off and fixed-rate orders.
+- Order: probability of occurrence shown; positions marked red only when really due for invoicing.
+- Numeric columns right-aligned, time sheet periods sorted chronologically.
+- Response compression enabled.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- File transfer, row selection and structure tree regressions after the TanStack migration.
+- Identity provider ID no longer cleared on user edit.
+- LDAP move/rename of legacy cn-based entries.
+- Invoiced sums of orders no longer 0 after concurrent cache refreshes.
+- Login redirect no longer overwrites the return URL.
+- Search for a value in the change history works again.
+- Order notification mails no longer break saving the order.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Stay logged in: one token per device, throttling, cookie only after 2FA, purge job.
+- Security review of the filter chain: trusted proxies, client IP detection, throttling of public key endpoints, unbiased tokens.
+- CSRF protection for the REST calls of the new frontend; REST writes validate all fields including string lengths.
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- The Spring profile is no longer lost via the generated environment.sh.

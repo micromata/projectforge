@@ -1,10 +1,14 @@
 ---
-title: ProjectForge 7.3 released
+title: "ProjectForge 7.3 released"
 date: 2022-03-09
+sort_key: "2022-03-09 0"
 ---
 :page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-Security issues of pentests, DataTransfer improved.
+Data transfer combined with Merlin, scripting improved, 2FA introduced.
+
+__Tag https://github.com/micromata/projectforge/tree/7.3-RELEASE[7.3-RELEASE].__
 
 ++++
 {% include tag.html tag="added" %}
@@ -15,7 +19,6 @@ Security issues of pentests, DataTransfer improved.
 ++++
 {% include tag.html tag="improved" %}
 ++++
-- Combination of DataTransfer and Merlin: Serial PDFs/Words may be automatically generated and sent to the personal boxes of the users/employees.
 - Scripting functionalities improved.
 
 ++++

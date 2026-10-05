@@ -1,0 +1,36 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-05-31)"
+date: 2026-05-31
+sort_key: "2026-05-31 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/8f568604c[develop@8f568604c], https://github.com/micromata/projectforge/compare/c7b37dd27..8f568604c[changes since c7b37dd27].__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **E-invoicing (XRechnung / ZUGFeRD)**
+  * XRechnung export of outgoing invoices and ZUGFeRD PDF export with embedded XML.
+  * E-invoice fields in a dialog with validation; PEPPOL validation warnings resolved.
+  * Invoice attachments embedded in the e-invoice export; uploaded invoice PDF as alternative to the DOCX conversion.
+  * E-invoice checker for displaying and validating ZUGFeRD/XRechnung files.
+  * E-invoice fields moved from the customer to the account, plus contact person and bank account name.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Autocompletion of the customer text in invoices and orders.
+- Forecast template: status column; remaining budget distributed over the remaining months.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- NPE when cloning outgoing invoices.
+- SEPA XML namespace handling with Spring Boot 3.4.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Frontend build migrated from react-scripts to Vite, tests from Jest to Vitest.

@@ -1,9 +1,12 @@
 ---
-title: ProjectForge 8.0 released
+title: "ProjectForge 8.0 released"
 date: 2024-12-23
+sort_key: "2024-12-23 0"
 ---
 :page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
+__Tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE].__
 
 ++++
 {% include tag.html tag="improved" %}
@@ -16,25 +19,19 @@ date: 2024-12-23
 - Export of timesheets as xlsx.
 - Attachments to books added.
 - lots of minor improvements.
+
 ++++
 {% include tag.html tag="fixed" %}
 ++++
 - several bugs fixed.
-++++
-{% include tag.html tag="admin" %}
-++++
-
-++++
-{% include tag.html tag="security" %}
-++++
 
 ++++
 {% include tag.html tag="technology" %}
+++++
 - Docker container available for arm64 as well as for amd64 (Linux and macOS X).
 - Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.
 - technical debt reduced.
 - New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
-++++
 
 ++++
 {% include download-link.html %}

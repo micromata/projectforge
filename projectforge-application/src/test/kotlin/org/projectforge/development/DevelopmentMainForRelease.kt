@@ -29,7 +29,7 @@ import org.projectforge.i18n.I18nKeysUsage
  * Main class for development tasks.
  * Should be called before committing changes and releasing a new version.
  * It checks and fixes source file headers, sorts and checks I18n properties, generates the
- * projectforge-next message catalogs from them and analyzes and saves i18n key usage.
+ * projectforge-next message catalogs from them, generates the changelog and analyzes and saves i18n key usage.
  */
 fun main(args: Array<String>) {
   println("*************************************************")
@@ -48,6 +48,10 @@ fun main(args: Array<String>) {
   println("**** Generating projectforge-next metadata.    ***")
   println("*************************************************")
   GenerateNextFieldMetadataMain.main(args)
+  println("*************************************************")
+  println("**** Generating changelog (site + next).      ***")
+  println("*************************************************")
+  GenerateChangelogMain.main(args)
   println("*************************************************")
   println("**** Analyzing and saving i18n key usage.     ***")
   println("*************************************************")

@@ -9,6 +9,7 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Spinner } from "@/components/shared/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTabParam } from "@/hooks/use-tab-param";
+import { updateSearchParams } from "@/lib/search-params";
 import {
   fetchOrderStatisticsMeta,
   type OrderStatisticsMeta,
@@ -36,15 +37,7 @@ export function OrderStatisticsPage() {
   );
   useEffect(() => {
     if (!fromOrderBook) return;
-    const query = new URLSearchParams(window.location.search);
-    query.delete(FROM_ORDER_BOOK_PARAM);
-    const search = query.toString();
-    // The native History API, not `router.replace`, as useTabParam does.
-    window.history.replaceState(
-      null,
-      "",
-      search ? `?${search}` : window.location.pathname
-    );
+    updateSearchParams({ [FROM_ORDER_BOOK_PARAM]: null }, "replace");
   }, [fromOrderBook]);
 
   const meta = useQuery({

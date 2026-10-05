@@ -11,11 +11,13 @@ layout: default
             {{ content }}
         </div>
 
-        {% assign changelogs = (site.changelogs | sort: 'date') | reverse %}
+        {% comment %}sort_key (generated from changelog/changelog.json): the release date, a news above its release.{% endcomment %}
+        {% assign changelogs = (site.changelogs | sort: 'sort_key') | reverse %}
         {% for changelog in changelogs %}
-            <article class="uk-article uk-margin-medium-top">
+            <article class="uk-article uk-margin-medium-top{% if changelog.news %} changelog-news{% endif %}">
                 <hr class="uk-margin-medium-bottom">
                 <div class="uk-position-relative">
+                    {% if changelog.news %}<span class="uk-label changelog-news-label">News</span>{% endif %}
                     <h2>{{ changelog.title }}</h2>
                     <div class="uk-position-center-left-out uk-position-large uk-visible@m uk-text-small uk-text-muted">
                         {% if changelog.date %}

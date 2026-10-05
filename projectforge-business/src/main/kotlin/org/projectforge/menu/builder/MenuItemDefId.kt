@@ -58,6 +58,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
+    // Next only: the changelog generated from changelog/changelog.json, also reached via the version in the status bar.
+    CHANGELOG("menu.changelog", "next/changelog"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.

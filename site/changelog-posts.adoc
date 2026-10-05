@@ -1,0 +1,6 @@
+---
+layout: changelog
+title: Changelog
+permalink: /changelog-posts/
+---
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.

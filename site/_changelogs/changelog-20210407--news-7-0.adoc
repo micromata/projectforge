@@ -1,0 +1,10 @@
+---
+title: "ProjectForge 7.0: new frontend and data transfer"
+date: 2021-04-07
+sort_key: "2021-04-07 1"
+news: true
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+Major release with a new React frontend, the data transfer tool and Docker support.
