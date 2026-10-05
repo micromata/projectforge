@@ -168,8 +168,8 @@ none caused by the upgrade, see "Completion of Phase 1"). What is left is listed
 - [x] **Spring MVC**: `RestEndpointAccessCheckTest` is green. e2e suite against the fat jar (slot 7): 284 passed,
       16 skipped, 5 failed; none of the 5 is caused by the upgrade, see "Completion of Phase 1".
 - [ ] **Spring Security 7**: both configs compile unchanged and the password login of next works
-      (`/rsPublic/nextLogin`, CSRF, session cookie). Still to test: gateway mode, OAuth2 (Keycloak/Authentik),
-      WebDAV/CardDAV methods through `StrictHttpFirewall`.
+      (`/rsPublic/nextLogin`, CSRF, session cookie). Gateway mode and the CardDAV methods through
+      `StrictHttpFirewall` work, see step 2 of "Completion of Phase 1". Still to test: OAuth2 (Keycloak/Authentik).
 - [x] **Hibernate 7**:
   - [x] `ScanResultCollector` is gone: `MyJpaWithExtLibrariesScanner` returns an empty `ScanResult`, which is
         what the collector returned before (no archive was visited; entities come from the explicitly listed
@@ -208,8 +208,21 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
      `/rs/outgoingInvoice/listPage` with a reset filter, after a fresh reindex of slot 8: 10 rows on
      :8088, 2 on :8087. Fix in the spec (skip below 3 rows, or extend by only one row), reported
      separately.
-2. **Spring Security 7**: gateway mode (`GatewaySecurityConfig`), OAuth2 login against Keycloak/Authentik,
-   CardDAV with a real client (PROPFIND/REPORT through `StrictHttpFirewall`), WebDAV of the attachments.
+2. **Spring Security 7**: gateway mode and CardDAV done, OAuth2 open.
+   - Gateway (`GatewaySecurityConfig`, profile `external-gateway`, fat jar, fresh HSQLDB home on :8092, slot 7
+     pushing to it): full and delta syncs succeed (users, groups, addresses, ICS). Blocked paths (`/wa/`,
+     `/rs/address/list`, `/next/address`, `/swagger-ui/...`) answer 403 without login, the same as Phase 0 (a
+     Phase 0 gateway on :8091 for comparison): Spring Security denies them before `GatewayEndpointFilter`
+     answers 404. `doc/HOWTO-TEST-GATEWAY.md` said 404, corrected.
+   - CardDAV with the DAV token, main instance and gateway alike: OPTIONS 200, PROPFIND (principal, address
+     books) 207, REPORT `sync-collection` and `addressbook-multiget` 207, wrong token 401. The gateway needs
+     the `authenticationTokenEncryptionKey` of the main instance (tokens are pushed encrypted and stored 1:1),
+     otherwise every token login fails; added to Variant A of the HOWTO.
+   - There is no WebDAV for attachments any more: "WebDAV" in the security configs only means the DAV
+     methods of CardDAV in the firewall.
+   - Open: OAuth2 login against Keycloak/Authentik (needs an IdP; main instance and gateway DataTransfer UI).
+   - Aside: the old `~/ProjectForgeGateway` database doesn't start (Flyway checksum mismatch of `8.0.18`,
+     the script was changed after that database was migrated). Not caused by the upgrade.
 3. **Schema compare** (done). `-Dhibernate.hbm2ddl.auto=validate` (ProjectForge's own key, see `JpaConfig`) is
    no help: Phase 0 and Phase 1 both stop at the first, old mismatch (`T_ADDRESS.pk` is `integer` in the
    Flyway schema, the `Long` id expects `bigint`). Instead the DDL of both versions was exported
@@ -226,10 +239,13 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
    PDF/ZUGFeRD, Excel export, iCal export, attachments (JCR/Oak), DATEV import, Kotlin and Groovy scripts.
 5. **Release notes / operations**: no reindex needed on upgrade; a rollback needs the index backup or a reindex;
    take a database and index backup before the first start.
-6. Merge `develop` once more, full `./gradlew build` and e2e, then merge to `develop`.
+6. Merge `develop` once more, full `./gradlew build` and e2e, then merge to `develop`. After the merge of
+   `develop` (6e52a468e) all tests pass except one order statistics test, which fails because of changes
+   outside the upgrade; the app runs, scripts were tested (manual check by the maintainer).
 
-Clean-up afterwards: `git worktree remove /tmp/pf-baseline`, delete `~/ProjectForge-8`, stop the servers on
-:8087/:8088 (smoke-test data in slot 7: customer 987, Kost2Art 97).
+Clean-up afterwards: `git worktree remove /tmp/pf-baseline`, delete `~/ProjectForge-8`,
+`~/ProjectForgeGateway-0` and `~/ProjectForgeGateway-7`, stop the servers on :8087/:8088/:8092 (smoke-test
+data in slot 7: customer 987, Kost2Art 97).
 
 After that, Phase 2 (Jackson 3 + webauthn4j 0.31) on its own branch from `develop`, then Phase 3.
 
