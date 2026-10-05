@@ -7,6 +7,7 @@
  */
 
 import { request } from "./client";
+import { downloadPost } from "./download";
 import type { LogLevel } from "./log-viewer";
 
 /** `org.projectforge.common.logging.LogCategory`. */
@@ -153,6 +154,14 @@ export function fetchAdminErrorDetail(
     { method: "GET" },
     signal
   );
+}
+
+/**
+ * All problems of the filter (not only the listed ones) with their samples and trends as one JSON file, for an
+ * analysis by an AI (`LogAnalysisExport`). Named by the backend.
+ */
+export function downloadAdminErrors(filter: LogGroupFilter): Promise<void> {
+  return downloadPost("/rs/adminErrors/export", filter);
 }
 
 /** @return The number of changed problems. */

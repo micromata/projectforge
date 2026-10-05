@@ -215,6 +215,7 @@ class ErrorDigestRenderer(
         if (attachmentName != null) {
             appendLine()
             appendLine("Single occurrences with stack traces (up to ${ErrorGroup.MAX_SAMPLES} per group): $attachmentName")
+            appendLine("Everything once more as JSON for an analysis (e.g. by an AI): ${attachmentName.removeSuffix(".txt")}.json")
         }
     }
 

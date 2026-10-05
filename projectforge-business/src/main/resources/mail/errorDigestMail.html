@@ -109,7 +109,8 @@
       <% if (digest.attachmentName != null) { %>
       <p class="footer">
         Single occurrences with stack traces (up to <%= digest.maxSamples %> per group) are attached:
-        <span class="mono"><%= pf.getString(digest.attachmentName) %></span>
+        <span class="mono"><%= pf.getString(digest.attachmentName) %></span>,
+        and everything once more as JSON for an analysis (e.g. by an AI).
       </p>
       <% } %>
     </div>

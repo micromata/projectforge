@@ -128,7 +128,7 @@ function DetailContent({
             </DetailText>
           )}
           {detail.action && (
-            <DetailText label={t("system.admin.adminErrors.action")}>
+            <DetailText label={t("system.admin.adminErrors.action._")}>
               {detail.action}
             </DetailText>
           )}

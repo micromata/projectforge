@@ -282,6 +282,43 @@ class SupportErrorDigestTest {
     }
 
     @Test
+    fun `the analysis attachment as json`() {
+        val collector = ErrorDigestCollector()
+        collector.add(occurrence(DATA_EVENT, "Inconsistent order", user = "secret.user", stackTrace = "at x.Y(Y.kt:1)"))
+        collector.add(occurrence(DATA_EVENT, "Inconsistent order", user = "secret.user"))
+        collector.add(occurrence(SupportLogEvents.REQUEST_ERROR, "NPE in list", request = "GET /rs/x"))
+        val snapshot = collector.drain()
+        val dataGroup = snapshot.groups.first { it.event == DATA_EVENT }
+        dataGroup.problemId = 42
+        dataGroup.novelty = DigestNovelty.REGRESSION
+        val stored = LogAnalysisProblem(
+            id = 42, code = DATA_EVENT.code, registered = true, category = LogCategory.DATA, level = LogLevel.ERROR,
+            status = LogGroupStatus.NEW, notify = LogNotify.DIGEST, audience = LogAudience.DEVELOPER, threshold = 1,
+            totalCount = 17, daily30 = List(30) { 0 },
+        )
+        val export = LogAnalysisExport.ofDigest(
+            snapshot, 0L, 3_600_000L, "https://pf.example.org", "https://pf.example.org/next/adminErrors",
+            mapOf(42L to stored),
+        )
+        Assertions.assertEquals(LogAnalysisExport.SOURCE_DIGEST, export.source)
+        Assertions.assertEquals("1970-01-01T01:00:00Z", export.periodTo)
+        val data = export.problems.single { it.code == DATA_EVENT.code }
+        Assertions.assertEquals(17L, data.totalCount, "Completed by the database.")
+        Assertions.assertEquals(2, data.periodCount)
+        Assertions.assertEquals(DigestNovelty.REGRESSION, data.novelty)
+        Assertions.assertEquals("https://pf.example.org/next/adminErrors?id=42", data.dashboardUrl)
+        Assertions.assertEquals("at x.Y(Y.kt:1)", data.samples!!.first().stackTrace)
+        val request = export.problems.single { it.code != DATA_EVENT.code }
+        Assertions.assertNull(request.id, "Not in the database.")
+        Assertions.assertNull(request.totalCount)
+        Assertions.assertEquals("GET /rs/x", request.samples!!.single().request)
+        Assertions.assertEquals("java.lang.IllegalStateException", request.exceptionClass)
+        val json = export.toJson()
+        Assertions.assertFalse(json.contains("secret.user"), "No user names: $json")
+        Assertions.assertTrue(json.contains("\"format\" : \"${LogAnalysisExport.FORMAT}\""), json)
+    }
+
+    @Test
     fun `one mail per recipients of the audiences`() {
         val collector = ErrorDigestCollector()
         collector.add(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Sipgate not reachable")) // ADMIN

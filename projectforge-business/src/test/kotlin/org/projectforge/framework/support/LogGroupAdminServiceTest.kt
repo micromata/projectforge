@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -136,19 +137,65 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertNotEquals("0", entries["errorsNew24h"])
     }
 
+    @Test
+    fun `export as json for an analysis`() {
+        val now = System.currentTimeMillis()
+        val event = LogEvent("test.admin.export", LogCategory.DATA, explanation = "Explained.")
+        val longMessage = "x".repeat(1000)
+        repeat(2) {
+            logAggregationService.add(
+                occurrence(
+                    event, now - it * Constants.MILLIS_PER_DAY, user = "secret.user", stackTrace = "trace",
+                    message = longMessage, request = "GET /rs/foo",
+                ),
+            )
+        }
+        val export = logGroupAdminService.export(LogGroupFilter(search = event.code, days = 0), now)
+        Assertions.assertEquals(LogAnalysisExport.SOURCE_DASHBOARD, export.source)
+        val problem = export.problems.single()
+        Assertions.assertEquals(event.code, problem.code)
+        Assertions.assertEquals(LogCategory.DATA, problem.category)
+        Assertions.assertEquals(longMessage, problem.message, "The full message, not the list's cut.")
+        Assertions.assertEquals("trace", problem.sampleStackTrace)
+        Assertions.assertEquals("GET /rs/foo", problem.sampleRequest)
+        Assertions.assertEquals(2L, problem.totalCount)
+        Assertions.assertEquals(30, problem.daily30!!.size)
+        Assertions.assertEquals(2, problem.daily30!!.sum())
+        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/adminErrors?id=${problem.id}"))
+
+        val json = export.toJson()
+        val tree = ObjectMapper().readTree(json)
+        Assertions.assertEquals(LogAnalysisExport.FORMAT, tree["format"].asText())
+        Assertions.assertEquals(LogAnalysisExport.VERSION, tree["version"].asInt())
+        Assertions.assertEquals(LogCategory.entries.size, tree["guide"]["categories"].size())
+        Assertions.assertEquals(event.code, tree["problems"][0]["code"].asText())
+        Assertions.assertTrue(tree["problems"][0]["firstSeen"].asText().endsWith("Z"), "ISO-8601, UTC.")
+        Assertions.assertFalse(json.contains("secret.user"), "No user names.")
+
+        Assertions.assertEquals(listOf(problem), logGroupAdminService.analysisProblems(listOf(problem.id!!, -1), now))
+        Assertions.assertTrue(logGroupAdminService.analysisProblems(emptyList(), now).isEmpty())
+    }
+
     private fun statisticsOf() = SystemStatisticsData().also { logAggregationStatisticsBuilder.addStatisticsEntries(it) }
 
-    private fun occurrence(event: LogEvent, millis: Long, user: String? = null, stackTrace: String? = null) =
+    private fun occurrence(
+        event: LogEvent,
+        millis: Long,
+        user: String? = null,
+        stackTrace: String? = null,
+        message: String = "Something failed",
+        request: String? = null,
+    ) =
         ErrorOccurrence(
             timestampMillis = millis,
             level = LogLevel.ERROR,
             event = event,
             exceptionClass = null,
-            message = "Something failed",
+            message = message,
             location = "Foo:1",
             stackTrace = stackTrace,
             user = user,
-            request = null,
+            request = request,
             groupByCode = true,
         )
 }

@@ -3109,6 +3109,10 @@
         },
         "disabled": "The log aggregation is disabled (projectforge.support.logAggregation.enabled=false): new problems are not counted.",
         "distinctUsers24h": "Users (24 h)",
+        "downloadJson": {
+          "_": "Download as JSON",
+          "tooltip": "All problems of the current filter with message, stack trace and trend as one JSON file, e.g. for an analysis and classification by an AI. Messages may contain personal data."
+        },
         "exceptionClass": "Exception",
         "explanation": "Explanation",
         "firstSeen": "First seen",

@@ -83,7 +83,7 @@ export function AdminErrorActions({
           ]}
       <div className="flex items-center gap-2">
         <Label htmlFor="admin-error-notify">
-          {t("system.admin.adminErrors.notify")}
+          {t("system.admin.adminErrors.notify._")}
         </Label>
         <Select
           value={entry.overrideNotify ?? EVENT_NOTIFY}

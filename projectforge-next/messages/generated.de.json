@@ -3109,6 +3109,10 @@
         },
         "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Probleme werden nicht gezählt.",
         "distinctUsers24h": "Benutzer (24 h)",
+        "downloadJson": {
+          "_": "Als JSON herunterladen",
+          "tooltip": "Alle Probleme des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
+        },
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
         "firstSeen": "Zuerst aufgetreten",

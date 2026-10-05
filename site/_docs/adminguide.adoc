@@ -311,6 +311,13 @@ Each problem links to the error dashboard (Administration), where it can be ackn
 or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
 
+For an analysis or classification with an AI (or any other tool), the digest also attaches everything as a
+JSON file (`format: projectforge-log-analysis`), and the error dashboard downloads all problems of its
+current filter in the same format (_Download as JSON_), with sample message, stack trace and the occurrences
+of the last 30 days. The file explains its fields and values itself (`guide`), so it can be handed over as it
+is. It contains no user names, but messages and requests are as logged and may contain personal data: check
+this before passing it to an external service.
+
 A new security or data problem (or one that occurred again after being resolved) doesn't wait for the end of
 the interval: it sends the digest early, as soon as it reaches its threshold, but at most every 5 minutes.
 

@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
-import { SearchInput } from "@/components/shared/list/search-input";
 import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import type {
@@ -20,7 +19,7 @@ const ALL_CATEGORIES = "ALL";
 
 const DAYS = [1, 7, 30, 0];
 
-/** Search, status, category and period of the error dashboard's list. */
+/** Status, category and period of the error dashboard's list - the server's filter (the search is the table's). */
 export function AdminErrorsFilters({
   filter,
   onChange,
@@ -37,12 +36,6 @@ export function AdminErrorsFilters({
         : t("system.admin.adminErrors.days.n", { arg0: value });
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <div className="relative w-full max-w-md">
-        <SearchInput
-          value={filter.search ?? ""}
-          onChange={(search) => onChange({ ...filter, search })}
-        />
-      </div>
       <div className="flex items-center gap-2">
         <Label htmlFor="admin-errors-status">{t("status")}</Label>
         <Select
@@ -67,7 +60,7 @@ export function AdminErrorsFilters({
       </div>
       <div className="flex items-center gap-2">
         <Label htmlFor="admin-errors-category">
-          {t("system.admin.adminErrors.category")}
+          {t("system.admin.adminErrors.category._")}
         </Label>
         <Select
           value={filter.category ?? ALL_CATEGORIES}
@@ -96,7 +89,7 @@ export function AdminErrorsFilters({
       </div>
       <div className="flex items-center gap-2">
         <Label htmlFor="admin-errors-days">
-          {t("system.admin.adminErrors.days")}
+          {t("system.admin.adminErrors.days._")}
         </Label>
         <Select
           value={String(filter.days ?? 0)}

@@ -24,6 +24,7 @@
 package org.projectforge.framework.support
 
 import org.projectforge.Constants
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.logging.LogAudience
 import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEventRegistry
@@ -171,6 +172,9 @@ class LogGroupAdminService {
     @Autowired
     private lateinit var logAggregationService: LogAggregationService
 
+    @Autowired
+    private lateinit var domainService: DomainService
+
     fun list(filter: LogGroupFilter, now: Long = System.currentTimeMillis()): LogGroupList {
         // The counts of the last 30 seconds aren't written yet.
         logAggregationService.flush()
@@ -236,6 +240,85 @@ class LogGroupAdminService {
             daily = bins(buckets, dailyStart, 24, 30),
             dailyStart = dailyStart,
         )
+    }
+
+    /**
+     * All problems matching the filter, without the [MAX_ENTRIES] limit of the list, with their full samples and the
+     * occurrences of the last 30 days: the dashboard's download for an analysis (see [LogAnalysisExport]).
+     */
+    fun export(filter: LogGroupFilter, now: Long = System.currentTimeMillis()): LogAnalysisExport {
+        logAggregationService.flush()
+        val rows = persistenceService.runReadOnly { context ->
+            context.executeNamedQuery(LogGroupDO.SELECT_ROWS, LogGroupRow::class.java)
+        }
+        return LogAnalysisExport(
+            source = LogAnalysisExport.SOURCE_DASHBOARD,
+            instance = domainService.domain,
+            generatedAt = LogAnalysisExport.iso(now)!!,
+            filter = filter,
+            problems = analysisProblems(rows.filter { matches(it, filter, now) }.map { it.id }, now),
+        )
+    }
+
+    /**
+     * The problems of the given ids as written to the database (not flushed here), most recent first, as part of a
+     * [LogAnalysisExport]; unknown ids are skipped.
+     */
+    fun analysisProblems(ids: Collection<Long>, now: Long = System.currentTimeMillis()): List<LogAnalysisProblem> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        val currentHour = PendingLogGroup.hourOf(now)
+        val dailyStart = currentHour - (30 * 24 - 1) * Constants.MILLIS_PER_HOUR
+        val since24h = currentHour - 23 * Constants.MILLIS_PER_HOUR
+        // Chunked: an IN clause has a limit of parameters.
+        val chunks = ids.distinct().chunked(MAX_IN_IDS)
+        val (groups, buckets) = persistenceService.runReadOnly { context ->
+            chunks.flatMap { context.executeNamedQuery(LogGroupDO.FIND_BY_IDS, LogGroupDO::class.java, "ids" to it) } to
+                    chunks.flatMap {
+                        context.executeNamedQuery(
+                            LogBucketDO.SELECT_BY_GROUPS_BETWEEN, LogBucketRow::class.java, "groupIds" to it,
+                            "since" to Date(dailyStart), "until" to Date(currentHour + Constants.MILLIS_PER_HOUR),
+                        )
+                    }
+        }
+        val bucketsByGroup = buckets.groupBy { it.groupId }
+        val dashboardUrl = domainService.getDomain(DASHBOARD_PATH)
+        return groups.sortedByDescending { it.lastSeen }.map { group ->
+            val groupBuckets = bucketsByGroup[group.id].orEmpty()
+            val recent = groupBuckets.filter { it.bucketStart.time >= since24h }
+            val entry = entryOf(rowOf(group), now, recent.sumOf { it.occurrences }, IntArray(0))
+            val event = LogEventRegistry.get(entry.code)
+            LogAnalysisProblem(
+                id = entry.id,
+                code = entry.code,
+                registered = event != null,
+                category = entry.category,
+                level = entry.level,
+                status = entry.status,
+                notify = entry.notify,
+                overrideNotify = entry.overrideNotify,
+                audience = event?.audience ?: entry.category.defaultAudience,
+                threshold = event?.threshold ?: 1,
+                explanation = event?.explanation,
+                action = event?.action,
+                exceptionClass = entry.exceptionClass,
+                location = entry.location,
+                message = group.sampleMessage,
+                firstSeen = LogAnalysisExport.iso(entry.firstSeen),
+                lastSeen = LogAnalysisExport.iso(entry.lastSeen),
+                totalCount = entry.totalCount,
+                count24h = entry.count24h,
+                // A user of several hours is counted per hour (see LogAggregationBuffer).
+                distinctUsers24h = recent.sumOf { it.distinctUsers },
+                regression = entry.regression,
+                mutedUntil = LogAnalysisExport.iso(entry.mutedUntil),
+                daily30 = bins(groupBuckets, dailyStart, 24, 30).toList(),
+                sampleStackTrace = group.sampleStackTrace,
+                sampleRequest = group.sampleRequest,
+                dashboardUrl = dashboardUrl?.let { "$it?id=${entry.id}" },
+            )
+        }
     }
 
     /**
@@ -315,6 +398,10 @@ class LogGroupAdminService {
         const val TREND_DAYS = 7
         const val TREND_BIN_HOURS = 6
         const val MAX_MUTE_DAYS = 365
+
+        /** The error dashboard of projectforge-next, a problem is linked as `?id=<id>`. */
+        const val DASHBOARD_PATH = "next/adminErrors"
+        private const val MAX_IN_IDS = 1000
 
         internal fun isRegression(row: LogGroupRow) = row.status == LogGroupStatus.NEW && row.reopenedAt != null
 
