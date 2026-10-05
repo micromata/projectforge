@@ -23,7 +23,7 @@
 
 package org.projectforge.business.system
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.address.BirthdayCache.Companion.instance
 import org.projectforge.business.fibu.AuftragsCache
@@ -100,7 +100,7 @@ class SystemService {
      */
     fun rereadConfiguration(): String? {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-        log.info("Administration: reload configuration.")
+        log.info { "Administration: reload configuration." }
         Configuration.instance.forceReload()
         return ConfigXml.getInstance().readConfiguration()
     }
@@ -120,7 +120,7 @@ class SystemService {
         try {
             file = File.createTempFile("projectforge-schema", ".sql")
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             return ex.message
         }
         exp.exportSchema(file.path)
@@ -128,7 +128,7 @@ class SystemService {
         try {
             result = FileUtils.readFileToString(file, "UTF-8")
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             return ex.message
         }
         file.delete()
@@ -161,7 +161,7 @@ class SystemService {
                 )
             } finally {
                 ThreadLocalUserContext.clear()
-                log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
+                log.info { "Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}" }
             }
         }.start()
         val html = HtmlDocument(JobListExecutionContext.title).add(Html.H1(JobListExecutionContext.title))

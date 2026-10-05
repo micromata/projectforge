@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.SystemAlertMessage
 import org.projectforge.SystemStatus
@@ -174,7 +174,7 @@ class SystemRest {
     @PostMapping("setAlertMessage")
     fun setAlertMessage(@RequestBody request: AlertMessageRequest): MessageResponse {
         checkWriteAccess()
-        log.info("Admin user has set the alert message: \"${request.alertMessage}\"")
+        log.info { "Admin user has set the alert message: \"${request.alertMessage}\"" }
         SystemAlertMessage.alertMessage = request.alertMessage
         return MessageResponse(translate("system.admin.alertMessage.setMessage"))
     }
@@ -183,7 +183,7 @@ class SystemRest {
     @PostMapping("clearAlertMessage")
     fun clearAlertMessage(): MessageResponse {
         checkWriteAccess()
-        log.info("Admin user has cleared the alert message.")
+        log.info { "Admin user has cleared the alert message." }
         SystemAlertMessage.alertMessage = null
         return MessageResponse(translate("system.admin.alertMessage.clearMessage"))
     }
@@ -196,7 +196,7 @@ class SystemRest {
     @PostMapping("refreshCaches")
     fun refreshCaches(): MessageResponse {
         checkWriteAccess()
-        log.info("Administration: refresh all caches.")
+        log.info { "Administration: refresh all caches." }
         val refreshedCaches = systemService.refreshCaches()
         return MessageResponse(translateMsg("administration.refreshCachesDone", refreshedCaches))
     }
@@ -205,7 +205,7 @@ class SystemRest {
     @PostMapping("rereadConfiguration")
     fun rereadConfiguration(): MessageResponse {
         checkWriteAccess()
-        log.info("Administration: reread configuration.")
+        log.info { "Administration: reread configuration." }
         val result = systemService.rereadConfiguration()
         return MessageResponse(translateMsg("administration.rereadConfiguration", result ?: ""))
     }
@@ -214,7 +214,7 @@ class SystemRest {
     @GetMapping("exportConfiguration")
     fun exportConfiguration(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: export configuration.")
+        log.info { "Administration: export configuration." }
         val filename = "config-${DateHelper.getDateAsFilenameSuffix(Date())}.xml"
         return RestUtils.downloadFile(filename, systemService.exportConfiguration() ?: "")
     }
@@ -223,7 +223,7 @@ class SystemRest {
     @GetMapping("export2FAConfiguration")
     fun export2FAConfiguration(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: export 2FA configuration.")
+        log.info { "Administration: export 2FA configuration." }
         val filename = "config-2FA-${DateHelper.getDateAsFilenameSuffix(Date())}.txt"
         val systemDiagnosticsExport = this.systemDiagnosticsExport
             ?: return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -239,7 +239,7 @@ class SystemRest {
     @GetMapping("checkSystemIntegrity")
     fun checkSystemIntegrity(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: check system integrity.")
+        log.info { "Administration: check system integrity." }
         // Returns an HTML "started" page; the real report is delivered to the user's data transfer box.
         return RestUtils.downloadFile(CronSanityCheckJob.FILENAME, systemService.checkSystemIntegrity())
     }
@@ -252,7 +252,7 @@ class SystemRest {
     @PostMapping("createMissingIndices")
     fun createMissingIndices(): MessageResponse {
         checkWriteAccess()
-        log.info("Administration: create missing database indices.")
+        log.info { "Administration: create missing database indices." }
         val counter = databaseService.createMissingIndices()
         return MessageResponse(translateMsg("administration.missingDatabaseIndicesCreated", counter.toString()))
     }
@@ -261,7 +261,7 @@ class SystemRest {
     @GetMapping("exportSchema")
     fun exportSchema(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: schema export.")
+        log.info { "Administration: schema export." }
         val filename = "projectforge_schema${DateHelper.getDateAsFilenameSuffix(Date())}.sql"
         return RestUtils.downloadFile(filename, systemService.exportSchema() ?: "")
     }
@@ -270,7 +270,7 @@ class SystemRest {
     @GetMapping("optimizeAddressImages")
     fun optimizeAddressImages(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: shrink all address images and rebuild previews.")
+        log.info { "Administration: shrink all address images and rebuild previews." }
         val filename = "address-image-processing-${DateHelper.getDateAsFilenameSuffix(Date())}.txt"
         return RestUtils.downloadFile(filename, addressImageDao.shrinkAllImagesAndRebuildPreviews())
     }
@@ -279,7 +279,7 @@ class SystemRest {
     @PostMapping("resetIdpPasswordSync")
     fun resetIdpPasswordSync(): MessageResponse {
         checkWriteAccess()
-        log.info("Administration: reset IdP password sync flag for all users.")
+        log.info { "Administration: reset IdP password sync flag for all users." }
         val count = userDao.resetIdpPasswordSync()
         return MessageResponse(translateMsg("administration.idpPasswordSyncReset", count.toString()))
     }
@@ -292,7 +292,7 @@ class SystemRest {
     @PostMapping("reindex")
     fun reindex(@RequestBody request: ReindexRequest): ReindexResponse {
         checkWriteAccess()
-        log.info("Administration: re-index (newestNEntries=${request.newestNEntries}, fromDate=${request.fromDate}).")
+        log.info { "Administration: re-index (newestNEntries=${request.newestNEntries}, fromDate=${request.fromDate})." }
         val fromDate = request.fromDate?.let { Date.from(it.atStartOfDay(ZoneId.systemDefault()).toInstant()) }
         val settings = ReindexSettings(fromDate, request.newestNEntries)
         val job = jobHandler.addJob(
@@ -315,7 +315,7 @@ class SystemRest {
     @GetMapping("checkI18nProperties")
     fun checkI18nProperties(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: check i18n properties.")
+        log.info { "Administration: check i18n properties." }
         val i18nKeysUsage = this.i18nKeysUsage
             ?: return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body("I18nKeysUsage service is not available.")
@@ -327,7 +327,7 @@ class SystemRest {
     @GetMapping("debugUserGroupCache")
     fun debugUserGroupCache(): ResponseEntity<*> {
         checkWriteAccess()
-        log.info("Administration: debug UserGroupCache.")
+        log.info { "Administration: debug UserGroupCache." }
         val filename = "userGroupCache-${DateHelper.getDateAsFilenameSuffix(Date())}.json"
         return RestUtils.downloadFile(filename, userGroupCache.internalGetStateAsJson())
     }
@@ -337,7 +337,7 @@ class SystemRest {
     fun testDatabase(): MessageResponse {
         checkDevelopmentMode()
         checkWriteAccess()
-        log.info("Administration: test database.")
+        log.info { "Administration: test database." }
         databaseTester.test()
         return MessageResponse(translate("system.admin.development.databaseTestStarted"))
     }
@@ -347,7 +347,7 @@ class SystemRest {
     fun createTestBooks(): MessageResponse {
         checkDevelopmentMode()
         checkWriteAccess()
-        log.info("Administration: create $NUMBER_OF_TEST_BOOKS test books.")
+        log.info { "Administration: create $NUMBER_OF_TEST_BOOKS test books." }
         // Find the lowest series number not yet used, so repeated runs don't collide on the title.
         var number = 1
         while (databaseService.queryForInt("select count(*) from t_book where title like 'title.$number.%'") > 0) {

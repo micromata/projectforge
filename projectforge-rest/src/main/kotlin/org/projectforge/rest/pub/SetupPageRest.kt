@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.pub
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.admin.SetupService
 import org.projectforge.business.admin.SetupTarget
@@ -124,7 +124,7 @@ open class SetupPageRest {
     @PostMapping
     fun finish(@RequestBody body: SetupRequest): SetupResult {
         if (databaseService.databaseTablesWithEntriesExist()) {
-            log.error("Setup POST called but the database is already initialised — rejected.")
+            log.error { "Setup POST called but the database is already initialised — rejected." }
             return SetupResult(success = false, message = "Setup has already been completed.")
         }
 

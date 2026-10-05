@@ -23,7 +23,7 @@
 
 package org.projectforge.mail
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
@@ -174,7 +174,7 @@ open class SendMail {
     async: Boolean = true
   ): Boolean {
     if (composedMessage == null) {
-      log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.")
+      log.error { "No message object of type org.projectforge.mail.Mail given. E-Mail not sent." }
       return false
     }
     if (!isConfigured) {
@@ -183,7 +183,7 @@ open class SendMail {
     }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
-      log.error("No to address given. Sending of mail cancelled: $composedMessage")
+      log.error { "No to address given. Sending of mail cancelled: $composedMessage" }
       throw UserException("mail.error.missingToAddress")
     }
     if (async) {
@@ -242,7 +242,7 @@ open class SendMail {
     composedMessage: Mail, icalContent: String?,
     attachments: Collection<IMailAttachment>?
   ) {
-    log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
+    log.info { "Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", ") }
     try {
       val session = session
       /*if (SystemStatus.isDevelopmentMode()) {
@@ -288,15 +288,15 @@ open class SendMail {
       }
       message.saveChanges() // don't forget this
       if (testMode) {
-        log.info("Test mode, do not really send e-mails (OK only for test cases).")
+        log.info { "Test mode, do not really send e-mails (OK only for test cases)." }
       } else {
         Transport.send(message)
       }
     } catch (ex: Exception) {
-      log.error("While creating and sending message: $composedMessage", ex)
+      log.error(ex) { "While creating and sending message: $composedMessage" }
       throw InternalErrorException("mail.error.exception")
     }
-    log.info("E-Mail successfully sent: $composedMessage")
+    log.info { "E-Mail successfully sent: $composedMessage" }
   }
 
   @Throws(MessagingException::class)
@@ -375,7 +375,7 @@ open class SendMail {
     recipient: PFUserDO?
   ): String {
     prepare(composedMessage, data, title, recipient)
-    log.debug("groovyTemplate=$groovyTemplate")
+    log.debug { "groovyTemplate=$groovyTemplate" }
     val engine = GroovyEngine(
       configurationService, data, recipient?.locale,
       recipient?.timeZone

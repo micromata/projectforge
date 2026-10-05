@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user.filter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.login.Login
 import org.projectforge.business.login.LoginProtection
@@ -90,7 +90,7 @@ class CookieService {
       // this ip stays refused. Milliseconds, because the first attempts are penalized sub-second.
       val msg =
         "Stay-logged-in is blocked for $offset ms for ip $clientIp due to failed attempts (request=${request.requestURI})."
-      log.warn(msg)
+      log.warn { msg }
       logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
       return null
     }
@@ -100,7 +100,7 @@ class CookieService {
       loginProtection.incrementFailedLoginTimeOffset(clientIp, null, AUTHENTICATION_TYPE)
       val msg =
         "Invalid stay-logged-in cookie found (unknown, expired or revoked token, e. g. after a logout or a password change), ip=$clientIp."
-      log.warn(msg)
+      log.warn { msg }
       logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
       clearCookie(response, stayLoggedInCookie)
       return null
@@ -109,14 +109,14 @@ class CookieService {
     // to restore a session from a cookie issued while the account was still active.
     if (!user.hasSystemAccess()) {
       val msg = "Deactivated or deleted user tried to log in via stay-logged-in cookie: ${user.userDisplayName}."
-      log.warn(msg)
+      log.warn { msg }
       logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
       clearCookie(response, stayLoggedInCookie)
       return null
     }
     if (!Login.getInstance().checkStayLoggedIn(user)) {
       val msg = "Stay-logged-in wasn't accepted by the login handler: " + user.userDisplayName
-      log.warn(msg)
+      log.warn { msg }
       logSecurityWarn(this.javaClass, "LOGIN FAILED", msg)
       return null
     }
@@ -126,7 +126,7 @@ class CookieService {
     // update the cookie, especially the max age
     addCookie(request, response, stayLoggedInCookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
     userDao.updateUserAfterLoginSuccess(user)
-    log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
+    log.info { "User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ")." }
     // The last successful 2FA is restored by the caller (LoginService.checkStayLoggedIn), which has the user id
     // at hand and logs it.
     return UserContext(user)
@@ -209,13 +209,13 @@ class CookieService {
     // [org.projectforge.rest.core.RestCsrfProtection.isSameSiteRequest].
     cookie.setAttribute("SameSite", "Lax")
     if (request.isSecure || isSecureCookieConfigured) {
-      if (log.isDebugEnabled) {
-        log.debug("Set secure cookie (request=${request.requestURI}).")
+      if (log.isDebugEnabled()) {
+        log.debug { "Set secure cookie (request=${request.requestURI})." }
       }
       cookie.secure = true
     } else {
-      if (log.isDebugEnabled) {
-        log.debug("Set unsecure cookie (request=${request.requestURI}).")
+      if (log.isDebugEnabled()) {
+        log.debug { "Set unsecure cookie (request=${request.requestURI})." }
       }
     }
     cookie.isHttpOnly = true

@@ -25,7 +25,7 @@ package org.projectforge.rest.scripting
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.scripting.*
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.logging.LogLevel
@@ -307,7 +307,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     fun download(request: HttpServletRequest): ResponseEntity<*> {
         val downloadFile = scriptExecution.getDownloadFile(request)
             ?: return RestUtils.badRequest(translate("download.expired"))
-        log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
+        log.info { "Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}." }
         return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
     }
 

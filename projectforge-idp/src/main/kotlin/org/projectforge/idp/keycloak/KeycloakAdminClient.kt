@@ -23,7 +23,7 @@
 
 package org.projectforge.idp.keycloak
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.idp.IdpAdminClient

@@ -25,7 +25,7 @@ package org.projectforge.security
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.login.LoginService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

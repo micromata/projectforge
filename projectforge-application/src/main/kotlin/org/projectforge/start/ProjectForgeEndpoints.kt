@@ -23,7 +23,7 @@
 
 package org.projectforge.start
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.admin.SystemDiagnosticsExport
 import org.projectforge.security.My2FARequestHandler
@@ -58,7 +58,7 @@ class ProjectForgeEndpoints : SystemDiagnosticsExport {
       }
       val requestMappingHandlerMapping = applicationContext.getBean(RequestMappingHandlerMapping::class.java)
       restEndPointsMap = requestMappingHandlerMapping.handlerMethods
-      if (log.isDebugEnabled) {
+      if (log.isDebugEnabled()) {
         restEndPointsMap.forEach { (key: RequestMappingInfo?, value: HandlerMethod?) ->
           log.debug { "key=$key, value=$value" }
         }
@@ -96,7 +96,7 @@ class ProjectForgeEndpoints : SystemDiagnosticsExport {
   @EventListener(ApplicationReadyEvent::class)
   fun onApplicationReady() {
     if (SystemStatus.isDevelopmentMode()) {
-      log.info(getInfo())
+      log.info { getInfo() }
     }
   }
 }

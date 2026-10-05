@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.Hibernate
 import org.hibernate.dialect.HSQLDialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
@@ -104,7 +104,7 @@ object HibernateUtils {
         } else if (dialect is HSQLDialect) {
             databaseDialect = DatabaseDialect.HSQL;
         } else {
-            log.warn("Unknown or unsupported dialect: " + dialect.javaClass.name);
+            log.warn { "Unknown or unsupported dialect: " + dialect.javaClass.name };
             databaseDialect = DatabaseDialect.PostgreSQL;
         }
         HibernateMetaModel.internalInit(sessionFactoryImplementor)
@@ -156,7 +156,7 @@ object HibernateUtils {
     @JvmStatic
     fun enterTestMode() {
         TEST_MODE = true
-        log.info("***** Entering TESTMODE.")
+        log.info { "***** Entering TESTMODE." }
     }
 
     /**
@@ -166,7 +166,7 @@ object HibernateUtils {
     @JvmStatic
     fun exitTestMode() {
         TEST_MODE = false
-        log.info("***** Exit TESTMODE.")
+        log.info { "***** Exit TESTMODE." }
     }
 
     /**
@@ -217,7 +217,7 @@ object HibernateUtils {
         } else if (obj is UserPrefEntryDO) {
             (obj as UserPrefEntryDO).id = value as Long
         } else {
-            log.error("Couldn't set the identifier of the given object for class: " + obj.javaClass.name)
+            log.error { "Couldn't set the identifier of the given object for class: " + obj.javaClass.name }
         }
     }
 

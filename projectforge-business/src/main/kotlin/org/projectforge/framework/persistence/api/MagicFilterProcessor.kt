@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
@@ -278,7 +278,7 @@ object MagicFilterProcessor {
                 queryFilter.add(predicate)
             }
         } else {
-            log.warn("Search entry of type '${fieldType.name}' not yet supported for field '$field'.")
+            log.warn { "Search entry of type '${fieldType.name}' not yet supported for field '$field'." }
         }
     }
 

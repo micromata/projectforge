@@ -26,7 +26,7 @@ package org.projectforge.web
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.business.vacation.service.VacationSendMailService
@@ -352,7 +352,7 @@ class OrphanedLinkFilter : Filter {
 
     private fun redirect(servletResponse: ServletResponse, uri: String, redirectUrl: String) {
         servletResponse as HttpServletResponse
-        log.info("Redirect orphaned link '$uri' to '$redirectUrl'.")
+        log.info { "Redirect orphaned link '$uri' to '$redirectUrl'." }
         servletResponse.sendRedirect(redirectUrl)
         return
     }

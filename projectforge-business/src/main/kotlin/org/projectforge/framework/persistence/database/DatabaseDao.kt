@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.database
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
 import kotlinx.coroutines.future.await
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.orm.massindexing.MassIndexer
@@ -95,7 +95,7 @@ open class DatabaseDao {
                 createMassIndexer(em, clazz, settings, IndexProgressMonitor(clazz))
                     .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
             } catch (ex: InterruptedException) {
-                log.error(ex.message, ex)
+                log.error(ex) { ex.message }
             }
         }
     }

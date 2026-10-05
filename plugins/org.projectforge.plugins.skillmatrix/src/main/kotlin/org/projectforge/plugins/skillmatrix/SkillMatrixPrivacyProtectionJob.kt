@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.privacyprotection.CronPrivacyProtectionJob
 import org.projectforge.business.privacyprotection.IPrivacyProtectionJob
 import org.projectforge.business.user.UserDao
@@ -57,7 +57,7 @@ class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
 
     override fun execute() {
         val date = PFDateTime.now().minusMonths(3L)
-        log.info("Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)...")
+        log.info { "Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)..." }
 
         userDao.selectAll(checkAccess = false).forEach { user ->
             if (user.deactivated || user.deleted) {
@@ -74,6 +74,6 @@ class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
                 }
             }
         }
-        log.info("Purging of skill matrix entries done.")
+        log.info { "Purging of skill matrix entries done." }
     }
 }

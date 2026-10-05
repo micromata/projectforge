@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.scripting.kotlin.CustomScriptingHost
 import org.projectforge.business.scripting.kotlin.JarExtractor
 import org.projectforge.business.scripting.kotlin.KotlinScriptUtils
@@ -99,12 +99,12 @@ class KotlinScriptExecutor(scriptLogger: ScriptLogger) : ScriptExecutor(scriptLo
             }
             return future.get(300, TimeUnit.SECONDS)  // Timeout
         } catch (ex: TimeoutException) {
-            log.info("Script execution was cancelled due to timeout.")
+            log.info { "Script execution was cancelled due to timeout." }
             future?.cancel(true)  // Attempt to cancel
             scriptExecutionResult.exception = ex
             scriptExecutionResult.scriptLogger.error(translate("scripting.error.timeout"))
         } catch (ex: Exception) {
-            log.info("Exception on Kotlin script execution: ${ex.message}", ex)
+            log.info(ex) { "Exception on Kotlin script execution: ${ex.message}" }
             scriptExecutionResult.exception = ex
             scriptExecutionResult.scriptLogger.error("Exception on Kotlin script execution: ${ex.message}")
         } finally {

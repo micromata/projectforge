@@ -25,7 +25,7 @@ package org.projectforge.gateway.push
 
 import io.netty.channel.ChannelOption
 import jakarta.annotation.PreDestroy
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.*
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.TimeAgo
@@ -105,7 +105,7 @@ open class UserServicesRest {
   ): ResponseEntity<*> {
     sessionCsrfService.validateCsrfToken(request, postData, "Logout of all devices")?.let { return it }
     val userId = ThreadLocalUserContext.loggedInUserId!!
-    log.info("User #$userId logs out all stay-logged-in devices.")
+    log.info { "User #$userId logs out all stay-logged-in devices." }
     stayLoggedInTokenDao.deleteAll(userId)
     postData.data.stayLoggedInDevices = translate("login.stayLoggedIn.devices.none")
     return UIToast.createToastResponseEntity(
@@ -127,7 +127,7 @@ open class UserServicesRest {
     request: HttpServletRequest,
     @RequestBody postData: PostData<User>
   ): ResponseEntity<*> {
-    log.info("Trying to log out all stay-logged-in devices of user #$userId.")
+    log.info { "Trying to log out all stay-logged-in devices of user #$userId." }
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     sessionCsrfService.validateCsrfToken(request, postData, "Logout of all devices")?.let { return it }
     stayLoggedInTokenDao.deleteAll(userId)

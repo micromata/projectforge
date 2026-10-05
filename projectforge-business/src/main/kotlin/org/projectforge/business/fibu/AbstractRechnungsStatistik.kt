@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.time.PFDay.Companion.fromOrNow

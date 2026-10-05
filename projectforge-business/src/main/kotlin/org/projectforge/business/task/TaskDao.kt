@@ -24,7 +24,7 @@
 package org.projectforge.business.task
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.timesheet.TimesheetDO

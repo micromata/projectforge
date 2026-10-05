@@ -24,7 +24,7 @@
 package org.projectforge.business.task
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.MapUtils
 import org.dom4j.DocumentHelper
@@ -96,7 +96,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     @PostConstruct
     private fun postConstruct() {
         if (backingInstance != null) {
-            log.warn("Oups, shouldn't instantiate TaskTree twice")
+            log.warn { "Oups, shouldn't instantiate TaskTree twice" }
             return
         }
         backingInstance = this
@@ -423,9 +423,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     kost2List.add(kost2)
                 } else if (!infoLogDone) {
                     if (item.length <= 2) {
-                        log.info("Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Project not linked anymore to task? Task id=" + task.id + ", task=" + task)
+                        log.info { "Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Project not linked anymore to task? Task id=" + task.id + ", task=" + task }
                     } else {
-                        log.info("Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Specified at task with id " + task.id + ": " + task)
+                        log.info { "Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Specified at task with id " + task.id + ": " + task }
                     }
                     infoLogDone = true
                 }
@@ -462,7 +462,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     fun resetTotalDuration(taskId: Long) {
         val node = getTaskNodeById(taskId)
         if (node == null) {
-            log.error("Task id '$taskId' not found.")
+            log.error { "Task id '$taskId' not found." }
             return
         }
         node.totalDuration = -1
@@ -551,12 +551,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             writer.write(document)
             result = sw.toString()
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         } finally {
             try {
                 writer.close()
             } catch (ex: IOException) {
-                log.error("Error while closing xml writer: " + ex.message, ex)
+                log.error(ex) { "Error while closing xml writer: " + ex.message }
             }
         }
         return result
@@ -854,7 +854,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         val info = taskDao.readTotalDurationInfo(taskId)
         val node = getTaskNodeById(taskId)
         if (node == null) {
-            log.warn("Task not found: $taskId")
+            log.warn { "Task not found: $taskId" }
         } else {
             node.totalDuration = info.duration
             node.earliestTimesheetStartDate = info.earliestStartTime
@@ -879,12 +879,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
-        log.info("Initializing task tree ...")
+        log.info { "Initializing task tree ..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             var newRoot: TaskNode? = null
             val nTaskMap = mutableMapOf<Long, TaskNode>()
             val taskList = taskDao.selectAll(checkAccess = false)
-            log.debug("Loading list of tasks ...")
+            log.debug { "Loading list of tasks ..." }
             // First create all nodes and put them into the map:
             // The root node is the first node without parent node.
             for (task in taskList) {

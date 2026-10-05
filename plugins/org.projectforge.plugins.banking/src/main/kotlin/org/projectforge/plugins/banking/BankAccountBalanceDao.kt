@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.banking
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -74,7 +74,7 @@ class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO
 
     fun getByTimePeriod(accountId: Int): List<BankAccountBalanceDO> {
         val account = bankAccountDao.find(accountId)!! // For access checking
-        log.info("Getting Balances of account '${account.name}', IBAN=${account.iban}")
+        log.info { "Getting Balances of account '${account.name}', IBAN=${account.iban}" }
         return persistenceService.executeNamedQuery(
             BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT,
             BankAccountBalanceDO::class.java,

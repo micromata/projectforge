@@ -27,7 +27,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.dvelop.*
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -232,7 +232,7 @@ class DvelopClient {
 
   private fun logRequest(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofRequestProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Request: \n")
         // append clientRequest method and url
         clientRequest
@@ -251,7 +251,7 @@ class DvelopClient {
 
   private fun logResponse(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofResponseProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Response: \n")
         // append clientRequest method and url
         log.debug { sb.toString() }

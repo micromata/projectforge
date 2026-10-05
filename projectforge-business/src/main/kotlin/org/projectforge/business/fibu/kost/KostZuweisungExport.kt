@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.excel.ContentProvider
 import org.projectforge.business.excel.ExportColumn
 import org.projectforge.business.excel.ExportWorkbook
@@ -147,7 +147,7 @@ class KostZuweisungExport {
         kostZuweisungen: List<KostZuweisungDO>,
         sheetTitle: String?
     ): ByteArray? {
-        log.info("Exporting kost zuweisung list.")
+        log.info { "Exporting kost zuweisung list." }
         val xls = ExportWorkbook()
         val contentProvider: ContentProvider = MyContentProvider(xls)
         // create a default Date format and currency column

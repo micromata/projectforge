@@ -24,7 +24,7 @@
 package org.projectforge.plugins.licensemanagement.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService

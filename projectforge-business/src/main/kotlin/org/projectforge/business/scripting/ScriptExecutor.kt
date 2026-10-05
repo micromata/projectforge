@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.PfCaches

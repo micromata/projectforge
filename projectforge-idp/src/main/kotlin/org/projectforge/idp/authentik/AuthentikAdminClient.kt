@@ -26,7 +26,7 @@ package org.projectforge.idp.authentik
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.idp.IdpAdminClient
@@ -103,7 +103,7 @@ open class AuthentikAdminClient(
             try {
                 getAuthentikGroup(groupPk)?.toIdpGroup()
             } catch (ex: Exception) {
-                log.error("Error fetching group '$groupPk' for user '$userId': ${ex.message}", ex)
+                log.error(ex) { "Error fetching group '$groupPk' for user '$userId': ${ex.message}" }
                 null
             }
         }
@@ -116,7 +116,7 @@ open class AuthentikAdminClient(
             try {
                 getAuthentikUser(userPk)?.toIdpUser()
             } catch (ex: Exception) {
-                log.error("Error fetching user pk=$userPk from group '$groupId': ${ex.message}", ex)
+                log.error(ex) { "Error fetching user pk=$userPk from group '$groupId': ${ex.message}" }
                 null
             }
         }

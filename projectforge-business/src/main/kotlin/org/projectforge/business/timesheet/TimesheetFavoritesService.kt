@@ -25,7 +25,7 @@
 
 package org.projectforge.business.timesheet
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites

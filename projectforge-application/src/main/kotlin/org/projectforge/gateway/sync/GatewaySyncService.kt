@@ -23,7 +23,7 @@
 
 package org.projectforge.gateway.sync
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookDO

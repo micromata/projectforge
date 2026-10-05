@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -103,7 +103,7 @@ object ElementsRegistry {
         val mapKey = getMapKey(lc.dataObjectClazz, property) ?: return UILabel(property)
         val elementInfo = getElementInfo(lc, property)
         if (elementInfo == null) {
-            log.info("Can't build UIElement from $mapKey.")
+            log.info { "Can't build UIElement from $mapKey." }
             return UILabel("??? $mapKey ???")
         }
         var element: UIElement?
@@ -171,14 +171,14 @@ object ElementsRegistry {
                     element = UISelect<String>(property, required = elementInfo.required, layoutContext = lc)
                         .buildValues(i18nEnum = elementInfo.propertyClass as Class<out Enum<*>>)
                 } else {
-                    log.warn("Properties of enum not implementing I18nEnum not yet supported: $mapKey.")
+                    log.warn { "Properties of enum not implementing I18nEnum not yet supported: $mapKey." }
                     synchronized(unavailableElementsSet) {
                         unavailableElementsSet.add(mapKey)
                     }
                     return UILabel("??? $mapKey ???")
                 }
             } else {
-                log.warn("Unsupported property type '${elementInfo.propertyClass}': $mapKey")
+                log.warn { "Unsupported property type '${elementInfo.propertyClass}': $mapKey" }
             }
         }
         if (element is UILabelledElement) {
@@ -202,7 +202,7 @@ object ElementsRegistry {
                 if (listElementInfo.genericType != null) {
                     return getElementInfo(listElementInfo.genericType, property.substring(parts[0].length + 1))
                 }
-                log.warn("Can't detect generic type of list element '$parts[0]' for property '$property'")
+                log.warn { "Can't detect generic type of list element '$parts[0]' for property '$property'" }
             }
         }
         return getElementInfo(lc.dataObjectClazz, property)
@@ -236,7 +236,7 @@ object ElementsRegistry {
         } else {
             elementInfo = getPropertyInfo(clazz, property)
             if (elementInfo == null) {
-                log.info("Property $clazz.$property not found. Can't autodetect layout.")
+                log.info { "Property $clazz.$property not found. Can't autodetect layout." }
                 synchronized(unavailableElementsSet) {
                     unavailableElementsSet.add(mapKey)
                 }
@@ -258,7 +258,7 @@ object ElementsRegistry {
                 BeanUtils.getPropertyDescriptor(clazz, property)?.readMethod?.getAnnotation(PropertyInfo::class.java)
         }
         if (propertyInfo == null) {
-            log.warn("@PropertyInfo '$clazz:$property' not found.")
+            log.warn { "@PropertyInfo '$clazz:$property' not found." }
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.login.Login
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
@@ -180,13 +180,13 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 dbGroup.assignedUsers = dbGroup.assignedUsers ?: mutableSetOf()
                 dbGroup.assignedUsers!!.let { assignedUsers ->
                     if (assignedUsers.none { it.id == dbUser.id }) { // Check if the user isn't yet assigned. Use id check instead of equals.
-                        log.info("Assigning user '" + dbUser.username + "' to group '" + dbGroup.name + "'.")
+                        log.info { "Assigning user '" + dbUser.username + "' to group '" + dbGroup.name + "'." }
                         assignedUsers.add(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()   // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         assignedGroups = assignedGroups ?: mutableListOf()
                         assignedGroups!!.add(dbGroup)
                     } else {
-                        log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
+                        log.info { "User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'." }
                     }
                 }
             }
@@ -195,13 +195,13 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                     ?: throw RuntimeException("Group with id $groupId not found.")
                 dbGroup.assignedUsers?.let { assignedUsers ->
                     if (assignedUsers.any { it.id == dbUser.id }) { // Check if the user is assigned. Use id check instead of equals.
-                        log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
+                        log.info { "Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'." }
                         assignedUsers.remove(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()      // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         unassignedGroups = unassignedGroups ?: mutableListOf()
                         unassignedGroups!!.add(dbGroup)
                     } else {
-                        log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
+                        log.info { "User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign)." }
                     }
                 }
             }
@@ -271,9 +271,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 // A group of ProjectForge will be changed.
                 if (group.getName() != obj.name) {
                     // The group's name must be unmodified!
-                    log.warn(
-                        "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.name + "'."
-                    )
+                    log.warn { "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.name + "'." }
                     obj.name = group.getName()
                 }
                 break

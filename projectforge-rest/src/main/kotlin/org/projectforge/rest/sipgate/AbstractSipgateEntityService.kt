@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -89,7 +89,7 @@ abstract class AbstractSipgateEntityService<T>(
       }
       return true
     } catch (ex: Exception) {
-      log.error("${getLogInfo(entity)}: Error while creating $entityName in Sipgate: ${ex.message}: $json")
+      log.error { "${getLogInfo(entity)}: Error while creating $entityName in Sipgate: ${ex.message}: $json" }
       return false
     }
   }
@@ -103,7 +103,7 @@ abstract class AbstractSipgateEntityService<T>(
       log.error { "${getLogInfo(entity)}: Can't delete $entityName #$id: $json" }
       return false
     }
-    log.info("${getLogInfo(entity)}: Trying to delete $entityName #$id: $json")
+    log.info { "${getLogInfo(entity)}: Trying to delete $entityName #$id: $json" }
     val uriSpec = webClient.delete()
     val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
       uriBuilder
@@ -144,7 +144,7 @@ abstract class AbstractSipgateEntityService<T>(
       }
       return true
     } catch (ex: Exception) {
-      log.error("${getLogInfo(entity)}: Error while updating $entityName in Sipgate: ${ex.message}: $json")
+      log.error { "${getLogInfo(entity)}: Error while updating $entityName in Sipgate: ${ex.message}: $json" }
       return false
     }
   }

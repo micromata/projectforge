@@ -24,7 +24,7 @@
 package org.projectforge.rest.core
 
 import kotlinx.coroutines.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.common.CoroutineTracker
 import org.projectforge.framework.json.JsonUtils

@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.user.api
 
 import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.asContextElement
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.joda.time.DateTimeZone
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.business.user.UserLocale
@@ -85,16 +85,14 @@ object ThreadLocalUserContext {
         set(userContext) {
             val oldUser = loggedInUser
             var newUser = userContext?.user
-            if (log.isDebugEnabled) {
-                log.debug(
-                    if (newUser != null) newUser.userDisplayName else if (oldUser != null) oldUser.userDisplayName else "null"
-                )
+            if (log.isDebugEnabled()) {
+                log.debug { newUser?.userDisplayName ?: oldUser?.userDisplayName ?: "null" }
             }
             threadLocalUserContext.set(userContext)
             threadLocalLocale.set(null)
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 newUser = loggedInUser
-                log.debug(if (newUser != null) newUser.userDisplayName else "null")
+                log.debug { newUser?.userDisplayName ?: "null" }
             }
         }
 

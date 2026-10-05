@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.naming.NameNotFoundException
 import javax.naming.NamingEnumeration
 import javax.naming.NamingException
@@ -55,7 +55,7 @@ abstract class LdapTemplate(private val ldapConnector: LdapConnector) {
     ctx = try {
       ldapConnector.createContext(username, password)
     } catch (ex: NamingException) {
-      log.error("While trying to connect LDAP initially: " + ex.message, ex)
+      log.error(ex) { "While trying to connect LDAP initially: " + ex.message }
       throw RuntimeException(ex)
     }
     return internalExcecute()
@@ -68,27 +68,27 @@ abstract class LdapTemplate(private val ldapConnector: LdapConnector) {
     } catch (e: NameNotFoundException) {
       // The base context was not found.
       // Just clean up and exit.
-      log.error(e.message, e)
+      log.error(e) { e.message }
       null
     } catch (e: Exception) {
-      log.error(e.message, e)
+      log.error(e) { e.message }
       throw RuntimeException(e)
     } finally {
       results?.let {
         try {
           it.close()
         } catch (e: Exception) {
-          log.error(e.message, e)
+          log.error(e) { e.message }
           // Never mind this.
         }
       }
       ctx?.let { context ->
         try {
-          log.info("Closing LDAP connection ($openConnections connections opened).")
+          log.info { "Closing LDAP connection ($openConnections connections opened)." }
           context.close()
           --openConnections
         } catch (e: Exception) {
-          log.error(e.message, e)
+          log.error(e) { e.message }
           // Never mind this.
         }
       }

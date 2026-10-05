@@ -23,7 +23,7 @@
 
 package org.projectforge.web
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.net.InetAddress
 
 private val log = KotlinLogging.logger {}

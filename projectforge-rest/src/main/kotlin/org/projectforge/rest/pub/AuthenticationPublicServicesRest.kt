@@ -24,7 +24,7 @@
 package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsDao
@@ -116,14 +116,14 @@ open class AuthenticationPublicServicesRest {
         val authenticationToken = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
         if (authenticationToken == null) {
             val msg = "Oups, no authentication token found for user with id $uid."
-            log.error(msg)
+            log.error { msg }
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             return ResponseEntity.badRequest().body("Invalid call.")
         }
         val user = userDao.find(uid, checkAccess = false)
         if (user == null) {
             val msg = "Oups, no user with id $uid found."
-            log.error(msg)
+            log.error { msg }
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             return ResponseEntity.badRequest().body("Invalid call.")
         }

@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.criteria.Predicate
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.math.NumberUtils
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
@@ -249,7 +249,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as T && value <= to
             }
-            log.warn("Between operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "Between operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -319,7 +319,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as O
             }
-            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -354,7 +354,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return (value as O) < to
             }
-            log.warn("Less operator fails, because value isn't of type ${to::class.java}: $value")
+            log.warn { "Less operator fails, because value isn't of type ${to::class.java}: $value" }
             return false
         }
 
@@ -389,7 +389,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return value as O <= to
             }
-            log.warn("LessEqual operator fails, because value isn't of type ${to::class.java}: $value")
+            log.warn { "LessEqual operator fails, because value isn't of type ${to::class.java}: $value" }
             return false
         }
 

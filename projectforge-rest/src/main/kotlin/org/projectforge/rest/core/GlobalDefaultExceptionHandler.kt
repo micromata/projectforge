@@ -24,7 +24,7 @@
 package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogLevel
@@ -69,7 +69,7 @@ internal class GlobalDefaultExceptionHandler {
                     -1,
                     maxFileSizeSpringProperty = "spring.servlet.multipart.max-file-size|spring.servlet.multipart.max-request-size"
                 )
-            log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
+            log.error { "${translateMsg(userEx)} ${userEx.logHintMessage}" }
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
         }
         if (ex is AccessException && RestAuthenticationUtils.isNextClient(request)) {
@@ -88,15 +88,15 @@ internal class GlobalDefaultExceptionHandler {
             // RestError rather than a toast: it is the body the other next-only denials use
             // (RestAuthenticationUtils.sendError), and it carries neither twoFactorRequired nor
             // csrfTokenRequired, so rawRequest finds no recovery flag and does not retry (lib/rs/client.ts).
-            log.info("Access denied: ${translateMsg(ex)} ${RequestLog.asJson(request)}")
+            log.info { "Access denied: ${translateMsg(ex)} ${RequestLog.asJson(request)}" }
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(RestError(status = HttpStatus.FORBIDDEN.value(), message = translateMsg(ex)))
         }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
-                log.error(translateMsg(ex))
+                log.error { translateMsg(ex) }
             } else {
-                log.error("${translateMsg(ex)} ${ex.logHintMessage}")
+                log.error { "${translateMsg(ex)} ${ex.logHintMessage}" }
             }
             return if (ex.displayUserMessage) {
                 ResponseEntity.ok().body(UIToast.createExceptionToast(ex))
@@ -111,17 +111,15 @@ internal class GlobalDefaultExceptionHandler {
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
         val exceptionMessage = "${ex::class.java.name}: ${ex.message}$additionalExcptionMessage"
-        log.error(
-            "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
+        log.error { "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
                 ExceptionStackTracePrinter.toString(
                     ex,
                     showExceptionMessage = false,
                     stopBeforeForeignPackages = false,
                     depth = 15
                 )
-            }"
-        )
-        log.error(ex.message, ex)
+            }" }
+        log.error(ex) { ex.message }
         return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
     }
 
@@ -145,8 +143,8 @@ internal class GlobalDefaultExceptionHandler {
     private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {
         val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
         when (exInfo.logLevel) {
-            LogLevel.INFO -> log.info(msg)
-            else -> log.error(msg)
+            LogLevel.INFO -> log.info { msg }
+            else -> log.error { msg }
         }
         return ResponseEntity(msg, exInfo.status)
     }

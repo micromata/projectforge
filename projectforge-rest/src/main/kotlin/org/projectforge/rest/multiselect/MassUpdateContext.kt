@@ -24,7 +24,7 @@
 package org.projectforge.rest.multiselect
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -86,7 +86,7 @@ abstract class MassUpdateContext<T>(
     update: () -> Unit
   ) {
     if (current == null) {
-      log.warn("Commit update without current object, please start update first by calling startUpdate.")
+      log.warn { "Commit update without current object, please start update first by calling startUpdate." }
     }
     try {
       current?.setModifiedObject(modifiedObj, identifier4Message)

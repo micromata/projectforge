@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.builder.CompareToBuilder
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -121,7 +121,7 @@ class SortPropertyComparator<T : Any>(
                 }
             } catch (ex: Exception) {
                 if (loggedErrors.add("${ex.message}")) {
-                    log.warn("Ignore sort property (OK): ${ex.message}")
+                    log.warn { "Ignore sort property (OK): ${ex.message}" }
                 }
             }
         }

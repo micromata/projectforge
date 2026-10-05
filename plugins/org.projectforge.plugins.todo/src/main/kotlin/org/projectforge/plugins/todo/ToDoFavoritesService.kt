@@ -24,7 +24,7 @@
 
 package org.projectforge.plugins.todo
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.favorites.Favorites
@@ -85,7 +85,7 @@ class ToDoFavoritesService {
                 Favorites::class.java
             ) as Favorites<ToDoFavorite>?
         } catch (ex: Exception) {
-            log.error("Exception while getting the user's to-do templates: ${ex.message}. Ignoring them.")
+            log.error { "Exception while getting the user's to-do templates: ${ex.message}. Ignoring them." }
         }
         if (favorites == null) {
             favorites = Favorites()

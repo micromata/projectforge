@@ -30,7 +30,7 @@ import com.webauthn4j.data.client.Origin
 import com.webauthn4j.data.client.challenge.Challenge
 import com.webauthn4j.server.ServerProperty
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,7 +104,7 @@ class WebAuthnSupport {
         val registrationData = try {
             webAuthnManager.parse(registrationRequest)
         } catch (ex: DataConversionException) {
-            log.error("Error while parsing registration request: ${ex.message}", ex)
+            log.error(ex) { "Error while parsing registration request: ${ex.message}" }
             return Result("webauthn.error.process")
         }
 
@@ -118,7 +118,7 @@ class WebAuthnSupport {
             //webAuthnManager.validate(registrationData, registrationParameters)
             webAuthnManager.verify(registrationData, registrationParameters)
         } catch (ex: Exception) {
-            log.error("Error while validating registration data: ${ex.message}", ex)
+            log.error(ex) { "Error while validating registration data: ${ex.message}" }
             return Result("webauthn.error.validate")
         }
         val attestationObject = registrationData.attestationObject!!
@@ -176,14 +176,14 @@ class WebAuthnSupport {
         authenticationData = try {
             webAuthnManager.parse(authenticationRequest)
         } catch (ex: DataConversionException) {
-            log.error("Error while parsing registration request: ${ex.message}", ex)
+            log.error(ex) { "Error while parsing registration request: ${ex.message}" }
             return Result("webauthn.error.process")
         }
         try {
             //webAuthnManager.validate(authenticationData, authenticationParameters)
             webAuthnManager.verify(authenticationData, authenticationParameters)
         } catch (ex: Exception) {
-            log.error("Error while parsing validating request: ${ex.message}", ex)
+            log.error(ex) { "Error while parsing validating request: ${ex.message}" }
             return Result("webauthn.error.validate")
         }
         authenticationData.credentialId?.let { credentialId ->

@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.configuration.PFSpringConfiguration
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging

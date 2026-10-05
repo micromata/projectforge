@@ -25,7 +25,7 @@ package org.projectforge.plugins.todo.rest
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.common.i18n.Priority
 import org.projectforge.plugins.todo.ToDoDO

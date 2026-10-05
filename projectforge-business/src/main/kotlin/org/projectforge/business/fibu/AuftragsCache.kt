@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -219,7 +219,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     }
 
     override fun refresh() {
-        log.info("Refreshing AuftragsCache...")
+        log.info { "Refreshing AuftragsCache..." }
         val duration = LogDuration()
         // Don't use fetch.
         val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftrag?.id }

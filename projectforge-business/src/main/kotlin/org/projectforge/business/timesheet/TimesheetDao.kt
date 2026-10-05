@@ -26,7 +26,7 @@ package org.projectforge.business.timesheet
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import org.projectforge.business.PfCaches
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
@@ -261,7 +261,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 val taskIds = node.descendantIds
                 taskIds.add(node.id)
                 queryFilter.add(isIn<Any>("task.id", taskIds))
-                if (log.isDebugEnabled) {
+                if (log.isDebugEnabled()) {
                     log.debug { "search in tasks: $taskIds" }
                 }
             } else {
@@ -276,8 +276,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         } else {
             queryFilter.addOrder(asc("startTime"))
         }
-        if (log.isDebugEnabled) {
-            log.debug(ToStringBuilder.reflectionToString(filter))
+        if (log.isDebugEnabled()) {
+            log.debug { ToStringBuilder.reflectionToString(filter) }
         }
         return queryFilter
     }
@@ -499,10 +499,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         // elements in other projects are allowed.
         val collision = list.firstOrNull { !isOverlapAllowed(timesheet, it) }
         val end = System.currentTimeMillis()
-        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
+        log.info { "TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms." }
         if (collision != null) {
             if (throwException) {
-                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $collision")
+                log.info { "Time sheet collision detected of time sheet $timesheet with existing time sheet $collision" }
                 val startTime = DateHelper.formatIsoTimestamp(collision.startTime)
                 val stopTime = DateHelper.formatIsoTimestamp(collision.stopTime)
                 throw UserException(

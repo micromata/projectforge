@@ -24,7 +24,7 @@
 package org.projectforge.framework.i18n
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserLocale

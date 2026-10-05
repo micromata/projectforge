@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.rest.dto.PostData

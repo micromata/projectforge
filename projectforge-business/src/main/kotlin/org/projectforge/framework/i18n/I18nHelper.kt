@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.i18n
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -125,7 +125,7 @@ object I18nHelper {
                 null
             }
         } catch (ex: Exception) {
-            log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
+            log.warn { "Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}" }
         }
         return null
     }

@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.login.LoginService
 import org.projectforge.web.WebUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -63,10 +63,10 @@ object SecurityLogging {
   ): String {
     val msg = "${getLogInfo(request)}, ${getMessagePart(caller)}"
     if (logAccess) {
-      accessLog.info(msg)
+      accessLog.info { msg }
     }
     if (logSecurity) {
-      securityLog.info(msg)
+      securityLog.info { msg }
       log.info { "logSecurity: $msg" }
     }
     return msg
@@ -100,7 +100,7 @@ object SecurityLogging {
   @JvmStatic
   fun logSecurityWarn(caller: Class<*>, title: String, message: String? = null): String {
     val msg = "*** $title *** ${getMessagePart(caller, message)}"
-    securityLog.warn(msg)
+    securityLog.warn { msg }
     log.warn { "logSecurity: $msg" }
     return msg
   }
@@ -127,11 +127,11 @@ object SecurityLogging {
   ): String {
     val msg = "*** $title *** ${getLogInfo(request)} ${getMessagePart(caller, message)}"
     if (logAccess) {
-      accessLog.warn(msg)
+      accessLog.warn { msg }
       log.warn { "logAccess: $msg" }
     }
     if (logSecurity) {
-      securityLog.warn(msg)
+      securityLog.warn { msg }
       log.warn { "logSecurity: $msg" }
     }
     return msg

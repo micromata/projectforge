@@ -23,7 +23,7 @@
 
 package org.projectforge.business.vacation.model
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import java.time.LocalDate

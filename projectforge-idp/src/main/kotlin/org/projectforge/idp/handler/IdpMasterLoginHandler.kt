@@ -24,7 +24,7 @@
 package org.projectforge.idp.handler
 
 import arlut.csd.crypto.SmbEncrypt
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.ldap.LdapUserDao
@@ -101,24 +101,20 @@ open class IdpMasterLoginHandler : LoginHandler {
     override fun initialize() {
         val providerName = idpAdminClient.providerName()
         if (!idpAdminClient.isConfigured()) {
-            log.warn(
-                "$providerName is not fully configured. " +
-                "IdpMasterLoginHandler will not push data to $providerName."
-            )
+            log.warn { "$providerName is not fully configured. " +
+                "IdpMasterLoginHandler will not push data to $providerName." }
         } else {
-            log.info(
-                "IdpMasterLoginHandler initialized in MASTER mode (provider=$providerName). " +
-                "PF is master — all changes will be pushed to $providerName and LDAP."
-            )
+            log.info { "IdpMasterLoginHandler initialized in MASTER mode (provider=$providerName). " +
+                "PF is master — all changes will be pushed to $providerName and LDAP." }
         }
         if (isLdapConfigured()) {
             try {
                 ldapMasterLoginHandler.initialize()
             } catch (ex: Exception) {
-                log.warn("LDAP initialization failed (ignored): ${ex.message}")
+                log.warn { "LDAP initialization failed (ignored): ${ex.message}" }
             }
         } else {
-            log.info("LDAP not configured, skipping LDAP initialization.")
+            log.info { "LDAP not configured, skipping LDAP initialization." }
         }
     }
 
@@ -143,7 +139,7 @@ open class IdpMasterLoginHandler : LoginHandler {
             try {
                 ldapMasterLoginHandler.checkLogin(username, password)
             } catch (ex: Exception) {
-                log.error("LDAP master checkLogin failed (ignoring): ${ex.message}", ex)
+                log.error(ex) { "LDAP master checkLogin failed (ignoring): ${ex.message}" }
             }
         }
 
@@ -158,7 +154,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                     ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
                 }
             } catch (ex: Exception) {
-                log.error("IdP master sync failed: ${ex.message}", ex)
+                log.error(ex) { "IdP master sync failed: ${ex.message}" }
             }
         }
     }
@@ -185,7 +181,7 @@ open class IdpMasterLoginHandler : LoginHandler {
             try {
                 ldapMasterLoginHandler.passwordChanged(user, newPassword)
             } catch (ex: Exception) {
-                log.error("LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+                log.error(ex) { "LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}" }
             }
         }
     }
@@ -201,7 +197,7 @@ open class IdpMasterLoginHandler : LoginHandler {
             try {
                 ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
             } catch (ex: Exception) {
-                log.error("LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+                log.error(ex) { "LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}" }
             }
         }
     }
@@ -212,7 +208,7 @@ open class IdpMasterLoginHandler : LoginHandler {
 
     private fun syncToIdp(users: Collection<PFUserDO>, groups: Collection<GroupDO>) {
         if (!idpAdminClient.isConfigured()) {
-            log.debug("IdP not configured, skipping push sync.")
+            log.debug { "IdP not configured, skipping push sync." }
             return
         }
         syncStats.execute(idpAdminClient.providerName()) { run -> syncToIdp(users, groups, run) }
@@ -220,7 +216,7 @@ open class IdpMasterLoginHandler : LoginHandler {
 
     private fun syncToIdp(users: Collection<PFUserDO>, groups: Collection<GroupDO>, run: SyncStats.Run) {
         val providerName = idpAdminClient.providerName()
-        log.info("Starting PF DB -> $providerName push sync...")
+        log.info { "Starting PF DB -> $providerName push sync..." }
 
         // --- Sync users ---
         var stepStart = System.currentTimeMillis()
@@ -269,14 +265,12 @@ open class IdpMasterLoginHandler : LoginHandler {
                     }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing user '$username' to $providerName (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error syncing user '$username' to $providerName (continuing): ${ex.message}" }
                 uErrors++
             }
         }
-        log.info(
-            "$providerName user push: $uCreated created, $uUpdated updated, $uDisabled disabled, " +
-            "$uUnmodified unmodified" + (if (uErrors > 0) ", *** $uErrors errors ***" else "")
-        )
+        log.info { "$providerName user push: $uCreated created, $uUpdated updated, $uDisabled disabled, " +
+            "$uUnmodified unmodified" + (if (uErrors > 0) ", *** $uErrors errors ***" else "") }
         run.addStep("users", System.currentTimeMillis() - stepStart, SyncCounts(uCreated, uUpdated, uDisabled, uUnmodified, uErrors))
 
         // --- Migrate WLAN password hashes from LDAP to IdP (one-time migration) ---
@@ -321,14 +315,12 @@ open class IdpMasterLoginHandler : LoginHandler {
                     }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing group '$groupName' to $providerName (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error syncing group '$groupName' to $providerName (continuing): ${ex.message}" }
                 gErrors++
             }
         }
-        log.info(
-            "$providerName group push: $gCreated created, $gUpdated updated, $gUnmodified unmodified" +
-            (if (gErrors > 0) ", *** $gErrors errors ***" else "")
-        )
+        log.info { "$providerName group push: $gCreated created, $gUpdated updated, $gUnmodified unmodified" +
+            (if (gErrors > 0) ", *** $gErrors errors ***" else "") }
         run.addStep("groups", System.currentTimeMillis() - stepStart, SyncCounts(gCreated, gUpdated, 0, gUnmodified, gErrors))
 
         // --- Sync memberships ---
@@ -362,7 +354,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                 // Fallback for providers (e.g. Keycloak) that don't include memberIds in getAllGroups().
                 idpAdminClient.getGroupMembers(idpGroupId).mapNotNull { it.id }.toSet()
             } catch (ex: Exception) {
-                log.error("Error fetching members of IdP group '$groupName' (skipping membership sync): ${ex.message}", ex)
+                log.error(ex) { "Error fetching members of IdP group '$groupName' (skipping membership sync): ${ex.message}" }
                 continue
             }
 
@@ -373,7 +365,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                     log.debug { "Added user '$username' (idpId=$idpUserId) to $providerName group '$groupName'" }
                     added++
                 } catch (ex: Exception) {
-                    log.error("Error adding user '$username' (idpId=$idpUserId) to $providerName group '$groupName': ${ex.message}", ex)
+                    log.error(ex) { "Error adding user '$username' (idpId=$idpUserId) to $providerName group '$groupName': ${ex.message}" }
                     mErrors++
                 }
             }
@@ -385,15 +377,13 @@ open class IdpMasterLoginHandler : LoginHandler {
                     log.debug { "Removed user '$username' (idpId=$idpUserId) from $providerName group '$groupName'" }
                     removed++
                 } catch (ex: Exception) {
-                    log.error("Error removing user '$username' (idpId=$idpUserId) from $providerName group '$groupName': ${ex.message}", ex)
+                    log.error(ex) { "Error removing user '$username' (idpId=$idpUserId) from $providerName group '$groupName': ${ex.message}" }
                     mErrors++
                 }
             }
         }
-        log.info(
-            "$providerName membership push: $added added, $removed removed" +
-            (if (mErrors > 0) ", *** $mErrors errors ***" else "")
-        )
+        log.info { "$providerName membership push: $added added, $removed removed" +
+            (if (mErrors > 0) ", *** $mErrors errors ***" else "") }
         counts.created = added
         counts.deleted = removed
         counts.errors = mErrors
@@ -407,7 +397,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                 log.debug { "Password sync for '${user.username}': idpExternalId not cached, resolving via username lookup" }
                 val found = idpAdminClient.findUserByUsername(user.username ?: return)?.id
                 if (found == null) {
-                    log.info("IdP user not found for '${user.username}', skipping password sync.")
+                    log.info { "IdP user not found for '${user.username}', skipping password sync." }
                     return
                 }
                 found
@@ -416,9 +406,9 @@ open class IdpMasterLoginHandler : LoginHandler {
             user.idpExternalId = idpId
             user.lastIdpPasswordSync = Date()
             userDao.update(user, false)
-            log.info("Password synced to IdP for user: ${user.username}")
+            log.info { "Password synced to IdP for user: ${user.username}" }
         } catch (ex: Exception) {
-            log.error("Failed to sync password to IdP for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error(ex) { "Failed to sync password to IdP for user '${user.username}' (ignoring): ${ex.message}" }
         }
     }
 
@@ -427,22 +417,22 @@ open class IdpMasterLoginHandler : LoginHandler {
             val idpId = user.idpExternalId ?: run {
                 val found = idpAdminClient.findUserByUsername(user.username ?: return)?.id
                 if (found == null) {
-                    log.info("IdP user not found for '${user.username}', skipping WLAN password sync.")
+                    log.info { "IdP user not found for '${user.username}', skipping WLAN password sync." }
                     return
                 }
                 found
             }
             val ntHash = SmbEncrypt.NTUNICODEHash(password)
             val currentUser = idpAdminClient.getUserById(idpId) ?: run {
-                log.warn("IdP user id '$idpId' not found, skipping WLAN password sync.")
+                log.warn { "IdP user id '$idpId' not found, skipping WLAN password sync." }
                 return
             }
             val updatedAttrs = (currentUser.attributes ?: emptyMap()).toMutableMap()
             updatedAttrs[attributeName] = listOf(ntHash)
             idpAdminClient.updateUser(idpId, currentUser.copy(attributes = updatedAttrs))
-            log.info("WLAN password (NT hash) synced to IdP attribute '$attributeName' for user: ${user.username}")
+            log.info { "WLAN password (NT hash) synced to IdP attribute '$attributeName' for user: ${user.username}" }
         } catch (ex: Exception) {
-            log.error("Failed to sync WLAN password to IdP for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error(ex) { "Failed to sync WLAN password to IdP for user '${user.username}' (ignoring): ${ex.message}" }
         }
     }
 
@@ -467,13 +457,13 @@ open class IdpMasterLoginHandler : LoginHandler {
         }
         if (candidates.isEmpty()) return
 
-        log.info("Migrating WLAN password hashes from LDAP to IdP for ${candidates.size} users...")
+        log.info { "Migrating WLAN password hashes from LDAP to IdP for ${candidates.size} users..." }
 
         val userBase = ldapService.ldapConfig?.userBase ?: return
         val ldapUsers = try {
             ldapUserDao.findAll(userBase)
         } catch (ex: Exception) {
-            log.error("Failed to read LDAP users for WLAN hash migration: ${ex.message}", ex)
+            log.error(ex) { "Failed to read LDAP users for WLAN hash migration: ${ex.message}" }
             return
         }
         val ldapUserByUid = ldapUsers.associateBy { it.uid }
@@ -495,14 +485,12 @@ open class IdpMasterLoginHandler : LoginHandler {
                 migrated++
                 log.debug { "Migrated WLAN hash from LDAP to IdP for user '$username'" }
             } catch (ex: Exception) {
-                log.error("Error migrating WLAN hash for user '$username': ${ex.message}", ex)
+                log.error(ex) { "Error migrating WLAN hash for user '$username': ${ex.message}" }
                 errors++
             }
         }
-        log.info(
-            "WLAN hash migration: $migrated migrated, $skipped skipped (no hash in LDAP)" +
-            (if (errors > 0) ", *** $errors errors ***" else "")
-        )
+        log.info { "WLAN hash migration: $migrated migrated, $skipped skipped (no hash in LDAP)" +
+            (if (errors > 0) ", *** $errors errors ***" else "") }
     }
 
     private fun isLdapConfigured(): Boolean = !ldapService.ldapConfig?.server.isNullOrBlank()

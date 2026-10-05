@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.customergroup
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 
 private val log = KotlinLogging.logger {}

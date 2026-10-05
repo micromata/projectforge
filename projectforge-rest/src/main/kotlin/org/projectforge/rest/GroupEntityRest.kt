@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.GroupDOConverter
 import org.projectforge.business.ldap.LdapGroupValues
@@ -265,7 +265,7 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
      */
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting groups as Excel file.")
+        log.info { "Exporting groups as Excel file." }
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
 
         @Suppress("UNCHECKED_CAST")

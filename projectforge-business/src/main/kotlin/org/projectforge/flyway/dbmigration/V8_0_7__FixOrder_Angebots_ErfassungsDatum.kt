@@ -23,7 +23,7 @@
 
 package org.projectforge.flyway.dbmigration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.projectforge.framework.persistence.database.JdbcUtils.getDate
@@ -66,7 +66,7 @@ class V8_0_7__FixOrder_Angebots_ErfassungsDatum : BaseJavaMigration() {
             connection.autoCommit = true
             fixOrders(connection)
         } catch (ex: Exception) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             throw ex
         } finally {
             connection.autoCommit = false

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.todo.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService

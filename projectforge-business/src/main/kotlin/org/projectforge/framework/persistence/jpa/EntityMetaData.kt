@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.jpa
 
 import jakarta.persistence.Column
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BeanHelper
 
 private val log = KotlinLogging.logger {}

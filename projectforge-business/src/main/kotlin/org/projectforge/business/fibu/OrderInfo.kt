@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Transient
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
@@ -371,13 +371,13 @@ class OrderInfo : Serializable {
         paymentSchedulesReached = paymentScheduleEntries?.any { it.toBeInvoiced } ?: false
         toBeInvoiced = false
         if (paymentSchedulesReached) {
-            log.debug("Payment schedules reached for order: $id")
+            log.debug { "Payment schedules reached for order: $id" }
             toBeInvoiced = true
         } else {
             if (status == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsStatus.ABGESCHLOSSEN } == true) {
                 toBeInvoiced = (positionInfos?.any { it.toBeInvoiced } == true)
                 if (toBeInvoiced) {
-                    log.debug("Finished order and/or positions and to be invoiced: $id")
+                    log.debug { "Finished order and/or positions and to be invoiced: $id" }
                 }
             }
         }

@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
 import org.projectforge.common.DatabaseDialect
@@ -65,12 +65,12 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     fun init() {
         synchronized(initializedPlugins) {
             if (initializedPlugins.contains(this.javaClass) || this.initialized) {
-                log.warn("Ignoring multiple initialization of plugin.")
+                log.warn { "Ignoring multiple initialization of plugin." }
                 return
             }
             this.initialized = true
             initializedPlugins.add(this.javaClass)
-            log.info("Initializing plugin: $javaClass")
+            log.info { "Initializing plugin: $javaClass" }
             initialize()
             if (!internalJunitTestMode) { // Don't init flyway: schema-update is auto on test cases.
                 flywayInit()
@@ -187,7 +187,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
                 log.info { "No flyway scripts found, so no automatically database initialization and migration is done by plugin '$id' (might be OK)." }
             return
         }
-        log.info("Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}")
+        log.info { "Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}" }
         val flyway = Flyway.configure()
             .dataSource(WicketSupport.get(DataSource::class.java))
             .table("t_flyway_${id.lowercase()}_schema_version")

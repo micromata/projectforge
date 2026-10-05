@@ -25,7 +25,7 @@ package org.projectforge.framework.support
 
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService

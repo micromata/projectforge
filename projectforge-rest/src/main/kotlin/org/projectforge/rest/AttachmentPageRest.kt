@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ZipMode
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment

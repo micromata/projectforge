@@ -23,7 +23,7 @@
 
 package org.projectforge.business.vacation.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.VacationDO

@@ -25,7 +25,7 @@ package org.projectforge.rest.pub.next
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.login.LoginData

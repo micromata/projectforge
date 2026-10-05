@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.database
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.common.extensions.format
 import org.projectforge.common.extensions.formatMillis
@@ -109,13 +109,11 @@ class IndexProgressMonitor(
             // Logge nur, wenn sich der Fortschritt geändert hat
             if (progress > lastReportedProgress) {
                 lastReportedProgress = progress
-                log.info(
-                    "${entityClass.simpleName}: Indexing ${progress * step}% (${
+                log.info { "${entityClass.simpleName}: Indexing ${progress * step}% (${
                         NumberFormatter.format(
                             indexedEntities
                         )
-                    }/${NumberFormatter.format(totalEntities)})..."
-                )
+                    }/${NumberFormatter.format(totalEntities)})..." }
             }
         }
     }

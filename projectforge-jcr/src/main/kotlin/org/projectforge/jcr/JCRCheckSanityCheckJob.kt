@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.ZipUtils
 import org.projectforge.common.extensions.format
@@ -59,7 +59,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
     open fun cron() {
         val started = System.currentTimeMillis()
-        log.info("JCR sanity check job started.")
+        log.info { "JCR sanity check job started." }
         val job = this
         Thread {
             try {
@@ -77,7 +77,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                     log.info { "$msgPart1. $msgPart2" }
                 }
             } catch (ex: Throwable) {
-                log.error("While executing hibernate search re-index job: " + ex.message, ex)
+                log.error(ex) { "While executing hibernate search re-index job: " + ex.message }
             }
         }.start()
     }

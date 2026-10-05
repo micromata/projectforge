@@ -25,7 +25,7 @@ package org.projectforge.business.address
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -131,7 +131,7 @@ open class AddressbookCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing AddressbookCache ...")
+        log.info { "Initializing AddressbookCache ..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val newList = mutableListOf<AddressbookDO>()

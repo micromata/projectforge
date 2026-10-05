@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.search
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.orm.entity.SearchIndexedEntity
@@ -78,18 +78,18 @@ class HibernateSearchReindexer {
         get() = indexedEntities.map { it.javaClass() }
 
     fun execute() {
-        log.info("Re-index job started.")
+        log.info { "Re-index job started." }
         /*if (databaseDao == null) {
             log.error("Job not configured, aborting.")
             return
         }*/
         val result = rebuildDatabaseSearchIndices()
         if (result.contains("*")) {
-            log.error(ERROR_MSG)
+            log.error { ERROR_MSG }
             val recipients = instance
                 .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)
             if (StringUtils.isNotBlank(recipients)) {
-                log.info("Try to inform administrator about re-indexing error.")
+                log.info { "Try to inform administrator about re-indexing error." }
                 val msg = Mail()
                 msg.addTo(recipients)
                 msg.setProjectForgeSubject("Error while re-indexing ProjectForge data-base.")
@@ -103,7 +103,7 @@ class HibernateSearchReindexer {
                 sendMail.send(msg, null, null)
             }
         }
-        log.info("Re-index job finished successfully.")
+        log.info { "Re-index job finished successfully." }
     }
 
     fun rebuildDatabaseSearchIndices(settings: ReindexSettings, vararg classes: Class<*>): String {
@@ -119,10 +119,8 @@ class HibernateSearchReindexer {
                 currentReindexRun, Locale.ENGLISH,
                 DateHelper.UTC
             )
-            log.info(
-                ("Re-indexing of '" + sb.toString()
-                        + "' cancelled due to another already running re-index job started at " + date + " (UTC):")
-            )
+            log.info { ("Re-indexing of '" + sb.toString()
+                        + "' cancelled due to another already running re-index job started at " + date + " (UTC):") }
             return "Another re-index job is already running. The job was started at: $date"
         }
         synchronized(this) {
@@ -153,7 +151,7 @@ class HibernateSearchReindexer {
                 log.info { "Re-indexing ${it.format()} entries of class '${clazz.name}'." }
             }
         } catch (ex: Exception) {
-            log.info("Class '$clazz' not available (OK for non-active plugins).")
+            log.info { "Class '$clazz' not available (OK for non-active plugins)." }
             return
         }
         // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
@@ -162,7 +160,7 @@ class HibernateSearchReindexer {
             databaseDao.reindex(clazz, settings, sb)
         } catch (ex: Exception) {
             sb.append(" (an error occurred, see log file for further information.), ")
-            log.error("While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message, ex)
+            log.error(ex) { "While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message }
         }
     }
 

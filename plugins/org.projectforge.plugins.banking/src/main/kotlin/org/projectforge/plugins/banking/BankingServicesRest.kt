@@ -24,7 +24,7 @@
 package org.projectforge.plugins.banking
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.utils.FileCheck
@@ -66,17 +66,17 @@ class BankingServicesRest {
             }."
         }
         FileCheck.checkFile(filename, file.size, "csv", megaBytes = 100)?.let { error ->
-            log.warn("Upload error for file '${file.name}': $error")
+            log.warn { "Upload error for file '${file.name}': $error" }
             throw IllegalArgumentException(error)
         }
         val bankAccountDO = bankAccountDao.find(id)
         if (bankAccountDO == null) {
-            log.warn("Bank account with id #$id not found.")
+            log.warn { "Bank account with id #$id not found." }
             throw IllegalArgumentException()
         }
         val bankAccount = BankAccount()
         bankAccount.copyFrom(bankAccountDO)
-        log.info("Importing transactions for bank account #$id, iban=${bankAccount.iban}")
+        log.info { "Importing transactions for bank account #$id, iban=${bankAccount.iban}" }
         var importStorage: BankingImportStorage? = null
         if (filename.endsWith("xls", ignoreCase = true) || filename.endsWith("xlsx", ignoreCase = true)) {
             throw IllegalArgumentException("Excel not yet supported.")

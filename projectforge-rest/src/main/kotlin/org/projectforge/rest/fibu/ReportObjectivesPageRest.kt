@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.kost.reporting.Report
 import org.projectforge.business.fibu.kost.reporting.ReportDao
 import org.projectforge.business.fibu.kost.reporting.ReportStorage

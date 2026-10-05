@@ -23,7 +23,7 @@
 
 package org.projectforge.flyway.dbmigration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.projectforge.business.fibu.EmployeeValidSinceAttrType
@@ -73,7 +73,7 @@ class V8_0_10__EmployeeDO_weeklyHoursValidSince : BaseJavaMigration() {
             connection.autoCommit = true
             setInitialWeeklyHours(connection)
         } catch (ex: Exception) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             throw ex
         } finally {
             connection.autoCommit = false

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.*
@@ -85,7 +85,7 @@ object RestResolver {
       if (SystemStatus.isDevelopmentMode()) {
         throw ex
       } else {
-        log.error(ex.message, ex)
+        log.error(ex) { ex.message }
         return getRestUrl(method.javaClass, method.name, withoutPrefix, params)
       }
     }

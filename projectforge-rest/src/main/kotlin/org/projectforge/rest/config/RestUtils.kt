@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.config
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.StringHelper
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.ui.ResponseAction
@@ -57,12 +57,10 @@ object RestUtils {
   ): FilterRegistration {
     val filterRegistration: FilterRegistration = sc.addFilter(name, filterClass)
     filterRegistration.addMappingForUrlPatterns(null, isMatchAfter, *patterns)
-    log.info(
-      "Registering filter '" + name + "' of class '" + filterClass.name + "' for urls: " + StringHelper.listToString(
+    log.info { "Registering filter '" + name + "' of class '" + filterClass.name + "' for urls: " + StringHelper.listToString(
         ", ",
         *patterns
-      )
-    )
+      ) }
     return filterRegistration
   }
 

@@ -25,7 +25,7 @@ package org.projectforge.business.address
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -68,7 +68,7 @@ open class AddressImageCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing AddressImageCache ...")
+        log.info { "Initializing AddressImageCache ..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val newMap = mutableMapOf<Long, AddressImageDO>()

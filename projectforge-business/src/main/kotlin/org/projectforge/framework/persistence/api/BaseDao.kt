@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.api
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.criteria.Root
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -709,7 +709,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     fun checkLoggedInUserSelectAccess(obj: O) {
         if (!hasUserSelectAccess(requiredLoggedInUser, obj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -720,7 +720,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             || !hasLoggedInUserHistoryAccess(obj, true)
         ) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -734,7 +734,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open fun checkInsertAccess(user: PFUserDO, obj: O) {
         if (!hasInsertAccess(user, obj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -754,7 +754,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open fun checkUpdateAccess(user: PFUserDO, obj: O, dbObj: O) {
         if (!hasUpdateAccess(user, obj, dbObj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -763,7 +763,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     internal fun checkLoggedInUserDeleteAccess(obj: O, dbObj: O) {
         if (!hasLoggedInUserDeleteAccess(obj, dbObj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -1015,7 +1015,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     open fun getAutocompletion(property: String, searchString: String): List<String> {
         checkLoggedInUserSelectAccess()
         if (!isAutocompletionPropertyEnabled(property)) {
-            log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + doClass.name + "'.")
+            log.warn { "Security alert: The user tried to select property '" + property + "' of entity '" + doClass.name + "'." }
             return ArrayList()
         }
         if (StringUtils.isBlank(searchString)) {

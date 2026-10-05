@@ -26,7 +26,7 @@ package org.projectforge.plugins.datatransfer.restPublic
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService

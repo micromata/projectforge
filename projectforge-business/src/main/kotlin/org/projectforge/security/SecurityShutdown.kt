@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KLogger
+import io.github.oshai.kotlinlogging.KLogger
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.springframework.boot.ExitCodeGenerator

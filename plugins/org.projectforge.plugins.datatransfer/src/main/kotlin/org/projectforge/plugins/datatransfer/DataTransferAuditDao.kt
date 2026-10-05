@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.jpa.PfPersistenceService

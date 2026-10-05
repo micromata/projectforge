@@ -26,7 +26,7 @@ package org.projectforge.business.fibu.orderbooksnapshots
 import com.fasterxml.jackson.core.type.TypeReference
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao

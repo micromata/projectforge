@@ -23,7 +23,7 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.time.DayOfWeek
 import java.time.LocalDate
