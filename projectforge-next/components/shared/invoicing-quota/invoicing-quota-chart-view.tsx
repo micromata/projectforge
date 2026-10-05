@@ -5,29 +5,37 @@ import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/shared/spinner";
 import { fetchInvoicingQuotaHistory } from "@/lib/rs/monthly-employee-report";
 import { InvoicingQuotaChart } from "./invoicing-quota-chart";
-import type { MonthlyReport } from "./types";
 
 /**
- * The "Fakturaquote" tab of the monthly report: the quota of the 12 months ending with the report's month.
- * Keyed on the report's resolved user/year/month (not the raw filter, whose parts may still be unset while
- * the backend restores the last selection), so it follows every filter change.
+ * The "Fakturaquote" tab (monthly report and personal statistics): the quota of the 12 months ending with
+ * [year]/[month] for [userId]; omitted parts default to the logged-in user / current month. The monthly
+ * report passes its resolved user/year/month (not the raw filter, whose parts may still be unset while the
+ * backend restores the last selection), so it follows every filter change.
  */
-export function InvoicingQuotaChartView({ report }: { report: MonthlyReport }) {
+export function InvoicingQuotaChartView({
+  userId,
+  year,
+  month,
+}: {
+  userId?: number | null;
+  year?: number;
+  month?: number;
+}) {
   const t = useTranslations("fibu.monthlyEmployeeReport.invoicingQuotaChart");
   const query = useQuery({
     queryKey: [
       "monthlyEmployeeReport",
       "invoicingQuotaHistory",
-      report.userId,
-      report.year,
-      report.month,
+      userId ?? null,
+      year ?? null,
+      month ?? null,
     ],
     queryFn: ({ signal }) =>
       fetchInvoicingQuotaHistory(
         {
-          userId: report.userId ?? undefined,
-          year: report.year,
-          month: report.month,
+          userId: userId ?? undefined,
+          year,
+          month,
         },
         signal
       ),

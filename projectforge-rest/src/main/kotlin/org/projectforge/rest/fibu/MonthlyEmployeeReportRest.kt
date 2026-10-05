@@ -457,11 +457,13 @@ class MonthlyEmployeeReportRest {
         private const val XML_DATA = "fo-styles/monthlyEmployeeReport2pdf.xml"
 
         /** User-pref area and names the last selection (user, year, month) is persisted under. */
-        private const val PREF_AREA = "monthlyEmployeeReport"
+        internal const val PREF_AREA = "monthlyEmployeeReport"
         private const val PREF_USER_ID = "userId"
         private const val PREF_YEAR = "year"
         private const val PREF_MONTH = "month"
-        private const val PREF_SHOW_INVOICING_QUOTA = "showInvoicingQuota"
+
+        /** Also read and written by [org.projectforge.rest.PersonalStatisticsRest]: both pages share the switch. */
+        internal const val PREF_SHOW_INVOICING_QUOTA = "showInvoicingQuota"
 
         /** Number of months shown in the invoicing quota chart (including the selected month). */
         private const val HISTORY_MONTHS = 12

@@ -869,7 +869,7 @@
       "statistics": {
         "forecast": "Forecast charts",
         "open": {
-          "tooltip": "Opens the order statistics with the business units, customers and projects of the current filter. Afterwards, its filter is independent of the order book."
+          "tooltip": "Opens the statistics with the business units, customers and projects of the current filter. Afterwards, its filter is independent of the order book."
         },
         "tables": {
           "bookedDate": "Booked on",
@@ -2199,7 +2199,7 @@
       "kost2arten": "Cost 2 types",
       "kostSearch": "Cost search",
       "kunden": "Customers",
-      "orderStatistics": "Order statistics",
+      "orderStatistics": "Statistics",
       "orderbook": {
         "_": "Order book",
         "htmlSuffixTooltip": "Finished but not fully invoiced orders."
@@ -2366,6 +2366,9 @@
         "bookedHours": "Booked working hours",
         "goal": "Target (goal)",
         "plannedHours": "Target working hours"
+      },
+      "tab": {
+        "timeTracking": "Time tracking"
       },
       "timesheetDisciplineChart": {
         "title": "Early booking of time sheets is essential for a successful project management!"
