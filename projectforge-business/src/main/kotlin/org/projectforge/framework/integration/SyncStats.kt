@@ -27,6 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.logging.warn
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.UnknownHostException
@@ -166,7 +167,7 @@ class SyncStats(val type: String) {
                     (if (steps.isNotEmpty()) steps.joinToString(", ", prefix = " - ") else "")
             when (status) {
                 Status.SUCCESS -> log.info { summary }
-                else -> log.warn { summary }
+                else -> log.warn(IntegrationLogEvents.SYNC_RUN_FAILED) { summary }
             }
         }
     }
