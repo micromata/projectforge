@@ -40,7 +40,8 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Checks the sanity of the JCR repository.
- * This job is scheduled by the cron expression in the application.properties file.
+ * Runs nightly as part of CronSanityCheckJob (projectforge.cron.sanityChecks). Its own schedule
+ * projectforge.jcr.cron.sanityCheck is disabled by default.
  */
 @Component
 open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
@@ -55,7 +56,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     )
 
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
-    // projectforge.jcr.cron.backup=0 30 0 * * *
+    // Disabled by default (projectforge.jcr.cron.sanityCheck=-), CronSanityCheckJob runs this job nightly.
     @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
     open fun cron() {
         val started = System.currentTimeMillis()
