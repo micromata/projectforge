@@ -28,6 +28,7 @@ import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.projectforge.business.dvelop.*
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -158,7 +159,7 @@ class DvelopClient {
           }
           return@exchangeToMono response.bodyToMono(expectedReturnClass) as Mono<T>
         } else {
-          log.error { "Error while calling $headersSpec." }
+          log.error(DvelopLogEvents.CALL_FAILED) { "Error while calling $headersSpec: status=${response.statusCode()}." }
           if (debugConsoleOutForTesting) {
             println("Error: ${response.statusCode()}")
           }

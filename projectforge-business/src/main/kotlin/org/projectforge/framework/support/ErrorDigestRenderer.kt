@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.support
 
+import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogLevel
 import java.time.Instant
 import java.time.ZoneId
@@ -46,6 +47,8 @@ class ErrorDigestRenderer(
         val occurrences: Int,
         val groups: Int,
         val dropped: Int,
+        /** Occurrences not listed: below their event's threshold or already reported. */
+        val suppressed: Int,
         val sections: List<SectionView>,
         val attachmentName: String?,
         val maxSamples: Int = ErrorGroup.MAX_SAMPLES,
@@ -72,6 +75,12 @@ class ErrorDigestRenderer(
         /** First line of the message, at most [MAX_MESSAGE_LENGTH] characters. */
         val message: String,
         val users: String?,
+        /** The code of the log event, if it identifies the problem (not for the generic events). */
+        val code: String?,
+        /** What it means, from the log event. */
+        val explanation: String?,
+        /** What to do, from the log event. */
+        val action: String?,
     )
 
     class SyncView(
@@ -86,8 +95,8 @@ class ErrorDigestRenderer(
     private val time = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
 
     fun subject(snapshot: ErrorDigestCollector.Snapshot, syncProblems: List<SyncProblemTracker.Problem>): String {
-        val external = snapshot.count(ErrorCategory.EXTERNAL_UNREACHABLE) + syncProblems.size
-        val errors = snapshot.occurrences - snapshot.count(ErrorCategory.EXTERNAL_UNREACHABLE)
+        val external = snapshot.count(LogCategory.EXTERNAL) + syncProblems.size
+        val errors = snapshot.occurrences - snapshot.count(LogCategory.EXTERNAL)
         return "Error digest ${domain ?: ""}: $errors errors, $external external failures".replace("  ", " ")
     }
 
@@ -99,16 +108,16 @@ class ErrorDigestRenderer(
         attachmentName: String?,
     ): DigestView {
         val sections = mutableListOf<SectionView>()
-        ErrorCategory.entries.forEach { category ->
+        LogCategory.entries.forEach { category ->
             val groups = snapshot.groups.filter { it.category == category }
             if (groups.isNotEmpty()) {
                 sections.add(SectionView(category.title, groups.sumOf { it.count }, groups = groups.map { groupView(it) }))
             }
-            if (category == ErrorCategory.EXTERNAL_UNREACHABLE && syncProblems.isNotEmpty()) {
+            if (category == LogCategory.EXTERNAL && syncProblems.isNotEmpty()) {
                 sections.add(SectionView(SYNC_TITLE, syncProblems.size, syncProblems = syncProblems.map { syncView(it) }))
             }
         }
-        val externalOccurrences = snapshot.count(ErrorCategory.EXTERNAL_UNREACHABLE)
+        val externalOccurrences = snapshot.count(LogCategory.EXTERNAL)
         return DigestView(
             domain = domain,
             period = "${dateTime.format(Instant.ofEpochMilli(fromMillis))} - ${dateTime.format(Instant.ofEpochMilli(toMillis))} (${zone.id})",
@@ -117,6 +126,7 @@ class ErrorDigestRenderer(
             occurrences = snapshot.occurrences,
             groups = snapshot.groups.size,
             dropped = snapshot.dropped,
+            suppressed = snapshot.suppressed,
             sections = sections,
             attachmentName = attachmentName,
         )
@@ -144,6 +154,7 @@ class ErrorDigestRenderer(
         appendLine("Period: ${view.period}")
         append("${view.occurrences} occurrences in ${view.groups} groups")
         if (view.dropped > 0) append(", ${view.dropped} further occurrences dropped (group limit reached)")
+        if (view.suppressed > 0) append(", ${view.suppressed} occurrences not listed (below threshold or already reported)")
         appendLine()
         view.sections.forEach { section ->
             appendLine()
@@ -162,6 +173,11 @@ class ErrorDigestRenderer(
             appendLine("=".repeat(100))
             appendLine("#${index + 1} [${group.category.title}] ${group.count}x ${group.exceptionClass ?: ""} at ${group.location}")
             appendLine(group.message ?: "")
+            if (group.groupByCode) {
+                appendLine("Code: ${group.event.code}")
+                group.event.explanation?.let { appendLine("Explanation: $it") }
+                group.event.action?.let { appendLine("Action: $it") }
+            }
             group.samples.forEach { sample ->
                 appendLine("-".repeat(100))
                 append(dateTime.format(Instant.ofEpochMilli(sample.timestampMillis))).append(" ").append(sample.level)
@@ -194,6 +210,10 @@ class ErrorDigestRenderer(
             location = group.location,
             message = (group.message ?: "").lineSequence().firstOrNull()?.take(MAX_MESSAGE_LENGTH) ?: "",
             users = group.users.takeIf { it.isNotEmpty() }?.joinToString(", "),
+            // The generic events would only repeat the section's title in every group.
+            code = group.event.code.takeIf { group.groupByCode },
+            explanation = group.event.explanation.takeIf { group.groupByCode },
+            action = group.event.action.takeIf { group.groupByCode },
         )
     }
 
@@ -214,6 +234,9 @@ class ErrorDigestRenderer(
         appendLine("${group.count.toString().padStart(5)}x  ${group.period}  ${group.level}  ${group.exceptionClass ?: "-"}  ${group.location}")
         appendLine("        ${group.message}")
         group.users?.let { appendLine("        users: $it") }
+        group.code?.let { appendLine("        code: $it") }
+        group.explanation?.let { appendLine("        explanation: $it") }
+        group.action?.let { appendLine("        action: $it") }
     }
 
     private fun StringBuilder.appendSyncProblem(problem: SyncView) {

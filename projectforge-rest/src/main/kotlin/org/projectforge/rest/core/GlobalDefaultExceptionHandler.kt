@@ -137,6 +137,7 @@ internal class GlobalDefaultExceptionHandler {
             ex,
             "${request.method} ${request.requestURI}",
             external = kind == SupportErrorFilter.Kind.EXTERNAL,
+            logEvent = GlobalExceptionRegistry.findExInfo(ex)?.logEvent,
         )
     }
 

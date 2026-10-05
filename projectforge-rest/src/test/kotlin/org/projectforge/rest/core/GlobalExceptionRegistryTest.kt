@@ -27,7 +27,10 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.common.logging.LogEventRegistry
+import org.projectforge.framework.support.BusinessLogEventCatalog
 import org.projectforge.framework.support.SupportErrorDigest
+import org.projectforge.rest.dvelop.DvelopLogEvents
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.io.IOException
@@ -54,6 +57,26 @@ class GlobalExceptionRegistryTest {
         Assertions.assertTrue(GlobalExceptionRegistry.sendMailToDevelopers(NullPointerException()))
         Assertions.assertFalse(GlobalExceptionRegistry.sendMailToDevelopers(IllegalStateException("Cannot start async")))
         Assertions.assertTrue(GlobalExceptionRegistry.sendMailToDevelopers(IllegalStateException("Unknown illegal state")))
+    }
+
+    @Test
+    fun `the log event of a known exception decides whether it is reported`() {
+        Assertions.assertFalse(GlobalExceptionRegistry.ExInfo().sendMailToDevelopers)
+        Assertions.assertTrue(GlobalExceptionRegistry.ExInfo(logEvent = DvelopLogEvents.CALL_FAILED).sendMailToDevelopers)
+        Assertions.assertFalse(GlobalExceptionRegistry.ExInfo(logEvent = RestLogEvents.NO_CREDENTIALS).sendMailToDevelopers)
+        Assertions.assertTrue(
+            GlobalExceptionRegistry.ExInfo(logEvent = RestLogEvents.NO_CREDENTIALS, sendMailToDevelopers = true).sendMailToDevelopers,
+            "An explicit value wins.",
+        )
+    }
+
+    @Test
+    fun `log event codes are unique over all modules`() {
+        Assertions.assertEquals(
+            emptyList<String>(),
+            LogEventRegistry.findProblems(*BusinessLogEventCatalog.HOLDERS, *RestLogEventCatalog.HOLDERS),
+        )
+        Assertions.assertTrue(RestLogEventCatalog.HOLDERS.all { LogEventRegistry.eventsOf(it).isNotEmpty() })
     }
 
     fun check(ex: Throwable, expectedMessage: String, status: HttpStatus = HttpStatus.BAD_REQUEST) {

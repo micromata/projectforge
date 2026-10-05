@@ -34,6 +34,12 @@
             <span class="muted small">dropped (group limit)</span>
           </td>
           <% } %>
+          <% if (digest.suppressed > 0) { %>
+          <td>
+            <span class="number"><%= digest.suppressed %></span>
+            <span class="muted small">not listed (below threshold or already reported)</span>
+          </td>
+          <% } %>
         </tr>
       </table>
       <% for (section in digest.sections) { %>
@@ -49,6 +55,9 @@
             <span class="muted small no-wrap">&nbsp;<%= pf.getString(g.period) %></span>
             <div><%= pf.getString(g.message) %></div>
             <% if (g.users != null) { %><div class="muted small">users: <%= pf.getString(g.users) %></div><% } %>
+            <% if (g.explanation != null) { %><div class="small"><%= pf.getString(g.explanation) %></div><% } %>
+            <% if (g.action != null) { %><div class="small"><b>Action:</b> <%= pf.getString(g.action) %></div><% } %>
+            <% if (g.code != null) { %><div class="muted small mono"><%= pf.getString(g.code) %></div><% } %>
           </td>
         </tr>
         <% } %>

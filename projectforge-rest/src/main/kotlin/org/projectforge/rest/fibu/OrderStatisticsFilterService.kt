@@ -70,7 +70,7 @@ class OrderStatisticsFilterService {
       (userPrefService.getEntry(AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<MagicFilter>)
         ?.let { return it }
     } catch (ex: Exception) {
-      log.error("Exception while getting the order statistics favorites: ${ex.message}. Starting with none.")
+      log.error { "Exception while getting the order statistics favorites: ${ex.message}. Starting with none." }
     }
     return Favorites<MagicFilter>().also { userPrefService.putEntry(AREA, Favorites.PREF_NAME_LIST, it, true) }
   }

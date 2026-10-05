@@ -43,6 +43,7 @@ class Kost2(
   var kostentraegerStatus: KostentraegerStatus? = null,
   var effectiveKostentraegerStatus: KostentraegerStatus? = null,
   var workFraction: BigDecimal? = null,
+  var sharedCost: Boolean? = null,
   var description: String? = null,
   var comment: String? = null,
   var formattedNumber: String? = null,

@@ -475,10 +475,12 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
      * update (also undelete). For time collision detection deleted time sheets are ignored.
      *
-     * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two involved tasks is marked
-     * as a shared cost element ([TaskDO.allowTimeOverlap], inherited from ancestor tasks) AND the two time sheets don't
-     * belong to the same project (booking overlapping time twice inside the same project is always a forbidden double
-     * booking). See [TimesheetOverlapUtils] for the purpose (cost sharing between projects/customers).
+     * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two time sheets is booked on
+     * a shared cost element AND the two time sheets don't belong to the same project (booking overlapping time twice inside the same project is always a forbidden double
+     * booking). A time sheet is booked on a shared cost element if its cost unit says so ([Kost2DO.sharedCost]); if the
+     * cost unit doesn't say anything (null) or there is none, its task decides ([TaskDO.allowTimeOverlap], inherited
+     * from ancestor tasks). A cost unit's explicit setting (true or false) takes precedence over the task's one. See
+     * [TimesheetOverlapUtils] for the purpose (cost sharing between projects/customers).
      *
      * @return true, if at least one overlapping time sheet is a forbidden collision.
      */
@@ -517,18 +519,20 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     /**
-     * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of the involved
-     * tasks is a shared cost element (inherited) and the two time sheets don't belong to the same project.
+     * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of them is booked
+     * on a shared cost element (see [isSharedCost]) and the two time sheets don't belong to the same project.
      */
     private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
-        return isOverlapAllowed(timesheet.taskId, { getProjektId(timesheet) }, other.taskId, { getProjektId(other) })
+        return isOverlapAllowed(
+            isSharedCost(timesheet.taskId, timesheet.kost2?.id), { getProjektId(timesheet) },
+            isSharedCost(other.taskId, other.kost2?.id), { getProjektId(other) },
+        )
     }
 
     private fun isOverlapAllowed(
-        taskId: Long?, projektId: () -> Long?, otherTaskId: Long?, otherProjektId: () -> Long?,
+        sharedCost: Boolean, projektId: () -> Long?, otherSharedCost: Boolean, otherProjektId: () -> Long?,
     ): Boolean {
-        val released = taskTree.isTimeOverlapAllowed(taskId) || taskTree.isTimeOverlapAllowed(otherTaskId)
-        if (!released) {
+        if (!sharedCost && !otherSharedCost) {
             return false
         }
         val id = projektId()
@@ -577,7 +581,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             active.forEach { other ->
                 // Strictly overlapping, as hasTimeOverlap (one ending when the other starts is no collision).
                 if (sheet.stop > other.start &&
-                    !isOverlapAllowed(sheet.taskId, { projektIdOf(sheet) }, other.taskId, { projektIdOf(other) })
+                    !isOverlapAllowed(
+                        isSharedCost(sheet.taskId, sheet.kost2Id), { projektIdOf(sheet) },
+                        isSharedCost(other.taskId, other.kost2Id), { projektIdOf(other) },
+                    )
                 ) {
                     result.add(sheet.id)
                     result.add(other.id)
@@ -589,6 +596,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     private class CollisionCandidate(val id: Long, val start: Long, val stop: Long, val taskId: Long?, val kost2Id: Long?)
+
+    /**
+     * @return true, if a time sheet of the given task and cost unit is booked on a shared cost element: the cost
+     * unit's own setting ([Kost2DO.sharedCost]) wins if set, otherwise the task's (inherited) one
+     * ([TaskDO.allowTimeOverlap]). The cost unit is taken from the cache, so its current setting counts.
+     */
+    private fun isSharedCost(taskId: Long?, kost2Id: Long?): Boolean {
+        return PfCaches.instance.getKost2(kost2Id)?.sharedCost ?: taskTree.isTimeOverlapAllowed(taskId)
+    }
 
     private fun projektIdOf(sheet: CollisionCandidate): Long? {
         return taskTree.getProjekt(sheet.taskId)?.id ?: PfCaches.instance.getKost2(sheet.kost2Id)?.projekt?.id

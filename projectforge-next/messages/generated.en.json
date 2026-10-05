@@ -1213,6 +1213,11 @@
       "id": "Cost 2 id",
       "kost2s": "cost 2 ids",
       "number": "Cost2 number",
+      "sharedCost": {
+        "_": "Shared costs",
+        "inherited": "As structure element",
+        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets within the same project remain unsupported."
+      },
       "title": {
         "add": "New cost 2",
         "edit": "Edit cost 2",
@@ -3196,7 +3201,7 @@
     "_": "Structure element",
     "allowTimeOverlap": {
       "_": "Shared cost element",
-      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported."
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
     "consumption": "Consumption",

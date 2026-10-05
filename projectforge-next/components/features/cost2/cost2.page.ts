@@ -2,6 +2,7 @@ import { KOST2_METADATA } from "@/lib/metadata/kost2.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { Cost2NumberField } from "./cost2-number-field";
 import { Cost2ProjectField } from "./cost2-project-field";
+import { Cost2SharedCostField } from "./cost2-shared-cost-field";
 import { cost2Schema, COST2_FIELDS, type Cost2Values } from "./cost2-schema";
 import { emptyCost2Values, toFormValues } from "./cost2-values";
 import { Cost2ListActions } from "./cost2-list-actions";
@@ -57,6 +58,7 @@ export const COST2_PAGE = definePage<
       size: 100,
     },
     { name: "workFraction", size: 110 },
+    { name: "sharedCost", size: 110, hiddenByDefault: true },
     // The project and its customer the cost unit belongs to; sorted by the entity's own paths.
     {
       id: "projekt.kunde.name",
@@ -106,6 +108,7 @@ export const COST2_PAGE = definePage<
           { custom: Cost2ProjectField, span: 3 },
           { custom: Cost2NumberField, span: 3 },
           { name: "workFraction" },
+          { custom: Cost2SharedCostField },
           // The one value a reader looks for first — whether the cost unit is still in use.
           { name: "kostentraegerStatus", emphasized: true },
           { name: "description", span: 3, rows: 4 },

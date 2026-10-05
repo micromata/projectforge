@@ -24,6 +24,7 @@
 package org.projectforge.business.jobs
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
@@ -59,11 +60,11 @@ class CronNightlyJob {
                 try {
                     stayLoggedInTokenDao.purgeExpired()
                 } catch (ex: Throwable) {
-                    log.error(ex) { "While purging expired stay-logged-in tokens: " + ex.message }
+                    log.error(JobLogEvents.NIGHTLY_TOKEN_PURGE_FAILED, ex) { "While purging expired stay-logged-in tokens: " + ex.message }
                 }
                 hibernateSearchReindexer.execute()
             } catch (ex: Throwable) {
-                log.error(ex) { "While executing hibernate search re-index job: " + ex.message }
+                log.error(JobLogEvents.NIGHTLY_REINDEX_FAILED, ex) { "While executing hibernate search re-index job: " + ex.message }
             } finally {
                 log.info { "Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}." }
             }
