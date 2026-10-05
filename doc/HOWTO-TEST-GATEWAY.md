@@ -33,6 +33,17 @@ projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
+With gateway push enabled, the main instance no longer allows data transfer areas with external access
+(download/upload): they are administered on the gateway, and the server refuses to turn external access on.
+The admin form shows a switch only for an area that already has it on, and only for switching it off. To allow
+external access on the main instance as well, set:
+
+```properties
+projectforge.datatransfer.externalAccess.localAllowed=true
+```
+
+(`false` forbids it on any instance, even without a gateway.)
+
 ### 3. Start
 
 **Terminal 1 – gateway:**

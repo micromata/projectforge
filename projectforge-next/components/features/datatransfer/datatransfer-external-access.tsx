@@ -19,8 +19,10 @@ import { useExternalSecrets } from "./use-external-secrets";
  * The external access of an area: the two switches, and — once either is on — the password and the link
  * external users open (see DataTransferExternalSecrets).
  *
- * In gateway mode the external access is administered on the other server, which the note above says,
- * as the legacy form did; the switches stay, as they did there too.
+ * Where external access isn't allowed here (gateway mode, `externalAccessAllowed`), it's administered on the
+ * other server, which the note says instead. A switch is then shown only if the stored area has it on
+ * (created before), and only for switching it off: once off, it can't be turned on again (the server refuses
+ * that too).
  */
 export function DataTransferExternalAccess({
   className,
@@ -38,6 +40,9 @@ export function DataTransferExternalAccess({
   );
   const enabled =
     values.externalDownloadEnabled || values.externalUploadEnabled;
+  const allowed = options?.externalAccessAllowed ?? true;
+  const showDownload = allowed || data?.externalDownloadEnabled === true;
+  const showUpload = allowed || data?.externalUploadEnabled === true;
   useExternalSecrets(
     form,
     enabled,
@@ -47,25 +52,33 @@ export function DataTransferExternalAccess({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {options?.gatewayPushEnabled && (
+      {options && !allowed && (
         <FormAlert tone="info">
           {t("plugins.datatransfer.gateway.externalAccess.edit", {
             arg0: options.gatewayHost,
           })}
         </FormAlert>
       )}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <CheckboxField
-          name="externalDownloadEnabled"
-          label={t("plugins.datatransfer.external.download.enabled._")}
-          hint={t("plugins.datatransfer.external.download.enabled.info")}
-        />
-        <CheckboxField
-          name="externalUploadEnabled"
-          label={t("plugins.datatransfer.external.upload.enabled._")}
-          hint={t("plugins.datatransfer.external.upload.enabled.info")}
-        />
-      </div>
+      {(showDownload || showUpload) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {showDownload && (
+            <CheckboxField
+              name="externalDownloadEnabled"
+              label={t("plugins.datatransfer.external.download.enabled._")}
+              hint={t("plugins.datatransfer.external.download.enabled.info")}
+              disabled={!allowed && !values.externalDownloadEnabled}
+            />
+          )}
+          {showUpload && (
+            <CheckboxField
+              name="externalUploadEnabled"
+              label={t("plugins.datatransfer.external.upload.enabled._")}
+              hint={t("plugins.datatransfer.external.upload.enabled.info")}
+              disabled={!allowed && !values.externalUploadEnabled}
+            />
+          )}
+        </div>
+      )}
       {enabled && (
         <DataTransferExternalSecrets
           token={values.externalAccessToken}
