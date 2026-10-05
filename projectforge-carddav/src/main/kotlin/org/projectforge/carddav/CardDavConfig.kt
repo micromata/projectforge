@@ -24,7 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.vcard.VCardVersion
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.rest.AddressPagesRest

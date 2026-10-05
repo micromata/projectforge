@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.event
 
 import jakarta.persistence.NoResultException
 import jakarta.persistence.NonUniqueResultException
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
@@ -264,31 +264,27 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             recurrenceData.until = getUntilDate(selectedEvent.startDate!!)
             event.setRecurrence(recurrenceData)
             insert(newEvent)
-            if (log.isDebugEnabled) {
-                log.debug(
-                    "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
+            if (log.isDebugEnabled()) {
+                log.debug { "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
                         recurrenceData.until
-                    )
-                )
-                log.debug("The new event is: $newEvent")
+                    ) }
+                log.debug { "The new event is: $newEvent" }
             }
             return
         } else if (mode == SeriesModificationMode.SINGLE) { // only current date
             // Add current date to the master date as exclusion date and save this event (without recurrence settings).
             event.addRecurrenceExDate(selectedEvent.startDate)
             if (newEvent.hasRecurrence()) {
-                log.warn("User tries to modify single event of a series, the given recurrence is ignored.")
+                log.warn { "User tries to modify single event of a series, the given recurrence is ignored." }
             }
             newEvent.setRecurrence(null as? RRule<ZonedDateTime>?) // User only wants to modify single event, ignore recurrence.
             insert(newEvent)
-            if (log.isDebugEnabled) {
-                log.debug(
-                    ("Recurrency ex date of master entry is now added: "
+            if (log.isDebugEnabled()) {
+                log.debug { ("Recurrency ex date of master entry is now added: "
                             + DateHelper.formatAsUTC(selectedEvent.startDate)
                             + ". The new string is: "
-                            + event.recurrenceExDate)
-                )
-                log.debug("The new event is: $newEvent")
+                            + event.recurrenceExDate) }
+                log.debug { "The new event is: $newEvent" }
             }
         }
     }
@@ -619,8 +615,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             queryFilter.add(le("startDate", endDate))
         }
         queryFilter.addOrder(desc("startDate"))
-        if (log.isDebugEnabled) {
-            log.debug(ToStringBuilder.reflectionToString(filter))
+        if (log.isDebugEnabled()) {
+            log.debug { ToStringBuilder.reflectionToString(filter) }
         }
         return queryFilter
     }
@@ -684,18 +680,16 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 }
             }
         }
-        if (log.isDebugEnabled) {
+        if (log.isDebugEnabled()) {
             for (ev in col) {
-                log.debug(
-                    ("startDate="
+                log.debug { ("startDate="
                             + DateHelper.formatIsoTimestamp(ev.startDate, timeZone)
                             + "; "
                             + DateHelper.formatAsUTC(ev.startDate)
                             + ", endDate="
                             + DateHelper.formatIsoTimestamp(ev.startDate, timeZone)
                             + "; "
-                            + DateHelper.formatAsUTC(ev.endDate))
-                )
+                            + DateHelper.formatAsUTC(ev.endDate)) }
             }
         }
         return col

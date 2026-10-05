@@ -23,7 +23,7 @@
 
 package org.projectforge.business.admin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.E2ETestAccountsService
@@ -157,7 +157,7 @@ class SetupService {
         sysopEMail: String?,
         feedbackEMail: String?,
     ): PFUserDO {
-        log.info("Starting setup: target=$target, adminUsername=$adminUsername")
+        log.info { "Starting setup: target=$target, adminUsername=$adminUsername" }
         val adminUser = PFUserDO().also { it.username = adminUsername }
 
         databaseService.insertGlobalAddressbook()
@@ -165,7 +165,7 @@ class SetupService {
         if (target == SetupTarget.EMPTY_DATABASE) {
             databaseService.initializeDefaultData(adminUser, timeZone)
         } else {
-            log.info("Inserting test data...")
+            log.info { "Inserting test data..." }
             persistenceService.runInNewTransaction { context ->
                 val script = applicationContext.getResource("classpath:data/pfTestdata.sql")
                     .getContentAsString(StandardCharsets.UTF_8)
@@ -206,7 +206,7 @@ class SetupService {
         // Skipped on start because the database was empty then.
         e2eTestAccountsService.syncAccounts()
 
-        log.info("Setup finished successfully.")
+        log.info { "Setup finished successfully." }
         return updatedAdmin
     }
 
@@ -217,7 +217,7 @@ class SetupService {
             config.stringValue = value
             configurationDao.update(config)
         } else {
-            log.warn("Configuration param $param not found — can be configured later in admin settings.")
+            log.warn { "Configuration param $param not found — can be configured later in admin settings." }
         }
     }
 }

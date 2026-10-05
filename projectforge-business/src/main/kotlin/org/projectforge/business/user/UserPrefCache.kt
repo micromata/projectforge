@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ShutdownService
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.entities.UserPrefDO

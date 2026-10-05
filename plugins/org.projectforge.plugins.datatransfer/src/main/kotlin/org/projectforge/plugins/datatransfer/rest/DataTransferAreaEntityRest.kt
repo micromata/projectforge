@@ -65,13 +65,13 @@ class DataTransferAreaEntityRest :
         "plugins.datatransfer.title"
     ) {
     /**
-     * The choices of the admin form and whether external access has to be administered on the gateway
-     * instead (see [getOptions]).
+     * The choices of the admin form and whether external access may be configured here or has to be
+     * administered on the gateway instead (see [getOptions]).
      */
     class Options(
         val expiryDays: List<UISelectValue<Int>>,
         val maxUploadSizes: List<UISelectValue<Int>>,
-        val gatewayPushEnabled: Boolean,
+        val externalAccessAllowed: Boolean,
         val gatewayHost: String,
     )
 
@@ -86,6 +86,13 @@ class DataTransferAreaEntityRest :
 
     @Value("\${projectforge.gateway.push.url:}")
     private var gatewayPushUrl: String = ""
+
+    /**
+     * Whether areas with external access may be configured on this instance. Unset: only without a gateway
+     * (see [externalAccessAllowed]).
+     */
+    @Value("\${projectforge.datatransfer.externalAccess.localAllowed:#{null}}")
+    private var externalAccessLocalAllowed: Boolean? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -129,7 +136,7 @@ class DataTransferAreaEntityRest :
             maxUploadSizes = DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES
                 .filter { 1024L * it <= globalMaxBytes }
                 .map { UISelectValue(it, FormatterUtils.formatBytes(1024L * it)) },
-            gatewayPushEnabled = gatewayPushEnabled,
+            externalAccessAllowed = externalAccessAllowed,
             gatewayHost = gatewayHost,
         )
     }
@@ -157,6 +164,7 @@ class DataTransferAreaEntityRest :
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
+        validateExternalAccessAllowed(validationErrors, dto)
         if (dto.externalAccessEnabled) {
             if (!NumberHelper.checkSecureRandomAlphanumeric(
                     dto.externalAccessToken,
@@ -225,6 +233,27 @@ class DataTransferAreaEntityRest :
             }
         }
     }
+
+    /**
+     * Where external access isn't allowed, it can't be switched on. An area that already has it (created
+     * before) may keep it or switch it off.
+     */
+    private fun validateExternalAccessAllowed(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
+        if (externalAccessAllowed || !dto.externalAccessEnabled) {
+            return
+        }
+        val stored = dto.id?.let { baseDao.find(it, checkAccess = false) }
+        val message = translateMsg("plugins.datatransfer.validation.error.externalAccessNotAllowed", gatewayHost)
+        if (dto.externalDownloadEnabled == true && stored?.externalDownloadEnabled != true) {
+            validationErrors.add(ValidationError(message, fieldId = "externalDownloadEnabled"))
+        }
+        if (dto.externalUploadEnabled == true && stored?.externalUploadEnabled != true) {
+            validationErrors.add(ValidationError(message, fieldId = "externalUploadEnabled"))
+        }
+    }
+
+    private val externalAccessAllowed: Boolean
+        get() = externalAccessLocalAllowed ?: !gatewayPushEnabled
 
     private val gatewayHost: String
         get() = gatewayPushUrl.ifBlank { "Gateway" }

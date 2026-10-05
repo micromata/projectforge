@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.my2fa
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.StringHelper

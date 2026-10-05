@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.poll
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
@@ -60,12 +60,12 @@ class PollMailService {
                 mail.from = from
                 to.forEach { mail.addTo(it) }
                 sendMail.send(mail, attachments = mailAttachments)
-                log.info("Mail with subject $subject sent to $to")
+                log.info { "Mail with subject $subject sent to $to" }
             } else {
-                log.error("There are missing parameters for sending mail: from: $from, to: $to, subject: $subject, content: $content")
+                log.error { "There are missing parameters for sending mail: from: $from, to: $to, subject: $subject, content: $content" }
             }
         } catch (e: Exception) {
-            log.error(e.message, e)
+            log.error(e) { e.message }
         }
     }
 

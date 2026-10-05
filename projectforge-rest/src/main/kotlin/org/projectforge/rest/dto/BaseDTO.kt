@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -155,7 +155,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                     try {
                         srcField = BeanHelper.getDeclaredField(srcClazz, destField.name)
                     } catch (ex: Exception) {
-                        log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring...")
+                        log.debug { "srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring..." }
                     }
                     try {
                         if (srcField != null) {
@@ -203,7 +203,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                             srcField.isAccessible = true
                                             value = (srcField.get(src) == true)
                                         } else {
-                                            log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                            log.error { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                         }
                                         if (value != null) {
                                             destField.isAccessible = true
@@ -217,22 +217,19 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                             destField.isAccessible = true
                                             destField.set(dest, value == true)
                                         } else {
-                                            log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                            log.error { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                         }
                                     } else {
-                                        log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                        log.debug { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                     }
                                 }
                             }
                         } else {
                             // srcField not found. Can't copy.
-                            log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'.")
+                            log.debug { "srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'." }
                         }
                     } catch (ex: Exception) {
-                        log.error(
-                            "Error while copying field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}",
-                            ex
-                        )
+                        log.error(ex) { "Error while copying field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}" }
                     }
                 }
             }

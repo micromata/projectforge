@@ -25,56 +25,49 @@ package org.projectforge.rest.fibu
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.AuftragFakturiertFilterStatus
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 
 /**
  * The forecast of the order book (charts and Excel) selects its orders as the list does, except for the
- * period of performance (replaced by the start date) and, in the charts, the state criteria. What the
- * charts tab reports as not applied, and when the forecast counts as the one of the whole order book,
- * follows from that.
+ * period of performance (replaced by the start date); the charts of the statistics page take their own
+ * filter of business units, customers and projects. When the forecast counts as the one of the whole
+ * order book follows from that.
  */
 class OrderFilterTest {
 
     /**
-     * The charts tab lists which of the list's criteria it did not apply, so a total that disagrees with
-     * the list is explained rather than silent: only the period of performance and the state criteria.
+     * The statistics page filters by business units, customers and projects only: whatever else a client
+     * sends, or the order book's filter holds when the page takes it over, is dropped, the favorite's
+     * reference is kept, and the source is left untouched.
      */
     @Test
-    fun `the forecast filter usage names only the replaced and left out criteria`() {
-        val magicFilter = MagicFilter()
+    fun `the statistics filter keeps business units, customers and projects only`() {
+        val magicFilter = MagicFilter(name = "Mine", id = 3L)
+        magicFilter.searchString = "ACME"
         magicFilter.entries.add(entry(MagicFilter.PAGINATION_PAGE_SIZE).also { it.value.value = "50" })
         magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
-        magicFilter.entries.add(entry("positionsStatus", values = arrayOf("BEAUFTRAGT")))
-        magicFilter.entries.add(entry("positionsPaymentType", values = arrayOf("FESTPREISPAKET", "TIME_AND_MATERIALS")))
-        magicFilter.entries.add(entry("projectManager").also { it.value.id = 42L })
-        magicFilter.entries.add(entry("kunde.name").also { it.value.value = "ACME" })
-        magicFilter.entries.add(
-            entry(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01", toValue = "2026-12-31")
+        magicFilter.entries.add(entry(BusinessUnitChecklistFilter.FIELD, values = arrayOf("BU1")))
+        magicFilter.entries.add(entry(CustomerChecklistFilter.FIELD, values = arrayOf("4711")))
+        magicFilter.entries.add(entry(ProjectChecklistFilter.FIELD, values = arrayOf("42")))
+        magicFilter.entries.add(entry(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01"))
+        // Without a value an entry is no criterion.
+        magicFilter.entries.add(entry(ProjectChecklistFilter.FIELD))
+
+        val filter = OrderStatisticsFilterService.statisticsFilter(magicFilter)
+        assertEquals(
+            listOf(BusinessUnitChecklistFilter.FIELD, CustomerChecklistFilter.FIELD, ProjectChecklistFilter.FIELD),
+            filter.entries.map { it.field },
         )
-
-        val usage = OrderEntityRest.forecastFilterUsage(magicFilter)
-        assertEquals(listOf("status"), usage.ignored)
-        assertEquals(listOf(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER), usage.replaced)
-    }
-
-    /**
-     * The order's current state would shrink the invoiced and earlier years of the charts to the projects
-     * whose orders are still in that state, so the charts leave it out; the original filter is the list's.
-     */
-    @Test
-    fun `the forecast chart filter leaves the state criteria out`() {
-        val magicFilter = MagicFilter()
-        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
-        magicFilter.entries.add(entry("fakturiert", values = arrayOf(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT.name)))
-        magicFilter.entries.add(entry("kunde.name").also { it.value.value = "ACME" })
-
-        val chartFilter = OrderEntityRest.forecastChartFilter(magicFilter)
-        assertEquals(listOf("kunde.name"), chartFilter.entries.map { it.field })
-        assertEquals(listOf("status", "fakturiert", "kunde.name"), magicFilter.entries.map { it.field })
+        assertEquals(listOf("42"), filter.entries.last().value.values?.toList())
+        assertNull(filter.searchString)
+        assertEquals("Mine", filter.name)
+        assertEquals(3L, filter.id)
+        assertEquals(7, magicFilter.entries.size) // The source is left untouched.
+        assertTrue(OrderStatisticsFilterService.statisticsFilter(null).entries.isEmpty())
     }
 
     /**

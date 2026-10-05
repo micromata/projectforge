@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.common.DateFormatType
@@ -69,7 +69,7 @@ object BirthdaysProvider {
         date = getDate(from, end, Month.MARCH, 1)
       }
       if (date == null) {
-        log.info("Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.month} not found between $from and $end")
+        log.info { "Date ${birthdayAddress.getDayOfMonth()} / ${birthdayAddress.month} not found between $from and $end" }
         continue
       } else {
         if (dataProtection == false) {
@@ -115,7 +115,7 @@ object BirthdaysProvider {
       }
       day = day.plusDays(1)
       if (++paranoiaCounter > 1000) {
-        log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate.")
+        log.error { "Paranoia counter exceeded! Dear developer, please have a look at the implementation of getUtilDate." }
         break
       }
     } while (!day.isAfter(end))

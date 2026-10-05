@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.configuration.ConfigurationService
@@ -153,10 +153,8 @@ class GroovyEngine @JvmOverloads constructor(
     val res = configurationService.getResourceContentAsString(file)
     val template = res[0] as? String
     if (template == null) {
-      log.error(
-        "Template with filename '" + file
-            + "' not found (neither in resource path nor in ProjectForge's application dir."
-      )
+      log.error { "Template with filename '" + file +
+            "' not found (neither in resource path nor in ProjectForge's application dir." }
       return ""
     }
     return executeTemplate(template)
@@ -262,7 +260,7 @@ class GroovyEngine @JvmOverloads constructor(
   }
 
   fun log(message: String?) {
-    log.info(message)
+    log.info { message }
   }
 
   /**

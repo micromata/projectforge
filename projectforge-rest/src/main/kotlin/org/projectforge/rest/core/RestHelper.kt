@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.rest.converter.DateTimeFormat
@@ -56,7 +56,7 @@ object RestHelper {
         return try {
             request?.getParameter(parameter)?.toLong()
         } catch (ex: DateTimeParseException) {
-            log.error("Error while parsing long value '${request?.getParameter(parameter)}': ${ex.message}.")
+            log.error { "Error while parsing long value '${request?.getParameter(parameter)}': ${ex.message}." }
             null
         }
     }
@@ -65,7 +65,7 @@ object RestHelper {
         return try {
             request?.getParameter(parameter)?.toInt()
         } catch (ex: DateTimeParseException) {
-            log.error("Error while parsing int value '${request?.getParameter(parameter)}': ${ex.message}.")
+            log.error { "Error while parsing int value '${request?.getParameter(parameter)}': ${ex.message}." }
             null
         }
     }

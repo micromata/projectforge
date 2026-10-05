@@ -24,7 +24,7 @@
 
 package org.projectforge.framework.renderer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service

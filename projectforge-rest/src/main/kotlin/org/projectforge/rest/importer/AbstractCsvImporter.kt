@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.CSVParser
 import org.projectforge.framework.utils.ValueParser
@@ -96,14 +96,14 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         try {
             parse(ByteArrayInputStream(bytes).reader(charset = detectedCharset), importStorage)
         } catch (e: Exception) {
-            log.warn("Failed to parse with detected charset ${detectedCharset.name()}, trying fallback charset", e)
+            log.warn(e) { "Failed to parse with detected charset ${detectedCharset.name()}, trying fallback charset" }
             // Try with alternative charset if the first attempt fails
             val fallbackCharset = if (detectedCharset == StandardCharsets.UTF_8) {
                 StandardCharsets.ISO_8859_1
             } else {
                 StandardCharsets.UTF_8
             }
-            log.info("Retrying CSV parse with fallback charset: ${fallbackCharset.name()}")
+            log.info { "Retrying CSV parse with fallback charset: ${fallbackCharset.name()}" }
             parse(ByteArrayInputStream(bytes).reader(charset = fallbackCharset), importStorage)
         }
     }
@@ -337,9 +337,9 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
             }
         } catch (ex: Exception) {
             if (logErrorOnPropertyParsing) {
-                log.error("Can't parse property: '${fieldSettings.property}': ${ex.message}")
+                log.error { "Can't parse property: '${fieldSettings.property}': ${ex.message}" }
             } else {
-                log.debug("Can't parse property: '${fieldSettings.property}': ${ex.message}")
+                log.debug { "Can't parse property: '${fieldSettings.property}': ${ex.message}" }
             }
         }
     }
@@ -392,34 +392,34 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         // 1. Check for BOM (Byte Order Mark)
         val detectedByBOM = detectCharsetByBOM(bytes)
         if (detectedByBOM != null) {
-            log.debug("Charset detected by BOM: ${detectedByBOM.name()}")
+            log.debug { "Charset detected by BOM: ${detectedByBOM.name()}" }
             return detectedByBOM
         }
 
         // 2. Check for UTF-16 (null bytes)
         val utf16Detection = detectUTF16(bytes)
         if (utf16Detection != null) {
-            log.debug("Charset detected as UTF-16")
+            log.debug { "Charset detected as UTF-16" }
             return utf16Detection
         }
 
         // 3. Try to validate as UTF-8
         val isValidUTF8 = isValidUTF8(bytes)
         if (isValidUTF8) {
-            log.debug("Charset detected as UTF-8 (valid UTF-8 sequences)")
+            log.debug { "Charset detected as UTF-8 (valid UTF-8 sequences)" }
             return StandardCharsets.UTF_8
         }
 
         // 4. Check for typical German characters in ISO-8859-1 range
         val hasISO88591GermanChars = hasGermanCharsInISO88591Range(bytes)
         if (hasISO88591GermanChars) {
-            log.debug("Charset detected as ISO-8859-1 (German characters in ISO range)")
+            log.debug { "Charset detected as ISO-8859-1 (German characters in ISO range)" }
             return StandardCharsets.ISO_8859_1
         }
 
         // 5. Fallback to default or UTF-8
         val fallback = defaultCharset ?: StandardCharsets.UTF_8
-        log.debug("Charset detection fallback: ${fallback.name()}")
+        log.debug { "Charset detection fallback: ${fallback.name()}" }
         return fallback
     }
 
@@ -526,7 +526,7 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         }
 
         if (trimmedHeader != finalHeader) {
-            log.debug("Header normalization: '$trimmedHeader' -> '$finalHeader'")
+            log.debug { "Header normalization: '$trimmedHeader' -> '$finalHeader'" }
         }
         return finalHeader
     }
@@ -552,7 +552,7 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         for (attempt in recoveryAttempts) {
             val recovered = attempt()
             if (recovered != null && !containsEncodingProblems(recovered) && recovered != text) {
-                log.debug("Successfully recovered header encoding: '$text' -> '$recovered'")
+                log.debug { "Successfully recovered header encoding: '$text' -> '$recovered'" }
                 return recovered
             }
         }
@@ -624,7 +624,7 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
                 text
             }
         } catch (e: Exception) {
-            log.debug("Failed to fix mojibake for: $text", e)
+            log.debug(e) { "Failed to fix mojibake for: $text" }
             text // Return original if fixing fails
         }
     }

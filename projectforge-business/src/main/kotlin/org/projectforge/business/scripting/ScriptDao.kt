@@ -24,7 +24,7 @@
 package org.projectforge.business.scripting
 
 import de.micromata.merlin.utils.ReplaceUtils.encodeFilename
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
@@ -58,13 +58,10 @@ open class ScriptDao : AbstractScriptDao() {
             ConfigXml.ensureDir(backupDir)
             val file = File(backupDir, filename)
             try {
-                log.info("Writing backup of script to: " + file.absolutePath)
+                log.info { "Writing backup of script to: " + file.absolutePath }
                 file.writeText(dbObj.scriptAsString ?: "")
             } catch (ex: IOException) {
-                log.error(
-                    "Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message,
-                    ex
-                )
+                log.error(ex) { "Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message }
             }
         }
     }

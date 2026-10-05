@@ -26,7 +26,7 @@ package org.projectforge.rest.sipgate
 import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.ProjectForgeGroup
@@ -166,7 +166,7 @@ class SipgateClient {
 
   private fun logRequest(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofRequestProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Request: \n")
         // append clientRequest method and url
         clientRequest
@@ -185,7 +185,7 @@ class SipgateClient {
 
   private fun logResponse(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofResponseProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Response: \n")
         // append clientRequest method and url
         log.debug { sb.toString() }

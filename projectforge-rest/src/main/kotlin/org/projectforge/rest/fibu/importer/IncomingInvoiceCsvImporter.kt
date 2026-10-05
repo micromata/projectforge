@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.utils.NumberHelper
@@ -68,7 +68,7 @@ class IncomingInvoiceCsvImporter(
 
         storage.isPositionBasedImport = hasPeriodenColumn
 
-        log.info("Import mode detected: ${if (hasPeriodenColumn) "Position-based" else "Header-only"} (Periode column ${if (hasPeriodenColumn) "found" else "not found"})")
+        log.info { "Import mode detected: ${if (hasPeriodenColumn) "Position-based" else "Header-only"} (Periode column ${if (hasPeriodenColumn) "found" else "not found"})" }
 
         return normalizedHeaders
     }
@@ -172,26 +172,26 @@ class IncomingInvoiceCsvImporter(
         importStorage: ImportStorage<EingangsrechnungPosImportDTO>
     ) {
         // Debug logging for import storage type
-        log.info("FINALIZE DEBUG: importStorage type is ${importStorage::class.simpleName}, isPositionBasedImport=${(importStorage as? EingangsrechnungImportStorage)?.isPositionBasedImport}")
+        log.info { "FINALIZE DEBUG: importStorage type is ${importStorage::class.simpleName}, isPositionBasedImport=${(importStorage as? EingangsrechnungImportStorage)?.isPositionBasedImport}" }
 
         // Consolidate and validate after all rows are processed
         if (importStorage is EingangsrechnungImportStorage) {
             if (storage.isPositionBasedImport) {
-                log.info("Position-based import: consolidating ${records.size} positions")
+                log.info { "Position-based import: consolidating ${records.size} positions" }
                 consolidateInvoicesByRenr(records, importStorage)
             } else {
-                log.info("Header-only import: processing ${records.size} invoice headers")
+                log.info { "Header-only import: processing ${records.size} invoice headers" }
                 consolidateHeaderOnlyInvoices(records, importStorage)
             }
 
-            log.info("Import finalized: ${records.size} records processed")
-            log.info("Found ${importStorage.consolidatedInvoices.size} consolidated invoices")
+            log.info { "Import finalized: ${records.size} records processed" }
+            log.info { "Found ${importStorage.consolidatedInvoices.size} consolidated invoices" }
 
             if (importStorage.errorList.isNotEmpty()) {
-                log.warn("Import has ${importStorage.errorList.size} errors: ${importStorage.errorList}")
+                log.warn { "Import has ${importStorage.errorList.size} errors: ${importStorage.errorList}" }
             }
         } else {
-            log.warn("FINALIZE DEBUG: importStorage is NOT EingangsrechnungImportStorage - no consolidation will occur!")
+            log.warn { "FINALIZE DEBUG: importStorage is NOT EingangsrechnungImportStorage - no consolidation will occur!" }
         }
     }
 
@@ -273,13 +273,13 @@ class IncomingInvoiceCsvImporter(
                 if (datevAccountNumberStr.isNotBlank()) {
                     val errorMsg = "Konto '$datevAccountNumberStr' not found."
                     addError(invoicePos, errorMsg, importStorage)
-                    log.warn(errorMsg)
+                    log.warn { errorMsg }
                 }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse DATEV account '$datevAccountNumberStr'"
             addError(invoicePos, errorMsg, importStorage)
-            log.warn(errorMsg, e)
+            log.warn(e) { errorMsg }
         }
     }
 
@@ -305,12 +305,12 @@ class IncomingInvoiceCsvImporter(
             } else {
                 val errorMsg = "KOST1 '$kost1String' not found."
                 addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg)
+                log.warn { errorMsg }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse KOST1 '$kost1String'"
             addError(invoicePos, errorMsg, importStorage)
-            log.warn(errorMsg, e)
+            log.warn(e) { errorMsg }
         }
     }
 
@@ -331,12 +331,12 @@ class IncomingInvoiceCsvImporter(
             } else {
                 val errorMsg = "KOST2 '$kost2String' not found."
                 addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg)
+                log.warn { errorMsg }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse KOST2 '$kost2String'"
             addError(invoicePos, errorMsg, importStorage)
-            log.warn(errorMsg, e)
+            log.warn(e) { errorMsg }
         }
     }
 
@@ -355,12 +355,12 @@ class IncomingInvoiceCsvImporter(
             } else {
                 val errorMsg = "Payment type '$paymentTypeString' could not be mapped to a known type."
                 addError(invoicePos, errorMsg, importStorage)
-                log.warn(errorMsg)
+                log.warn { errorMsg }
             }
         } catch (e: Exception) {
             val errorMsg = "Could not parse payment type '$paymentTypeString'"
             addError(invoicePos, errorMsg, importStorage)
-            log.warn(errorMsg, e)
+            log.warn(e) { errorMsg }
         }
     }
 
@@ -384,7 +384,7 @@ class IncomingInvoiceCsvImporter(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: EingangsrechnungImportStorage
     ) {
-        log.info("Starting consolidation of invoices by RENR, Kreditor, and Datum...")
+        log.info { "Starting consolidation of invoices by RENR, Kreditor, and Datum..." }
 
         // Group by combination of RENR, Kreditor, and Datum to identify unique invoices
         val groupedByInvoiceKey = records.groupBy {
@@ -394,7 +394,7 @@ class IncomingInvoiceCsvImporter(
             "$renr|$kreditor|$datum"
         }
 
-        log.info("Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) with ${records.size} total positions")
+        log.info { "Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) with ${records.size} total positions" }
 
         var consolidatedInvoices = mutableMapOf<String, List<EingangsrechnungPosImportDTO>>()
 
@@ -419,7 +419,7 @@ class IncomingInvoiceCsvImporter(
         }
 
         importStorage.consolidatedInvoices = consolidatedInvoices
-        log.info("Consolidation completed. ${importStorage.consolidatedInvoices.size} different RENRs with ${groupedByInvoiceKey.size} unique invoices.")
+        log.info { "Consolidation completed. ${importStorage.consolidatedInvoices.size} different RENRs with ${groupedByInvoiceKey.size} unique invoices." }
 
         // Check for duplicate invoices (same RENR+datum, different kreditor)
         checkForDuplicateInvoices(records, importStorage)
@@ -429,7 +429,7 @@ class IncomingInvoiceCsvImporter(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: EingangsrechnungImportStorage
     ) {
-        log.info("Starting consolidation of header-only invoices...")
+        log.info { "Starting consolidation of header-only invoices..." }
 
         // For header-only imports, each record represents a complete invoice
         // Group by RENR+Kreditor+Datum to handle duplicates but don't create multiple positions
@@ -440,7 +440,7 @@ class IncomingInvoiceCsvImporter(
             "$renr|$kreditor|$datum"
         }
 
-        log.info("Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) from ${records.size} header records")
+        log.info { "Found ${groupedByInvoiceKey.size} unique invoices (by RENR+Kreditor+Datum) from ${records.size} header records" }
 
         var consolidatedInvoices = mutableMapOf<String, List<EingangsrechnungPosImportDTO>>()
 
@@ -456,7 +456,7 @@ class IncomingInvoiceCsvImporter(
                 val warningMsg =
                     "Multiple header records found for same invoice: RENR '$renr', Kreditor '$kreditor', Datum '$datum' (${headerRecords.size} records). Using first record."
                 importStorage.addWarning(warningMsg)
-                log.warn(warningMsg)
+                log.warn { warningMsg }
             }
 
             // For header-only import, use only the first record as single position
@@ -475,7 +475,7 @@ class IncomingInvoiceCsvImporter(
         }
 
         importStorage.consolidatedInvoices = consolidatedInvoices
-        log.info("Header-only consolidation completed. ${importStorage.consolidatedInvoices.size} invoices consolidated.")
+        log.info { "Header-only consolidation completed. ${importStorage.consolidatedInvoices.size} invoices consolidated." }
 
         // Check for duplicate invoices (same RENR+datum, different kreditor)
         checkForDuplicateInvoices(records, importStorage)
@@ -485,7 +485,7 @@ class IncomingInvoiceCsvImporter(
         records: List<EingangsrechnungPosImportDTO>,
         importStorage: EingangsrechnungImportStorage
     ) {
-        log.info("Checking for duplicate invoices (same RENR+datum, different kreditor)...")
+        log.info { "Checking for duplicate invoices (same RENR+datum, different kreditor)..." }
 
         // Group by RENR+datum combination
         val groupedByRenrAndDatum = records.groupBy {
@@ -510,7 +510,7 @@ class IncomingInvoiceCsvImporter(
                         kreditors.joinToString(", ")
                     }"
                 importStorage.addWarning(warningMsg)
-                log.warn(warningMsg)
+                log.warn { warningMsg }
                 duplicatesFound++
 
                 // Log details for each creditor
@@ -522,9 +522,9 @@ class IncomingInvoiceCsvImporter(
         }
 
         if (duplicatesFound > 0) {
-            log.info("Found $duplicatesFound duplicate invoice(s) with same RENR+datum but different kreditors")
+            log.info { "Found $duplicatesFound duplicate invoice(s) with same RENR+datum but different kreditors" }
         } else {
-            log.info("No duplicate invoices found")
+            log.info { "No duplicate invoices found" }
         }
     }
 
@@ -576,7 +576,7 @@ class IncomingInvoiceCsvImporter(
         if (distinctValues.size > 1) {
             val errorMessage =
                 "RENR '$renr': Inkonsistente Werte für '$fieldName': ${distinctValues.joinToString(", ")}"
-            log.error(errorMessage)
+            log.error { errorMessage }
             importStorage.addError(errorMessage)
 
             positions.forEach { position ->
@@ -664,8 +664,8 @@ class IncomingInvoiceCsvImporter(
         ): String {
             val sessionAttributeName =
                 AbstractImportPageRest.getSessionAttributeName(IncomingInvoicePosImportPageRest::class.java)
-            log.info("Storing import storage in session with key: $sessionAttributeName")
-            log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries")
+            log.info { "Storing import storage in session with key: $sessionAttributeName" }
+            log.info { "Storage contains ${storage.readInvoices.size} invoices, ${storage.pairEntries.size} pair entries" }
 
             ExpiringSessionAttributes.setAttribute(
                 request,
@@ -676,7 +676,7 @@ class IncomingInvoiceCsvImporter(
 
             val navigationUrl =
                 PagesResolver.getDynamicPageUrl(IncomingInvoicePosImportPageRest::class.java, absolute = true)
-            log.info("Generated navigation URL: $navigationUrl")
+            log.info { "Generated navigation URL: $navigationUrl" }
             return navigationUrl
         }
     }

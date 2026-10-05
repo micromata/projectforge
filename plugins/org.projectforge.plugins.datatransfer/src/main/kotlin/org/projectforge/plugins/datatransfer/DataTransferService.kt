@@ -24,7 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.extensions.formatBytes
 import org.projectforge.datatransfer.DataTransferBridge
@@ -97,13 +97,10 @@ class DataTransferService : DataTransferInterface {
                 obj = personalBox,
                 accessChecker = dataTransferAreaEntityRest.attachmentsAccessChecker,
             )
-            log.info("Document '$filename' of size ${content.size.formatBytes()} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '$description'.")
+            log.info { "Document '$filename' of size ${content.size.formatBytes()} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '$description'." }
             return true
         } catch (ex: Exception) {
-            log.error(
-                "Can't put document '${filename}' of size ${content.size.formatBytes()} into user '${receiver.userDisplayName}' personal box: ${ex.message}",
-                ex
-            )
+            log.error(ex) { "Can't put document '${filename}' of size ${content.size.formatBytes()} into user '${receiver.userDisplayName}' personal box: ${ex.message}" }
         }
         return false
     }

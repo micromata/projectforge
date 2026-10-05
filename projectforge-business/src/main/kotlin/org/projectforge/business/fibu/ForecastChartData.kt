@@ -64,15 +64,6 @@ class ForecastChartData(
         val forecast = forecastByStatus.values.fold(BigDecimal.ZERO) { acc, values -> acc + values[i] }
         ist[i].max(forecast)
     }
-
-    /**
-     * The fields of the list filter the charts were asked for but did not apply, set by the REST layer
-     * (`OrderEntityRest.forecastFilterUsage`), so the charts tab can show which of the list's criteria hold.
-     */
-    var ignoredFilterFields: List<String> = emptyList()
-
-    /** The fields of the list filter replaced by a parameter of the charts (the period of performance). */
-    var replacedFilterFields: List<String> = emptyList()
 }
 
 /**
@@ -104,6 +95,21 @@ internal class ForecastChartTotals {
     }
 
     /**
+     * The plan per project as the sheet Projektübersicht sums it up: the planning forecast plus the invoices before
+     * the planning date, over all 12 months.
+     */
+    fun planByProject(): Map<Long, BigDecimal> {
+        val result = mutableMapOf<Long, BigDecimal>()
+        listOf(planningForecastByProject, invoicesByProject[InvoiceKind.PLANNING]!!).forEach { map ->
+            map.forEach { (projectId, values) ->
+                projectId ?: return@forEach
+                result[projectId] = values.fold(result[projectId] ?: BigDecimal.ZERO) { acc, value -> acc + value }
+            }
+        }
+        return result
+    }
+
+    /**
      * @param startDate The first month of the forecast.
      * @param visibleProjectIds The project ids of the forecast sheet rows (the visibleID column).
      * @param planningDate The planning date used, or null if no plan was calculated.
@@ -122,10 +128,7 @@ internal class ForecastChartTotals {
             List(MONTHS) { i -> planningForecast[i].max(planningIst[i]) }
         }
         return ForecastChartData(
-            months = List(MONTHS) { i ->
-                val month = startDate.plusMonths(i.toLong())
-                "${month.year}-${month.monthValue.toString().padStart(2, '0')}"
-            },
+            months = months(startDate),
             forecastByStatus = forecastByStatus.mapValues { it.value.toList() },
             ist = sumVisible(invoicesByProject[InvoiceKind.IST]!!).toList(),
             prevYear = sumVisible(invoicesByProject[InvoiceKind.PREV_YEAR]!!).toList(),
@@ -144,5 +147,11 @@ internal class ForecastChartTotals {
     companion object {
         private const val MONTHS = 12
         private fun newMonths() = Array(MONTHS) { BigDecimal.ZERO }
+
+        /** The 12 months from [startDate] on as `yyyy-MM`. */
+        fun months(startDate: PFDay): List<String> = List(MONTHS) { i ->
+            val month = startDate.plusMonths(i.toLong())
+            "${month.year}-${month.monthValue.toString().padStart(2, '0')}"
+        }
     }
 }

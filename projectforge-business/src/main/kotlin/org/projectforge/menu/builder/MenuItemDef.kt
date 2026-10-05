@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.i18n.translate

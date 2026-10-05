@@ -26,7 +26,7 @@ package org.projectforge.framework.jobs
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.MDCContext
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.ShutdownListener
 import org.projectforge.ShutdownService

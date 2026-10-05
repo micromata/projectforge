@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.bridge.ValueBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext
 import org.projectforge.business.user.UserLocale
@@ -47,8 +47,8 @@ class HibernateSearchPaymentTypeBridge : ValueBridge<PaymentType, String> {
             val localized: String = I18nHelper.getLocalizedMessage(locale, paymentType.i18nKey)
             sb.append("$localized ")
         }
-        if (log.isDebugEnabled) {
-            log.debug(sb.toString())
+        if (log.isDebugEnabled()) {
+            log.debug { sb.toString() }
         }
         return sb.toString()
     }

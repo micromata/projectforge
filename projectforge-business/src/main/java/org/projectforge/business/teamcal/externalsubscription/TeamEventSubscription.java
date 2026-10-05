@@ -276,10 +276,16 @@ public class TeamEventSubscription implements Serializable {
     }
     sb.append(".)");
     this.lastErrorMessage = sb.toString();
-    if (ex != null) {
-      log.error(this.lastErrorMessage, ex);
+    // Mostly a problem of the external source (deleted or private calendar). Failing subscriptions are retried with
+    // back-off and deactivated by TeamEventExternalSubscriptionCache, so only the first failure is a warning.
+    if (this.numberOfFailedUpdates <= 1) {
+      if (ex != null) {
+        log.warn(this.lastErrorMessage, ex);
+      } else {
+        log.warn(this.lastErrorMessage);
+      }
     } else {
-      log.error(this.lastErrorMessage);
+      log.info(this.lastErrorMessage);
     }
     this.lastFailedUpdate = System.currentTimeMillis();
   }

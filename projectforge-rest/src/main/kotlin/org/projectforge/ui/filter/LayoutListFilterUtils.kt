@@ -23,7 +23,7 @@
 
 package org.projectforge.ui.filter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -89,7 +89,7 @@ object LayoutListFilterUtils {
             }
             val elInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elInfo == null) {
-                log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
+                log.warn { "Search field '${baseDao.doClass}.$it' not found. Ignoring it." }
             } else {
                 val element: UIElement
                 if (elInfo.propertyClass.isEnum) {
@@ -204,7 +204,7 @@ object LayoutListFilterUtils {
     private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
         if (elInfo == null) return
         if (sb.length > 1000) { // Paranoia test for endless loops
-            log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
+            log.error { "Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!" }
             return
         }
         addLabel(sb, elInfo.parent)

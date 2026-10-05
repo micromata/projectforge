@@ -24,7 +24,7 @@
 package org.projectforge.business.test
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -158,7 +158,7 @@ abstract class AbstractTestBase protected constructor() {
                 if (webRegistryClazz == null) {
                     // Wicket not present in current plugin to test (OK)
                 } else {
-                    baseLog.error(ex.message, ex)
+                    baseLog.error(ex) { ex.message }
                 }
             }
             pluginAdminService.initializeAllPluginsForUnitTest()
@@ -228,7 +228,7 @@ abstract class AbstractTestBase protected constructor() {
         System.setProperty("user.timezone", "UTC")
         TimeZone.setDefault(DateHelper.UTC)
         Locale.setDefault(Locale.ENGLISH)
-        baseLog.info("user.timezone is: " + System.getProperty("user.timezone"))
+        baseLog.info { "user.timezone is: " + System.getProperty("user.timezone") }
         val jdbc = JdbcTemplate(dataSource)
         try {
             jdbc.execute("CHECKPOINT DEFRAG")
@@ -246,7 +246,7 @@ abstract class AbstractTestBase protected constructor() {
         try {
             initDb()
         } catch (e: BeansException) {
-            baseLog.error("Something in setUp go wrong: " + e.message, e)
+            baseLog.error(e) { "Something in setUp go wrong: " + e.message }
         }
         return
     }

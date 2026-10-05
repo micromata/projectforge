@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable

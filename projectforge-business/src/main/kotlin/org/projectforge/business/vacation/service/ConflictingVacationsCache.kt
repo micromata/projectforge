@@ -24,7 +24,7 @@
 package org.projectforge.business.vacation.service
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
@@ -109,7 +109,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     }
 
     override fun refresh() {
-        log.info("Refreshing cache of conflicting vacations...")
+        log.info { "Refreshing cache of conflicting vacations..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
             // First, order all vacations by employee:

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.admin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.common.logging.LogSubscription

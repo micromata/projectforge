@@ -39,6 +39,11 @@ export interface Cost2Detail {
   /** Read-only: the status the entity computes, inherited from the project when the row has none. */
   effectiveKostentraegerStatus?: KostentraegerStatus | null;
   workFraction?: number | null;
+  /**
+   * Shared cost element: true/false override the structure element's setting, absent (null) means the
+   * time sheet's task decides (Kost2DO.sharedCost).
+   */
+  sharedCost?: boolean | null;
   description?: string | null;
   comment?: string | null;
   /**

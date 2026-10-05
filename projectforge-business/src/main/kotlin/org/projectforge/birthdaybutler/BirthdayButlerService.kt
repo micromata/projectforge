@@ -26,7 +26,7 @@ package org.projectforge.birthdaybutler
 import de.micromata.merlin.word.RunsProcessor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFTable
@@ -118,7 +118,7 @@ class BirthdayButlerService {
                 } else {
                     sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
                 }
-                log.info("BirthdayButlerJob finished.")
+                log.info { "BirthdayButlerJob finished." }
             }
         }.start()
     }
@@ -181,13 +181,14 @@ class BirthdayButlerService {
                     "mail/birthdayButlerCronMail.html",
                     data,
                     title = subject,
-                    recipient = null
+                    recipient = null,
+                    locale = locale,
                 )
                 try {
                     sendMail.send(mail, attachments = mailAttachments)
                     log.info { "Send mail to $address" }
                 } catch (ex: Exception) {
-                    log.error("Error while trying to send mail to '$address': ${ex.message}", ex)
+                    log.error(ex) { "Error while trying to send mail to '$address': ${ex.message}" }
                 }
             }
         }
@@ -286,7 +287,7 @@ class BirthdayButlerService {
             }
         }
         if (posTbl == null) {
-            log.error("Table with marker '\${table}' in first row and first column not found. Can't process invoice positions.")
+            log.error { "Table with marker '\${table}' in first row and first column not found. Can't process invoice positions." }
             return null
         }
         var rowCounter = 2
@@ -312,9 +313,9 @@ class BirthdayButlerService {
             }
             posTbl.addRow(newRow, rowCounter)
         } catch (ex: IOException) {
-            log.error("Error while trying to copy row: " + ex.message, ex)
+            log.error(ex) { "Error while trying to copy row: " + ex.message }
         } catch (ex: XmlException) {
-            log.error("Error while trying to copy row: " + ex.message, ex)
+            log.error(ex) { "Error while trying to copy row: " + ex.message }
         }
     }
 

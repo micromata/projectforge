@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.pub
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.CanonicalFileUtils
@@ -95,13 +95,13 @@ class LogoServiceRest {
         val file = if (dark) logoFileDark else logoFile
         if (file == null) {
             val property = if (dark) "projectforge.logoFileDark" else "projectforge.logoFile"
-            log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via $property=logo.png.")
+            log.error { "Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via $property=logo.png." }
             throw IOException("Logo not configured. Refer log files for further information.")
         }
         try {
             return FileUtils.readFileToByteArray(file)
         } catch (ex: IOException) {
-            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(file)}': ${ex.message}")
+            log.error { "Error while reading logo file '${CanonicalFileUtils.absolutePath(file)}': ${ex.message}" }
             throw ex
         }
     }
@@ -113,7 +113,7 @@ class LogoServiceRest {
                 ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
             configurationService.syntheticLogoName.also { url ->
                 if (url.isNullOrBlank() && !configurationService.isLogoFileValid) {
-                    log.error("Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'.")
+                    log.error { "Logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFile)}'." }
                 }
             }
         }
@@ -125,7 +125,7 @@ class LogoServiceRest {
                 ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
             configurationService.syntheticLogoNameDark.also { url ->
                 if (url.isNullOrBlank() && !configurationService.isLogoFileDarkValid && logoFileDark != null) {
-                    log.error("Dark logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFileDark)}'.")
+                    log.error { "Dark logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFileDark)}'." }
                 }
             }
         }

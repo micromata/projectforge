@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.IOException
 import java.time.Instant
 import java.time.ZoneOffset
@@ -50,7 +50,7 @@ object PFJcrUtils {
       mapper.writeValueAsString(obj)
     } catch (ex: Exception) {
       val id = System.currentTimeMillis()
-      log.error("Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}", ex)
+      log.error(ex) { "Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}" }
       "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
     }
   }
@@ -120,7 +120,7 @@ object PFJcrUtils {
     try {
       return node.getProperty(relPath)
     } catch (ex: PathNotFoundException) {
-      log.error("Can't get property '$relPath' of node: ${ex.message}.", ex)
+      log.error(ex) { "Can't get property '$relPath' of node: ${ex.message}." }
       return null
     }
   }

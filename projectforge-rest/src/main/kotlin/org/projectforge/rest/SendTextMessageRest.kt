@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
@@ -155,7 +155,7 @@ class SendTextMessageRest {
         accessChecker.checkRestrictedOrDemoUser()
         val number = NumberHelper.extractPhonenumber(postData.phoneNumber)
         if (!smsSenderConfig.isSmsConfigured()) {
-            log.error("Servlet url for sending sms not configured. SMS not supported.")
+            log.error { "Servlet url for sending sms not configured. SMS not supported." }
             return SendResult(false, translate("address.sendSms.sendMessage.result.unknownError"))
         }
         val smsSender = SmsSender(smsSenderConfig)

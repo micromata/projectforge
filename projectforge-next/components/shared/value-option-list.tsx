@@ -58,11 +58,19 @@ export function ValueOptionList({
   const t = useTranslations("select");
   // Controlled only to highlight the match in the options; cmdk still does the filtering itself.
   const [search, setSearch] = useState("");
+  // cmdk's highlighted item (its value is the option's label), so Space can toggle it.
+  const [highlighted, setHighlighted] = useState("");
   // A short list needs no search — showing one over a few entries only confuses (see the constant).
   const showSearch = options.length >= SEARCH_MIN_OPTIONS;
 
   return (
-    <Command className={cn("bg-transparent", className)} label={ariaLabel}>
+    <Command
+      className={cn("bg-transparent", className)}
+      label={ariaLabel}
+      value={highlighted}
+      onValueChange={setHighlighted}
+      onKeyDown={toggleOnSpace}
+    >
       {showSearch && (
         <CommandInput
           placeholder={t("search")}
@@ -90,6 +98,21 @@ export function ValueOptionList({
       </CommandList>
     </Command>
   );
+
+  /**
+   * Space toggles the highlighted entry, as in a list of checkboxes — but only while nothing is typed:
+   * a leading space finds nothing, whereas within a term it is needed ("in Erstellung").
+   */
+  function toggleOnSpace(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== " " || search !== "" || event.nativeEvent.isComposing)
+      return;
+    const option = options.find(
+      (it) => it.label.toLowerCase() === highlighted.toLowerCase()
+    );
+    if (!option) return;
+    event.preventDefault();
+    toggle(option.value);
+  }
 
   function toggle(value: string) {
     if (!multi) {

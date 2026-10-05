@@ -24,6 +24,7 @@ export function toFormValues(cost2: Cost2Detail): Cost2Values {
       ? { id: cost2.project.id, displayName: cost2.project.name ?? "" }
       : null,
     workFraction: cost2.workFraction ?? null,
+    sharedCost: cost2.sharedCost ?? null,
     kostentraegerStatus: cost2.kostentraegerStatus ?? null,
     description: cost2.description ?? null,
     comment: cost2.comment ?? null,
@@ -46,6 +47,7 @@ export function emptyCost2Values(): Cost2Values {
     endziffer: null,
     project: null,
     workFraction: null,
+    sharedCost: null,
     kostentraegerStatus: null,
     description: null,
     comment: null,

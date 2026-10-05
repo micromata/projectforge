@@ -23,7 +23,7 @@
 
 package org.projectforge.idp.converter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.idp.IdpConfig
 import org.projectforge.idp.model.IdpGroup
@@ -80,7 +80,7 @@ open class IdpGroupConverter(private val idpConfig: IdpConfig) {
         for ((pfField, idpAttr) in idpConfig.groupAttributes) {
             val accessor = SUPPORTED_GROUP_FIELDS[pfField]
             if (accessor == null) {
-                log.warn("Unknown PF group field '$pfField' in groupAttributes mapping, skipping.")
+                log.warn { "Unknown PF group field '$pfField' in groupAttributes mapping, skipping." }
                 continue
             }
             accessor.get(groupDO)?.takeIf { it.isNotBlank() }

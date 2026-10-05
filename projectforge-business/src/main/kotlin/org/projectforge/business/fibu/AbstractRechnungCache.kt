@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -166,10 +166,10 @@ abstract class AbstractRechnungCache(
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing cache (${entityName})...")
+        log.info { "Initializing cache (${entityName})..." }
         val duration = LogDuration()
         // This method must not be synchronized because it works with new copies of maps.
-        log.info("Getting all invoices ($entityName)...")
+        log.info { "Getting all invoices ($entityName)..." }
         val nInvoiceInfoMap = ConcurrentHashMap<Long, RechnungInfo>()
         val nInvoicePosInfoMap = ConcurrentHashMap<Long, RechnungPosInfo>()
         rechnungJdbcService.selectRechnungInfos(entityClass).forEach { rechnungInfo ->

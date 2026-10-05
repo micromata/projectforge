@@ -24,7 +24,7 @@
 package org.projectforge.gateway.sync
 
 import java.security.MessageDigest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto

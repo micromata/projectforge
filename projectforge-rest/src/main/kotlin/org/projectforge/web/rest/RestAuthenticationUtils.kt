@@ -23,7 +23,9 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
+import org.projectforge.rest.core.RestLogEvents
 import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
@@ -98,7 +100,7 @@ open class RestAuthenticationUtils {
           authInfo,
           "Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden."
         )
-      } else if (log.isDebugEnabled) {
+      } else if (log.isDebugEnabled()) {
         logDebug(authInfo, "Can't get user String by request parameters ${joinToString(userAttributes)} (OK).")
       }
       return null
@@ -107,7 +109,7 @@ open class RestAuthenticationUtils {
       // Access denied (time offset due to failed logins). Logging is done by check method.
       return null
     }
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Got user by request parameters ${joinToString(userAttributes)}: ${authInfo.userString}.")
     }
     return authInfo.userString
@@ -124,7 +126,7 @@ open class RestAuthenticationUtils {
     required: Boolean,
     authenticate: (userString: String, secret: String) -> PFUserDO?
   ) {
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Trying basic authentication...")
     }
     val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
@@ -132,9 +134,10 @@ open class RestAuthenticationUtils {
       if (required) {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
         authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authentication required\"")
-        logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
+        // Normal first leg of the Basic auth challenge: clients (CardDAV etc.) retry with credentials after the 401.
+        logInfo(authInfo, "Basic authentication failed, header 'authorization' not found.")
         log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
-      } else if (log.isDebugEnabled) {
+      } else if (log.isDebugEnabled()) {
         logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
       }
       return
@@ -155,7 +158,7 @@ open class RestAuthenticationUtils {
     authInfo.user = authenticate(username, secret)
     if (!authInfo.success) {
       logError(authInfo, "Basic authentication failed for user '$username'.")
-    } else if (log.isDebugEnabled) {
+    } else if (log.isDebugEnabled()) {
       logDebug(authInfo, "Basic authentication was successful for user '$username'.")
     }
   }
@@ -170,7 +173,7 @@ open class RestAuthenticationUtils {
     userTokenType: UserTokenType,
     required: Boolean
   ) {
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Trying token based authentication...")
     }
     val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
@@ -218,7 +221,7 @@ open class RestAuthenticationUtils {
             }). Rest call denied."
           )
           authInfo.resultCode = HttpStatus.BAD_REQUEST
-        } else if (log.isDebugEnabled) {
+        } else if (log.isDebugEnabled()) {
           logDebug(
             authInfo,
             "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
@@ -235,11 +238,12 @@ open class RestAuthenticationUtils {
       userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
     }
     if (authInfo.user == null) {
-      logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
+      // Usually a calendar or other client still polling with an outdated token or of a deactivated user.
+      logWarn(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
       authInfo.resultCode = HttpStatus.BAD_REQUEST
     } else {
       authInfo.loggedInByAuthenticationToken = true // Marking the user as logged in by authentication token.
-      if (log.isDebugEnabled) {
+      if (log.isDebugEnabled()) {
         logDebug(authInfo, "User found by username '$username' or id $userId.")
       }
     }
@@ -263,11 +267,11 @@ open class RestAuthenticationUtils {
   ) {
     response as HttpServletResponse
     request as HttpServletRequest
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(request, "Processing request...")
     }
     if (!systemStatus.upAndRunning) {
-      log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
+      log.error(RestLogEvents.SYSTEM_NOT_AVAILABLE) { "System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode." }
       sendError(
         response,
         HttpServletResponse.SC_SERVICE_UNAVAILABLE,
@@ -380,7 +384,7 @@ open class RestAuthenticationUtils {
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
-    log.info("User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress")
+    log.info { "User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress" }
   }
 
   fun unregister(
@@ -395,7 +399,14 @@ open class RestAuthenticationUtils {
     if (resultCode !in 200..299) {
       val user = authInfo.user!!
       val clientIpAddress = authInfo.clientIpAddress
-      log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
+      val msg =
+        "User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}."
+      if (resultCode >= 500) {
+        log.error(RestLogEvents.SERVER_ERROR_RESPONSE) { msg }
+      } else {
+        // 4xx (validation errors, access denied, CSRF) are already logged with their reason where they occur.
+        log.info { msg }
+      }
     }
   }
 
@@ -421,7 +432,7 @@ open class RestAuthenticationUtils {
       .getFailedLoginTimeOffsetIfExists(authInfo.userString, authInfo.clientIpAddress, tokenType?.name)
     if (offset > 0) {
       val seconds = (offset / 1000).toString()
-      log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress}).")
+      log.warn { "The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress})." }
       authInfo.resultCode = HttpStatus.FORBIDDEN
       authInfo.lockedByTimePenalty = true
       return true
@@ -440,7 +451,17 @@ open class RestAuthenticationUtils {
   }
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
-    log.error("$msg (${RequestLog.asString(authInfo.request)})")
+    log.error(RestLogEvents.AUTH_FAILED) { "$msg (${RequestLog.asString(authInfo.request)})" }
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logWarn(authInfo: RestAuthenticationInfo, msg: String) {
+    log.warn { "$msg (${RequestLog.asString(authInfo.request)})" }
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logInfo(authInfo: RestAuthenticationInfo, msg: String) {
+    log.info { "$msg (${RequestLog.asString(authInfo.request)})" }
     SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 
@@ -449,7 +470,7 @@ open class RestAuthenticationUtils {
   }
 
   private fun logDebug(request: HttpServletRequest, msg: String) {
-    log.debug("$msg (request=${RequestLog.asString(request)})")
+    log.debug { "$msg (request=${RequestLog.asString(request)})" }
   }
 
   companion object {

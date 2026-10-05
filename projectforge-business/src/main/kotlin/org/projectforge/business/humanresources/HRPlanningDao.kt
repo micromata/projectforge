@@ -23,7 +23,7 @@
 
 package org.projectforge.business.humanresources
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.user.ProjectForgeGroup

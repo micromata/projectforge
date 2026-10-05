@@ -25,7 +25,7 @@ package org.projectforge.jcr
 
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.jdbc.DataSourceBuilder
 import org.springframework.context.annotation.Configuration

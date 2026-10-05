@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -60,12 +60,11 @@ class ListFilterService {
                     // No output needed, info message follows:
                 }
                 // Probably a new software release results in an incompatibility of old and new filter format.
-                log.info(
-                        "Could not restore filter from user prefs: (old) filter type "
-                                + filter.javaClass.getName()
-                                + " is not assignable to (new) filter type "
-                                + filterClazz.javaClass.getName()
-                                + " (OK, probably new software release).")
+                log.info { "Could not restore filter from user prefs: (old) filter type " +
+                                filter.javaClass.getName() +
+                                " is not assignable to (new) filter type " +
+                                filterClazz.javaClass.getName() +
+                                " (OK, probably new software release)." }
             }
         }
         val result = filterClazz.getDeclaredConstructor().newInstance()

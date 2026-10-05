@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.EmployeeSalaryDao
 import org.projectforge.framework.i18n.translateMsg
@@ -69,7 +69,7 @@ class EmployeeSalaryImportJob(
     }
 
     override suspend fun run() {
-        log.info("Starting import of ${selectedEntries.size} employee-salary entries.")
+        log.info { "Starting import of ${selectedEntries.size} employee-salary entries." }
         val toPersist = mutableListOf<EmployeeSalaryDO>()
         for (entry in selectedEntries) {
             if (!isActive) {
@@ -100,7 +100,7 @@ class EmployeeSalaryImportJob(
         if (toPersist.isNotEmpty()) {
             employeeSalaryDao.insertOrUpdate(toPersist, SALARY_INSERT_BLOCK_SIZE, checkAccess = false)
         }
-        log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}.")
+        log.info { "Import completed: inserted=${result.inserted}, updated=${result.updated}." }
     }
 
     override fun readAccess(user: PFUserDO?): Boolean {

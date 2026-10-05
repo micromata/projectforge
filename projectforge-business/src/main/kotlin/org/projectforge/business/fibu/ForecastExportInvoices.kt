@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelSheet
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.ForecastCol
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -86,7 +86,7 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     val orderId = pos.auftragsId ?: ordersCache.getOrderPositionInfo(orderPosId)?.auftragId
                     order = ordersCache.getOrderInfo(orderId)
                     if (order == null) {
-                        log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
+                        log.error { "Shouldn't occur: can't determine order from order position: $orderPosId" }
                         return@forEach // continue
                     }
                     ctx.orderMapByPositionId[orderPosId] = order
@@ -255,7 +255,32 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             else -> ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR
         }
         ctx.chartTotals.addInvoice(chartKind, projectId ?: ForecastExportContext.PROJECT_ID_NONE, monthIndex, pos.netSum)
-
+        val tableKind = when (chartKind) {
+            ForecastChartTotals.InvoiceKind.IST -> ForecastInvoiceRow.Kind.IST
+            ForecastChartTotals.InvoiceKind.PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_YEAR
+            ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_PREV_YEAR
+            ForecastChartTotals.InvoiceKind.PLANNING -> null // Part of the plan sums only.
+        }
+        if (tableKind != null) {
+            ctx.tables.addInvoice(
+                ForecastInvoiceRow(
+                    invoiceId = invoice.id,
+                    invoiceNumber = invoice.nummer,
+                    positionNumber = pos.number,
+                    date = invoice.datum,
+                    projectId = projectId ?: ForecastExportContext.PROJECT_ID_NONE,
+                    customer = invoice.kundeAsString,
+                    project = invoice.projekt?.name,
+                    subject = invoice.betreff,
+                    positionText = pos.text,
+                    orderId = if (orderPosId != null) order?.id else null,
+                    order = if (order != null && orderPosId != null) "${order.nummer}.${pos.auftragsPositionNummer}" else null,
+                    netSum = pos.netSum,
+                    monthIndex = monthIndex,
+                    kind = tableKind,
+                )
+            )
+        }
     }
 
     private fun getMonthIndex(ctx: ForecastExportContext, date: PFDay): Int {

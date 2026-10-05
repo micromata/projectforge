@@ -25,7 +25,7 @@ package org.projectforge.business.address
 
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.converter.LanguageConverter
 import org.projectforge.business.user.ProjectForgeGroup
@@ -121,7 +121,7 @@ open class AddressExport {
         personalAddressMap: Map<Long, PersonalAddressDO>,
         vararg params: Any
     ): ByteArray? {
-        log.info("Exporting address list.")
+        log.info { "Exporting address list." }
 
         val list: MutableList<AddressDO?> = ArrayList()
         for (address in origList) {

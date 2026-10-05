@@ -23,7 +23,8 @@
 
 package org.projectforge.business.jobs
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
@@ -51,7 +52,7 @@ class CronNightlyJob {
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
         val started = System.currentTimeMillis()
-        log.info("Nightly job started.")
+        log.info { "Nightly job started." }
         Thread {
             try {
                 // Housekeeping only: the expiry itself is enforced on every check
@@ -59,13 +60,13 @@ class CronNightlyJob {
                 try {
                     stayLoggedInTokenDao.purgeExpired()
                 } catch (ex: Throwable) {
-                    log.error("While purging expired stay-logged-in tokens: " + ex.message, ex)
+                    log.error(JobLogEvents.NIGHTLY_TOKEN_PURGE_FAILED, ex) { "While purging expired stay-logged-in tokens: " + ex.message }
                 }
                 hibernateSearchReindexer.execute()
             } catch (ex: Throwable) {
-                log.error("While executing hibernate search re-index job: " + ex.message, ex)
+                log.error(JobLogEvents.NIGHTLY_REINDEX_FAILED, ex) { "While executing hibernate search re-index job: " + ex.message }
             } finally {
-                log.info("Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}.")
+                log.info { "Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}." }
             }
         }.start()
     }

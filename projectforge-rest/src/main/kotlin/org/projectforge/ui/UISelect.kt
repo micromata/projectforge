@@ -24,7 +24,7 @@
 package org.projectforge.ui
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
@@ -80,7 +80,7 @@ class UISelect<T>(
                 @Suppress("UNCHECKED_CAST")
                 newvalues.add(UISelectValue(value.name as T, translation))
             } else {
-                log.error("UISelect supports only enums of type I18nEnum, not '$value': '${this}'")
+                log.error { "UISelect supports only enums of type I18nEnum, not '$value': '${this}'" }
             }
         }
         values = newvalues

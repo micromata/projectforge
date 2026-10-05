@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

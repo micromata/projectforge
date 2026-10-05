@@ -23,7 +23,9 @@
 
 package org.projectforge.common
 
+import io.github.oshai.kotlinlogging.KLogger
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.common.logging.toSlf4j
 import org.slf4j.Logger
 
 /**
@@ -40,6 +42,11 @@ class EmphasizedLogSupport @JvmOverloads constructor(
     private var started = false
 
     constructor(log: Logger, alignment: Alignment) : this(log, Priority.IMPORTANT, alignment)
+
+    constructor(log: KLogger, priority: Priority = Priority.IMPORTANT, alignment: Alignment = Alignment.CENTER) :
+            this(log.toSlf4j(), priority, alignment)
+
+    constructor(log: KLogger, alignment: Alignment) : this(log.toSlf4j(), Priority.IMPORTANT, alignment)
 
     enum class Priority {
         NORMAL, IMPORTANT, VERY_IMPORTANT

@@ -29,7 +29,7 @@ import ezvcard.parameter.AddressType
 import ezvcard.parameter.EmailType
 import ezvcard.parameter.TelephoneType
 import ezvcard.property.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.FormOfAddress
@@ -348,7 +348,7 @@ object VCardUtils {
             try {
                 address.communicationLanguage = Locale.forLanguageTag(tag)
             } catch (e: Exception) {
-                log.warn("Failed to parse language tag: $tag", e)
+                log.warn(e) { "Failed to parse language tag: $tag" }
             }
         }
         return address
@@ -384,7 +384,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all()
             } catch (e: IOException) {
-                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
+                log.error(e) { "An exception occurred while parsing vcard from byte array: " + e.message }
                 return emptyList()
             }
         }
@@ -396,7 +396,7 @@ object VCardUtils {
         try {
             return Ezvcard.parse(vcardString).all()
         } catch (e: IOException) {
-            log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
+            log.error(e) { "An exception occurred while parsing vcard from byte array: " + e.message }
             return emptyList()
         }
     }
@@ -408,7 +408,7 @@ object VCardUtils {
             try {
                 return Ezvcard.parse(stream).all().map { buildAddressDO(it) }
             } catch (e: IOException) {
-                log.error("An exception occurred while parsing vcard from byte array: " + e.message, e)
+                log.error(e) { "An exception occurred while parsing vcard from byte array: " + e.message }
                 return emptyList()
             }
         }

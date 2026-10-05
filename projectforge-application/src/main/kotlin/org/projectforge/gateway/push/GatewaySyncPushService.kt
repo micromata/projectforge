@@ -25,7 +25,7 @@ package org.projectforge.gateway.push
 
 import io.netty.channel.ChannelOption
 import jakarta.annotation.PreDestroy
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO
@@ -35,6 +35,8 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.common.logging.error
+import org.projectforge.common.logging.warn
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.integration.SyncCounts
@@ -97,6 +99,13 @@ class GatewaySyncPushService(
      */
     private var lastFavoritesHash: Int? = null
 
+    /**
+     * Hashes of the last successfully pushed users and groups: a delta sync pushes them only if changed.
+     */
+    private var lastUsersHash: Int? = null
+
+    private var lastGroupsHash: Int? = null
+
     private val pushLock = ReentrantLock()
 
     private val syncStats = SyncStatsRegistry.get("gateway-push")
@@ -149,10 +158,10 @@ class GatewaySyncPushService(
 
     /**
      * Pushes all users, including deactivated and deleted ones (active = false), so the gateway revokes
-     * their access. Tokens are only sent for active users.
+     * their access. Tokens are only sent for active users. A delta sync skips the push, if nothing changed since
+     * the last push.
      */
-    private fun pushUsers(counts: SyncCounts): Boolean {
-        log.info { "Pushing users to gateway..." }
+    private fun pushUsers(fullSync: Boolean, counts: SyncCounts): Boolean {
         val users = userDao.selectAll(checkAccess = false)
         val authByUserId = persistenceService.executeQuery(
             "SELECT a FROM UserAuthenticationsDO a",
@@ -168,24 +177,40 @@ class GatewaySyncPushService(
                 calendarRestToken = auth?.calendarExportToken,
                 active = active,
             )
+        }.sortedBy { it.username }
+        val hash = dtos.hashCode()
+        if (!fullSync && hash == lastUsersHash) {
+            log.info { "Users unchanged, skipping user push." }
+            counts.unchanged = dtos.size
+            return true
         }
-        return postSync("/users", dtos, counts) != null
+        log.info { "Pushing users to gateway..." }
+        val result = postSync("/users", dtos, counts) ?: return false
+        lastUsersHash = hash.takeIf { result.errors == 0 }
+        return true
     }
 
     /**
-     * Groups are always pushed completely (small data volume). On a full sync, the gateway deletes groups
-     * that are missing here.
+     * Groups are always pushed completely (small data volume), but a delta sync skips the push, if nothing
+     * changed since the last push. On a full sync, the gateway deletes groups that are missing here.
      */
     private fun pushGroups(fullSync: Boolean, counts: SyncCounts) {
-        log.info { "Pushing groups to gateway..." }
         val groups = userGroupCache.allGroups.filter { !it.deleted && it.name != null }
         val dtos = groups.map { group ->
             SyncGroupDto(
                 name = group.name!!,
-                memberUsernames = group.assignedUsers?.mapNotNull { it.username } ?: emptyList(),
+                memberUsernames = group.assignedUsers?.mapNotNull { it.username }?.sorted() ?: emptyList(),
             )
+        }.sortedBy { it.name }
+        val hash = dtos.hashCode()
+        if (!fullSync && hash == lastGroupsHash) {
+            log.info { "Groups unchanged, skipping group push." }
+            counts.unchanged = dtos.size
+            return
         }
-        postSync("/groups?fullSync=$fullSync", dtos, counts)
+        log.info { "Pushing groups to gateway..." }
+        val result = postSync("/groups?fullSync=$fullSync", dtos, counts)
+        lastGroupsHash = hash.takeIf { result?.errors == 0 }
     }
 
     /**
@@ -316,8 +341,6 @@ class GatewaySyncPushService(
 
         // Holidays are identical for all users – generate once and reuse
         var holidaysIcsData: String? = null
-        var holidaysEncryptedQ: String? = null
-        var holidaysUserId: Long? = null
 
         for (user in users) {
             try {
@@ -329,35 +352,20 @@ class GatewaySyncPushService(
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    val count = generateAndAddIcsEntry(user, userId, token, "teamCals=$calId", icsEntries)
-                    if (count == 0) skippedUnchanged++
+                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries)) skippedUnchanged++
                 }
 
                 // Generate Timesheets ICS for this user
-                if (generateAndAddIcsEntry(user, userId, token, "timesheetUser=$userId", icsEntries) == 0) {
-                    skippedUnchanged++
-                }
+                if (!addIcsEntry(userId, token, "timesheetUser=$userId", icsEntries)) skippedUnchanged++
 
-                // Holidays are identical for all users – generate only for the first user
-                if (holidaysIcsData == null) {
-                    if (generateAndAddIcsEntry(user, userId, token, "holidays=true", icsEntries) > 0) {
-                        val lastEntry = icsEntries.last()
-                        holidaysIcsData = lastEntry.icsData
-                        holidaysEncryptedQ = lastEntry.queryParam
-                        holidaysUserId = lastEntry.userId
-                    }
-                } else {
-                    // Reuse holidays ICS data with this user's encrypted query param
-                    val params = "token=$token&holidays=true"
-                    val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
-                    if (storedToken != null) {
-                        val authenticationToken = storedToken.padEnd(32, 'x')
-                        val encryptedQ = Crypt.encrypt(authenticationToken, params)
-                        if (encryptedQ != null) {
-                            icsEntries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = holidaysIcsData))
-                        }
-                    }
+                // Holidays are identical for all users – generate only once, but with each user's query param
+                val holidaysQ = encryptQuery(userId, token, HOLIDAYS_PARAMS)
+                if (holidaysQ != null && holidaysIcsData == null) {
+                    holidaysIcsData = exportIcs(userId, holidaysQ, HOLIDAYS_PARAMS)
                 }
+                val holidaysAdded = holidaysQ != null && holidaysIcsData != null &&
+                        addIfChanged(userId, HOLIDAYS_PARAMS, holidaysQ, holidaysIcsData!!, icsEntries)
+                if (!holidaysAdded) skippedUnchanged++
 
             } catch (e: Exception) {
                 log.error(e) { "Error generating ICS for user '${user.username}'" }
@@ -389,49 +397,71 @@ class GatewaySyncPushService(
     }
 
     /**
-     * @return 1 if entry was added, 0 if skipped (unchanged or error)
+     * @return true if the entry was added, false if skipped (unchanged or error).
      */
-    private fun generateAndAddIcsEntry(
-        user: org.projectforge.framework.persistence.user.entities.PFUserDO,
+    private fun addIcsEntry(
         userId: Long,
         token: String,
         additionalParams: String,
         entries: MutableList<SyncIcsEntryDto>,
-    ): Int {
-        val serviceRest = calendarSubscriptionServiceRest ?: return 0
-        ThreadLocalUserContext.userContext = UserContext(user)
-        val params = "token=$token&$additionalParams"
+    ): Boolean {
+        val encryptedQ = encryptQuery(userId, token, additionalParams) ?: return false
+        val icsData = exportIcs(userId, encryptedQ, additionalParams) ?: return false
+        return addIfChanged(userId, additionalParams, encryptedQ, icsData, entries)
+    }
+
+    /**
+     * @return The encrypted query param of the calendar subscription url or null, if the user has no
+     * CALENDAR_REST token.
+     */
+    private fun encryptQuery(userId: Long, token: String, additionalParams: String): String? {
         val storedToken = userAuthenticationsService.internalGetToken(userId, UserTokenType.CALENDAR_REST)
         if (storedToken == null) {
             log.debug { "No CALENDAR_REST token for user $userId, skipping ICS entry." }
-            return 0
+            return null
         }
-        val authenticationToken = storedToken.padEnd(32, 'x')
-        val encryptedQ = Crypt.encrypt(authenticationToken, params) ?: return 0
+        return Crypt.encrypt(storedToken.padEnd(32, 'x'), "token=$token&$additionalParams")
+    }
 
+    /**
+     * Requires the user context of the user (set by the caller).
+     * @return The ICS data or null, if empty or failed.
+     */
+    private fun exportIcs(userId: Long, encryptedQ: String, additionalParams: String): String? {
+        val serviceRest = calendarSubscriptionServiceRest ?: return null
         try {
             val response = serviceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
             if (response.statusCode.is2xxSuccessful && response.body != null) {
-                val body = response.body
-                val icsData = when (body) {
+                val icsData = when (val body = response.body) {
                     is ByteArray -> String(body, Charsets.UTF_8)
                     else -> body.toString()
                 }
-                if (icsData.isNotBlank()) {
-                    val cacheKey = "$userId:$additionalParams"
-                    val hash = icsData.hashCode()
-                    if (lastPushHashes[cacheKey] == hash) {
-                        return 0
-                    }
-                    lastPushHashes[cacheKey] = hash
-                    entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
-                    return 1
-                }
+                return icsData.ifBlank { null }
             }
         } catch (e: Exception) {
             log.debug { "Failed to generate ICS for user $userId, params=$additionalParams: ${e.message}" }
         }
-        return 0
+        return null
+    }
+
+    /**
+     * @return true if the entry was added, false if its content is unchanged since the last push.
+     */
+    private fun addIfChanged(
+        userId: Long,
+        additionalParams: String,
+        encryptedQ: String,
+        icsData: String,
+        entries: MutableList<SyncIcsEntryDto>,
+    ): Boolean {
+        val cacheKey = "$userId:$additionalParams"
+        val hash = icsContentHash(icsData)
+        if (lastPushHashes[cacheKey] == hash) {
+            return false
+        }
+        lastPushHashes[cacheKey] = hash
+        entries.add(SyncIcsEntryDto(userId = userId, queryParam = encryptedQ, icsData = icsData))
+        return true
     }
 
     /**
@@ -449,7 +479,7 @@ class GatewaySyncPushService(
             }
             log.info { if (full) "Starting full gateway sync..." else "Starting delta gateway sync..." }
             try {
-                if (run.step("users") { pushUsers(it) }) {
+                if (run.step("users") { pushUsers(full, it) }) {
                     run.step("groups") { pushGroups(full, it) }
                     // Favorites reference addresses by uid, so they need the addresses on the gateway first.
                     if (config.syncAddresses && run.step("addresses") { pushAddressBooks(full, it) }) {
@@ -459,7 +489,7 @@ class GatewaySyncPushService(
                 }
                 run.finish()
             } catch (e: GatewayUnavailableException) {
-                log.warn { e.message }
+                log.warn(GatewayLogEvents.UNREACHABLE) { e.message }
                 run.abort(e.message!!, e.timeout)
             } catch (e: Exception) {
                 log.error(e) { "Gateway sync failed: ${e.message}" }
@@ -482,12 +512,12 @@ class GatewaySyncPushService(
                 .bodyToMono(HeartbeatRest.Heartbeat::class.java)
                 .block(HEARTBEAT_TIMEOUT)
             if (heartbeat?.mode != HeartbeatRest.MODE_GATEWAY) {
-                log.error { "$url isn't a gateway (mode=${heartbeat?.mode}), sync skipped. Check projectforge.gateway.push.url." }
+                log.error(GatewayLogEvents.NOT_A_GATEWAY) { "$url isn't a gateway (mode=${heartbeat?.mode}), sync skipped. Check projectforge.gateway.push.url." }
                 return GatewayUnavailableException("$url isn't a gateway (mode=${heartbeat?.mode})")
             }
             return null
         } catch (e: Exception) {
-            log.warn { "Gateway not reachable at $url, sync skipped: ${e.message}" }
+            log.warn(GatewayLogEvents.UNREACHABLE) { "Gateway not reachable at $url, sync skipped: ${e.message}" }
             return GatewayUnavailableException("Gateway not reachable: ${e.message}", IntegrationErrors.isTimeout(e))
         }
     }
@@ -560,5 +590,15 @@ class GatewaySyncPushService(
         private const val ICS_BATCH_SIZE = 200
 
         private const val SYNC_API_PATH = "/api/gateway/sync"
+
+        private const val HOLIDAYS_PARAMS = "holidays=true"
+
+        /**
+         * Hash of the ICS data without the DTSTAMP lines: ical4j stamps every generated event with the current
+         * time, so the hash of the raw data would change with every export.
+         */
+        internal fun icsContentHash(icsData: String): Int {
+            return icsData.lineSequence().filterNot { it.startsWith("DTSTAMP") }.joinToString("\n").hashCode()
+        }
     }
 }

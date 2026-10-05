@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDO
@@ -437,7 +437,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting incoming invoices as Excel file.")
+        log.info { "Exporting incoming invoices as Excel file." }
         val invoices = getResultList(filter)
         if (invoices.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
@@ -489,7 +489,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
     fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting cost assignments of incoming invoices as Excel file.")
+        log.info { "Exporting cost assignments of incoming invoices as Excel file." }
         if (!Configuration.instance.isCostConfigured) {
             return ResponseEntity.notFound().build<Any>()
         }
@@ -522,7 +522,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val result: SEPATransferResult = sepaTransferGenerator.format(invoice)
         if (!result.isSuccessful) {
             if (result.errors.isEmpty()) {
-                log.error("Oups, xml has zero size for invoice #$id.")
+                log.error { "Oups, xml has zero size for invoice #$id." }
                 return RestUtils.downloadFile("error.txt", translate("fibu.rechnung.transferExport.error"))
             }
             val missingFields = SEPATransferResult.getMissingFields(result, invoice)

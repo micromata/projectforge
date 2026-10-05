@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.login.LoginHandler
@@ -198,17 +198,17 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      */
     open fun checkPassword(user: PFUserDO?, clearTextPassword: CharArray): PasswordCheckResult? {
         if (user == null || user.id == null) {
-            log.warn("User not given in checkPassword(PFUserDO, String) method.")
+            log.warn { "User not given in checkPassword(PFUserDO, String) method." }
             return PasswordCheckResult.FAILED
         }
         val userId = user.id ?: return PasswordCheckResult.FAILED
         val passwords = internalGetByUserId(userId)
         if (passwords == null) {
-            log.warn("Can't load user password for user '${user.username}' (${user.id}")
+            log.warn { "Can't load user password for user '${user.username}' (${user.id}" }
             return PasswordCheckResult.FAILED
         }
         if (passwords.passwordHash.isNullOrBlank()) {
-            log.warn("User's password is blank, can't checkPassword(PFUserDO, String) for user '${user.username}' with id ${user.id}")
+            log.warn { "User's password is blank, can't checkPassword(PFUserDO, String) for user '${user.username}' with id ${user.id}" }
             return PasswordCheckResult.FAILED
         }
         val passwordHash = passwords.passwordHash
@@ -217,7 +217,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         if (passwordHash == encryptedPassword) {
             // Passwords match!
             if (saltString.isBlank()) {
-                log.info("Password of user ${user.id} with username '${user.username}' is not yet salted!")
+                log.info { "Password of user ${user.id} with username '${user.username}' is not yet salted!" }
                 return PasswordCheckResult.OK_WITHOUT_SALT
             }
             return PasswordCheckResult.OK
@@ -228,10 +228,10 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
             if (passwordHash == encryptedPassword) {
                 // Passwords match!
                 if (saltString.isBlank()) {
-                    log.info("Password of user ${user.id} with username '${user.username}' is not yet salted and has no pepper!")
+                    log.info { "Password of user ${user.id} with username '${user.username}' is not yet salted and has no pepper!" }
                     return PasswordCheckResult.OK_WITHOUT_SALT_AND_PEPPER
                 }
-                log.info("Password of user ${user.id} with username '${user.username}' has no pepper!")
+                log.info { "Password of user ${user.id} with username '${user.username}' has no pepper!" }
                 return PasswordCheckResult.OK_WITHOUT_PEPPER
             }
         }

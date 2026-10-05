@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
@@ -110,9 +110,7 @@ open class DBQuery {
                 val end = System.currentTimeMillis()
                 if (end - begin > 2000) {
                     // Show only slow requests.
-                    log.info(
-                        "BaseDao.select for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
-                    )
+                    log.info { "BaseDao.select for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)." }
                 }
                 list
             }

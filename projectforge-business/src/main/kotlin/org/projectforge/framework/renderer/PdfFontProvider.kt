@@ -28,7 +28,7 @@ import com.lowagie.text.Font
 import com.lowagie.text.FontFactory
 import com.lowagie.text.pdf.BaseFont
 import fr.opensagres.xdocreport.itext.extension.font.IFontProvider
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Color
 
 private val log = KotlinLogging.logger {}

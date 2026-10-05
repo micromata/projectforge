@@ -23,7 +23,7 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 
 import java.lang.reflect.Field
@@ -102,7 +102,7 @@ object ClassUtils {
         val nestedProps = StringUtils.split(property, '.')
         if (nestedProps.isNullOrEmpty()) {
             if (!suppressWarning) {
-                log.warn("Field '" + clazz.name + "." + property + "' not found (no property given).")
+                log.warn { "Field '" + clazz.name + "." + property + "' not found (no property given)." }
             }
             return null
         }
@@ -125,7 +125,7 @@ object ClassUtils {
             }
         }
         if (currentInfo == null && !suppressWarning) {
-            log.warn("Field '" + clazz.name + "." + property + "' not found.")
+            log.warn { "Field '" + clazz.name + "." + property + "' not found." }
         }
         return currentInfo
     }

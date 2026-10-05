@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.configuration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.cache.AbstractCache
@@ -167,15 +167,12 @@ class Configuration(
 
     private fun doRefresh() {
         val newMap: MutableMap<ConfigurationParam, Any?> = HashMap()
-        log.info("Initializing (ConfigurationDO parameters) ...")
+        log.info { "Initializing (ConfigurationDO parameters) ..." }
         val list = try {
             configurationService.daoInternalLoadAll()
         } catch (ex: Exception) {
-            log.error(
-                "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): "
-                        + ex.message,
-                ex
-            )
+            log.error(ex) { "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): " +
+                        ex.message }
             emptyList<ConfigurationDO>()
         }
         for (param in ConfigurationParam.values()) {
@@ -193,9 +190,9 @@ class Configuration(
                 val value = value1 ?: continue
                 if (key.editPage != null) {
                     // A structured value (the customer groups' JSON) would flood the log.
-                    log.info(key.key + "=<" + value.toString().length + " characters>")
+                    log.info { key.key + "=<" + value.toString().length + " characters>" }
                 } else {
-                    log.info(key.key + "=" + value)
+                    log.info { key.key + "=" + value }
                 }
             }
         }
@@ -225,7 +222,7 @@ class Configuration(
 
     init {
         if (initialized) {
-            log.warn("Oups, shouldn't initiate Configuration twice.")
+            log.warn { "Oups, shouldn't initiate Configuration twice." }
         } else {
             instance = this
             instanceSet = true

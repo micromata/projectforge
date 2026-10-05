@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.dvelop.DvelopConfiguration
@@ -247,7 +247,7 @@ open class MenuCreator {
                 menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 return // This should only occur in test cases.
             }
-            log.error("Oups, shouldn't occur. Spring bean not correctly initialized.")
+            log.error { "Oups, shouldn't occur. Spring bean not correctly initialized." }
         }
         //////////////////////////////////////
         //
@@ -300,6 +300,15 @@ open class MenuCreator {
                             auftragsCache.getToBeInvoicedCounter()
                         else
                             0
+                    })
+            )
+            // Requires what the order book requires: the statistics show nothing but the orders the user may see.
+            .add(
+                MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                    checkAccess =
+                    {
+                        hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
+                                !isInGroup(*FIBU_ORGA_GROUPS) // Shown under menu FiBu for FiBu users
                     })
             )
             .add(MenuItemDef(MenuItemDefId.MY_SCRIPT_LIST))
@@ -401,6 +410,11 @@ open class MenuCreator {
                 requiredGroups = FIBU_ORGA_GROUPS,
                 badgeCounter =
                 { auftragsCache.getToBeInvoicedCounter() })
+        )
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                requiredGroups = FIBU_ORGA_GROUPS,
+                checkAccess = { hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) })
         )
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
@@ -586,6 +600,7 @@ open class MenuCreator {
 
         adminMenu
             .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            .add(MenuItemDef(MenuItemDefId.ADMIN_ERRORS, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
             .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
             // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
             .add(
@@ -674,7 +689,7 @@ open class MenuCreator {
         values: Array<UserRightValue>?
     ): Boolean {
         if (values.isNullOrEmpty()) {
-            log.warn("Can't check user right '$rightId' against null values.")
+            log.warn { "Can't check user right '$rightId' against null values." }
             return false
         }
         return accessChecker.hasRight(menuBuilderContext.user, rightId, false, *values)

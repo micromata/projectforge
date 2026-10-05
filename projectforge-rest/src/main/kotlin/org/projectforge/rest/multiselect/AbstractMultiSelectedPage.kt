@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.service.UserService
@@ -741,7 +741,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     fun download(request: HttpServletRequest): ResponseEntity<*> {
         val downloadFile = downloadFileSupport.getDownloadFile(request)
             ?: return RestUtils.badRequest(translate("download.expired"))
-        log.info("Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}.")
+        log.info { "Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}." }
         return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
     }
 

@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
@@ -44,6 +46,9 @@ import java.util.*
  * two time sheets of the same user may overlap in time only if at least one of them sits on a released task
  * (the flag is inherited by the subtree) **and** the two do not belong to the same project. Overlap within the
  * same project stays forbidden even when released — that would be a double booking.
+ *
+ * A cost unit may override its task's setting ([Kost2DO.sharedCost]): true/false win over the task's flag, null leaves
+ * the decision to the task.
  */
 class TimesheetOverlapRuleTest : AbstractTestBase() {
     @Autowired
@@ -57,6 +62,9 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
 
     @Test
     fun overlapRule() {
@@ -136,9 +144,80 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
         }
     }
 
-    private fun insert(taskName: String, user: PFUserDO, start: Date, stop: Date) {
+    @Test
+    fun kost2OverridesTask() {
+        persistenceService.runInTransaction { context ->
+            logon(AbstractTestBase.TEST_FINANCE_USER)
+            val kunde = KundeDO().also {
+                it.name = "Overlap-Kost2-Kunde"
+                it.id = 80
+                kundeDao.insert(it)
+            }
+            // Each project gets two cost units (Kost2Art 0 and 1): x1 and x2.
+            val projektA = initTestDB.addProjekt(kunde, 80, "Overlap-Kost2-Projekt-A", 0, 1)
+            val projektB = initTestDB.addProjekt(kunde, 81, "Overlap-Kost2-Projekt-B", 0, 1)
+            val (a1, a2) = kost2Pair(projektA.id!!)
+            val (b1, b2) = kost2Pair(projektB.id!!)
+            a1.sharedCost = true // Shared cost, although its task isn't released.
+            kost2Dao.update(a1)
+            b1.sharedCost = false // Explicitly not, although its task is released.
+            kost2Dao.update(b1)
+            // a2 and b2 keep null: their task decides.
+
+            // Project tasks, not released; the sub task of B is released (shared cost element).
+            val rootA = initTestDB.addTask("ovl-k-A", "root")
+            projektDao.setTask(projektA, rootA.id)
+            projektDao.update(projektA)
+            val rootB = initTestDB.addTask("ovl-k-B", "root")
+            projektDao.setTask(projektB, rootB.id)
+            projektDao.update(projektB)
+            val releasedB = initTestDB.addTask("ovl-k-B-rel", "ovl-k-B")
+            releasedB.allowTimeOverlap = true
+            taskDao.update(releasedB, checkAccess = false)
+
+            val user = initTestDB.addUser("ovl-k-user")
+
+            // (e) Cost unit says yes, task not released, different project => allowed.
+            insert("ovl-k-A", user, date(20, 8), date(20, 16), a1)
+            insert("ovl-k-B", user, date(20, 15), date(20, 18), b2)
+
+            // (f) Cost unit says no on a released task, the other one isn't released either => forbidden.
+            insert("ovl-k-A", user, date(21, 8), date(21, 16), a2)
+            assertOverlapRejected("ovl-k-B-rel", user, date(21, 15), date(21, 18), b1)
+
+            // (g) Cost unit without own setting on a released task => the task decides, allowed (as before).
+            insert("ovl-k-A", user, date(22, 8), date(22, 16), a2)
+            insert("ovl-k-B-rel", user, date(22, 15), date(22, 18), b2)
+
+            // (h) Cost unit says yes, but both sheets belong to the same project => still forbidden.
+            insert("ovl-k-A", user, date(23, 8), date(23, 16), a2)
+            assertOverlapRejected("ovl-k-A", user, date(23, 15), date(23, 18), a1)
+
+            // The list's collision search applies the same rule to legacy data: (f) and (h) collide, (e) and (g)
+            // (inserted above) don't.
+            val collision1 = persistRaw(context, "ovl-k-A", user, date(24, 8), date(24, 16), a2)
+            val collision2 = persistRaw(context, "ovl-k-B-rel", user, date(24, 15), date(24, 18), b1)
+            val collision3 = persistRaw(context, "ovl-k-A", user, date(25, 8), date(25, 16), a1)
+            val collision4 = persistRaw(context, "ovl-k-A", user, date(25, 15), date(25, 18), a2)
+            context.flush()
+            Assertions.assertEquals(
+                setOf(collision1, collision2, collision3, collision4),
+                timesheetDao.getCollidingTimesheetIds(user.id!!, date(1, 0), date(31, 0)),
+            )
+            null
+        }
+    }
+
+    /** The project's two cost units of Kost2Art 0 and 1, as [InitTestDB.addProjekt] created them. */
+    private fun kost2Pair(projektId: Long): Pair<Kost2DO, Kost2DO> {
+        val list = kost2Dao.getActiveKost2(projektDao.find(projektId, checkAccess = false))!!
+        return list.single { it.kost2Art?.id == 0L } to list.single { it.kost2Art?.id == 1L }
+    }
+
+    private fun insert(taskName: String, user: PFUserDO, start: Date, stop: Date, kost2: Kost2DO? = null) {
         val ts = TimesheetDO()
         ts.task = initTestDB.getTask(taskName)
+        ts.kost2 = kost2
         ts.user = user
         ts.startTime = start
         ts.stopTime = stop
@@ -146,9 +225,12 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
     }
 
     /** Persists without the validation of [TimesheetDao.insert], to simulate colliding legacy data. */
-    private fun persistRaw(context: PfPersistenceContext, taskName: String, user: PFUserDO, start: Date, stop: Date): Long {
+    private fun persistRaw(
+        context: PfPersistenceContext, taskName: String, user: PFUserDO, start: Date, stop: Date, kost2: Kost2DO? = null,
+    ): Long {
         val ts = TimesheetDO()
         ts.task = initTestDB.getTask(taskName)
+        ts.kost2 = kost2
         ts.user = user
         ts.startTime = start
         ts.stopTime = stop
@@ -158,9 +240,9 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
         return ts.id!!
     }
 
-    private fun assertOverlapRejected(taskName: String, user: PFUserDO, start: Date, stop: Date) {
+    private fun assertOverlapRejected(taskName: String, user: PFUserDO, start: Date, stop: Date, kost2: Kost2DO? = null) {
         try {
-            insert(taskName, user, start, stop)
+            insert(taskName, user, start, stop, kost2)
             Assertions.fail<Unit>("Overlapping time sheet on '$taskName' should have been rejected.")
         } catch (ex: UserException) {
             Assertions.assertEquals("timesheet.error.timeperiodOverlapDetection", ex.i18nKey)

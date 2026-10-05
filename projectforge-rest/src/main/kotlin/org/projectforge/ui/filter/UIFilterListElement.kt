@@ -23,7 +23,7 @@
 
 package org.projectforge.ui.filter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilterEntry
@@ -62,7 +62,7 @@ open class UIFilterListElement(
             if (enum is I18nEnum) {
                 newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
             } else {
-                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+                log.error { "UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'" }
             }
         }
         if (addNullValue) {
@@ -79,7 +79,7 @@ open class UIFilterListElement(
             if (enum is I18nEnum) {
                 newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
             } else {
-                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+                log.error { "UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'" }
             }
         }
         values = newValues
