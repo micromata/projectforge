@@ -768,12 +768,10 @@
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
           "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
-          "replacedByStartDate": "Replaced by the first month of the forecast.",
           "startDate": {
             "_": "First month of the forecast",
             "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
           },
-          "stateFilterIgnored": "Describes the current state of the orders and would distort the comparison with the previous years, so the charts leave it out (the Excel export applies it).",
           "total": "Forecast"
         },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
@@ -869,6 +867,12 @@
         "tooltip": "Recalculates the invoiced sums and invoice links of all orders from the current invoices."
       },
       "showInactivePosition": "Show inactive positions",
+      "statistics": {
+        "forecast": "Forecast charts",
+        "open": {
+          "tooltip": "Opens the order statistics with the business units, customers and projects of the current filter. Afterwards, its filter is independent of the order book."
+        }
+      },
       "status": {
         "abgelehnt": "declined",
         "abgeschlossen": "completed",
@@ -2174,6 +2178,7 @@
       "kost2arten": "Cost 2 types",
       "kostSearch": "Cost search",
       "kunden": "Customers",
+      "orderStatistics": "Order statistics",
       "orderbook": {
         "_": "Order book",
         "htmlSuffixTooltip": "Finished but not fully invoiced orders."

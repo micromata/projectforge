@@ -88,12 +88,6 @@ class ContributionMarginData(
 ) {
   /** Number of the filtered orders without a project, which can't be taken into account. */
   var ordersWithoutProject: Int = 0
-
-  /** Set by the REST layer: the list's filter criteria not applied at all. */
-  var ignoredFilterFields: List<String> = emptyList()
-
-  /** Set by the REST layer: the list's filter criteria replaced by the start date. */
-  var replacedFilterFields: List<String> = emptyList()
 }
 
 /**

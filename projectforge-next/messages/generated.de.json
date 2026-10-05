@@ -768,12 +768,10 @@
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
           "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
-          "replacedByStartDate": "Ersetzt durch den ersten Monat des Forecasts.",
           "startDate": {
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
-          "stateFilterIgnored": "Beschreibt den aktuellen Zustand der Aufträge und würde den Vergleich mit den Vorjahren verzerren, daher in den Grafiken nicht berücksichtigt (im Excel-Export schon).",
           "total": "Forecast"
         },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
@@ -869,6 +867,12 @@
         "tooltip": "Berechnet die fakturierten Summen und Rechnungsverknüpfungen aller Aufträge anhand der aktuellen Rechnungen neu."
       },
       "showInactivePosition": "Inaktive Positionen anzeigen",
+      "statistics": {
+        "forecast": "Forecast-Grafiken",
+        "open": {
+          "tooltip": "Öffnet die Auftragsstatistik mit den Business Units, Kunden und Projekten des aktuellen Filters. Danach ist ihr Filter unabhängig vom Auftragsbuch."
+        }
+      },
       "status": {
         "abgelehnt": "abgelehnt",
         "abgeschlossen": "abgeschlossen",
@@ -2174,6 +2178,7 @@
       "kost2arten": "Kost2-Arten",
       "kostSearch": "Kost-Suche",
       "kunden": "Kunden",
+      "orderStatistics": "Auftragsstatistik",
       "orderbook": {
         "_": "Auftragsbuch",
         "htmlSuffixTooltip": "Abgeschlossene und noch nicht vollständig fakturierte Aufträge."
