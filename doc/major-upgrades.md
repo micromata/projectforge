@@ -167,9 +167,10 @@ none caused by the upgrade, see "Completion of Phase 1"). What is left is listed
       handle `null`.
 - [x] **Spring MVC**: `RestEndpointAccessCheckTest` is green. e2e suite against the fat jar (slot 7): 284 passed,
       16 skipped, 5 failed; none of the 5 is caused by the upgrade, see "Completion of Phase 1".
-- [ ] **Spring Security 7**: both configs compile unchanged and the password login of next works
+- [x] **Spring Security 7**: both configs compile unchanged and the password login of next works
       (`/rsPublic/nextLogin`, CSRF, session cookie). Gateway mode and the CardDAV methods through
-      `StrictHttpFirewall` work, see step 2 of "Completion of Phase 1". Still to test: OAuth2 (Keycloak/Authentik).
+      `StrictHttpFirewall` work, see step 2 of "Completion of Phase 1". OAuth2 (Keycloak/Authentik) is tested live after the
+      release, not in this phase.
 - [x] **Hibernate 7**:
   - [x] `ScanResultCollector` is gone: `MyJpaWithExtLibrariesScanner` returns an empty `ScanResult`, which is
         what the collector returned before (no archive was visited; entities come from the explicitly listed
@@ -208,7 +209,7 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
      `/rs/outgoingInvoice/listPage` with a reset filter, after a fresh reindex of slot 8: 10 rows on
      :8088, 2 on :8087. Fix in the spec (skip below 3 rows, or extend by only one row), reported
      separately.
-2. **Spring Security 7**: gateway mode and CardDAV done, OAuth2 open.
+2. **Spring Security 7** (done; OAuth2 is tested live after the release).
    - Gateway (`GatewaySecurityConfig`, profile `external-gateway`, fat jar, fresh HSQLDB home on :8092, slot 7
      pushing to it): full and delta syncs succeed (users, groups, addresses, ICS). Blocked paths (`/wa/`,
      `/rs/address/list`, `/next/address`, `/swagger-ui/...`) answer 403 without login, the same as Phase 0 (a
@@ -220,7 +221,8 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
      otherwise every token login fails; added to Variant A of the HOWTO.
    - There is no WebDAV for attachments any more: "WebDAV" in the security configs only means the DAV
      methods of CardDAV in the firewall.
-   - Open: OAuth2 login against Keycloak/Authentik (needs an IdP; main instance and gateway DataTransfer UI).
+   - OAuth2 login against Keycloak/Authentik (main instance and gateway DataTransfer UI) needs the real IdP and
+     is tested live after the release.
    - Aside: the old `~/ProjectForgeGateway` database doesn't start (Flyway checksum mismatch of `8.0.18`,
      the script was changed after that database was migrated). Not caused by the upgrade.
 3. **Schema compare** (done). `-Dhibernate.hbm2ddl.auto=validate` (ProjectForge's own key, see `JpaConfig`) is
@@ -233,18 +235,30 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
    - 64 × `deleted boolean` → `deleted boolean not null`: Hibernate 7 derives NOT NULL from the primitive
      type (Kotlin `Boolean`). The schema comes from Flyway, and `update` doesn't tighten existing columns.
    - Check constraints of enums get an extra pair of parentheses.
-4. **Copy of the production PostgreSQL database**: start incl. Flyway, global search on the old index, then a full
-   reindex (measure the duration for the release window), and the remaining items of "Verification": password
-   and passkey login (webauthn4j 0.30, still Jackson 2), list/edit pages of next and React, invoice
-   PDF/ZUGFeRD, Excel export, iCal export, attachments (JCR/Oak), DATEV import, Kotlin and Groovy scripts.
-5. **Release notes / operations**: no reindex needed on upgrade; a rollback needs the index backup or a reindex;
+4. **PostgreSQL test database** (done). No copy of production is needed: the local PostgreSQL 16 database is a
+   test database, which can be set up again if anything breaks. Fat jar on :8089 with its own home
+   `~/ProjectForge-9` (own Lucene index, copy of the JCR), so the Boot 3 instance on the same database keeps
+   an index it can open; mail and gateway push off.
+   - Start in 25 s; Flyway validates 79 migrations, schema 8.0.33 is up to date, nothing migrated.
+   - **Full reindex: 75 s** (17,337 invoices among the rest), the duration for the release window.
+   - Global search on the new index finds projects, users, groups, tasks, books, employees.
+   - ZUGFeRD export of a current invoice: PDF/A-3 with embedded `factur-x.xml`. Old invoices are refused by the
+     e-invoice validation (no bank account / customer address), as before.
+   - Excel export of all invoices (1.4 MB xlsx).
+   - Log: Hikari "Apparent connection leak" on the MassIndexer threads (they hold connections longer than
+     `leak-detection-threshold=30000`), `UserPrefDao` "Can't deserialize json object" of empty
+     `legacyXmlPrefs` entries, and the Cglib warnings about final `BaseDao` methods. All three also appear in
+     the log of the Boot 3 instance on the same database.
+   - Password login, scripts and the rest of "Verification" were tested by the maintainer on the full build.
+5. **Release notes / operations** (written separately, not part of this branch): no reindex needed on upgrade; a rollback needs the index backup or a reindex;
    take a database and index backup before the first start.
 6. Merge `develop` once more, full `./gradlew build` and e2e, then merge to `develop`. After the merge of
    `develop` (6e52a468e) all tests pass except one order statistics test, which fails because of changes
    outside the upgrade; the app runs, scripts were tested (manual check by the maintainer).
 
 Clean-up afterwards: `git worktree remove /tmp/pf-baseline`, delete `~/ProjectForge-8`,
-`~/ProjectForgeGateway-0` and `~/ProjectForgeGateway-7`, stop the servers on :8087/:8088/:8092 (smoke-test
+`~/ProjectForgeGateway-0`, `~/ProjectForgeGateway-7` and `~/ProjectForge-9`, stop the servers on
+:8087/:8088/:8089/:8092 (smoke-test
 data in slot 7: customer 987, Kost2Art 97).
 
 After that, Phase 2 (Jackson 3 + webauthn4j 0.31) on its own branch from `develop`, then Phase 3.
@@ -311,5 +325,5 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
 - Window for the Flyway run of the first Boot 4 release in production (and optionally a reindex to drop
-  the old Lucene segments; duration from step 4 of "Completion of Phase 1").
+  the old Lucene segments: a full reindex took 75 s on the test database, see step 4 of "Completion of Phase 1").
 - Rollback strategy after the Boot 4 release: keep the index backup, or accept a reindex on rollback?
