@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.service.UserPrefService

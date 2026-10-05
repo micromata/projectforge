@@ -24,7 +24,7 @@
 package org.projectforge.rest.importer
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -161,7 +161,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
                 }
             }
             val successPage = successPage(request)
-            log.info("Successfully processed file: $filename, redirecting to: $successPage")
+            log.info { "Successfully processed file: $filename, redirecting to: $successPage" }
             return ResponseEntity(
                 ResponseAction(
                     successPage,
@@ -170,7 +170,7 @@ abstract class AbstractImportUploadPageRest : AbstractDynamicPageRest() {
             )
 
         } catch (ex: Exception) {
-            log.error("Error processing uploaded file: $filename", ex)
+            log.error(ex) { "Error processing uploaded file: $filename" }
             return result(translate("file.upload.error"), isStatusError = true)
         }
     }

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
@@ -48,7 +48,7 @@ object HolidayAndWeekendProvider {
         do {
             val dateTime = day.dateTime
             if (++paranoiaCounter > 4000) {
-                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of build.")
+                log.error { "Paranoia counter exceeded! Dear developer, please have a look at the implementation of build." }
                 break
             }
             val holiday = holidays.isHoliday(dateTime.year, dateTime.dayOfYear)

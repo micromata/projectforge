@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.EmphasizedLogSupport

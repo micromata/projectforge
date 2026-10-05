@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminLogViewerRest

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
@@ -74,7 +74,7 @@ class AddressTest : AbstractTestBase() {
         val a1 = AddressDO()
         a1.name = "Kai Reinhard"
         addressDao.insert(a1)
-        log.debug(a1.toString())
+        log.debug { a1.toString() }
 
         a1.name = "Hurzel"
         addressDao.update(a1)
@@ -84,11 +84,11 @@ class AddressTest : AbstractTestBase() {
         Assertions.assertEquals("Hurzel", a2.name)
         a2.name = "Micromata GmbH"
         addressDao.update(a2)
-        log.debug(a2.toString())
+        log.debug { a2.toString() }
 
         val a3 = addressDao.find(a1.id)!!
         Assertions.assertEquals("Micromata GmbH", a3.name)
-        log.debug(a3.toString())
+        log.debug { a3.toString() }
     }
 
     @Test

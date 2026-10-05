@@ -23,7 +23,7 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.capitalize
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass

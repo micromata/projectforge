@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.*
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -89,7 +89,7 @@ class UserRightsHandler {
         }
         list.add(rightVO)
       } else {
-        log.error("Oups, right with id '${rightDto.rightId}' not found. Will be ignored.")
+        log.error { "Oups, right with id '${rightDto.rightId}' not found. Will be ignored." }
       }
     }
     return list

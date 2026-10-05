@@ -24,7 +24,7 @@
 package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -105,7 +105,7 @@ class MessagingServiceRest {
                 try {
                     SmsSender(smsSenderConfig).send(number, text)
                 } catch (ex: Exception) {
-                    log.error("Error while trying to send sms message: ${ex.message}", ex)
+                    log.error(ex) { "Error while trying to send sms message: ${ex.message}" }
                     HttpResponseCode.UNKNOWN_ERROR
                 }
         return when (result) {

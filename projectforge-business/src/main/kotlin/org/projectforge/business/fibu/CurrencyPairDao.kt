@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.persistence.api.BaseDao

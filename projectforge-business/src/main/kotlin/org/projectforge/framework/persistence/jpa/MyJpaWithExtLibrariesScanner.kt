@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.boot.archive.internal.StandardArchiveDescriptorFactory
 import org.hibernate.boot.archive.scan.internal.ScanResultCollector
 import org.hibernate.boot.archive.scan.spi.*

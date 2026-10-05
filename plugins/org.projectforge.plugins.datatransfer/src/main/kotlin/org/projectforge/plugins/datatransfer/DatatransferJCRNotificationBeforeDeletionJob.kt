@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.StringHelper
@@ -66,11 +66,11 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     @Scheduled(cron = "0 30 4 * * *")
     fun execute() {
         if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-            log.info("Plugin data transfer not activated. Don't need notification job.")
+            log.info { "Plugin data transfer not activated. Don't need notification job." }
             return
         }
         if (PFDay.now().isHolidayOrWeekend()) {
-            log.info("Don't send notifications on files being deleted on holidays and weekends.")
+            log.info { "Don't send notifications on files being deleted on holidays and weekends." }
             return
         }
         Thread {
@@ -78,7 +78,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
             // area which will being deleted by the system.
             val notificationInfoByObserver =
                 mutableMapOf<Long, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
-            log.info("Data transfer notification job started.")
+            log.info { "Data transfer notification job started." }
             val startTimeInMillis = System.currentTimeMillis()
 
             // First of all, try to check all attachments of active areas:
@@ -122,9 +122,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
             notificationInfoByObserver.forEach { (userId, attachments) ->
                 dataTransferNotificationMailService.sendNotificationMail(userId, attachments)
             }
-            log.info(
-                "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}"
-            )
+            log.info { "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}" }
         }.start()
     }
 

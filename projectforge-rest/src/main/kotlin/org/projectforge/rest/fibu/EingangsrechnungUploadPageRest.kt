@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
@@ -83,11 +83,11 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
         val storage = lastParsedStorage
         return if (storage != null) {
             val navigationUrl = IncomingInvoiceCsvImporter.storeInSessionAndGetNavigationUrl(request, storage)
-            log.info("Navigation URL for import page: $navigationUrl")
-            log.info("Storage contains ${storage.readInvoices.size} invoices, ${storage.consolidatedInvoices.size} consolidated")
+            log.info { "Navigation URL for import page: $navigationUrl" }
+            log.info { "Storage contains ${storage.readInvoices.size} invoices, ${storage.consolidatedInvoices.size} consolidated" }
             navigationUrl
         } else {
-            log.warn("No storage available in successPage, falling back to caller page")
+            log.warn { "No storage available in successPage, falling back to caller page" }
             callerPage(request)
         }
     }

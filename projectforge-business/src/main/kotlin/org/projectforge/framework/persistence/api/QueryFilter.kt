@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.criteria.JoinType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.task.TaskTree
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.ToStringUtil
@@ -370,7 +370,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
             }
             val node = TaskTree.instance.getTaskNodeById(taskId)
             return if (node == null) {
-                log.warn("Can't query for given task id #$taskId, no such task node found.")
+                log.warn { "Can't query for given task id #$taskId, no such task node found." }
                 DBPredicate.IsNull(field)
             } else {
                 if (recursive) {

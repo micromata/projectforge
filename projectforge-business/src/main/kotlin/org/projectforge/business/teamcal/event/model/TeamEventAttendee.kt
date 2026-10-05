@@ -26,7 +26,7 @@ package org.projectforge.business.teamcal.event.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 
 private val log = KotlinLogging.logger {}

@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.search
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import jakarta.persistence.FlushModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.framework.persistence.api.BaseDO
@@ -104,10 +104,8 @@ class HibernateSearchDependentObjectsReindexer {
                     reindexDependents(em, obj, entryList, alreadyReindexed)
                     val size = alreadyReindexed.size
                     if (size >= 10) {
-                        log.info(
-                            ("Re-indexing of " + size + " objects done after updating " + obj.javaClass.name + ":"
-                                    + obj.id)
-                        )
+                        log.info { ("Re-indexing of " + size + " objects done after updating " + obj.javaClass.name + ":"
+                                    + obj.id) }
                     }
                     null
                 }
@@ -146,8 +144,8 @@ class HibernateSearchDependentObjectsReindexer {
         alreadyReindexed: MutableSet<String>
     ) {
         if (alreadyReindexed.contains(getReindexId(obj))) {
-            if (log.isDebugEnabled) {
-                log.debug("Object already re-indexed (skipping): " + getReindexId(obj))
+            if (log.isDebugEnabled()) {
+                log.debug { "Object already re-indexed (skipping): " + getReindexId(obj) }
             }
             return
         }
@@ -162,12 +160,12 @@ class HibernateSearchDependentObjectsReindexer {
             }
             searchSession.indexingPlan().addOrUpdate(dbObj)
             alreadyReindexed.add(getReindexId(dbObj))
-            if (log.isDebugEnabled) {
-                log.debug("Object added to index: " + getReindexId(dbObj))
+            if (log.isDebugEnabled()) {
+                log.debug { "Object added to index: " + getReindexId(dbObj) }
             }
         } catch (ex: Exception) {
             // Don't fail if any exception while re-indexing occurs.
-            log.info("Fail to re-index " + obj.javaClass + ": " + ex.message)
+            log.info { "Fail to re-index " + obj.javaClass + ": " + ex.message }
         }
         // em.flush(); // clear every batchSize since the queue is processed
         val entryList =
@@ -186,8 +184,8 @@ class HibernateSearchDependentObjectsReindexer {
         } else {
             "from " + registryEntry.doClass.name + " o where o." + entry.fieldName + ".id=:id"
         }
-        if (log.isDebugEnabled) {
-            log.debug(queryString + ", id=" + obj.id)
+        if (log.isDebugEnabled()) {
+            log.debug { queryString + ", id=" + obj.id }
         }
         val result: List<*> = em.createQuery(queryString, registryEntry.doClass)
             .setParameter("id", obj.id)
@@ -239,7 +237,7 @@ class HibernateSearchDependentObjectsReindexer {
                 } else {
                     for (e in list) {
                         if (entry == e) {
-                            log.warn("Entry already registered: $entry")
+                            log.warn { "Entry already registered: $entry" }
                         }
                     }
                 }

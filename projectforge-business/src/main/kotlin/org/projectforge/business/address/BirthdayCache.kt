@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -97,7 +97,7 @@ class BirthdayCache(private val addressDao: AddressDao, private val persistenceS
     }
 
     override fun refresh() {
-        log.info("Refreshing BirthdayCache...")
+        log.info { "Refreshing BirthdayCache..." }
         persistenceService.runIsolatedReadOnly {
             val filter = QueryFilter()
             filter.add(QueryFilter.isNotNull("birthday"))
@@ -111,7 +111,7 @@ class BirthdayCache(private val addressDao: AddressDao, private val persistenceS
             }
             cacheList = newList
         }
-        log.info("Refreshing BirthdayCache done.")
+        log.info { "Refreshing BirthdayCache done." }
     }
 
     companion object {

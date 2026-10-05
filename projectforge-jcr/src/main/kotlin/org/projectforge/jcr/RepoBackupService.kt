@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.common.FormatterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -211,7 +211,7 @@ open class RepoBackupService {
         }
         val filesPath = getFilesPath(zipEntry.name)
         if (!filesPath.isNullOrBlank() && !IGNORE_FILES.contains(fileName)) {
-          if (log.isDebugEnabled) {
+          if (log.isDebugEnabled()) {
             log.debug { "Restoring file content (binary) '${zipEntry?.name}', $fileName..." }
           }
           val filesNode = repoService.getNodeOrNull(session, filesPath)

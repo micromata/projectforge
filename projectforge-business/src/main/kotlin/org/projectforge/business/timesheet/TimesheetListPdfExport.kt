@@ -37,7 +37,7 @@ import com.lowagie.text.pdf.PdfPCell
 import com.lowagie.text.pdf.PdfPTable
 import com.lowagie.text.pdf.PdfPageEventHelper
 import com.lowagie.text.pdf.PdfWriter
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.configuration.ConfigurationService
@@ -151,7 +151,7 @@ open class TimesheetListPdfExport {
      * included even for an empty result — so the download never yields a file that reads as broken.
      */
     open fun export(list: List<TimesheetDO>, context: Context = Context(), options: Options = Options()): ByteArray {
-        log.info("Exporting timesheet list as PDF.")
+        log.info { "Exporting timesheet list as PDF." }
         val titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15f, Color.WHITE)
         val labelFont = FontFactory.getFont(FontFactory.HELVETICA, 9f, Color.GRAY)
         val valueFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9f)
@@ -296,7 +296,7 @@ open class TimesheetListPdfExport {
         return try {
             Image.getInstance(configurationService.logoFileObject!!.absolutePath)
         } catch (ex: Exception) {
-            log.warn("Can't load logo file for timesheet PDF export: ${ex.message}")
+            log.warn { "Can't load logo file for timesheet PDF export: ${ex.message}" }
             null
         }
     }

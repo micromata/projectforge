@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.framework.access.OperationType
@@ -104,7 +104,7 @@ class KundeCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing KundeCache ...")
+        log.info { "Initializing KundeCache ..." }
         // runReadOnlyForCacheMaintenance (not runIsolatedReadOnly): the refresh can be triggered from within an open
         // write transaction (e.g. AuftragDao.onInsertOrModify -> resolveKundeAndProjekt). Opening a second, isolated
         // connection there would self-deadlock on a lock-based DB such as HSQLDB (also the default embedded production

@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.NoResultException
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -99,7 +99,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     open fun findByName(fullname: String): EmployeeDO? {
         val tokenizer = StringTokenizer(fullname, ",")
         if (tokenizer.countTokens() != 2) {
-            log.error("EmployeeDao.getByName: Token '$fullname' not supported.")
+            log.error { "EmployeeDao.getByName: Token '$fullname' not supported." }
         }
         Validate.isTrue(tokenizer.countTokens() == 2)
         val lastname = tokenizer.nextToken().trim { it <= ' ' }
@@ -194,7 +194,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 "staffNumber" to staffnumber,
             )
         } catch (ex: NoResultException) {
-            log.warn("No employee found for staffnumber: $staffnumber: ${ex.message}", ex)
+            log.warn(ex) { "No employee found for staffnumber: $staffnumber: ${ex.message}" }
         }
         employeeCache.setTimeDependentAttrs(result)
         return result

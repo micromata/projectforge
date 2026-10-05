@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.io.IOException
@@ -80,7 +80,7 @@ object JsonUtils {
                 objectMapper.writeValueAsString(obj)
             }
         } catch (ex: JsonProcessingException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             ""
         }
     }

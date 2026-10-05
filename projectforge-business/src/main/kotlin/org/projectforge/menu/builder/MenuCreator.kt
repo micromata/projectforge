@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.dvelop.DvelopConfiguration
@@ -247,7 +247,7 @@ open class MenuCreator {
                 menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 return // This should only occur in test cases.
             }
-            log.error("Oups, shouldn't occur. Spring bean not correctly initialized.")
+            log.error { "Oups, shouldn't occur. Spring bean not correctly initialized." }
         }
         //////////////////////////////////////
         //
@@ -688,7 +688,7 @@ open class MenuCreator {
         values: Array<UserRightValue>?
     ): Boolean {
         if (values.isNullOrEmpty()) {
-            log.warn("Can't check user right '$rightId' against null values.")
+            log.warn { "Can't check user right '$rightId' against null values." }
             return false
         }
         return accessChecker.hasRight(menuBuilderContext.user, rightId, false, *values)

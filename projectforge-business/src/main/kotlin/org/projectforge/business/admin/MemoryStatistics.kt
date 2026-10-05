@@ -23,7 +23,7 @@
 
 package org.projectforge.business.admin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal

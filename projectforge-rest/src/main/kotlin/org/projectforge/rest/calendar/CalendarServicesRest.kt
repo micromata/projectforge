@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.calendar
 
-import jakarta.ws.rs.BadRequestException
 import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
@@ -50,6 +49,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URLEncoder
 import java.time.LocalDate
 import java.util.*
@@ -359,7 +359,7 @@ class CalendarServicesRest {
     private fun adjustRange(range: DateTimeRange) {
         if (range.end != null) {
             if (range.start.daysBetween(range.end!!) > 50)
-                throw BadRequestException("Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
             return
         } else {
             range.end = range.start.plusDays(1)

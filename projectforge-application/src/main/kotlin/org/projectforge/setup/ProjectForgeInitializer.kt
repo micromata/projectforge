@@ -23,7 +23,7 @@
 
 package org.projectforge.setup
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ProjectForgeApp
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.CanonicalFileUtils

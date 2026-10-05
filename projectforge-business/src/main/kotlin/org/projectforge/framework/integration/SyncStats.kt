@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.integration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.common.extensions.formatMillis

@@ -24,7 +24,7 @@
 package org.projectforge.business.jobs
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.common.html.Html
@@ -73,7 +73,7 @@ class CronSanityCheckJob {
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
     fun cron() {
-        log.info("Cronjob for executing sanity checks started...")
+        log.info { "Cronjob for executing sanity checks started..." }
 
         Thread {
             val start = System.currentTimeMillis()
@@ -101,7 +101,7 @@ class CronSanityCheckJob {
                     }
                 }
             } finally {
-                log.info("Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}")
+                log.info { "Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}" }
             }
         }.start()
     }
@@ -111,11 +111,11 @@ class CronSanityCheckJob {
         jobs.forEach { job ->
             val jobContext = context.add(job)
             try {
-                log.info("Executing sanity check job: ${job::class.simpleName}")
+                log.info { "Executing sanity check job: ${job::class.simpleName}" }
                 job.executeJob(jobContext)
-                log.info("Execution of sanity check job done: ${job::class.simpleName}")
+                log.info { "Execution of sanity check job done: ${job::class.simpleName}" }
             } catch (ex: Throwable) {
-                log.error("While executing sanity job ${job::class.simpleName}: " + ex.message, ex)
+                log.error(ex) { "While executing sanity job ${job::class.simpleName}: " + ex.message }
             }
         }
         return context

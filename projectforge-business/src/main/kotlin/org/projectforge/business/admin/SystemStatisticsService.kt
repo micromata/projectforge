@@ -24,7 +24,7 @@
 package org.projectforge.business.admin
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.integration.SyncStatsRegistry
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,7 +78,7 @@ class SystemStatistics {
             it.addStatisticsEntries(stats)
         }
 
-        log.info("Statistics: ${ToStringUtil.toJsonString(stats)}")
+        log.info { "Statistics: ${ToStringUtil.toJsonString(stats)}" }
         return stats
     }
 

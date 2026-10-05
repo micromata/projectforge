@@ -56,7 +56,7 @@ configurations.all {
 
 dependencies {
     api(libs.findLibrary("org-jetbrains-kotlin-stdlib").get())
-    api(libs.findLibrary("io-github-microutils-kotlin-logging").get())
+    api(libs.findLibrary("io-github-oshai-kotlin-logging").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-api").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-engine").get())
     testImplementation(libs.findLibrary("org-junit-platform-launcher").get())

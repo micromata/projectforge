@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
@@ -258,7 +258,7 @@ class PhoneCallRest {
     @PostMapping("call")
     fun call(@RequestBody postData: CallRequest): CallResult {
         if (!sipgateConfiguration.isConfigured()) {
-            log.error("Sipgate isn't configured. Phone calls not supported.")
+            log.error { "Sipgate isn't configured. Phone calls not supported." }
             return CallResult(false, translate("address.phoneCall.result.callingError"))
         }
         val number = NumberHelper.extractPhonenumber(postData.phoneNumber)

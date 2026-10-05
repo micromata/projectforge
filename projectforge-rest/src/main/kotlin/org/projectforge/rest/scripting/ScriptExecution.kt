@@ -25,7 +25,7 @@ package org.projectforge.rest.scripting
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.excel.ExportWorkbook
 import org.projectforge.business.scripting.*
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
@@ -263,7 +263,7 @@ class ScriptExecution {
             }
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 
@@ -282,7 +282,7 @@ class ScriptExecution {
             )
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 
@@ -300,7 +300,7 @@ class ScriptExecution {
             )
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 

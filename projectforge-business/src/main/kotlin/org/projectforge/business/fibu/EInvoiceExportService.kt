@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.word.WordDocument
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.mustangproject.BankDetails
 import org.mustangproject.CashDiscount
 import org.mustangproject.Contact

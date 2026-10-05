@@ -23,25 +23,25 @@
 
 package org.projectforge.business.gantt;
 
-import net.sf.mpxj.*;
-import net.sf.mpxj.mpx.MPXWriter;
-import net.sf.mpxj.mspdi.MSPDIWriter;
-import net.sf.mpxj.writer.ProjectWriter;
+import org.mpxj.*;
+import org.mpxj.mpx.MPXWriter;
+import org.mpxj.mspdi.MSPDIWriter;
+import org.mpxj.writer.ProjectWriter;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.framework.time.PFDayUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Uses the implementation of http://mpxj.sourceforge.net/, which is distributed under the terms of the GNU LGPL.
+ * Uses the implementation of https://www.mpxj.org/, which is distributed under the terms of the GNU LGPL.
  *
  * @author Kai Reinhard
  */
@@ -58,61 +58,62 @@ public class ExportMSProject {
 
   private static byte[] export(final ProjectWriter result, final GanttChart ganttChart) {
     final ProjectFile file = new ProjectFile();
+    final ProjectConfig config = file.getProjectConfig();
 
     //
     // Configure the file to automatically generate identifiers for tasks.
     //
-    file.setAutoTaskID(true);
-    file.setAutoTaskUniqueID(true);
+    config.setAutoTaskID(true);
+    config.setAutoTaskUniqueID(true);
 
     //
     // Configure the file to automatically generate identifiers for resources.
     //
-    file.setAutoResourceID(true);
-    file.setAutoResourceUniqueID(true);
+    config.setAutoResourceID(true);
+    config.setAutoResourceUniqueID(true);
 
     //
     // Configure the file to automatically generate outline levels
     // and outline numbers.
     //
-    file.setAutoOutlineLevel(true);
-    file.setAutoOutlineNumber(true);
+    config.setAutoOutlineLevel(true);
+    config.setAutoOutlineNumber(true);
 
     //
     // Configure the file to automatically generate WBS labels
     //
-    file.setAutoWBS(true);
+    config.setAutoWBS(true);
 
     //
     // Configure the file to automatically generate identifiers for calendars
     // (not strictly necessary here, but required if generating MSPDI files)
     //
-    file.setAutoCalendarUniqueID(true);
+    config.setAutoCalendarUniqueID(true);
 
     //
-    // Retrieve the project header and set the start date. Note Microsoft
+    // Retrieve the project properties and set the start date. Note Microsoft
     // Project appears to reset all task dates relative to this date, so this
     // date must match the start date of the earliest task for you to see
     // the expected results. If this value is not set, it will default to
     // today's date.
     //
     ganttChart.recalculate();
-    final ProjectHeader header = file.getProjectHeader();
-    header.setStartDate(PFDayUtils.convertToUtilDate(ganttChart.getCalculatedStartDate()));
+    file.getProjectProperties().setStartDate(ganttChart.getCalculatedStartDate().atStartOfDay());
 
     //
     // Add a default calendar called "Standard"
     //
     final ProjectCalendar calendar = file.addDefaultBaseCalendar();
-    calendar.setWorkingDay(Day.SATURDAY, false);
-    calendar.setWorkingDay(Day.SUNDAY, false);
+    file.setDefaultCalendar(calendar);
+    calendar.setWorkingDay(DayOfWeek.SATURDAY, false);
+    calendar.setWorkingDay(DayOfWeek.SUNDAY, false);
     PFDateTime dt = PFDateTime.from(ganttChart.getCalculatedStartDate()); // not null
     for (int i = 0; i < 3000; i++) { // Endless loop protection (paranoia)
       dt = dt.plusDays(1);
       Holidays holidays = Holidays.getInstance();
       if (!holidays.isWorkingDay(dt.getDateTime()) && holidays.isHoliday(dt) && !dt.isWeekend()) {
         // Add this holiday to the calendar:
-        final Date date = dt.getSqlDate();
+        final LocalDate date = dt.getLocalDate();
         calendar.addCalendarException(date, date);
         if (log.isDebugEnabled()) {
           log.debug("Add holiday: " + date);
@@ -158,10 +159,10 @@ public class ExportMSProject {
     taskMap.put(ganttTask.getId(), task);
     task.setName(ganttTask.getTitle());
     if (ganttTask.getStartDate() != null) {
-      task.setStart(PFDayUtils.convertToUtilDate(ganttTask.getStartDate()));
+      task.setStart(ganttTask.getStartDate().atStartOfDay());
     }
     if (ganttTask.getEndDate() != null) {
-      task.setFinish(PFDayUtils.convertToUtilDate(ganttTask.getEndDate()));
+      task.setFinish(ganttTask.getEndDate().atStartOfDay());
     }
     final BigDecimal duration = ganttTask.getDuration();
     final double value;
@@ -202,7 +203,10 @@ public class ExportMSProject {
         } else {
           value = predecessorOffset;
         }
-        task.addPredecessor(predecessor, getRelationType(ganttTask.getRelationType()), Duration.getInstance(value, TimeUnit.DAYS));
+        task.addPredecessor(new Relation.Builder()
+            .predecessorTask(predecessor)
+            .type(getRelationType(ganttTask.getRelationType()))
+            .lag(Duration.getInstance(value, TimeUnit.DAYS)));
       }
     }
     final List<GanttTask> children = ganttTask.getChildren();

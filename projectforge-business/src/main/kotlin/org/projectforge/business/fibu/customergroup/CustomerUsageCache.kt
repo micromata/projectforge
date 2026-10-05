@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu.customergroup
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.kost.KostCache
@@ -72,7 +72,7 @@ class CustomerUsageCache : AbstractCache(TICKS_PER_HOUR) {
         }
 
     override fun refresh() {
-        log.info("Initializing CustomerUsageCache ...")
+        log.info { "Initializing CustomerUsageCache ..." }
         // As KundeCache: the refresh may run inside a write transaction (the order listener).
         runReadOnlyForCacheMaintenance { context ->
             val orders = mutableMapOf<Pair<CustomerKey, Long?>, LocalDate>()

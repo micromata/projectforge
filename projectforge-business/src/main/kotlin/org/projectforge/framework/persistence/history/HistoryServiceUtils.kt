@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BeanHelper
 
 private val log = KotlinLogging.logger {}
@@ -78,7 +78,7 @@ class HistoryServiceUtils private constructor() {
                 set.add(fieldName)
             }
         }
-        if (log.isDebugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug { "NoHistory properties for class ${entityClass.name}: $set" }
         }
         entityClass.superclass?.let { determineNoHistoryProperties(it, set) }

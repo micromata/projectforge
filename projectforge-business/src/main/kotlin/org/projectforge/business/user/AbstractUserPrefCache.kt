@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ShutdownListener
 import org.projectforge.business.user.UserPrefCache.Companion.dontCallShutdownInTestMode
 import org.projectforge.framework.ToStringUtil
@@ -178,7 +178,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
                 try {
                     saveOrUpdate(userId, key, value, checkAccess)
                 } catch (ex: Throwable) {
-                    log.warn(ex.message, ex)
+                    log.warn(ex) { ex.message }
                 }
             } else {
                 log.debug { "User preference not modified: ${createLogMessagePart(userId, key)}" }
@@ -265,7 +265,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * logout. If the user data isn't modified, then nothing will be done.
      */
     private fun flushAllToDB() {
-        log.info("$title: Flushing all user preferences to database....")
+        log.info { "$title: Flushing all user preferences to database...." }
         persistenceService.runInNewTransaction {
             synchronized(allPreferences) {
                 allPreferences.forEach { (_, data) ->
@@ -306,9 +306,9 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
-        log.info("$title: Flushing all user preferences to database....")
+        log.info { "$title: Flushing all user preferences to database...." }
         flushAllToDB()
-        log.info("$title: Flushing of user preferences to database done.")
+        log.info { "$title: Flushing of user preferences to database done." }
     }
 
     /**
@@ -332,7 +332,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
 
     override fun shutdown() {
         if (dontCallShutdownInTestMode) {
-            log.info("$title: It seems to be running in test mode. No sync to database in $title.")
+            log.info { "$title: It seems to be running in test mode. No sync to database in $title." }
             return
         }
         flushAllToDB()

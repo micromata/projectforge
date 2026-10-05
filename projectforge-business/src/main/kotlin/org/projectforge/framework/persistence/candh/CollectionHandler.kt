@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.candh
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.collection.spi.PersistentList
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils

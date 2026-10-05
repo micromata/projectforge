@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dvelop
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.dvelop.ListData
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -96,7 +96,7 @@ abstract class AbstractDvelopService<T>(val path: String, val entityName: String
       log.error { "Can't delete $entityName #$id: $json" }
       return false
     }
-    log.info("Trying to delete $entityName #$id: $json")
+    log.info { "Trying to delete $entityName #$id: $json" }
     val uriSpec = webClient.delete()
     val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
       uriBuilder
@@ -127,7 +127,7 @@ abstract class AbstractDvelopService<T>(val path: String, val entityName: String
       }
       return true
     } catch (ex: Exception) {
-      log.error("Error while creating $entityName in D.velop: ${ex.message}: $json")
+      log.error { "Error while creating $entityName in D.velop: ${ex.message}: $json" }
       return false
     }
   }
@@ -162,7 +162,7 @@ abstract class AbstractDvelopService<T>(val path: String, val entityName: String
       }
       return true
     } catch (ex: Exception) {
-      log.error("Error while updating $entityName in D.velop: ${ex.message}: $json")
+      log.error { "Error while updating $entityName in D.velop: ${ex.message}: $json" }
       return false
     }
   }

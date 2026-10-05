@@ -23,7 +23,7 @@
 
 package org.projectforge.web
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache

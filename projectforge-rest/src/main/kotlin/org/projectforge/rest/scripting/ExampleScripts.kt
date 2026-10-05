@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 
 private val log = KotlinLogging.logger {}
@@ -36,7 +36,7 @@ object ExampleScripts {
     val resourcePath = "example-scripts/${example.filename}"
     val resourceStream = ExampleScripts::class.java.classLoader.getResourceAsStream(resourcePath)
     if (resourceStream == null) {
-      log.error("Internal error: Can't read initial config data from class path: $resourcePath")
+      log.error { "Internal error: Can't read initial config data from class path: $resourcePath" }
       return "// ${example.filename} not found."
     }
     return IOUtils.toString(resourceStream, "UTF-8")

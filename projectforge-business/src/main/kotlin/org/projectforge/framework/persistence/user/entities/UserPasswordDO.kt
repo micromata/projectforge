@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
@@ -84,7 +84,7 @@ open class UserPasswordDO : DefaultBaseDO() {
       (pw != NOPASSWORD)
     ) {
       this.passwordHash = null
-      log.error("Password for user '${this.user?.id}' is not given SHA encrypted. Ignoring it.")
+      log.error { "Password for user '${this.user?.id}' is not given SHA encrypted. Ignoring it." }
     }
   }
 

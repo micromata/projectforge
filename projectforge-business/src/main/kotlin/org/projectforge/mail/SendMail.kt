@@ -23,7 +23,7 @@
 
 package org.projectforge.mail
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.io.File
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import jakarta.activation.DataHandler
@@ -174,7 +175,7 @@ open class SendMail {
     async: Boolean = true
   ): Boolean {
     if (composedMessage == null) {
-      log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.")
+      log.error { "No message object of type org.projectforge.mail.Mail given. E-Mail not sent." }
       return false
     }
     if (!isConfigured) {
@@ -183,7 +184,7 @@ open class SendMail {
     }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
-      log.error("No to address given. Sending of mail cancelled: $composedMessage")
+      log.error { "No to address given. Sending of mail cancelled: $composedMessage" }
       throw UserException("mail.error.missingToAddress")
     }
     if (async) {
@@ -242,68 +243,82 @@ open class SendMail {
     composedMessage: Mail, icalContent: String?,
     attachments: Collection<IMailAttachment>?
   ) {
-    log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
+    log.info { "Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", ") }
     try {
-      val session = session
-      /*if (SystemStatus.isDevelopmentMode()) {
-        session!!.setDebug(true)
-      }*/
-      val message = MimeMessage(session)
-      if (composedMessage.from != null) {
-        message.setFrom(InternetAddress(composedMessage.from))
-      } else {
-        mailFromStandardEmailSender
-          ?.takeIf { it.isNotBlank() }
-          ?.let { message.setFrom(InternetAddress(it)) }
-          ?: message.setFrom()
-      }
-      message.setRecipients(
-        Message.RecipientType.TO,
-        composedMessage.to.toTypedArray<Address>()
-      )
-      if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
-        message.setRecipients(
-          Message.RecipientType.CC,
-          composedMessage.cc.toTypedArray<Address>()
-        )
-      }
-      //message.setHeader("Return-Path", "")
-      //message.setHeader("Reply-To", "")
-      val subject = composedMessage.subject
-      message.setSubject(subject, CHARSET)
-      message.sentDate = Date()
-      if (StringUtils.isBlank(icalContent) && attachments == null) {
-        // create message without attachments
-        if (composedMessage.contentType != null) {
-          message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
-        } else {
-          message.setText(composedMessage.content, CHARSET)
-        }
-        // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
-        // message.setText("Einfache Textnachricht")
-      } else {
-        // create message with attachments
-        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
-        message.setContent(mp)
-      }
-      message.saveChanges() // don't forget this
+      val message = createMimeMessage(composedMessage, icalContent, attachments)
       if (testMode) {
-        log.info("Test mode, do not really send e-mails (OK only for test cases).")
+        log.info { "Test mode, do not really send e-mails (OK only for test cases)." }
       } else {
         Transport.send(message)
       }
     } catch (ex: Exception) {
-      log.error("While creating and sending message: $composedMessage", ex)
+      log.error(ex) { "While creating and sending message: $composedMessage" }
       throw InternalErrorException("mail.error.exception")
     }
-    log.info("E-Mail successfully sent: $composedMessage")
+    log.info { "E-Mail successfully sent: $composedMessage" }
+  }
+
+  /**
+   * Builds the MIME message as [send] transports it, without sending it. A mail server isn't needed for this,
+   * so it may also be used to export a mail, e.g. as an .eml file by [MimeMessage.writeTo].
+   */
+  @Throws(MessagingException::class)
+  fun createMimeMessage(
+    composedMessage: Mail,
+    icalContent: String? = null,
+    attachments: Collection<IMailAttachment>? = null,
+  ): MimeMessage {
+    val message = MimeMessage(session)
+    if (composedMessage.from != null) {
+      message.setFrom(InternetAddress(composedMessage.from))
+    } else {
+      mailFromStandardEmailSender
+        ?.takeIf { it.isNotBlank() }
+        ?.let { message.setFrom(InternetAddress(it)) }
+        ?: message.setFrom()
+    }
+    message.setRecipients(
+      Message.RecipientType.TO,
+      composedMessage.to.toTypedArray<Address>()
+    )
+    if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
+      message.setRecipients(
+        Message.RecipientType.CC,
+        composedMessage.cc.toTypedArray<Address>()
+      )
+    }
+    //message.setHeader("Return-Path", "")
+    //message.setHeader("Reply-To", "")
+    val subject = composedMessage.subject
+    message.setSubject(subject, CHARSET)
+    message.sentDate = Date()
+    val logo = inlineLogo?.takeIf {
+      composedMessage.contentType == Mail.CONTENTTYPE_HTML && composedMessage.content?.contains(LOGO_CID_URL) == true
+    }
+    if (StringUtils.isBlank(icalContent) && attachments == null && logo == null) {
+      // create message without attachments
+      if (composedMessage.contentType != null) {
+        message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
+      } else {
+        message.setText(composedMessage.content, CHARSET)
+      }
+      // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
+      // message.setText("Einfache Textnachricht")
+    } else {
+      // create message with attachments
+      val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET, logo)
+      message.setContent(mp)
+    }
+    message.saveChanges() // don't forget this
+    return message
   }
 
   @Throws(MessagingException::class)
   private fun createMailAttachmentContent(
     message: MimeMessage, composedMessage: Mail, icalContent: String?,
     attachments: Collection<IMailAttachment>?,
-    charset: String
+    charset: String,
+    logo: File? = null,
   ): MimeMultipart {
     // create and fill the first message part
     val mbp1 = MimeBodyPart()
@@ -318,9 +333,13 @@ open class SendMail {
     }
     mbp1.setContent(composedMessage.content, type)
     mbp1.setHeader("Content-Transfer-Encoding", "8bit")
+    val related = logo?.let { createRelatedContent(mbp1, it) }
+    if (related != null && StringUtils.isBlank(icalContent) && attachments.isNullOrEmpty()) {
+      return related
+    }
     // create the Multipart and its parts to it
     val mp = MimeMultipart()
-    mp.addBodyPart(mbp1)
+    mp.addBodyPart(related?.let { MimeBodyPart().also { part -> part.setContent(it) } } ?: mbp1)
     if (StringUtils.isNotBlank(icalContent)) {
       message.addHeaderLine("method=REQUEST")
       message.addHeaderLine("charset=UTF-8")
@@ -362,22 +381,51 @@ open class SendMail {
   }
 
   /**
+   * The html body together with the logo as inline image, referenced by [LOGO_CID_URL] (multipart/related). So
+   * mail clients show the logo without loading it from the server, which many of them block by default.
+   */
+  private fun createRelatedContent(htmlPart: MimeBodyPart, logo: File): MimeMultipart {
+    val related = MimeMultipart("related")
+    related.addBodyPart(htmlPart)
+    val logoPart = MimeBodyPart()
+    val extension = logo.extension.lowercase()
+    logoPart.dataHandler = DataHandler(ByteArrayDataSource(logo.readBytes(), INLINE_LOGO_TYPES[extension]))
+    logoPart.contentID = "<$LOGO_CONTENT_ID>"
+    logoPart.disposition = Part.INLINE
+    logoPart.fileName = "logo.$extension"
+    related.addBodyPart(logoPart)
+    return related
+  }
+
+  /**
+   * The configured logo, if it may be embedded in mails (png, jpg or gif), see [createRelatedContent].
+   */
+  private val inlineLogo: File?
+    get() = configurationService.logoFileObject?.takeIf {
+      configurationService.isLogoFileValid && INLINE_LOGO_TYPES.containsKey(it.extension.lowercase())
+    }
+
+  /**
    * @param composedMessage
    * @param groovyTemplate
    * @param data
    * @param title Title is put in the data map and may be received inside the mail template.
+   * @param locale Locale of the mail, if no recipient is given (e.g. mails to a configured address). The locale of
+   * the recipient has precedence.
    * @see GroovyEngine.executeTemplateFile
    */
+  @JvmOverloads
   fun renderGroovyTemplate(
     composedMessage: Mail, groovyTemplate: String,
     data: MutableMap<String, Any?>,
     title: String,
-    recipient: PFUserDO?
+    recipient: PFUserDO?,
+    locale: Locale? = null,
   ): String {
     prepare(composedMessage, data, title, recipient)
-    log.debug("groovyTemplate=$groovyTemplate")
+    log.debug { "groovyTemplate=$groovyTemplate" }
     val engine = GroovyEngine(
-      configurationService, data, recipient?.locale,
+      configurationService, data, recipient?.locale ?: locale,
       recipient?.timeZone
     )
     return engine.executeTemplateFile(groovyTemplate)
@@ -424,7 +472,10 @@ open class SendMail {
     }
     data["msg"] = composedMessage
     data["baseUrl"] = buildUrl("")
-    if (configurationService.isLogoFileValid) {
+    if (inlineLogo != null) {
+      // Embedded by createMimeMessage.
+      data["logoUrl"] = LOGO_CID_URL
+    } else if (configurationService.isLogoFileValid) {
       val logoBasename = configurationService.syntheticLogoName
       data["logoUrl"] = buildUrl("rsPublic/$logoBasename")
     }
@@ -467,6 +518,18 @@ open class SendMail {
     private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
 
     private const val CHARSET = "UTF-8"
+
+    private const val LOGO_CONTENT_ID = "logo@projectforge"
+
+    /** Url of the logo inside the mail templates, if the logo is embedded, see [createRelatedContent]. */
+    const val LOGO_CID_URL = "cid:$LOGO_CONTENT_ID"
+
+    private val INLINE_LOGO_TYPES = mapOf(
+      "png" to "image/png",
+      "jpg" to "image/jpeg",
+      "jpeg" to "image/jpeg",
+      "gif" to "image/gif",
+    )
 
     /** Fallback for the three SMTP timeouts, used when the property is not set at all. */
     private const val DEFAULT_TIMEOUT_MS = "10000"

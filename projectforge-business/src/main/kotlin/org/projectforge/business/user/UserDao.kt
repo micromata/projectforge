@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.login.Login
@@ -149,13 +149,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
             user, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
         )
-        log.debug("UserDao hasSelectAccess. Check user member of admin, finance or controlling group: $result")
+        log.debug { "UserDao hasSelectAccess. Check user member of admin, finance or controlling group: $result" }
         if (!result && obj.hasSystemAccess()) {
             result = accessChecker.areUsersInSameGroup(user, obj)
-            log.debug(
-                ("UserDao hasSelectAccess. Caller user: " + user.username + " Check user: " + obj.username
-                        + " Check user in same group: " + result)
-            )
+            log.debug { ("UserDao hasSelectAccess. Caller user: " + user.username + " Check user: " + obj.username
+                        + " Check user in same group: " + result) }
         }
         if (throwException && !result) {
             throw AccessException(user, AccessType.GROUP, OperationType.SELECT)
@@ -281,10 +279,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         dbUser.sshPublicKey = user.sshPublicKey
         val result = update(dbUser, checkAccess = false)
         if (result != EntityCopyStatus.NONE) {
-            log.info("Object updated: $dbUser")
+            log.info { "Object updated: $dbUser" }
             copyValues(user, contextUser)
         } else {
-            log.info("No modifications detected (no update needed): $dbUser")
+            log.info { "No modifications detected (no update needed): $dbUser" }
         }
         userGroupCache.updateUser(contextUser)
     }
@@ -375,11 +373,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         }
         val passwordObj = userPasswordDao!!.internalGetByUserId(userId)
         if (passwordObj == null) {
-            log.warn("Can't encrypt data. Password for user $userId not found.")
+            log.warn { "Can't encrypt data. Password for user $userId not found." }
             return null
         }
         if (StringUtils.isBlank(passwordObj.passwordHash)) {
-            log.warn("Can't encrypt data. Password of user '$userId not found.")
+            log.warn { "Can't encrypt data. Password of user '$userId not found." }
             return null
         }
         return passwordObj.passwordHash

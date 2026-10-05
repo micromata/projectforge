@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.ihk
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO

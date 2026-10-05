@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.candh
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
 import org.hibernate.proxy.HibernateProxy

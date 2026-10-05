@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -94,7 +94,7 @@ class SipgatePageRest : AbstractDynamicPageRest() {
   @GetMapping("downloadConfiguration")
   fun downloadConfiguration(): ResponseEntity<ByteArrayResource> {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-    log.info("Downloading configuration (users, devices etc.) of Sipgate.")
+    log.info { "Downloading configuration (users, devices etc.) of Sipgate." }
     return SipgateExcelExporter.download(sipateSyncService.readStorage())
   }
 
@@ -104,11 +104,11 @@ class SipgatePageRest : AbstractDynamicPageRest() {
     thread(start = true) {
       sipateSyncService.readStorage(true)
     }
-    log.info("Synchronizing addresses for Sipgate.")
+    log.info { "Synchronizing addresses for Sipgate." }
     val ctx = sipgateContactSyncService.sync()
     val msg =
       "Synchronizing result: local addresses: [${ctx.localCounter}], remote contacts: [${ctx.remoteCounter}]."
-    log.info(msg)
+    log.info { msg }
     return UIToast.createToast(
       msg, color = UIColor.SUCCESS
     )
@@ -117,11 +117,11 @@ class SipgatePageRest : AbstractDynamicPageRest() {
   @GetMapping("resetContacts")
   fun resetContacts(): ResponseAction {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-    log.info("Synchronizing addresses for Sipgate.")
+    log.info { "Synchronizing addresses for Sipgate." }
     val ctx = sipgateContactSyncService.sync(resetContacts = true)
     val msg =
       "Synchronizing result: local addresses: [${ctx.localCounter}], remote contacts: [${ctx.remoteCounter}]."
-    log.info(msg)
+    log.info { msg }
     return UIToast.createToast(
       msg, color = UIColor.SUCCESS
     )

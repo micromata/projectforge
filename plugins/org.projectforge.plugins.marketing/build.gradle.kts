@@ -14,7 +14,6 @@ tasks.withType<KotlinCompile> {
 dependencies {
     api(project(":projectforge-rest"))
     testImplementation(project(":projectforge-business"))
-    testImplementation(libs.jakarta.servlet.api)
 }
 
 description = "org.projectforge.plugins.marketing"

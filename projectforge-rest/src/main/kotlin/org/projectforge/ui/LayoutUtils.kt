@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -343,7 +343,7 @@ object LayoutUtils {
                             else -> null
                         }
                         if (i18nKey == null) {
-                            log.error("i18nKey not found for action button '${element.id}'.")
+                            log.error { "i18nKey not found for action button '${element.id}'." }
                         } else {
                             element.title = translate(i18nKey)
                         }

@@ -24,7 +24,7 @@
 package org.projectforge.security
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.OperationType

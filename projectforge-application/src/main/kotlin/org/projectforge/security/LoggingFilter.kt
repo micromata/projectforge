@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.common.logging.*
@@ -33,6 +33,7 @@ import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.MDC
 import java.io.IOException
+import java.util.concurrent.ThreadLocalRandom
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.carddav.CardDavFilter
@@ -40,7 +41,7 @@ import org.projectforge.carddav.CardDavFilter
 private val log = KotlinLogging.logger {}
 
 /**
- * LoggingFilter called first for all requests. Puts IP, SESSION, USERx and USER_AGENT to MDC and logs access, if debug is enabled.
+ * LoggingFilter called first for all requests. Puts REQUEST_ID, IP, SESSION, USER and USER_AGENT to MDC and logs access, if debug is enabled.
  * Logs also requested urls by the clients for detecting suspicious access (used by e. g. fail2ban).
  * @see ConfigurationService.accessLogConfiguration
  */
@@ -52,6 +53,7 @@ class LoggingFilter : Filter {
     val request = req as HttpServletRequest
 
     try {
+      MDC.put(MDC_REQUEST_ID, newRequestId())
       val userAgent = request.getHeader("User-Agent")
       val sessionId = request.getSession(false)?.id
       val clientIp = WebUtils.getClientIp(request) ?: "unknown"
@@ -65,8 +67,8 @@ class LoggingFilter : Filter {
       val username = LoginService.getUserContext(request)?.user?.username
       MDC.put(MDC_USER, username ?: "")
 
-      if (log.isDebugEnabled) {
-        log.debug("doFilter " + request.requestURI + ": " + request.getSession(false)?.id)
+      if (log.isDebugEnabled()) {
+        log.debug { "doFilter " + request.requestURI + ": " + request.getSession(false)?.id }
       }
       when (ConfigurationServiceAccessor.get().accessLogConfiguration) {
         "NONE" -> {
@@ -87,6 +89,7 @@ class LoggingFilter : Filter {
       }
       chain.doFilter(req, resp)
     } finally {
+      MDC.remove(MDC_REQUEST_ID)
       MDC.remove(MDC_IP)
       MDC.remove(MDC_SESSION)
       if (logSessionIds) {
@@ -102,6 +105,9 @@ class LoggingFilter : Filter {
   }
 
   companion object {
+    /** 8 hex digits: short enough for log lines, unique enough to tell concurrent requests apart. */
+    internal fun newRequestId(): String = "%08x".format(ThreadLocalRandom.current().nextInt())
+
     internal fun logSuspiciousURI(request: HttpServletRequest, username: String?): Boolean {
       val uri = WebUtils.getNormalizedUri(request)
       if (uri.isNullOrBlank() ||

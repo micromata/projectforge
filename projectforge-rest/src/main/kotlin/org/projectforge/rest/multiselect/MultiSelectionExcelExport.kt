@@ -25,7 +25,7 @@ package org.projectforge.rest.multiselect
 
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.usermodel.CellStyle
 import org.projectforge.common.props.PropertyType
 import org.projectforge.excel.ExcelUtils
@@ -52,7 +52,7 @@ object MultiSelectionExcelExport {
     massUpdateContext: MassUpdateContext<T>,
     multiSelectedPage: AbstractMultiSelectedPage<T>
   ): ByteArray {
-    log.info("Exporting results of mass update as Excel file.")
+    log.info { "Exporting results of mass update as Excel file." }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
       val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)

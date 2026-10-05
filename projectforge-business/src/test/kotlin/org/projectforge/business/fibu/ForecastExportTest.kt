@@ -462,7 +462,7 @@ class ForecastExportTest : AbstractTestBase() {
         // projectforge.fibu.forecast.distributeUnusedBudget=false).
         val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
-        baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
+        baseLog.info { "Writing forecast Excel file to work directory: " + excelFile.absolutePath }
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->

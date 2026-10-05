@@ -27,7 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import java.util.concurrent.CopyOnWriteArrayList
@@ -406,7 +406,7 @@ abstract class AbstractCache {
                     this.refreshedInvalidation = invalidation
                     this.isExpired = false
                 } catch (ex: Throwable) {
-                    log.error(ex.message, ex)
+                    log.error(ex) { ex.message }
                 }
             } finally {
                 isRefreshInProgress = false

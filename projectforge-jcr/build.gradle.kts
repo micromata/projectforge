@@ -23,7 +23,6 @@ dependencies {
     api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.jakarta.annotation.api)
     api(libs.net.lingala.zip4j.zip4j)
-    api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.org.apache.jackrabbit.oak.segment.tar)
     api(libs.org.apache.jackrabbit.oak.store.document)
     api(libs.org.jetbrains.kotlinx.coroutines.core)

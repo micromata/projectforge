@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
@@ -178,7 +178,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                     result.add(rechnung)
                 }
             } else {
-                log.debug("Unknown filter setting (probably caused by serialize/de-serialize problems): " + myFilter.listType)
+                log.debug { "Unknown filter setting (probably caused by serialize/de-serialize problems): " + myFilter.listType }
             }
         }
         return result

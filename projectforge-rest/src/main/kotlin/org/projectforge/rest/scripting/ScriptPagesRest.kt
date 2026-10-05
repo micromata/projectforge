@@ -26,7 +26,7 @@ package org.projectforge.rest.scripting
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.scripting.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -325,7 +325,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
 
     @GetMapping("downloadBackupScripts/{id}")
     fun downloadBackupScripts(@PathVariable("id") id: Long?): ResponseEntity<*> {
-        log.info("Downloading backup script of script with id=$id")
+        log.info { "Downloading backup script of script with id=$id" }
         val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
         val zip = ExportZipArchive("${scriptDO.name}-backups.zip")
         zip.add(
@@ -340,7 +340,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
 
     @GetMapping("downloadEffectiveScript/{id}")
     fun downloadEffectiveScript(@PathVariable("id") id: Long?): ResponseEntity<*> {
-        log.info("Downloading effective script of script with id=$id")
+        log.info { "Downloading effective script of script with id=$id" }
         val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
         val script = transformFromDB(scriptDO)
         val effectiveScript = scriptExecution.getEffectiveScript(script, script.parameters, baseDao, this)

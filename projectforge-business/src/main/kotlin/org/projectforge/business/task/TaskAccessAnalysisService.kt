@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum

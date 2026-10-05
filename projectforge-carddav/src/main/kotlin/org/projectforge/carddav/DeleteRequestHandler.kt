@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.carddav.service.AddressService
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.beans.factory.annotation.Autowired

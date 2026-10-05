@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
@@ -67,10 +67,10 @@ class DataTransferJCRCleanUpJob {
 
     fun execute(): Int {
         if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-            log.info("Plugin data transfer not activated. Don't need clean-up job.")
+            log.info { "Plugin data transfer not activated. Don't need clean-up job." }
             return -1
         }
-        log.info("Data transfer clean-up job started.")
+        log.info { "Data transfer clean-up job started." }
         val startTimeInMillis = System.currentTimeMillis()
 
         val processedDBOs = mutableListOf<Long>() // For checking orphaned areas.
@@ -147,8 +147,7 @@ class DataTransferJCRCleanUpJob {
                 log.info { "Removing orphaned node (area was deleted): ${files.joinToString(", ")}" }
                 repoService.deleteNode(child)
             }
-            log.info(
-                "JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of deleted files: $deletedCounter (${
+            log.info { "JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of deleted files: $deletedCounter (${
                     FormatterUtils.formatBytes(
                         deletedSize
                     )
@@ -156,8 +155,7 @@ class DataTransferJCRCleanUpJob {
                     FormatterUtils.formatBytes(
                         preservedSize
                     )
-                })."
-            )
+                })." }
         }
         repoService.cleanup()
         return deletedCounter
