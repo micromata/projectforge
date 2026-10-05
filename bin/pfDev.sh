@@ -186,6 +186,16 @@ release() {
   fi
   # Fails with every problem of the changelog, before anything is changed.
   "$GRADLEW" -p "$ROOT" :projectforge-application:checkReleaseChangelog -PreleaseVersion="$version"
+  # Shown before the first question, so a release can't count backwards by mistake.
+  local current latest
+  current="$(sed -n 's/^version=//p' gradle.properties)"
+  latest="$(git tag -l '[0-9]*-RELEASE' --sort=-v:refname | head -1)"
+  echo "Current version: $current, latest release: ${latest:-none}"
+  for older in "${current%-SNAPSHOT}" "${latest%-RELEASE}"; do
+    if [[ -n "$older" && "$(printf '%s\n' "$older" "$version" | sort -V | tail -1)" != "$version" ]]; then
+      echo "Warning: $version is lower than $older."
+    fi
+  done
   confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
   start="$(git rev-parse --short HEAD)"
   trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
