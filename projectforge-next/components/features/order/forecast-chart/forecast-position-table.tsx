@@ -15,6 +15,7 @@ import { StatisticsHintCell } from "../statistics/statistics-hint-cell";
 import { StatisticsTable } from "../statistics/statistics-table";
 import { formatChartMonth } from "./order-forecast-series";
 import { useStatisticsLabels } from "../statistics/use-statistics-labels";
+import { useProjectFocus } from "../statistics/use-project-focus";
 
 type Row = ForecastPositionRow;
 
@@ -27,22 +28,24 @@ export function ForecastPositionTable({
   focusProjectId,
 }: {
   tables: ForecastTables;
-  /** The project whose first position is marked and scrolled to (opened from the project overview). */
+  /**
+   * The project whose first position with a warning (else with a difference, else its first one) is
+   * marked and scrolled to (opened from the project overview).
+   */
   focusProjectId?: number | null;
 }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
   const rows = tables.positions;
   const { months } = tables;
-  // The rows are keyed by their index, and the table opens unsorted: the first row of the project in
-  // the data is its first one on screen. Positions without project belong to PROJECT_ID_NONE (-1).
-  const focusIndex = useMemo(() => {
-    if (focusProjectId == null) return null;
-    const index = rows.findIndex(
-      (row) => (row.projectId ?? -1) === focusProjectId
-    );
-    return index < 0 ? null : index;
-  }, [rows, focusProjectId]);
+  const focusIndex = useProjectFocus(
+    rows,
+    focusProjectId,
+    // Positions without project belong to PROJECT_ID_NONE (-1).
+    (row) => row.projectId ?? -1,
+    // What made the project stand out in the overview: its warnings, then its differences.
+    [(row) => row.warning != null, (row) => row.difference !== 0]
+  );
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
     const showYear = new Set(months.map((it) => it.slice(0, 4))).size > 1;
     const money = (

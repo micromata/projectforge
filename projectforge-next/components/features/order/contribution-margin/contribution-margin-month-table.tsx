@@ -16,6 +16,7 @@ import { StatisticsTable } from "../statistics/statistics-table";
 import { ContributionMarginPercentage } from "./contribution-margin-percentage";
 import { PRELIMINARY_CLASS } from "./contribution-margin-preliminary";
 import { useStatisticsLabels } from "../statistics/use-statistics-labels";
+import { useProjectFocus } from "../statistics/use-project-focus";
 
 type Row = ContributionMarginMonthRow;
 
@@ -33,13 +34,11 @@ export function ContributionMarginMonthTable({
 }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
-  // The rows are keyed by their index, and the table opens unsorted: the first row of the project in
-  // the data is its first one on screen.
-  const focusIndex = useMemo(() => {
-    if (focusProjectId == null) return null;
-    const index = rows.findIndex((row) => row.projectId === focusProjectId);
-    return index < 0 ? null : index;
-  }, [rows, focusProjectId]);
+  const focusIndex = useProjectFocus(
+    rows,
+    focusProjectId,
+    (row) => row.projectId
+  );
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
     const preliminary = (row: Row) =>
       row.preliminary ? PRELIMINARY_CLASS : undefined;
