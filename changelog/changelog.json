@@ -1,17 +1,19 @@
 {
   "news": [
     {
-      "version": "8.2",
-      "date": "2026-10-05",
-      "title": "ProjectForge 8.2 (in progress): a new frontend, the classic UI retired",
-      "text": "Version 8.2 is still under development; snapshot builds are listed below with their commit range. It replaces the classic Wicket user interface by **projectforge-next**, a new frontend built with Next.js, and brings e-invoicing, a new identity provider integration and a modernized technology stack.",
+      "version": "9.0",
+      "date": "2026-10-06",
+      "title": "ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date",
+      "text": "ProjectForge 9.0 is a major update. The classic Wicket user interface was replaced by **projectforge-next**, a new frontend built with Next.js and React, and all libraries were brought up to date. It also brings a problem dashboard for operations, many new charts with key figures, robust interfaces to external systems, e-invoicing and an identity provider integration. The development builds leading up to it are listed in the changelog as 8.2 snapshots.",
       "highlights": [
         "**New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.",
+        "**Problem dashboard:** log events are classified and aggregated into problems with a persistent status, with links into the log viewer, a JSON export for an AI-assisted analysis and prioritized error digest mails instead of one mail per error.",
+        "**Charts and key figures:** order statistics with budget scenario, contribution margins, forecast, invoicing and net sum charts with a year-earlier comparison, invoicing quota and error figures in the system statistics.",
+        "**Robust interfaces:** timeouts, connection pools, bounded sync threads and sync statistics for LDAP, identity provider, iCal, SMS, Sipgate and the gateway; an unreachable system fails fast instead of blocking, failing calendar subscriptions are retried with a growing interval.",
         "**E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.",
         "**Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).",
-        "**Finance:** contribution margins, forecast and invoicing charts, order statistics, recurring liquidity entries, DATEV and salary imports in the new frontend.",
-        "**Operations:** problem dashboard aggregating log events, prioritized error digest mails, a public gateway for external data transfer.",
-        "**Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, React 19, TanStack Table."
+        "**Finance:** recurring liquidity entries, DATEV import of incoming invoices, salary import, currency conversion with online exchange rates.",
+        "**Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table."
       ]
     },
     {
@@ -55,6 +57,118 @@
     }
   ],
   "releases": [
+    {
+      "id": "9-0-0",
+      "version": "9.0.0",
+      "date": "2026-10-06",
+      "title": "ProjectForge 9.0.0 released",
+      "tag": "9.0.0-RELEASE",
+      "downloadLink": true,
+      "intro": [
+        "{red}**Major update**{/red} - The classic Wicket user interface is gone: all pages run in **projectforge-next**, the only login is `/next/login`. This release sums up all 8.2 snapshot builds.",
+        "**Before updating** - Back up the database; its schema is migrated automatically at the first start."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "projectforge-next",
+              "items": [
+                "New frontend built with Next.js and React, with light and dark theme, compact top navigation and a quick access search for the menu.",
+                "Tables with column filters, pinning, reordering, saved layouts and filter favorites; multi selection and mass update for many entities.",
+                "Login with two-factor authentication and password reset under `/next/login`; *stay logged in* with one token per device."
+              ]
+            },
+            {
+              "title": "E-invoicing",
+              "items": [
+                "XRechnung export and ZUGFeRD PDF with embedded XML, PEPPOL validation, invoice attachments embedded in the export.",
+                "Cancellation invoices and an e-invoice checker for ZUGFeRD/XRechnung files."
+              ]
+            },
+            "Identity provider integration (module projectforge-idp): users, groups and passwords synchronized with Authentik or Keycloak, including WLAN password hashes.",
+            {
+              "title": "Problem dashboard",
+              "items": [
+                "Log events are classified at the call site and aggregated in the database into problems with a persistent status.",
+                "Dashboard with tiles per subsystem, links into the log viewer, search of a problem's occurrences in the log files and an export as JSON for an AI-assisted analysis.",
+                "Prioritized error digest mails per audience instead of one mail per error; early digest for new security and data problems."
+              ]
+            },
+            {
+              "title": "Charts and key figures",
+              "items": [
+                "Order statistics with its own filter, charts, data tables, budget scenario and warnings about lost budgets.",
+                "Contribution margins in the order book, forecast charts, net sum charts of outgoing invoices and invoice statistics with a year-earlier comparison.",
+                "Invoicing quota as a chart and in *My statistics*; error figures in the system statistics."
+              ]
+            },
+            "Recurring series in the liquidity planning.",
+            "Address import and export as vCard and from free text, with a diff view and a warning about duplicates.",
+            "Incoming invoices imported from DATEV, with currency and exchange rates looked up online.",
+            "Gateway for external data transfer with delta sync, CardDAV favorites and a public heartbeat.",
+            "ICS import of team events with a diff preview.",
+            "Changelog with news, search and highlighting under `/next/changelog`, also in German."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "All pages migrated to projectforge-next, among them calendar, time sheets, order book, outgoing and incoming invoices, structure tree, access rights, monthly report, liquidity planning, DATEV and salary import, HR planning, Gantt charts and administration; links and bookmarks of the classic pages lead to the new ones.",
+            "Configurable customer groups and business units as filters for time sheets, invoices, projects and orders.",
+            "Structure element picker with recently used entries and favorites; JIRA issue links in lists and forms.",
+            "Server-side paging of order and invoice lists; deleted entries can be restored.",
+            {
+              "title": "Robust interfaces",
+              "items": [
+                "Timeouts and shared connection pools for LDAP, identity provider, iCal, SMS, Sipgate and the gateway, configurable per interface.",
+                "An unreachable or too slow system fails fast with one warning instead of blocking; sync runs use bounded threads instead of a new thread per trigger.",
+                "Failing calendar subscriptions are retried with a growing interval and deactivated after 90 days.",
+                "Sync statistics with timing and counts per run, shown in the system statistics."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Order book and invoices no longer freeze when two caches refresh at once.",
+            "Many N+1 query floods removed; large ID lists stay under the database's bind parameter limit.",
+            "Subscribed calendars, the MS Project export of Gantt charts, the Word-to-PDF conversion and the LDAP sync repaired."
+          ]
+        },
+        {
+          "type": "security",
+          "items": [
+            "CSRF protection and complete field validation for the REST calls; access checks for all REST endpoints, enforced by an architecture test.",
+            "Security review of the filter chain: trusted proxies, client IP detection, throttling, safe redirect URLs.",
+            "2FA required for sensitive pages; deleted groups never grant access rights."
+          ]
+        },
+        {
+          "type": "removed",
+          "items": [
+            "Module projectforge-wicket with all classic pages, Wicket-only i18n keys and libraries no longer used.",
+            "AG Grid (replaced by TanStack Table), react-scripts (replaced by Vite) and JAXB."
+          ]
+        },
+        {
+          "type": "admin",
+          "items": [
+            "Legacy XML user preferences are migrated to the JSON store."
+          ]
+        },
+        {
+          "type": "technology",
+          "items": [
+            "Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11.",
+            "Kotlin 2.3, JUnit 6, Gradle 9.8, Next.js 16, React 19, TanStack Table, Vite and Vitest.",
+            "Versions are numbered X.Y.Z and built by a release script, the version is set in one place."
+          ]
+        }
+      ]
+    },
     {
       "id": "8-2-snapshot-20261005",
       "version": "8.2-SNAPSHOT",
