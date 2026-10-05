@@ -64,7 +64,11 @@ private val log = KotlinLogging.logger {}
  *
  * Whether an error is reported is decided by the notify rule of its [LogEvent], not by its level: [LogNotify.NONE]
  * is never mailed, [LogNotify.DIGEST_IF_NEW] only once, groups below the event's threshold not at all and
- * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]).
+ * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]). An admin may ignore, mute or resolve a
+ * problem or override its rule, see [LogGroupDO].
+ *
+ * Every collected occurrence, reported or not, is also counted in the database by [LogAggregationService] (if
+ * enabled), also without a support mail address.
  *
  * The digest groups equal errors and sorts them by category, unreachable external systems first; each group shows
  * the explanation and recommended action of its event, the single occurrences with their stack traces are attached
@@ -81,12 +85,16 @@ class SupportErrorDigest : LogEventListener {
     @Autowired
     private lateinit var sendMail: SendMail
 
+    /** Optional: tests without Spring work without it. */
+    @Autowired(required = false)
+    internal var logAggregation: LogAggregationService? = null
+
     @Value("\${projectforge.support.errorDigest.interval:1h}")
     private var intervalProperty: String = "1h"
 
     internal val collector = ErrorDigestCollector()
 
-    private val notifyFilter = DigestNotifyFilter()
+    private val notifyFilter by lazy { DigestNotifyFilter(logAggregation?.takeIf { it.enabled }) }
 
     /** An occurrence with [LogNotify.IMMEDIATE] is waiting: the digest is sent early. */
     @Volatile
@@ -97,8 +105,13 @@ class SupportErrorDigest : LogEventListener {
 
     private var interval: Duration = Duration.ZERO
 
+    /** The digest is mailed: a support mail address and mail are configured. */
     @Volatile
-    private var active = false
+    internal var active = false
+
+    /** Occurrences are collected: for the digest or for the log aggregation. */
+    @Volatile
+    private var listening = false
 
     @Volatile
     private var periodStart = System.currentTimeMillis()
@@ -111,10 +124,14 @@ class SupportErrorDigest : LogEventListener {
         interval = parseInterval(intervalProperty)
         if (interval.isZero) {
             log.info { "Support error digest disabled (projectforge.support.errorDigest.interval=0)." }
-            return
-        }
-        if (configurationService.pfSupportMailAddress.isNullOrBlank() || !configurationService.isSendMailConfigured) {
+        } else if (configurationService.pfSupportMailAddress.isNullOrBlank() || !configurationService.isSendMailConfigured) {
             log.info { "Support error digest inactive: no support mail address (projectforge.support.mail) or no mail configured." }
+        } else {
+            active = true
+            periodStart = System.currentTimeMillis()
+            log.info { "Support error digest active, sent at most every $interval to ${configurationService.pfSupportMailAddress}." }
+        }
+        if (!active && logAggregation?.enabled != true) {
             return
         }
         if (!LoggerMemoryAppender.isInitialized()) {
@@ -122,13 +139,11 @@ class SupportErrorDigest : LogEventListener {
         } else {
             LoggerMemoryAppender.getInstance().addListener(this)
         }
-        active = true
-        periodStart = System.currentTimeMillis()
-        log.info { "Support error digest active, sent at most every $interval to ${configurationService.pfSupportMailAddress}." }
+        listening = true
     }
 
     override fun onEvent(event: LoggingEventData) {
-        if (!active || sending.get()) {
+        if (!listening || sending.get()) {
             return
         }
         ErrorOccurrenceFactory.fromLogEvent(event)?.let { collect(it) }
@@ -141,7 +156,7 @@ class SupportErrorDigest : LogEventListener {
      * @param logEvent The classification, if known (e.g. by `GlobalExceptionRegistry`).
      */
     fun recordRequestError(ex: Throwable, request: String?, external: Boolean? = null, logEvent: LogEvent? = null) {
-        if (!active) {
+        if (!listening) {
             return
         }
         try {
@@ -157,11 +172,21 @@ class SupportErrorDigest : LogEventListener {
         }
     }
 
-    /** By the notify rule of the occurrence's event, not by its level: [LogNotify.NONE] isn't reported at all. */
+    /**
+     * Counted by the log aggregation in any case. Collected for the digest by the notify rule (of the problem's
+     * override or the occurrence's event), not by its level: [LogNotify.NONE] isn't reported at all.
+     */
     internal fun collect(occurrence: ErrorOccurrence) {
-        when (occurrence.event.notify) {
+        val key = ErrorDigestCollector.keyOf(occurrence)
+        val aggregation = logAggregation?.takeIf { it.enabled }
+        aggregation?.add(occurrence, key)
+        if (!active) {
+            return
+        }
+        val state = aggregation?.stateOf(key)
+        when (DigestNotifyFilter.notifyOf(occurrence, state)) {
             LogNotify.NONE -> return
-            LogNotify.IMMEDIATE -> immediatePending = true
+            LogNotify.IMMEDIATE -> if (state?.muted() != true) immediatePending = true
             else -> {}
         }
         collector.add(occurrence)
@@ -177,14 +202,17 @@ class SupportErrorDigest : LogEventListener {
 
     @PreDestroy
     internal fun shutdown() {
-        if (!active) {
+        if (!listening) {
             return
         }
         if (LoggerMemoryAppender.isInitialized()) {
             LoggerMemoryAppender.getInstance().removeListener(this)
         }
-        send()
-        active = false
+        listening = false
+        if (active) {
+            send()
+            active = false
+        }
     }
 
     private fun send() {
@@ -192,6 +220,8 @@ class SupportErrorDigest : LogEventListener {
         val to = System.currentTimeMillis()
         periodStart = to
         immediatePending = false
+        // The problems' states must be up to date: a new one is in the database only after its first flush.
+        logAggregation?.flush()
         val snapshot = notifyFilter.apply(collector.drain())
         val syncProblems = syncProblemTracker.collect()
         if (snapshot.groups.isEmpty() && syncProblems.isEmpty()) {
