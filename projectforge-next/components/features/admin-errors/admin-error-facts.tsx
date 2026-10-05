@@ -43,10 +43,10 @@ export function AdminErrorFacts({ detail }: { detail: LogGroupDetail }) {
       <Fact label={t("system.admin.adminErrors.distinctUsers24h")}>
         {count(detail.distinctUsers24h)}
       </Fact>
-      <Fact label={t("system.admin.adminErrors.notify")}>
+      <Fact label={t("system.admin.adminErrors.notify._")}>
         {t(NOTIFY_KEYS[entry.notify])}
       </Fact>
-      <Fact label={t("system.admin.adminErrors.audience")}>
+      <Fact label={t("system.admin.adminErrors.audience._")}>
         {t(AUDIENCE_KEYS[detail.audience])}
       </Fact>
       <Fact label={t("system.admin.adminErrors.threshold")}>

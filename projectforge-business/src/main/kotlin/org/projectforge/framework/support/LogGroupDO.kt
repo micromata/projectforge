@@ -83,6 +83,10 @@ enum class LogGroupStatus {
         query = "select new org.projectforge.framework.support.LogGroupRow(g.id, g.code, g.category, g.level, g.location, g.exceptionClass, substring(g.sampleMessage, 1, 300), g.firstSeen, g.lastSeen, g.totalCount, g.status, g.mutedUntil, g.overrideNotify, g.reopenedAt) from LogGroupDO g order by g.lastSeen desc",
     ),
     NamedQuery(
+        name = LogGroupDO.FIND_BY_IDS,
+        query = "from LogGroupDO g where g.id in :ids order by g.lastSeen desc",
+    ),
+    NamedQuery(
         name = LogGroupDO.UPDATE_LAST_NOTIFIED,
         query = "update LogGroupDO g set g.lastNotified = :lastNotified where g.fingerprint in :fingerprints",
     ),
@@ -173,6 +177,7 @@ open class LogGroupDO {
         internal const val FIND_BY_FINGERPRINT = "LogGroupDO_FindByFingerprint"
         internal const val SELECT_STATES = "LogGroupDO_SelectStates"
         internal const val SELECT_ROWS = "LogGroupDO_SelectRows"
+        internal const val FIND_BY_IDS = "LogGroupDO_FindByIds"
         internal const val UPDATE_LAST_NOTIFIED = "LogGroupDO_UpdateLastNotified"
         internal const val SELECT_IDS_LAST_SEEN_BEFORE = "LogGroupDO_SelectIdsLastSeenBefore"
         internal const val DELETE_BY_IDS = "LogGroupDO_DeleteByIds"

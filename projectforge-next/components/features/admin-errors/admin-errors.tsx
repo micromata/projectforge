@@ -1,27 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { DataTable } from "@/components/data-table";
 import { PageShell } from "@/components/shared/page-shell";
+import { ExportButton } from "@/components/shared/export-button";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useFormatContext } from "@/hooks/use-format";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { isAccessDenied } from "@/hooks/use-read-access-guard";
 import {
+  downloadAdminErrors,
   fetchAdminErrors,
-  type LogGroupEntry,
   type LogGroupFilter,
 } from "@/lib/rs/admin-errors";
 import { AdminErrorDetailDialog } from "./admin-error-detail-dialog";
-import { adminErrorsColumns } from "./admin-errors-columns";
 import { AdminErrorsFilters } from "./admin-errors-filters";
 import { AdminErrorsSummary } from "./admin-errors-summary";
+import { AdminErrorsTable } from "./admin-errors-table";
 
-const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7, search: "" };
+const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7 };
 
 /**
  * The error dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
@@ -31,9 +31,11 @@ const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7, search: "" };
  */
 export function AdminErrors() {
   const t = useTranslations();
-  const ctx = useFormatContext();
   const { isAdmin, isLoading } = useAuth();
+  // Status, category and period are the server's; the search works on the loaded problems (see
+  // AdminErrorsTable), so typing doesn't fetch the list anew on every key.
   const [filter, setFilter] = useState<LogGroupFilter>(START_FILTER);
+  const [search, setSearch] = useState("");
   // The error digest links a problem as `?id=<id>`: its detail opens at once.
   const linkedId = Number(useSearchParams().get("id")) || null;
   const [detailId, setDetailId] = useState<number | null>(linkedId);
@@ -58,7 +60,10 @@ export function AdminErrors() {
     enabled: isAdmin,
     placeholderData: keepPreviousData,
   });
-  const columns = useMemo(() => adminErrorsColumns(t, ctx), [t, ctx]);
+  // All problems of the filter and the search, not only the listed ones, as JSON for an analysis (e.g. by an AI).
+  const download = useExportDownload(() =>
+    downloadAdminErrors({ ...filter, search })
+  );
   const denied = (!isLoading && !isAdmin) || isAccessDenied(list.error);
   const data = list.data;
 
@@ -73,6 +78,14 @@ export function AdminErrors() {
         >
           {t("refresh")}
         </Button>
+        <ExportButton
+          variant="outline"
+          label={t("system.admin.adminErrors.downloadJson._")}
+          tooltip={t("system.admin.adminErrors.downloadJson.tooltip")}
+          isPending={download.isPending}
+          disabled={!data}
+          onClick={() => download.mutate()}
+        />
       </PageTitleRow>
       {!data ? (
         <div className="px-4 pb-8 pt-2 text-sm">
@@ -109,16 +122,12 @@ export function AdminErrors() {
                 {t("system.admin.adminErrors.none")}
               </p>
             ) : (
-              <DataTable<LogGroupEntry>
-                columns={columns}
-                data={data.entries}
+              <AdminErrorsTable
+                entries={data.entries}
                 isFetching={list.isFetching}
-                enableColumnFilters={false}
-                manualSorting={false}
-                showPagination={false}
-                dense
-                getRowId={(row) => String(row.id)}
-                onRowClick={(row) => setDetailId(row.id)}
+                search={search}
+                onSearchChange={setSearch}
+                onOpen={(entry) => setDetailId(entry.id)}
               />
             )}
           </div>

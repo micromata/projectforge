@@ -78,7 +78,8 @@ private val log = KotlinLogging.logger {}
  * The digest groups equal errors and lists the new problems, regressions and spikes first, then the known ones by
  * category, unreachable external systems first (see [ErrorDigestRenderer]); each group shows the explanation and
  * recommended action of its event and links the problem in the error dashboard, the single occurrences with their
- * stack traces are attached as a text file.
+ * stack traces are attached as a text file, and everything once more as JSON for an analysis by an AI
+ * ([LogAnalysisExport]).
  *
  * Each problem is mailed to the recipients of its event's [audience][LogEvent.audience]
  * (`projectforge.support.errorDigest.recipients.<developer|admin|security>`, default: the support mail address),
@@ -104,6 +105,10 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     /** Optional: tests without Spring work without it. */
     @Autowired(required = false)
     internal var logAggregation: LogAggregationService? = null
+
+    /** Optional as well: completes the analysis attachment by the problems' data in the database. */
+    @Autowired(required = false)
+    internal var logGroupAdminService: LogGroupAdminService? = null
 
     @Value("\${projectforge.support.errorDigest.interval:1h}")
     private var intervalProperty: String = "1h"
@@ -281,10 +286,10 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         val syncProblems = digest.syncProblems
         sending.set(true)
         try {
-            val renderer = ErrorDigestRenderer(domainService.domain, dashboardUrl = domainService.getDomain(DASHBOARD_PATH))
-            val attachmentName = if (snapshot.groups.isNotEmpty()) {
-                "error-digest-${LocalDateTime.now().format(FILENAME_FORMAT)}.txt"
-            } else null
+            val dashboardUrl = domainService.getDomain(LogGroupAdminService.DASHBOARD_PATH)
+            val renderer = ErrorDigestRenderer(domainService.domain, dashboardUrl = dashboardUrl)
+            val baseName = "error-digest-${LocalDateTime.now().format(FILENAME_FORMAT)}"
+            val attachmentName = if (snapshot.groups.isNotEmpty()) "$baseName.txt" else null
             val mail = Mail()
             digest.recipients.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.forEach { mail.addTo(it) }
             sendMail.mailFromStandardEmailSender?.takeIf { it.isNotBlank() }?.let { mail.setFrom(it) }
@@ -307,7 +312,12 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
                 mail.contentType = Mail.CONTENTTYPE_TEXT
             }
             val attachments = attachmentName?.let {
-                listOf(MailAttachment(it, renderer.details(snapshot).toByteArray(Charsets.UTF_8)))
+                listOfNotNull(
+                    MailAttachment(it, renderer.details(snapshot).toByteArray(Charsets.UTF_8)),
+                    analysisJson(snapshot, from, to, dashboardUrl)?.let { json ->
+                        MailAttachment("$baseName.json", json.toByteArray(Charsets.UTF_8))
+                    },
+                )
             }
             log.info {
                 "Sending support error digest to ${digest.recipients}: ${snapshot.occurrences} occurrences, ${syncProblems.size} sync problems."
@@ -321,6 +331,22 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         }
     }
 
+    /**
+     * The groups as [LogAnalysisExport], for an analysis by an AI; completed by the problems' data in the database, if
+     * the log aggregation is enabled. Null if that fails: the digest is sent anyway.
+     */
+    private fun analysisJson(snapshot: ErrorDigestCollector.Snapshot, from: Long, to: Long, dashboardUrl: String?): String? =
+        try {
+            val stored = logGroupAdminService?.takeIf { logAggregation?.enabled == true }
+                ?.analysisProblems(snapshot.groups.mapNotNull { it.problemId }, to)
+                ?.associateBy { it.id!! }
+                .orEmpty()
+            LogAnalysisExport.ofDigest(snapshot, from, to, domainService.domain, dashboardUrl, stored).toJson()
+        } catch (t: Throwable) {
+            log.warn { "Can't build the analysis attachment (json) of the support error digest: ${t.message}" }
+            null
+        }
+
     /** One mail of a digest: the groups of the audiences mailed to [recipients]. */
     internal class DigestMail(
         val recipients: String,
@@ -332,7 +358,6 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         private val FILENAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm")
 
         /** The error dashboard, linked by the digest. */
-        private const val DASHBOARD_PATH = "next/adminErrors"
 
         /**
          * One mail per recipients, with the groups of the audiences ([LogEvent.audience]) they are configured for;

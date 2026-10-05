@@ -164,10 +164,19 @@ class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
         private val HEX = Regex("\\b(?=[0-9a-fA-F]*\\d)[0-9a-fA-F]{8,}\\b")
         private val NUMBER = Regex("\\d+")
 
-        /** Ids, numbers, uuids and hashes replaced, so the same error with other data falls into one group. */
+        /**
+         * A value in single or double quotes (`user 'kai'`, `"this.applicationContext"`), on one line. A single quote
+         * right after a letter or digit is an apostrophe (`Can't`) rather than an opening quote.
+         */
+        private val QUOTED = Regex("(?<![\\p{L}\\d])'[^'\\n]{0,200}'|\"[^\"\\n]{0,200}\"")
+
+        /**
+         * Quoted values, ids, numbers, uuids and hashes replaced, so the same error with other data (e.g. another
+         * user's name) falls into one group.
+         */
         internal fun normalize(message: String?): String {
             message ?: return ""
-            return message.replace(UUID, "#").replace(HEX, "#").replace(NUMBER, "#").take(300)
+            return message.replace(QUOTED, "'#'").replace(UUID, "#").replace(HEX, "#").replace(NUMBER, "#").take(300)
         }
 
         /** The fingerprint: the event's code if it is specific, else code, exception, location and message. */
