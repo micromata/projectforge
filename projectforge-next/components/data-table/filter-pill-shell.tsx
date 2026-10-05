@@ -62,6 +62,31 @@ interface FilterPillShellProps {
 }
 
 /**
+ * Enter in the popover that no control claimed for itself, so "Übernehmen" is its default button. The
+ * inputs that submit on Enter prevent the default already; buttons, options and open comboboxes keep
+ * their own Enter, and keys from a portalled child (a Select's list) are not the popover's. Where Enter
+ * is taken (toggling an entry of an option list), ⌘/Ctrl+Enter applies (see [isApplyShortcut]).
+ */
+function isDefaultButtonEnter(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== "Enter" || event.defaultPrevented) return false;
+  if (event.nativeEvent.isComposing) return false;
+  const target = event.target as HTMLElement;
+  if (!event.currentTarget.contains(target)) return false;
+  return !target.closest(
+    'button, a, textarea, select, [role="option"], [role="combobox"], [role="menuitem"], [aria-expanded="true"]'
+  );
+}
+
+/** ⌘/Ctrl+Enter: "Übernehmen" from anywhere in the popover, whatever the focused control. */
+function isApplyShortcut(event: React.KeyboardEvent<HTMLElement>) {
+  return (
+    event.key === "Enter" &&
+    (event.metaKey || event.ctrlKey) &&
+    !event.nativeEvent.isComposing
+  );
+}
+
+/**
  * The chrome of a filter pill: the trigger, the popover, the remove button and the
  * delete/cancel/apply footer.
  *
@@ -163,6 +188,20 @@ export function FilterPillShell({
             onOpenAutoFocus={(event) => {
               event.preventDefault();
               (event.currentTarget as HTMLElement | null)?.focus();
+            }}
+            // Capture phase, so it comes before an option list's own Enter (cmdk ignores modifiers).
+            onKeyDownCapture={(event) => {
+              if (isApplyShortcut(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                onApply();
+              }
+            }}
+            onKeyDown={(event) => {
+              if (isDefaultButtonEnter(event)) {
+                event.preventDefault();
+                onApply();
+              }
             }}
           >
             {/* A close cross top-right, on every filter's popover: edits apply live, so closing simply
