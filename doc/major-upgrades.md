@@ -114,8 +114,8 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
 
 ## Phase 1 – Spring Boot 4, Spring 7, Hibernate 7, Tomcat 11
 
-All tests green (1516, 1 skipped) and fat jar smoke test passed on HSQLDB (pfDev slot 7). Not yet done: e2e suite,
-PostgreSQL copy of production, OAuth2 login, passkeys and the other items of "Verification".
+All tests green (1516, 1 skipped), fat jar smoke test passed on HSQLDB (pfDev slot 7), e2e suite run (5 failures,
+none caused by the upgrade, see "Completion of Phase 1"). What is left is listed there.
 
 ### Build
 
@@ -139,7 +139,10 @@ PostgreSQL copy of production, OAuth2 login, passkeys and the other items of "Ve
       9.12 moved the `Lucene99` codec of the indexes written by Hibernate Search 7 into that jar. Without it,
       indexing fails ("Could not load codec 'Lucene99'"). With it, existing indexes are read and new segments
       are written in the new format, so **no reindex is required** (an optional reindex removes the old
-      segments).
+      segments). Not the other way round: Phase 0 can't open an index Phase 1 has written to
+      ("HSEARCH000284: Unable to open index readers", saving then fails with "Cannot rollback transaction in
+      current status [COMMITTED]"). A rollback to a Boot 3 release needs a backup of the index directory or a
+      reindex.
 - [x] `tomcat-embed-el` in projectforge-business: Hibernate Validator 9 needs an EL implementation, which no
       longer comes transitively ("HV000183 … jakarta.el.ExpressionFactory").
 - [x] Compare the dependency tree with Phase 0 (see "Verification"): no downgrades, no two versions of one
@@ -162,12 +165,12 @@ PostgreSQL copy of production, OAuth2 login, passkeys and the other items of "Ve
       (`TwoFactorLoginNextRest`, `PasswordResetNextRest`), `exchangeToMono`/`block()` of the sipgate and d.velop
       clients: `execute` now returns `T?` (responses with `NO_CONTENT` really have no body), the callers
       handle `null`.
-- [ ] **Spring MVC**: `RestEndpointAccessCheckTest` is green; run the e2e suite for path patterns and trailing
-      slashes.
+- [x] **Spring MVC**: `RestEndpointAccessCheckTest` is green. e2e suite against the fat jar (slot 7): 284 passed,
+      16 skipped, 5 failed; none of the 5 is caused by the upgrade, see "Completion of Phase 1".
 - [ ] **Spring Security 7**: both configs compile unchanged and the password login of next works
       (`/rsPublic/nextLogin`, CSRF, session cookie). Still to test: gateway mode, OAuth2 (Keycloak/Authentik),
       WebDAV/CardDAV methods through `StrictHttpFirewall`.
-- [ ] **Hibernate 7**:
+- [x] **Hibernate 7**:
   - [x] `ScanResultCollector` is gone: `MyJpaWithExtLibrariesScanner` returns an empty `ScanResult`, which is
         what the collector returned before (no archive was visited; entities come from the explicitly listed
         class names). `hibernate-scan-jandex` isn't needed.
@@ -176,13 +179,59 @@ PostgreSQL copy of production, OAuth2 login, passkeys and the other items of "Ve
   - [x] `merge()` with user-assigned primary keys: inserting and updating a customer (`KundeDO`, number typed
         by the user) and a cost type 2 (`Kost2ArtDO`) through `/rs/<category>/saveorupdate` works in the fat jar.
   - [x] HQL/SQM: all tests green, including history and `BaseDao` queries.
-  - [ ] Schema: compare `hbm2ddl` validation/export on PostgreSQL and HSQLDB with the Flyway schema.
+  - [x] Schema: the `hbm2ddl` export of Phase 0 and Phase 1 is the same on HSQLDB and PostgreSQL apart from
+        `not null` on `deleted` and extra parentheses, see "Completion of Phase 1".
 - [x] **Hibernate Search 8**: `BooleanPredicateOptionsCollector` has two type parameters (`<*, *>` in
       `DBPredicate`). Analyzers, bridges and `MassIndexer` unchanged. The global search finds old (Lucene99) and
       new entries after the upgrade. The warnings "Search property … declared as additional field" existed
       before.
 - [x] **Tomcat 11**: `TomcatConfig` (`maxPartCount`) only needed the new import; server starts.
       `ResponseHeaderFilter` unchanged.
+
+### Completion of Phase 1
+
+Remaining steps, in this order. Each finding gets its own commit on `deps/major-upgrades-phase1`.
+
+1. **Clear the e2e failures** (done). Baseline: the 5 specs on Phase 0 (`cf319bffc`, temp worktree `/tmp/pf-baseline`,
+   slot 8 with a copy of the slot 7 database, :8088).
+   - Not caused by the upgrade (fail on Phase 0 with the same data):
+     `creditor-invoice-selection` "takes the arrow keys without a click first",
+     `invoice-edit` "reports an invoice left without positions",
+     `list-page-memory` "returns to the page, the offset and the entry",
+     `table-loading` "a server-laid-out list page" (the slot database has no vacation entries).
+     Report them separately; they don't block Phase 1.
+   - `invoice-selection` "takes the arrow keys without a click first" (passed on Phase 0, failed on Phase 1)
+     is not caused by the upgrade either: the spec ticks the first row and extends the range by two rows,
+     so it needs at least 3 invoices in the list. The slot test data has 2 (numbers 1000 and 1001). On
+     Phase 0 the list had 10, because the disturbed `invoice-edit` run there (copied Phase 1 index) left
+     8 drafts `ZZ e2e invoice (delete me)` behind in the slot 8 database (ids 12451–12458).
+     `/rs/outgoingInvoice/listPage` with a reset filter, after a fresh reindex of slot 8: 10 rows on
+     :8088, 2 on :8087. Fix in the spec (skip below 3 rows, or extend by only one row), reported
+     separately.
+2. **Spring Security 7**: gateway mode (`GatewaySecurityConfig`), OAuth2 login against Keycloak/Authentik,
+   CardDAV with a real client (PROPFIND/REPORT through `StrictHttpFirewall`), WebDAV of the attachments.
+3. **Schema compare** (done). `-Dhibernate.hbm2ddl.auto=validate` (ProjectForge's own key, see `JpaConfig`) is
+   no help: Phase 0 and Phase 1 both stop at the first, old mismatch (`T_ADDRESS.pk` is `integer` in the
+   Flyway schema, the `Long` id expects `bigint`). Instead the DDL of both versions was exported
+   (`-Djakarta.persistence.schema-generation.scripts.action=create`, `...scripts.create-target=<file>`, no
+   database action) on HSQLDB and with `-Dhibernate.dialect=org.hibernate.dialect.PostgreSQLDialect`, and
+   compared column by column: 291 statements and 1410 columns on both sides, no changed type (`@Lob`,
+   `Duration`, enums, `float` unchanged). Only two differences, neither of them relevant at runtime:
+   - 64 × `deleted boolean` → `deleted boolean not null`: Hibernate 7 derives NOT NULL from the primitive
+     type (Kotlin `Boolean`). The schema comes from Flyway, and `update` doesn't tighten existing columns.
+   - Check constraints of enums get an extra pair of parentheses.
+4. **Copy of the production PostgreSQL database**: start incl. Flyway, global search on the old index, then a full
+   reindex (measure the duration for the release window), and the remaining items of "Verification": password
+   and passkey login (webauthn4j 0.30, still Jackson 2), list/edit pages of next and React, invoice
+   PDF/ZUGFeRD, Excel export, iCal export, attachments (JCR/Oak), DATEV import, Kotlin and Groovy scripts.
+5. **Release notes / operations**: no reindex needed on upgrade; a rollback needs the index backup or a reindex;
+   take a database and index backup before the first start.
+6. Merge `develop` once more, full `./gradlew build` and e2e, then merge to `develop`.
+
+Clean-up afterwards: `git worktree remove /tmp/pf-baseline`, delete `~/ProjectForge-8`, stop the servers on
+:8087/:8088 (smoke-test data in slot 7: customer 987, Kost2Art 97).
+
+After that, Phase 2 (Jackson 3 + webauthn4j 0.31) on its own branch from `develop`, then Phase 3.
 
 ## Phase 2 – Jackson 3
 
@@ -246,4 +295,5 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
 - Window for the Flyway run of the first Boot 4 release in production (and optionally a reindex to drop
-  the old Lucene segments).
+  the old Lucene segments; duration from step 4 of "Completion of Phase 1").
+- Rollback strategy after the Boot 4 release: keep the index backup, or accept a reindex on rollback?
