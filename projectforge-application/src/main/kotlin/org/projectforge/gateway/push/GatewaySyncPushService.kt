@@ -35,6 +35,8 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.common.logging.error
+import org.projectforge.common.logging.warn
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.integration.SyncCounts
@@ -487,7 +489,7 @@ class GatewaySyncPushService(
                 }
                 run.finish()
             } catch (e: GatewayUnavailableException) {
-                log.warn { e.message }
+                log.warn(GatewayLogEvents.UNREACHABLE) { e.message }
                 run.abort(e.message!!, e.timeout)
             } catch (e: Exception) {
                 log.error(e) { "Gateway sync failed: ${e.message}" }
@@ -510,12 +512,12 @@ class GatewaySyncPushService(
                 .bodyToMono(HeartbeatRest.Heartbeat::class.java)
                 .block(HEARTBEAT_TIMEOUT)
             if (heartbeat?.mode != HeartbeatRest.MODE_GATEWAY) {
-                log.error { "$url isn't a gateway (mode=${heartbeat?.mode}), sync skipped. Check projectforge.gateway.push.url." }
+                log.error(GatewayLogEvents.NOT_A_GATEWAY) { "$url isn't a gateway (mode=${heartbeat?.mode}), sync skipped. Check projectforge.gateway.push.url." }
                 return GatewayUnavailableException("$url isn't a gateway (mode=${heartbeat?.mode})")
             }
             return null
         } catch (e: Exception) {
-            log.warn { "Gateway not reachable at $url, sync skipped: ${e.message}" }
+            log.warn(GatewayLogEvents.UNREACHABLE) { "Gateway not reachable at $url, sync skipped: ${e.message}" }
             return GatewayUnavailableException("Gateway not reachable: ${e.message}", IntegrationErrors.isTimeout(e))
         }
     }

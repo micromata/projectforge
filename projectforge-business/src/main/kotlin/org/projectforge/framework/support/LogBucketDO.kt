@@ -54,6 +54,10 @@ import java.util.Date
         query = "from LogBucketDO b where b.groupId = :groupId order by b.bucketStart",
     ),
     NamedQuery(
+        name = LogBucketDO.SELECT_SINCE,
+        query = "select new org.projectforge.framework.support.LogBucketRow(b.groupId, b.bucketStart, b.occurrences, b.distinctUsers) from LogBucketDO b where b.bucketStart >= :since",
+    ),
+    NamedQuery(
         name = LogBucketDO.DELETE_BEFORE,
         query = "delete from LogBucketDO b where b.bucketStart < :before",
     ),
@@ -86,7 +90,11 @@ open class LogBucketDO {
     companion object {
         internal const val FIND_BY_GROUP_AND_START = "LogBucketDO_FindByGroupAndStart"
         internal const val FIND_BY_GROUP = "LogBucketDO_FindByGroup"
+        internal const val SELECT_SINCE = "LogBucketDO_SelectSince"
         internal const val DELETE_BEFORE = "LogBucketDO_DeleteBefore"
         internal const val DELETE_BY_GROUP_IDS = "LogBucketDO_DeleteByGroupIds"
     }
 }
+
+/** The counts of a [LogBucketDO], for the trends of the dashboard ([LogGroupAdminService]). */
+class LogBucketRow(val groupId: Long, val bucketStart: Date, val occurrences: Int, val distinctUsers: Int)

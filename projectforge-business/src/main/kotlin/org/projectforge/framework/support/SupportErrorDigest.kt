@@ -24,9 +24,10 @@
 package org.projectforge.framework.support
 
 import jakarta.annotation.PostConstruct
-import jakarta.annotation.PreDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.ShutdownListener
+import org.projectforge.ShutdownService
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.logging.LogEvent
@@ -73,9 +74,12 @@ private val log = KotlinLogging.logger {}
  * The digest groups equal errors and sorts them by category, unreachable external systems first; each group shows
  * the explanation and recommended action of its event, the single occurrences with their stack traces are attached
  * as a text file.
+ *
+ * On shutdown (before the database is closed, see [ShutdownService]) the last digest is sent and the log
+ * aggregation is closed.
  */
 @Service
-class SupportErrorDigest : LogEventListener {
+class SupportErrorDigest : LogEventListener, ShutdownListener {
     @Autowired
     private lateinit var configurationService: ConfigurationService
 
@@ -84,6 +88,9 @@ class SupportErrorDigest : LogEventListener {
 
     @Autowired
     private lateinit var sendMail: SendMail
+
+    @Autowired
+    private lateinit var shutdownService: ShutdownService
 
     /** Optional: tests without Spring work without it. */
     @Autowired(required = false)
@@ -121,6 +128,7 @@ class SupportErrorDigest : LogEventListener {
 
     @PostConstruct
     internal fun init() {
+        shutdownService.registerListener(this)
         interval = parseInterval(intervalProperty)
         if (interval.isZero) {
             log.info { "Support error digest disabled (projectforge.support.errorDigest.interval=0)." }
@@ -200,19 +208,19 @@ class SupportErrorDigest : LogEventListener {
         }
     }
 
-    @PreDestroy
-    internal fun shutdown() {
-        if (!listening) {
-            return
+    /** Called by [ShutdownService] before the database is closed: a later `@PreDestroy` couldn't write anymore. */
+    override fun shutdown() {
+        if (listening) {
+            if (LoggerMemoryAppender.isInitialized()) {
+                LoggerMemoryAppender.getInstance().removeListener(this)
+            }
+            listening = false
+            if (active) {
+                send()
+                active = false
+            }
         }
-        if (LoggerMemoryAppender.isInitialized()) {
-            LoggerMemoryAppender.getInstance().removeListener(this)
-        }
-        listening = false
-        if (active) {
-            send()
-            active = false
-        }
+        logAggregation?.close()
     }
 
     private fun send() {
