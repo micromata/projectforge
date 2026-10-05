@@ -254,6 +254,9 @@ tasks.named<BootJar>("bootJar") {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
     }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
+    // Gradle 9 sorts archive entries by default. Boot's sorting copy action then reads the zipTree entries of the
+    // extracted Kotlin compiler jars (see below) after Gradle has closed them -> ClosedChannelException.
+    isReproducibleFileOrder = false
 }
 
 tasks.withType<Jar> {

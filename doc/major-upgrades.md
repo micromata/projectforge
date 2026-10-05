@@ -36,7 +36,7 @@ version exists, it is in parentheses.
 | JUnit Jupiter / Platform | 6.0.3 | 6.0.3 (6.1.3) | Jupiter and Platform share one version from 6.0 on |
 | Kotlin | 2.3.21 | 2.3.21 (2.4.20) | **scripting engine**, see below |
 | Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts |
-| Gradle | 8.14.5 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
+| Gradle | 9.8.0 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
 | mockito-kotlin | 6.4.0 | 6.x | |
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
@@ -103,7 +103,11 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
       catalog key. Keep the JUnit override in `projectforge-application/build.gradle.kts`
       (`extra["junit-jupiter.version"]`). Done with JUnit 6.0.3 (the version of the Boot 4.1 BOM) and
       mockito-kotlin 6.4.0; no code changes needed.
-- [ ] **Gradle 9** (Boot 3.5 plugin and Kotlin 2.2/2.3 support it; check node-gradle 7.1.0 and buildSrc).
+- [x] **Gradle 9** (Boot 3.5 plugin and Kotlin 2.2/2.3 support it; check node-gradle 7.1.0 and buildSrc).
+      Done with 9.8.0. Gradle 9 sorts archive entries by default; Boot's sorting copy action then read the
+      `zipTree` of the extracted Kotlin compiler jars after Gradle had closed them (`ClosedChannelException`
+      in `bootJar`), so `bootJar` keeps the unsorted order. Left over: a plugin calls
+      `Configuration.setVisible` (removed in Gradle 11).
 - [x] Fix the 8 stale entries of `rest-endpoint-access-baseline.txt`, so `RestEndpointAccessCheckTest` is
       green again and stays meaningful for the Spring 7 changes to request mapping. Green since the
       develop merge of 2026-10-05, nothing to do here.
