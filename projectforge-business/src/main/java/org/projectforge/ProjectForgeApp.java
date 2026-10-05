@@ -37,6 +37,7 @@ import org.projectforge.database.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
+import org.projectforge.framework.jcr.FileStoreMigrationService;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -111,6 +112,8 @@ public class ProjectForgeApp {
 
     private RepoBackupService repoBackupService;
 
+    private FileStoreMigrationService fileStoreMigrationService;
+
     private ShutdownService shutdownService;
 
     private SystemInfoCache systemInfoCache;
@@ -134,6 +137,7 @@ public class ProjectForgeApp {
                     Environment environment,
                     RepoService repoService,
                     RepoBackupService repoBackupService,
+                    FileStoreMigrationService fileStoreMigrationService,
                     ShutdownService shutdownService,
                     SystemInfoCache systemInfoCache,
                     SystemStatus systemStatus) {
@@ -143,6 +147,7 @@ public class ProjectForgeApp {
         this.environment = environment;
         this.repoService = repoService;
         this.repoBackupService = repoBackupService;
+        this.fileStoreMigrationService = fileStoreMigrationService;
         this.shutdownService = shutdownService;
         this.systemInfoCache = systemInfoCache;
         this.systemStatus = systemStatus;
@@ -161,6 +166,10 @@ public class ProjectForgeApp {
     public void startApp() {
         internalInit();
         finalizeInitialization();
+        if (!junitTestMode) {
+            // projectforge.files.store=db: migrates the files of the JCR to the file store (until done).
+            fileStoreMigrationService.autoStart();
+        }
         PFSpringConfiguration.logCorsFilterWarning(log);
     }
 

@@ -1387,6 +1387,27 @@ For restoring a JCR backup, please refer the file `backupReadme.txt` inside the 
 
 If you have a corrupted JCR repository or if you want to make a full backup, refer `backupReadme.txt` as well. You will also find the readme here: `https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt`.
 
+==== Moving the files out of the JCR
+
+The JCR (Apache Oak) is going to be replaced by a new file store: the files are stored in the data base (schema `pf_files`), the data transfer files in the file system (`<home>/datatransfer`). The store is chosen in `projectforge.properties`:
+
+[source,properties]
+----
+# jcr: all files except data transfer files stay in the JCR.
+# db: all files are stored in the new file store.
+projectforge.files.store=db
+----
+
+If not configured, `db` is used for new installations and `jcr` for installations with an existing JCR (unless the new file store already contains files of the data base storage, then `db`).
+
+After switching to `db` and restarting, ProjectForge migrates all files of the JCR in the background. Every file is verified by size and SHA-256 checksum. The result is written to `<home>/jcr-migration-report.txt`; the migration is started on every start-up until a run finished without errors. It may also be started manually on the system page (card "Document repository (JCR)").
+
+* The files of contracts, orders, invoices etc. are copied, the JCR keeps them. So you may switch back to `jcr`, but files uploaded or changed under `db` are not visible then (they are not lost and appear again after switching to `db`).
+* Data transfer files are moved: they are deleted in the JCR after verification.
+* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the data base backup (`pg_dump`), data transfer files are not backed up.
+
+Switch to `db` and wait for a successful migration before updating to the release without JCR.
+
 === Automatical backup
 
 ==== Backup script

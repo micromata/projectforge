@@ -90,6 +90,8 @@ function postJob(action: string): Promise<{ jobId: number }> {
 /** Writes a JCR backup ZIP (without DataTransfer) into the backup directory; answers with the job id. */
 export const startCreateJcrBackupZip = () => postJob("createJcrBackupZip");
 
-/** Moves the DataTransfer files out of the JCR into the file system; answers with the job id. */
-export const startMigrateJcrFileSystemPaths = () =>
-  postJob("migrateJcrFileSystemPaths");
+/**
+ * Migrates the files out of the JCR (DataTransfer files and, with `projectforge.files.store=db`,
+ * all files); answers with the job id.
+ */
+export const startMigrateJcrFiles = () => postJob("migrateJcrFiles");

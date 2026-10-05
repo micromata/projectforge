@@ -5,20 +5,19 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import {
-  startCreateJcrBackupZip,
-  startMigrateJcrFileSystemPaths,
-} from "@/lib/rs/system";
+import { startCreateJcrBackupZip, startMigrateJcrFiles } from "@/lib/rs/system";
 import { toast } from "@/lib/toast";
 import { JobProgress } from "./job-progress";
+import type { SystemAdminData } from "./types";
 import { useSystemJob } from "./use-system-job";
 
 /**
- * Preparation for the replacement of the JCR (Oak): a backup ZIP of the entity files, which the
- * release without Oak imports, and moving the DataTransfer files out of Oak into the file system.
- * Both run as background jobs with an inline progress (see [useSystemJob]).
+ * Replacement of the JCR (Oak): shows the current store (`projectforge.files.store`), creates a
+ * backup ZIP of the JCR and migrates the files out of Oak (DataTransfer files and, with
+ * `projectforge.files.store=db`, all files). Both run as background jobs with an inline progress
+ * (see [useSystemJob]).
  */
-export function JcrCard() {
+export function JcrCard({ data }: { data: SystemAdminData }) {
   const t = useTranslations();
   return (
     <Card>
@@ -26,16 +25,21 @@ export function JcrCard() {
         <CardTitle>{t("system.admin.group.title.jcr")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
+        <p className="text-sm">
+          {data.allFilesInFileStore
+            ? t("system.admin.jcr.store.db")
+            : t("system.admin.jcr.store.jcr")}
+        </p>
         <JcrJob
           labelKey="system.admin.button.createJcrBackupZip"
           infoKey="system.admin.jcr.createJcrBackupZip.info"
           startJob={startCreateJcrBackupZip}
         />
         <JcrJob
-          labelKey="system.admin.button.migrateJcrFileSystemPaths"
-          infoKey="system.admin.jcr.migrateJcrFileSystemPaths.info"
-          confirmKey="system.admin.jcr.migrateJcrFileSystemPaths.question"
-          startJob={startMigrateJcrFileSystemPaths}
+          labelKey="system.admin.button.migrateJcrFiles"
+          infoKey="system.admin.jcr.migrateJcrFiles.info"
+          confirmKey="system.admin.jcr.migrateJcrFiles.question"
+          startJob={startMigrateJcrFiles}
         />
       </CardContent>
     </Card>

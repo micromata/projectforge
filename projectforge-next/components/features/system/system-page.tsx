@@ -54,7 +54,7 @@ export function SystemPage() {
             <AlertMessageCard data={query.data} />
             <ReindexCard data={query.data} />
             <SystemActionGroups data={query.data} />
-            <JcrCard />
+            <JcrCard data={query.data} />
             <FormatLogEntriesCard />
           </>
         )}

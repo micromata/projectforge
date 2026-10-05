@@ -21,23 +21,26 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.jobs
+package org.projectforge.framework.jcr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.RepoMigrationService
+import java.io.File
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Moves the files of all paths registered as file system paths (DataTransfer) out of Oak into the file system.
- * Files already moved are skipped, so the job may run more than once. Shares the queue with [JcrBackupZipJob]:
- * both read the whole repository.
+ * Migrates the files out of Oak into the file store (see [RepoMigrationService]): the DataTransfer files and, with
+ * `projectforge.files.store=db`, all other files too. Files already migrated are skipped, so the job may run more
+ * than once. The report is written to [reportFile]. Shares the queue with [JcrBackupZipJob]: both read the whole
+ * repository.
  */
 class RepoMigrationJob(
     private val repoMigrationService: RepoMigrationService,
+    private val reportFile: File,
     title: String,
 ) : AbstractJob(
     title,
@@ -50,20 +53,31 @@ class RepoMigrationJob(
     private var result: RepoMigrationService.Result? = null
 
     override suspend fun run() {
-        log.info { "Moving files out of the JCR into the file system: $logInfo" }
-        result = repoMigrationService.migrateFileSystemPaths { processed, total ->
+        log.info { "Migrating files out of the JCR into the file store: $logInfo" }
+        val result = repoMigrationService.migrate { processed, total ->
             totalNumber = total
             processedNumber = processed
+        }
+        this.result = result
+        try {
+            reportFile.writeText(result.asText())
+            log.info { "Report of the migration written to '${reportFile.absolutePath}'." }
+        } catch (ex: Exception) {
+            log.error(ex) { "Can't write report of the migration to '${reportFile.absolutePath}': ${ex.message}" }
         }
     }
 
     override val progressDetails: String?
         get() = result?.let { result ->
-            if (result.errors.isEmpty()) {
-                result.toString()
-            } else {
-                "$result: ${result.errors.joinToString("; ")}"
+            val sb = StringBuilder(result.toString())
+            sb.append(", report: ${reportFile.absolutePath}")
+            if (!result.ok) {
+                sb.append(": ").append(result.errors.take(10).joinToString("; "))
+                if (result.errors.size > 10) {
+                    sb.append("; ...")
+                }
             }
+            sb.toString()
         }
 
     override fun writeAccess(user: PFUserDO?): Boolean {

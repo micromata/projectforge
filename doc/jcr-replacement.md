@@ -217,4 +217,24 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
   (`RepoBackupService.createBackupFile`, jetzt streamend) und `RepoMigrationJob`.
 - Sanity-Check und `DiskUsageStatisticsBuilder` berücksichtigen den neuen Store.
 
-**Release N+1:** offen (DB-Store für alle Pfade, Import aus dem Backup-ZIP mit Report, Oak entfernen).
+- Schalter `projectforge.files.store=jcr|db`. Ist nichts konfiguriert, wird beim Start erkannt:
+  - `db`, wenn der neue Store schon Dateien mit Storage DB enthält (`db` war also schon aktiv),
+  - `jcr`, wenn das JCR schon Daten enthält (bestehende Installation),
+  - sonst `db` (neue Installation). Im Modus `db` wird nichts ins JCR geschrieben, die Erkennung bleibt
+    also stabil.
+  - Wird der Code auf einer bestehenden Installation live genommen, läuft also alles wie bisher über das
+    JCR, nur DataTransfer liegt im neuen Store.
+  - Mit `db` gehen alle Pfade an den `FileStore`. Noch nicht migrierte Dateien werden weiter aus dem JCR
+    gelesen.
+  - Beim Start läuft dann automatisch die Migration (`FileStoreMigrationService`, `RepoMigrationJob`),
+    solange `<home>/jcr-migration-report.txt` nicht `Result: OK` und `All files: true` meldet. Auf der
+    System-Seite lässt sie sich auch manuell starten.
+  - Die Migration prüft jede Datei per SHA-256 und Größe gegen das JCR. Entitäts-Dateien werden kopiert
+    und bleiben im JCR, damit ein Zurückschalten auf `jcr` möglich ist. DataTransfer-Dateien werden
+    verschoben, danach folgt ein JCR-Cleanup.
+  - Löschen im Modus `db` entfernt die Datei im Store und die Kopie im JCR. Nach einem Zurückschalten
+    sind unter `db` hochgeladene oder geänderte Dateien nicht sichtbar (aber nicht verloren).
+  - Das nächtliche JCR-Backup (`JCRBackupJob`) läuft in beiden Modi weiter, solange es das JCR gibt.
+
+**Release N+1:** offen (Oak entfernen; Import aus dem Backup-ZIP als Fallback für Installationen, die in N
+nicht auf `db` umgestellt und migriert haben).

@@ -40,6 +40,8 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.FileStoreMigrationService
+import org.projectforge.framework.jcr.JcrBackupZipJob
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
@@ -48,13 +50,10 @@ import org.projectforge.framework.persistence.database.DatabaseTester
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.jcr.RepoBackupService
-import org.projectforge.jcr.RepoMigrationService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.jobs.JcrBackupZipJob
 import org.projectforge.rest.jobs.ReindexJob
-import org.projectforge.rest.jobs.RepoMigrationJob
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -118,7 +117,7 @@ class SystemRest {
     private lateinit var repoBackupService: RepoBackupService
 
     @Autowired
-    private lateinit var repoMigrationService: RepoMigrationService
+    private lateinit var fileStoreMigrationService: FileStoreMigrationService
 
     /**
      * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
@@ -149,6 +148,8 @@ class SystemRest {
         val developmentMode: Boolean,
         /** The localized copy&paste maintenance-notice sample, with the current version filled in. */
         val alertMessageSample: String,
+        /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
+        val allFilesInFileStore: Boolean,
     )
 
     /** A plain result message, shown by the frontend as a success toast. */
@@ -159,7 +160,7 @@ class SystemRest {
     class ReindexRequest(var newestNEntries: Int? = null, var fromDate: LocalDate? = null)
 
     /**
-     * The id of the started job ([ReindexJob], [JcrBackupZipJob], [RepoMigrationJob]), which the frontend polls (see
+     * The id of the started job ([ReindexJob], [JcrBackupZipJob], [org.projectforge.framework.jcr.RepoMigrationJob]), which the frontend polls (see
      * JobsMonitorPageRest) for the progress.
      */
     class JobResponse(val jobId: Int)
@@ -176,6 +177,7 @@ class SystemRest {
                 "system.admin.alertMessage.copyAndPaste.text",
                 ProjectForgeVersion.VERSION_NUMBER,
             ),
+            allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
         )
     }
 
@@ -321,7 +323,8 @@ class SystemRest {
     }
 
     // ------------------------------------------------------------------------------------------
-    // JCR replacement: backup ZIP as source for the import of the entity files, DataTransfer files out of Oak.
+    // JCR replacement: backup ZIP of the JCR, migration of the files out of Oak (DataTransfer files and, with
+    // projectforge.files.store=db, all files).
     // ------------------------------------------------------------------------------------------
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
@@ -336,14 +339,11 @@ class SystemRest {
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @PostMapping("migrateJcrFileSystemPaths")
-    fun migrateJcrFileSystemPaths(): JobResponse {
+    @PostMapping("migrateJcrFiles")
+    fun migrateJcrFiles(): JobResponse {
         checkWriteAccess()
-        log.info { "Administration: move DataTransfer files out of the JCR into the file system." }
-        val job = jobHandler.addJob(
-            RepoMigrationJob(repoMigrationService, title = translate("system.admin.button.migrateJcrFileSystemPaths"))
-        )
-        return JobResponse(job.id)
+        log.info { "Administration: migrate files out of the JCR into the file store (all files=${fileStoreMigrationService.allFilesInFileStore})." }
+        return JobResponse(fileStoreMigrationService.startMigration().id)
     }
 
     // ------------------------------------------------------------------------------------------

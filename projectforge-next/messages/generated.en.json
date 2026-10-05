@@ -3207,7 +3207,7 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
-        "migrateJcrFileSystemPaths": "Move DataTransfer files to the file system",
+        "migrateJcrFiles": "Migrate files out of the JCR",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -3260,9 +3260,13 @@
         "createJcrBackupZip": {
           "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
         },
-        "migrateJcrFileSystemPaths": {
-          "info": "Moves the DataTransfer files out of the JCR into the file system (directory datatransfer in the ProjectForge home directory). Files already moved are skipped, so it may run again. Each file is removed from the JCR after its checksum is verified; the disk space is freed by the JCR cleanup at the end of the run.",
-          "question": "Move all DataTransfer files out of the JCR into the file system now? With large data volumes this takes a while and needs free disk space of the size of the DataTransfer files."
+        "migrateJcrFiles": {
+          "info": "Moves the DataTransfer files out of the JCR into the file system. With projectforge.files.store=db all other files are copied into the database too (the JCR keeps them, so switching back is possible). Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
+          "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
+        },
+        "store": {
+          "db": "Files are stored in the database (projectforge.files.store=db). Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
+          "jcr": "Files are stored in the JCR (projectforge.files.store=jcr), only DataTransfer files in the file system. To switch, set projectforge.files.store=db in projectforge.properties and restart."
         }
       },
       "logViewer": {

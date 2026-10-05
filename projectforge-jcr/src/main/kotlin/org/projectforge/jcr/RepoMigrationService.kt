@@ -33,73 +33,147 @@ import javax.jcr.Node
 private val log = KotlinLogging.logger {}
 
 /**
- * Moves the files of the paths registered for the file system storage (e. g. DataTransfer, see
- * [RepoService.registerFileSystemPath]) from the JCR to the new file store. Id, metadata and the (maybe encrypted)
- * payload are taken 1:1, the checksum is verified before the file is deleted in the JCR. Files already migrated are
- * skipped, so the migration may be restarted at any time.
- *
- * The disk space of the JCR is freed after the next clean-up (compaction) of the JCR.
+ * Migrates the files of the JCR to the new file store. Id, metadata and the (maybe encrypted) payload are taken 1:1,
+ * size and checksum are verified. Files already migrated are skipped, so the migration may be restarted at any time.
+ * - Files of the paths registered for the file system storage (e. g. DataTransfer, see
+ *   [RepoService.registerFileSystemPath]) are moved: they're deleted in the JCR after the verification. The disk
+ *   space of the JCR is freed after the clean-up (compaction) of the JCR at the end of the run.
+ * - All other files (entity files) are only migrated, if all files are stored by the file store
+ *   (`projectforge.files.store=db`, see [RepoService.allFilesInFileStore]). They're copied: the JCR keeps them, so
+ *   it's possible to switch back to `projectforge.files.store=jcr`.
  */
 @Service
 open class RepoMigrationService {
     @Autowired
     internal lateinit var repoService: RepoService
 
-    class Result {
-        var migrated = 0
+    class Result(
+        /**
+         * True, if all files were migrated (projectforge.files.store=db), false, if only the file system paths.
+         */
+        val allFiles: Boolean,
+    ) {
+        /**
+         * Number of files found in the JCR.
+         */
+        var total = 0
+            internal set
+
+        /**
+         * Number of moved files (file system paths, deleted in the JCR).
+         */
+        var moved = 0
+            internal set
+
+        /**
+         * Number of copied files (entity files, kept in the JCR).
+         */
+        var copied = 0
             internal set
         var migratedSize = 0L
             internal set
+
+        /**
+         * Number of files already migrated by a former run.
+         */
         var skipped = 0
+            internal set
+        var durationMillis = 0L
             internal set
         val errors = mutableListOf<String>()
 
+        val ok: Boolean
+            get() = errors.isEmpty()
+
         override fun toString(): String {
-            return "migrated=$migrated (${FormatterUtils.formatBytes(migratedSize)}), already migrated=$skipped, errors=${errors.size}"
+            return "files=$total, moved=$moved, copied=$copied (${FormatterUtils.formatBytes(migratedSize)}), " +
+                    "already migrated=$skipped, errors=${errors.size}"
+        }
+
+        /**
+         * The report of the migration (written by the migration job into the ProjectForge home directory).
+         */
+        fun asText(): String {
+            val sb = StringBuilder()
+            sb.appendLine("Migration of the files from the JCR to the file store")
+            sb.appendLine("$RESULT_PREFIX${if (ok) RESULT_OK else "ERRORS"}")
+            sb.appendLine("$ALL_FILES_PREFIX$allFiles")
+            sb.appendLine("Files in the JCR: $total")
+            sb.appendLine("Moved (DataTransfer, deleted in the JCR): $moved")
+            sb.appendLine("Copied (kept in the JCR): $copied")
+            sb.appendLine("Size of migrated files: ${FormatterUtils.formatBytes(migratedSize)}")
+            sb.appendLine("Already migrated before: $skipped")
+            sb.appendLine("Duration: ${durationMillis / 1000} s")
+            sb.appendLine()
+            sb.appendLine("Errors (${errors.size}):")
+            errors.forEach { sb.appendLine("  $it") }
+            return sb.toString()
+        }
+
+        internal fun error(msg: String) {
+            log.error { msg }
+            errors.add(msg)
+        }
+
+        companion object {
+            const val RESULT_PREFIX = "Result: "
+            const val RESULT_OK = "OK"
+            const val ALL_FILES_PREFIX = "All files: "
         }
     }
 
     private class JcrFile(val fileNodePath: String, val parentNodePath: String, val relPath: String, val fileObject: FileObject)
 
     /**
+     * Migrates the files of the file system paths (DataTransfer) and, if all files are stored by the file store
+     * (`projectforge.files.store=db`), all other files too.
      * @param progress Called with (number of processed files, total number of files).
      */
-    open fun migrateFileSystemPaths(progress: ((processed: Int, total: Int) -> Unit)? = null): Result {
+    open fun migrate(progress: ((processed: Int, total: Int) -> Unit)? = null): Result {
+        val started = System.currentTimeMillis()
         val fileStore = repoService.fileStore ?: throw IllegalStateException("File store not available (no data source).")
-        val result = Result()
-        val files = repoService.registeredFileSystemPaths.flatMap { collectFiles(it) }
-        log.info { "Migrating ${files.size} files from the JCR to the file store..." }
+        val result = Result(repoService.allFilesInFileStore)
+        val files = if (result.allFiles) {
+            collectFiles(null)
+        } else {
+            repoService.registeredFileSystemPaths.flatMap { collectFiles(it) }
+        }
+        result.total = files.size
+        log.info { "Migrating ${files.size} files from the JCR to the file store (all files=${result.allFiles})..." }
         progress?.invoke(0, files.size)
         files.forEachIndexed { index, file ->
             try {
                 migrate(fileStore, file, result)
             } catch (ex: Exception) {
-                val msg = "Error while migrating file '${file.fileNodePath}': ${ex::class.java.simpleName}: ${ex.message}"
-                log.error(ex) { msg }
-                result.errors.add(msg)
+                log.error(ex) { "Error while migrating file '${file.fileNodePath}': ${ex.message}" }
+                result.errors.add("Error while migrating file '${file.fileNodePath}': ${ex::class.java.simpleName}: ${ex.message}")
             }
             progress?.invoke(index + 1, files.size)
         }
-        if (result.migrated > 0) {
+        if (result.moved > 0) {
             repoService.cleanup() // Frees the disk space of the deleted files.
         }
+        result.durationMillis = System.currentTimeMillis() - started
         log.info { "Migration of files from the JCR to the file store finished: $result" }
         return result
     }
 
-    private fun collectFiles(path: String): List<JcrFile> {
-        val absPath = repoService.getAbsolutePath(path)
+    /**
+     * @param path The path to walk, or null for the whole repository.
+     */
+    private fun collectFiles(path: String?): List<JcrFile> {
+        val mainNodePath = "/${repoService.mainNodeName}"
+        val absPath = if (path == null) mainNodePath else repoService.getAbsolutePath(path)
         val list = mutableListOf<JcrFile>()
         val exists = repoService.runInSession { session -> session.nodeExists(absPath) }
         if (!exists) {
             log.info { "No files in the JCR under '$absPath'." }
             return list
         }
-        val mainNodePrefix = "/${repoService.mainNodeName}/"
         val walker = object : RepoTreeWalker(repoService, absPath) {
             override fun visitFile(fileNode: Node, fileObject: FileObject) {
                 // Path: /ProjectForge/<parentNodePath>/<relPath>/__FILES/<fileId>
-                val location = fileNode.parent.parent.path.removePrefix(mainNodePrefix)
+                val location = fileNode.parent.parent.path.removePrefix("$mainNodePath/")
                 list.add(
                     JcrFile(
                         fileNode.path,
@@ -116,41 +190,48 @@ open class RepoMigrationService {
 
     private fun migrate(fileStore: FileStore, file: JcrFile, result: Result) {
         val fileObject = FileObject(file.parentNodePath, file.relPath, file.fileObject.fileId, file.fileObject)
+        // Entity files are kept in the JCR (for switching back), DataTransfer files are moved:
+        val move = fileStore.isFileSystemPath(OakStorage.getAbsolutePath(file.parentNodePath, file.relPath))
         val jcrChecksum = file.fileObject.checksum
         val importResult = repoService.runInSession { session ->
             val fileNode = session.getNode(file.fileNodePath)
             repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
                 ?.let { istream -> fileStore.importFile(fileObject, istream) }
         }
-        val checksum = if (importResult == null) {
+        val migrated = if (importResult == null) {
             // Already migrated before (the deletion in the JCR may have failed) or no content in the JCR:
-            val migrated = fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
-            if (migrated == null) {
-                val msg = "No content found in the JCR for file '${file.fileNodePath}'. File is left in the JCR."
-                log.error { msg }
-                result.errors.add(msg)
-                return
-            }
-            migrated.checksum
+            fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
+                ?: run {
+                    result.error("No content found in the JCR for file '${file.fileNodePath}'. File is left in the JCR.")
+                    return
+                }
         } else {
-            importResult.checksum
+            null
         }
-        if (!jcrChecksum.isNullOrBlank() && jcrChecksum.startsWith("SHA256:") && jcrChecksum != checksum) {
+        val checksum = importResult?.checksum ?: migrated?.checksum
+        val size = importResult?.size ?: migrated?.size
+        val jcrSize = file.fileObject.size
+        val checksumDiffers = !jcrChecksum.isNullOrBlank() && jcrChecksum.startsWith("SHA256:") && jcrChecksum != checksum
+        val sizeDiffers = jcrSize != null && size != null && jcrSize != size
+        if (checksumDiffers || sizeDiffers) {
             if (importResult != null) {
                 fileStore.deleteFile(fileObject) // Keep the file in the JCR.
             }
-            val msg = "Checksum of migrated file '${file.fileNodePath}' ($checksum) differs from the JCR ($jcrChecksum). File is left in the JCR."
-            log.error { msg }
-            result.errors.add(msg)
+            result.error(
+                "Migrated file '${file.fileNodePath}' (checksum=$checksum, size=$size) differs from the JCR " +
+                        "(checksum=$jcrChecksum, size=$jcrSize). File is left in the JCR."
+            )
             return
         }
         if (importResult == null) {
             ++result.skipped
         } else {
-            ++result.migrated
+            if (move) ++result.moved else ++result.copied
             result.migratedSize += importResult.size
+            log.info { "File ${if (move) "moved" else "copied"} from JCR to file store: $fileObject" }
         }
-        log.info { "File migrated from JCR to file store: $fileObject" }
-        repoService.jcrDeleteFile(FileObject(file.parentNodePath, file.relPath, fileObject.fileId))
+        if (move) {
+            repoService.jcrDeleteFile(FileObject(file.parentNodePath, file.relPath, fileObject.fileId))
+        }
     }
 }

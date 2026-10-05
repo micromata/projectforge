@@ -27,7 +27,9 @@ import jakarta.annotation.PreDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ZipMode
 import org.projectforge.jcr.store.FileStore
+import org.projectforge.jcr.store.StorageType
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
@@ -41,6 +43,10 @@ private val log = KotlinLogging.logger {}
  * [registerFileSystemPath] (e. g. DataTransfer): they are stored by the new [FileStore] (metadata in the data base,
  * content in the file system). Files of these paths not yet migrated (see [RepoMigrationService]) are still found in
  * the JCR (read, change and delete).
+ *
+ * With `projectforge.files.store=db` all files are stored by the [FileStore] (entity files in the data base). Files
+ * not yet migrated are still found in the JCR, migrated entity files are kept in the JCR as copies (for switching
+ * back), but deleted there too, if deleted.
  */
 @Service
 open class RepoService {
@@ -62,6 +68,19 @@ open class RepoService {
         private set
 
     private val fileSystemPaths = mutableMapOf<String, File>()
+
+    /**
+     * Store of all files: "jcr" (only the registered file system paths are stored by the [FileStore]) or "db" (all
+     * files are stored by the [FileStore]). If not given, it's detected on [init], see [detectFilesStore].
+     */
+    @Value("\${projectforge.files.store:}")
+    internal var filesStore: String = ""
+
+    /**
+     * True, if all files are stored by the [FileStore] (`projectforge.files.store=db`).
+     */
+    val allFilesInFileStore: Boolean
+        get() = fileStore != null && filesStore.trim().equals(FILES_STORE_DB, ignoreCase = true)
 
     val mainNodeName: String?
         get() = repoStore?.mainNodeName
@@ -130,9 +149,23 @@ open class RepoService {
             }
             val ds = dataSource
             if (ds != null) {
-                fileStore = FileStore(ds, mainNodeName).also { store ->
+                val store = FileStore(ds, mainNodeName).also { store ->
                     fileSystemPaths.forEach { (path, dir) -> store.registerFileSystemPath(path, dir) }
                 }
+                fileStore = store
+                val mode = filesStore.trim().lowercase()
+                filesStore = when (mode) {
+                    FILES_STORE_JCR, FILES_STORE_DB -> mode
+                    "" -> detectFilesStore(store).also {
+                        log.info { "projectforge.files.store not configured, detected: $it" }
+                    }
+
+                    else -> {
+                        log.error { "Unknown value '$filesStore' of projectforge.files.store (jcr or db expected), using jcr." }
+                        FILES_STORE_JCR
+                    }
+                }
+                log.info { "Files are stored ${if (allFilesInFileStore) "by the file store (projectforge.files.store=db)" else "in the JCR (projectforge.files.store=jcr), DataTransfer by the file store"}." }
             } else {
                 log.warn { "No data source available, all files are stored in the JCR (OK for test cases)." }
             }
@@ -140,10 +173,27 @@ open class RepoService {
     }
 
     /**
-     * @return The new store, if the given path is registered for the file system storage, otherwise null (JCR).
+     * Used, if projectforge.files.store isn't configured:
+     * - db, if the file store already contains files of the data base storage (files store db was used before).
+     * - jcr, if the JCR already contains data (existing installation, files stay in the JCR until switched to db).
+     * - db otherwise (new installation). In db mode, nothing is written to the JCR, so the detection remains stable.
+     */
+    private fun detectFilesStore(store: FileStore): String {
+        if (store.getStatistics().any { it.storage == StorageType.DB && it.count > 0 }) {
+            return FILES_STORE_DB
+        }
+        return if (repoStore!!.hasContent()) FILES_STORE_JCR else FILES_STORE_DB
+    }
+
+    /**
+     * @return The new store, if all files are stored by the new store or if the given path is registered for the file
+     * system storage, otherwise null (JCR).
      */
     private fun newStore(parentNodePath: String?, relPath: String? = null): FileStore? {
         val store = fileStore ?: return null
+        if (allFilesInFileStore) {
+            return store
+        }
         val path = OakStorage.getAbsolutePath(parentNodePath, relPath)
         return if (store.isFileSystemPath(path)) store else null
     }
@@ -232,10 +282,13 @@ open class RepoService {
 
     open fun deleteFile(fileObject: FileObject): Boolean {
         newStore(fileObject.parentNodePath)?.let { store ->
-            if (store.exists(fileObject)) {
-                return store.deleteFile(fileObject)
+            val deleted = store.exists(fileObject) && store.deleteFile(fileObject)
+            // Not yet migrated files and the copies of migrated entity files (see RepoMigrationService) are in the JCR:
+            val jcrExists = jcrFallback(fileObject, false) {
+                repoStore!!.getFileInfo(fileObject.parentNodePath, fileObject.relPath, fileObject.fileId, fileObject.fileName) != null
             }
-            return jcrFallback(fileObject, false) { repoStore!!.deleteFile(fileObject) }
+            val jcrDeleted = jcrExists && jcrFallback(fileObject, false) { repoStore!!.deleteFile(fileObject) }
+            return deleted || jcrDeleted
         }
         return repoStore!!.deleteFile(fileObject)
     }
@@ -481,4 +534,8 @@ open class RepoService {
         return repoStore!!.runInSession(method)
     }
 
+    companion object {
+        const val FILES_STORE_JCR = "jcr"
+        const val FILES_STORE_DB = "db"
+    }
 }
