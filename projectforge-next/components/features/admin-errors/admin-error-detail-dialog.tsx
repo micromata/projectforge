@@ -56,7 +56,10 @@ export function AdminErrorDetailDialog({
 
   return (
     <Dialog open={id !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
+      {/* A column rather than the dialog's grid: a grid track grows with the stack trace's longest line, while a
+          column holds every part to the dialog's width. Only the stack trace gives way to the height (see
+          below); the dialog scrolls as a whole only if even the rest doesn't fit. */}
+      <DialogContent className="flex max-h-[90vh] flex-col overflow-y-auto sm:max-w-5xl">
         {detail.data ? (
           <DetailContent
             detail={detail.data}
@@ -77,13 +80,41 @@ export function AdminErrorDetailDialog({
 }
 
 /**
- * The admin log viewer, searching for the class of the problem's location (`Foo` of `Foo:42`): its search
- * doesn't know the codes, and a normalized message isn't found. Only the last log events are there.
+ * The admin log viewer at the problem's level, searching for the class of the problem's location (`Foo` of
+ * `Foo:42`) or, for an unexpected request error, its uri: its search doesn't know the codes, and a normalized
+ * message isn't found. Only the last log events since the server's start are there.
  */
-function logViewerUrl(entry: LogGroupEntry): string | null {
-  const className = entry.location?.split(":")[0];
-  if (!className || className === "?") return null;
-  return `next/adminLogViewer?search=${encodeURIComponent(className)}`;
+function logViewerUrl(detail: LogGroupDetail): string | null {
+  const search =
+    (detail.entry.code === REQUEST_ERROR
+      ? requestUri(detail.sampleRequest)
+      : null) ?? outerClass(detail.entry);
+  if (!search) return null;
+  // FATAL is never a threshold (see LOG_THRESHOLDS).
+  const threshold =
+    detail.entry.level === "FATAL" ? "ERROR" : detail.entry.level;
+  return `next/adminLogViewer?search=${encodeURIComponent(search)}&threshold=${threshold}`;
+}
+
+/** `SupportLogEvents.REQUEST_ERROR`: logged with its uri by `GlobalDefaultExceptionHandler`. */
+const REQUEST_ERROR = "support.requestError";
+
+/**
+ * The uri of a request's problem (`GET /rs/foo?x=1` → `/rs/foo`): its location is the root cause's frame, which
+ * the logged line of the request needn't contain, while its uri is part of it.
+ */
+function requestUri(request: string | null | undefined): string | null {
+  const uri = request?.split(" ")[1]?.split("?")[0];
+  return uri || null;
+}
+
+/**
+ * The top-level class of the location: a nested class or companion is located as `Foo.Bar`, but searched in the
+ * log viewer by its binary name `org.projectforge.Foo$Bar`, which contains `Foo` only.
+ */
+function outerClass(entry: LogGroupEntry): string | null {
+  const className = entry.location?.split(":")[0]?.split(".")[0];
+  return className && className !== "?" ? className : null;
 }
 
 function DetailContent({
@@ -111,7 +142,7 @@ function DetailContent({
           />
           <StatusPill tone="neutral" label={t(CATEGORY_KEYS[entry.category])} />
           <span className="ml-auto">
-            <LogViewerLink url={logViewerUrl(entry)} />
+            <LogViewerLink url={logViewerUrl(detail)} />
           </span>
         </div>
       </DialogHeader>
@@ -168,11 +199,15 @@ function DetailContent({
         </DetailText>
       )}
       {detail.sampleStackTrace && (
-        <DetailText label={t("system.admin.adminErrors.stackTrace")}>
-          <pre className="max-h-96 overflow-auto rounded border bg-muted/40 p-2 font-mono text-xs">
+        // The one part that shrinks (to min-h-40) and scrolls in itself, so the facts above stay in view.
+        <div className="flex min-h-40 flex-col gap-0.5">
+          <div className="text-xs font-medium text-muted-foreground">
+            {t("system.admin.adminErrors.stackTrace")}
+          </div>
+          <pre className="min-h-0 flex-1 overflow-auto rounded border bg-muted/40 p-2 font-mono text-xs">
             {detail.sampleStackTrace}
           </pre>
-        </DetailText>
+        </div>
       )}
     </>
   );

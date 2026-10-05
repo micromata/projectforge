@@ -168,6 +168,22 @@ class SupportErrorDigestTest {
     }
 
     @Test
+    fun `quoted values are normalized, apostrophes are not`() {
+        Assertions.assertEquals(
+            ErrorDigestCollector.normalize("Error generating ICS for user 'kai'"),
+            ErrorDigestCollector.normalize("Error generating ICS for user 'anna.m'"),
+        )
+        Assertions.assertEquals(
+            "Cannot invoke '#' because '#' is null",
+            ErrorDigestCollector.normalize("Cannot invoke \"Foo.bar()\" because \"this.context\" is null"),
+        )
+        Assertions.assertEquals(
+            "Can't open '#' (may-be incompatible)",
+            ErrorDigestCollector.normalize("Can't open 'Template.xlsx' (may-be incompatible)"),
+        )
+    }
+
+    @Test
     fun `the collector stays bounded`() {
         val collector = ErrorDigestCollector(maxGroups = 3)
         repeat(5) { collector.add(occurrence(SupportLogEvents.LOGGED_ERROR, "error", location = "L$it")) }

@@ -123,9 +123,14 @@ function LogViewerContent({
   const t = useTranslations();
   const queryClient = useQueryClient();
   // A link may start with a search of its own, e.g. the error dashboard's one for a problem (`?search=`).
-  const linkedSearch = useSearchParams().get("search");
+  // With its level as `?threshold=`, so that a stored higher threshold doesn't hide the problem's entries.
+  const params = useSearchParams();
+  const linkedSearch = params.get("search");
+  const linkedThreshold = LOG_THRESHOLDS.find(
+    (level) => level === params.get("threshold")
+  );
   const [criteria, setCriteria] = useState<Criteria>({
-    threshold: initial.filter.threshold,
+    threshold: linkedThreshold ?? initial.filter.threshold,
     search: linkedSearch ?? initial.filter.search ?? "",
   });
   const [autoRefresh, setAutoRefresh] = useState(
@@ -139,13 +144,15 @@ function LogViewerContent({
 
   const entriesKey = ["logViewer", admin, id, "entries", criteria];
   // The first entries come with the initial answer, so the start filter doesn't query twice (not for a linked
-  // search: the answer was filtered by the stored one).
+  // search or threshold: the answer was filtered by the stored one).
   const startCriteria = useState(criteria)[0];
   const entries = useQuery({
     queryKey: entriesKey,
     queryFn: ({ signal }) => queryLogViewer(admin, filter, signal),
     initialData:
-      criteria === startCriteria && linkedSearch === null
+      criteria === startCriteria &&
+      linkedSearch === null &&
+      linkedThreshold === undefined
         ? initial.entries
         : undefined,
     placeholderData: keepPreviousData,
