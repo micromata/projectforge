@@ -2879,7 +2879,7 @@
   {"i18nKey":"system.admin.adminErrors.status.open","bundleName":"I18nResources","translation":"Open","translationDE":"Offen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"system.admin.adminErrors.status.resolved","bundleName":"I18nResources","translation":"Resolved","translationDE":"Erledigt","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"system.admin.adminErrors.threshold","bundleName":"I18nResources","translation":"Threshold (per hour)","translationDE":"Schwelle (pro Stunde)","usedInClasses":[],"usedInFiles":[]},
-  {"i18nKey":"system.admin.adminErrors.title","bundleName":"I18nResources","translation":"Error dashboard","translationDE":"Fehlerübersicht","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
+  {"i18nKey":"system.admin.adminErrors.title","bundleName":"I18nResources","translation":"Problem dashboard","translationDE":"Problem-Dashboard","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"system.admin.adminErrors.totalCount","bundleName":"I18nResources","translation":"Total","translationDE":"Gesamt","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"system.admin.adminErrors.trend","bundleName":"I18nResources","translation":"Trend (7 days)","translationDE":"Verlauf (7 Tage)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"system.admin.adminLogViewer.title","bundleName":"I18nResources","translation":"Admin log viewer","translationDE":"Adminprotokoll einsehen","usedInClasses":["org.projectforge.rest.admin.LogViewerRest"],"usedInFiles":[]},

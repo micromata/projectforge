@@ -39,7 +39,7 @@ import java.util.Locale
  * the [MAX_KNOWN_GROUPS] most frequent known ones sorted by severity (one section per category, the sync problems
  * right after the unreachable systems). Ignored and muted problems are only counted.
  *
- * @param dashboardUrl The error dashboard (`next/adminErrors`): linked by the digest and by each problem.
+ * @param dashboardUrl The problem dashboard (`next/adminErrors`): linked by the digest and by each problem.
  */
 class ErrorDigestRenderer(
     private val domain: String?,
@@ -102,7 +102,7 @@ class ErrorDigestRenderer(
         /** What to do, from the log event. */
         val action: String?,
         val category: String,
-        /** The problem in the error dashboard, if it is in the database. */
+        /** The problem in the problem dashboard, if it is in the database. */
         val link: String? = null,
         /** For a spike: `usually 0.4 per hour`. */
         val usual: String? = null,
@@ -201,7 +201,7 @@ class ErrorDigestRenderer(
         if (view.suppressed > 0) append(", ${view.suppressed} occurrences not listed (below threshold, already reported or muted)")
         appendLine()
         if (view.muted > 0) appendLine("${view.muted} ignored or muted problems not listed")
-        view.dashboardUrl?.let { appendLine("Error dashboard: $it") }
+        view.dashboardUrl?.let { appendLine("Problem dashboard: $it") }
         view.sections.forEach { section ->
             appendLine()
             appendLine("== ${section.title} (${section.count}) ==")
@@ -210,7 +210,7 @@ class ErrorDigestRenderer(
         }
         if (view.omitted > 0) {
             appendLine()
-            appendLine("${view.omitted} further known problems not listed, see the error dashboard.")
+            appendLine("${view.omitted} further known problems not listed, see the problem dashboard.")
         }
         if (attachmentName != null) {
             appendLine()

@@ -77,7 +77,7 @@ private val log = KotlinLogging.logger {}
  *
  * The digest groups equal errors and lists the new problems, regressions and spikes first, then the known ones by
  * category, unreachable external systems first (see [ErrorDigestRenderer]); each group shows the explanation and
- * recommended action of its event and links the problem in the error dashboard, the single occurrences with their
+ * recommended action of its event and links the problem in the problem dashboard, the single occurrences with their
  * stack traces are attached as a text file, and everything once more as JSON for an analysis by an AI
  * ([LogAnalysisExport]).
  *
@@ -357,7 +357,7 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     companion object {
         private val FILENAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm")
 
-        /** The error dashboard, linked by the digest. */
+        /** The problem dashboard, linked by the digest. */
 
         /**
          * One mail per recipients, with the groups of the audiences ([LogEvent.audience]) they are configured for;

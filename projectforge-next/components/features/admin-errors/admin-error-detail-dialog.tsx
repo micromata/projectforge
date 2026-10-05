@@ -26,7 +26,7 @@ import { CATEGORY_KEYS } from "./admin-errors-labels";
 import { OccurrenceChart } from "./occurrence-chart";
 
 /**
- * Everything known about a problem of the error dashboard: what it means and what to do (the texts of its
+ * Everything known about a problem of the problem dashboard: what it means and what to do (the texts of its
  * event), how often it occurred over the last week and month, a sample occurrence with its stack trace, and the
  * status actions. A change refreshes the dashboard's list as well.
  */

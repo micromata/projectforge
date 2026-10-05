@@ -36,7 +36,7 @@ import java.time.Instant
 
 /**
  * The problems of the log aggregation as one self-explanatory JSON document, for an analysis and classification by
- * an AI (or any other tool): downloaded from the error dashboard ([LogGroupAdminService.export], source
+ * an AI (or any other tool): downloaded from the problem dashboard ([LogGroupAdminService.export], source
  * [SOURCE_DASHBOARD]) and attached to every error digest ([ofDigest], source [SOURCE_DIGEST]). Both share this
  * format, so one prompt fits both. The [guide] explains the fields and values inside the file itself.
  *
@@ -78,7 +78,7 @@ class LogAnalysisExport(
         /**
          * The groups of a digest period. A group known in the database is completed by its [stored] problem (status,
          * totals, trend), whose id is [ErrorGroup.problemId].
-         * @param dashboardUrl The error dashboard, each problem is linked as `?id=<id>`.
+         * @param dashboardUrl The problem dashboard, each problem is linked as `?id=<id>`.
          */
         fun ofDigest(
             snapshot: ErrorDigestCollector.Snapshot,

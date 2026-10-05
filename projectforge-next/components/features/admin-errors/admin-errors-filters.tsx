@@ -19,7 +19,7 @@ const ALL_CATEGORIES = "ALL";
 
 const DAYS = [1, 7, 30, 0];
 
-/** Status, category and period of the error dashboard's list - the server's filter (the search is the table's). */
+/** Status, category and period of the problem dashboard's list - the server's filter (the search is the table's). */
 export function AdminErrorsFilters({
   filter,
   onChange,

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * The key figures of the error dashboard ([LogGroupSummary]) in the system statistics, for admins only (the
+ * The key figures of the problem dashboard ([LogGroupSummary]) in the system statistics, for admins only (the
  * statistics are visible for all users).
  */
 @Service

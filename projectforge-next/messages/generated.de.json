@@ -3155,7 +3155,7 @@
           "resolved": "Erledigt"
         },
         "threshold": "Schwelle (pro Stunde)",
-        "title": "Fehlerübersicht",
+        "title": "Problem-Dashboard",
         "totalCount": "Gesamt",
         "trend": "Verlauf (7 Tage)"
       },

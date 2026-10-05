@@ -24,7 +24,7 @@ import { AdminErrorsTable } from "./admin-errors-table";
 const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7 };
 
 /**
- * The error dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
+ * The problem dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
  * collected error and warning, grouped -, their trends and status. A problem's detail explains it and changes
  * its status (acknowledge, resolve, ignore, mute), which also decides what the error digest reports. The digest
  * links each problem as `?id=<id>`, which opens its detail.

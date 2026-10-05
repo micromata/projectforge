@@ -309,12 +309,12 @@ version groups them more coarsely, the problems recorded before are merged short
 admin's status kept if they agree, else new). The mail lists new problems, regressions
 (problems that occurred again after being resolved) and spikes (much more often than in the last 7 days)
 first, then the 30 most frequent known problems sorted by severity (unreachable external systems first).
-Each problem links to the error dashboard (Administration), where it can be acknowledged, resolved, ignored
+Each problem links to the problem dashboard (Administration), where it can be acknowledged, resolved, ignored
 or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
 
 For an analysis or classification with an AI (or any other tool), the digest also attaches everything as a
-JSON file (`format: projectforge-log-analysis`), and the error dashboard downloads all problems of its
+JSON file (`format: projectforge-log-analysis`), and the problem dashboard downloads all problems of its
 current filter in the same format (_Download as JSON_), with sample message, stack trace and the occurrences
 of the last 30 days. The file explains its fields and values itself (`guide`), so it can be handed over as it
 is. It contains no user names, but messages and requests are as logged and may contain personal data: check
