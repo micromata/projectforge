@@ -23,9 +23,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   generator (`bin/pfDev.sh gen`, i.e. `developmentMainForRelease`), which may be run after an i18n change;
   a manual change would be overwritten on the next run anyway.
 - The changelog is written only in `changelog/changelog.json` (English, published — no names of persons,
-  customers or internal teams). `site/_changelogs/*.adoc`, `site/changelog-posts.adoc` and
-  `projectforge-next/lib/generated/changelog.json` are generated from it by the same `gen` run
-  (`GenerateChangelogMain`) and never edited by hand.
+  customers or internal teams), its German translation for the app in `changelog/changelog.de.json` (same
+  structure, texts only, by version/id; every entry must be translated). `site/_changelogs/*.adoc`,
+  `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
+  them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 
 ## Code Style Guidelines
 - Use Kotlin JVM target 17 for all code; legacy code is in Java

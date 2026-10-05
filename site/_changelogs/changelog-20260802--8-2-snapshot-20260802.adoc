@@ -15,7 +15,7 @@ __Snapshot build https://github.com/micromata/projectforge/commit/0095d878f[deve
 ++++
 - Tables (TanStack): typed column filters with active-filter badge, date range filters, keyboard multi selection, column reordering, left pinning and row click actions.
 - Forecast export: comparison with the year before last.
-- Tasks: title length increased from 40 to 100 characters.
+- Structure elements: title length increased from 40 to 100 characters.
 
 ++++
 {% include tag.html tag="fixed" %}

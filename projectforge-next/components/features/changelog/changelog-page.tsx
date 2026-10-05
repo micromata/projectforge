@@ -7,7 +7,8 @@ import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { useTextHighlights } from "@/hooks/use-text-highlights";
-import changelogJson from "@/lib/generated/changelog.json";
+import changelogEn from "@/lib/generated/changelog.json";
+import changelogDe from "@/lib/generated/changelog.de.json";
 import { ChangelogNewsCard } from "./changelog-news";
 import { MatchStepper } from "./match-stepper";
 import { ReleaseEntry } from "./release-entry";
@@ -17,20 +18,25 @@ import type { Changelog } from "./types";
 const WEBSITE_CHANGELOG_URL = "https://www.projectforge.org/changelog-posts/";
 
 /**
- * Generated from changelog/changelog.json by GenerateChangelogMain (bin/pfDev.sh gen), the same source as
- * the website's changelog — never edited by hand. Imported at build time, the static export needs no REST call.
+ * Generated from changelog/changelog.json (and its German translation changelog.de.json) by
+ * GenerateChangelogMain (bin/pfDev.sh gen), the same source as the website's changelog — never edited by
+ * hand. Imported at build time, the static export needs no REST call.
  */
-const changelog = changelogJson as Changelog;
+const CHANGELOGS: Record<string, Changelog> = {
+  en: changelogEn as Changelog,
+  de: changelogDe as Changelog,
+};
 
 /**
  * The changelog page (`/next/changelog`), reached from the version in the status bar and the user menu:
  * every release and snapshot milestone, newest first and open, as collapsible sections, each news of a
  * version right above its newest release. The search field searches all of it, folded or not, and shows
- * only what matches, unfolded, every occurrence highlighted and stepped through. The texts are English only, like the website's changelog.
+ * only what matches, unfolded, every occurrence highlighted and stepped through. The texts are German for
+ * the German locale, English otherwise (the website's changelog is English only).
  */
 export function ChangelogPage() {
   const t = useTranslations();
-  const locale = useLocale();
+  const changelog = CHANGELOGS[useLocale()] ?? CHANGELOGS.en;
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<Set<string>>(
     () => new Set(changelog.releases.slice(0, 1).map((release) => release.id))
@@ -51,7 +57,7 @@ export function ChangelogPage() {
           ),
         }))
         .filter((row) => row.release !== null || row.news !== undefined),
-    [terms]
+    [changelog, terms]
   );
 
   const results = useRef<HTMLDivElement>(null);
@@ -117,13 +123,8 @@ export function ChangelogPage() {
       </PageTitleRow>
       <div
         ref={results}
-        className="flex max-w-4xl flex-col gap-2 px-4 pb-6 pt-2 text-sm"
+        className="flex max-w-4xl flex-col gap-2 px-4 pb-6 pt-2 text-[13px] font-normal leading-relaxed"
       >
-        {locale !== "en" && (
-          <p className="text-xs text-muted-foreground">
-            {t("changelog.englishOnly")}
-          </p>
-        )}
         {rows.map(({ id, release, news }) => (
           <Fragment key={id}>
             {news && (

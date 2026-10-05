@@ -26,7 +26,7 @@ __Snapshot build https://github.com/micromata/projectforge/commit/aa37d14c1[deve
 - Forecast export: NPE and snapshot data.
 - Calendar navigation and layout.
 - Wicket session: a user mismatch is detected, logged and forces a new login; breadcrumbs create fresh page instances.
-- Concurrency and defensive checks in the task hierarchy.
+- Concurrency and defensive checks in the structure tree hierarchy.
 
 ++++
 {% include tag.html tag="security" %}

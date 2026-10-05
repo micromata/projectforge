@@ -35,7 +35,8 @@ import java.time.format.DateTimeParseException
 
 /**
  * Generates the changelog of the website and of the app from `changelog/changelog.json`, the single
- * source of truth (English only, it is published).
+ * source of truth (English, it is published). The app also shows it in German, translated in
+ * `changelog/changelog.de.json` (see [validateTranslation]); the website is English only.
  *
  * The source has three levels of abstraction: `news` (a few highlights per version), `releases`
  * (one entry per tagged release or per snapshot milestone of develop, sections typed like
@@ -51,7 +52,8 @@ import java.time.format.DateTimeParseException
  *    `changelog-<yyyymmdd>--news-<version>.adoc`, one per news (the directory is owned by this generator,
  *    other files there are removed),
  * 2. `site/changelog-posts.adoc`, the changelog page of the website listing them,
- * 3. `projectforge-next/lib/generated/changelog.json` for the page `/next/changelog`.
+ * 3. `projectforge-next/lib/generated/changelog.json` and `changelog.de.json` (the German version) for the
+ *    page `/next/changelog`.
  *
  * Both targets show a news directly above the newest release of its version (see [newsAnchors]): 8.2 above
  * the latest 8.2 snapshot, 8.1 above the 8.1 release and so on.
@@ -61,9 +63,11 @@ import java.time.format.DateTimeParseException
  */
 object GenerateChangelogMain {
   internal const val SOURCE = "changelog/changelog.json"
+  internal const val SOURCE_DE = "changelog/changelog.de.json"
   private const val CHANGELOGS_DIR = "site/_changelogs"
   private const val POSTS_PAGE = "site/changelog-posts.adoc"
   private const val NEXT_FILE = "projectforge-next/lib/generated/changelog.json"
+  private const val NEXT_FILE_DE = "projectforge-next/lib/generated/changelog.de.json"
   private const val REPO_URL = "https://github.com/micromata/projectforge"
   private const val GENERATED_NOTE = "Generated from $SOURCE by GenerateChangelogMain — do not edit."
   private val ENCODING = StandardCharsets.UTF_8
@@ -73,6 +77,10 @@ object GenerateChangelogMain {
     "added", "improved", "changed", "fixed", "removed", "deprecated",
     "security", "privacy", "admin", "technology", "docker",
   )
+
+  /** The fields a translation may replace, everything else (version, date, commits, types) is the source's. */
+  private val TRANSLATED_NEWS_FIELDS = setOf("title", "text", "highlights")
+  private val TRANSLATED_RELEASE_FIELDS = setOf("title", "intro", "sections")
 
   private val ID_REGEX = Regex("""[a-z0-9]+(-[a-z0-9]+)*""")
   private val COMMIT_REGEX = Regex("""[0-9a-f]{7,40}""")
@@ -116,6 +124,9 @@ object GenerateChangelogMain {
     val root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
     val errors = validate(root)
     require(errors.isEmpty()) { "$SOURCE is invalid:\n${errors.joinToString("\n")}" }
+    val translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
+    val translationErrors = validateTranslation(root, translation)
+    require(translationErrors.isEmpty()) { "$SOURCE_DE is invalid:\n${translationErrors.joinToString("\n")}" }
     val result = linkedMapOf<String, String>()
     val anchors = newsAnchors(root)
     root["releases"].forEach { release ->
@@ -127,6 +138,7 @@ object GenerateChangelogMain {
     }
     result[POSTS_PAGE] = postsPage()
     result[NEXT_FILE] = nextJson(root)
+    result[NEXT_FILE_DE] = nextJson(translate(root, translation))
     return result
   }
 
@@ -235,6 +247,118 @@ object GenerateChangelogMain {
       }
     }
     return errors
+  }
+
+  /**
+   * Checks the German [translation] against the (valid) source [root]. The translation holds the texts only,
+   * by the version of a news and the id of a release: `{"news": {"8.2": {title, text, highlights}},
+   * "releases": {"8-1": {title, intro, sections}}}`. Every news and release must be translated, with the
+   * structure of the source: the same sections (in order and type), the same number of items, a group
+   * for a group and the same number of sub list lines in an item. The texts follow the rules of the source.
+   */
+  internal fun validateTranslation(root: JsonNode, translation: JsonNode): List<String> {
+    val errors = mutableListOf<String>()
+    val news = translation["news"]
+    val releases = translation["releases"]
+    if (news == null || !news.isObject) errors.add("'news' must be an object, the news by version.")
+    if (releases == null || !releases.isObject) errors.add("'releases' must be an object, the releases by id.")
+    if (errors.isNotEmpty()) return errors
+    val sourceNews = root["news"].associateBy { it["version"].asText() }
+    val sourceReleases = root["releases"].associateBy { it["id"].asText() }
+    news.fieldNames().asSequence().filter { it !in sourceNews }.forEach {
+      errors.add("news $it: there is no news of this version in $SOURCE.")
+    }
+    releases.fieldNames().asSequence().filter { it !in sourceReleases }.forEach {
+      errors.add("releases $it: there is no release with this id in $SOURCE.")
+    }
+    sourceNews.forEach { (version, original) ->
+      val where = "news $version"
+      val entry = news[version]
+      if (entry == null) {
+        errors.add("$where: the translation is missing.")
+        return@forEach
+      }
+      validateFields(entry, TRANSLATED_NEWS_FIELDS, where, errors)
+      requireText(entry, "title", where, errors)?.let { validateTitle(it, "$where.title", errors) }
+      requireText(entry, "text", where, errors)?.let { validateText(it, "$where.text", errors) }
+      requireSameSize(original["highlights"], entry["highlights"], "$where.highlights", errors)
+      entry["highlights"]?.forEachIndexed { i, highlight ->
+        validateText(highlight.asText(), "$where.highlights[$i]", errors, inline = true)
+      }
+    }
+    sourceReleases.forEach { (id, original) ->
+      val where = "releases $id"
+      val release = releases[id]
+      if (release == null) {
+        errors.add("$where: the translation is missing.")
+        return@forEach
+      }
+      validateFields(release, TRANSLATED_RELEASE_FIELDS, where, errors)
+      requireText(release, "title", where, errors)?.let { validateTitle(it, "$where.title", errors) }
+      requireSameSize(original["intro"], release["intro"], "$where.intro", errors)
+      release["intro"]?.forEachIndexed { i, text -> validateText(text.asText(), "$where.intro[$i]", errors) }
+      val sections = release["sections"]
+      if (!requireSameSize(original["sections"], sections, "$where.sections", errors)) return@forEach
+      original["sections"].forEachIndexed { s, originalSection ->
+        val section = sections[s]
+        val sectionWhere = "$where.sections[$s]"
+        val type = originalSection["type"].asText()
+        if (section["type"]?.asText() != type) errors.add("$sectionWhere: the type must be '$type', as in $SOURCE.")
+        val items = section["items"]
+        if (!requireSameSize(originalSection["items"], items, "$sectionWhere.items", errors)) return@forEachIndexed
+        originalSection["items"].forEachIndexed { i, originalItem ->
+          val item = items[i]
+          val itemWhere = "$sectionWhere.items[$i]"
+          when {
+            originalItem.isTextual && item.isTextual -> {
+              if (item.asText().split('\n').size != originalItem.asText().split('\n').size) {
+                errors.add("$itemWhere: the number of sub list lines differs from $SOURCE.")
+              }
+              validateText(item.asText(), itemWhere, errors, item = true)
+            }
+
+            !originalItem.isTextual && item.isObject -> {
+              requireText(item, "title", itemWhere, errors)?.let { validateTitle(it, "$itemWhere.title", errors) }
+              if (requireSameSize(originalItem["items"], item["items"], "$itemWhere.items", errors)) {
+                item["items"].forEachIndexed { c, child ->
+                  if (!child.isTextual) errors.add("$itemWhere.items[$c]: must be a string.")
+                  validateText(child.asText(), "$itemWhere.items[$c]", errors, inline = true)
+                }
+              }
+            }
+
+            else -> errors.add("$itemWhere: must be a ${if (originalItem.isTextual) "string" else "group"}, as in $SOURCE.")
+          }
+        }
+      }
+    }
+    return errors
+  }
+
+  /** The source [root] with the texts of the (valid) [translation] in place of its own. */
+  internal fun translate(root: JsonNode, translation: JsonNode): JsonNode {
+    val copy = root.deepCopy<JsonNode>()
+    copy["news"].forEach { (it as ObjectNode).setAll<JsonNode>(translation["news"][it["version"].asText()] as ObjectNode) }
+    copy["releases"].forEach {
+      (it as ObjectNode).setAll<JsonNode>(translation["releases"][it["id"].asText()] as ObjectNode)
+    }
+    return copy
+  }
+
+  private fun validateFields(node: JsonNode, allowed: Set<String>, where: String, errors: MutableList<String>) {
+    node.fieldNames().asSequence().filter { it !in allowed }.forEach {
+      errors.add("$where: '$it' can't be translated, only $allowed.")
+    }
+  }
+
+  /** Whether [translated] is an array of the size of [original] (both missing is fine), else adds an error. */
+  private fun requireSameSize(original: JsonNode?, translated: JsonNode?, where: String, errors: MutableList<String>): Boolean {
+    val expected = original?.size() ?: 0
+    if (translated != null && !translated.isArray || (translated?.size() ?: 0) != expected) {
+      errors.add("$where: must be an array of $expected entries, as in $SOURCE.")
+      return false
+    }
+    return true
   }
 
   /** Titles are plain text: the app renders them in headings and buttons, where no markup belongs. */

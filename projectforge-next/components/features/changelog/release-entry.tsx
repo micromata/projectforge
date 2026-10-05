@@ -36,7 +36,7 @@ export function ReleaseEntry({
           size={14}
           className="self-center text-muted-foreground"
         />
-        <span className="font-semibold">{release.title}</span>
+        <span className="font-medium">{release.title}</span>
         <span className="ml-auto shrink-0 text-xs text-muted-foreground">
           {release.date}
         </span>

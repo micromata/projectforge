@@ -35,7 +35,7 @@ __Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE].__
 - JCR memory leak fixes and improved repository management.
 - Enhanced user and group access control with menu visibility configuration.
 - Forecast export functionality with filtering by unit, customer, and projects.
-- Task wizard support for optional external groups.
+- Structure wizard support for optional external groups.
 - Multi-selection improvements for employees in visitor book and vacation entries.
 
 ++++
@@ -47,13 +47,13 @@ __Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE].__
 - Timesheet recent entries display corrected (kost2, project, customer info).
 - VacationValidator edge case handling for vacation day calculations.
 - NPE fixes in vacation account management and group services.
-- Task tree access checking improvements for timesheet editing.
+- Structure tree access checking improvements for timesheet editing.
 - Order forecast data and invoice cache handling corrections.
 - User group cache and right handling stability improvements.
 - Address forced deletion after MGC migration fixed.
 - History formatting and user comment handling corrected.
 - Various UI fixes for AG Grid tables and component rendering.
-- Excel export XML escaping for task titles in timesheet exports.
+- Excel export XML escaping for structure element titles in timesheet exports.
 - Cost assignment export improvements for invoice handling.
 - Login redirect functionality after authentication.
 - Calendar and timesheet page rendering issues resolved.

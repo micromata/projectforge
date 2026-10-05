@@ -477,7 +477,6 @@
   "changelog": {
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
-    "englishOnly": "Das Changelog gibt es nur auf Englisch.",
     "expandAll": "Alle aufklappen",
     "news": "Neuigkeiten",
     "nextMatch": "Nächster Treffer (Enter)",
@@ -486,6 +485,19 @@
     "snapshot": "Snapshot-Stand",
     "tag": "Tag",
     "title": "Changelog",
+    "type": {
+      "added": "Neu",
+      "admin": "Administration",
+      "changed": "Geändert",
+      "deprecated": "Veraltet",
+      "docker": "Docker",
+      "fixed": "Behoben",
+      "improved": "Verbessert",
+      "privacy": "Datenschutz",
+      "removed": "Entfernt",
+      "security": "Sicherheit",
+      "technology": "Technologie"
+    },
     "website": "Changelog auf projectforge.org"
   },
   "changes": "Änderungen",

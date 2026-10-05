@@ -13,11 +13,11 @@ __Snapshot build https://github.com/micromata/projectforge/commit/81c69f854[deve
 ++++
 - Global full-text search migrated to projectforge-next, results as collapsible tiles.
 - **Mass update in projectforge-next**
-  * For incoming invoices and time sheets (task, Kost2, tag), with live selection statistics.
+  * For incoming invoices and time sheets (structure element, Kost2, tag), with live selection statistics.
   * Changes are listed server-side before they are written; text actions picked from a dropdown.
 - Time sheet list: Kost2 filter with autocomplete, Kost2 type filter, PDF export options dialog with per-entry duration.
 - Structure tree can be filtered by Kost2 number (wildcards supported).
-- Tasks: __max hours has priority__ switch overriding ordered person days; explicit sub-task status overrides an inherited one.
+- Structure elements: __max hours has priority__ switch overriding ordered person days; explicit status of a child structure element overrides an inherited one.
 - Creditor invoices: SEPA bank transfer download.
 - Employee list: weekly hours column and filtered Excel export.
 - Calendar day/week statistics show the gross working time.

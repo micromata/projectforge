@@ -28,7 +28,7 @@ __Snapshot build https://github.com/micromata/projectforge/commit/e944881b0[deve
 ++++
 {% include tag.html tag="fixed" %}
 ++++
-- Time sheets can no longer be booked on tasks of an ended or deleted project.
+- Time sheets can no longer be booked on structure elements of an ended or deleted project.
 - Saving an invoice no longer shifts the index of its cost assignments.
 - Positions of orders, invoices and incoming invoices are sorted by number.
 - Order forecast charts and Excel select exactly the orders of the list.

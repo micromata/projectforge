@@ -114,6 +114,46 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun translationKeepsTheStructureOfTheSource() {
+    val mapper = ObjectMapper()
+    val root = mapper.readTree(
+      """
+      {"news": [{"version": "1", "date": "2026-01-01", "title": "News", "text": "Text", "highlights": ["one"]}],
+       "releases": [{"id": "r1", "version": "1", "date": "2026-01-01", "title": "Release", "tag": "1-RELEASE",
+         "sections": [{"type": "fixed", "items": ["bug\n- detail", {"title": "Group", "items": ["a", "b"]}]}]}]}
+      """.trimIndent()
+    )
+    val translation = mapper.readTree(
+      """
+      {"news": {"1": {"title": "Neuigkeit", "text": "Text", "highlights": ["eins"]}},
+       "releases": {"r1": {"title": "Release", "sections": [{"type": "fixed",
+         "items": ["Fehler\n- Detail", {"title": "Gruppe", "items": ["a", "b"]}]}]}}}
+      """.trimIndent()
+    )
+    assertEquals(emptyList<String>(), GenerateChangelogMain.validateTranslation(root, translation))
+    val translated = GenerateChangelogMain.translate(root, translation)
+    assertEquals("Neuigkeit", translated["news"][0]["title"].asText())
+    assertEquals("2026-01-01", translated["news"][0]["date"].asText())
+    assertEquals("Gruppe", translated["releases"][0]["sections"][0]["items"][1]["title"].asText())
+    assertEquals("1-RELEASE", translated["releases"][0]["tag"].asText())
+
+    val broken = mapper.readTree(
+      """
+      {"news": {"2": {"title": "X", "text": "X"}},
+       "releases": {"r1": {"title": "Release", "version": "9", "sections": [{"type": "added",
+         "items": ["Fehler", "Gruppe"]}]}}}
+      """.trimIndent()
+    )
+    val errors = GenerateChangelogMain.validateTranslation(root, broken)
+    assertTrue(errors.any { it.contains("no news of this version") }, errors.toString())
+    assertTrue(errors.any { it.contains("news 1: the translation is missing") }, errors.toString())
+    assertTrue(errors.any { it.contains("'version' can't be translated") }, errors.toString())
+    assertTrue(errors.any { it.contains("the type must be 'fixed'") }, errors.toString())
+    assertTrue(errors.any { it.contains("number of sub list lines") }, errors.toString())
+    assertTrue(errors.any { it.contains("must be a group") }, errors.toString())
+  }
+
+  @Test
   fun generatedFilesAreUpToDate() {
     val rootDir = GenerateChangelogMain.resolveRootDir()
     assertTrue(

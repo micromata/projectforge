@@ -15,7 +15,7 @@ export function ChangelogNewsCard({ news }: { news: ChangelogNews }) {
       <p className="text-[0.625rem] font-semibold uppercase tracking-wide text-primary">
         {t("changelog.news")}
       </p>
-      <h3 className="font-semibold">{news.title}</h3>
+      <h3 className="text-sm font-medium">{news.title}</h3>
       <p className="mb-2 text-xs text-muted-foreground">
         {news.version} · {news.date}
       </p>

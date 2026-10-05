@@ -176,7 +176,7 @@
         {
           "type": "fixed",
           "items": [
-            "Time sheets can no longer be booked on tasks of an ended or deleted project.",
+            "Time sheets can no longer be booked on structure elements of an ended or deleted project.",
             "Saving an invoice no longer shifts the index of its cost assignments.",
             "Positions of orders, invoices and incoming invoices are sorted by number.",
             "Order forecast charts and Excel select exactly the orders of the list.",
@@ -207,7 +207,7 @@
               "items": [
                 "Monthly employee report with month pager, week drill-downs and compact statistics; normal users can view their own report.",
                 "Customers, projects, cost 2 units, cost 2 types, accounting records, employee salaries and the salary import.",
-                "Group/task access rights with matrix view, analysis filter for likely erroneous entries, mass update and bulk delete/restore.",
+                "Group/structure element access rights with matrix view, analysis filter for likely erroneous entries, mass update and bulk delete/restore.",
                 "System administration, plugin administration, system configuration, first-run setup, send SMS, direct call, personal statistics and feedback.",
                 "The liquidity planning plugin."
               ]
@@ -230,7 +230,7 @@
                 "Clone an order into a fresh editable draft."
               ]
             },
-            "Task picker with recently selected tasks and task favorites.",
+            "Structure element picker with recently selected structure elements and structure element favorites.",
             "Creditor invoices: bank details are filled in from the creditor.",
             "Mass update for cost 1 and cost 2.",
             "Compact top navigation with counter badges; search moved into the main menu.",
@@ -242,13 +242,13 @@
         {
           "type": "fixed",
           "items": [
-            "Several N+1 query floods (task favorites, access list, customer list, skill matrix, forecast, salary export, order filters).",
+            "Several N+1 query floods (structure element favorites, access list, customer list, skill matrix, forecast, salary export, order filters).",
             "Self-deadlocks of the project/customer caches inside write transactions.",
             "An issued invoice is shown in its order immediately, not only after the next cache refresh.",
             "Planned and cancelled invoices no longer count as invoiced for order positions.",
             "Change history shows time-of-day values in the user's time zone.",
             "Cost assignments of incoming invoices are exported again.",
-            "Expand/collapse of the classic task tree restored."
+            "Expand/collapse of the classic structure tree restored."
           ]
         },
         {
@@ -287,13 +287,13 @@
             {
               "title": "Mass update in projectforge-next",
               "items": [
-                "For incoming invoices and time sheets (task, Kost2, tag), with live selection statistics.",
+                "For incoming invoices and time sheets (structure element, Kost2, tag), with live selection statistics.",
                 "Changes are listed server-side before they are written; text actions picked from a dropdown."
               ]
             },
             "Time sheet list: Kost2 filter with autocomplete, Kost2 type filter, PDF export options dialog with per-entry duration.",
             "Structure tree can be filtered by Kost2 number (wildcards supported).",
-            "Tasks: *max hours has priority* switch overriding ordered person days; explicit sub-task status overrides an inherited one.",
+            "Structure elements: *max hours has priority* switch overriding ordered person days; explicit status of a child structure element overrides an inherited one.",
             "Creditor invoices: SEPA bank transfer download.",
             "Employee list: weekly hours column and filtered Excel export.",
             "Calendar day/week statistics show the gross working time.",
@@ -335,7 +335,7 @@
               "title": "Migrated to projectforge-next",
               "items": [
                 "Outgoing invoices with clone, Word and e-invoice export, cost assignments and attachments; creditor invoices with CSV import.",
-                "Structure tree (tree and list perspective, keyboard navigation), task edit page and structure wizard.",
+                "Structure tree (tree and list perspective, keyboard navigation), structure element edit page and structure wizard.",
                 "Groups, including member mail addresses and LDAP information.",
                 "Calendar with toolbar, favorites, settings, drag and drop, jump to date; team events with reminders, recurrence and series modification.",
                 "Time sheet list and edit form with recent entries, templates, location suggestions, consumption bar and PDF/Excel export."
@@ -350,7 +350,7 @@
                 "Deleted entries can be restored; links of moved pages lead to the new pages."
               ]
             },
-            "JIRA issue links in task, structure tree, order and time sheet lists and forms.",
+            "JIRA issue links in structure element, structure tree, order and time sheet lists and forms.",
             "Light/dark theme toggle, logos adapted to dark mode.",
             "Overlapping time sheets allowed for shared cost elements.",
             "Recently used menu entries, shared by all frontends; quick access search for the menu.",
@@ -424,7 +424,7 @@
         {
           "type": "fixed",
           "items": [
-            "File transfer, row selection and task tree regressions after the TanStack migration.",
+            "File transfer, row selection and structure tree regressions after the TanStack migration.",
             "Identity provider ID no longer cleared on user edit.",
             "LDAP move/rename of legacy cn-based entries.",
             "Invoiced sums of orders no longer 0 after concurrent cache refreshes.",
@@ -465,7 +465,7 @@
           "items": [
             "Tables (TanStack): typed column filters with active-filter badge, date range filters, keyboard multi selection, column reordering, left pinning and row click actions.",
             "Forecast export: comparison with the year before last.",
-            "Tasks: title length increased from 40 to 100 characters."
+            "Structure elements: title length increased from 40 to 100 characters."
           ]
         },
         {
@@ -634,7 +634,7 @@
             "Forecast export: NPE and snapshot data.",
             "Calendar navigation and layout.",
             "Wicket session: a user mismatch is detected, logged and forces a new login; breadcrumbs create fresh page instances.",
-            "Concurrency and defensive checks in the task hierarchy."
+            "Concurrency and defensive checks in the structure tree hierarchy."
           ]
         },
         {
@@ -845,7 +845,7 @@
             "JCR memory leak fixes and improved repository management.",
             "Enhanced user and group access control with menu visibility configuration.",
             "Forecast export functionality with filtering by unit, customer, and projects.",
-            "Task wizard support for optional external groups.",
+            "Structure wizard support for optional external groups.",
             "Multi-selection improvements for employees in visitor book and vacation entries."
           ]
         },
@@ -858,13 +858,13 @@
             "Timesheet recent entries display corrected (kost2, project, customer info).",
             "VacationValidator edge case handling for vacation day calculations.",
             "NPE fixes in vacation account management and group services.",
-            "Task tree access checking improvements for timesheet editing.",
+            "Structure tree access checking improvements for timesheet editing.",
             "Order forecast data and invoice cache handling corrections.",
             "User group cache and right handling stability improvements.",
             "Address forced deletion after MGC migration fixed.",
             "History formatting and user comment handling corrected.",
             "Various UI fixes for AG Grid tables and component rendering.",
-            "Excel export XML escaping for task titles in timesheet exports.",
+            "Excel export XML escaping for structure element titles in timesheet exports.",
             "Cost assignment export improvements for invoice handling.",
             "Login redirect functionality after authentication.",
             "Calendar and timesheet page rendering issues resolved.",

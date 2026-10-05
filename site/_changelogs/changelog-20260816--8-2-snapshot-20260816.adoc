@@ -34,7 +34,7 @@ __Snapshot build https://github.com/micromata/projectforge/commit/e8819bffc[deve
 ++++
 {% include tag.html tag="fixed" %}
 ++++
-- File transfer, row selection and task tree regressions after the TanStack migration.
+- File transfer, row selection and structure tree regressions after the TanStack migration.
 - Identity provider ID no longer cleared on user edit.
 - LDAP move/rename of legacy cn-based entries.
 - Invoiced sums of orders no longer 0 after concurrent cache refreshes.
