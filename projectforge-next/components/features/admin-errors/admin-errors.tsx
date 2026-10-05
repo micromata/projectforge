@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useExportDownload } from "@/hooks/use-export-download";
 import { isAccessDenied } from "@/hooks/use-read-access-guard";
+import { useTabParam } from "@/hooks/use-tab-param";
+import { updateSearchParams } from "@/lib/search-params";
 import {
   downloadAdminErrors,
   fetchAdminErrors,
@@ -28,6 +30,11 @@ import { AdminErrorsProblems } from "./admin-errors-problems";
 
 const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7 };
 
+const TABS = ["overview", "problems"];
+
+/** The subsystem of a tile, see AdminSubsystemTiles. */
+const SUBSYSTEM_PARAM = "subsystem";
+
 /**
  * The problem dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
  * collected error and warning, grouped -, their trends and status. A problem's detail explains it and changes
@@ -39,27 +46,25 @@ export function AdminErrors() {
   const t = useTranslations();
   const { isAdmin, isLoading } = useAuth();
   const queryClient = useQueryClient();
-  // Status, category, period and subsystem are the server's; the search works on the loaded problems (see
-  // AdminErrorsTable), so typing doesn't fetch the list anew on every key.
-  const [filter, setFilter] = useState<LogGroupFilter>(START_FILTER);
-  const [search, setSearch] = useState("");
+  const params = useSearchParams();
   // The error digest links a problem as `?id=<id>`: its detail opens at once, above the problems.
-  const linkedId = Number(useSearchParams().get("id")) || null;
+  const linkedId = Number(params.get("id")) || null;
   const [detailId, setDetailId] = useState<number | null>(linkedId);
-  const [tab, setTab] = useState(linkedId ? "problems" : "overview");
+  // Tab and subsystem are kept in the url, so that the back button returns to the previous view. The tab a link
+  // opened stays when its id is dropped.
+  const [fallbackTab] = useState(linkedId ? "problems" : "overview");
+  const [tab, setTab] = useTabParam(fallbackTab, TABS);
+  const subsystem = params.get(SUBSYSTEM_PARAM) || null;
+  // Status, category and period stay local: going back shouldn't undo every change of a select. All of them are
+  // the server's; the search works on the loaded problems (see AdminErrorsTable), so typing doesn't fetch the list
+  // anew on every key.
+  const [localFilter, setFilter] = useState<LogGroupFilter>(START_FILTER);
+  const filter: LogGroupFilter = { ...localFilter, subsystem };
+  const [search, setSearch] = useState("");
   const closeDetail = () => {
     setDetailId(null);
-    // Drops the link's id, so that a reload doesn't open the detail again. The native History API, not
-    // `router.replace`, as in the order statistics.
-    const query = new URLSearchParams(window.location.search);
-    if (!query.has("id")) return;
-    query.delete("id");
-    const search = query.toString();
-    window.history.replaceState(
-      null,
-      "",
-      search ? `?${search}` : window.location.pathname
-    );
+    // Drops the link's id, so that a reload doesn't open the detail again.
+    if (params.has("id")) updateSearchParams({ id: null }, "replace");
   };
 
   const list = useQuery({
@@ -73,9 +78,8 @@ export function AdminErrors() {
     queryFn: ({ signal }) => fetchAdminSubsystems(signal),
     enabled: isAdmin,
   });
-  const subsystemTitle = filter.subsystem
-    ? (subsystems.data?.find((it) => it.id === filter.subsystem)?.title ??
-      filter.subsystem)
+  const subsystemTitle = subsystem
+    ? (subsystems.data?.find((it) => it.id === subsystem)?.title ?? subsystem)
     : null;
   // All problems of the filter and the search, not only the listed ones, as JSON for an analysis (e.g. by an AI).
   const download = useExportDownload(() =>
@@ -140,10 +144,9 @@ export function AdminErrors() {
               summary={data.summary}
               subsystems={subsystems.data}
               subsystemsError={subsystems.isError}
-              onOpenSubsystem={(subsystem) => {
-                setFilter({ ...filter, subsystem: subsystem.id });
-                setTab("problems");
-              }}
+              onOpenSubsystem={(it) =>
+                setTab("problems", { [SUBSYSTEM_PARAM]: it.id })
+              }
             />
           </TabsContent>
           <TabsContent
@@ -156,6 +159,9 @@ export function AdminErrors() {
               filter={filter}
               subsystemTitle={subsystemTitle}
               onFilterChange={setFilter}
+              onRemoveSubsystem={() =>
+                updateSearchParams({ [SUBSYSTEM_PARAM]: null }, "push")
+              }
               search={search}
               onSearchChange={setSearch}
               onOpen={(entry) => setDetailId(entry.id)}

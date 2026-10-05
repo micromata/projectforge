@@ -29,10 +29,12 @@ export function AdminErrorsFilters({
   filter,
   subsystemTitle,
   onChange,
+  onRemoveSubsystem,
 }: {
   filter: LogGroupFilter;
   subsystemTitle: string | null;
   onChange: (filter: LogGroupFilter) => void;
+  onRemoveSubsystem: () => void;
 }) {
   const t = useTranslations();
   const days = (value: number) =>
@@ -125,7 +127,7 @@ export function AdminErrorsFilters({
             type="button"
             className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
             aria-label={t("system.admin.adminErrors.subsystems.removeFilter")}
-            onClick={() => onChange({ ...filter, subsystem: null })}
+            onClick={onRemoveSubsystem}
           >
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
