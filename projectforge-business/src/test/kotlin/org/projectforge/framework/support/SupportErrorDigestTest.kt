@@ -81,6 +81,17 @@ class SupportErrorDigestTest {
             ErrorOccurrenceFactory.fromLogEvent(event(Level.ERROR, "boom", IllegalStateException("boom")))?.event,
         )
         Assertions.assertSame(SupportLogEvents.LOGGED_ERROR, ErrorOccurrenceFactory.fromLogEvent(event(Level.ERROR, "boom"))?.event)
+        // Known messages of libraries are grouped by their code.
+        val netty = ErrorOccurrenceFactory.fromLogEvent(
+            event(
+                Level.ERROR,
+                "Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults.",
+                logger = "io.netty.resolver.dns.DnsServerAddressStreamProviders",
+            )
+        )!!
+        Assertions.assertSame(ThirdPartyLogEvents.NETTY_MACOS_DNS, netty.event)
+        Assertions.assertTrue(netty.groupByCode)
+        Assertions.assertNull(ThirdPartyLogEvents.find("org.projectforge.Foo", "MacOSDnsServerAddressStreamProvider"))
         // The REST handler reports itself, and the digest doesn't collect its own errors.
         Assertions.assertNull(
             ErrorOccurrenceFactory.fromLogEvent(event(Level.ERROR, "x", logger = "org.projectforge.rest.core.GlobalDefaultExceptionHandler"))

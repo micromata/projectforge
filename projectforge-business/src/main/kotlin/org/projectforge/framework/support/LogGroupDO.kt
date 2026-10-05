@@ -79,6 +79,10 @@ enum class LogGroupStatus {
         query = "select new org.projectforge.framework.support.LogGroupState(g.id, g.fingerprint, g.status, g.mutedUntil, g.overrideNotify, g.lastNotified, g.reopenedAt) from LogGroupDO g",
     ),
     NamedQuery(
+        name = LogGroupDO.SELECT_ROWS,
+        query = "select new org.projectforge.framework.support.LogGroupRow(g.id, g.code, g.category, g.level, g.location, g.exceptionClass, substring(g.sampleMessage, 1, 300), g.firstSeen, g.lastSeen, g.totalCount, g.status, g.mutedUntil, g.overrideNotify, g.reopenedAt) from LogGroupDO g order by g.lastSeen desc",
+    ),
+    NamedQuery(
         name = LogGroupDO.UPDATE_LAST_NOTIFIED,
         query = "update LogGroupDO g set g.lastNotified = :lastNotified where g.fingerprint in :fingerprints",
     ),
@@ -168,12 +172,35 @@ open class LogGroupDO {
     companion object {
         internal const val FIND_BY_FINGERPRINT = "LogGroupDO_FindByFingerprint"
         internal const val SELECT_STATES = "LogGroupDO_SelectStates"
+        internal const val SELECT_ROWS = "LogGroupDO_SelectRows"
         internal const val UPDATE_LAST_NOTIFIED = "LogGroupDO_UpdateLastNotified"
         internal const val SELECT_IDS_LAST_SEEN_BEFORE = "LogGroupDO_SelectIdsLastSeenBefore"
         internal const val DELETE_BY_IDS = "LogGroupDO_DeleteByIds"
         internal const val CLEAR_SAMPLES_LAST_SEEN_BEFORE = "LogGroupDO_ClearSamplesLastSeenBefore"
     }
 }
+
+/**
+ * A [LogGroupDO] without stack trace, request and full message, for the list of the dashboard
+ * ([LogGroupAdminService]).
+ */
+class LogGroupRow(
+    val id: Long,
+    val code: String,
+    val category: LogCategory,
+    val level: LogLevel,
+    val location: String?,
+    val exceptionClass: String?,
+    /** The first characters of the sample message. */
+    val message: String?,
+    val firstSeen: Date,
+    val lastSeen: Date,
+    val totalCount: Long,
+    val status: LogGroupStatus,
+    val mutedUntil: Date?,
+    val overrideNotify: LogNotify?,
+    val reopenedAt: Date?,
+)
 
 /**
  * What the support error digest needs to know of a [LogGroupDO], kept in memory by [LogAggregationService].

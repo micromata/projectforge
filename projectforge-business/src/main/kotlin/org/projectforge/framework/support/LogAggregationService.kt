@@ -25,7 +25,6 @@ package org.projectforge.framework.support
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
-import jakarta.annotation.PreDestroy
 import org.projectforge.Constants
 import org.projectforge.business.privacyprotection.CronPrivacyProtectionJob
 import org.projectforge.business.privacyprotection.IPrivacyProtectionJob
@@ -100,6 +99,10 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
     @Volatile
     private var lastFlushFailed = false
 
+    /** Set by [close]: the database may be closed, nothing is written anymore. */
+    @Volatile
+    private var closed = false
+
     @PostConstruct
     internal fun init() {
         if (!enabled) {
@@ -120,7 +123,7 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
     override fun stateOf(key: String): LogGroupState? = states[fingerprintOf(key)]
 
     override fun markNotified(keys: Collection<String>) {
-        if (!enabled || keys.isEmpty()) {
+        if (!enabled || closed || keys.isEmpty()) {
             return
         }
         val now = Date()
@@ -145,23 +148,29 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         flush()
     }
 
-    @PreDestroy
-    internal fun shutdown() {
+    /**
+     * Writes the rest and stops writing. Called on shutdown by [SupportErrorDigest] after its last digest, before
+     * the database is closed (see [org.projectforge.ShutdownService]).
+     */
+    @Synchronized
+    fun close() {
         flush()
+        closed = true
     }
 
     /** Writes everything counted since the last call. */
     @Synchronized
     fun flush() {
-        if (!enabled) {
+        if (!enabled || closed) {
+            return
+        }
+        val groups = buffer.drain()
+        if (groups.isEmpty()) {
+            // Nothing to write: no db access (e.g. on shutdown, when the db may already be closed).
             return
         }
         if (!statesLoaded) {
             runGuarded("load the problem states") { reloadStates() }
-        }
-        val groups = buffer.drain()
-        if (groups.isEmpty()) {
-            return
         }
         val written = runGuarded("write ${groups.size} problems") {
             persistenceService.runInNewTransaction { context ->
@@ -244,6 +253,7 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         runGuarded("clean up") { cleanup() }
     }
 
+    @Synchronized
     internal fun cleanup(now: Long = System.currentTimeMillis()) {
         fun daysAgo(days: Int) = Date(now - days * Constants.MILLIS_PER_DAY)
         persistenceService.runInNewTransaction { context ->
@@ -264,7 +274,23 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         reloadStates()
     }
 
-    /** Also for the dashboard after changing a problem's status. */
+    /**
+     * Changes problems of the dashboard ([LogGroupAdminService]). Under the lock of [flush], which would otherwise
+     * overwrite the change with the problem it loaded before; the digest sees the change at once.
+     * @return The number of problems found and changed.
+     */
+    @Synchronized
+    fun modifyGroups(ids: Collection<Long>, change: (LogGroupDO) -> Unit): Int {
+        if (ids.isEmpty()) {
+            return 0
+        }
+        val count = persistenceService.runInNewTransaction { context ->
+            ids.distinct().mapNotNull { context.find(LogGroupDO::class.java, it, attached = true) }.onEach(change).size
+        }
+        reloadStates()
+        return count
+    }
+
     fun reloadStates() {
         val loaded = persistenceService.runReadOnly { context ->
             context.executeNamedQuery(LogGroupDO.SELECT_STATES, LogGroupState::class.java)
