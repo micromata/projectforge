@@ -255,6 +255,11 @@ Remaining steps, in this order. Each finding gets its own commit on `deps/major-
 6. Merge `develop` once more, full `./gradlew build` and e2e, then merge to `develop`. After the merge of
    `develop` (6e52a468e) all tests pass except one order statistics test, which fails because of changes
    outside the upgrade; the app runs, scripts were tested (manual check by the maintainer).
+   After the next merge of `develop` (cbb4179b6): `./gradlew build` green (1540 tests, 0 failures, 1 skipped,
+   the order statistics test included). e2e against the fat jar (slot 7): 284 passed, 16 skipped, 6 failed —
+   the 5 of step 1, plus `order-statistics` "shows the data behind the charts in sub-tabs" (new on `develop`
+   today): after "select none" in a column filter it expects 0 rows in `tbody`, but `DataTable` renders its
+   empty-state row there. A spec issue of that feature, not caused by the upgrade.
 
 Clean-up afterwards: `git worktree remove /tmp/pf-baseline`, delete `~/ProjectForge-8`,
 `~/ProjectForgeGateway-0`, `~/ProjectForgeGateway-7` and `~/ProjectForge-9`, stop the servers on
