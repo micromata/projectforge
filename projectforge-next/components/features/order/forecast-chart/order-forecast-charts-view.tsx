@@ -7,11 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { DateInput } from "@/components/shared/date-input";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate } from "@/lib/format";
@@ -24,18 +20,21 @@ import {
 import type { MagicFilter } from "@/lib/rs/types";
 import { OrderForecastCumulativeChart } from "./order-forecast-cumulative-chart";
 import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
+import { StatisticsDateField } from "../statistics/statistics-date-field";
 import { ForecastTables } from "./forecast-tables";
+import { ForecastVariantField } from "./forecast-variant-field";
 
-/** React Query key of the user's remembered chart dates (see fetchForecastChartSettings). */
+/** React Query key of the user's remembered chart parameters (see fetchForecastChartSettings). */
 const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
 
 /**
  * The "Forecast" tab of the order statistics (`OrderStatisticsPage`): the charts of the forecast Excel
  * export (sheet 'Grafiken 1'), computed by the very export pipeline (`ForecastExport.chartData`), so the
- * values match the Excel of the same business units, customers, projects, start and planning date.
+ * values match the Excel of the same business units, customers, projects, start and planning date and
+ * budget scenario.
  *
  * `filter` is the page's own (business units, customers, projects); the backend stores it with every
- * request, as it stores start and planning date. Those dates are remembered by the backend, so the
+ * request, as it stores dates and scenario. Those parameters are remembered by the backend, so the
  * settings are loaded first.
  */
 export function OrderForecastChartsView({ filter }: { filter: MagicFilter }) {
@@ -63,8 +62,9 @@ export function OrderForecastChartsView({ filter }: { filter: MagicFilter }) {
 }
 
 /**
- * The controls (start date, optional planning date) over the two charts and the tables behind them. Every change re-posts the request
- * after a short debounce; the backend persists the dates with it, so there is no "apply" button.
+ * The controls (start date, optional planning date, budget scenario) over the two charts and the tables
+ * behind them. Every change re-posts the request after a short debounce; the backend persists the
+ * parameters with it, so there is no "apply" button.
  */
 function OrderForecastCharts({
   filter,
@@ -82,12 +82,16 @@ function OrderForecastCharts({
   const [planningDate, setPlanningDate] = useState<string | null>(
     settings.planningDate ?? null
   );
+  const [distributeUnusedBudget, setDistributeUnusedBudget] = useState(
+    settings.distributeUnusedBudget
+  );
   const params = useMemo<ForecastChartSettings>(
     () => ({
       startDate: startDate || null,
       planningDate: planningDate || null,
+      distributeUnusedBudget,
     }),
-    [startDate, planningDate]
+    [startDate, planningDate, distributeUnusedBudget]
   );
   const debouncedParams = useDebouncedValue(params);
   const queryClient = useQueryClient();
@@ -113,45 +117,37 @@ function OrderForecastCharts({
     !query.isPending && (query.isFetching || params !== debouncedParams);
 
   return (
-    <div className="space-y-6 p-4">
-      {/* The charts skip the detail of the Excel (e.g. a chosen variant, snapshots, the project overview). */}
-      <Alert>
-        <AlertDescription>{t("quickViewHint")}</AlertDescription>
-      </Alert>
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-1.5">
-          <HintTooltip text={t("startDate.tooltip")} openOnTap>
-            <Label htmlFor="forecastStartDate">{t("startDate._")}</Label>
-          </HintTooltip>
-          <DateInput
-            id="forecastStartDate"
-            value={startDate}
-            onChange={setStartDate}
-            aria-label={t("startDate._")}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <HintTooltip text={t("planningDate.tooltip")} openOnTap>
-            <Label htmlFor="forecastPlanningDate">{t("planningDate._")}</Label>
-          </HintTooltip>
-          <DateInput
-            id="forecastPlanningDate"
-            value={planningDate}
-            onChange={setPlanningDate}
-            aria-label={t("planningDate._")}
-          />
-        </div>
+    <div className="space-y-4 px-4 pb-4 pt-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <StatisticsDateField
+          id="forecastStartDate"
+          label={t("startDate._")}
+          tooltip={t("startDate.tooltip")}
+          value={startDate}
+          onChange={setStartDate}
+        />
+        <StatisticsDateField
+          id="forecastPlanningDate"
+          label={t("planningDate._")}
+          tooltip={t("planningDate.tooltip")}
+          value={planningDate}
+          onChange={setPlanningDate}
+        />
+        <ForecastVariantField
+          value={distributeUnusedBudget}
+          onChange={setDistributeUnusedBudget}
+        />
         {recalculating && (
-          <p
-            className="flex items-center gap-2 pb-2 text-sm text-muted-foreground"
+          <div
+            className="flex items-center gap-2 text-sm text-muted-foreground"
             role="status"
           >
             <Spinner className="h-4 w-4 border-2" />
             {tc("loading")}
-          </p>
+          </div>
         )}
         {!recalculating && query.data?.plan && query.data.planningDate && (
-          <p className="pb-2 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t("planningDateUsed", {
               arg0: formatDate(query.data.planningDate, ctx),
             })}

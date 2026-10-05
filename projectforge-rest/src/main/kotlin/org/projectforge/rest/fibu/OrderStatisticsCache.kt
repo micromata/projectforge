@@ -70,6 +70,8 @@ class OrderStatisticsCache {
     val filter: String,
     val startDate: LocalDate?,
     val planningDate: LocalDate? = null,
+    /** The forecast variant, see [org.projectforge.business.fibu.ForecastOrderPosInfo.distributeUnusedBudget]. */
+    val distributeUnusedBudget: Boolean? = null,
   )
 
   private class Entry(val created: Long, val value: Lazy<Any?>)

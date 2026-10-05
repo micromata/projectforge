@@ -767,7 +767,6 @@
           "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
-          "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
           "startDate": {
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."

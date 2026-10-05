@@ -143,9 +143,9 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     ).toBeVisible();
     // The table scrolls in its own box, the first columns pinned: scrolled to its right end, the order
     // column stands where it stood and the page has not moved.
+    // The header also holds the filter button, whose label is part of the cell's name.
     const orderHeader = page.getByRole("columnheader", {
-      name: format.t("fibu.auftrag._"),
-      exact: true,
+      name: new RegExp(`^${escape(format.t("fibu.auftrag._"))}\\b`),
     });
     const before = await orderHeader.boundingBox();
     const scrolled = await orderHeader.evaluate((cell) => {
@@ -162,6 +162,26 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
         .toBe(before?.x);
       expect(await page.evaluate(() => window.scrollX)).toBe(0);
     }
+    // Sorting on the header click, filtering in the header's popover; the sum row follows the filter.
+    const positions = page.locator("tbody tr");
+    const total = await positions.count();
+    await orderHeader.click();
+    await expect(
+      orderHeader.locator(
+        `[data-tooltip="${format.t("columns.sortAscending")}"]`
+      )
+    ).toBeVisible();
+    await orderHeader
+      .getByRole("button", { name: format.t("filter.title") })
+      .click();
+    await page
+      .getByRole("button", { name: format.t("filter.selectNone") })
+      .click();
+    await expect(positions).toHaveCount(0);
+    await page
+      .getByRole("button", { name: format.t("filter.selectAll") })
+      .click();
+    await expect(positions).toHaveCount(total);
   });
 
   test.describe("for a user without the order right", () => {

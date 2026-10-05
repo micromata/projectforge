@@ -38,11 +38,11 @@ export function ContributionMarginTimesheetTable({ rows }: { rows: Row[] }) {
       textColumn<Row>("project", t.project, (row) => row.project, 220),
       textColumn<Row>("kost2", t.kost2, (row) => row.kost2, 110),
       numberColumn<Row>("hours", t.hours, (row) => row.hours, ctx),
-      moneyColumn<Row>("costs", t.costs, (row) => row.costs, rows, ctx, {
+      moneyColumn<Row>("costs", t.costs, (row) => row.costs, ctx, {
         className: () => PRELIMINARY_CLASS,
       }),
     ],
-    [t, ctx, rows]
+    [t, ctx]
   );
   return (
     <StatisticsTable<Row>

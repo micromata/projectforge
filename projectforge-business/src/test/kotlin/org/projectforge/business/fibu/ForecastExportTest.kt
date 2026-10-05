@@ -624,6 +624,48 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     /**
+     * The lost budget warning of the conservative forecast reaches the position rows, with the months the Excel
+     * marks red; the optimistic one distributes the unused budget, so it has none.
+     */
+    @Test
+    fun statisticsLostBudgetWarningTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+        // T&M, 5000 for 5 months, but only 500 invoiced: the run rate loses most of the budget.
+        val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 500.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        fun tables(distributeUnusedBudget: Boolean) = forecastExport.statistics(
+            listOf(auftragDao.find(orderId)!!),
+            baseDate.localDate,
+            unfiltered = false,
+            distributeUnusedBudget = distributeUnusedBudget,
+        )!!.tables
+        fun row(distributeUnusedBudget: Boolean): ForecastPositionRow =
+            tables(distributeUnusedBudget).positions.single { it.orderId == orderId }
+        val conservative = row(false)
+        Assertions.assertNotNull(conservative.warning, "Lost budget warning expected in the conservative forecast.")
+        Assertions.assertTrue(conservative.warningMonths.isNotEmpty(), "Warning months expected.")
+        conservative.warningMonths.forEach {
+            Assertions.assertNotNull(conservative.months[it], "A warning month carries a value, as its Excel cell.")
+        }
+        // The project overview sums them up, so the project with the warning stands out there already.
+        val project = tables(false).projects.single { it.projectId == (conservative.projectId ?: ForecastExportContext.PROJECT_ID_NONE) }
+        Assertions.assertEquals(1, project.warnings.size)
+        Assertions.assertEquals(conservative.warning, project.warnings.single().text)
+        assertAmount(project.difference, conservative.difference.toDouble())
+        val optimistic = row(true)
+        Assertions.assertNull(optimistic.warning, "No warning expected in the optimistic forecast.")
+        Assertions.assertTrue(optimistic.warningMonths.isEmpty())
+    }
+
+    /**
      * A planning date must not undo the search string: the order book snapshot used as plan can't be searched in
      * full text, so its orders are restricted to those the search found. Neither may the snapshot's positions draw
      * the invoices of other orders into IST and the previous years.

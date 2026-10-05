@@ -57,9 +57,9 @@ export function ForecastInvoiceTable({ rows }: { rows: Row[] }) {
         (row) => (row.orderId != null ? `/order/${row.orderId}` : null),
         90
       ),
-      moneyColumn<Row>("netSum", t.net, (row) => row.netSum, rows, ctx),
+      moneyColumn<Row>("netSum", t.net, (row) => row.netSum, ctx),
     ],
-    [t, ctx, rows]
+    [t, ctx]
   );
   return (
     <StatisticsTable<Row>

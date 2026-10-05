@@ -206,7 +206,19 @@ export interface ForecastChartSettings {
   startDate: string | null;
   /** Day of the order book snapshot used as plan (the closest one), or null for no plan. */
   planningDate: string | null;
+  /**
+   * Optimistic (true, the unused budget distributed) or conservative (false, run rate; lost budget warnings)
+   * forecast, see `ForecastOrderPosInfo.distributeUnusedBudget`.
+   */
+  distributeUnusedBudget: boolean;
 }
+
+/**
+ * The months of performance a time & materials position needs before its run rate counts in the
+ * conservative forecast, mirroring `ForecastOrderPosInfo.RUN_RATE_MIN_ELAPSED_MONTHS` (argument of the
+ * variant's explanation).
+ */
+export const FORECAST_RUN_RATE_MIN_ELAPSED_MONTHS = 3;
 
 /** The position statuses the forecast sums up, in the order of the Excel template (rows 2-6). */
 export const FORECAST_CHART_STATUSES = [
@@ -278,6 +290,17 @@ export interface ForecastProjectRow {
   plan: number | null;
   prevYear: number;
   prevPrevYear: number;
+  /** The sum of the differences of the project's positions. */
+  difference: number;
+  /** The lost budget warnings of the project's positions. */
+  warnings: ForecastWarning[];
+}
+
+/** The lost budget warning of an order position (`ForecastWarning`). */
+export interface ForecastWarning {
+  /** Order and position number, e.g. `7076.1`. */
+  position: string;
+  text: string;
 }
 
 /** One order position of the forecast, a row of the Excel's Forecast_Data (`ForecastPositionRow`). */
@@ -311,7 +334,10 @@ export interface ForecastPositionRow {
   /** The remaining forecast after the 12 months. */
   remaining: number;
   difference: number;
+  /** The lost budget warning of the conservative forecast, or null. */
   warning: string | null;
+  /** The indexes 0..11 of the months with a lost budget warning, marked red as in the Excel. */
+  warningMonths: number[];
   pseudo: boolean;
 }
 

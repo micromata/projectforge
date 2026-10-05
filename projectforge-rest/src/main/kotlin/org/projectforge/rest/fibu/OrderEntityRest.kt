@@ -1061,6 +1061,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return ForecastChartSettings(
       startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate,
       planningDate = stored?.planningDate,
+      distributeUnusedBudget = stored?.distributeUnusedBudget
+        ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
     )
   }
 
@@ -1075,10 +1077,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @PostMapping("forecastChart")
   fun forecastChart(@RequestBody request: ForecastChartRequest): ForecastChartData {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
-    val settings = ForecastChartSettings(
-      startDate = request.startDate ?: PFDay.now().beginOfYear.localDate,
-      planningDate = request.planningDate,
-    )
+    val settings = request.settings()
     userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_CHART, settings, true)
     val magicFilter = statisticsFilterService.saveCurrentFilter(request.filter ?: MagicFilter())
     // Empty months (instead of no body) if neither order positions nor invoices were found:
@@ -1094,10 +1093,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @PostMapping("forecastChart/tables")
   fun forecastTables(@RequestBody request: ForecastChartRequest): ForecastTables {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
-    val settings = ForecastChartSettings(
-      startDate = request.startDate ?: PFDay.now().beginOfYear.localDate,
-      planningDate = request.planningDate,
-    )
+    val settings = request.settings()
     val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
     return forecastStatistics(magicFilter, settings)?.tables ?: ForecastTables.EMPTY
   }
@@ -1109,6 +1105,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       magicFilter,
       settings.startDate,
       settings.planningDate,
+      settings.distributeUnusedBudget,
     )
     return orderStatisticsCache.get(key) {
       forecastExport.statistics(
@@ -1116,6 +1113,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         startDate = settings.startDate,
         unfiltered = isUnfiltered(magicFilter),
         planningDate = settings.planningDate,
+        distributeUnusedBudget = settings.distributeUnusedBudget,
       )
     }
   }
@@ -1125,6 +1123,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     magicFilter: MagicFilter,
     startDate: LocalDate?,
     planningDate: LocalDate? = null,
+    distributeUnusedBudget: Boolean? = null,
   ): OrderStatisticsCache.Key {
     return OrderStatisticsCache.Key(
       userId = ThreadLocalUserContext.loggedInUserId,
@@ -1133,6 +1132,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       filter = OrderStatisticsCache.filterKey(magicFilter),
       startDate = startDate,
       planningDate = planningDate,
+      distributeUnusedBudget = distributeUnusedBudget,
     )
   }
 
@@ -1160,13 +1160,26 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var startDate: LocalDate? = null,
     /** The date of the order book snapshot to take as plan (the closest one is used), or null for no plan. */
     var planningDate: LocalDate? = null,
+    /**
+     * Optimistic (true) or conservative (false) forecast, see [ForecastOrderPosInfo.distributeUnusedBudget].
+     * Only the conservative one shows lost budget warnings, the optimistic one distributes the unused budget.
+     */
+    var distributeUnusedBudget: Boolean? = null,
   )
 
   class ForecastChartRequest(
     var filter: MagicFilter? = null,
     var startDate: LocalDate? = null,
     var planningDate: LocalDate? = null,
-  )
+    var distributeUnusedBudget: Boolean? = null,
+  ) {
+    /** The parameters of this request, the defaults filled in. */
+    fun settings() = ForecastChartSettings(
+      startDate = startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = planningDate,
+      distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+    )
+  }
 
   /**
    * The start date of the contribution margin tab of `/next/orderStatistics`, remembered per user. Returns the

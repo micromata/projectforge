@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDateRange, formatPercentageDecimal } from "@/lib/format";
 import type { ForecastPositionRow, ForecastTables } from "@/lib/rs/order";
@@ -12,6 +11,7 @@ import {
   numberColumn,
   textColumn,
 } from "../statistics/statistics-table-columns";
+import { StatisticsHintCell } from "../statistics/statistics-hint-cell";
 import { StatisticsTable } from "../statistics/statistics-table";
 import { formatChartMonth } from "./order-forecast-series";
 import { useStatisticsLabels } from "../statistics/use-statistics-labels";
@@ -22,18 +22,34 @@ type Row = ForecastPositionRow;
  * The sheet Forecast_Data: one row per order position with its remaining forecast spread over the 12
  * months. The pseudo rows (invoices without order resp. project) carry their invoiced sums only.
  */
-export function ForecastPositionTable({ tables }: { tables: ForecastTables }) {
+export function ForecastPositionTable({
+  tables,
+  focusProjectId,
+}: {
+  tables: ForecastTables;
+  /** The project whose first position is marked and scrolled to (opened from the project overview). */
+  focusProjectId?: number | null;
+}) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
   const rows = tables.positions;
   const { months } = tables;
+  // The rows are keyed by their index, and the table opens unsorted: the first row of the project in
+  // the data is its first one on screen. Positions without project belong to PROJECT_ID_NONE (-1).
+  const focusIndex = useMemo(() => {
+    if (focusProjectId == null) return null;
+    const index = rows.findIndex(
+      (row) => (row.projectId ?? -1) === focusProjectId
+    );
+    return index < 0 ? null : index;
+  }, [rows, focusProjectId]);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
     const showYear = new Set(months.map((it) => it.slice(0, 4))).size > 1;
     const money = (
       id: string,
       label: string,
       value: (row: Row) => number | null
-    ) => moneyColumn<Row>(id, label, value, rows, ctx);
+    ) => moneyColumn<Row>(id, label, value, ctx);
     return [
       linkColumn<Row>(
         "order",
@@ -88,7 +104,8 @@ export function ForecastPositionTable({ tables }: { tables: ForecastTables }) {
       money("netSum", t.netSum, (row) => row.netSum),
       {
         id: "probability",
-        accessorKey: "probability",
+        // In percent, as shown, so the number filter compares what the user reads.
+        accessorFn: (row) => row.probability * 100,
         header: t.probability,
         size: 90,
         sortDescFirst: true,
@@ -119,11 +136,19 @@ export function ForecastPositionTable({ tables }: { tables: ForecastTables }) {
         (row) => row.forecastType,
         120
       ),
+      // A month with a lost budget warning is marked red, as its cell in the Excel.
       ...months.map((month, index) =>
-        money(
+        moneyColumn<Row>(
           `month${index}`,
           formatChartMonth(month, ctx, showYear),
-          (row) => row.months[index]
+          (row) => row.months[index],
+          ctx,
+          {
+            className: (row) =>
+              row.warningMonths.includes(index)
+                ? "rounded-sm bg-destructive/15 px-1 font-semibold text-destructive"
+                : undefined,
+          }
         )
       ),
       money("remaining", t.remaining, (row) => row.remaining),
@@ -134,22 +159,25 @@ export function ForecastPositionTable({ tables }: { tables: ForecastTables }) {
         header: t.warning,
         size: 200,
         meta: { label: t.warning },
-        cell: ({ row }) => (
-          <HintTooltip text={row.original.warning ?? undefined}>
-            <span className="truncate text-destructive">
+        cell: ({ row }) =>
+          row.original.warning ? (
+            <StatisticsHintCell
+              hint={row.original.warning}
+              className="text-destructive"
+            >
               {row.original.warning}
-            </span>
-          </HintTooltip>
-        ),
+            </StatisticsHintCell>
+          ) : null,
       },
     ];
-  }, [t, ctx, rows, months]);
+  }, [t, ctx, months]);
   return (
     <StatisticsTable<Row>
       columns={columns}
       data={rows}
       getRowId={(_, index) => String(index)}
       rowClassName={(row) => (row.pseudo ? "italic" : undefined)}
+      highlightRowId={focusIndex}
     />
   );
 }

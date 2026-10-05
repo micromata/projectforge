@@ -61,11 +61,11 @@ export function ContributionMarginInvoiceTable({ rows }: { rows: Row[] }) {
         ctx,
         110
       ),
-      moneyColumn<Row>("netSum", t.net, (row) => row.netSum, rows, ctx, {
+      moneyColumn<Row>("netSum", t.net, (row) => row.netSum, ctx, {
         className: (row) => (row.preliminary ? PRELIMINARY_CLASS : undefined),
       }),
     ],
-    [t, ctx, rows]
+    [t, ctx]
   );
   return (
     <StatisticsTable<Row>

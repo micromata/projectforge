@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   formatCurrency,
   formatDate,
@@ -14,6 +14,9 @@ import { cn } from "@/lib/utils";
  * Column builders of the data tables of the order statistics (forecast and contribution margin): the
  * tables are read like the sheets of their Excel exports, so they share the look of their cells — amounts
  * right-aligned with a red minus, dates and links — and a sum under the amount columns.
+ *
+ * Each builder names the filter its column offers (see StatisticsTable). A missing value stays undefined, so
+ * the filters see it as blank and sorting puts it last.
  */
 
 type Col<T> = ColumnDef<T, unknown>;
@@ -38,6 +41,14 @@ export function Money({
   );
 }
 
+/** The sum of `value` over the given rows, e.g. those left by the column filters. */
+export function sumOfFiltered<T>(
+  rows: Row<T>[],
+  value: (row: T) => number | null | undefined
+): number {
+  return rows.reduce((acc, row) => acc + (value(row.original) ?? 0), 0);
+}
+
 export function textColumn<T>(
   id: string,
   label: string,
@@ -50,21 +61,20 @@ export function textColumn<T>(
     accessorFn: (row) => value(row) ?? "",
     header: label,
     size,
-    meta: { label },
+    meta: { label, filterKind: "text" },
     cell: ({ row }) => value(row.original) ?? "",
     footer,
   };
 }
 
 /**
- * An amount column, summed up in the footer over all rows (not only those of the current page).
- * `className` styles single cells, e.g. preliminary values.
+ * An amount column, summed up in the footer over the rows left by the column filters (all pages, not only
+ * the current one). `className` styles single cells, e.g. preliminary values.
  */
 export function moneyColumn<T>(
   id: string,
   label: string,
   value: (row: T) => number | null | undefined,
-  rows: T[],
   ctx: FormatContext,
   options: {
     size?: number;
@@ -75,11 +85,12 @@ export function moneyColumn<T>(
   const { size = 120, sum = true, className } = options;
   return {
     id,
-    accessorFn: (row) => value(row) ?? Number.NEGATIVE_INFINITY,
+    accessorFn: (row) => value(row) ?? undefined,
     header: label,
     size,
     sortDescFirst: true,
-    meta: { label, align: "right" },
+    sortUndefined: "last",
+    meta: { label, align: "right", filterKind: "number" },
     cell: ({ row }) => (
       <Money
         value={value(row.original)}
@@ -88,9 +99,9 @@ export function moneyColumn<T>(
       />
     ),
     footer: sum
-      ? () => (
+      ? ({ table }) => (
           <Money
-            value={rows.reduce((acc, row) => acc + (value(row) ?? 0), 0)}
+            value={sumOfFiltered(table.getFilteredRowModel().rows, value)}
             ctx={ctx}
           />
         )
@@ -109,11 +120,12 @@ export function numberColumn<T>(
 ): Col<T> {
   return {
     id,
-    accessorFn: (row) => value(row) ?? Number.NEGATIVE_INFINITY,
+    accessorFn: (row) => value(row) ?? undefined,
     header: label,
     size,
     sortDescFirst: true,
-    meta: { label, align: "right" },
+    sortUndefined: "last",
+    meta: { label, align: "right", filterKind: "number" },
     cell: ({ row }) => (
       <span className="tabular-nums">
         {formatNumber(value(row.original), ctx, fractionDigits)}
@@ -131,10 +143,11 @@ export function dateColumn<T>(
 ): Col<T> {
   return {
     id,
-    accessorFn: (row) => value(row) ?? "",
+    accessorFn: (row) => value(row) ?? undefined,
     header: label,
     size,
-    meta: { label },
+    sortUndefined: "last",
+    meta: { label, filterKind: "date" },
     cell: ({ row }) => formatDate(value(row.original), ctx),
   };
 }
@@ -152,7 +165,7 @@ export function linkColumn<T>(
     accessorFn: (row) => value(row) ?? "",
     header: label,
     size,
-    meta: { label },
+    meta: { label, filterKind: "text" },
     cell: ({ row }) => {
       const text = value(row.original);
       const target = href(row.original);

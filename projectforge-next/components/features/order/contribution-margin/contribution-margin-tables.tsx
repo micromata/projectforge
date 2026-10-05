@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ import { useStatisticsLabels } from "../statistics/use-statistics-labels";
  * The project table of the contribution margin and, in further sub-tabs, the rows behind it (the sheets
  * Monats-DB, Rechnungen and DB-Zeitberichte of the DB Excel). The rows are asked for once `data` of the
  * same filter and start date is there (`enabled`): the backend has cached that calculation by then.
+ *
+ * A click on a row of the project table opens Monats-DB at the project's first month.
  */
 export function ContributionMarginTables({
   data,
@@ -37,6 +40,9 @@ export function ContributionMarginTables({
   enabled: boolean;
 }) {
   const t = useStatisticsLabels();
+  const [tab, setTab] = useState("projects");
+  /** The project Monats-DB was opened for from the project table; cleared by any other tab change. */
+  const [focusProjectId, setFocusProjectId] = useState<number | null>(null);
   const query = useQuery({
     queryKey: ["order", "contributionMargin", "details", filterKey, params],
     queryFn: ({ signal }) =>
@@ -74,12 +80,25 @@ export function ContributionMarginTables({
     <section className="space-y-2">
       <h3 className="text-sm font-semibold">{t.heading}</h3>
       <StatisticsTableTabs
+        value={tab}
+        onValueChange={(value) => {
+          setTab(value);
+          setFocusProjectId(null);
+        }}
         tabs={[
           {
             value: "projects",
             label: t.projects,
             count: data.projects.length,
-            content: <ContributionMarginProjectTable data={data} />,
+            content: (
+              <ContributionMarginProjectTable
+                data={data}
+                onProjectClick={(projectId) => {
+                  setFocusProjectId(projectId);
+                  setTab("months");
+                }}
+              />
+            ),
           },
           {
             value: "months",
@@ -90,6 +109,7 @@ export function ContributionMarginTables({
                   <ContributionMarginMonthTable
                     rows={details.months}
                     data={data}
+                    focusProjectId={focusProjectId}
                   />
                 )
               : pending,

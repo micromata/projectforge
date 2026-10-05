@@ -7,10 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { DateInput } from "@/components/shared/date-input";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
-import { Label } from "@/components/ui/label";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +16,7 @@ import {
   type ContributionMarginSettings,
 } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
+import { StatisticsDateField } from "../statistics/statistics-date-field";
 import { ContributionMarginHints } from "./contribution-margin-hints";
 import { ContributionMarginKpis } from "./contribution-margin-kpis";
 import { ContributionMarginMonthlyChart } from "./contribution-margin-monthly-chart";
@@ -116,29 +114,23 @@ function OrderContributionMargin({
   const data = query.data;
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-1.5">
-          <HintTooltip text={t("startDate.tooltip")} openOnTap>
-            <Label htmlFor="contributionMarginStartDate">
-              {t("startDate._")}
-            </Label>
-          </HintTooltip>
-          <DateInput
-            id="contributionMarginStartDate"
-            value={startDate}
-            onChange={setStartDate}
-            aria-label={t("startDate._")}
-          />
-        </div>
+    <div className="space-y-4 px-4 pb-4 pt-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <StatisticsDateField
+          id="contributionMarginStartDate"
+          label={t("startDate._")}
+          tooltip={t("startDate.tooltip")}
+          value={startDate}
+          onChange={setStartDate}
+        />
         {recalculating && (
-          <p
-            className="flex items-center gap-2 pb-2 text-sm text-muted-foreground"
+          <div
+            className="flex items-center gap-2 text-sm text-muted-foreground"
             role="status"
           >
             <Spinner className="h-4 w-4 border-2" />
             {tc("loading")}
-          </p>
+          </div>
         )}
       </div>
 

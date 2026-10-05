@@ -23,13 +23,23 @@ type Row = ContributionMarginMonthRow;
 export function ContributionMarginMonthTable({
   rows,
   data,
+  focusProjectId,
 }: {
   rows: Row[];
   /** The limits of the DB % traffic light. */
   data: ContributionMarginData;
+  /** The project whose first month is marked and scrolled to (opened from the project table). */
+  focusProjectId?: number | null;
 }) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
+  // The rows are keyed by their index, and the table opens unsorted: the first row of the project in
+  // the data is its first one on screen.
+  const focusIndex = useMemo(() => {
+    if (focusProjectId == null) return null;
+    const index = rows.findIndex((row) => row.projectId === focusProjectId);
+    return index < 0 ? null : index;
+  }, [rows, focusProjectId]);
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
     const preliminary = (row: Row) =>
       row.preliminary ? PRELIMINARY_CLASS : undefined;
@@ -50,21 +60,22 @@ export function ContributionMarginMonthTable({
       textColumn<Row>("customer", t.customer, (row) => row.customer, 180),
       textColumn<Row>("project", t.project, (row) => row.project, 220),
       textColumn<Row>("kost", t.kost, (row) => row.kost, 90),
-      moneyColumn<Row>("revenue", t.revenue, (row) => row.revenue, rows, ctx, {
+      moneyColumn<Row>("revenue", t.revenue, (row) => row.revenue, ctx, {
         className: preliminary,
       }),
-      moneyColumn<Row>("costs", t.costs, (row) => row.costs, rows, ctx, {
+      moneyColumn<Row>("costs", t.costs, (row) => row.costs, ctx, {
         className: preliminary,
       }),
-      moneyColumn<Row>("profit", t.profit, (row) => row.profit, rows, ctx, {
+      moneyColumn<Row>("profit", t.profit, (row) => row.profit, ctx, {
         className: preliminary,
       }),
       {
         id: "percentage",
-        accessorFn: (row) => row.percentage ?? Number.NEGATIVE_INFINITY,
+        accessorFn: (row) => row.percentage ?? undefined,
         header: t.percentage,
         size: 100,
         sortDescFirst: true,
+        sortUndefined: "last",
         meta: { label: t.percentage, align: "right" },
         cell: ({ row }) => (
           <ContributionMarginPercentage
@@ -75,12 +86,13 @@ export function ContributionMarginMonthTable({
         ),
       },
     ];
-  }, [t, ctx, rows, data]);
+  }, [t, ctx, data]);
   return (
     <StatisticsTable<Row>
       columns={columns}
       data={rows}
-      getRowId={(row) => `${row.month}-${row.projectId}`}
+      getRowId={(_, index) => String(index)}
+      highlightRowId={focusIndex}
     />
   );
 }

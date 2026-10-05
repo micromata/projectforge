@@ -14,9 +14,21 @@ export interface StatisticsTableTab {
 /**
  * The sub-tabs of the data tables under the charts of the order statistics, one per sheet of the Excel
  * export. Only the open tab is mounted, so a long table costs nothing while another one is shown.
+ *
+ * Controlled if `value` is given, e.g. for a table opening another one at a row (see ForecastTables).
  */
-export function StatisticsTableTabs({ tabs }: { tabs: StatisticsTableTab[] }) {
-  const [tab, setTab] = useState(tabs[0]?.value);
+export function StatisticsTableTabs({
+  tabs,
+  value,
+  onValueChange,
+}: {
+  tabs: StatisticsTableTab[];
+  value?: string;
+  onValueChange?: (value: string) => void;
+}) {
+  const [ownTab, setOwnTab] = useState(tabs[0]?.value);
+  const tab = value ?? ownTab;
+  const setTab = onValueChange ?? setOwnTab;
   return (
     <Tabs value={tab} onValueChange={setTab} className="space-y-2">
       <TabsList className="h-auto w-fit max-w-full flex-wrap justify-start">

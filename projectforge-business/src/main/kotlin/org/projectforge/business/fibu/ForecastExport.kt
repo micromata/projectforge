@@ -1091,6 +1091,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         val tableMonths = arrayOfNulls<BigDecimal>(MonthCol.entries.size)
         var tableWarning: String? = null
+        val tableWarningMonths = mutableListOf<Int>()
         forecastInfo.months.forEach { monthEntry ->
             val monthDate = monthEntry.date
             val offset = ctx.startDate.monthsBetween(monthDate).toInt()
@@ -1129,6 +1130,7 @@ open class ForecastExport { // open needed by Wicket.
                 )
                 sheet.setStringValue(row, ForecastCol.WARNING.header, tableWarning).cellStyle = errorStyle
                 sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
+                tableWarningMonths.add(offset)
             }
         }
         if (!isPlanningSheet) {
@@ -1168,6 +1170,7 @@ open class ForecastExport { // open needed by Wicket.
                     remaining = remaining,
                     difference = forecastInfo.difference,
                     warning = tableWarning,
+                    warningMonths = tableWarningMonths,
                     pseudo = order.id == null,
                 )
             )

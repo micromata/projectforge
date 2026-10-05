@@ -767,7 +767,6 @@
           "planningDateUsed": "Plan of order book snapshot {arg0}",
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
-          "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
           "startDate": {
             "_": "First month of the forecast",
             "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."

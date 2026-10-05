@@ -60,7 +60,14 @@ class ForecastProjectRow(
     val plan: BigDecimal?,
     val prevYear: BigDecimal,
     val prevPrevYear: BigDecimal,
+    /** The sum of the differences ([ForecastPositionRow.difference]) of the project's positions. */
+    val difference: BigDecimal = BigDecimal.ZERO,
+    /** The lost budget warnings of the project's positions: a project having any needs a closer look at them. */
+    val warnings: List<ForecastWarning> = emptyList(),
 )
+
+/** The lost budget warning ([ForecastPositionRow.warning]) of an order position, e.g. `7076.1`. */
+class ForecastWarning(val position: String, val text: String)
 
 /** One order position of the forecast (one row of Forecast_Data). */
 class ForecastPositionRow(
@@ -92,7 +99,10 @@ class ForecastPositionRow(
     /** The remaining forecast after the 12 months. */
     val remaining: BigDecimal,
     val difference: BigDecimal,
+    /** The lost budget warning of the last month having one (as in the Excel's column), or null. */
     val warning: String?,
+    /** The indexes 0..11 of the months with a lost budget warning, marked red in the Excel. */
+    val warningMonths: List<Int> = emptyList(),
     /** True for the rows representing invoices without order or without project. */
     val pseudo: Boolean,
 )
@@ -162,6 +172,8 @@ internal class ForecastTablesCollector {
         var forecast: BigDecimal = BigDecimal.ZERO
         var prevYear: BigDecimal = BigDecimal.ZERO
         var prevPrevYear: BigDecimal = BigDecimal.ZERO
+        var difference: BigDecimal = BigDecimal.ZERO
+        val warnings = mutableListOf<ForecastWarning>()
 
         fun label(customer: String?, project: String?) {
             if (this.customer.isNullOrBlank()) this.customer = customer
@@ -183,6 +195,8 @@ internal class ForecastTablesCollector {
             val projectId = row.projectId ?: ForecastExportContext.PROJECT_ID_NONE
             val sums = map.getOrPut(projectId) { ProjectSums() }
             row.months.forEach { value -> value?.let { sums.forecast += it } }
+            sums.difference += row.difference
+            row.warning?.let { sums.warnings.add(ForecastWarning("${row.orderNumber}.${row.positionNumber}", it)) }
             if (row.projectId != null) {
                 sums.label(row.customer, row.project)
             } else {
@@ -216,6 +230,8 @@ internal class ForecastTablesCollector {
                     plan = planByProject?.let { it[id] ?: BigDecimal.ZERO },
                     prevYear = sums.prevYear,
                     prevPrevYear = sums.prevPrevYear,
+                    difference = sums.difference,
+                    warnings = sums.warnings,
                 )
             }
     }

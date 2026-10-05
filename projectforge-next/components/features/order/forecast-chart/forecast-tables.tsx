@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/shared/spinner";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,8 @@ import { useStatisticsLabels } from "../statistics/use-statistics-labels";
  * The rows behind the forecast charts, one sub-tab per sheet of the Excel export. Asked for only once the
  * charts of the same filter and dates are there (`enabled`): the backend has cached that calculation by
  * then, so the tables come without running the forecast a second time.
+ *
+ * A click on a row of the project overview opens the positions at the project's first one.
  */
 export function ForecastTables({
   filter,
@@ -33,6 +36,9 @@ export function ForecastTables({
   enabled: boolean;
 }) {
   const t = useStatisticsLabels();
+  const [tab, setTab] = useState("projects");
+  /** The project the positions were opened for from the overview; cleared by any other tab change. */
+  const [focusProjectId, setFocusProjectId] = useState<number | null>(null);
   const query = useQuery({
     queryKey: ["order", "forecastChart", "tables", filterKey, params],
     queryFn: ({ signal }) => fetchForecastTables(filter, params, signal),
@@ -71,18 +77,36 @@ export function ForecastTables({
     >
       <h3 className="text-sm font-semibold">{t.heading}</h3>
       <StatisticsTableTabs
+        value={tab}
+        onValueChange={(value) => {
+          setTab(value);
+          setFocusProjectId(null);
+        }}
         tabs={[
           {
             value: "projects",
             label: t.projects,
             count: tables.projects.length,
-            content: <ForecastProjectTable tables={tables} />,
+            content: (
+              <ForecastProjectTable
+                tables={tables}
+                onProjectClick={(projectId) => {
+                  setFocusProjectId(projectId);
+                  setTab("positions");
+                }}
+              />
+            ),
           },
           {
             value: "positions",
             label: t.positions,
             count: tables.positions.length,
-            content: <ForecastPositionTable tables={tables} />,
+            content: (
+              <ForecastPositionTable
+                tables={tables}
+                focusProjectId={focusProjectId}
+              />
+            ),
           },
           {
             value: "invoices",
