@@ -53,11 +53,8 @@ public abstract class PropertyConverter implements VEventComponentConverter {
     }
 
     protected boolean isAllDay(final VEvent vEvent) {
-        if (vEvent.getDateTimeStart().isEmpty()) {
-            return false;
-        }
-        DtStart<?> dtStart = vEvent.getDateTimeStart().get();
-        return dtStart.toString().contains("VALUE=DATE");
+        DtStart<?> dtStart = vEvent.getDateTimeStart();
+        return dtStart != null && dtStart.toString().contains("VALUE=DATE");
     }
 
     protected void parseAdditionalParameters(final ParameterList list, final String additonalParams) {

@@ -88,8 +88,9 @@ object SortAndCheckI18nPropertiesMain {
       // Read file line by line:
       var currentMultilineEntry: Entry? = null
       File("$basename$lang.properties").forEachLine() { line ->
-        if (currentMultilineEntry != null) {
-          currentMultilineEntry.addMultiline(line)
+        val multilineEntry = currentMultilineEntry
+        if (multilineEntry != null) {
+          multilineEntry.addMultiline(line)
           if (!line.trim().endsWith('\\')) {
             currentMultilineEntry = null
           }

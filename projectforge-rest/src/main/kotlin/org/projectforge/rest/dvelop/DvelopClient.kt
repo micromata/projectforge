@@ -141,7 +141,7 @@ class DvelopClient {
   /**
    * @throws HttpException
    */
-  internal fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+  internal fun <T : Any> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T? {
     init()
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -173,7 +173,7 @@ class DvelopClient {
   fun login(): Session? {
     val uriSpec = webClient.get()
     val headersSpec = uriSpec.uri("/identityprovider/login")
-    val map = execute(headersSpec, Map::class.java)
+    val map = execute(headersSpec, Map::class.java) ?: return null
     if (debugConsoleOutForTesting) {
       println("login: ${map.entries.joinToString { "key=[${it.key} value=[${it.value}]" }}")
     }

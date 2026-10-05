@@ -23,11 +23,13 @@
 
 package org.projectforge.business.task
 
-import org.hibernate.query.sqm.tree.SqmNode.log
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 import java.util.function.Consumer
+
+private val log = KotlinLogging.logger {}
 
 /**
  * TaskPathBridge for hibernate search to search in the parent task titles.
@@ -47,9 +49,7 @@ class HibernateSearchTaskPathBridge : TypeBridge<TaskDO> {
         list.forEach(Consumer { node: TaskNode ->
             sb.append(node.getTask().title).append("|")
         })
-        if (log.isDebugEnabled) {
-            log.debug(sb.toString())
-        }
+        log.debug { sb.toString() }
         target.addValue("taskpath", sb.toString())
     }
 }

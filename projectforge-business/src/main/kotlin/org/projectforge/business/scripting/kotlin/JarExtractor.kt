@@ -66,8 +66,10 @@ internal object JarExtractor {
         "org.projectforge.plugins.licensemanagement",
         "org.projectforge.plugins.liquidityplanning",
         "org.projectforge.plugins.marketing",
+        "org.projectforge.plugins.memo",
         "org.projectforge.plugins.merlin",
         "org.projectforge.plugins.skillmatrix",
+        "org.projectforge.plugins.todo",
         "poi",
         "poi-ooxml",
         "projectforge-business",
@@ -123,6 +125,8 @@ internal object JarExtractor {
         }
         log.info { "Creating temp directory: ${tempDir.absolutePathString()}" }
         Files.createDirectories(tempDir)
-        return tempDir
+        // Real path without symlinks (macOS: /var -> /private/var). Since Kotlin 2.2 (K2), the script compiler
+        // doesn't resolve Kotlin classes of class path jars located under a symlinked path (Java classes work).
+        return tempDir.toRealPath()
     }
 }

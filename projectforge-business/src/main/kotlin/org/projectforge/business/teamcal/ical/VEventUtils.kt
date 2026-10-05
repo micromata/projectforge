@@ -65,11 +65,11 @@ object VEventUtils {
             if (storeOriginalIcsEntry) {
                 originalIcsEntry = component.toString()
             }
-            subject = component.summary?.orElse(null)?.value
-            location = component.location?.orElse(null)?.value
-            note = component.description?.orElse(null)?.value
-            val startTemporal = component.getDateTimeStart<Temporal>()?.orElse(null)?.date
-            val endTemporal = component.getDateTimeEnd<Temporal>()?.orElse(null)?.date
+            subject = component.summary?.value
+            location = component.location?.value
+            note = component.description?.value
+            val startTemporal = component.getDateTimeStart<Temporal>()?.date
+            val endTemporal = component.getDateTimeEnd<Temporal>()?.date
                 ?: deriveEnd(component, startTemporal)
             // Not via component.dateTimeStamp: DtStamp is typed as Instant, but relaxed parsing returns e.g.
             // OffsetDateTime or ZonedDateTime, so the implicit cast would fail.
@@ -81,9 +81,9 @@ object VEventUtils {
             val rrule = component.getProperty<RRule<Temporal>>(Property.RRULE)?.orElse(null)
             recurrenceRule = rrule?.value
             recurrenceExDate = component.getProperty<ExDate<Temporal>>(Property.EXDATE)?.orElse(null)?.value
-            organizer = component.organizer?.orElse(null)?.value
-            organizerAdditionalParams = component.organizer?.orElse(null)?.getParameters()?.joinToString()
-            sequence = component.sequence?.orElse(null)?.sequenceNo
+            organizer = component.organizer?.value
+            organizerAdditionalParams = component.organizer?.getParameters()?.joinToString()
+            sequence = component.sequence?.sequenceNo
             uid = component.uid?.orElse(null)?.value
             storeAttendees(extractAttendees(component))
         }
@@ -230,7 +230,7 @@ object VEventUtils {
     }
 
     fun isSetupEvent(vEvent: VEvent): Boolean {
-        return vEvent.summary?.orElse(null)?.value == TeamCalConfig.SETUP_EVENT
+        return vEvent.summary?.value == TeamCalConfig.SETUP_EVENT
     }
 
     fun setUid(event: VEvent, uid: String? = null) {

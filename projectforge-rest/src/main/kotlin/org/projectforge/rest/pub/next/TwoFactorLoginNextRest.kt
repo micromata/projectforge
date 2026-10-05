@@ -91,7 +91,7 @@ open class TwoFactorLoginNextRest {
 
     @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @GetMapping("webAuthn")
-    fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions?> {
+    fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions> {
         return authenticated(request) { twoFactorSupport.webAuthn(request) }
     }
 
@@ -130,7 +130,7 @@ open class TwoFactorLoginNextRest {
     /**
      * The user must be pre-logged-in by username/password, otherwise this public service is denied.
      */
-    private fun <T> authenticated(request: HttpServletRequest, doIt: () -> T): ResponseEntity<T> {
+    private fun <T : Any> authenticated(request: HttpServletRequest, doIt: () -> T?): ResponseEntity<T> {
         val userContext = LoginService.getUserContext(request)
         if (userContext?.user == null) {
             SecurityLogging.logSecurityWarn(

@@ -65,7 +65,7 @@ abstract class DBPredicate(
     internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate?
     internal open fun handle(
         searchPredicateFactory: SearchPredicateFactory,
-        boolCollector: BooleanPredicateOptionsCollector<*>,
+        boolCollector: BooleanPredicateOptionsCollector<*, *>,
         searchClassInfo: HibernateSearchClassInfo,
     ) {
         throw UnsupportedOperationException("Operation '${this.javaClass}' not supported by full text query.")
@@ -154,7 +154,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -181,7 +181,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -263,7 +263,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -298,7 +298,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -333,7 +333,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -368,7 +368,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -403,7 +403,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -469,7 +469,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             val term = queryString.replace('%', '*')
@@ -520,7 +520,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo,
         ) {
             logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
@@ -549,7 +549,7 @@ abstract class DBPredicate(
 
         private fun search(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             value: String,
             fields: Array<String>,
         ) {
@@ -576,7 +576,7 @@ abstract class DBPredicate(
          */
         private fun search(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             value: Number,
             stringQuery: String,
             numericFields: Array<Pair<String, Class<*>>>,

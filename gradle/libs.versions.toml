@@ -4,83 +4,85 @@
 [versions]
 org-projectforge = "8.0.0-SNAPSHOT"
 
-com-fasterxml-jackson = "2.18.5"
+com-fasterxml-jackson = "2.21.7"
+com-fasterxml-jackson-annotations = "2.21" # Since 2.20, jackson-annotations is released without patch version.
 com-google-zxing-core = "3.5.4"
 com-google-zxing-javase = "3.5.4"
 com-googlecode-ez-vcard = "0.12.2"
-com-googlecode-gson = "2.13.2"
+com-googlecode-gson = "2.14.0"
 com-googlecode-lanterna = "3.1.5"
 com-thoughtworks-xstream = "1.4.21"
-com-webauthn4j-core = "0.28.2.RELEASE" # 0.29+ requires Jackson 2.20+, 0.31+ pulls Jackson 3.x which conflicts
+com-webauthn4j-core = "0.30.3.RELEASE" # 0.31+ pulls Jackson 3.x which conflicts
 #com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
-com-zaxxer-hikaricp = "5.1.0"
+com-zaxxer-hikaricp = "6.3.3"
 commons-beanutils = "1.11.0"
-commons-io = "2.21.0"
+commons-io = "2.22.0"
 de-micromata-merlin = "1.1.16"
-io-dropwizard-metrics-core = "4.2.38"
+io-dropwizard-metrics-core = "4.2.40"
 io-spring-dependency-management = "1.1.7" # io.spring.dependency-management.gradle.plugin
 fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.2.0"
-jakarta-activation-api = "2.1.3"
+jakarta-activation-api = "2.1.4"
 jakarta-annotation-api = "3.0.0"
-org-eclipse-angus-jakarta-mail = "2.0.3"
-jakarta-persistence-api = "3.1.0"
+org-eclipse-angus-jakarta-mail = "2.0.5"
+jakarta-persistence-api = "3.2.0"
 jakarta-servlet-api = "6.1.0"
-jakarta-validation = "3.1.0"
+jakarta-validation = "3.1.1"
 javax-jcr = "2.0"
-joda-time-joda-time = "2.14.1"
+joda-time-joda-time = "2.15.0"
 net-lingala-zip4j-zip4j = "2.11.6"
 net-sf-mpxj = "16.9.0"
-org-apache-commons-collections4 = "4.5.0"
-org-apache-commons-lang3 = "3.20.0"
+org-apache-commons-collections4 = "4.6.0"
+org-apache-commons-lang3 = "3.21.0"
 org-apache-commons-text = "1.15.0"
-org-apache-groovy = "4.0.24" # 4.0.25+ depends on jackson 2.19+ which conflicts with project's 2.18.x
-org-apache-httpcomponents-client5-httpclient5 = "5.6.1"
-org-apache-httpcomponents-core5 = "5.4.2" # Needed by httpclient5
+org-apache-groovy = "4.0.33"
+org-apache-httpcomponents-client5-httpclient5 = "5.6.4"
+org-apache-httpcomponents-core5 = "5.4.4" # Needed by httpclient5
 org-apache-jackrabbit-oak = "1.92.0"
 org-apache-poi = "5.5.1"
 org-apache-poi-ooxml = "5.5.1"
 org-apache-xmlgraphics-batik = "1.19"
 org-apache-xmlgraphics-fop = "2.11"
 org-apache-xmlgraphics-commons = "2.11"
-org-bouncycastle-bcprov-jdk18on = "1.84"
+org-bouncycastle-bcprov-jdk18on = "1.86"
 org-dom4j = "2.2.0"
-org-flywaydb = "10.22.0"
-org-hibernate-search = "7.2.6.Final"
-org-hibernate-orm = "6.6.39.Final"
-org-hibernate-validator = "8.0.2.Final"
+org-flywaydb = "11.20.3"
+org-hibernate-search = "8.4.0.Final"
+org-apache-lucene = "9.12.3" # Must match the Lucene version of hibernate-search-backend-lucene.
+org-hibernate-orm = "7.4.12.Final"
+org-hibernate-validator = "9.1.4.Final"
 org-hsqldb-hsqldb = "2.7.4"
-org-jetbrains-kotlin = "2.0.21"
-org-jetbrains-kotlinx-coroutines-core = "1.9.0"
+org-jetbrains-kotlin = "2.3.21"
+org-jetbrains-kotlinx-coroutines-core = "1.10.2"
 org-jfree-jfreechart = "1.5.6"
-org-junit-jupiter = "5.14.3"
-org-junit-platform-launcher = "1.14.3"
-org-mnode-ical4j-ical4j = "4.0.8"
+org-junit = "6.0.3" # Jupiter and Platform share one version since JUnit 6.
+org-mnode-ical4j-ical4j = "4.4.0"
 org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
-org-mockito = "5.23.0"
-org-mockito-kotlin = "5.4.0"
-org-mustangproject = "2.15.2"
-org-postgresql = "42.7.10"
+org-mockito = "5.24.0"
+org-mockito-kotlin = "6.4.0"
+org-mustangproject = "2.26.0"
+org-postgresql = "42.7.13"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.4.13"
-org-apache-tomcat-embed = "10.1.50" # must match spring-boot
-org-springframework-spring = "6.2.15"
-org-springframework-security = "6.4.13"
-org-yaml-snakeyaml = "2.6"
+org-springframework-boot = "4.1.1"
+org-apache-tomcat-embed = "11.0.26" # must match spring-boot
+org-springframework-spring = "7.0.9"
+org-springframework-security = "7.1.1"
+org-springframework-data = "4.1.1" # spring-data-jpa/-commons, release train 2026.0.x of spring-boot 4.1
+org-yaml-snakeyaml = "2.7"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 # logging
-ch-qos-logback = "1.5.32"
+ch-qos-logback = "1.5.38"
 io-github-oshai-kotlin-logging = "7.0.6"
 jboss-logging = "3.6.3.Final"
-org-apache-logging-log4j = "2.25.4" # Needed by poi.
-org-slf4j = "2.0.17"
+org-apache-logging-log4j = "2.25.5" # Needed by poi.
+org-slf4j = "2.0.20"
 
 [libraries]
 ### test libraries
 # Used by buildlogic.pf_modules.gradle.kts:
-org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }
-org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
-org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit-platform-launcher" }
+org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit" }
+org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit" }
+org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit" }
 
 org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
 org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }
@@ -92,11 +94,11 @@ org-springframework-spring-test = { module = "org.springframework:spring-test", 
 ### production libraries (don't forget to add these libs to projectforge-application/build.gradle.kts for forcing version and avoiding downgrades)
 ch-qos-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "ch-qos-logback" }
 ch-qos-logback-core = { module = "ch.qos.logback:logback-core", version.ref = "ch-qos-logback" }
-com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-annotations" }
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "com-fasterxml-jackson" }
-com-fasterxml-jackson-datatype-hibernate6 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-datatype-hibernate7 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
@@ -154,6 +156,7 @@ org-flywaydb-database-hsqldb = { module = "org.flywaydb:flyway-database-hsqldb",
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
+org-apache-lucene-backward-codecs = { module = "org.apache.lucene:lucene-backward-codecs", version.ref = "org-apache-lucene" } # Reads indexes of former Lucene versions (Lucene99 codec of Hibernate Search 7).
 org-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "org-hibernate-validator" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
 org-jetbrains-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
@@ -175,12 +178,15 @@ org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
 org-springframework-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "org-springframework-boot" }
+org-springframework-boot-jdbc = { module = "org.springframework.boot:spring-boot-jdbc", version.ref = "org-springframework-boot" }
+org-springframework-boot-web-server = { module = "org.springframework.boot:spring-boot-web-server", version.ref = "org-springframework-boot" } # ServerProperties
+org-springframework-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient", version.ref = "org-springframework-boot" } # RestTemplateBuilder
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }
+org-springframework-boot-jackson2 = { module = "org.springframework.boot:spring-boot-jackson2", version.ref = "org-springframework-boot" } # Jackson 2 until the Jackson 3 migration
 org-springframework-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "org-springframework-boot" }
+org-springframework-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "org-springframework-boot" }
 org-springframework-security-config = { module = "org.springframework.security:spring-security-config", version.ref = "org-springframework-security" }
 org-springframework-security-core = { module = "org.springframework.security:spring-security-core", version.ref = "org-springframework-security" }
