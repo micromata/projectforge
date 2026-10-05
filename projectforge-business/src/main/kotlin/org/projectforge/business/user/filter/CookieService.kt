@@ -37,7 +37,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.web.ServerProperties
+import org.springframework.boot.web.server.autoconfigure.ServerProperties
 import org.springframework.stereotype.Service
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest

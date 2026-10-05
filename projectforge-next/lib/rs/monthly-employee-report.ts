@@ -7,10 +7,10 @@
 import { request } from "./client";
 import { downloadPost } from "./download";
 import type {
-  InvoicingQuotaHistory,
   MonthlyReport,
   MonthlyReportQuery,
 } from "@/components/features/monthly-employee-report/types";
+import type { InvoicingQuotaHistory } from "@/components/shared/invoicing-quota/types";
 
 function toParams(query: MonthlyReportQuery): string {
   const params = new URLSearchParams();

@@ -17,12 +17,20 @@ tasks.withType<KotlinCompile> {
 }
 
 // Spring Boot's BOM (io.spring.dependency-management, applied above and only in this module) pins
-// JUnit to its own version, which would mix junit-platform-engine 1.11.4 with the launcher 1.14.3
-// of our version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
-extra["junit-jupiter.version"] = libs.versions.org.junit.jupiter.get()
+// JUnit to its own version, which would mix the platform engine of the BOM with the launcher of our
+// version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
+extra["junit-jupiter.version"] = libs.versions.org.junit.get()
+// Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, sql, ...) with
+// the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
+extra["groovy.version"] = libs.versions.org.apache.groovy.get()
+
+configurations.all {
+    // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-jackson")
+}
 
 tasks.withType<Test> {
-    useJUnitPlatform() // JUnit 5. Same as buildlogic.pf-module-conventions does for the other modules.
+    useJUnitPlatform() // JUnit Jupiter. Same as buildlogic.pf-module-conventions does for the other modules.
 }
 
 springBoot {
@@ -33,10 +41,11 @@ val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
-val jacksonVersion = libs.versions.com.fasterxml.jackson.get()
+val jacksonVersion = libs.versions.com.fasterxml.jackson.asProvider().get()
 val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
 val springSecurityVersion = libs.versions.org.springframework.security.get()
+val springDataVersion = libs.versions.org.springframework.data.get()
 val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
 val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
@@ -63,7 +72,7 @@ dependencies {
     testImplementation(libs.org.mockito.kotlin)
     // This module doesn't apply buildlogic.pf-module-conventions (that plugin's java-library,
     // group/version and resolutionStrategy would clash with the Spring Boot setup below), so the
-    // JUnit 5 engine and launcher have to be declared here. Without them no test of this module
+    // JUnit engine and launcher have to be declared here. Without them no test of this module
     // runs at all, see the useJUnitPlatform() call below.
     testImplementation(libs.org.junit.jupiter.engine)
     testImplementation(libs.org.junit.platform.launcher)
@@ -92,14 +101,21 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:${libs.versions.org.apache.httpcomponents.core5.get()}")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
+    // Boot 4 split the auto-configurations into modules. Flyway (spring.flyway.*), RestTemplateBuilder, web security
+    // (HttpSecurity of SpringSecurityConfig/GatewaySecurityConfig) and OAuth2 login (spring.security.oauth2.client.*) need theirs:
+    implementation("org.springframework.boot:spring-boot-flyway:$springBootVersion")
+    implementation(libs.org.springframework.boot.restclient)
+    implementation("org.springframework.boot:spring-boot-security:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-security-oauth2-client:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:$springBootVersion")
-    implementation("org.springframework.data:spring-data-jpa:$springBootVersion") // springBoot!!!
-    implementation("org.springframework.data:spring-data-commons:$springBootVersion") // springBoot!!!
+    implementation("org.springframework.data:spring-data-jpa:$springDataVersion")
+    implementation("org.springframework.data:spring-data-commons:$springDataVersion")
 
     implementation(libs.org.yaml.snakeyaml)
     implementation(libs.com.zaxxer.hikaricp)
@@ -113,7 +129,6 @@ dependencies {
     implementation("org.springframework:spring-beans:$springVersion")
     implementation("org.springframework:spring-core:$springVersion")
     implementation("org.springframework:spring-expression:$springVersion")
-    implementation("org.springframework:spring-jcl:$springVersion")
     implementation("org.springframework:spring-jdbc:$springVersion")
     implementation("org.springframework:spring-web:$springVersion")
     implementation("org.springframework:spring-webflux:$springVersion")
@@ -132,7 +147,7 @@ dependencies {
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
     implementation(libs.com.fasterxml.jackson.dataformat.cbor)
-    implementation(libs.com.fasterxml.jackson.datatype.hibernate6)
+    implementation(libs.com.fasterxml.jackson.datatype.hibernate7)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
     implementation(libs.com.google.zxing.core)
@@ -195,6 +210,7 @@ dependencies {
     implementation(libs.org.flywaydb.database.hsqldb)
     implementation(libs.org.flywaydb.database.postgresql)
     implementation(libs.org.hibernate.orm.core)
+    implementation(libs.org.apache.lucene.backward.codecs)
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hibernate.validator)
@@ -208,9 +224,9 @@ dependencies {
     implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
-    implementation(libs.org.springframework.boot.starter.json)
+    implementation(libs.org.springframework.boot.jackson2)
     implementation(libs.org.springframework.boot.starter.logging)
-    implementation(libs.org.springframework.boot.starter.web)
+    implementation(libs.org.springframework.boot.starter.webmvc)
     implementation(libs.org.springframework.boot.starter.webflux)
     implementation(libs.org.springframework.spring.context)
     implementation(libs.org.springframework.spring.orm)
@@ -252,6 +268,9 @@ tasks.named<BootJar>("bootJar") {
         into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
     }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
+    // Gradle 9 sorts archive entries by default. Boot's sorting copy action then reads the zipTree entries of the
+    // extracted Kotlin compiler jars (see below) after Gradle has closed them -> ClosedChannelException.
+    isReproducibleFileOrder = false
 }
 
 tasks.withType<Jar> {

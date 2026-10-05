@@ -19,6 +19,7 @@ dependencies {
     api(libs.com.zaxxer.hikaricp)
     api(libs.org.springframework.spring.context)
     api(libs.org.springframework.boot.autoconfigure)
+    api(libs.org.springframework.boot.jdbc) // DataSourceBuilder
     api(libs.io.dropwizard.metrics.core)
     api(libs.org.apache.jackrabbit.oak.jcr)
     api(libs.jakarta.annotation.api)

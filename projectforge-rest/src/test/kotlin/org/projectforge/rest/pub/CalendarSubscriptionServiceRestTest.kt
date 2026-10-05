@@ -82,8 +82,8 @@ class CalendarSubscriptionServiceRestTest : AbstractTestBase() {
     }
 
     private fun parse(generator: ICalGenerator): List<Pair<LocalDate, LocalDate>> = vEvents(generator).map {
-        val start = it.getDateTimeStart<Temporal>().get().date as LocalDate
-        val end = it.getDateTimeEnd<Temporal>().get().date as LocalDate
+        val start = it.getDateTimeStart<Temporal>()!!.date as LocalDate
+        val end = it.getDateTimeEnd<Temporal>()!!.date as LocalDate
         start to end
     }.sortedBy { it.first }
 

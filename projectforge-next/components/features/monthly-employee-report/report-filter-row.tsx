@@ -4,9 +4,8 @@ import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
-import { Switch } from "@/components/ui/switch";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
-import { FieldHint } from "@/components/shared/form/field-hint";
+import { InvoicingQuotaSwitch } from "@/components/shared/invoicing-quota/invoicing-quota-switch";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { useFormatContext } from "@/hooks/use-format";
@@ -118,23 +117,15 @@ export function ReportFilterRow({
         }}
       />
       {report.invoicingQuotaAvailable && (
-        <div className="flex items-center gap-2 pb-2">
-          <Switch
+        <div className="pb-2">
+          <InvoicingQuotaSwitch
             id="report-show-invoicing-quota"
             checked={report.showInvoicingQuota}
+            info={report.invoicingQuotaInfo}
             onCheckedChange={(checked) =>
               onChange({ ...value, showInvoicingQuota: checked })
             }
           />
-          <Label htmlFor="report-show-invoicing-quota">
-            {t("fibu.monthlyEmployeeReport.showInvoicingQuota")}
-          </Label>
-          {report.invoicingQuotaInfo && (
-            <FieldHint
-              hint={report.invoicingQuotaInfo}
-              label={t("fibu.monthlyEmployeeReport.showInvoicingQuota")}
-            />
-          )}
         </div>
       )}
     </div>
