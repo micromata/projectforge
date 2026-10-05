@@ -58,7 +58,8 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
       val method = authInfo.request.method
       val msg =
         "Neither valid session-credentials (request.sessionId=${RequestLog.getTruncatedSessionId(authInfo.request)}), ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $method:$requestURI. Rest call forbidden."
-      log.error { msg }
+      // Mostly expired sessions of open browser tabs (e.g. calendar polling), so no error.
+      log.warn { msg }
       SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
     }
   }

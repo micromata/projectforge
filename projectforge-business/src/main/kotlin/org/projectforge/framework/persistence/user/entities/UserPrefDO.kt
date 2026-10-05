@@ -172,7 +172,10 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
                     null
                 else Class.forName(valueTypeString)
             } catch (ex: ClassNotFoundException) {
-                log.error("Can't get value type from '$valueTypeString'. Class not found (old incompatible ProjectForge version)?")
+                // Stale rows of removed/renamed classes are skipped; log each class only once to avoid flooding the log.
+                if (unknownValueTypes.add(valueTypeString!!)) {
+                    log.info { "Ignoring user prefs of value type '$valueTypeString': class not found (removed or renamed in a newer ProjectForge version)." }
+                }
                 return null
             }
         }
@@ -311,6 +314,8 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     }
 
     companion object {
+        private val unknownValueTypes: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
         internal const val FIND_BY_USER_ID = "UserPrefDO_FindByUserId"
 
         internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_FindByUserIdAndArea"

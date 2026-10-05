@@ -39,7 +39,9 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
+import org.projectforge.mail.SendMail
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.MailPreview
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
@@ -52,6 +54,9 @@ class VacationSendMailServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
+
+    @Autowired
+    private lateinit var sendMail: SendMail
 
     @Test
     fun mailTest() {
@@ -96,6 +101,9 @@ class VacationSendMailServiceTest : AbstractTestBase() {
                     }
             }
         // println(assertMail(vacation, OperationType.UPDATE, VacationMode.MANAGER, manager.user!!).content)
+        // For a visual check in a mail client, see MailPreview:
+        MailPreview.write(sendMail, "vacationMail-insert-manager", assertMail(vacation, OperationType.INSERT, VacationMode.MANAGER, manager.user!!))
+        MailPreview.write(sendMail, "vacationMail-update-own", assertMail(vacation, OperationType.UPDATE, VacationMode.OWN, vacationer.user!!))
     }
 
     private fun assertMail(

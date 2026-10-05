@@ -34,6 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.test.MailPreview
+import org.projectforge.mail.SendMail
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
 import org.projectforge.plugins.datatransfer.DataTransferJCRCleanUpJob
@@ -51,6 +53,9 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
+
+    @Autowired
+    private lateinit var sendMail: SendMail
 
     @PostConstruct
     private fun postConstruct() {
@@ -119,6 +124,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
             dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id),
         )
         Assertions.assertNotNull(mail)
+        MailPreview.write(sendMail, "dataTransferMail", mail!!) // For a visual check, see MailPreview.
     }
 
     @Test
@@ -146,6 +152,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
             4,
             StringUtils.countMatches(mail.content, "http://localhost:8080/next/datatransfer/2")
         )
+        MailPreview.write(sendMail, "dataTransferFilesBeingDeletedMail", mail) // For a visual check, see MailPreview.
     }
 
     private fun createUser(

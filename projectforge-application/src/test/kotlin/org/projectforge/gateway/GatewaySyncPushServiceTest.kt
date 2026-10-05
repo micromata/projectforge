@@ -25,6 +25,7 @@ package org.projectforge.gateway
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.gateway.push.GatewaySyncPushService
 import org.projectforge.gateway.push.MockIcsRequest
 
 class GatewaySyncPushServiceTest {
@@ -57,5 +58,15 @@ class GatewaySyncPushServiceTest {
         assertEquals("/export/ProjectForge.ics", request.requestURI)
         assertEquals("HTTP/1.1", request.protocol)
         assertTrue(request.isSecure)
+    }
+
+    @Test
+    fun icsContentHashIgnoresDtStamp() {
+        fun ics(dtStamp: String, summary: String) =
+            "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nDTSTAMP:$dtStamp\r\nSUMMARY:$summary\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n"
+
+        val hash = GatewaySyncPushService.icsContentHash(ics("20261004T230226Z", "Meeting"))
+        assertEquals(hash, GatewaySyncPushService.icsContentHash(ics("20261004T230542Z", "Meeting")))
+        assertNotEquals(hash, GatewaySyncPushService.icsContentHash(ics("20261004T230226Z", "Workshop")))
     }
 }
