@@ -106,6 +106,23 @@ class LogAggregationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `hourly means of the 7 days before`() {
+        val event = LogEvent("test.aggregation.means", LogCategory.BUG)
+        val other = LogEvent("test.aggregation.means.other", LogCategory.BUG)
+        val hourMillis = Constants.MILLIS_PER_HOUR
+        val from = PendingLogGroup.hourOf(System.currentTimeMillis()) + 10 * Constants.MILLIS_PER_MINUTE
+        val key = ErrorDigestCollector.keyOf(occurrence(event, from))
+        repeat(84) { logAggregationService.add(occurrence(event, from - (it % 7 + 1) * Constants.MILLIS_PER_DAY + hourMillis)) }
+        logAggregationService.add(occurrence(event, from - 8 * Constants.MILLIS_PER_DAY), key) // Too old.
+        logAggregationService.add(occurrence(event, from), key) // In the period's hour.
+        logAggregationService.add(occurrence(other, from))
+        logAggregationService.flush()
+        val otherKey = ErrorDigestCollector.keyOf(occurrence(other, from))
+        val means = logAggregationService.hourlyMeans(listOf(key, otherKey, "unknown"), from)
+        Assertions.assertEquals(mapOf(key to 0.5, otherKey to 0.0), means, "84 in 168 hours, unknown problems without.")
+    }
+
+    @Test
     fun `nothing is counted while writing`() {
         val event = LogEvent("test.aggregation.guard", LogCategory.BUG)
         val key = ErrorDigestCollector.keyOf(occurrence(event, 0))

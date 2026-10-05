@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/data-table";
@@ -25,14 +26,17 @@ const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7, search: "" };
 /**
  * The error dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
  * collected error and warning, grouped -, their trends and status. A problem's detail explains it and changes
- * its status (acknowledge, resolve, ignore, mute), which also decides what the error digest reports.
+ * its status (acknowledge, resolve, ignore, mute), which also decides what the error digest reports. The digest
+ * links each problem as `?id=<id>`, which opens its detail.
  */
 export function AdminErrors() {
   const t = useTranslations();
   const ctx = useFormatContext();
   const { isAdmin, isLoading } = useAuth();
   const [filter, setFilter] = useState<LogGroupFilter>(START_FILTER);
-  const [detailId, setDetailId] = useState<number | null>(null);
+  // The error digest links a problem as `?id=<id>`: its detail opens at once.
+  const linkedId = Number(useSearchParams().get("id")) || null;
+  const [detailId, setDetailId] = useState<number | null>(linkedId);
 
   const list = useQuery({
     queryKey: ["adminErrors", "list", filter],

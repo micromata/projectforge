@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.support
 
+import org.projectforge.Constants
 import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
@@ -71,6 +72,18 @@ class ErrorGroup(val key: String, first: ErrorOccurrence) {
     val users = linkedSetOf<String>()
     val samples = mutableListOf<ErrorOccurrence>()
 
+    /** What the group is to the reader of the digest: set by [DigestNotifyFilter] for the reported groups. */
+    var novelty = DigestNovelty.KNOWN
+        internal set
+
+    /** The id of the problem in the database ([LogGroupDO]), for the link into the dashboard. */
+    var problemId: Long? = null
+        internal set
+
+    /** The mean occurrences per hour in the 7 days before the period, if known (see [DigestNotifyFilter]). */
+    var hourlyMean: Double? = null
+        internal set
+
     internal fun add(occurrence: ErrorOccurrence) {
         ++count
         if (occurrence.level.ordinal < level.ordinal) level = occurrence.level
@@ -86,6 +99,19 @@ class ErrorGroup(val key: String, first: ErrorOccurrence) {
     }
 }
 
+/** The digest lists new problems first, then the reopened ones and the spikes, then the known ones. */
+enum class DigestNovelty {
+    /** Never reported before. */
+    NEW,
+
+    /** Resolved by an admin and occurred again. */
+    REGRESSION,
+
+    /** Known, but much more often than in the last 7 days. */
+    SPIKE,
+    KNOWN,
+}
+
 /**
  * The errors of one digest period, grouped and bounded: at most [maxGroups] groups (further new ones are only
  * counted as dropped), each with at most [ErrorGroup.MAX_SAMPLES] samples. Thread-safe.
@@ -93,9 +119,10 @@ class ErrorGroup(val key: String, first: ErrorOccurrence) {
 class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
     /**
      * @param dropped Occurrences not collected because of the group limit.
-     * @param suppressed Occurrences of groups not reported (below their threshold or already reported).
+     * @param suppressed Occurrences of groups not reported (below their threshold, already reported, muted).
+     * @param muted Groups not reported because an admin ignored or muted their problem (part of [suppressed]).
      */
-    class Snapshot(val groups: List<ErrorGroup>, val dropped: Int, val suppressed: Int = 0) {
+    class Snapshot(val groups: List<ErrorGroup>, val dropped: Int, val suppressed: Int = 0, val muted: Int = 0) {
         val occurrences: Int get() = groups.sumOf { it.count }
         fun count(category: LogCategory) = groups.filter { it.category == category }.sumOf { it.count }
     }
@@ -161,6 +188,10 @@ class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
  *
  * "Reported before" is taken from the database ([states], it survives restarts); for a problem not yet written there
  * (or without database) from memory, since start-up and for at most [maxRemembered] groups.
+ *
+ * Each reported group gets its [novelty][ErrorGroup.novelty]: new if never reported, a regression if reopened
+ * since, a spike if it occurred at least [SPIKE_FACTOR] times as often per hour as in the 7 days before (and at
+ * least [SPIKE_MIN_COUNT] times), else known.
  */
 class DigestNotifyFilter(
     private val states: LogGroupStates? = null,
@@ -170,27 +201,60 @@ class DigestNotifyFilter(
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>?) = size > maxRemembered
     }
 
+    /** @param fromMillis The start of the period: spikes are measured against the 7 days before. */
     @Synchronized
-    fun apply(snapshot: ErrorDigestCollector.Snapshot, now: Long = System.currentTimeMillis()): ErrorDigestCollector.Snapshot {
+    fun apply(
+        snapshot: ErrorDigestCollector.Snapshot,
+        now: Long = System.currentTimeMillis(),
+        fromMillis: Long = now - Constants.MILLIS_PER_HOUR,
+    ): ErrorDigestCollector.Snapshot {
+        var muted = 0
         val (reportable, suppressed) = snapshot.groups.partition { group ->
             val state = states?.stateOf(group.key)
             val notify = state?.overrideNotify ?: group.event.notify
             when {
-                state?.muted(now) == true || notify == LogNotify.NONE -> false
+                state?.muted(now) == true -> false.also { ++muted }
+                notify == LogNotify.NONE -> false
                 group.count < group.event.threshold -> false
                 notify != LogNotify.DIGEST_IF_NEW -> true
                 state != null -> state.unreported
                 else -> reported[group.key] == null
             }
         }
+        val means = states?.hourlyMeans(reportable.map { it.key }, fromMillis) ?: emptyMap()
+        val hours = maxOf(1.0, (now - fromMillis).toDouble() / Constants.MILLIS_PER_HOUR)
+        reportable.forEach { group ->
+            val state = states?.stateOf(group.key)
+            group.problemId = state?.id
+            group.hourlyMean = means[group.key]
+            group.novelty = when {
+                state == null -> if (reported[group.key] == null) DigestNovelty.NEW else DigestNovelty.KNOWN
+                state.reopenedAt != null && state.unreported -> DigestNovelty.REGRESSION
+                state.lastNotified == null -> DigestNovelty.NEW
+                isSpike(group.count, hours, group.hourlyMean) -> DigestNovelty.SPIKE
+                else -> DigestNovelty.KNOWN
+            }
+        }
         reportable.forEach { reported[it.key] = true }
         states?.markNotified(reportable.map { it.key })
-        return ErrorDigestCollector.Snapshot(reportable, snapshot.dropped, snapshot.suppressed + suppressed.sumOf { it.count })
+        return ErrorDigestCollector.Snapshot(
+            reportable, snapshot.dropped, snapshot.suppressed + suppressed.sumOf { it.count }, snapshot.muted + muted,
+        )
     }
 
     companion object {
+        /** A spike: at least this many times as often per hour as in the 7 days before. */
+        const val SPIKE_FACTOR = 5.0
+
+        /** A spike needs at least this many occurrences in the period: a handful is no spike. */
+        const val SPIKE_MIN_COUNT = 10
+
         /** The notify rule of an occurrence: the admin's override of its problem, else the one of its event. */
         fun notifyOf(occurrence: ErrorOccurrence, state: LogGroupState?): LogNotify =
             state?.overrideNotify ?: occurrence.event.notify
+
+        /** @param mean Null if unknown (no database): then there are no spikes. */
+        internal fun isSpike(count: Int, hours: Double, mean: Double?): Boolean =
+            mean != null && count >= SPIKE_MIN_COUNT && count / hours >= SPIKE_FACTOR * mean
     }
 }

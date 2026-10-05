@@ -71,6 +71,54 @@ class ErrorDigestMailTest : AbstractTestBase() {
         Assertions.assertTrue(html.contains("error-digest.txt"), html)
     }
 
+    @Test
+    fun `new problems, regressions and spikes first, with links into the dashboard`() {
+        val collector = ErrorDigestCollector()
+        collector.add(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Sipgate not reachable", "Sipgate:2", LogLevel.ERROR))
+        collector.add(occurrence(DATA_EVENT, "Broken pref", "UserPrefDO:175", LogLevel.WARN))
+        repeat(12) { collector.add(occurrence(SupportLogEvents.REQUEST_ERROR, "NPE $it", "Foo:1", LogLevel.ERROR)) }
+        val snapshot = collector.drain().let { ErrorDigestCollector.Snapshot(it.groups, 0, suppressed = 4, muted = 2) }
+        val (external, data, bug) = listOf(LogCategory.EXTERNAL, LogCategory.DATA, LogCategory.BUG)
+            .map { category -> snapshot.groups.single { it.category == category } }
+        data.novelty = DigestNovelty.NEW
+        data.problemId = 42
+        bug.novelty = DigestNovelty.SPIKE
+        bug.hourlyMean = 0.25
+        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/adminErrors")
+        Assertions.assertEquals(
+            "Error digest https://pf.example.org: 13 errors, 1 external failures (1 new, 1 spikes)",
+            renderer.subject(snapshot, emptyList()),
+        )
+        val html = sendMail.renderGroovyTemplate(
+            Mail(), "mail/errorDigestMail.html",
+            renderer.htmlData(snapshot, emptyList(), 0L, 3_600_000L, null), "Error digest", null,
+        )
+        Assertions.assertFalse(html.contains("not found!"), html)
+        val newSection = html.indexOf("New problems")
+        val spikes = html.indexOf("Spikes:")
+        val known = html.indexOf(LogCategory.EXTERNAL.title)
+        Assertions.assertTrue(newSection in 0 until spikes && spikes < known, html)
+        Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/adminErrors?id=42\""), html)
+        Assertions.assertTrue(html.contains("usually 0.3 per hour"), html)
+        Assertions.assertTrue(html.contains("ignored or muted problems"), html)
+        Assertions.assertEquals(DigestNovelty.KNOWN, external.novelty)
+        val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
+        Assertions.assertTrue(body.indexOf("== New problems (1) ==") < body.indexOf("== ${LogCategory.EXTERNAL.title} (1) =="), body)
+        Assertions.assertTrue(body.contains("category: ${LogCategory.DATA.title}") && body.contains("adminErrors?id=42"), body)
+        Assertions.assertTrue(body.contains("2 ignored or muted problems not listed"), body)
+    }
+
+    @Test
+    fun `only the most frequent known problems are listed`() {
+        val collector = ErrorDigestCollector()
+        repeat(ErrorDigestRenderer.MAX_KNOWN_GROUPS + 3) {
+            collector.add(occurrence(LogEvent("test.known.$it", LogCategory.BUG), "Failed", "Foo:$it", LogLevel.ERROR))
+        }
+        val view = ErrorDigestRenderer(null, ZoneOffset.UTC).view(collector.drain(), emptyList(), 0L, 1L, null)
+        Assertions.assertEquals(ErrorDigestRenderer.MAX_KNOWN_GROUPS, view.sections.sumOf { it.groups.size })
+        Assertions.assertEquals(3, view.omitted)
+    }
+
     private fun occurrence(
         event: LogEvent,
         message: String,

@@ -50,6 +50,12 @@ interface LogGroupStates {
 
     /** The problems were reported by the digest. */
     fun markNotified(keys: Collection<String>)
+
+    /**
+     * The mean occurrences per hour of the problems in the 7 days before [beforeMillis] (its hour excluded), for
+     * the spikes of the digest. Only for problems in the database, 0 if they didn't occur then.
+     */
+    fun hourlyMeans(keys: Collection<String>, beforeMillis: Long): Map<String, Double> = emptyMap()
 }
 
 /**
@@ -141,6 +147,30 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
             }
             fingerprints.forEach { fp -> states.computeIfPresent(fp) { _, state -> state.withLastNotified(now) } }
         }
+    }
+
+    override fun hourlyMeans(keys: Collection<String>, beforeMillis: Long): Map<String, Double> {
+        if (!enabled || closed) {
+            return emptyMap()
+        }
+        val ids = keys.mapNotNull { key -> stateOf(key)?.let { it.id to key } }.toMap()
+        if (ids.isEmpty()) {
+            return emptyMap()
+        }
+        val until = beforeMillis / Constants.MILLIS_PER_HOUR * Constants.MILLIS_PER_HOUR
+        val since = until - SPIKE_BASE_DAYS * Constants.MILLIS_PER_DAY
+        val sums = runGuarded("read the hourly counts") {
+            persistenceService.runReadOnly { context ->
+                ids.keys.chunked(CHUNK_SIZE).flatMap { chunk ->
+                    context.executeNamedQuery(
+                        LogBucketDO.SELECT_BY_GROUPS_BETWEEN, LogBucketRow::class.java,
+                        "groupIds" to chunk, "since" to Date(since), "until" to Date(until),
+                    )
+                }
+            }.groupBy { it.groupId }.mapValues { (_, rows) -> rows.sumOf { it.occurrences } }
+        } ?: return emptyMap()
+        val hours = (SPIKE_BASE_DAYS * 24).toDouble()
+        return ids.entries.associate { (id, key) -> key to (sums[id] ?: 0) / hours }
     }
 
     @Scheduled(fixedDelay = FLUSH_INTERVAL_MILLIS, initialDelay = FLUSH_INTERVAL_MILLIS)
@@ -325,6 +355,9 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         internal const val FLUSH_INTERVAL_MILLIS = 30 * Constants.MILLIS_PER_SECOND
 
         private const val CHUNK_SIZE = 1000
+
+        /** The days a spike is measured against, see [hourlyMeans]. */
+        private const val SPIKE_BASE_DAYS = 7
         private const val MAX_MESSAGE = 4000
         private const val MAX_STACKTRACE = 10000
         private const val MAX_REQUEST = 1000
