@@ -26,12 +26,14 @@ package org.projectforge.rest.fibu.kost
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
+import org.projectforge.ui.UISelectValue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -41,7 +43,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 
 /**
- * Mass update after selection of cost 2 entries: status, description and comment.
+ * Mass update after selection of cost 2 entries: status, shared cost, description and comment.
  */
 @RestController
 @RequestMapping("${Rest.URL}/cost2${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
@@ -63,11 +65,22 @@ class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
   }
 
   /**
-   * The three fields of the mass update, for the next frontend that renders the form itself.
+   * The fields of the mass update, for the next frontend that renders the form itself.
+   *
+   * Shared cost is three-state (see [Kost2DO.sharedCost]): Yes/No are offered as select values (posted as
+   * `textValue`), deleting resets it to "as structure element".
    */
   override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
     return listOf(
       MassUpdateFieldDeclaration("kostentraegerStatus"),
+      MassUpdateFieldDeclaration(
+        "sharedCost",
+        showDeleteOption = true,
+        values = listOf(
+          UISelectValue("true", translate("yes")),
+          UISelectValue("false", translate("no")),
+        ),
+      ),
       MassUpdateFieldDeclaration("description", showAppendOption = true),
       MassUpdateFieldDeclaration("comment", showAppendOption = true),
     )
@@ -93,6 +106,12 @@ class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
         param.textValue?.let { textValue ->
           kost2.kostentraegerStatus = KostentraegerStatus.valueOf(textValue)
         }
+      }
+      params["sharedCost"]?.let { param ->
+        if (param.delete == true) {
+          kost2.sharedCost = null
+        }
+        param.textValue?.toBooleanStrictOrNull()?.let { kost2.sharedCost = it }
       }
       processTextParameter(kost2, "description", params)
       processTextParameter(kost2, "comment", params)
