@@ -24,6 +24,7 @@
 package org.projectforge.gateway.push
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.SystemStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -34,12 +35,17 @@ private val log = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
 class GatewaySyncScheduler(
     private val pushService: GatewaySyncPushService,
+    private val systemStatus: SystemStatus,
 ) {
     /**
      * Delta sync: only changed addresses and calendars (users and groups are always pushed completely).
      */
-    @Scheduled(fixedDelayString = "\${projectforge.gateway.push.syncIntervalMs:900000}")
+    @Scheduled(
+        fixedDelayString = "\${projectforge.gateway.push.syncIntervalMs:900000}",
+        initialDelayString = "\${projectforge.gateway.push.initialDelayMs:120000}",
+    )
     fun scheduledSync() {
+        if (!ready()) return
         log.info { "Starting scheduled gateway sync..." }
         pushService.pushAll()
     }
@@ -49,7 +55,22 @@ class GatewaySyncScheduler(
      */
     @Scheduled(cron = "\${projectforge.gateway.push.fullSyncCron:0 0 3 * * *}")
     fun scheduledFullSync() {
+        if (!ready()) return
         log.info { "Starting scheduled full gateway sync..." }
         pushService.pushAll(fullSync = true)
+    }
+
+    /**
+     * Without an initial delay a fixed-delay job runs as soon as the scheduler starts, i.e. before
+     * [org.springframework.boot.context.event.ApplicationReadyEvent] — before plugins and WicketSupport are
+     * registered (NPE in the access checks). A long start-up (production database) can outlast the initial
+     * delay, hence the check as well.
+     */
+    private fun ready(): Boolean {
+        if (!systemStatus.upAndRunning) {
+            log.info { "Gateway sync skipped: ProjectForge is not up and running yet." }
+            return false
+        }
+        return true
     }
 }
