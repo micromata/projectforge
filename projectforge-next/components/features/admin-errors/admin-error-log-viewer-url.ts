@@ -14,6 +14,11 @@ export function logViewerUrl(detail: LogGroupDetail): string | null {
   return `next/adminLogViewer?search=${encodeURIComponent(search)}&threshold=${threshold}`;
 }
 
+/** The problem's occurrences in the log files of its last days, also before the server's start (LogFileSearch). */
+export function logFileSearchUrl(detail: LogGroupDetail): string {
+  return `next/adminLogViewer?problem=${detail.entry.id}`;
+}
+
 /**
  * The uri of a request's problem (`GET /rs/foo?x=1` → `/rs/foo`). Only a request's exception has a request (see
  * `ErrorOccurrenceFactory.fromRequestException`), logged with its uri by `GlobalDefaultExceptionHandler`; its

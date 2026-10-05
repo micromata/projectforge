@@ -148,7 +148,7 @@ class SyncStats(val type: String) {
         fun skip(reason: String) {
             if (done) return
             done = true
-            log.info { "Sync '$type'${infoString} skipped: $reason" }
+            log.info { "Sync $type${infoString} skipped: $reason" }
         }
 
         val durationMs: Long
@@ -162,7 +162,9 @@ class SyncStats(val type: String) {
             done = true
             val duration = durationMs
             record(this, status, duration, message, timeout)
-            val summary = "Sync '$type'$infoString ${status.name.lowercase()} in ${duration.formatMillis()}" +
+            // The type unquoted: the log aggregation normalizes a quoted value, which would make the failures of all
+            // syncs one problem, but the dashboard attributes them to their subsystem (SubsystemProblemMatch).
+            val summary = "Sync $type$infoString ${status.name.lowercase()} in ${duration.formatMillis()}" +
                     (message?.let { ": $it" } ?: "") +
                     (if (steps.isNotEmpty()) steps.joinToString(", ", prefix = " - ") else "")
             when (status) {

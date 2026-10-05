@@ -1,3 +1,4 @@
+import { updateSearchParams } from "@/lib/search-params";
 import type { MonthlyReportQuery } from "./types";
 
 function initialNumber(
@@ -16,17 +17,11 @@ const URL_KEYS = ["userId", "year", "month"] as const;
  * values are dropped — the server then picks its default (the logged-in user, the current month).
  */
 export function writeQueryToUrl(query: MonthlyReportQuery): void {
-  const params = new URLSearchParams(window.location.search);
-  for (const key of URL_KEYS) {
-    const value = query[key];
-    if (value) params.set(key, String(value));
-    else params.delete(key);
-  }
-  const search = params.toString();
-  window.history.replaceState(
-    null,
-    "",
-    search ? `?${search}` : window.location.pathname
+  updateSearchParams(
+    Object.fromEntries(
+      URL_KEYS.map((key) => [key, query[key] ? String(query[key]) : null])
+    ),
+    "replace"
   );
 }
 

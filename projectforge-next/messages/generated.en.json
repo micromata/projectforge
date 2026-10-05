@@ -3144,6 +3144,20 @@
         "lastNotified": "Last reported",
         "lastSeen": "Last seen",
         "location": "Location",
+        "logFile": {
+          "_": "Search log files",
+          "configured": "Configured now:",
+          "files": "Searched: {arg0}",
+          "formatWarning": "The format of the log file cannot be read completely ({arg0} lines), so occurrences may be missing. Recommended in projectforge.properties:",
+          "none": "No occurrences found in the log files.",
+          "source": "Found in",
+          "title": "Log files: {arg0}",
+          "tooltip": "Searches the log files of the problem's last days (at most 7) for its occurrences, also those before the server's start. Slower than the log viewer.",
+          "truncated": "The search stopped at its limit, older occurrences may exist."
+        },
+        "logViewer": {
+          "tooltip": "Only the last log events since the server's start, held in memory."
+        },
         "message": "Message",
         "more": "Only the first {arg0} of {arg1} problems are shown.",
         "mutedUntil": "Muted until {arg0}",
@@ -3170,6 +3184,28 @@
           "new": "New",
           "open": "Open",
           "resolved": "Resolved"
+        },
+        "subsystem": {
+          "state": {
+            "degraded": "Degraded",
+            "down": "Down",
+            "ok": "OK",
+            "unknown": "No run yet"
+          }
+        },
+        "subsystems": {
+          "_": "Subsystems and interfaces",
+          "calendars": "{arg0} calendars",
+          "filter": "Subsystem: {arg0}",
+          "lastError": "Last error",
+          "lastRun": "Last run",
+          "none": "No subsystem or interface is active.",
+          "removeFilter": "Remove filter",
+          "tooltip": "A click shows the problems of the subsystem. Its state results from the last run of its syncs and from open errors of the last 24 hours."
+        },
+        "tab": {
+          "overview": "Overview",
+          "problems": "Problems"
         },
         "threshold": "Threshold (per hour)",
         "title": "Problem dashboard",
