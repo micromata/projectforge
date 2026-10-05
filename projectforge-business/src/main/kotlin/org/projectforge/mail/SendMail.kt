@@ -244,49 +244,7 @@ open class SendMail {
   ) {
     log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
     try {
-      val session = session
-      /*if (SystemStatus.isDevelopmentMode()) {
-        session!!.setDebug(true)
-      }*/
-      val message = MimeMessage(session)
-      if (composedMessage.from != null) {
-        message.setFrom(InternetAddress(composedMessage.from))
-      } else {
-        mailFromStandardEmailSender
-          ?.takeIf { it.isNotBlank() }
-          ?.let { message.setFrom(InternetAddress(it)) }
-          ?: message.setFrom()
-      }
-      message.setRecipients(
-        Message.RecipientType.TO,
-        composedMessage.to.toTypedArray<Address>()
-      )
-      if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
-        message.setRecipients(
-          Message.RecipientType.CC,
-          composedMessage.cc.toTypedArray<Address>()
-        )
-      }
-      //message.setHeader("Return-Path", "")
-      //message.setHeader("Reply-To", "")
-      val subject = composedMessage.subject
-      message.setSubject(subject, CHARSET)
-      message.sentDate = Date()
-      if (StringUtils.isBlank(icalContent) && attachments == null) {
-        // create message without attachments
-        if (composedMessage.contentType != null) {
-          message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
-        } else {
-          message.setText(composedMessage.content, CHARSET)
-        }
-        // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
-        // message.setText("Einfache Textnachricht")
-      } else {
-        // create message with attachments
-        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
-        message.setContent(mp)
-      }
-      message.saveChanges() // don't forget this
+      val message = createMimeMessage(composedMessage, icalContent, attachments)
       if (testMode) {
         log.info("Test mode, do not really send e-mails (OK only for test cases).")
       } else {
@@ -297,6 +255,58 @@ open class SendMail {
       throw InternalErrorException("mail.error.exception")
     }
     log.info("E-Mail successfully sent: $composedMessage")
+  }
+
+  /**
+   * Builds the MIME message as [send] transports it, without sending it. A mail server isn't needed for this,
+   * so it may also be used to export a mail, e.g. as an .eml file by [MimeMessage.writeTo].
+   */
+  @Throws(MessagingException::class)
+  fun createMimeMessage(
+    composedMessage: Mail,
+    icalContent: String? = null,
+    attachments: Collection<IMailAttachment>? = null,
+  ): MimeMessage {
+    val message = MimeMessage(session)
+    if (composedMessage.from != null) {
+      message.setFrom(InternetAddress(composedMessage.from))
+    } else {
+      mailFromStandardEmailSender
+        ?.takeIf { it.isNotBlank() }
+        ?.let { message.setFrom(InternetAddress(it)) }
+        ?: message.setFrom()
+    }
+    message.setRecipients(
+      Message.RecipientType.TO,
+      composedMessage.to.toTypedArray<Address>()
+    )
+    if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
+      message.setRecipients(
+        Message.RecipientType.CC,
+        composedMessage.cc.toTypedArray<Address>()
+      )
+    }
+    //message.setHeader("Return-Path", "")
+    //message.setHeader("Reply-To", "")
+    val subject = composedMessage.subject
+    message.setSubject(subject, CHARSET)
+    message.sentDate = Date()
+    if (StringUtils.isBlank(icalContent) && attachments == null) {
+      // create message without attachments
+      if (composedMessage.contentType != null) {
+        message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
+      } else {
+        message.setText(composedMessage.content, CHARSET)
+      }
+      // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
+      // message.setText("Einfache Textnachricht")
+    } else {
+      // create message with attachments
+      val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
+      message.setContent(mp)
+    }
+    message.saveChanges() // don't forget this
+    return message
   }
 
   @Throws(MessagingException::class)

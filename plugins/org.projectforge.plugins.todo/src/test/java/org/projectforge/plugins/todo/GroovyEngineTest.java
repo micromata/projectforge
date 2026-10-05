@@ -31,9 +31,14 @@ import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.business.test.AbstractTestBase;
+import org.projectforge.business.test.MailPreview;
+import org.projectforge.mail.Mail;
+import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -42,6 +47,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GroovyEngineTest extends AbstractTestBase {
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private SendMail sendMail;
 
   @Test
   public void renderTest() {
@@ -74,6 +82,36 @@ public class GroovyEngineTest extends AbstractTestBase {
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
     assertTrue(result.contains("hoch"), "I18n priority expected.");
     assertTrue(result.contains("Verbesserung"), "I18n key for type improvement expected.");
+  }
+
+  /**
+   * Renders the mail as ToDoDao does and writes it as .eml for a visual check in a mail client, see MailPreview.
+   */
+  @Test
+  public void mailPreviewTest() {
+    PFUserDO user = new PFUserDO();
+    user.setFirstname("Kai");
+    user.setLastname("Reinhard");
+    user.setEmail("k.reinhard@example.org");
+    user.setLocale(Locale.GERMAN);
+    ToDoDO todo = new ToDoDO();
+    todo.setSubject("Rechnungsexport prüfen");
+    todo.setType(ToDoType.IMPROVEMENT);
+    todo.setPriority(Priority.HIGH);
+    todo.setStatus(ToDoStatus.OPENED);
+    todo.setReporter(user);
+    todo.setAssignee(user);
+    todo.setDescription("Die Spalte \"Netto\" fehlt im Export.");
+    Map<String, Object> data = new HashMap<>();
+    data.put("todo", todo);
+    data.put("history", new ArrayList<FlatDisplayHistoryEntry>());
+    data.put("requestUrl", "https://projectforge.example.org/next/todo/42");
+    final Mail mail = new Mail();
+    mail.setProjectForgeSubject("ToDo geändert: " + todo.getSubject());
+    mail.setTo(user);
+    mail.setContentType(Mail.CONTENTTYPE_HTML);
+    mail.setContent(sendMail.renderGroovyTemplate(mail, "mail/todoChangeNotification.html", data, "ToDo", user));
+    MailPreview.write(sendMail, "todoChangeNotification", mail);
   }
 
   @Test
