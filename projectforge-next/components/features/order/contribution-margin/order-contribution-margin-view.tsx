@@ -22,7 +22,7 @@ import type { MagicFilter } from "@/lib/rs/types";
 import { ContributionMarginHints } from "./contribution-margin-hints";
 import { ContributionMarginKpis } from "./contribution-margin-kpis";
 import { ContributionMarginMonthlyChart } from "./contribution-margin-monthly-chart";
-import { ContributionMarginProjectTable } from "./contribution-margin-project-table";
+import { ContributionMarginTables } from "./contribution-margin-tables";
 
 /** React Query key of the user's remembered start date (see fetchContributionMarginSettings). */
 const CONTRIBUTION_MARGIN_SETTINGS_KEY = [
@@ -68,7 +68,7 @@ export function OrderContributionMarginView({
 }
 
 /**
- * The start date over the monthly chart and the project table. Every change re-posts the request after a
+ * The start date over the monthly chart, the project table and the rows behind it. Every change re-posts the request after a
  * short debounce; the backend persists the date with it, so there is no "apply" button.
  */
 function OrderContributionMargin({
@@ -169,10 +169,13 @@ function OrderContributionMargin({
             <h3 className="text-sm font-semibold">{t("monthly")}</h3>
             <ContributionMarginMonthlyChart data={query.data} />
           </section>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("projects")}</h3>
-            <ContributionMarginProjectTable data={query.data} />
-          </section>
+          <ContributionMarginTables
+            data={query.data}
+            filter={filter}
+            filterKey={filterKey}
+            params={debouncedParams}
+            enabled={query.isSuccess && !query.isPlaceholderData}
+          />
         </div>
       )}
     </div>

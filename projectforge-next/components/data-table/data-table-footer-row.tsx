@@ -31,7 +31,13 @@ export function DataTableFooterRow<TData>({
           {group.headers.map((header) => (
             <TableCell
               key={header.id}
-              style={pinnedStyle(header.column, false, suspendPinning)}
+              // A pinned sum stays above the scrolling ones: the body cells' z-index of pinnedStyle would
+              // undercut the z-10 every footer cell sticks with, so the scrolled sums painted over it.
+              style={{
+                ...pinnedStyle(header.column, false, suspendPinning),
+                ...(header.column.getIsPinned() &&
+                  !suspendPinning && { zIndex: 20 }),
+              }}
               className={cn(
                 "sticky bottom-0 z-10 truncate border-t bg-muted font-semibold",
                 header.column.columnDef.meta?.align === "right" && "text-right",

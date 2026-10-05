@@ -24,6 +24,7 @@ import {
 import type { MagicFilter } from "@/lib/rs/types";
 import { OrderForecastCumulativeChart } from "./order-forecast-cumulative-chart";
 import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
+import { ForecastTables } from "./forecast-tables";
 
 /** React Query key of the user's remembered chart dates (see fetchForecastChartSettings). */
 const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
@@ -62,7 +63,7 @@ export function OrderForecastChartsView({ filter }: { filter: MagicFilter }) {
 }
 
 /**
- * The controls (start date, optional planning date) over the two charts. Every change re-posts the request
+ * The controls (start date, optional planning date) over the two charts and the tables behind them. Every change re-posts the request
  * after a short debounce; the backend persists the dates with it, so there is no "apply" button.
  */
 function OrderForecastCharts({
@@ -186,6 +187,12 @@ function OrderForecastCharts({
             <h3 className="text-sm font-semibold">{t("cumulative")}</h3>
             <OrderForecastCumulativeChart data={query.data} />
           </section>
+          <ForecastTables
+            filter={filter}
+            filterKey={filterKey}
+            params={debouncedParams}
+            enabled={query.isSuccess && !query.isPlaceholderData}
+          />
         </div>
       )}
     </div>

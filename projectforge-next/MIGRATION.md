@@ -16,11 +16,11 @@ Aufgabenbaum.
 
 Alle Frontends werden von der einen Spring-Boot-App auf `:8080` serviert:
 
-| Frontend              | Modul                 | Pfad        | Technik                                                          |
-| --------------------- | --------------------- | ----------- | ---------------------------------------------------------------- |
-| ~~Wicket (Legacy)~~   | ~~`projectforge-wicket`~~ | `/wa/*`  | entfernt (`doc/wicket-removal.md`); alte Urls leitet `OrphanedLinkFilter` nach next um |
-| Alte React-App        | `projectforge-webapp` | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite |
-| **projectforge-next** | `projectforge-next`   | `/next/**`  | Next.js 16 App Router, statisch exportiert                       |
+| Frontend              | Modul                     | Pfad        | Technik                                                                                |
+| --------------------- | ------------------------- | ----------- | -------------------------------------------------------------------------------------- |
+| ~~Wicket (Legacy)~~   | ~~`projectforge-wicket`~~ | `/wa/*`     | entfernt (`doc/wicket-removal.md`); alte Urls leitet `OrphanedLinkFilter` nach next um |
+| Alte React-App        | `projectforge-webapp`     | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite                       |
+| **projectforge-next** | `projectforge-next`       | `/next/**`  | Next.js 16 App Router, statisch exportiert                                             |
 
 **Geteilte Authentifizierung.** Spring Security ist `permitAll`
 (`SpringSecurityConfig.kt`); die Authentifizierung übernehmen PF-Servlet-Filter

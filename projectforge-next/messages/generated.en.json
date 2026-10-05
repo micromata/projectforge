@@ -871,6 +871,18 @@
         "forecast": "Forecast charts",
         "open": {
           "tooltip": "Opens the order statistics with the business units, customers and projects of the current filter. Afterwards, its filter is independent of the order book."
+        },
+        "tables": {
+          "bookedDate": "Booked on",
+          "heading": "Underlying data",
+          "invoicesPrevPrevYear": "Invoices year before previous year",
+          "invoicesPrevYear": "Invoices previous year",
+          "months": "DB per month",
+          "orderStatus": "Order status",
+          "positionStatus": "Position status",
+          "preliminaryLegend": "Values in this colour are preliminary: invoices not booked yet, time sheets × hourly rate.",
+          "toBeInvoicedSum": "Weighted open",
+          "warning": "Warning"
         }
       },
       "status": {
@@ -951,6 +963,7 @@
       "customer": {
         "reference": "Customer reference"
       },
+      "difference": "Difference",
       "invoicingQuota": {
         "_": "Invoicing Quota",
         "tooltip": "How the invoicing quota of this monthly report is calculated:\n\nBilled work time: {arg0} h\n÷ Work time: {arg1} h\n= {arg2}\n\nIgnored cost types (e.g. vacation, absences) are not included."
@@ -1595,6 +1608,9 @@
     },
     "rechnungen": "Invoices",
     "salesManager": "Key account manager",
+    "title": {
+      "fakturiert": "Invoiced"
+    },
     "toBeInvoiced": "to be invoiced",
     "tooltip": {
       "nummerWirdAutomatischVergeben": "Number will automatically set."
@@ -3411,6 +3427,7 @@
     "stopTime": "Stop time",
     "tag": "Tag",
     "templates": "Templates",
+    "timesheets": "Time sheets",
     "title": {
       "add": "New time sheet",
       "list": "List of time sheets"

@@ -97,6 +97,73 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     }
   });
 
+  test("shows the data behind the charts in sub-tabs", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // The page's own filter (left by another case, e.g. a customer) is stored by the chart call.
+    const reset = await page.request.post("/rs/order/forecastChart", {
+      headers: await writeHeaders(page),
+      data: { filter: { entries: [], sortProperties: [] } },
+    });
+    expect(reset.ok()).toBe(true);
+    await goto(page, "/orderStatistics");
+    await expect(
+      page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
+    ).toBeVisible({ timeout: 60_000 });
+    const heading = page.getByRole("heading", {
+      name: format.t("fibu.auftrag.statistics.tables.heading"),
+    });
+    const empty = page.getByText(format.t("fibu.auftrag.forecast.chart.empty"));
+    await expect(heading.or(empty)).toBeVisible({ timeout: 120_000 });
+    test.skip(
+      await empty.isVisible(),
+      "no forecast data in this instance (the tables only exist with charts)"
+    );
+    for (const key of [
+      "fibu.projekt.projekte",
+      "fibu.auftrag.positions",
+      "fibu.rechnung.rechnungen",
+      "fibu.auftrag.statistics.tables.invoicesPrevYear",
+      "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
+    ]) {
+      await expect(
+        page.getByRole("tab", { name: new RegExp(`^${escape(format.t(key))}`) })
+      ).toBeVisible();
+    }
+    await page
+      .getByRole("tab", {
+        name: new RegExp(`^${escape(format.t("fibu.auftrag.positions"))}`),
+      })
+      .click();
+    await expect(
+      page.getByRole("columnheader", {
+        name: format.t("fibu.auftrag.forecastType._"),
+      })
+    ).toBeVisible();
+    // The table scrolls in its own box, the first columns pinned: scrolled to its right end, the order
+    // column stands where it stood and the page has not moved.
+    const orderHeader = page.getByRole("columnheader", {
+      name: format.t("fibu.auftrag._"),
+      exact: true,
+    });
+    const before = await orderHeader.boundingBox();
+    const scrolled = await orderHeader.evaluate((cell) => {
+      let box = cell.parentElement;
+      while (box && getComputedStyle(box).overflowX !== "auto")
+        box = box.parentElement;
+      if (!box || box.scrollWidth <= box.clientWidth) return false;
+      box.scrollLeft = box.scrollWidth;
+      return true;
+    });
+    if (scrolled) {
+      await expect
+        .poll(async () => (await orderHeader.boundingBox())?.x)
+        .toBe(before?.x);
+      expect(await page.evaluate(() => window.scrollX)).toBe(0);
+    }
+  });
+
   test.describe("for a user without the order right", () => {
     test.skip(
       !hasRole("normalo-user"),
@@ -113,6 +180,17 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
         headers: HEADERS,
       });
       expect(meta.ok()).toBe(false);
+      // Neither the charts' tables nor the rows behind the contribution margin, despite the cache.
+      for (const path of [
+        "/rs/order/forecastChart/tables",
+        "/rs/order/contributionMargin/details",
+      ]) {
+        const res = await page.request.post(path, {
+          headers: await writeHeaders(page),
+          data: { filter: { entries: [], sortProperties: [] } },
+        });
+        expect(res.ok(), path).toBe(false);
+      }
 
       const format = await userFormat(page);
       await goto(page, "/orderStatistics");
@@ -122,6 +200,11 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     });
   });
 });
+
+/** `text` as a literal part of a regular expression. */
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /** The headers a state changing call needs — the CSRF token is read per call. */
 async function writeHeaders(page: Page): Promise<Record<string, string>> {

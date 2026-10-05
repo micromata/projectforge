@@ -244,8 +244,23 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
     ): ForecastChartData? {
-        return exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = true)
-            ?.chartData
+        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget)?.chart
+    }
+
+    /**
+     * The forecast charts plus the detail rows behind them (see [ForecastTables]), see [chartData] for the parameters.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun statistics(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ForecastStatistics? {
+        val result = exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = true)
+            ?: return null
+        return ForecastStatistics(result.chartData, result.tables)
     }
 
     /**
@@ -564,6 +579,7 @@ open class ForecastExport { // open needed by Wicket.
                 return ExportResult(
                     xls = null,
                     chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+                    tables = buildTables(ctx, planningDate),
                 )
             }
             // The invoice sheets' visible formulas reference the forecast sheet's visibleID range, which only exists
@@ -604,11 +620,25 @@ open class ForecastExport { // open needed by Wicket.
             return ExportResult(
                 xls = workbook.asByteArrayOutputStream.toByteArray(),
                 chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+                tables = buildTables(ctx, planningDate),
             )
         }
     }
 
-    private class ExportResult(val xls: ByteArray?, val chartData: ForecastChartData)
+    private class ExportResult(val xls: ByteArray?, val chartData: ForecastChartData, val tables: ForecastTables)
+
+    private fun buildTables(ctx: Context, planningDate: LocalDate?): ForecastTables {
+        return ctx.tables.build(
+            months = ForecastChartTotals.months(ctx.startDate),
+            visibleProjectIds = ctx.forecastRowProjectIds,
+            planByProject = planningDate?.let { ctx.chartTotals.planByProject() },
+        ) { projectId ->
+            projectCache.getProjekt(projectId)?.let { projekt ->
+                // projekt.kunde is a lazy proxy on the shared cached instance, resolve it via the KundeCache.
+                kundeCache.getKundeIfNotInitialized(projekt.kunde)?.name to projekt.name
+            }
+        }
+    }
 
     private fun analyzeOrderPositions(
         orderList: Collection<AuftragDO>,
@@ -1059,6 +1089,8 @@ open class ForecastExport { // open needed by Wicket.
         order.statusBeschreibung?.let {
             sheet.setStringValue(row, ForecastCol.STATUS_BESCHREIBUNG.header, it)
         }
+        val tableMonths = arrayOfNulls<BigDecimal>(MonthCol.entries.size)
+        var tableWarning: String? = null
         forecastInfo.months.forEach { monthEntry ->
             val monthDate = monthEntry.date
             val offset = ctx.startDate.monthsBetween(monthDate).toInt()
@@ -1077,6 +1109,7 @@ open class ForecastExport { // open needed by Wicket.
                 )
             cell.cellStyle = ctx.currencyCellStyle
             val chartValue = monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP)
+            tableMonths[offset] = chartValue
             if (isPlanningSheet) {
                 ctx.chartTotals.addPlanningForecast(pos.status, order.projektId, offset, chartValue)
             } else {
@@ -1088,18 +1121,56 @@ open class ForecastExport { // open needed by Wicket.
                     monthEntry.lostBudget > NumberHelper.TEN_THOUSAND -> ctx.largeErrorCellStyle
                     else -> ctx.errorCellStyle
                 }
-                sheet.setStringValue(
-                    row,
-                    ForecastCol.WARNING.header,
-                    translateMsg(
-                        "fibu.auftrag.forecast.lostBudgetWarning",
-                        monthEntry.lostBudget.formatCurrency(true, scale = 0),
-                        monthEntry.lostBudgetPercent,
-                        ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
-                    )
-                ).cellStyle = errorStyle
+                tableWarning = translateMsg(
+                    "fibu.auftrag.forecast.lostBudgetWarning",
+                    monthEntry.lostBudget.formatCurrency(true, scale = 0),
+                    monthEntry.lostBudgetPercent,
+                    ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
+                )
+                sheet.setStringValue(row, ForecastCol.WARNING.header, tableWarning).cellStyle = errorStyle
                 sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
             }
+        }
+        if (!isPlanningSheet) {
+            val ownPeriod = PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType
+            ctx.tables.addPosition(
+                ForecastPositionRow(
+                    orderId = order.id,
+                    orderNumber = order.nummer,
+                    positionNumber = pos.number,
+                    projectId = order.projektId,
+                    customer = order.kundeAsString,
+                    project = order.projektAsString,
+                    title = order.titel,
+                    positionTitle = if (pos.titel != order.titel) pos.titel else null,
+                    art = pos.art?.let { translate(it.i18nKey) },
+                    paymentType = pos.paymentType?.let { translate(it.i18nKey) },
+                    orderStatus = translate(order.status.i18nKey),
+                    positionStatus = translate(pos.status.i18nKey),
+                    personDays = pos.personDays,
+                    netSum = netSum,
+                    probability = forecastInfo.probability,
+                    weightedNetSum = forecastInfo.weightedNetSum,
+                    invoicedSum = invoicedSum,
+                    toBeInvoicedSum = toBeInvoicedSum,
+                    periodOfPerformanceBegin = if (ownPeriod) {
+                        pos.periodOfPerformanceBegin ?: order.periodOfPerformanceBegin
+                    } else {
+                        order.periodOfPerformanceBegin
+                    },
+                    periodOfPerformanceEnd = if (ownPeriod) {
+                        pos.periodOfPerformanceEnd ?: order.periodOfPerformanceEnd
+                    } else {
+                        order.periodOfPerformanceEnd
+                    },
+                    forecastType = translate(ForecastUtils.getForecastType(order, pos).i18nKey),
+                    months = tableMonths.toList(),
+                    remaining = remaining,
+                    difference = forecastInfo.difference,
+                    warning = tableWarning,
+                    pseudo = order.id == null,
+                )
+            )
         }
     }
 

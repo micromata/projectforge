@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/components/data-table";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -12,6 +11,7 @@ import type {
   ContributionMarginData,
   ContributionMarginProject,
 } from "@/lib/rs/order";
+import { StatisticsTable } from "../statistics/statistics-table";
 import { ContributionMarginPercentage } from "./contribution-margin-percentage";
 
 type Row = ContributionMarginProject;
@@ -128,15 +128,9 @@ export function ContributionMarginProjectTable({
   }, [t, ctx, data, total]);
 
   return (
-    <DataTable<Row>
+    <StatisticsTable<Row>
       columns={columns}
       data={data.projects}
-      enableColumnFilters={false}
-      manualSorting={false}
-      manualPagination
-      showPagination={false}
-      autoHeight
-      columnLines
       getRowId={(row) => String(row.projectId)}
     />
   );

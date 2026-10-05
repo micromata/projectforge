@@ -30,6 +30,8 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginDetails
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginResult
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
@@ -113,6 +115,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var forecastExport: ForecastExport
+
+  @Autowired
+  private lateinit var orderStatisticsCache: OrderStatisticsCache
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
@@ -1077,12 +1082,58 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_CHART, settings, true)
     val magicFilter = statisticsFilterService.saveCurrentFilter(request.filter ?: MagicFilter())
     // Empty months (instead of no body) if neither order positions nor invoices were found:
-    return forecastExport.chartData(
-      forecastOrders(magicFilter, settings.startDate),
-      startDate = settings.startDate,
-      unfiltered = isUnfiltered(magicFilter),
-      planningDate = settings.planningDate,
-    ) ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+    return forecastStatistics(magicFilter, settings)?.chart
+      ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+  }
+
+  /**
+   * The rows behind the forecast charts ([ForecastTables]) of the same request as [forecastChart], from the same
+   * cached calculation. Stores neither filter nor parameters: that's what [forecastChart] does.
+   */
+  @AccessChecked("DAO: select access (list result filtered by baseDao); cache key includes the user")
+  @PostMapping("forecastChart/tables")
+  fun forecastTables(@RequestBody request: ForecastChartRequest): ForecastTables {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val settings = ForecastChartSettings(
+      startDate = request.startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = request.planningDate,
+    )
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    return forecastStatistics(magicFilter, settings)?.tables ?: ForecastTables.EMPTY
+  }
+
+  /** The forecast of the order statistics, cached per user, filter and parameters ([OrderStatisticsCache]). */
+  private fun forecastStatistics(magicFilter: MagicFilter, settings: ForecastChartSettings): ForecastStatistics? {
+    val key = statisticsCacheKey(
+      OrderStatisticsCache.Kind.FORECAST,
+      magicFilter,
+      settings.startDate,
+      settings.planningDate,
+    )
+    return orderStatisticsCache.get(key) {
+      forecastExport.statistics(
+        forecastOrders(magicFilter, settings.startDate),
+        startDate = settings.startDate,
+        unfiltered = isUnfiltered(magicFilter),
+        planningDate = settings.planningDate,
+      )
+    }
+  }
+
+  private fun statisticsCacheKey(
+    kind: OrderStatisticsCache.Kind,
+    magicFilter: MagicFilter,
+    startDate: LocalDate?,
+    planningDate: LocalDate? = null,
+  ): OrderStatisticsCache.Key {
+    return OrderStatisticsCache.Key(
+      userId = ThreadLocalUserContext.loggedInUserId,
+      locale = ThreadLocalUserContext.locale,
+      kind = kind,
+      filter = OrderStatisticsCache.filterKey(magicFilter),
+      startDate = startDate,
+      planningDate = planningDate,
+    )
   }
 
   /**
@@ -1151,12 +1202,33 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       true
     )
     val magicFilter = statisticsFilterService.saveCurrentFilter(request.filter ?: MagicFilter())
-    // The orders as for the forecast charts (reaching back beyond the two comparison years).
-    val orders = forecastOrders(magicFilter, startDate)
-    val projectIds = contributionMarginService.allowedProjectIds(orders.mapNotNull { it.projekt?.id })
-    val data = contributionMarginService.calculate(projectIds, startDate)
-    data.ordersWithoutProject = orders.count { it.projekt == null }
-    return data
+    return contributionMarginResult(magicFilter, startDate).data
+  }
+
+  /**
+   * The rows behind the contribution margin ([ContributionMarginDetails]) of the same request as
+   * [contributionMargin], from the same cached calculation. Stores neither filter nor start date.
+   */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects + DAO select; cache key includes the user")
+  @PostMapping("contributionMargin/details")
+  fun contributionMarginDetails(@RequestBody request: ContributionMarginRequest): ContributionMarginDetails {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    val magicFilter = OrderStatisticsFilterService.statisticsFilter(request.filter)
+    return contributionMarginResult(magicFilter, startDate).details
+  }
+
+  /** The contribution margin of the order statistics, cached per user, filter and start date. */
+  private fun contributionMarginResult(magicFilter: MagicFilter, startDate: LocalDate): ContributionMarginResult {
+    val key = statisticsCacheKey(OrderStatisticsCache.Kind.CONTRIBUTION_MARGIN, magicFilter, startDate)
+    return orderStatisticsCache.get(key) {
+      // The orders as for the forecast charts (reaching back beyond the two comparison years).
+      val orders = forecastOrders(magicFilter, startDate)
+      val projectIds = contributionMarginService.allowedProjectIds(orders.mapNotNull { it.projekt?.id })
+      contributionMarginService.calculateWithDetails(projectIds, startDate).also {
+        it.data.ordersWithoutProject = orders.count { order -> order.projekt == null }
+      }
+    }
   }
 
   /** What the contribution margin tab asks for, and what is remembered of it per user. */

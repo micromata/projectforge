@@ -571,6 +571,59 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     /**
+     * The tables of [ForecastExport.statistics] are the rows behind its charts: the months of the positions sum up
+     * to the forecast by status, the invoice rows to IST and the previous years, and the project overview to both.
+     */
+    @Test
+    fun statisticsTablesMatchChartTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1200.0, baseDate,
+            baseDate.plusMonths(1), baseDate.plusMonths(4), baseDate.plusMonths(2), baseDate.plusMonths(3)
+        )
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 800.0, baseDate.plusMonths(-12),
+            baseDate.plusMonths(-12), baseDate.plusMonths(-10), baseDate.plusMonths(-11)
+        )
+        val order = createOrder(today, AuftragsStatus.GELEGT, today.plusMonths(1), today.plusMonths(3))
+        addPosition(order, 1, AuftragsStatus.GELEGT, 2500.00, AuftragsPositionsPaymentType.PAUSCHALE)
+        auftragDao.insert(order)
+        auftragsCache.setExpired()
+
+        val origFilter = AuftragFilter()
+        origFilter.periodOfPerformanceStartDate = baseDate.localDate
+        val orders = auftragDao.select(forecastExport.buildQueryFilter(origFilter, baseDate.beginOfMonth, true))
+        val statistics = forecastExport.statistics(orders, baseDate.localDate, unfiltered = true)
+        Assertions.assertNotNull(statistics, "Statistics expected.")
+        val chart = statistics!!.chart
+        val tables = statistics.tables
+        Assertions.assertEquals(chart.months, tables.months)
+        Assertions.assertTrue(tables.positions.isNotEmpty(), "Position rows expected.")
+        fun monthSums(rows: List<List<BigDecimal?>>): List<BigDecimal> = List(12) { i ->
+            rows.fold(BigDecimal.ZERO) { acc, months -> acc + (months[i] ?: BigDecimal.ZERO) }
+        }
+        chart.forecastByStatus.forEach { (status, values) ->
+            val rows = tables.positions.filter { it.positionStatus == translate(status.i18nKey) }
+            assertAmounts(values, monthSums(rows.map { it.months }), "Positions of $status")
+        }
+        fun invoiceSums(kind: ForecastInvoiceRow.Kind): List<BigDecimal> = monthSums(
+            tables.invoices.filter { it.kind == kind }.map { row ->
+                List(12) { i -> if (i == row.monthIndex) row.netSum else null }
+            }
+        )
+        assertAmounts(chart.ist, invoiceSums(ForecastInvoiceRow.Kind.IST), "IST")
+        assertAmounts(chart.prevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_YEAR), "Previous year")
+        assertAmounts(chart.prevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_YEAR), "Previous previous year")
+        val forecast = chart.forecastByStatus.values.flatten().sumOf { it } + chart.ist.sumOf { it }
+        assertAmount(tables.projects.sumOf { it.forecast }, forecast.toDouble())
+        assertAmount(tables.projects.sumOf { it.prevYear }, chart.prevYear.sumOf { it }.toDouble())
+        Assertions.assertTrue(tables.projects.all { it.plan == null }, "No plan without planning date.")
+        Assertions.assertEquals(tables.projects.size, tables.projects.map { it.projectId }.toSet().size)
+    }
+
+    /**
      * A planning date must not undo the search string: the order book snapshot used as plan can't be searched in
      * full text, so its orders are restricted to those the search found. Neither may the snapshot's positions draw
      * the invoices of other orders into IST and the previous years.
@@ -594,14 +647,17 @@ class ForecastExportTest : AbstractTestBase() {
             addPosition(invoice, amount, auftragDao.find(orderId)!!.getPosition(1))
             rechnungDao.insert(invoice)
         }
-        createInvoicedOrder("Plansearchmatch order", 3, 1000.0)
+        // Unique per run: the test's search index survives the run, its database doesn't, so a fixed term could
+        // match a stale index entry whose id now belongs to another order.
+        val searchTerm = "Plansearchmatch${System.currentTimeMillis()}"
+        createInvoicedOrder("$searchTerm order", 3, 1000.0)
         createInvoicedOrder("Other order", 4, 7000.0)
         auftragsCache.setExpired()
         auftragsCache.forceReload()
         orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
 
         val filter = AuftragFilter()
-        filter.searchString = "Plansearchmatch"
+        filter.searchString = searchTerm
         filter.periodOfPerformanceStartDate = baseDate.localDate
         val withoutPlan = forecastExport.chartData(filter, distributeUnusedBudget = true)!!
         val withPlan = forecastExport.chartData(filter, planningDate = today.localDate, distributeUnusedBudget = true)!!

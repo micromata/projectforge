@@ -871,6 +871,18 @@
         "forecast": "Forecast-Grafiken",
         "open": {
           "tooltip": "Öffnet die Auftragsstatistik mit den Business Units, Kunden und Projekten des aktuellen Filters. Danach ist ihr Filter unabhängig vom Auftragsbuch."
+        },
+        "tables": {
+          "bookedDate": "Gebucht am",
+          "heading": "Zugrundeliegende Daten",
+          "invoicesPrevPrevYear": "Rechnungen Vorvorjahr",
+          "invoicesPrevYear": "Rechnungen Vorjahr",
+          "months": "Monats-DB",
+          "orderStatus": "Auftragsstatus",
+          "positionStatus": "Positionsstatus",
+          "preliminaryLegend": "Werte in dieser Farbe sind vorläufig: noch nicht gebuchte Rechnungen, Zeitberichte × Stundensatz.",
+          "toBeInvoicedSum": "Gewichtet offen",
+          "warning": "Warnung"
         }
       },
       "status": {
@@ -951,6 +963,7 @@
       "customer": {
         "reference": "Kundenreferenz"
       },
+      "difference": "Differenz",
       "invoicingQuota": {
         "_": "Fakturaquote",
         "tooltip": "So errechnet sich die Fakturaquote dieses Monatsberichts:\n\nAbgerechnete Arbeitszeit: {arg0} h\n÷ Arbeitszeit: {arg1} h\n= {arg2}\n\nIgnorierte Kostenarten (z. B. Urlaub, Abwesenheiten) fließen nicht ein."
@@ -1595,6 +1608,9 @@
     },
     "rechnungen": "Debitorenrechnungen",
     "salesManager": "Key-Account-Manager:in",
+    "title": {
+      "fakturiert": "Fakturiert"
+    },
     "toBeInvoiced": "zu fakturieren",
     "tooltip": {
       "nummerWirdAutomatischVergeben": "Nummer wird automatisch vergeben."
@@ -3411,6 +3427,7 @@
     "stopTime": "Ende",
     "tag": "Etikett",
     "templates": "Vorlagen",
+    "timesheets": "Zeitberichte",
     "title": {
       "add": "Neuer Zeitbericht",
       "list": "Zeitberichte"
