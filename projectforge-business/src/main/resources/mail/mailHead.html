@@ -1,37 +1,62 @@
 <head>
     <style type="text/css">
+        /*
+         * Shared mail style, following the projectforge-next design (projectforge-next/app/globals.css): brand
+         * teal accent, neutral greys, white card with 10px radius. Hex values, because mail clients don't know
+         * oklch, and no web fonts: only the fallback chain of Plus Jakarta Sans / Geist Mono applies.
+         */
         div#mail {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             width: 100%;
             min-height: 100vh;
             margin: 0;
             padding: 0;
-            background: #ddd;
-            font-size: 16px;
+            background: #f5f5f5;
+            color: #252525;
+            font-size: 15px;
+            line-height: 1.5;
         }
 
         div.container {
-            max-width: 980px;
+            max-width: 680px;
             margin: 0 auto;
-            padding: 45px 0;
+            padding: 32px 0;
         }
 
         div.content {
             background-color: #fff;
-            text-align: center;
-            color: #999;
-            border: 1px solid #e6e6e6;
-            padding: 10px 30px;
+            text-align: left;
+            color: #252525;
+            border: 1px solid #e5e5e5;
+            border-top: 4px solid #009ba3;
+            border-radius: 10px;
+            padding: 28px 32px;
         }
 
         img.logo {
             float: right;
+            max-height: 40px;
         }
 
         h1.title {
-            margin-top: 65px;
-            color: #000;
-            font-weight: 400;
+            margin: 8px 0 16px;
+            color: #252525;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        h2.section {
+            margin: 28px 0 8px;
+            color: #252525;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        h3 {
+            margin: 28px 0 4px;
+            text-align: left;
+            font-size: 15px;
+            font-weight: 600;
         }
 
         p {
@@ -40,45 +65,41 @@
 
         p.info {
             font-size: 13px;
+            color: #737373;
         }
 
         p.info b {
             display: block;
+            color: #252525;
         }
 
         a {
             font-weight: 600;
             text-decoration: none;
-            color: #606061;
+            color: #009ba3;
+        }
+
+        a:hover {
+            color: #007480;
         }
 
         a.button {
-            margin: 25px 0;
-            width: 100%;
-            display: block;
-            padding: 11px 8px;
-            border-radius: 3px;
+            margin: 20px 0;
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 8px;
             outline: none;
-            font-size: 16px;
-            background-color: #007AFF;
+            font-size: 15px;
+            font-weight: 600;
+            background-color: #009ba3;
             color: #fff;
             cursor: pointer;
             text-decoration: none;
         }
 
-        a:hover {
-            color: #333;
-        }
-
         a.button:hover {
-            background-color: #0077eb;
-            color: #eee;
-        }
-
-        @media only screen and (max-width: 1068px) {
-            div.container {
-                max-width: 698px;
-            }
+            background-color: #007480;
+            color: #fff;
         }
 
         @media only screen and (max-width: 725px) {
@@ -86,8 +107,11 @@
                 width: 95%;
             }
 
+            div.content {
+                padding: 20px 16px;
+            }
+
             h1.title {
-                font-weight: 500;
                 font-size: 18px;
             }
         }
@@ -96,19 +120,42 @@
             width: 100%;
         }
 
+        table {
+            border-collapse: collapse;
+            /* Tables don't inherit the font size without a doctype (quirks mode). */
+            font-size: inherit;
+        }
+
         tr.even {
-            background-color: #eee;
+            background-color: #fafafa;
         }
 
         td {
             padding-top: .25em;
+            padding-right: 12px;
+            vertical-align: top;
         }
 
+        /* Column headers of data tables, e.g. the history of changes. */
         tr th {
-            padding-top: 1.5em;
+            padding: 6px 12px 6px 0;
+            border-bottom: 1px solid #e5e5e5;
+            color: #737373;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        tr:first-child th {
+        /* Headings within the field tables, e.g. the positions of an order. */
+        table.width-2 tr th, table.width-3 tr th {
+            padding: 1.5em 0 0;
+            border-bottom: none;
+            color: #252525;
+            font-size: 15px;
+            white-space: normal;
+        }
+
+        table.width-2 tr:first-child th, table.width-3 tr:first-child th {
             padding-top: 0;
         }
 
@@ -126,14 +173,15 @@
 
         td span.title {
             text-transform: uppercase;
-            color: #aaa;
-            font-size: .75em;
+            letter-spacing: .04em;
+            color: #737373;
+            font-size: 11px;
             font-weight: 600;
         }
 
         td span.value {
             display: block;
-            color: #111;
+            color: #252525;
             font-weight: 400;
         }
 
@@ -141,9 +189,115 @@
             white-space: nowrap;
         }
 
-        h3 {
-            margin-bottom: 0;
-            text-align: left;
+        .muted {
+            color: #737373;
+        }
+
+        .small {
+            font-size: 12px;
+        }
+
+        .mono {
+            font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+        }
+
+        /* Small labels, e.g. the log level. */
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .03em;
+        }
+
+        .badge-error {
+            background-color: #fde8e8;
+            color: #c10007;
+            border: 1px solid #f8c4c4;
+        }
+
+        .badge-warn {
+            background-color: #fff3d6;
+            color: #3d2200;
+            border: 1px solid #ffd98a;
+        }
+
+        .badge-info {
+            background-color: #e5f5f6;
+            color: #007480;
+            border: 1px solid #b3e1e3;
+        }
+
+        /* Number of entries next to a section title. */
+        .pill {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 8px;
+            border-radius: 10px;
+            background-color: #f5f5f5;
+            color: #737373;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Key figures as tiles. */
+        table.kpi {
+            /* The negative margin compensates the border spacing, so the tiles are aligned with the text. */
+            width: calc(100% + 16px);
+            margin: 16px -8px 8px;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+        }
+
+        table.kpi td {
+            padding: 12px 14px;
+            border: 1px solid #e5e5e5;
+            border-radius: 10px;
+        }
+
+        table.kpi span.number {
+            display: block;
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #252525;
+        }
+
+        table.kpi span.number.error {
+            color: #e10057;
+        }
+
+        table.kpi span.number.warn {
+            color: #ff9d01;
+        }
+
+        /* Lists of entries, one row each. */
+        table.list td {
+            padding: 8px 6px;
+            font-size: 14px;
+            border-bottom: 1px solid #e5e5e5;
+            word-break: break-word;
+        }
+
+        table.list tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.list td.count {
+            width: 1%;
+            padding-right: 12px;
+            text-align: right;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        p.footer {
+            margin-top: 28px;
+            font-size: 12px;
+            color: #737373;
         }
     </style>
 </head>
