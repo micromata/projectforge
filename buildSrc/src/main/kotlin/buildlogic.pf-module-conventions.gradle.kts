@@ -42,6 +42,9 @@ tasks.withType<Javadoc>() {
 }
 
 configurations.all {
+    // Spring Boot 4 starters pull in Jackson 3 (tools.jackson). ProjectForge stays on Jackson 2 (spring-boot-jackson2)
+    // until the Jackson 3 migration, so Spring MVC doesn't switch the JSON mapper of the REST API.
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-jackson")
     resolutionStrategy {
         preferProjectModules() // Prioritize local modules.
         // Force all Jackson module versions to match project's explicit Jackson version.

@@ -69,7 +69,7 @@ abstract class AbstractDvelopService<T>(val path: String, val entityName: String
           .queryParam("continue", true)
           .build()
       }
-      val response = dvelopClient.execute(headersSpec, String::class.java)
+      val response = dvelopClient.execute(headersSpec, String::class.java) ?: break
       if (debugConsoleOutForTesting) {
         println("response: $response")
       }

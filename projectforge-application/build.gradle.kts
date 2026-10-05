@@ -21,6 +21,11 @@ tasks.withType<KotlinCompile> {
 // version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
 extra["junit-jupiter.version"] = libs.versions.org.junit.get()
 
+configurations.all {
+    // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-jackson")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform() // JUnit Jupiter. Same as buildlogic.pf-module-conventions does for the other modules.
 }
@@ -98,6 +103,12 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
+    // Boot 4 split the auto-configurations into modules. Flyway (spring.flyway.*), RestTemplateBuilder, web security
+    // (HttpSecurity of SpringSecurityConfig/GatewaySecurityConfig) and OAuth2 login (spring.security.oauth2.client.*) need theirs:
+    implementation("org.springframework.boot:spring-boot-flyway:$springBootVersion")
+    implementation(libs.org.springframework.boot.restclient)
+    implementation("org.springframework.boot:spring-boot-security:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-security-oauth2-client:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:$springBootVersion")
     implementation("org.springframework.data:spring-data-jpa:$springDataVersion")
@@ -115,7 +126,6 @@ dependencies {
     implementation("org.springframework:spring-beans:$springVersion")
     implementation("org.springframework:spring-core:$springVersion")
     implementation("org.springframework:spring-expression:$springVersion")
-    implementation("org.springframework:spring-jcl:$springVersion")
     implementation("org.springframework:spring-jdbc:$springVersion")
     implementation("org.springframework:spring-web:$springVersion")
     implementation("org.springframework:spring-webflux:$springVersion")
@@ -134,7 +144,7 @@ dependencies {
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
     implementation(libs.com.fasterxml.jackson.dataformat.cbor)
-    implementation(libs.com.fasterxml.jackson.datatype.hibernate6)
+    implementation(libs.com.fasterxml.jackson.datatype.hibernate7)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
     implementation(libs.com.google.zxing.core)
@@ -197,6 +207,7 @@ dependencies {
     implementation(libs.org.flywaydb.database.hsqldb)
     implementation(libs.org.flywaydb.database.postgresql)
     implementation(libs.org.hibernate.orm.core)
+    implementation(libs.org.apache.lucene.backward.codecs)
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hibernate.validator)
@@ -210,9 +221,9 @@ dependencies {
     implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
-    implementation(libs.org.springframework.boot.starter.json)
+    implementation(libs.org.springframework.boot.jackson2)
     implementation(libs.org.springframework.boot.starter.logging)
-    implementation(libs.org.springframework.boot.starter.web)
+    implementation(libs.org.springframework.boot.starter.webmvc)
     implementation(libs.org.springframework.boot.starter.webflux)
     implementation(libs.org.springframework.spring.context)
     implementation(libs.org.springframework.spring.orm)

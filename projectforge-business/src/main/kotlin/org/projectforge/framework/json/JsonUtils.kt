@@ -30,7 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module
+import com.fasterxml.jackson.datatype.hibernate7.Hibernate7Module
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.time.PFDateTime
@@ -55,13 +55,13 @@ object JsonUtils {
 
     init {
         objectMapper.registerModule(KotlinModule.Builder().build())
-        objectMapper.registerModule(Hibernate6Module())
+        objectMapper.registerModule(Hibernate7Module())
         objectMapperIgnoreNullableProps.registerModule(KotlinModule.Builder().build())
         val module = SimpleModule()
         initializeMapper(module)
         objectMapper.registerModule(module)
         objectMapperIgnoreNullableProps.registerModule(module)
-        objectMapperIgnoreNullableProps.registerModule(Hibernate6Module())
+        objectMapperIgnoreNullableProps.registerModule(Hibernate7Module())
         objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
         objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }

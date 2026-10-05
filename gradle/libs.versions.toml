@@ -24,9 +24,9 @@ fr-opensagres-xdocreport-poi-xwpf-converter-pdf = "2.2.0"
 jakarta-activation-api = "2.1.4"
 jakarta-annotation-api = "3.0.0"
 org-eclipse-angus-jakarta-mail = "2.0.5"
-jakarta-persistence-api = "3.1.0"
+jakarta-persistence-api = "3.2.0"
 jakarta-servlet-api = "6.1.0"
-jakarta-validation = "3.1.0"
+jakarta-validation = "3.1.1"
 javax-jcr = "2.0"
 joda-time-joda-time = "2.15.0"
 net-lingala-zip4j-zip4j = "2.11.6"
@@ -46,9 +46,10 @@ org-apache-xmlgraphics-commons = "2.11"
 org-bouncycastle-bcprov-jdk18on = "1.86"
 org-dom4j = "2.2.0"
 org-flywaydb = "11.20.3"
-org-hibernate-search = "7.2.6.Final"
-org-hibernate-orm = "6.6.58.Final"
-org-hibernate-validator = "8.0.5.Final"
+org-hibernate-search = "8.4.0.Final"
+org-apache-lucene = "9.12.3" # Must match the Lucene version of hibernate-search-backend-lucene.
+org-hibernate-orm = "7.4.12.Final"
+org-hibernate-validator = "9.1.4.Final"
 org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.3.21"
 org-jetbrains-kotlinx-coroutines-core = "1.10.2"
@@ -61,11 +62,11 @@ org-mockito-kotlin = "6.4.0"
 org-mustangproject = "2.26.0"
 org-postgresql = "42.7.13"
 org-reflections = "0.10.2"
-org-springframework-boot = "3.5.16"
-org-apache-tomcat-embed = "10.1.60" # must match spring-boot
-org-springframework-spring = "6.2.19"
-org-springframework-security = "6.5.11"
-org-springframework-data = "3.5.13" # spring-data-jpa/-commons, release train 2025.0.x of spring-boot 3.5
+org-springframework-boot = "4.1.1"
+org-apache-tomcat-embed = "11.0.26" # must match spring-boot
+org-springframework-spring = "7.0.9"
+org-springframework-security = "7.1.1"
+org-springframework-data = "4.1.1" # spring-data-jpa/-commons, release train 2026.0.x of spring-boot 4.1
 org-yaml-snakeyaml = "2.7"
 se-sawano-java-alphanumeric-comparator = "1.4.1"
 
@@ -97,7 +98,7 @@ com-fasterxml-jackson-core-annotations = { module = "com.fasterxml.jackson.core:
 com-fasterxml-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-core-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-dataformat-cbor = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor", version.ref = "com-fasterxml-jackson" }
-com-fasterxml-jackson-datatype-hibernate6 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6", version.ref = "com-fasterxml-jackson" }
+com-fasterxml-jackson-datatype-hibernate7 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
 com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "com-fasterxml-jackson" }
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
@@ -155,6 +156,7 @@ org-flywaydb-database-hsqldb = { module = "org.flywaydb:flyway-database-hsqldb",
 org-hibernate-orm-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "org-hibernate-orm" }
 org-hibernate-search-backend-lucene = { module = "org.hibernate.search:hibernate-search-backend-lucene", version.ref = "org-hibernate-search" }
 org-hibernate-search-mapper-orm = { module = "org.hibernate.search:hibernate-search-mapper-orm", version.ref = "org-hibernate-search" }
+org-apache-lucene-backward-codecs = { module = "org.apache.lucene:lucene-backward-codecs", version.ref = "org-apache-lucene" } # Reads indexes of former Lucene versions (Lucene99 codec of Hibernate Search 7).
 org-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "org-hibernate-validator" }
 org-hsqldb-hsqldb = { module = "org.hsqldb:hsqldb", version.ref = "org-hsqldb-hsqldb" }
 org-jetbrains-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "org-jetbrains-kotlin" }
@@ -176,12 +178,15 @@ org-slf4j-jul-to-slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "org
 org-slf4j-jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "org-slf4j" }
 org-springframework-boot = { module = "org.springframework.boot:spring-boot", version.ref = "org-springframework-boot" }
 org-springframework-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "org-springframework-boot" }
+org-springframework-boot-jdbc = { module = "org.springframework.boot:spring-boot-jdbc", version.ref = "org-springframework-boot" }
+org-springframework-boot-web-server = { module = "org.springframework.boot:spring-boot-web-server", version.ref = "org-springframework-boot" } # ServerProperties
+org-springframework-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient", version.ref = "org-springframework-boot" } # RestTemplateBuilder
 org-springframework-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-json = { module = "org.springframework.boot:spring-boot-starter-json", version.ref = "org-springframework-boot" }
+org-springframework-boot-jackson2 = { module = "org.springframework.boot:spring-boot-jackson2", version.ref = "org-springframework-boot" } # Jackson 2 until the Jackson 3 migration
 org-springframework-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging", version.ref = "org-springframework-boot" }
-org-springframework-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "org-springframework-boot" }
+org-springframework-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc", version.ref = "org-springframework-boot" }
 org-springframework-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux", version.ref = "org-springframework-boot" }
 org-springframework-security-config = { module = "org.springframework.security:spring-security-config", version.ref = "org-springframework-security" }
 org-springframework-security-core = { module = "org.springframework.security:spring-security-core", version.ref = "org-springframework-security" }
