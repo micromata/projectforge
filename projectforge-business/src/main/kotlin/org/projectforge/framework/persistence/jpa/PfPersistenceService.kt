@@ -28,6 +28,7 @@ import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
 import org.hibernate.Session
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -176,7 +177,12 @@ open class PfPersistenceService {
                     em.transaction.rollback()
                     //openedTransactions.remove(em.transaction)
                     //log.info { "Rollback transaction ${em.transaction}..." }
-                    log.error(ex.message, ex)
+                    if (ex is UserException) {
+                        // Validation error of the user, logged (without stack trace) and shown by the caller.
+                        log.debug { "Rollback due to user exception: ${ex.message}" }
+                    } else {
+                        log.error(ex.message, ex)
+                    }
                     throw ex
                 }
             }

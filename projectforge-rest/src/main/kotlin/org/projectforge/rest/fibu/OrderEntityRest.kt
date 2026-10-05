@@ -629,6 +629,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
     val order = AuftragDO()
     postData.data.copyTo(order)
+    if (order.status == null) {
+      // E.g. the status field was cleared in the edit form: same preset as for new orders (see newBaseDTO),
+      // otherwise OrderInfo.updateFields logs an error.
+      order.status = AuftragsStatus.IN_ERSTELLUNG
+    }
     val storedPositionIds = order.id?.let { id ->
       baseDao.find(id)?.positionen?.mapNotNull { it.id }?.toSet()
     } ?: emptySet()

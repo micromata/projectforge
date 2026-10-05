@@ -327,7 +327,8 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
 private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
     if (ex is UserException) {
         val msgParams = ex.msgParams ?: ex.params
-        log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
+        // Validation errors of the user (e.g. overlapping time sheets) are shown to the user, no error of the system.
+        log.info("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
         // Through translateMsg(ex), not with the params as they are: a MessageParam may be an i18n key itself
         // and has to be translated before it goes into the message, or the user reads the key.
         val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)

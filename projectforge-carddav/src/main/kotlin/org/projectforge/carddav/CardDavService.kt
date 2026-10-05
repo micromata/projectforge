@@ -89,7 +89,7 @@ class CardDavService {
         val authInfo = authenticate(request, response)
         val user = authInfo.user
         if (user == null) {
-            log.error { "Authentication failed: ${RequestLog.asString(request)}" }
+            log.info { "Authentication failed: ${RequestLog.asString(request)}" }
             ResponseUtils.setValues(
                 response, HttpStatus.UNAUTHORIZED, contentType = MediaType.TEXT_PLAIN_VALUE,
                 content = "Authentication is required to access this resource.",

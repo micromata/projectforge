@@ -132,7 +132,8 @@ open class RestAuthenticationUtils {
       if (required) {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
         authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authentication required\"")
-        logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
+        // Normal first leg of the Basic auth challenge: clients (CardDAV etc.) retry with credentials after the 401.
+        logInfo(authInfo, "Basic authentication failed, header 'authorization' not found.")
         log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
       } else if (log.isDebugEnabled) {
         logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
@@ -235,7 +236,8 @@ open class RestAuthenticationUtils {
       userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
     }
     if (authInfo.user == null) {
-      logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
+      // Usually a calendar or other client still polling with an outdated token or of a deactivated user.
+      logWarn(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
       authInfo.resultCode = HttpStatus.BAD_REQUEST
     } else {
       authInfo.loggedInByAuthenticationToken = true // Marking the user as logged in by authentication token.
@@ -395,7 +397,14 @@ open class RestAuthenticationUtils {
     if (resultCode !in 200..299) {
       val user = authInfo.user!!
       val clientIpAddress = authInfo.clientIpAddress
-      log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
+      val msg =
+        "User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}."
+      if (resultCode >= 500) {
+        log.error(msg)
+      } else {
+        // 4xx (validation errors, access denied, CSRF) are already logged with their reason where they occur.
+        log.info(msg)
+      }
     }
   }
 
@@ -441,6 +450,16 @@ open class RestAuthenticationUtils {
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
     log.error("$msg (${RequestLog.asString(authInfo.request)})")
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logWarn(authInfo: RestAuthenticationInfo, msg: String) {
+    log.warn("$msg (${RequestLog.asString(authInfo.request)})")
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logInfo(authInfo: RestAuthenticationInfo, msg: String) {
+    log.info("$msg (${RequestLog.asString(authInfo.request)})")
     SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 

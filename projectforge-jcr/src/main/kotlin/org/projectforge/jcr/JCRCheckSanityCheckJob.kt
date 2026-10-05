@@ -108,7 +108,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                         val msg =
                             "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
                         jobExecutionContext.addWarning(msg)
-                        log.error { msg }
+                        log.warn { msg }
                     }
                 }
                 if (fileObject.fileExtension == "zip") {

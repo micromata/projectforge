@@ -349,7 +349,7 @@ class CalendarSubscriptionServiceRest {
                 ?: run {
                     val msg =
                         "Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}"
-                    log.error(msg)
+                    log.warn(msg)
                     logSecurityWarn(this::class.java, "${UserTokenType.CALENDAR_REST.name} AUTHENTICATION FAILED", msg)
                     return null
                 }
