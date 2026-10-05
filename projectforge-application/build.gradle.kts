@@ -37,7 +37,6 @@ springBoot {
     mainClass.set("org.projectforge.start.ProjectForgeApplication")
 }
 
-val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
@@ -294,6 +293,12 @@ tasks.register("generateGitProperties") {
     val rootDirPath = rootDir.absolutePath
     val projectVersion = version.toString()
     val outputFilePath = propsFile.absolutePath
+    // Without inputs the file of an earlier build stays up to date, e.g. a release jar with the snapshot version.
+    inputs.property("version", projectVersion)
+    inputs.property("commit", providers.exec {
+        commandLine("git", "rev-parse", "HEAD")
+        workingDir = rootDir
+    }.standardOutput.asText.map { it.trim() })
 
     doLast {
         BuildPropertiesGenerator(
@@ -317,4 +322,13 @@ tasks.register<JavaExec>("developmentMainForRelease") {
     mainClass.set("org.projectforge.development.DevelopmentMainForReleaseKt")
     classpath = sourceSets["test"].runtimeClasspath
     workingDir = rootDir
+}
+
+/** Used by bin/pfDev.sh release: checks the changelog for the release -PreleaseVersion=X.Y.Z, writes its release notes. */
+tasks.register<JavaExec>("checkReleaseChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--check-release", providers.gradleProperty("releaseVersion").getOrElse(""))
 }

@@ -15,7 +15,6 @@ val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs"
 // libs.versions etc. not available in buildSrc. Must use findVersion and findLibrary instead.
 
 group = "org.projectforge"
-version = libs.findVersion("org.projectforge").get().requiredVersion
 
 extensions.configure<JavaPluginExtension> {
     sourceCompatibility = JavaVersion.VERSION_17

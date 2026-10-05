@@ -2,8 +2,6 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-org-projectforge = "8.0.0-SNAPSHOT"
-
 com-fasterxml-jackson = "2.21.7"
 com-fasterxml-jackson-annotations = "2.21" # Since 2.20, jackson-annotations is released without patch version.
 com-google-zxing-core = "3.5.4"
