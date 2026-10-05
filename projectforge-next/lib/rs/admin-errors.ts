@@ -8,7 +8,7 @@
 
 import { request } from "./client";
 import { downloadPost } from "./download";
-import type { LogLevel } from "./log-viewer";
+import type { LogLevel, LogViewerEvent } from "./log-viewer";
 
 /** `org.projectforge.common.logging.LogCategory`. */
 export type LogCategory =
@@ -193,6 +193,39 @@ export function fetchAdminErrorDetail(
 ): Promise<LogGroupDetail> {
   return request<LogGroupDetail>(
     `/rs/adminErrors/detail?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** `LogFileEvent`: a record of the log file in the shape of the log viewer's `LogViewerEvent`. */
+export interface LogFileEvent extends LogViewerEvent {
+  logger: string;
+  /** Where it was found: `ProjectForge.2026-10-05.log.gz:1234`. */
+  source: string;
+}
+
+/** `LogFileSearchData`: the occurrences of a problem in the log files of its last days. */
+export interface LogFileSearchData {
+  /** Newest first. */
+  entries: LogFileEvent[];
+  searchedFiles: string[];
+  /** The search stopped at its limit (hits, time, size), older occurrences may exist. */
+  truncated: boolean;
+  /** Lines of the files aren't readable, so occurrences may be missing. */
+  formatWarning: boolean;
+  unparsedLines: number;
+  /** The `logging.pattern.file` the log file is written with, as logback has it. */
+  pattern?: string | null;
+  recommendedPattern: string;
+}
+
+export function fetchAdminErrorLogFile(
+  id: number,
+  signal?: AbortSignal
+): Promise<LogFileSearchData> {
+  return request<LogFileSearchData>(
+    `/rs/adminErrors/logFile?id=${id}`,
     { method: "GET" },
     signal
   );

@@ -3130,6 +3130,20 @@
         "lastNotified": "Zuletzt gemeldet",
         "lastSeen": "Zuletzt aufgetreten",
         "location": "Stelle",
+        "logFile": {
+          "_": "In Logdateien suchen",
+          "configured": "Derzeit eingestellt:",
+          "files": "Durchsucht: {arg0}",
+          "formatWarning": "Das Format der Logdatei kann nicht vollständig gelesen werden ({arg0} Zeilen), daher fehlen evtl. Vorkommen. Empfohlen in projectforge.properties:",
+          "none": "Keine Vorkommen in den Logdateien gefunden.",
+          "source": "Fundstelle",
+          "title": "Logdateien: {arg0}",
+          "tooltip": "Durchsucht die Logdateien der letzten Tage des Problems (höchstens 7) nach seinen Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
+          "truncated": "Die Suche wurde an ihrer Grenze beendet, es kann ältere Vorkommen geben."
+        },
+        "logViewer": {
+          "tooltip": "Nur die letzten Meldungen seit dem Serverstart, aus dem Speicher."
+        },
         "message": "Meldung",
         "more": "Nur die ersten {arg0} von {arg1} Problemen werden angezeigt.",
         "mutedUntil": "Stummgeschaltet bis {arg0}",

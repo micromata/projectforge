@@ -3130,6 +3130,20 @@
         "lastNotified": "Last reported",
         "lastSeen": "Last seen",
         "location": "Location",
+        "logFile": {
+          "_": "Search log files",
+          "configured": "Configured now:",
+          "files": "Searched: {arg0}",
+          "formatWarning": "The format of the log file cannot be read completely ({arg0} lines), so occurrences may be missing. Recommended in projectforge.properties:",
+          "none": "No occurrences found in the log files.",
+          "source": "Found in",
+          "title": "Log files: {arg0}",
+          "tooltip": "Searches the log files of the problem's last days (at most 7) for its occurrences, also those before the server's start. Slower than the log viewer.",
+          "truncated": "The search stopped at its limit, older occurrences may exist."
+        },
+        "logViewer": {
+          "tooltip": "Only the last log events since the server's start, held in memory."
+        },
         "message": "Message",
         "more": "Only the first {arg0} of {arg1} problems are shown.",
         "mutedUntil": "Muted until {arg0}",

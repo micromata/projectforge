@@ -12,11 +12,11 @@ type T = ReturnType<typeof useTranslations>;
  * The columns of the log viewer. A user sees when, how severe and what - the admin additionally who (user@ip,
  * user agent) and the stack trace, collapsed so a long trace doesn't push all other entries out of sight.
  */
-export function logViewerColumns(
+export function logViewerColumns<E extends LogViewerEvent = LogViewerEvent>(
   t: T,
   admin: boolean
-): ColumnDef<LogViewerEvent, unknown>[] {
-  const columns: ColumnDef<LogViewerEvent, unknown>[] = [
+): ColumnDef<E, unknown>[] {
+  const columns: ColumnDef<E, unknown>[] = [
     {
       id: "timestamp",
       header: t("timestamp"),

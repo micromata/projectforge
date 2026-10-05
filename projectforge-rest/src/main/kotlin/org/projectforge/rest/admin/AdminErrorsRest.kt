@@ -33,6 +33,7 @@ import org.projectforge.framework.support.LogGroupFilter
 import org.projectforge.framework.support.LogGroupList
 import org.projectforge.framework.support.LogGroupUpdate
 import org.projectforge.framework.support.SubsystemEntry
+import org.projectforge.framework.support.logfile.LogFileSearchService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -70,6 +71,9 @@ class AdminErrorsRest {
     @Autowired
     private lateinit var logGroupAdminService: LogGroupAdminService
 
+    @Autowired
+    private lateinit var logFileSearchService: LogFileSearchService
+
     @AccessChecked("Admin group only")
     @PostMapping("list")
     fun list(@RequestBody filter: LogGroupFilter): LogGroupList {
@@ -91,6 +95,22 @@ class AdminErrorsRest {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         // Gone, if deleted by the cleanup meanwhile.
         return logGroupAdminService.detail(id)?.let { ResponseEntity.ok(it) } ?: ResponseEntity.notFound().build()
+    }
+
+    /**
+     * The occurrences of the problem in the log files of its last days, also of those before the server's start
+     * (the admin log viewer only has the last events in memory).
+     */
+    @AccessChecked("Admin group only")
+    @GetMapping("logFile")
+    fun logFile(@RequestParam("id") id: Long): ResponseEntity<LogFileSearchData> {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        val result = logFileSearchService.search(id) ?: return ResponseEntity.notFound().build()
+        log.info {
+            "${ThreadLocalUserContext.loggedInUser?.username} searched the log files for problem $id: " +
+                    "${result.records.size} hit(s) in ${result.searchedFiles}."
+        }
+        return ResponseEntity.ok(LogFileSearchData(result))
     }
 
     /**
