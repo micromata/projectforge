@@ -51,9 +51,10 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
- * The forecast charts compute over the orders the list shows: every list criterion (customer, payment types, ...)
- * selects the orders, IST and the previous years count the invoices of these orders only, and the plan of a
- * planning date is restricted to the same orders.
+ * The forecast charts compute over the orders the statistics filter selects: its customers and projects select
+ * the orders, IST and the previous years count the invoices of these orders only, and the plan of a planning date
+ * is restricted to the same orders. Any other criterion (e.g. a payment type of the order book's filter) is no
+ * part of the statistics filter and is left out (see `OrderStatisticsFilterService.statisticsFilter`).
  */
 class ForecastChartFilterTest : AbstractTestBase() {
     @Autowired
@@ -82,19 +83,26 @@ class ForecastChartFilterTest : AbstractTestBase() {
     private val baseDate = today.plusMonths(-4)
 
     @Test
-    fun `the charts apply the list's customer and payment type criteria, with and without planning date`() {
+    fun `the charts apply the customer and project criteria only, with and without planning date`() {
         logon(TEST_FINANCE_USER)
         createInvoicedOrder(4911L, "Forecastalpha", 11, 1000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
-        createInvoicedOrder(4912L, "Forecastbeta", 12, 2000.0, AuftragsPositionsPaymentType.FESTPREISPAKET)
-        createInvoicedOrder(4913L, "Forecastgamma", 13, 4000.0, AuftragsPositionsPaymentType.PAUSCHALE)
+        val betaProjectId =
+            createInvoicedOrder(4912L, "Forecastbeta", 12, 2000.0, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        val gammaProjectId =
+            createInvoicedOrder(4913L, "Forecastgamma", 13, 4000.0, AuftragsPositionsPaymentType.PAUSCHALE)
         auftragsCache.setExpired()
         auftragsCache.forceReload()
         orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
 
-        assertSelection(1000.0, entry("kunde.name", "Forecastalpha"))
-        assertSelection(3000.0, paymentTypes(AuftragsPositionsPaymentType.TIME_AND_MATERIALS, AuftragsPositionsPaymentType.FESTPREISPAKET))
-        // All three, as a cross-check that the criteria above really selected:
-        assertSelection(7000.0, paymentTypes(*AuftragsPositionsPaymentType.entries.toTypedArray()))
+        // A customer travels as "k:" plus its number (CustomerChecklistFilter.ENTITY_PREFIX).
+        assertSelection(1000.0, checklist(CustomerChecklistFilter.FIELD, "k:4911"))
+        assertSelection(6000.0, checklist(ProjectChecklistFilter.FIELD, "$betaProjectId", "$gammaProjectId"))
+        // The payment type is no statistics criterion: the customer alone decides.
+        assertSelection(
+            1000.0,
+            checklist(CustomerChecklistFilter.FIELD, "k:4911"),
+            paymentTypes(AuftragsPositionsPaymentType.PAUSCHALE),
+        )
     }
 
     /**
@@ -130,7 +138,7 @@ class ForecastChartFilterTest : AbstractTestBase() {
         projectNumber: Int,
         amount: Double,
         paymentType: AuftragsPositionsPaymentType,
-    ) {
+    ): Long {
         val kunde = KundeDO()
         kunde.id = customerId
         kunde.name = customerName
@@ -168,9 +176,13 @@ class ForecastChartFilterTest : AbstractTestBase() {
             it.einzelNetto = BigDecimal(amount)
         })
         rechnungDao.insert(invoice, checkAccess = false)
+        return projektId
     }
 
     private fun entry(field: String, value: String? = null) = MagicFilterEntry(field, value)
+
+    private fun checklist(field: String, vararg keys: String) =
+        entry(field).also { it.value.values = arrayOf(*keys) }
 
     private fun paymentTypes(vararg types: AuftragsPositionsPaymentType) =
         entry("positionsPaymentType").also { entry -> entry.value.values = types.map { it.name }.toTypedArray() }

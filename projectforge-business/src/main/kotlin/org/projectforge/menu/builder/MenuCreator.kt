@@ -302,6 +302,15 @@ open class MenuCreator {
                             0
                     })
             )
+            // Requires what the order book requires: the statistics show nothing but the orders the user may see.
+            .add(
+                MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                    checkAccess =
+                    {
+                        hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
+                                !isInGroup(*FIBU_ORGA_GROUPS) // Shown under menu FiBu for FiBu users
+                    })
+            )
             .add(MenuItemDef(MenuItemDefId.MY_SCRIPT_LIST))
 
 
@@ -401,6 +410,11 @@ open class MenuCreator {
                 requiredGroups = FIBU_ORGA_GROUPS,
                 badgeCounter =
                 { auftragsCache.getToBeInvoicedCounter() })
+        )
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                requiredGroups = FIBU_ORGA_GROUPS,
+                checkAccess = { hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) })
         )
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
