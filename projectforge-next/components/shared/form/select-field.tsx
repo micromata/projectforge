@@ -55,6 +55,11 @@ export interface SelectFieldProps extends BaseFieldProps {
   /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
   disabled?: boolean;
   /**
+   * Shown while the value is null, where null is a meaningful choice of its own rather than "nothing
+   * chosen yet" — a cost unit's shared cost setting left to its structure element.
+   */
+  placeholder?: string;
+  /**
    * The entity has no metadata for this field, and cannot have any: a choice serialized into a settings
    * blob of the entity (a Gantt chart's access) is no `@PropertyInfo` field of its DO (see
    * [useFieldMetadata]).
@@ -72,6 +77,7 @@ export function SelectField({
   emphasized,
   valueType = "string",
   disabled,
+  placeholder,
   metadataLess,
 }: SelectFieldProps) {
   const form = useEntityEditForm();
@@ -132,7 +138,9 @@ export function SelectField({
                   )}
                 >
                   <span className="line-clamp-1">
-                    {options.find((o) => o.value === raw)?.label ?? ""}
+                    {options.find((o) => o.value === raw)?.label ??
+                      placeholder ??
+                      ""}
                   </span>
                 </div>
               ) : (
@@ -171,7 +179,7 @@ export function SelectField({
                         "border-primary/40 bg-primary/5 text-sm font-semibold text-primary"
                     )}
                   >
-                    <SelectValue />
+                    <SelectValue placeholder={placeholder} />
                   </SelectTrigger>
                   <SelectContent>
                     {options.map((o) => (

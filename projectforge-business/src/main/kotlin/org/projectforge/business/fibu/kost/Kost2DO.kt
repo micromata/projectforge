@@ -161,6 +161,17 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     @get:Column(name = "work_fraction", scale = 5, precision = 10)
     open var workFraction: BigDecimal? = null
 
+    /**
+     * Marks this cost unit as a shared cost element (or explicitly not): time sheets booked on it may overlap in time
+     * with time sheets of other projects. Null means "as the structure element": the time sheet's task decides
+     * ([org.projectforge.business.task.TaskDO.allowTimeOverlap], inherited). If set (true or false), this value takes
+     * precedence over the task's one. Overlapping time sheets within the same project remain forbidden in any case.
+     * See [org.projectforge.business.timesheet.TimesheetDao.hasTimeOverlap].
+     */
+    @PropertyInfo(i18nKey = "fibu.kost2.sharedCost", tooltip = "fibu.kost2.sharedCost.tooltip")
+    @get:Column(name = "shared_cost")
+    open var sharedCost: Boolean? = null
+
     @PropertyInfo(i18nKey = "description")
     @FullTextField
     @get:Column(length = 4000)
