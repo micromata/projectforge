@@ -1,0 +1,20 @@
+---
+title: "ProjectForge 8.2 snapshot (2025-09-09)"
+date: 2025-09-09
+sort_key: "2025-09-09 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/f8e0e8f67[develop@f8e0e8f67], https://github.com/micromata/projectforge/compare/d3d8850e1..f8e0e8f67[changes since d3d8850e1].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Search for ticket keys (e.g. `+ABC-1234+`) in time sheets and structure elements works again.
+- Cost search improved.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Classic list views showed not all search fields (e.g. Kost2 number in time sheets).

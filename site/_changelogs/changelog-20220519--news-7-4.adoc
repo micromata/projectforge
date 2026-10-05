@@ -1,0 +1,13 @@
+---
+title: "ProjectForge 7.4: two-factor authentication"
+date: 2022-05-19
+sort_key: "2022-05-19 1"
+news: true
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+Two-factor authentication (SMS, mail, authenticator app, WebAuthn/FIDO2) is now fully supported.
+
+- Multi upload with progress bars in data transfer areas.
+- Password reset for users with a configured second factor.

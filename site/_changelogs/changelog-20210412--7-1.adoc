@@ -1,21 +1,33 @@
 ---
-title: ProjectForge 7.1 released
+title: "ProjectForge 7.1 released"
 date: 2021-04-12
+sort_key: "2021-04-12 0"
 ---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 Improvements, support of Java 1.13+.
 
+__Tag https://github.com/micromata/projectforge/tree/7.1.0-RELEASE[7.1.0-RELEASE].__
+
+++++
 {% include tag.html tag="added" %}
+++++
 - checksums for all files in data transfer as well as nightly run of sanity job.
 
+++++
 {% include tag.html tag="improved" %}
+++++
 - CardDAV support improved (cell phone numbers)
 - Test data in test systems: no more unique constraint violations anymore on new test systems.
 
+++++
 {% include tag.html tag="technology" %}
+++++
 - Support of Java 13+.
 - Major updates of nearly all libraries.
 - Multi tenancy removed.
 
+++++
 {% include download-link.html %}
-
+++++

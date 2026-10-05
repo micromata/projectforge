@@ -474,6 +474,20 @@
     "yearToDate": "Jahr bis heute"
   },
   "cancel": "Abbrechen",
+  "changelog": {
+    "collapseAll": "Alle zuklappen",
+    "compare": "Änderungen",
+    "englishOnly": "Das Changelog gibt es nur auf Englisch.",
+    "expandAll": "Alle aufklappen",
+    "news": "Neuigkeiten",
+    "nextMatch": "Nächster Treffer (Enter)",
+    "noMatches": "Nichts im Changelog passt zur Suche.",
+    "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
+    "snapshot": "Snapshot-Stand",
+    "tag": "Tag",
+    "title": "Changelog",
+    "website": "Changelog auf projectforge.org"
+  },
   "changes": "Änderungen",
   "charactersLeft": "Zeichen übrig.",
   "clone": "Klonen",

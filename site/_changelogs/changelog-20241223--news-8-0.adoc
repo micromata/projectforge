@@ -1,0 +1,14 @@
+---
+title: "ProjectForge 8.0: new persistence layer"
+date: 2024-12-23
+sort_key: "2024-12-23 1"
+news: true
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+Major release with a completely refactored persistence layer and current major versions of all libraries.
+
+- Own CardDAV server for contact synchronization.
+- Docker images for arm64 and amd64.
+- Java 17, Spring 6, Hibernate 6, jakarta namespace.

@@ -1,0 +1,68 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-10-05)"
+date: 2026-10-05
+sort_key: "2026-10-05 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+The classic Wicket user interface is gone: the last pages were migrated to projectforge-next and the module projectforge-wicket was deleted.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/203115800[develop@203115800], https://github.com/micromata/projectforge/compare/e944881b0..203115800[changes since e944881b0].__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Problem dashboard**
+  * Log events are classified at the call site and aggregated in the database with a persistent problem status.
+  * Dashboard of all problems, with links into the log viewer and an export as JSON for an AI-assisted analysis.
+  * Prioritized error digest mails per audience (HTML, new design) instead of one mail per error; early digest for new security and data problems.
+  * Error figures in the system statistics.
+- Order statistics page with its own filter, favorites, charts, data tables, budget scenario and warnings about lost budgets.
+- Invoicing quota as a tab in __My statistics__.
+- Gateway: delta sync with a nightly full sync including deletions and CardDAV favorites, public heartbeat, data transfer UI after OAuth2 login.
+- Kost2: shared cost flag, overriding the structure element (also in the mass update).
+- ICS import of team events with a diff preview; download of a team event as ics file; shared subscription dialog for time sheets, holidays and weeks of year.
+- Run several development instances side by side (`+bin/pfDev.sh+` slots).
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * DATEV import with view log button, readable import log and account/cost unit tooltips.
+  * Log viewer, HR planning, HR view, Gantt charts, report objectives, to-dos, IHK plugin and the internal data transfer UI (area page as tabs, files as a sortable table).
+  * Calendar and team calendar pages, cost 1/2 Excel export; the remaining gaps against the Wicket pages were closed before their removal.
+- Configurable customer groups and business units; time sheets, invoices, projects and orders can be filtered by business unit, customer and project (checklist filters).
+- Order book: contribution margin tab including the year before last.
+- Mass update for to-dos and for the payment type of salaries.
+- Calendar subscriptions that keep failing are retried less often and deactivated after 90 days.
+- Timeouts, connection pools and sync statistics for LDAP, identity provider, iCal, SMS and Sipgate clients.
+- The browser window is named after the page; the open tab of list and report pages is kept in the URL.
+- Shift+click selects a range in attachment lists.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Subscribed calendars: DTSTAMP no longer breaks parsing; events without DTEND derive their end from DURATION; one event per holiday and week in the feeds.
+- MS Project export of Gantt charts repaired (mpxj upgraded).
+- Kotlin script classes are resolved in the fat jar again.
+- Password reset button, birthday mail locale and inline logo in mails.
+- The JCR sanity check runs only once per night.
+- Expected client and authentication failures are logged below error level.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Access checks for all new REST endpoints, enforced by an architecture test.
+- npm security advisories in next and webapp patched.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- Module projectforge-wicket including all Wicket pages, about 90 Wicket-only i18n keys and libraries no longer used.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11 (via Spring Boot 3.5 as intermediate step).
+- Kotlin 2.3, JUnit 6, Gradle 9.8, kotlin-logging 7.

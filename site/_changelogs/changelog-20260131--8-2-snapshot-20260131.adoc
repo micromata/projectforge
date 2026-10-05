@@ -1,0 +1,23 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-01-31)"
+date: 2026-01-31
+sort_key: "2026-01-31 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/13abcce44[develop@13abcce44], https://github.com/micromata/projectforge/compare/0d84c2c74..13abcce44[changes since 0d84c2c74].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Export zip archives support a flat structure and zip encryption (also for scripts).
+- New example scripts: yearly time sheet export, SQL dump export.
+- Accounting records support Kost2 as string.
+- Kost2 inherits its status virtually from the project.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- AG Grid 34, Wicket 10.8.
+- Podman instead of Docker for the test database.

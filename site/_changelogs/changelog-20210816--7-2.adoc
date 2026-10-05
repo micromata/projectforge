@@ -1,16 +1,19 @@
 ---
-title: ProjectForge 7.2 released
+title: "ProjectForge 7.2 released"
 date: 2021-08-16
+sort_key: "2021-08-16 0"
 ---
 :page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-Security issues of pentests, DataTransfer improved.
+Word templating (Merlin), log viewer, encryption in data transfer, privacy features.
+
+__Tag https://github.com/micromata/projectforge/tree/release/7.2-RELEASE[release/7.2-RELEASE].__
 
 ++++
 {% include tag.html tag="added" %}
 ++++
-- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in their personal boxes via serial execution. +
-  example template files included for a quick start.
+- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in their personal boxes via serial execution. Example template files included for a quick start.
 - Log viewer added (for admins as well as for users for tracking own activity for mass updates of time-sheets, usage of Merlin or Datev-imports)
 - Gender for users added: Used by Merlin (word templating) for creation of personalized letters, contracts etc.
 

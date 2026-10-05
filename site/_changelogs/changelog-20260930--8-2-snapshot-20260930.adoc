@@ -1,0 +1,63 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-09-30)"
+date: 2026-09-30
+sort_key: "2026-09-30 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/1cc142d51[develop@1cc142d51], https://github.com/micromata/projectforge/compare/81c69f854..1cc142d51[changes since 81c69f854].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * Monthly employee report with month pager, week drill-downs and compact statistics; normal users can view their own report.
+  * Customers, projects, cost 2 units, cost 2 types, accounting records, employee salaries and the salary import.
+  * Group/task access rights with matrix view, analysis filter for likely erroneous entries, mass update and bulk delete/restore.
+  * System administration, plugin administration, system configuration, first-run setup, send SMS, direct call, personal statistics and feedback.
+  * The liquidity planning plugin.
+- **Liquidity planning**
+  * Recurring series with virtual and materialized occurrences and a deliberate scope choice when editing a series.
+  * Tri-state paid status, automatic paid flag and mass update including delete/restore.
+- **Order book and invoices**
+  * Fold-out net sum calculator per order position, persisted with its breakdown.
+  * Forecast charts tab in the order book, net sum charts for outgoing invoices, invoicing quota chart.
+  * __To be invoiced__ only counts what is due this month; filter split into this month and following months.
+  * Over-invoiced orders are flagged red; shortfalls of orders marked as fully invoiced are shown.
+  * Cancellation of outgoing e-invoices; cancelled invoices are struck through in the list.
+  * Clone an order into a fresh editable draft.
+- Task picker with recently selected tasks and task favorites.
+- Creditor invoices: bank details are filled in from the creditor.
+- Mass update for cost 1 and cost 2.
+- Compact top navigation with counter badges; search moved into the main menu.
+- Deleted or deactivated referenced objects are struck through in list cells.
+- Temporary page size of 10,000 rows for all lists.
+- The link to the classic version is labelled __Old version__ and warns on pages that will be removed.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several N+1 query floods (task favorites, access list, customer list, skill matrix, forecast, salary export, order filters).
+- Self-deadlocks of the project/customer caches inside write transactions.
+- An issued invoice is shown in its order immediately, not only after the next cache refresh.
+- Planned and cancelled invoices no longer count as invoiced for order positions.
+- Change history shows time-of-day values in the user's time zone.
+- Cost assignments of incoming invoices are exported again.
+- Expand/collapse of the classic task tree restored.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Deleted groups never grant access rights.
+- 2FA required for the migrated access rights, cost 2 and cost 2 type forms.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- Classic Wicket pages for search, order book, outgoing invoices, monthly report and plugin administration.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Legacy XML user preferences are migrated to the JSON store.

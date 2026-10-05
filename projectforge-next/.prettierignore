@@ -6,3 +6,4 @@ components/ui
 hooks/use-mobile.ts
 playwright-report
 test-results
+lib/generated

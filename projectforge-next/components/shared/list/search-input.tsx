@@ -15,6 +15,13 @@ export interface SearchInputProps {
   value: string;
   /** Called once the typing has settled — not per keystroke. */
   onChange: (value: string) => void;
+  /**
+   * Enter in the box, `backwards` with Shift — a find in page steps through its matches with it. A string
+   * still being debounced is sent at once instead, so Enter right after typing searches first.
+   */
+  onEnter?: (backwards: boolean) => void;
+  /** Focus the box on mount, for a page whose first thing to do is searching it. */
+  autoFocus?: boolean;
 }
 
 /**
@@ -29,7 +36,12 @@ export interface SearchInputProps {
  * label: "Suchen…" says everything a list-specific wording would, and a phrase per entity is one more
  * text to translate for no reader who was in doubt about what the box above the table searches.
  */
-export function SearchInput({ value, onChange }: SearchInputProps) {
+export function SearchInput({
+  value,
+  onChange,
+  onEnter,
+  autoFocus,
+}: SearchInputProps) {
   const t = useTranslations();
   const placeholder = t("filter.searchList");
   const [typed, setTyped] = useState(value);
@@ -71,9 +83,17 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
             e.preventDefault();
             setTyped("");
           }
+          if (e.key === "Enter" && onEnter) {
+            e.preventDefault();
+            if (typed !== sent.current) {
+              sent.current = typed;
+              onChange(typed);
+            } else onEnter(e.shiftKey);
+          }
         }}
         placeholder={placeholder}
         aria-label={placeholder}
+        autoFocus={autoFocus}
         className="h-9 pl-9"
       />
     </>

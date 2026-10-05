@@ -1,0 +1,20 @@
+---
+title: "ProjectForge 8.2 snapshot (2025-11-30)"
+date: 2025-11-30
+sort_key: "2025-11-30 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/0d84c2c74[develop@0d84c2c74], https://github.com/micromata/projectforge/compare/fec48a9e1..0d84c2c74[changes since fec48a9e1].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Address import handles deletion, restoring and forced deletion.
+- Address campaigns: Excel export button only for authorized users.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Endless LDAP synchronization (empty strings normalized to null).

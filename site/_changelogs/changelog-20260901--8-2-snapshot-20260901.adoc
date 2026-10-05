@@ -1,0 +1,50 @@
+---
+title: "ProjectForge 8.2 snapshot (2026-09-01)"
+date: 2026-09-01
+sort_key: "2026-09-01 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Snapshot build https://github.com/micromata/projectforge/commit/0633fde56[develop@0633fde56], https://github.com/micromata/projectforge/compare/e8819bffc..0633fde56[changes since e8819bffc].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * Outgoing invoices with clone, Word and e-invoice export, cost assignments and attachments; creditor invoices with CSV import.
+  * Structure tree (tree and list perspective, keyboard navigation), task edit page and structure wizard.
+  * Groups, including member mail addresses and LDAP information.
+  * Calendar with toolbar, favorites, settings, drag and drop, jump to date; team events with reminders, recurrence and series modification.
+  * Time sheet list and edit form with recent entries, templates, location suggestions, consumption bar and PDF/Excel export.
+- **Lists and forms**
+  * Multi selection with an explicit selection mode, mass update for invoices.
+  * Period filters (month, term, year to date) with paging arrows; date pickers reaching beyond the current year.
+  * Server-side paging of order and invoice lists; generic sorting by computed columns.
+  * Deleted entries can be restored; links of moved pages lead to the new pages.
+- JIRA issue links in task, structure tree, order and time sheet lists and forms.
+- Light/dark theme toggle, logos adapted to dark mode.
+- Overlapping time sheets allowed for shared cost elements.
+- Recently used menu entries, shared by all frontends; quick access search for the menu.
+- Invoice statistics with a year-earlier comparison.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Order book and invoices no longer freeze when two caches refresh at once (cross-lock deadlock); invoice cache no longer refreshes inside a write transaction.
+- Many N+1 query floods (order list, invoice lists, data transfer audit job, vacation events, employees, books, groups).
+- Large ID lists are batched to stay under the database's bind parameter limit.
+- Project managers can save orders in the new frontend again.
+- Customer name search finds words inside the name.
+- Invoiced amounts survive a restart.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Redirect URLs can no longer smuggle in a foreign host.
+- Saving orders and cost centres asks for a second factor again.
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- Docker container is buildable and startable again; step by step guide for a test instance.
