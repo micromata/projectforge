@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.warn
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.net.URI
@@ -114,7 +115,7 @@ class ExchangeRateApiService {
                 null
             }
         } catch (ex: Exception) {
-            log.warn(ex) { "Failed to fetch exchange rate for $sourceCurrency -> $targetCurrency on ${date ?: "latest"}" }
+            log.warn(ExchangeRateLogEvents.FETCH_FAILED, ex) { "Failed to fetch exchange rate for $sourceCurrency -> $targetCurrency on ${date ?: "latest"}" }
             null
         }
     }
@@ -135,7 +136,7 @@ class ExchangeRateApiService {
                 null
             }
         } catch (ex: Exception) {
-            log.warn(ex) { "Failed to parse exchange rate API response" }
+            log.warn(ExchangeRateLogEvents.UNEXPECTED_RESPONSE, ex) { "Failed to parse exchange rate API response" }
             null
         }
     }

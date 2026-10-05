@@ -24,6 +24,8 @@
 package org.projectforge.web.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
+import org.projectforge.rest.core.RestLogEvents
 import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
@@ -269,7 +271,7 @@ open class RestAuthenticationUtils {
       logDebug(request, "Processing request...")
     }
     if (!systemStatus.upAndRunning) {
-      log.error { "System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode." }
+      log.error(RestLogEvents.SYSTEM_NOT_AVAILABLE) { "System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode." }
       sendError(
         response,
         HttpServletResponse.SC_SERVICE_UNAVAILABLE,
@@ -400,7 +402,7 @@ open class RestAuthenticationUtils {
       val msg =
         "User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}."
       if (resultCode >= 500) {
-        log.error { msg }
+        log.error(RestLogEvents.SERVER_ERROR_RESPONSE) { msg }
       } else {
         // 4xx (validation errors, access denied, CSRF) are already logged with their reason where they occur.
         log.info { msg }
@@ -449,7 +451,7 @@ open class RestAuthenticationUtils {
   }
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
-    log.error { "$msg (${RequestLog.asString(authInfo.request)})" }
+    log.error(RestLogEvents.AUTH_FAILED) { "$msg (${RequestLog.asString(authInfo.request)})" }
     SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 

@@ -25,6 +25,9 @@ package org.projectforge.common.i18n
 
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.common.ProjectForgeException
+import org.projectforge.common.logging.CommonLogEvents
+import org.projectforge.common.logging.LogEvent
+import org.projectforge.common.logging.LogEventAware
 import java.util.*
 
 /**
@@ -32,7 +35,7 @@ import java.util.*
  *
  * @author Kai Reinhard
  */
-open class UserException(val i18nKey: String) : ProjectForgeException(i18nKey) {
+open class UserException(val i18nKey: String) : ProjectForgeException(i18nKey), LogEventAware {
 
   /**
    * @return The params for the localized message if exist, otherwise null.
@@ -63,6 +66,12 @@ open class UserException(val i18nKey: String) : ProjectForgeException(i18nKey) {
    * Used by GlobalDefaultExceptionHandlung
    */
   var displayUserMessage: Boolean = true
+
+  /**
+   * A message for the user, nothing to report to the support team: logged errors with a UserException are only counted.
+   */
+  override val logEvent: LogEvent?
+    get() = CommonLogEvents.USER_ERROR
 
   /**
    * @param i18nKey Key for the localized message.

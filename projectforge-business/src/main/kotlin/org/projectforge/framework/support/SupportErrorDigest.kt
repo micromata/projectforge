@@ -29,7 +29,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogEventListener
+import org.projectforge.common.logging.LogNotify
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.common.logging.LoggingEventData
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -57,10 +59,16 @@ private val log = KotlinLogging.logger {}
  * - unexpected exceptions of requests ([recordRequestError], called by the REST exception handler),
  * - every logged ERROR, and WARNs that look like an unreachable system, via [LoggerMemoryAppender] — most
  *   failures of external systems are caught in background jobs and only logged (see [ErrorOccurrenceFactory]),
+ * - every logged event classified by a [LogEvent] (of the logging call or the exception), whatever its level,
  * - sync runs that failed since the last digest ([SyncProblemTracker]).
  *
- * The digest groups equal errors and sorts them by severity, unreachable external systems first; the
- * single occurrences with their stack traces are attached as a text file.
+ * Whether an error is reported is decided by the notify rule of its [LogEvent], not by its level: [LogNotify.NONE]
+ * is never mailed, [LogNotify.DIGEST_IF_NEW] only once, groups below the event's threshold not at all and
+ * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]).
+ *
+ * The digest groups equal errors and sorts them by category, unreachable external systems first; each group shows
+ * the explanation and recommended action of its event, the single occurrences with their stack traces are attached
+ * as a text file.
  */
 @Service
 class SupportErrorDigest : LogEventListener {
@@ -77,6 +85,13 @@ class SupportErrorDigest : LogEventListener {
     private var intervalProperty: String = "1h"
 
     internal val collector = ErrorDigestCollector()
+
+    private val notifyFilter = DigestNotifyFilter()
+
+    /** An occurrence with [LogNotify.IMMEDIATE] is waiting: the digest is sent early. */
+    @Volatile
+    internal var immediatePending = false
+        private set
 
     private val syncProblemTracker = SyncProblemTracker()
 
@@ -116,34 +131,46 @@ class SupportErrorDigest : LogEventListener {
         if (!active || sending.get()) {
             return
         }
-        ErrorOccurrenceFactory.fromLogEvent(event)?.let { collector.add(it) }
+        ErrorOccurrenceFactory.fromLogEvent(event)?.let { collect(it) }
     }
 
     /**
      * An unexpected exception of a request, already checked by the caller to be worth reporting.
      * @param request Method and uri of the request.
      * @param external True if a remote system isn't reachable (default: detected from the exception).
+     * @param logEvent The classification, if known (e.g. by `GlobalExceptionRegistry`).
      */
-    fun recordRequestError(ex: Throwable, request: String?, external: Boolean? = null) {
+    fun recordRequestError(ex: Throwable, request: String?, external: Boolean? = null, logEvent: LogEvent? = null) {
         if (!active) {
             return
         }
         try {
             val user = ThreadLocalUserContext.loggedInUser?.username
             val occurrence = if (external == null) {
-                ErrorOccurrenceFactory.fromRequestException(ex, user, request)
+                ErrorOccurrenceFactory.fromRequestException(ex, user, request, logEvent = logEvent)
             } else {
-                ErrorOccurrenceFactory.fromRequestException(ex, user, request, external)
+                ErrorOccurrenceFactory.fromRequestException(ex, user, request, external, logEvent = logEvent)
             }
-            collector.add(occurrence)
+            collect(occurrence)
         } catch (t: Throwable) {
             log.warn { "Couldn't record error for the support digest: ${t.message}" }
         }
     }
 
+    /** By the notify rule of the occurrence's event, not by its level: [LogNotify.NONE] isn't reported at all. */
+    internal fun collect(occurrence: ErrorOccurrence) {
+        when (occurrence.event.notify) {
+            LogNotify.NONE -> return
+            LogNotify.IMMEDIATE -> immediatePending = true
+            else -> {}
+        }
+        collector.add(occurrence)
+    }
+
     @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
     fun sendIfDue() {
-        if (active && System.currentTimeMillis() - periodStart >= interval.toMillis()) {
+        val elapsed = System.currentTimeMillis() - periodStart
+        if (active && (elapsed >= interval.toMillis() || immediatePending && elapsed >= IMMEDIATE_MIN_GAP_MILLIS)) {
             send()
         }
     }
@@ -164,7 +191,8 @@ class SupportErrorDigest : LogEventListener {
         val from = periodStart
         val to = System.currentTimeMillis()
         periodStart = to
-        val snapshot = collector.drain()
+        immediatePending = false
+        val snapshot = notifyFilter.apply(collector.drain())
         val syncProblems = syncProblemTracker.collect()
         if (snapshot.groups.isEmpty() && syncProblems.isEmpty()) {
             return
@@ -211,6 +239,9 @@ class SupportErrorDigest : LogEventListener {
 
     companion object {
         private val FILENAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm")
+
+        /** [LogNotify.IMMEDIATE] sends the digest early, but not more often than this. */
+        private const val IMMEDIATE_MIN_GAP_MILLIS = 5 * Constants.MILLIS_PER_MINUTE
 
         /** `1h`, `15m`, `PT2H`, a plain number in milliseconds; blank or invalid is the default of 1 hour. */
         internal fun parseInterval(value: String?): Duration {

@@ -24,6 +24,7 @@
 package org.projectforge.rest.core
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.slf4j.MDCContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.common.CoroutineTracker
@@ -50,7 +51,8 @@ abstract class SseEmitterTool(timeout: Long = 60_000L) {
      * Launch the coroutine to send data to the client.
      */
     fun launch() {
-        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        // MDCContext: the log messages of the coroutine keep the request id and user of the request.
+        val coroutineScope = CoroutineScope(Dispatchers.IO + MDCContext())
         coroutineScope.launch {
             coroutineTracker.increment() // Increment the counter.
             try {

@@ -237,12 +237,6 @@ export interface ForecastChartData {
   plan: number[] | null;
   /** The snapshot date actually used for the plan (`yyyy-MM-dd`). */
   planningDate: string | null;
-  /**
-   * The fields of the list filter the forecast did not apply (see `OrderEntityRest.forecastFilterUsage`):
-   * not at all, or replaced by the start date.
-   */
-  ignoredFilterFields?: string[];
-  replacedFilterFields?: string[];
 }
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
@@ -355,9 +349,6 @@ export interface ContributionMarginData {
   /** The contribution margin in % below which it is red. */
   redThreshold: number;
   ordersWithoutProject: number;
-  /** The fields of the list filter not applied, as for the forecast charts. */
-  ignoredFilterFields?: string[];
-  replacedFilterFields?: string[];
 }
 
 /** The stored start date of the contribution margin tab, or the backend's default (begin of the year). */

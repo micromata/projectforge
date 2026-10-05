@@ -99,6 +99,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
+    // Next only: forecast and contribution margin of the order book, with a filter of their own.
+    ORDER_STATISTICS("menu.fibu.orderStatistics", "next/orderStatistics"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //

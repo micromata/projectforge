@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.LockModeType
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.hibernate.Session
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.HibernateUtils
@@ -181,7 +182,7 @@ open class PfPersistenceService {
                         // Validation error of the user, logged (without stack trace) and shown by the caller.
                         log.debug { "Rollback due to user exception: ${ex.message}" }
                     } else {
-                        log.error(ex) { ex.message }
+                        log.error(PersistenceLogEvents.TRANSACTION_ROLLBACK, ex) { ex.message }
                     }
                     throw ex
                 }
