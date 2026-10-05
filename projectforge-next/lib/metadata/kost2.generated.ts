@@ -65,6 +65,12 @@ export const KOST2_METADATA = {
       i18nKey: "modified",
       required: false,
     },
+    sharedCost: {
+      dataType: "BOOLEAN",
+      i18nKey: "fibu.kost2.sharedCost",
+      required: false,
+      tooltipI18nKey: "fibu.kost2.sharedCost.tooltip",
+    },
     workFraction: {
       dataType: "DECIMAL",
       i18nKey: "fibu.kost2.workFraction",
