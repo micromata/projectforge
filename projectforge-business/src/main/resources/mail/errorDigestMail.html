@@ -16,6 +16,24 @@
       </p>
       <table class="kpi">
         <tr>
+          <% if (digest.newProblems > 0) { %>
+          <td>
+            <span class="number error"><%= digest.newProblems %></span>
+            <span class="muted small">new</span>
+          </td>
+          <% } %>
+          <% if (digest.regressions > 0) { %>
+          <td>
+            <span class="number error"><%= digest.regressions %></span>
+            <span class="muted small">regressions</span>
+          </td>
+          <% } %>
+          <% if (digest.spikes > 0) { %>
+          <td>
+            <span class="number warn"><%= digest.spikes %></span>
+            <span class="muted small">spikes</span>
+          </td>
+          <% } %>
           <td>
             <span class="number<%= digest.errors > 0 ? ' error' : '' %>"><%= digest.errors %></span>
             <span class="muted small">errors</span>
@@ -37,11 +55,20 @@
           <% if (digest.suppressed > 0) { %>
           <td>
             <span class="number"><%= digest.suppressed %></span>
-            <span class="muted small">not listed (below threshold or already reported)</span>
+            <span class="muted small">not listed (below threshold, already reported or muted)</span>
+          </td>
+          <% } %>
+          <% if (digest.muted > 0) { %>
+          <td>
+            <span class="number"><%= digest.muted %></span>
+            <span class="muted small">ignored or muted problems</span>
           </td>
           <% } %>
         </tr>
       </table>
+      <% if (digest.dashboardUrl != null) { %>
+      <p><a class="button" href="<%= pf.getString(digest.dashboardUrl) %>">Open the error dashboard</a></p>
+      <% } %>
       <% for (section in digest.sections) { %>
       <h2 class="section"><%= pf.getString(section.title) %><span class="pill"><%= section.count %></span></h2>
       <table class="list">
@@ -54,10 +81,13 @@
             <span class="mono"><%= pf.getString(g.location) %></span>
             <span class="muted small no-wrap">&nbsp;<%= pf.getString(g.period) %></span>
             <div><%= pf.getString(g.message) %></div>
+            <% if (section.showCategory) { %><div class="muted small"><%= pf.getString(g.category) %></div><% } %>
+            <% if (g.usual != null) { %><div class="small"><%= pf.getString(g.usual) %></div><% } %>
             <% if (g.users != null) { %><div class="muted small">users: <%= pf.getString(g.users) %></div><% } %>
             <% if (g.explanation != null) { %><div class="small"><%= pf.getString(g.explanation) %></div><% } %>
             <% if (g.action != null) { %><div class="small"><b>Action:</b> <%= pf.getString(g.action) %></div><% } %>
             <% if (g.code != null) { %><div class="muted small mono"><%= pf.getString(g.code) %></div><% } %>
+            <% if (g.link != null) { %><div class="small"><a href="<%= pf.getString(g.link) %>">Details and status in the dashboard</a></div><% } %>
           </td>
         </tr>
         <% } %>
@@ -72,6 +102,9 @@
         </tr>
         <% } %>
       </table>
+      <% } %>
+      <% if (digest.omitted > 0) { %>
+      <p class="footer"><%= digest.omitted %> further known problems are not listed, see the error dashboard.</p>
       <% } %>
       <% if (digest.attachmentName != null) { %>
       <p class="footer">

@@ -304,9 +304,19 @@ interval. Nothing is sent for a period without errors. The digest collects:
   by connection errors and timeouts, also from warnings,
 - sync runs that failed, were aborted or timed out since the last digest.
 
-Equal errors (differing only in ids or numbers) are aggregated, sorted by severity (unreachable external
-systems first). The mail body lists the groups; the attached text file contains up to five single
+Equal errors (differing only in ids or numbers) are aggregated. The mail lists new problems, regressions
+(problems that occurred again after being resolved) and spikes (much more often than in the last 7 days)
+first, then the 30 most frequent known problems sorted by severity (unreachable external systems first).
+Each problem links to the error dashboard (Administration), where it can be acknowledged, resolved, ignored
+or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
+
+A new security or data problem (or one that occurred again after being resolved) doesn't wait for the end of
+the interval: it sends the digest early, as soon as it reaches its threshold, but at most every 5 minutes.
+
+Each problem goes to the recipients of its audience: developers (bugs, data problems), admins (external
+systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
+at `projectforge.support.mail`.
 
 *File:* `application.properties:`
 
@@ -314,6 +324,10 @@ occurrences per group with user, request and stack trace.
 projectforge.support.mail=support@acme.com
 # How often the digest is sent at most, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1h
 projectforge.support.errorDigest.interval=1h
+# Optional, comma separated, default: projectforge.support.mail
+projectforge.support.errorDigest.recipients.developer=dev@acme.com
+projectforge.support.errorDigest.recipients.admin=ops@acme.com
+projectforge.support.errorDigest.recipients.security=security@acme.com
 ----
 
 === Configuration of Mobile Enterprise Blogging (MEB)

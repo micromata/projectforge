@@ -28,15 +28,23 @@ import org.projectforge.common.logging.LogLevel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * The digest as html mail ([htmlData] for the template `mail/errorDigestMail.html`) and as plain text: [body] is
- * the summary sorted by severity (one entry per group, the sync problems right after the unreachable systems), the
- * fallback if the template fails, [details] the attachment with the single occurrences and stack traces.
+ * the summary, the fallback if the template fails, [details] the attachment with the single occurrences and stack
+ * traces.
+ *
+ * What needs attention comes first: the new problems, the regressions and the spikes (see [DigestNovelty]), then
+ * the [MAX_KNOWN_GROUPS] most frequent known ones sorted by severity (one section per category, the sync problems
+ * right after the unreachable systems). Ignored and muted problems are only counted.
+ *
+ * @param dashboardUrl The error dashboard (`next/adminErrors`): linked by the digest and by each problem.
  */
 class ErrorDigestRenderer(
     private val domain: String?,
     private val zone: ZoneId = ZoneId.systemDefault(),
+    private val dashboardUrl: String? = null,
 ) {
     /** The digest prepared for the template, which only prints these values. */
     class DigestView(
@@ -47,19 +55,31 @@ class ErrorDigestRenderer(
         val occurrences: Int,
         val groups: Int,
         val dropped: Int,
-        /** Occurrences not listed: below their event's threshold or already reported. */
+        /** Occurrences not listed: below their event's threshold, already reported or muted. */
         val suppressed: Int,
         val sections: List<SectionView>,
         val attachmentName: String?,
         val maxSamples: Int = ErrorGroup.MAX_SAMPLES,
+        val newProblems: Int = 0,
+        val regressions: Int = 0,
+        val spikes: Int = 0,
+        /** Problems not listed because an admin ignored or muted them. */
+        val muted: Int = 0,
+        /** Known problems not listed beyond the [MAX_KNOWN_GROUPS] most frequent ones. */
+        val omitted: Int = 0,
+        val dashboardUrl: String? = null,
     )
 
-    /** One category, or the sync problems (then [syncProblems] is filled instead of [groups]). */
+    /**
+     * New problems, regressions, spikes ([showCategory]: their groups are of any category), one category of the
+     * known ones, or the sync problems (then [syncProblems] is filled instead of [groups]).
+     */
     class SectionView(
         val title: String,
         val count: Int,
         val groups: List<GroupView> = emptyList(),
         val syncProblems: List<SyncView> = emptyList(),
+        val showCategory: Boolean = false,
     )
 
     class GroupView(
@@ -81,6 +101,11 @@ class ErrorDigestRenderer(
         val explanation: String?,
         /** What to do, from the log event. */
         val action: String?,
+        val category: String,
+        /** The problem in the error dashboard, if it is in the database. */
+        val link: String? = null,
+        /** For a spike: `usually 0.4 per hour`. */
+        val usual: String? = null,
     )
 
     class SyncView(
@@ -97,7 +122,11 @@ class ErrorDigestRenderer(
     fun subject(snapshot: ErrorDigestCollector.Snapshot, syncProblems: List<SyncProblemTracker.Problem>): String {
         val external = snapshot.count(LogCategory.EXTERNAL) + syncProblems.size
         val errors = snapshot.occurrences - snapshot.count(LogCategory.EXTERNAL)
-        return "Error digest ${domain ?: ""}: $errors errors, $external external failures".replace("  ", " ")
+        val news = NOVELTY_COUNTS.mapNotNull { (novelty, label) ->
+            snapshot.groups.count { it.novelty == novelty }.takeIf { it > 0 }?.let { "$it $label" }
+        }.joinToString(", ")
+        return ("Error digest ${domain ?: ""}: $errors errors, $external external failures" +
+                if (news.isEmpty()) "" else " ($news)").replace("  ", " ")
     }
 
     fun view(
@@ -108,8 +137,17 @@ class ErrorDigestRenderer(
         attachmentName: String?,
     ): DigestView {
         val sections = mutableListOf<SectionView>()
+        NOVELTY_SECTIONS.forEach { (novelty, title) ->
+            val groups = snapshot.groups.filter { it.novelty == novelty }
+            if (groups.isNotEmpty()) {
+                sections.add(SectionView(title, groups.sumOf { it.count }, groups.map { groupView(it) }, showCategory = true))
+            }
+        }
+        val known = snapshot.groups.filter { it.novelty == DigestNovelty.KNOWN }
+        val listed = known.sortedByDescending { it.count }.take(MAX_KNOWN_GROUPS).toSet()
         LogCategory.entries.forEach { category ->
-            val groups = snapshot.groups.filter { it.category == category }
+            // In the order of the snapshot: by severity.
+            val groups = known.filter { it.category == category && it in listed }
             if (groups.isNotEmpty()) {
                 sections.add(SectionView(category.title, groups.sumOf { it.count }, groups = groups.map { groupView(it) }))
             }
@@ -129,6 +167,12 @@ class ErrorDigestRenderer(
             suppressed = snapshot.suppressed,
             sections = sections,
             attachmentName = attachmentName,
+            newProblems = snapshot.groups.count { it.novelty == DigestNovelty.NEW },
+            regressions = snapshot.groups.count { it.novelty == DigestNovelty.REGRESSION },
+            spikes = snapshot.groups.count { it.novelty == DigestNovelty.SPIKE },
+            muted = snapshot.muted,
+            omitted = known.size - listed.size,
+            dashboardUrl = dashboardUrl,
         )
     }
 
@@ -154,13 +198,19 @@ class ErrorDigestRenderer(
         appendLine("Period: ${view.period}")
         append("${view.occurrences} occurrences in ${view.groups} groups")
         if (view.dropped > 0) append(", ${view.dropped} further occurrences dropped (group limit reached)")
-        if (view.suppressed > 0) append(", ${view.suppressed} occurrences not listed (below threshold or already reported)")
+        if (view.suppressed > 0) append(", ${view.suppressed} occurrences not listed (below threshold, already reported or muted)")
         appendLine()
+        if (view.muted > 0) appendLine("${view.muted} ignored or muted problems not listed")
+        view.dashboardUrl?.let { appendLine("Error dashboard: $it") }
         view.sections.forEach { section ->
             appendLine()
             appendLine("== ${section.title} (${section.count}) ==")
-            section.groups.forEach { appendGroup(it) }
+            section.groups.forEach { appendGroup(it, section.showCategory) }
             section.syncProblems.forEach { appendSyncProblem(it) }
+        }
+        if (view.omitted > 0) {
+            appendLine()
+            appendLine("${view.omitted} further known problems not listed, see the error dashboard.")
         }
         if (attachmentName != null) {
             appendLine()
@@ -214,6 +264,10 @@ class ErrorDigestRenderer(
             code = group.event.code.takeIf { group.groupByCode },
             explanation = group.event.explanation.takeIf { group.groupByCode },
             action = group.event.action.takeIf { group.groupByCode },
+            category = group.category.title,
+            link = dashboardUrl?.let { url -> group.problemId?.let { "$url?id=$it" } },
+            usual = group.hourlyMean?.takeIf { group.novelty == DigestNovelty.SPIKE }
+                ?.let { "usually ${"%.1f".format(Locale.ENGLISH, it)} per hour" },
         )
     }
 
@@ -230,13 +284,16 @@ class ErrorDigestRenderer(
         return SyncView(problem.type, counts, problem.lastStatus?.toString() ?: "-", lastError)
     }
 
-    private fun StringBuilder.appendGroup(group: GroupView) {
+    private fun StringBuilder.appendGroup(group: GroupView, showCategory: Boolean) {
         appendLine("${group.count.toString().padStart(5)}x  ${group.period}  ${group.level}  ${group.exceptionClass ?: "-"}  ${group.location}")
         appendLine("        ${group.message}")
+        if (showCategory) appendLine("        category: ${group.category}")
+        group.usual?.let { appendLine("        $it") }
         group.users?.let { appendLine("        users: $it") }
         group.code?.let { appendLine("        code: $it") }
         group.explanation?.let { appendLine("        explanation: $it") }
         group.action?.let { appendLine("        action: $it") }
+        group.link?.let { appendLine("        $it") }
     }
 
     private fun StringBuilder.appendSyncProblem(problem: SyncView) {
@@ -247,5 +304,20 @@ class ErrorDigestRenderer(
     companion object {
         private const val SYNC_TITLE = "Sync runs with problems"
         private const val MAX_MESSAGE_LENGTH = 300
+
+        /** The known problems listed at most, the most frequent ones; the others only counted. */
+        const val MAX_KNOWN_GROUPS = 30
+
+        private val NOVELTY_SECTIONS = listOf(
+            DigestNovelty.NEW to "New problems",
+            DigestNovelty.REGRESSION to "Regressions: occurred again after being resolved",
+            DigestNovelty.SPIKE to "Spikes: much more often than in the last 7 days",
+        )
+
+        private val NOVELTY_COUNTS = listOf(
+            DigestNovelty.NEW to "new",
+            DigestNovelty.REGRESSION to "regressions",
+            DigestNovelty.SPIKE to "spikes",
+        )
     }
 }

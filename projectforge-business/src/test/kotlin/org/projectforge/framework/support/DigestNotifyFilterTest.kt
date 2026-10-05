@@ -36,8 +36,12 @@ class DigestNotifyFilterTest {
     private class FakeStates : LogGroupStates {
         val states = mutableMapOf<String, LogGroupState>()
         val notified = mutableListOf<String>()
+        val means = mutableMapOf<String, Double>()
 
         override fun stateOf(key: String) = states[key]
+
+        override fun hourlyMeans(keys: Collection<String>, beforeMillis: Long) =
+            keys.filter { states.containsKey(it) }.associateWith { means[it] ?: 0.0 }
 
         override fun markNotified(keys: Collection<String>) {
             notified.addAll(keys)
@@ -70,6 +74,7 @@ class DigestNotifyFilterTest {
         filter.apply(snapshot(IGNORED_EVENT, MUTED_EVENT, MUTE_EXPIRED_EVENT, SILENCED_EVENT, UNKNOWN_EVENT), NOW).let {
             Assertions.assertEquals(listOf("test.muteExpired", "test.unknown"), it.groups.map { g -> g.key })
             Assertions.assertEquals(3, it.suppressed)
+            Assertions.assertEquals(2, it.muted, "Ignored or muted; the silenced one only isn't reported.")
         }
         Assertions.assertEquals(listOf("test.muteExpired", "test.unknown"), states.notified)
     }
@@ -99,6 +104,48 @@ class DigestNotifyFilterTest {
     }
 
     @Test
+    fun `new problems, regressions, spikes and known ones`() {
+        val states = FakeStates()
+        val filter = DigestNotifyFilter(states)
+        states.set(NEW_EVENT)
+        states.set(REOPENED_EVENT, lastNotified = NOW - 10_000, reopenedAt = NOW - 5_000)
+        states.set(SPIKE_EVENT, lastNotified = NOW - 10_000)
+        states.means[SPIKE_EVENT.code] = 1.0
+        states.set(KNOWN_EVENT, lastNotified = NOW - 10_000)
+        states.means[KNOWN_EVENT.code] = 3.0
+        val collector = ErrorDigestCollector()
+        listOf(NEW_EVENT, REOPENED_EVENT, UNKNOWN_EVENT).forEach { collector.add(occurrence(it)) }
+        repeat(10) {
+            collector.add(occurrence(SPIKE_EVENT))
+            collector.add(occurrence(KNOWN_EVENT))
+        }
+        val novelties = filter.apply(collector.drain(), NOW, NOW - 2 * HOUR).groups.associate { it.key to it.novelty }
+        Assertions.assertEquals(
+            mapOf(
+                NEW_EVENT.code to DigestNovelty.NEW,
+                REOPENED_EVENT.code to DigestNovelty.REGRESSION,
+                UNKNOWN_EVENT.code to DigestNovelty.NEW,
+                SPIKE_EVENT.code to DigestNovelty.SPIKE,
+                KNOWN_EVENT.code to DigestNovelty.KNOWN,
+            ),
+            novelties,
+            "10 in 2 hours: 5 per hour, 5 times the usual 1, but less than 5 times 3.",
+        )
+        Assertions.assertEquals(
+            DigestNovelty.KNOWN, filter.apply(snapshot(UNKNOWN_EVENT), NOW).groups.single().novelty,
+            "Reported before, remembered in memory.",
+        )
+    }
+
+    @Test
+    fun spikes() {
+        Assertions.assertTrue(DigestNotifyFilter.isSpike(10, 1.0, 2.0))
+        Assertions.assertFalse(DigestNotifyFilter.isSpike(9, 1.0, 0.0), "Too few.")
+        Assertions.assertFalse(DigestNotifyFilter.isSpike(10, 1.0, 2.1))
+        Assertions.assertFalse(DigestNotifyFilter.isSpike(100, 1.0, null), "Unknown without database.")
+    }
+
+    @Test
     fun `the override decides whether an occurrence is collected`() {
         val occurrence = occurrence(ONCE_EVENT)
         Assertions.assertEquals(LogNotify.DIGEST_IF_NEW, DigestNotifyFilter.notifyOf(occurrence, null))
@@ -124,6 +171,11 @@ class DigestNotifyFilterTest {
 
     companion object {
         private const val NOW = 1_000_000_000L
+        private const val HOUR = 3_600_000L
+        private val NEW_EVENT = LogEvent("test.new", LogCategory.BUG)
+        private val REOPENED_EVENT = LogEvent("test.reopened", LogCategory.BUG)
+        private val SPIKE_EVENT = LogEvent("test.spike", LogCategory.BUG)
+        private val KNOWN_EVENT = LogEvent("test.known", LogCategory.BUG)
         private val IGNORED_EVENT = LogEvent("test.ignored", LogCategory.BUG)
         private val MUTED_EVENT = LogEvent("test.muted", LogCategory.BUG)
         private val MUTE_EXPIRED_EVENT = LogEvent("test.muteExpired", LogCategory.BUG)

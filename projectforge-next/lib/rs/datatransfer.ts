@@ -111,8 +111,8 @@ export interface DataTransferOption {
 export interface DataTransferOptions {
   expiryDays: DataTransferOption[];
   maxUploadSizes: DataTransferOption[];
-  /** Gateway mode: external access is administered on another server. */
-  gatewayPushEnabled: boolean;
+  /** False: no external access configurable here (gateway mode), it's administered on `gatewayHost`. */
+  externalAccessAllowed: boolean;
   gatewayHost: string;
 }
 

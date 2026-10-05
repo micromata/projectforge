@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   keepPreviousData,
@@ -121,9 +122,11 @@ function LogViewerContent({
 }: LogViewerProps & { title: string; initial: LogViewerData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  // A link may start with a search of its own, e.g. the error dashboard's one for a problem (`?search=`).
+  const linkedSearch = useSearchParams().get("search");
   const [criteria, setCriteria] = useState<Criteria>({
     threshold: initial.filter.threshold,
-    search: initial.filter.search ?? "",
+    search: linkedSearch ?? initial.filter.search ?? "",
   });
   const [autoRefresh, setAutoRefresh] = useState(
     initial.filter.autoRefresh === true
@@ -135,12 +138,16 @@ function LogViewerContent({
   };
 
   const entriesKey = ["logViewer", admin, id, "entries", criteria];
-  // The first entries come with the initial answer, so the start filter doesn't query twice.
+  // The first entries come with the initial answer, so the start filter doesn't query twice (not for a linked
+  // search: the answer was filtered by the stored one).
   const startCriteria = useState(criteria)[0];
   const entries = useQuery({
     queryKey: entriesKey,
     queryFn: ({ signal }) => queryLogViewer(admin, filter, signal),
-    initialData: criteria === startCriteria ? initial.entries : undefined,
+    initialData:
+      criteria === startCriteria && linkedSearch === null
+        ? initial.entries
+        : undefined,
     placeholderData: keepPreviousData,
     // Refreshed on demand (button) or by the auto refresh only. Not in a hidden tab (the react-query default):
     // every request touches the session and would keep an idle tab logged in (see use-auth.ts).

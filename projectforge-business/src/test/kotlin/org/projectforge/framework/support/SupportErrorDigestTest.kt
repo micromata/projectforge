@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.CommonLogEvents
+import org.projectforge.common.logging.LogAudience
 import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogEventRegistry
@@ -208,6 +209,22 @@ class SupportErrorDigestTest {
     }
 
     @Test
+    fun `new security and data problems are alarms`() {
+        val digest = SupportErrorDigest().also { it.active = true }
+        digest.collect(occurrence(SupportLogEvents.LOGGED_ERROR, "NPE"))
+        digest.collect(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "LDAP down"))
+        Assertions.assertFalse(digest.immediatePending, "Bugs and external failures wait for the interval.")
+        digest.collect(occurrence(DATA_EVENT, "Inconsistent order"))
+        Assertions.assertTrue(digest.immediatePending, "A new data problem.")
+
+        val next = SupportErrorDigest().also { it.active = true }
+        repeat(2) { next.collect(occurrence(SPIKE, "Login failed")) }
+        Assertions.assertFalse(next.immediatePending, "Below the threshold of 3.")
+        next.collect(occurrence(SPIKE, "Login failed"))
+        Assertions.assertTrue(next.immediatePending)
+    }
+
+    @Test
     fun `log event codes are unique`() {
         Assertions.assertEquals(emptyList<String>(), LogEventRegistry.findProblems(*BusinessLogEventCatalog.HOLDERS))
         Assertions.assertTrue(BusinessLogEventCatalog.HOLDERS.all { LogEventRegistry.eventsOf(it).isNotEmpty() })
@@ -262,6 +279,38 @@ class SupportErrorDigestTest {
         Assertions.assertNull(group.code)
         Assertions.assertEquals("test.data.inconsistent", view.sections[2].groups.single().code)
         Assertions.assertEquals("1 aborted", view.sections[1].syncProblems.single().counts)
+    }
+
+    @Test
+    fun `one mail per recipients of the audiences`() {
+        val collector = ErrorDigestCollector()
+        collector.add(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Sipgate not reachable")) // ADMIN
+        collector.add(occurrence(SPIKE, "Login failed")) // SECURITY
+        collector.add(occurrence(DATA_EVENT, "Inconsistent order")) // DEVELOPER
+        val snapshot = collector.drain().let { ErrorDigestCollector.Snapshot(it.groups, 1, 2, 3) }
+        val stats = SyncStats("gateway-push").also { it.startRun().abort("Gateway not reachable") }
+        val problems = SyncProblemTracker { listOf(stats) }.collect()
+        val mails = SupportErrorDigest.splitByRecipients(snapshot, problems) {
+            if (it == LogAudience.SECURITY) "security@acme.com" else "support@acme.com"
+        }
+        Assertions.assertEquals(listOf("support@acme.com", "security@acme.com"), mails.map { it.recipients })
+        mails[0].let {
+            Assertions.assertEquals(listOf(LogCategory.EXTERNAL, LogCategory.DATA), it.snapshot.groups.map { g -> g.category })
+            Assertions.assertEquals(1, it.syncProblems.size, "Sync problems go to the admins.")
+            Assertions.assertEquals(3, it.snapshot.muted)
+        }
+        Assertions.assertEquals(listOf(SPIKE.code), mails[1].snapshot.groups.map { it.event.code })
+        Assertions.assertTrue(mails[1].syncProblems.isEmpty())
+
+        val syncOnly = SupportErrorDigest.splitByRecipients(ErrorDigestCollector.Snapshot(emptyList(), 0), problems) {
+            if (it == LogAudience.ADMIN) "ops@acme.com" else null
+        }
+        Assertions.assertEquals(listOf("ops@acme.com"), syncOnly.map { it.recipients })
+        Assertions.assertTrue(
+            SupportErrorDigest.splitByRecipients(ErrorDigestCollector.Snapshot(emptyList(), 0), emptyList()) { "a@b.c" }
+                .isEmpty(),
+            "Nothing reported, no mail.",
+        )
     }
 
     @Test
