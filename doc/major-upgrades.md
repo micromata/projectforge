@@ -38,7 +38,7 @@ version exists, it is in parentheses.
 | Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts |
 | Gradle | 8.14.5 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
 | mockito-kotlin | 5.4.0 | 6.x | |
-| kotlin-logging | `io.github.microutils` 3.0.5 (end of line) | – | out of scope, logging is addressed separately |
+| kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
 | Jackrabbit Oak | 1.92.0 | 2.x (2.6.0) | independent of Spring; storage format must be checked |
 
@@ -93,11 +93,12 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
         (scanning moves into the separate artifact `hibernate-scan-jandex`) → adapt in Phase 1.
   - [ ] Replace deprecated Spring/Spring Security APIs (e.g. `RestTemplate` call sites that already have a
         `RestClient` equivalent; optional, `RestTemplate` still exists in Spring 7).
-- kotlin-logging (`mu.` → `io.github.oshai`) is **not** part of this plan: the logging framework is
-  addressed separately. `io.github.microutils:kotlin-logging` 3.0.5 has no Spring/Hibernate dependency and
-  doesn't block the phases.
-- [ ] **Kotlin 2.3.21** (the version Boot 4.1 manages). Run `KotlinScriptExecutionTest` **and** the fat jar
-      check (see "Kotlin scripting engine").
+- kotlin-logging is **not** part of this plan: the logging framework is addressed separately (develop
+  already moved from `mu.` to `io.github.oshai` 7.0.6). It has no Spring/Hibernate dependency and doesn't
+  block the phases.
+- [x] **Kotlin 2.3.21** (the version Boot 4.1 manages). Run `KotlinScriptExecutionTest` **and** the fat jar
+      check (see "Kotlin scripting engine"). Done; the only change: K2 2.3 marks the `=` token instead of
+      the initializer for a type mismatch, the test no longer depends on the marked range.
 - [ ] **JUnit 6 + mockito-kotlin 6**: collapse `org-junit-jupiter`/`org-junit-platform-launcher` into one
       catalog key. Keep the JUnit override in `projectforge-application/build.gradle.kts`
       (`extra["junit-jupiter.version"]`).

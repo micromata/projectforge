@@ -71,9 +71,10 @@ class KotlinScriptExecutionTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val result = execute("val x: Int = \"no int\"")
         Assertions.assertTrue(result.scriptLogger.hasErrors, "Compile error expected in script log.")
-        // Line numbers refer to the effective script (incl. auto imports and bindings), so check the marked source:
+        // Line numbers refer to the effective script (incl. auto imports and bindings), so check the marked source.
+        // The marked range depends on the compiler version (Kotlin 2.2: the initializer, 2.3: the '=' token):
         Assertions.assertTrue(
-            result.scriptLogger.messages.any { it.message?.contains(""">>>"no int"<<<""") == true },
+            result.scriptLogger.messages.any { it.message?.let { msg -> msg.contains(">>>") && msg.contains("\"no int\"") } == true },
             "Compile error should mark the erroneous code: ${messages(result)}",
         )
     }
