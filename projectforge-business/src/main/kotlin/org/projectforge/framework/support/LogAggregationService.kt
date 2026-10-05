@@ -109,6 +109,9 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
     @Volatile
     private var closed = false
 
+    /** Set once [mergeGroups] succeeded. */
+    private var merged = false
+
     @PostConstruct
     internal fun init() {
         if (!enabled) {
@@ -194,6 +197,9 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         if (!enabled || closed) {
             return
         }
+        if (!merged) {
+            merged = runGuarded("merge the problems of a changed grouping") { mergeGroups() } != null
+        }
         val groups = buffer.drain()
         if (groups.isEmpty()) {
             // Nothing to write: no db access (e.g. on shutdown, when the db may already be closed).
@@ -211,6 +217,15 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
             buffer.restore(groups)
         } else {
             written.forEach { states[it.fingerprint] = it }
+        }
+    }
+
+    /** Once per start, by the first flush: the grouping may have changed with the new version, see [LogGroupMerger]. */
+    internal fun mergeGroups() {
+        val removed = persistenceService.runInNewTransaction { context -> LogGroupMerger.merge(context) }
+        if (removed > 0) {
+            log.info { "Log aggregation merged $removed problems into others (grouping changed)." }
+            reloadStates()
         }
     }
 

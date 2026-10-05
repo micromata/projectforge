@@ -3158,7 +3158,7 @@
           "resolved": "Resolved"
         },
         "threshold": "Threshold (per hour)",
-        "title": "Error dashboard",
+        "title": "Problem dashboard",
         "totalCount": "Total",
         "trend": "Trend (7 days)"
       },

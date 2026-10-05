@@ -399,7 +399,7 @@ class LogGroupAdminService {
         const val TREND_BIN_HOURS = 6
         const val MAX_MUTE_DAYS = 365
 
-        /** The error dashboard of projectforge-next, a problem is linked as `?id=<id>`. */
+        /** The problem dashboard of projectforge-next, a problem is linked as `?id=<id>`. */
         const val DASHBOARD_PATH = "next/adminErrors"
         private const val MAX_IN_IDS = 1000
 

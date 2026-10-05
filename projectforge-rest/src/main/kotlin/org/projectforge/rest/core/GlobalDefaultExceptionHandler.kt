@@ -106,7 +106,7 @@ internal class GlobalDefaultExceptionHandler {
         }
         reportToSupport(request, ex)
         GlobalExceptionRegistry.findExInfo(ex)?.let {
-            return handleKnownException(ex, it)
+            return handleKnownException(request, ex, it)
         }
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
@@ -141,11 +141,20 @@ internal class GlobalDefaultExceptionHandler {
         )
     }
 
-    private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {
-        val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
+    /**
+     * Logged with the request's uri, which the error dashboard's link into the log viewer searches for (the
+     * location of a request's problem is the root cause's frame, not this class).
+     */
+    private fun handleKnownException(
+        request: HttpServletRequest,
+        ex: Throwable,
+        exInfo: GlobalExceptionRegistry.ExInfo,
+    ): Any {
+        val msg = if (exInfo.message.isNullOrBlank()) ex.message else "${exInfo.message}: ${ex.message}"
+        val logMsg = "$msg (${request.method} ${request.requestURI})"
         when (exInfo.logLevel) {
-            LogLevel.INFO -> log.info { msg }
-            else -> log.error { msg }
+            LogLevel.INFO -> log.info { logMsg }
+            else -> log.error { logMsg }
         }
         return ResponseEntity(msg, exInfo.status)
     }
