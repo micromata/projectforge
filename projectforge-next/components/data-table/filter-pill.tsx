@@ -27,8 +27,8 @@ interface FilterPillProps {
 /**
  * One filter field as a pill whose popover holds its input — the primary way to filter a
  * list, as in the legacy webapp. Editing a draft applies to the list automatically (debounced),
- * so the list follows along as the user steps a period; closing keeps what was applied and
- * "Abbrechen" restores the value the popover opened with.
+ * so the list follows along as the user steps a period; "Übernehmen" (or closing) keeps what was
+ * applied and "Abbrechen" restores the value the popover opened with.
  */
 export function FilterPill({
   element,
@@ -110,6 +110,10 @@ export function FilterPill({
       }}
       removable={removable}
       onCancel={cancel}
+      onApply={() => {
+        save();
+        onOpenChange(false);
+      }}
       onDelete={onDelete}
       contentClassName={isPeriod ? "w-80" : isTask ? "w-96" : undefined}
       onToggle={
