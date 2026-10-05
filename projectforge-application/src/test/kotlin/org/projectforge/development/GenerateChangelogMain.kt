@@ -32,6 +32,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import kotlin.system.exitProcess
 
 /**
  * Generates the changelog of the website and of the app from `changelog/changelog.json`, the single
@@ -84,6 +85,7 @@ object GenerateChangelogMain {
 
   private val ID_REGEX = Regex("""[a-z0-9]+(-[a-z0-9]+)*""")
   private val COMMIT_REGEX = Regex("""[0-9a-f]{7,40}""")
+  private val RELEASE_VERSION_REGEX = Regex("""(\d+)\.(\d+)\.(\d+)""")
   private val HTML_REGEX = Regex("""<\s*[a-zA-Z/!]""")
   private val MARKER_REGEX = Regex("""\{/?([a-zA-Z]+)}""")
   private val CODE_REGEX = Regex("""`([^`]+)`""")
@@ -92,9 +94,18 @@ object GenerateChangelogMain {
   private val ITALIC_REGEX = Regex("""(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])""")
   private val RED_REGEX = Regex("""\{red}(.*?)\{/red}""")
 
+  /**
+   * Generates all files. With `--check-release X.Y.Z` (used by `bin/pfDev.sh release`) it only checks that the
+   * changelog is ready for that release (see [checkRelease]) and writes its GitHub release notes to
+   * `build/release-notes-X.Y.Z.md`; it exits with 1 if the changelog isn't ready.
+   */
   @JvmStatic
   fun main(args: Array<String>) {
     val rootDir = resolveRootDir()
+    val checkIndex = args.indexOf("--check-release")
+    if (checkIndex >= 0) {
+      exitProcess(checkReleaseMain(rootDir, args.getOrNull(checkIndex + 1).orEmpty()))
+    }
     val files = generate(rootDir)
     files.forEach { (path, content) ->
       val file = File(rootDir, path)
@@ -115,6 +126,113 @@ object GenerateChangelogMain {
   }
 
   internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
+
+  private fun checkReleaseMain(rootDir: File, version: String): Int {
+    val root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
+    val translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
+    val errors = checkRelease(root, translation, version)
+    if (errors.isNotEmpty()) {
+      System.err.println("The changelog isn't ready for the release $version:\n${errors.joinToString("\n")}")
+      return 1
+    }
+    val notes = File(rootDir, releaseNotesPath(version))
+    notes.parentFile.mkdirs()
+    notes.writeText(releaseNotesMarkdown(root, version), ENCODING)
+    println("The changelog is ready for the release $version, release notes: ${notes.path}")
+    return 0
+  }
+
+  /** The GitHub release notes of [version], written by the check mode of [main] (a build artifact). */
+  internal fun releaseNotesPath(version: String) = "build/release-notes-$version.md"
+
+  /** The git tag of a release, `8.2.37-RELEASE` (the scheme of all tags since 7.0). */
+  internal fun releaseTag(version: String) = "$version-RELEASE"
+
+  /** The version a news is kept by: major.minor, `8.2` of `8.2.37`, `8.2.0-SNAPSHOT` or `8.2-SNAPSHOT`. */
+  internal fun newsVersion(version: String): String =
+    version.substringBefore('-').split('.').take(2).joinToString(".")
+
+  /**
+   * Checks that the changelog [root] (and its [translation]) is ready for the release [version] `X.Y.Z`: valid,
+   * its release is the newest entry of `releases`, tagged `X.Y.Z-RELEASE`, not dated in the future and not
+   * released before. Major and minor releases (`X.Y.0`) open a line and need its news (version `X.Y`), a build
+   * (`X.Y.Z`, Z > 0) is listed below the news of its line.
+   */
+  internal fun checkRelease(
+    root: JsonNode,
+    translation: JsonNode,
+    version: String,
+    today: LocalDate = LocalDate.now(),
+  ): List<String> {
+    val match = RELEASE_VERSION_REGEX.matchEntire(version)
+      ?: return listOf("'$version' is no release version, expected X.Y.Z (e.g. 8.2.37).")
+    val errors = validate(root).toMutableList()
+    if (errors.isNotEmpty()) return errors
+    errors += validateTranslation(root, translation)
+    val tag = releaseTag(version)
+    val releases = root["releases"]
+    val release = releases[0]
+    val where = "releases[0] (${release["id"]?.asText()})"
+    if (release["version"]?.asText() != version) {
+      errors.add("$where: the newest release must be the one of version $version, add its entry on top of 'releases'.")
+    }
+    if (release["tag"]?.asText() != tag) errors.add("$where: 'tag' must be '$tag'.")
+    if (LocalDate.parse(release["date"].asText()).isAfter(today)) errors.add("$where: the date is in the future.")
+    releases.drop(1).filter { it["version"]?.asText() == version || it["tag"]?.asText() == tag }.forEach {
+      errors.add("releases (${it["id"]?.asText()}): version $version is released already.")
+    }
+    val line = newsVersion(version)
+    if (match.groupValues[3] == "0" && root["news"].none { it["version"]?.asText() == line }) {
+      errors.add("news: the release $version opens the version $line and needs a news with version \"$line\".")
+    }
+    return errors
+  }
+
+  /**
+   * The GitHub release notes of the release [version] (Markdown, English): its intro, the news of its version
+   * for a major or minor release (`X.Y.0`) and its sections.
+   */
+  internal fun releaseNotesMarkdown(root: JsonNode, version: String): String {
+    val release = root["releases"].first { it["version"]?.asText() == version }
+    val sb = StringBuilder()
+    sb.appendLine("# ProjectForge $version")
+    release["intro"]?.forEach {
+      sb.appendLine()
+      sb.appendLine(textToMarkdown(it.asText()))
+    }
+    if (version.endsWith(".0")) {
+      root["news"].firstOrNull { it["version"]?.asText() == newsVersion(version) }?.let { news ->
+        sb.appendLine()
+        sb.appendLine("## ${news["title"].asText()}")
+        sb.appendLine()
+        sb.appendLine(textToMarkdown(news["text"].asText()))
+        news["highlights"]?.takeIf { !it.isEmpty }?.let { highlights ->
+          sb.appendLine()
+          highlights.forEach { sb.appendLine("- ${textToMarkdown(it.asText())}") }
+        }
+      }
+    }
+    release["sections"].forEach { section ->
+      sb.appendLine()
+      sb.appendLine("## ${section["type"].asText().replaceFirstChar { it.uppercase() }}")
+      sb.appendLine()
+      section["items"].forEach { item ->
+        if (item.isTextual) {
+          val lines = textToMarkdown(item.asText()).split('\n')
+          sb.appendLine("- ${lines.first()}")
+          lines.drop(1).forEach { sb.appendLine("  $it") }
+        } else {
+          sb.appendLine("- **${item["title"].asText()}**")
+          item["items"].forEach { sb.appendLine("  - ${textToMarkdown(it.asText())}") }
+        }
+      }
+    }
+    return sb.toString()
+  }
+
+  /** The markdown subset is GitHub Markdown already, except red text: a bold warning there. */
+  internal fun textToMarkdown(text: String): String =
+    RED_REGEX.replace(text) { "**⚠️ ${it.groupValues[1].replace("**", "")}**" }
 
   /**
    * All generated files, relative path to content. Throws [IllegalArgumentException] listing every
@@ -150,13 +268,16 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The id of the release each news is shown above, by index of the news: the newest release whose version
-   * without qualifier (`8.2` of `8.2-SNAPSHOT`) is the version of the news. Null if there is none.
+   * The id of the release each news is shown above, by index of the news: the newest release whose major.minor
+   * version (see [newsVersion], `8.2` of `8.2.37` or `8.2-SNAPSHOT`) is the version of the news. Null if there
+   * is none.
    */
   internal fun newsAnchors(root: JsonNode): List<String?> =
     root["news"].map { news ->
-      val version = news["version"]?.asText()
-      root["releases"].firstOrNull { it["version"]?.asText()?.substringBefore('-') == version }?.get("id")?.asText()
+      val version = news["version"]?.asText()?.let { newsVersion(it) }
+      root["releases"].firstOrNull { release ->
+        release["version"]?.asText()?.let { newsVersion(it) } == version
+      }?.get("id")?.asText()
     }
 
   internal fun validate(root: JsonNode): List<String> {
