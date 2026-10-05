@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.fop.datatypes.Numeric
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
@@ -404,7 +404,7 @@ class KostCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing KostCache ...")
+        log.info { "Initializing KostCache ..." }
         persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             this.kost1Map = persistenceService

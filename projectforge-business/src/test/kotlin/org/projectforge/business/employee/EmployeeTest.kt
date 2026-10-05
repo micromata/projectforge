@@ -59,12 +59,12 @@ class EmployeeTest : AbstractTestBase() {
     @AfterEach
     fun clean() {
         //Get initial infos
-        baseLog.info("Cleanup deleted employess -> undelete")
-        baseLog.info("Count employees: " + employeeList.size)
+        baseLog.info { "Cleanup deleted employess -> undelete" }
+        baseLog.info { "Count employees: " + employeeList.size }
         Assertions.assertTrue(employeeList.isNotEmpty())
         persistenceService.runInTransaction { _ ->
             for (e in employeeList) {
-                baseLog.info("Employee: $e")
+                baseLog.info { "Employee: $e" }
                 if (e.deleted) {
                     //Undelete
                     employeeDao.undelete(e, checkAccess = false)
@@ -76,10 +76,10 @@ class EmployeeTest : AbstractTestBase() {
     @Test
     fun testMarkAsDeleted() {
         //Get initial infos
-        baseLog.info("Count employees: " + employeeList.size)
+        baseLog.info { "Count employees: " + employeeList.size }
         Assertions.assertTrue(employeeList.isNotEmpty())
         val e = employeeList[0]
-        baseLog.info("Employee: $e")
+        baseLog.info { "Employee: $e" }
 
         //Mark as deleted
         employeeDao.markAsDeleted(e)

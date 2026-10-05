@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.beanutils.NestedNullException
 import org.apache.commons.beanutils.PropertyUtils
 import org.hibernate.Hibernate
@@ -76,7 +76,7 @@ object ValidationUtils {
         val clazz = obj::class.java
         val properties = ElementsRegistry.listProperties(clazz)
         if (properties.isEmpty()) {
-            log.error("Internal error, no @PropertyInfo found for '$clazz'. No validation errors will be built automatically.")
+            log.error { "Internal error, no @PropertyInfo found for '$clazz'. No validation errors will be built automatically." }
             return validationErrors
         }
         properties.forEach { property ->
@@ -90,7 +90,7 @@ object ValidationUtils {
                 } catch (ex: NestedNullException) {
                     null
                 } catch (ex: Exception) {
-                    log.warn("Unknown property '$clazz.$property': ${ex.message}.")
+                    log.warn { "Unknown property '$clazz.$property': ${ex.message}." }
                     null
                 }
             if (value is Collection<*>) {
@@ -153,7 +153,7 @@ object ValidationUtils {
             is Short -> BigDecimal(value.toInt())
             is Double -> BigDecimal.valueOf(value)
             else -> {
-                log.warn("@PropertyInfo(min/max) of '$fieldId' ignored: '${value::class.java}' is no number.")
+                log.warn { "@PropertyInfo(min/max) of '$fieldId' ignored: '${value::class.java}' is no number." }
                 return null
             }
         }

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -91,7 +91,7 @@ class PersonalAddressCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Refreshing PersonalAddressCache...")
+        log.info { "Refreshing PersonalAddressCache..." }
         synchronized(ownersMap) {
             ownersMap.clear()
         }

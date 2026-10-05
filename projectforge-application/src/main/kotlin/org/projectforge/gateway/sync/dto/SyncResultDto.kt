@@ -36,6 +36,7 @@ data class SyncResultDto(
     val created: Int = 0,
     val updated: Int = 0,
     val deleted: Int = 0,
+    val unchanged: Int = 0,
     val errors: Int = 0,
     val icsCacheSize: Int? = null,
 ) {
@@ -43,6 +44,7 @@ data class SyncResultDto(
         counts.created += created
         counts.updated += updated
         counts.deleted += deleted
+        counts.unchanged += unchanged
         counts.errors += errors
     }
 }

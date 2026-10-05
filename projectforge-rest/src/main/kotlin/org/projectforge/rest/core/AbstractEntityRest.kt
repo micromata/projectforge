@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
@@ -416,12 +416,12 @@ constructor(
             favorites?.let { favs ->
                 val foreignIds = favs.idTitleList.filter { (favs.get(it.id) as Any?) !is MagicFilter }.map { it.id }
                 if (foreignIds.isNotEmpty()) {
-                    log.warn("Ignoring ${foreignIds.size} favorite(s) of a foreign type in the '$category' pref slot (legacy shared favorites).")
+                    log.warn { "Ignoring ${foreignIds.size} favorite(s) of a foreign type in the '$category' pref slot (legacy shared favorites)." }
                     foreignIds.forEach { favs.remove(it) }
                 }
             }
         } catch (ex: Exception) {
-            log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
+            log.error { "Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter." }
         }
         if (favorites == null) {
             // Creating empty filter list (user has no filter list yet):
@@ -452,7 +452,7 @@ constructor(
         val favorites = getFilterFavorites()
         val currentFilter = favorites.get(id)
         if (currentFilter == null) {
-            log.warn("Can't select filter $id, because it's not found in favorites list.")
+            log.warn { "Can't select filter $id, because it's not found in favorites list." }
             return getCurrentFilter()
         }
         // Puts a deep copy of the current filter. Without copying, the favorite filter of the list will
@@ -507,7 +507,7 @@ constructor(
         if (filter != null) {
             filter.name = newName
         } else {
-            log.warn("Could not rename the user's filter. Filter with id '$id' not found for category '$category'.")
+            log.warn { "Could not rename the user's filter. Filter with id '$id' not found for category '$category'." }
         }
         val currentFilter = getCurrentFilter()
         if (currentFilter.id == filter?.id) {
@@ -877,7 +877,7 @@ constructor(
     @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
     fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
         val count = registerForSelection(request, filter)
-        log.info("User wants to start multiselection of $count entries.")
+        log.info { "User wants to start multiselection of $count entries." }
         return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
     }
 
@@ -894,7 +894,7 @@ constructor(
         @RequestBody filter: MagicFilter,
     ): MultiSelectNavigation {
         val count = registerForSelection(request, filter)
-        log.info("User wants to start multiselection of $count entries.")
+        log.info { "User wants to start multiselection of $count entries." }
         return MultiSelectNavigation(
             url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true),
             selectedCount = count,

@@ -23,7 +23,7 @@
 
 package org.projectforge.menu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.RecentQueue
@@ -119,7 +119,7 @@ open class RecentMenuEntriesService {
                     as? RecentQueue<String>
         } catch (ex: Exception) {
             // A pref written by an incompatible version: the history is worth no more than a log entry.
-            log.error("Unexpected exception while getting the recent menu entries of user #$userId: ${ex.message}.", ex)
+            log.error(ex) { "Unexpected exception while getting the recent menu entries of user #$userId: ${ex.message}." }
         }
         if (queue == null) {
             queue = RecentQueue(MAX_RECENT_STORED)

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.admin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.i18n.TimeAgo
@@ -43,13 +43,11 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
     val processUptime = ManagementFactory.getRuntimeMXBean().uptime
     val processStartTime = PFDateTime.from(ManagementFactory.getRuntimeMXBean().startTime)
     val numberOfActiveThreads = Thread.activeCount()
-    log.info(
-      "System load average: $systemLoadAverage, active threads: $numberOfActiveThreads, process start time: ${processStartTime.isoString}, process uptime: ${
+    log.info { "System load average: $systemLoadAverage, active threads: $numberOfActiveThreads, process start time: ${processStartTime.isoString}, process uptime: ${
         DurationUtils.getFormattedDaysHoursAndMinutes(
           processUptime
         )
-      } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}"
-    )
+      } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}" }
     stats.add(
       "version", "system", "'ProjectForge® version",
       "${ProjectForgeVersion.APP_ID} ${ProjectForgeVersion.VERSION_NUMBER}: build date=${ProjectForgeVersion.BUILD_TIMESTAMP}",

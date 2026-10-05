@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
@@ -163,7 +163,7 @@ class HistoryValueService private constructor() {
         try {
             clazz = Class.forName(typeString)
         } catch (_: ClassNotFoundException) {
-            log.warn("Class '$typeString' not found.")
+            log.warn { "Class '$typeString' not found." }
         }
         if (clazz == null) {
             return addUnknownPropertyType(typeString)
@@ -266,11 +266,11 @@ class HistoryValueService private constructor() {
                     if (ent != null) {
                         ret.add(ent)
                     } else {
-                        log.warn("Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString")
+                        log.warn { "Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString" }
                         ret.add("${propertyClass.simpleName}#$id")
                     }
                 } catch (_: NumberFormatException) {
-                    log.warn("Cannot parse id for property $propertyName: $idString")
+                    log.warn { "Cannot parse id for property $propertyName: $idString" }
                 }
             }
         }

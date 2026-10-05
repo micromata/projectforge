@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
@@ -161,7 +161,7 @@ class BaseDOPersistenceService {
     ) {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
-            log.error(msg)
+            log.error { msg }
             throw RuntimeException(msg)
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UPDATE)
@@ -302,7 +302,7 @@ class BaseDOPersistenceService {
             EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
-            log.error(msg)
+            log.error { msg }
             throw RuntimeException(msg)
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UNDELETE)
@@ -359,7 +359,7 @@ class BaseDOPersistenceService {
         val id = obj.id
         if (id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
-            log.error(msg)
+            log.error { msg }
             throw RuntimeException(msg)
         }
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {

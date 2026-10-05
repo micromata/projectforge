@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
@@ -156,7 +156,7 @@ class EingangsrechnungImportStorage(importSettings: String? = null) :
                 ApplicationContextProvider.getApplicationContext().getBean(EingangsrechnungDao::class.java)
             databaseInvoices = eingangsrechnungDao.getByDateRange(from, until)
             log.debug { "=== DATABASE INVOICES LOADED (Date range: $from to $until) ===" }
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 databaseInvoices?.forEachIndexed { index, invoice ->
                     log.debug {
                         "  DB[$index]: referenz='${invoice.referenz}', kreditor='${invoice.kreditor}', datum=${invoice.datum}, grossSum=${

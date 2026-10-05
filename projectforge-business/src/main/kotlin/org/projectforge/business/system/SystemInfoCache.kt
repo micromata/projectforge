@@ -23,7 +23,7 @@
 
 package org.projectforge.business.system
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.query.sqm.tree.SqmNode.log
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO

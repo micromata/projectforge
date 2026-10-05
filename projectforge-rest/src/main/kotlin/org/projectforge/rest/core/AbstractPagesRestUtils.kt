@@ -24,7 +24,7 @@
 package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translateMsg
@@ -327,7 +327,8 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
 private fun handleException(msg: String, ex: Exception): ResponseEntity<ResponseAction> {
     if (ex is UserException) {
         val msgParams = ex.msgParams ?: ex.params
-        log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
+        // Validation errors of the user (e.g. overlapping time sheets) are shown to the user, no error of the system.
+        log.info { "$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'" }
         // Through translateMsg(ex), not with the params as they are: a MessageParam may be an i18n key itself
         // and has to be translated before it goes into the message, or the user reads the key.
         val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
@@ -335,7 +336,7 @@ private fun handleException(msg: String, ex: Exception): ResponseEntity<Response
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)
     } else {
-        log.error("$msg: message='${ex.message}'", ex)
+        log.error(ex) { "$msg: message='${ex.message}'" }
         val error = ValidationError(ex.message)
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)

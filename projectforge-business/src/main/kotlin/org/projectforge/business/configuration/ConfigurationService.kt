@@ -23,7 +23,7 @@
 
 package org.projectforge.business.configuration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeApp
@@ -253,7 +253,7 @@ open class ConfigurationService {
       try {
         result[0] = IOUtils.toString(it, "UTF-8")
       } catch (ex: IOException) {
-        log.error(ex.message, ex)
+        log.error(ex) { ex.message }
       }
     }
     return result
@@ -280,7 +280,7 @@ open class ConfigurationService {
           inputStream = FileInputStream(file)
           path = file.toURI().toString()
         } catch (ex: FileNotFoundException) {
-          log.error(file.absoluteFile.toString() + ": " + ex.message, ex) // Should not occur.
+          log.error(ex) { file.absoluteFile.toString() + ": " + ex.message } // Should not occur.
           inputStream = null
         }
         showExistingMessage(file, false)
@@ -295,10 +295,8 @@ open class ConfigurationService {
       inputStream = cLoader.getResourceAsStream(filename)
     }
     if (inputStream == null) {
-      log.error(
-        "File '" + filename + "' not found (neither in file system under '" + base.absolutePath
-            + "' nor in resource!)"
-      )
+      log.error { "File '" + filename + "' not found (neither in file system under '" + base.absolutePath +
+            "' nor in resource!)" }
     }
     val result = arrayOfNulls<Any>(2)
     result[0] = inputStream
@@ -347,15 +345,15 @@ open class ConfigurationService {
           keystoreFile = File(applicationHomeDir, keystoreFileName)
         }
         if (!keystoreFile.canRead()) {
-          log.warn("Can't read keystore file: $keystoreFile")
+          log.warn { "Can't read keystore file: $keystoreFile" }
           return
         }
         val inputStream: InputStream = FileInputStream(keystoreFile)
         usersSSLSocketFactory = createSSLSocketFactory(inputStream, keystorePassphrase ?: "")
-        log.info("Keystore successfully read from file: " + keystoreFile.absolutePath)
+        log.info { "Keystore successfully read from file: " + keystoreFile.absolutePath }
       } catch (ex: Throwable) {
-        log.error("Could not initialize your key store (see error message below)!")
-        log.error(ex.message, ex)
+        log.error { "Could not initialize your key store (see error message below)!" }
+        log.error(ex) { ex.message }
       }
     }
   }
@@ -375,11 +373,11 @@ open class ConfigurationService {
 
   private fun ensureDir(dir: File): Boolean {
     if (!dir.exists()) {
-      log.info("Creating directory $dir")
+      log.info { "Creating directory $dir" }
       dir.mkdir()
     }
     if (!dir.canRead()) {
-      log.error("Can't create directory: $dir")
+      log.error { "Can't create directory: $dir" }
       return false
     }
     return true
@@ -399,7 +397,7 @@ open class ConfigurationService {
       return if (configurationDO != null) {
         configurationDO.timeZone
       } else {
-        log.error("No timezone configured in db configuration. Return default timezone.")
+        log.error { "No timezone configured in db configuration. Return default timezone." }
         TimeZone.getDefault()
       }
     }
@@ -427,7 +425,7 @@ open class ConfigurationService {
         month = dayMonthParts[1].toInt()
         day = dayMonthParts[0].toInt()
       } catch (e: NumberFormatException) {
-        log.error("Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: $dayMonthString")
+        log.error { "Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: $dayMonthString" }
         day = 31
         month = 3 // March
       }
@@ -454,7 +452,7 @@ open class ConfigurationService {
         }
       } catch (e: RuntimeException) {
         // this could happen if the database is not initialized (during projectforge initial setup)
-        log.warn("Exception while getting the min password length configuration.", e)
+        log.warn(e) { "Exception while getting the min password length configuration." }
       }
       return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultLongValue.toInt()
     }
@@ -472,7 +470,7 @@ open class ConfigurationService {
         }
       } catch (e: RuntimeException) {
         // this could happen if the database is not initialized (during projectforge initial setup)
-        log.warn("Exception while getting configuration flag - password change requirement.", e)
+        log.warn(e) { "Exception while getting configuration flag - password change requirement." }
       }
       return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.defaultBooleanValue
     }
@@ -566,10 +564,8 @@ open class ConfigurationService {
         nonExistingResources.add(file.absolutePath)
         existingResources.remove(file.absolutePath) // If changed by administrator during application running.
         val type = if (directory) "directory" else "file"
-        log.info(
-          "Using default " + type + " of ProjectForge, because " + type + "'" + file.absolutePath
-              + "' does not exist (OK)"
-        )
+        log.info { "Using default " + type + " of ProjectForge, because " + type + "'" + file.absolutePath +
+              "' does not exist (OK)" }
       }
     }
 
@@ -579,7 +575,7 @@ open class ConfigurationService {
         existingResources.add(file.absolutePath)
         nonExistingResources.remove(file.absolutePath) // If changed by administrator during application running.
         val type = if (directory) "directory" else "file"
-        log.info("Using existing " + type + ":" + file.absolutePath)
+        log.info { "Using existing " + type + ":" + file.absolutePath }
       }
     }
 

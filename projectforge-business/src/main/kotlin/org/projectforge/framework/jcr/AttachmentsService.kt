@@ -24,7 +24,7 @@
 package org.projectforge.framework.jcr
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserGroupCache
@@ -622,7 +622,7 @@ open class AttachmentsService {
         if (dbObj is AttachmentsInfo) {
             // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
             if (subPath != null && subPath != DEFAULT_NODE) {
-                log.warn("********* Support of multiple lists in attachments not yet supported by search index.")
+                log.warn { "********* Support of multiple lists in attachments not yet supported by search index." }
             }
             val attachments = getAttachments(path, objId, null)//, subPath)
             if (attachments != null) {

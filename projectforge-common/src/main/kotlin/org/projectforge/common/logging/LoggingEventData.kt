@@ -61,6 +61,7 @@ class LoggingEventData(event: ILoggingEvent, val id: Long) : Cloneable {
   var ip: String? = null
   var userAgent: String? = null
   var session: String? = null
+  var requestId: String? = null
 
   init {
     val throwableProxy = event.throwableProxy
@@ -76,6 +77,7 @@ class LoggingEventData(event: ILoggingEvent, val id: Long) : Cloneable {
     session = mdcMap[MDC_SESSION]
     ip = mdcMap[MDC_IP]
     userAgent = mdcMap[MDC_USER_AGENT]
+    requestId = mdcMap[MDC_REQUEST_ID]
   }
 
   public override fun clone(): LoggingEventData {

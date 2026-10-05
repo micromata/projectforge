@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO

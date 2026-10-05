@@ -23,7 +23,7 @@
 
 package org.projectforge.flyway.dbmigration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.springframework.jdbc.core.JdbcTemplate
@@ -45,7 +45,7 @@ class V7_4_1_3__ReleaseUserPassword : BaseJavaMigration() {
   )
 
   override fun migrate(context: Context) {
-    log.info("Migrating passwords from t_pf_user to t_pf_user_password...'")
+    log.info { "Migrating passwords from t_pf_user to t_pf_user_password...'" }
     val ds = context.configuration.dataSource
     val jdbc = JdbcTemplate(ds)
     var counter = 0
@@ -75,9 +75,9 @@ class V7_4_1_3__ReleaseUserPassword : BaseJavaMigration() {
         SimpleJdbcInsert(ds).withTableName("T_PF_USER_PASSWORD").execute(parameters)
       }
     if (counter > 0) { // counter > 0
-      log.info("Number of successful migrated user passwords: $counter")
+      log.info { "Number of successful migrated user passwords: $counter" }
     } else {
-      log.info("No user passwords found to migrate (OK, for new systems).")
+      log.info { "No user passwords found to migrate (OK, for new systems)." }
     }
   }
 }

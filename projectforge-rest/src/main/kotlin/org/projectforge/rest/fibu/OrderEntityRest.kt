@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
@@ -629,6 +629,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
     val order = AuftragDO()
     postData.data.copyTo(order)
+    if (order.status == null) {
+      // E.g. the status field was cleared in the edit form: same preset as for new orders (see newBaseDTO),
+      // otherwise OrderInfo.updateFields logs an error.
+      order.status = AuftragsStatus.IN_ERSTELLUNG
+    }
     val storedPositionIds = order.id?.let { id ->
       baseDao.find(id)?.positionen?.mapNotNull { it.id }?.toSet()
     } ?: emptySet()
@@ -925,7 +930,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @AccessChecked("DAO: select access (list result filtered by baseDao)")
   @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
   fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-    log.info("Exporting orders as Excel file.")
+    log.info { "Exporting orders as Excel file." }
     val list = getResultList(filter)
     val xls = orderExport.export(list)
     if (xls == null || xls.isEmpty()) {
@@ -996,7 +1001,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @AccessChecked("DAO: select access (list result filtered by baseDao); showAll only for FINANCE/CONTROLLING")
   @PostMapping("exportForecast")
   fun exportForecast(@RequestBody request: ForecastExportRequest): ResponseEntity<*> {
-    log.info("Exporting forecast of orders as Excel file.")
+    log.info { "Exporting forecast of orders as Excel file." }
     val settings = request.settings ?: ForecastExportSettings()
     userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_EXPORT, settings, true)
     val magicFilter = request.filter ?: MagicFilter()

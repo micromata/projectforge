@@ -24,7 +24,7 @@
 package org.projectforge.i18n
 
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.I18nKeysUsageInterface

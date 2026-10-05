@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
@@ -96,10 +96,8 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
                 Pair("employeeid", obj.employeeId),
             )
             if (CollectionUtils.isNotEmpty(list)) {
-                log.info(
-                    "Insert of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.employeeId + " and year: " +
-                            obj.year + " and month: " + obj.month + " . Existing one: " + list[0].toString()
-                )
+                log.info { "Insert of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.employeeId + " and year: " +
+                            obj.year + " and month: " + obj.month + " . Existing one: " + list[0].toString() }
                 throw UserException("fibu.employee.salary.error.salaryAlreadyExist")
             }
         } else {
@@ -112,10 +110,8 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
                 Pair("id", obj.id),
             )
             if (CollectionUtils.isNotEmpty(list)) {
-                log.info(
-                    "Update of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.employeeId + " and year: " +
-                            obj.year + " and month: " + obj.month + " and ID: " + obj.id + " . Existing one: " + list[0].toString()
-                )
+                log.info { "Update of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.employeeId + " and year: " +
+                            obj.year + " and month: " + obj.month + " and ID: " + obj.id + " . Existing one: " + list[0].toString() }
                 throw UserException("fibu.employee.salary.error.salaryAlreadyExist")
             }
         }

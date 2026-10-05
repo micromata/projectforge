@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.EInvoiceData
 import org.projectforge.business.fibu.EInvoiceReadService
@@ -144,7 +144,7 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
                     .addVariable("variables", formLayoutData.variables)
             )
         } catch (ex: Exception) {
-            log.error("Error parsing e-invoice file: $filename", ex)
+            log.error(ex) { "Error parsing e-invoice file: $filename" }
             ResponseEntity.ok(
                 ResponseAction(targetType = TargetType.UPDATE)
                     .addVariable(

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.liquidityplanning.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -331,7 +331,7 @@ class LiquidityEntityRest :
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting liquidity entries as Excel file.")
+        log.info { "Exporting liquidity entries as Excel file." }
         // Include the virtual (recurring) occurrences the list also shows, sorted in with the real entries.
         val realRows = getResultList(filter)
         val virtual = virtualRowsForList(filter, realRows)
@@ -426,7 +426,7 @@ class LiquidityEntityRest :
     @PostMapping("forecast/excel")
     fun exportForecastAsExcel(@RequestBody request: ForecastRequest): ResponseEntity<*> {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
-        log.info("Exporting liquidity forecast as Excel file.")
+        log.info { "Exporting liquidity forecast as Excel file." }
         val (baseDate, startAmount, nextDays) = forecastParams(request)
         val forecast = liquidityForecastBuilder.build(baseDate, nextDays)
         val cashFlow = LiquidityForecastCashFlow(forecast, nextDays)

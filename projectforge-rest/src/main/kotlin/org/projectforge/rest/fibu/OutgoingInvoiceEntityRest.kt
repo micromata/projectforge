@@ -25,7 +25,7 @@ package org.projectforge.rest.fibu
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
@@ -1358,7 +1358,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting outgoing invoices as Excel file.")
+        log.info { "Exporting outgoing invoices as Excel file." }
         val invoices = getResultList(filter)
         if (invoices.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
@@ -1421,7 +1421,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
     fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting cost assignments of outgoing invoices as Excel file.")
+        log.info { "Exporting cost assignments of outgoing invoices as Excel file." }
         if (!Configuration.instance.isCostConfigured) {
             return ResponseEntity.notFound().build<Any>()
         }

@@ -1,0 +1,77 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      <% if (pf.isVariableGiven("logoUrl")) { %>
+      <a href="<%= pf.getString(baseUrl) %>" target="_blank" rel="noreferrer">
+        <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
+      </a>
+      <% } %>
+      <h1 class="title">Error digest</h1>
+      <p class="muted small">
+        <% if (digest.domain != null) { %><a href="<%= pf.getString(digest.domain) %>"><%= pf.getString(digest.domain) %></a><br/><% } %>
+        <%= pf.getString(digest.period) %>
+      </p>
+      <table class="kpi">
+        <tr>
+          <td>
+            <span class="number<%= digest.errors > 0 ? ' error' : '' %>"><%= digest.errors %></span>
+            <span class="muted small">errors</span>
+          </td>
+          <td>
+            <span class="number<%= digest.external > 0 ? ' warn' : '' %>"><%= digest.external %></span>
+            <span class="muted small">external failures</span>
+          </td>
+          <td>
+            <span class="number"><%= digest.groups %></span>
+            <span class="muted small">groups</span>
+          </td>
+          <% if (digest.dropped > 0) { %>
+          <td>
+            <span class="number warn"><%= digest.dropped %></span>
+            <span class="muted small">dropped (group limit)</span>
+          </td>
+          <% } %>
+        </tr>
+      </table>
+      <% for (section in digest.sections) { %>
+      <h2 class="section"><%= pf.getString(section.title) %><span class="pill"><%= section.count %></span></h2>
+      <table class="list">
+        <% for (g in section.groups) { %>
+        <tr>
+          <td class="count"><%= g.count %>&times;</td>
+          <td>
+            <span class="badge <%= g.levelCss %>"><%= pf.getString(g.level) %></span>
+            <% if (g.exceptionClass != null) { %><span class="mono"><%= pf.getString(g.exceptionClass) %></span> &middot; <% } %>
+            <span class="mono"><%= pf.getString(g.location) %></span>
+            <span class="muted small no-wrap">&nbsp;<%= pf.getString(g.period) %></span>
+            <div><%= pf.getString(g.message) %></div>
+            <% if (g.users != null) { %><div class="muted small">users: <%= pf.getString(g.users) %></div><% } %>
+          </td>
+        </tr>
+        <% } %>
+        <% for (p in section.syncProblems) { %>
+        <tr>
+          <td class="count"><span class="badge badge-warn"><%= pf.getString(p.lastStatus) %></span></td>
+          <td>
+            <span class="mono"><%= pf.getString(p.type) %></span>
+            <span class="muted small">&nbsp;<%= pf.getString(p.counts) %></span>
+            <% if (p.lastError != null) { %><div><%= pf.getString(p.lastError) %></div><% } %>
+          </td>
+        </tr>
+        <% } %>
+      </table>
+      <% } %>
+      <% if (digest.attachmentName != null) { %>
+      <p class="footer">
+        Single occurrences with stack traces (up to <%= digest.maxSamples %> per group) are attached:
+        <span class="mono"><%= pf.getString(digest.attachmentName) %></span>
+      </p>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

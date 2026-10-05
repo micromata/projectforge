@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -533,7 +533,6 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         val valueType = userPref.valueType ?: return null
         val valueString = userPref.serializedValue ?: return null
-        if (userPref.valueType == null) return null
         userPref.valueObject = fromJson(valueString, valueType)
         return userPref.valueObject
     }

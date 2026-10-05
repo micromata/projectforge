@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting.kotlin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.net.URL
 import java.nio.file.Files

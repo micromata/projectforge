@@ -25,7 +25,7 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
@@ -196,7 +196,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         val modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
         // val src = source as EmployeeDO
-        log.warn("*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes")
+        log.warn { "*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes" }
         return modificationStatus
     }
 

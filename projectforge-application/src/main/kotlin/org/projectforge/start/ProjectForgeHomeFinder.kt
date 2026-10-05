@@ -23,7 +23,7 @@
 
 package org.projectforge.start
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.projectforge.ProjectForgeApp
@@ -166,7 +166,8 @@ class ProjectForgeHomeFinder {
     var appHomeDir: File? = paramAppHomeDir
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
-        log.info(logMessage.replace("\$APP_HOME_DIR", appHomeDir.path))
+        val path = appHomeDir.path
+        log.info { logMessage.replace("\$APP_HOME_DIR", path) }
         if (rememberAsDefault) {
           saveUserPrefHomeDir(appHomeDir)
         }
@@ -216,7 +217,7 @@ class ProjectForgeHomeFinder {
           saveUserPrefHomeDir(appHomeDir!!)
           return appHomeDir
         } catch (ex: Exception) {
-          log.error("Error while initializing new ProjectForge home: " + ex.message, ex)
+          log.error(ex) { "Error while initializing new ProjectForge home: " + ex.message }
           ProjectForgeApplication.giveUpAndSystemExit(
             "Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(
               appHomeDir
@@ -248,7 +249,7 @@ class ProjectForgeHomeFinder {
       // Value is unchanged, not needed to save.
       return
     }
-    log.info("Saving ProjectForge's home dir as user preferences (for next start): $absolutePath")
+    log.info { "Saving ProjectForge's home dir as user preferences (for next start): $absolutePath" }
     preferences.put(ENV_PROJECTFORGE_HOME, absolutePath)
   }
 
@@ -313,10 +314,10 @@ class ProjectForgeHomeFinder {
         }
         null
       } catch (ex: URISyntaxException) {
-        log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
+        log.error(ex) { "Internal error while trying to get the location of ProjectForge's running code: " + ex.message }
         null
       } catch (ex: IllegalArgumentException) {
-        log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
+        log.error(ex) { "Internal error while trying to get the location of ProjectForge's running code: " + ex.message }
         null
       }
     }
@@ -355,19 +356,17 @@ class ProjectForgeHomeFinder {
      */
     fun checkDirectory(baseDir: File, logWarning: Boolean): Boolean {
       if (!baseDir.exists()) {
-        if (logWarning) log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' doesn't exist. Ignoring it.")
+        if (logWarning) log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' doesn't exist. Ignoring it." }
         return false
       }
       if (!baseDir.isDirectory) {
-        if (logWarning) log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' is not a directory. Ignoring it.") else log.warn(
-          "'" + CanonicalFileUtils.absolutePath(baseDir) + "' found, but isn't a directory, ignoring..."
-        )
+        if (logWarning) log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' is not a directory. Ignoring it." } else log.warn { "'" + CanonicalFileUtils.absolutePath(baseDir) + "' found, but isn't a directory, ignoring..." }
         return false
       }
       // Check for ProjectForge as source code repository:
       if (isProjectForgeSourceCodeRepository(baseDir)) {
         if (logWarning) {
-          log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' seems to be the source code repository and shouldn't be used. Ignoring it.")
+          log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' seems to be the source code repository and shouldn't be used. Ignoring it." }
         }
         return false
       }

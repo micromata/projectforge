@@ -24,7 +24,7 @@
 package org.projectforge.rest.importer
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.core.AccessChecked
@@ -131,7 +131,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             log.info { "Successfully processed file: $filename" }
             return ResponseEntity.ok(buildView(storage))
         } catch (ex: Exception) {
-            log.error("Error processing uploaded file: $filename", ex)
+            log.error(ex) { "Error processing uploaded file: $filename" }
             return ResponseEntity.badRequest().body(mapOf("error" to (ex.message ?: translate("file.upload.error"))))
         }
     }

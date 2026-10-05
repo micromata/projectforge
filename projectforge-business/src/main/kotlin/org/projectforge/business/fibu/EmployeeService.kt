@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.timesheet.TimesheetDao

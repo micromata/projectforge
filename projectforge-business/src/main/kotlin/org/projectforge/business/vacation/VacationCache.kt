@@ -24,7 +24,7 @@
 package org.projectforge.business.vacation
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
@@ -77,7 +77,7 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         checkRefresh()
         val result = mutableListOf<VacationDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            log.info("No groups given, therefore no vacation will be returned.")
+            log.info { "No groups given, therefore no vacation will be returned." }
             return result
         }
         for (vacation in vacations) {
@@ -135,7 +135,7 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Refreshing VacationCache ...")
+        log.info { "Refreshing VacationCache ..." }
         // runReadOnlyForCacheMaintenance guards against the same self-deadlock as afterInsertOrModify: a refresh
         // triggered from within a write transaction (e.g. a cache getter called mid-insert) must not open a second
         // connection. Outside a transaction it stays isolated, as a refresh normally is.
@@ -156,7 +156,7 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
             vacationMap = map
             vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
         }
-        log.info("Refreshing of VacationCache done.")
+        log.info { "Refreshing of VacationCache done." }
     }
 
     /**

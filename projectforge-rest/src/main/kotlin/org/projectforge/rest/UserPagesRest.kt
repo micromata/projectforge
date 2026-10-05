@@ -26,7 +26,7 @@ package org.projectforge.rest
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapPosixAccountsUtils
 import org.projectforge.business.ldap.LdapSambaAccountsUtils
@@ -613,16 +613,16 @@ class UserPagesRest
         val groupsToAssign = newAssignedGroups.subtract(dbAssignedGroups)
         val groupsToUnassign = dbAssignedGroups.subtract(newAssignedGroups)
         groupDao.assignGroupByIds(obj, groupsToAssign, groupsToUnassign, false)
-        log.info("Assigning groups took: ${(System.currentTimeMillis() - start) / 1000}s.")
+        log.info { "Assigning groups took: ${(System.currentTimeMillis() - start) / 1000}s." }
         val startRights = System.currentTimeMillis()
 
         val user = postData.data
         val userRightVOS = userRightsHandler.getUserRightVOs(user)
         userRightDao.updateUserRights(obj, userRightVOS, false)
-        log.info("Updating rights took: ${(System.currentTimeMillis() - startRights) / 1000}s.")
+        log.info { "Updating rights took: ${(System.currentTimeMillis() - startRights) / 1000}s." }
         //Only one time reload user group cache
         userGroupCache.forceReload()
-        log.info("onAfterSaveOrUpdate: ${(System.currentTimeMillis() - start) / 1000}s.")
+        log.info { "onAfterSaveOrUpdate: ${(System.currentTimeMillis() - start) / 1000}s." }
     }
 
     override fun onAfterSave(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>): ResponseAction {
@@ -895,7 +895,7 @@ class UserPagesRest
         @RequestParam("type", required = true) type: UserTokenType,
         @RequestBody postData: PostData<User>
     ): ResponseEntity<*> {
-        log.info("Trying to renew token $type of user #$userId.")
+        log.info { "Trying to renew token $type of user #$userId." }
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         userAuthenticationsService.renewToken(userId, type)
         val toast = "user.authenticationToken.renew.successful"
@@ -915,7 +915,7 @@ class UserPagesRest
      */
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting users as Excel file.")
+        log.info { "Exporting users as Excel file." }
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
 
         @Suppress("UNCHECKED_CAST")

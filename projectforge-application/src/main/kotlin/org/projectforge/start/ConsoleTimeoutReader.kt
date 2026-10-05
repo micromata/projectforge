@@ -23,7 +23,7 @@
 
 package org.projectforge.start
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
@@ -56,7 +56,7 @@ constructor(
   private val bufferedReader = BufferedReader(streamReader)
 
   fun ask(): String? {
-    log.info("ProjectForge is waiting $timeOutSeconds seconds for your input on console (if running without console, ProjectForge will continue anyway): $question")
+    log.info { "ProjectForge is waiting $timeOutSeconds seconds for your input on console (if running without console, ProjectForge will continue anyway): $question" }
     println()
     println(StringUtils.center(" QUESTION ", 120, "?"))
     println()
@@ -92,13 +92,13 @@ constructor(
     try {
       answer = handler[timeout.toMillis(), TimeUnit.MILLISECONDS]
     } catch (ex: TimeoutException) {
-      log.info("Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting.")
+      log.info { "Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting." }
       handler.cancel(true)
     } catch (ex: InterruptedException) {
-      log.info("Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting.")
+      log.info { "Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting." }
       handler.cancel(true)
     } catch (ex: ExecutionException) {
-      log.info("Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting.")
+      log.info { "Timeout of console input exceeded (>" + timeOutSeconds + "s). Aborting." }
       handler.cancel(true)
     }
     executor.shutdownNow()

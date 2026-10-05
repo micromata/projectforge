@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.translate

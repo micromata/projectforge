@@ -23,7 +23,7 @@
 
 package org.projectforge.business.privacyprotection
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
@@ -52,18 +52,18 @@ class CronPrivacyProtectionJob {
   //@Scheduled(cron = "0 0 4 * * *")
   @Scheduled(cron = "\${projectforge.privacyProtection.cronDaily}")
   fun execute() {
-    log.info("Daily privacy protection job started.")
+    log.info { "Daily privacy protection job started." }
     synchronized(jobs) {
       Thread {
         jobs.forEach {
           try {
             it.execute()
           } catch (ex: Exception) {
-            log.error("Error while executing job '${it::class.java.name}: ${ex.message}", ex)
+            log.error(ex) { "Error while executing job '${it::class.java.name}: ${ex.message}" }
           }
         }
       }.start()
     }
-    log.info("Daily privacy protection job finished.")
+    log.info { "Daily privacy protection job finished." }
   }
 }

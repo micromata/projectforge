@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.database
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BackupFilesPurging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled

@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -115,7 +115,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     open fun getUserByToken(userId: Long, type: UserTokenType, token: String?): PFUserDO? {
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.warn("Token for user $userId too short, aborting.")
+            log.warn { "Token for user $userId too short, aborting." }
             return null
         }
         val sql = when (type) {
@@ -123,7 +123,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
             else -> {
-                log.error("Getting user by token of type $type not supported.")
+                log.error { "Getting user by token of type $type not supported." }
                 return null
             }
         }
@@ -134,7 +134,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             Pair("token", encryptToken(token)),
         )
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
+            log.warn { "Deleted user '${user.username}' tried to login (via token '$type')." }
             return null
         }
         return user
@@ -142,7 +142,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     open fun getUserByToken(username: String, type: UserTokenType, token: String?): PFUserDO? {
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.warn("Token for user '$username' too short, aborting.")
+            log.warn { "Token for user '$username' too short, aborting." }
             return null
         }
         val sql = when (type) {
@@ -150,7 +150,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
             else -> {
-                log.error("Getting user by token of type $type not supported.")
+                log.error { "Getting user by token of type $type not supported." }
                 return null
             }
         }
@@ -161,7 +161,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             Pair("token", encryptToken(token)),
         )
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
+            log.warn { "Deleted user '${user.username}' tried to login (via token '$type')." }
             return null
         }
         return user
@@ -261,7 +261,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     private fun checkAndFixToken(authentications: UserAuthenticationsDO, userId: Long, type: UserTokenType): Boolean {
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.info("Authentication token '$type' renewed for user: $userId")
+            log.info { "Authentication token '$type' renewed for user: $userId" }
             authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             return true
         }
@@ -275,12 +275,12 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
         val authentications = getByUserId(userId)
         if (authentications == null) {
-            log.warn("No user authentications object found for user $userId. Nothing to renew for token '$type'.")
+            log.warn { "No user authentications object found for user $userId. Nothing to renew for token '$type'." }
             return
         }
         authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
         update(authentications)
-        log.info("Authentication token '$type' renewed for user: $userId")
+        log.info { "Authentication token '$type' renewed for user: $userId" }
     }
 
     /**
@@ -309,7 +309,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         update(authentications)
         ThreadLocalUserContext.userContext!!
             .updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
-        log.info("Authenticator token created for user '${loggedInUser.username}'.")
+        log.info { "Authenticator token created for user '${loggedInUser.username}'." }
     }
 
     /**
@@ -322,7 +322,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         authentications.authenticatorToken = null
         authentications.authenticatorTokenCreationDate = null
         update(authentications)
-        log.info("Authenticator token deleted for user '${loggedInUser.username}'.")
+        log.info { "Authenticator token deleted for user '${loggedInUser.username}'." }
     }
 
     internal fun createAuthenticationToken(type: UserTokenType): String {

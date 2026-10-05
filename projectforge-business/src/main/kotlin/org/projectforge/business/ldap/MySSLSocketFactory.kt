@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
@@ -43,43 +43,43 @@ class MySSLSocketFactory : SSLSocketFactory() {
   private val sf: SSLSocketFactory
   @Throws(IOException::class)
   override fun createSocket(): Socket {
-    log.info("[createSocket()]")
+    log.info { "[createSocket()]" }
     return sf.createSocket()
   }
 
   @Throws(IOException::class)
   override fun createSocket(host: String, port: Int): Socket {
-    log.info("[createSocket(host='$host', port=$port)]")
+    log.info { "[createSocket(host='$host', port=$port)]" }
     return sf.createSocket(host, port)
   }
 
   @Throws(IOException::class)
   override fun createSocket(host: InetAddress, port: Int): Socket {
-    log.info("[createSocket(host='$host', port=$port)]")
+    log.info { "[createSocket(host='$host', port=$port)]" }
     return sf.createSocket(host, port)
   }
 
   @Throws(IOException::class)
   override fun createSocket(s: Socket, consumed: InputStream, autoClose: Boolean): Socket {
-    log.info("[createSocket(socket='${s.inetAddress}', InputStream, autoClose=$autoClose)]")
+    log.info { "[createSocket(socket='${s.inetAddress}', InputStream, autoClose=$autoClose)]" }
     return sf.createSocket(s, consumed, autoClose)
   }
 
   @Throws(IOException::class)
   override fun createSocket(s: Socket, host: String, port: Int, autoClose: Boolean): Socket {
-    log.info("[createSocket(socket='${s.inetAddress}', host='$host', port=$port, autoClose=$autoClose)]")
+    log.info { "[createSocket(socket='${s.inetAddress}', host='$host', port=$port, autoClose=$autoClose)]" }
     return sf.createSocket(s, host, port, autoClose)
   }
 
   @Throws(IOException::class)
   override fun createSocket(host: String, port: Int, localHost: InetAddress, localPort: Int): Socket {
-    log.info("[createSocket(host='$host', port=$port, localHost='${localHost.hostAddress}', localPort=$localPort)]")
+    log.info { "[createSocket(host='$host', port=$port, localHost='${localHost.hostAddress}', localPort=$localPort)]" }
     return sf.createSocket(host, port, localHost, localPort)
   }
 
   @Throws(IOException::class)
   override fun createSocket(address: InetAddress, port: Int, localAddress: InetAddress, localPort: Int): Socket {
-    log.info("[createSocket(address='$address', port=$port, localAddress='$localAddress', localPort=$localPort)]")
+    log.info { "[createSocket(address='$address', port=$port, localAddress='$localAddress', localPort=$localPort)]" }
     return sf.createSocket(address, port, localAddress, localPort)
   }
 
@@ -92,7 +92,7 @@ class MySSLSocketFactory : SSLSocketFactory() {
   }
 
   init {
-    log.info("[MySSLSocketFactory]")
+    log.info { "[MySSLSocketFactory]" }
     val ctx = SSLContext.getInstance("TLS")
     ctx.init(null, MyTrustManager.getTrustManagers(), null)
     sf = ctx.socketFactory

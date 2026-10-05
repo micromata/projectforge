@@ -25,7 +25,7 @@ package org.projectforge.rest.sipgate
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
@@ -438,7 +438,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                         }
                     }
             }
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 val sb = StringBuilder()
                 sb.appendLine("matchscores:")
                 val map = matchScores.sortedBy { it.score }.groupBy { it.contactId }
@@ -626,7 +626,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                                             }
                                             syncContext.localCounter.updated++
                                         } catch (ex: Exception) {
-                                            log.error("${getLogInfo(address, contact)}: ${ex.message}", ex)
+                                            log.error(ex) { "${getLogInfo(address, contact)}: ${ex.message}" }
                                             syncContext.localCounter.failed++
                                         }
                                     }
@@ -702,7 +702,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                                         }
                                         syncContext.localCounter.inserted++
                                     } catch (ex: Exception) {
-                                        log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                                        log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                                         syncContext.localCounter.failed++
                                     }
                                 } else {
@@ -731,7 +731,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 return syncContext
             } catch (ex: Exception) {
                 run.abort(ex.message ?: ex.javaClass.simpleName, IntegrationErrors.isTimeout(ex))
-                log.error("Error during sync: ${ex.message}", ex)
+                log.error(ex) { "Error during sync: ${ex.message}" }
                 throw ex
             }
         }
@@ -751,7 +751,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 it.remoteCounter.inserted++
             }
         } catch (ex: Exception) {
-            log.error("${getLogInfo(address, null)}: ${ex.message}", ex)
+            log.error(ex) { "${getLogInfo(address, null)}: ${ex.message}" }
             syncContext?.let {
                 it.remoteCounter.failed++
             }
@@ -784,7 +784,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 }
                 syncContext.remoteCounter.updated++
             } catch (ex: Exception) {
-                log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                 syncContext.remoteCounter.failed++
             }
         }
@@ -812,7 +812,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                     }
                     syncContext.remoteCounter.deleted++
                 } catch (ex: Exception) {
-                    log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                    log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                     syncContext.remoteCounter.failed++
                 }
             }
@@ -1011,7 +1011,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 singleSyncDelayMillis // 10s for single
             }
 
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug {
                     "Address #${obj.id} modified, scheduling sync in ${delayMillis}ms " +
                             "(batch=$isBatchUpdate, timeSinceLastUpdate=${timeSinceLastUpdate}ms)"

@@ -27,7 +27,7 @@ import jakarta.persistence.*
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.NonUniqueResultException
 import org.hibernate.engine.spi.SessionImplementor
 import org.projectforge.SystemStatus
@@ -156,7 +156,7 @@ class PfPersistenceContext internal constructor(
     }
 
     private fun reportSharedDetach(): Boolean {
-        return SystemStatus.isDevelopmentMode() || sharedDetachLog.isDebugEnabled
+        return SystemStatus.isDevelopmentMode() || sharedDetachLog.isDebugEnabled()
     }
 
     /**
@@ -610,7 +610,7 @@ class PfPersistenceContext internal constructor(
             "select max(t.$attribute) from $table t",
             Int::class.java,
         ) ?: run {
-            log.info("First entry of $table, starting with number ${startNumber + 1}.")
+            log.info { "First entry of $table, starting with number ${startNumber + 1}." }
             startNumber
         }
         return maxNumber + 1

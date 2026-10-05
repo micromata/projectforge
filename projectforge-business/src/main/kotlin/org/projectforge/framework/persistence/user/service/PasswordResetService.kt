@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.user.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService

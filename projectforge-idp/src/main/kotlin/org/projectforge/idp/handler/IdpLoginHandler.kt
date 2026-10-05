@@ -23,7 +23,7 @@
 
 package org.projectforge.idp.handler
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.login.LoginDefaultHandler
@@ -114,17 +114,15 @@ open class IdpLoginHandler : LoginHandler {
     override fun initialize() {
         val providerName = idpAdminClient.providerName()
         if (!idpAdminClient.isConfigured()) {
-            log.warn(
-                "$providerName is not fully configured. " +
-                "IdpLoginHandler will not be able to sync with $providerName."
-            )
+            log.warn { "$providerName is not fully configured. " +
+                "IdpLoginHandler will not be able to sync with $providerName." }
         } else {
-            log.info("IdpLoginHandler initialized (provider=$providerName)")
+            log.info { "IdpLoginHandler initialized (provider=$providerName)" }
         }
         try {
             ldapMasterLoginHandler.initialize()
         } catch (ex: Exception) {
-            log.warn("LDAP initialization failed (ignored): ${ex.message}")
+            log.warn { "LDAP initialization failed (ignored): ${ex.message}" }
         }
     }
 
@@ -142,7 +140,7 @@ open class IdpLoginHandler : LoginHandler {
         try {
             ldapMasterLoginHandler.checkLogin(username, password)
         } catch (ex: Exception) {
-            log.error("LDAP master checkLogin failed (ignoring): ${ex.message}", ex)
+            log.error(ex) { "LDAP master checkLogin failed (ignoring): ${ex.message}" }
         }
 
         return result
@@ -159,7 +157,7 @@ open class IdpLoginHandler : LoginHandler {
                 val freshGroups = groupService.getAllGroups()
                 ldapMasterLoginHandler.afterUserGroupCacheRefresh(freshUsers, freshGroups)
             } catch (ex: Exception) {
-                log.error("IdP sync failed: ${ex.message}", ex)
+                log.error(ex) { "IdP sync failed: ${ex.message}" }
             } finally {
                 syncInProgress = false
             }
@@ -187,7 +185,7 @@ open class IdpLoginHandler : LoginHandler {
         try {
             ldapMasterLoginHandler.passwordChanged(user, newPassword)
         } catch (ex: Exception) {
-            log.error("LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error(ex) { "LDAP password change failed for user '${user.username}' (ignoring): ${ex.message}" }
         }
     }
 
@@ -195,7 +193,7 @@ open class IdpLoginHandler : LoginHandler {
         try {
             ldapMasterLoginHandler.wlanPasswordChanged(user, newPassword)
         } catch (ex: Exception) {
-            log.error("LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error(ex) { "LDAP WLAN password change failed for user '${user.username}' (ignoring): ${ex.message}" }
         }
     }
 
@@ -205,7 +203,7 @@ open class IdpLoginHandler : LoginHandler {
 
     private fun syncFromIdp() {
         if (!idpAdminClient.isConfigured()) {
-            log.debug("IdP not configured, skipping sync.")
+            log.debug { "IdP not configured, skipping sync." }
             return
         }
         syncStats.execute(idpAdminClient.providerName()) { run -> syncFromIdp(run) }
@@ -213,7 +211,7 @@ open class IdpLoginHandler : LoginHandler {
 
     private fun syncFromIdp(run: SyncStats.Run) {
         val providerName = idpAdminClient.providerName()
-        log.info("Starting $providerName -> PF DB sync...")
+        log.info { "Starting $providerName -> PF DB sync..." }
 
         // --- Sync users ---
         var stepStart = System.currentTimeMillis()
@@ -249,7 +247,7 @@ open class IdpLoginHandler : LoginHandler {
                     idpUser.id?.let { idpIdToPfUser[it] = existing }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing user '${idpUser.username}' from $providerName (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error syncing user '${idpUser.username}' from $providerName (continuing): ${ex.message}" }
                 errors++
             }
         }
@@ -263,12 +261,12 @@ open class IdpLoginHandler : LoginHandler {
                     deactivated++
                 }
             } catch (ex: Exception) {
-                log.error("Error deactivating user '${user.username}' (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error deactivating user '${user.username}' (continuing): ${ex.message}" }
                 errors++
             }
         }
-        log.info("$providerName user sync: $created created, $updated updated, $deactivated deactivated" +
-                (if (errors > 0) ", *** $errors errors ***" else ""))
+        log.info { "$providerName user sync: $created created, $updated updated, $deactivated deactivated" +
+                (if (errors > 0) ", *** $errors errors ***" else "") }
         run.addStep("users", System.currentTimeMillis() - stepStart,
             SyncCounts(created, updated, deactivated, maxOf(0, idpUsers.size - created - updated - errors), errors))
 
@@ -309,12 +307,12 @@ open class IdpLoginHandler : LoginHandler {
                     idpGroup.id?.let { idpIdToPfGroup[it] = existing }
                 }
             } catch (ex: Exception) {
-                log.error("Error syncing group '${idpGroupShallow.name}' from $providerName (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error syncing group '${idpGroupShallow.name}' from $providerName (continuing): ${ex.message}" }
                 gErrors++
             }
         }
-        log.info("$providerName group sync: $gCreated created, $gUpdated updated" +
-                (if (gErrors > 0) ", *** $gErrors errors ***" else ""))
+        log.info { "$providerName group sync: $gCreated created, $gUpdated updated" +
+                (if (gErrors > 0) ", *** $gErrors errors ***" else "") }
         run.addStep("groups", System.currentTimeMillis() - stepStart,
             SyncCounts(gCreated, gUpdated, 0, maxOf(0, idpGroups.size - gCreated - gUpdated - gErrors), gErrors))
 
@@ -322,7 +320,7 @@ open class IdpLoginHandler : LoginHandler {
         run.step("memberships") { counts -> syncMemberships(idpUsers, idpIdToPfUser, idpIdToPfGroup, counts) }
 
         userGroupCache.setExpired()
-        log.info("$providerName -> PF DB sync complete.")
+        log.info { "$providerName -> PF DB sync complete." }
     }
 
     private fun syncMemberships(
@@ -345,7 +343,7 @@ open class IdpLoginHandler : LoginHandler {
                     groupToMembers.getOrPut(pfGroup) { mutableSetOf() }.add(pfUser)
                 }
             } catch (ex: Exception) {
-                log.error("Error fetching groups for IdP user '${idpUser.username}' (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error fetching groups for IdP user '${idpUser.username}' (continuing): ${ex.message}" }
                 counts.errors++
             }
         }
@@ -356,13 +354,13 @@ open class IdpLoginHandler : LoginHandler {
                 groupDao.setAssignedUsers(pfGroup, members)
                 counts.updated++
             } catch (ex: Exception) {
-                log.error("Error updating members for group '${pfGroup.name}' (continuing): ${ex.message}", ex)
+                log.error(ex) { "Error updating members for group '${pfGroup.name}' (continuing): ${ex.message}" }
                 mErrors++
                 counts.errors++
             }
         }
         if (mErrors > 0) {
-            log.error("*** $mErrors errors during membership sync ***")
+            log.error { "*** $mErrors errors during membership sync ***" }
         }
     }
 
@@ -374,7 +372,7 @@ open class IdpLoginHandler : LoginHandler {
                 log.debug { "Password sync for '${user.username}': idpExternalId not cached, resolving via username lookup" }
                 val found = idpAdminClient.findUserByUsername(user.username ?: return)?.id
                 if (found == null) {
-                    log.info("IdP user not found for '${user.username}', skipping password sync.")
+                    log.info { "IdP user not found for '${user.username}', skipping password sync." }
                     return
                 }
                 found
@@ -383,9 +381,9 @@ open class IdpLoginHandler : LoginHandler {
             user.idpExternalId = idpId
             user.lastIdpPasswordSync = Date()
             userDao.update(user, false)
-            log.info("Password synced to IdP for user: ${user.username}")
+            log.info { "Password synced to IdP for user: ${user.username}" }
         } catch (ex: Exception) {
-            log.error("Failed to sync password to IdP for user '${user.username}' (ignoring): ${ex.message}", ex)
+            log.error(ex) { "Failed to sync password to IdP for user '${user.username}' (ignoring): ${ex.message}" }
         }
     }
 }

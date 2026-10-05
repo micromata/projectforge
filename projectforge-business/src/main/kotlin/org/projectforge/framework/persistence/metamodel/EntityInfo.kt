@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.metamodel
 
 import jakarta.persistence.Column
 import jakarta.persistence.metamodel.EntityType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -102,9 +102,9 @@ class EntityInfo(
         columnWithoutLength.add(propertyName)
         val msg = ("Could not find persistent class for entityName '$propertyName' (OK for non hibernate objects).")
         if (propertyName.endsWith("DO")) {
-            log.error(msg)
+            log.error { msg }
         } else {
-            log.info(msg)
+            log.info { msg }
         }
         return null
     }

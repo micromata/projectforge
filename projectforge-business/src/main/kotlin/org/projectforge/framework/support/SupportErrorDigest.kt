@@ -25,7 +25,7 @@ package org.projectforge.framework.support
 
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
@@ -179,8 +179,23 @@ class SupportErrorDigest : LogEventListener {
             mail.addTo(configurationService.pfSupportMailAddress)
             sendMail.mailFromStandardEmailSender?.takeIf { it.isNotBlank() }?.let { mail.setFrom(it) }
             mail.setProjectForgeSubject(renderer.subject(snapshot, syncProblems))
-            mail.content = renderer.body(snapshot, syncProblems, from, to, attachmentName)
-            mail.contentType = Mail.CONTENTTYPE_TEXT
+            val html = try {
+                sendMail.renderGroovyTemplate(
+                    mail, "mail/errorDigestMail.html",
+                    renderer.htmlData(snapshot, syncProblems, from, to, attachmentName), "Error digest", null,
+                ).takeIf { it.isNotBlank() }
+            } catch (t: Throwable) {
+                log.warn { "Can't render the html support error digest, sending it as plain text: ${t.message}" }
+                null
+            }
+            if (html != null) {
+                mail.content = html
+                mail.contentType = Mail.CONTENTTYPE_HTML
+            } else {
+                // The digest must never fail because of its template.
+                mail.content = renderer.body(snapshot, syncProblems, from, to, attachmentName)
+                mail.contentType = Mail.CONTENTTYPE_TEXT
+            }
             val attachments = attachmentName?.let {
                 listOf(MailAttachment(it, renderer.details(snapshot).toByteArray(Charsets.UTF_8)))
             }

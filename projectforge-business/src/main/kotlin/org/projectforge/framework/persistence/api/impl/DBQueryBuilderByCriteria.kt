@@ -27,7 +27,7 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.query.NullPrecedence
 import org.hibernate.query.SortDirection
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
@@ -121,17 +121,15 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
             val direction = if (sortProperty.ascending) SortDirection.ASCENDING else SortDirection.DESCENDING
             // Nulls count as the smallest value, so they flip with the direction.
             val nulls = if (sortProperty.ascending) NullPrecedence.FIRST else NullPrecedence.LAST
-            if (log.isDebugEnabled) {
-                log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls ${nulls.name.lowercase()}.")
+            if (log.isDebugEnabled()) {
+                log.debug { "Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls ${nulls.name.lowercase()}." }
             }
             order.add(cb.sort(expression, direction, nulls))
         } catch (ex: Exception) {
-            log.error(
-                "Can't add order for property '${ctx.entityName}.${sortProperty.property}': ${ex.message}. " +
+            log.error { "Can't add order for property '${ctx.entityName}.${sortProperty.property}': ${ex.message}. " +
                         "The query goes out without this ORDER BY. If this is a computed/transient column (no " +
                         "database column to sort on), declare it in AbstractEntityRest.computedSortProperties " +
-                        "so filterList/sortIds sort by it instead."
-            )
+                        "so filterList/sortIds sort by it instead." }
         }
     }
 }

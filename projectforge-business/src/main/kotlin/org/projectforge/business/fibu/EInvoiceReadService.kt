@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
 import org.mustangproject.FileAttachment
@@ -161,7 +161,7 @@ class EInvoiceReadService {
         return try {
             importer.extractInvoice()
         } catch (e: Exception) {
-            log.warn("Failed to extract invoice object: ${e.message}", e)
+            log.warn(e) { "Failed to extract invoice object: ${e.message}" }
             null
         }
     }
@@ -330,7 +330,7 @@ class EInvoiceReadService {
                 PDFTextStripper().getText(document).replace(" ", "")
             }
         } catch (e: Exception) {
-            log.warn("Failed to extract PDF text for IBAN check: ${e.message}")
+            log.warn { "Failed to extract PDF text for IBAN check: ${e.message}" }
             null
         }
     }

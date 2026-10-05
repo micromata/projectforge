@@ -23,7 +23,7 @@
 
 package org.projectforge.idp.keycloak
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.PooledHttpClients
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -59,7 +59,7 @@ open class KeycloakTokenClient(private val keycloakConfig: KeycloakConfig) {
         if (cachedToken != null && Instant.now().isBefore(tokenExpiresAt)) {
             return cachedToken!!
         }
-        log.debug("Fetching new Keycloak access token for realm '${keycloakConfig.realm}'")
+        log.debug { "Fetching new Keycloak access token for realm '${keycloakConfig.realm}'" }
         val tokenUrl = "${keycloakConfig.serverUrl}/realms/${keycloakConfig.realm}/protocol/openid-connect/token"
         val headers = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_FORM_URLENCODED
@@ -81,7 +81,7 @@ open class KeycloakTokenClient(private val keycloakConfig: KeycloakConfig) {
 
         cachedToken = accessToken
         tokenExpiresAt = Instant.now().plusSeconds(expiresIn - 30)
-        log.debug("Keycloak access token obtained, expires in ${expiresIn}s")
+        log.debug { "Keycloak access token obtained, expires in ${expiresIn}s" }
         return accessToken
     }
 }

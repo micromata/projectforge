@@ -24,7 +24,7 @@
 package org.projectforge.business.admin
 
 import com.zaxxer.hikari.HikariDataSource
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
@@ -66,7 +66,7 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
         threadsAwaitingConnection = hikariPoolMXBean.threadsAwaitingConnection
       )
     } catch (ex: Exception) {
-      log.error("Can't get HikariDataSource: '${ex.message}'.", ex)
+      log.error(ex) { "Can't get HikariDataSource: '${ex.message}'." }
       SystemStatistics.DatabasePoolStatistics(
         total = -1,
         idle = -1,
@@ -106,7 +106,7 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
     return try {
       jdbc.queryForObject("SELECT COUNT(*) FROM " + HibernateUtils.getDBTableName(entity), Int::class.java)!!
     } catch (ex: Exception) {
-      log.error(ex.message, ex)
+      log.error(ex) { ex.message }
       0
     }
   }

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.*
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
@@ -209,7 +209,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     if (!result.isSuccessful) {
       if (result.errors.isEmpty()) {
         // unknown error
-        log.error("Oups, xml has zero size. Filename: $filename")
+        log.error { "Oups, xml has zero size. Filename: $filename" }
         return RestUtils.downloadFile("error.txt", translate("fibu.rechnung.transferExport.error"))
       }
       val sb = StringBuilder()

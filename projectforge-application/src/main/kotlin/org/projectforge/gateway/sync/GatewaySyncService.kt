@@ -23,7 +23,7 @@
 
 package org.projectforge.gateway.sync
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.address.AddressbookDO
@@ -68,10 +68,14 @@ class GatewaySyncService(
     /**
      * Users are never deleted here: the main instance pushes all of its users, inactive ones with
      * [SyncUserDto.active] = false. Their tokens are revoked.
+     *
+     * Only actual changes are written: the main instance pushes all users, so writing them unconditionally
+     * would reset the token creation dates with every sync.
      */
     fun syncUsers(users: List<SyncUserDto>): SyncResultDto {
         var created = 0
         var updated = 0
+        var unchanged = 0
         var errors = 0
         persistenceService.runInTransaction { context ->
             val em = context.em
@@ -82,6 +86,7 @@ class GatewaySyncService(
                         PFUserDO::class.java
                     ).setParameter("name", dto.username).resultList.firstOrNull()
 
+                    var changed = false
                     val user: PFUserDO
                     if (existing == null) {
                         user = PFUserDO()
@@ -90,12 +95,13 @@ class GatewaySyncService(
                         user.deactivated = !dto.active
                         em.persist(user)
                         em.flush()
-                        created++
                     } else {
-                        existing.idpExternalId = dto.idpExternalId
-                        existing.deactivated = !dto.active
-                        user = em.merge(existing)
-                        updated++
+                        if (existing.idpExternalId != dto.idpExternalId || existing.deactivated != !dto.active) {
+                            existing.idpExternalId = dto.idpExternalId
+                            existing.deactivated = !dto.active
+                            changed = true
+                        }
+                        user = existing
                     }
 
                     // Sync tokens if provided (already encrypted, store 1:1)
@@ -114,6 +120,7 @@ class GatewaySyncService(
                                 auth.lastUpdate = Date()
                                 em.merge(auth)
                                 log.info { "Revoked gateway tokens of inactive user '${dto.username}'." }
+                                changed = true
                             }
                         } else if (dto.davToken != null || dto.calendarRestToken != null) {
                             val target = auth ?: UserAuthenticationsDO().also {
@@ -122,12 +129,28 @@ class GatewaySyncService(
                             }
 
                             val now = Date()
-                            dto.davToken?.let { target.davToken = it; target.davTokenCreationDate = now }
-                            dto.calendarRestToken?.let { target.calendarExportToken = it; target.calendarExportTokenCreationDate = now }
-                            target.lastUpdate = now
-
-                            if (target.id == null) em.persist(target) else em.merge(target)
+                            var tokenChanged = false
+                            dto.davToken?.takeIf { it != target.davToken }?.let {
+                                target.davToken = it
+                                target.davTokenCreationDate = now
+                                tokenChanged = true
+                            }
+                            dto.calendarRestToken?.takeIf { it != target.calendarExportToken }?.let {
+                                target.calendarExportToken = it
+                                target.calendarExportTokenCreationDate = now
+                                tokenChanged = true
+                            }
+                            if (tokenChanged) {
+                                target.lastUpdate = now
+                                if (target.id == null) em.persist(target) else em.merge(target)
+                                changed = true
+                            }
                         }
+                    }
+                    when {
+                        existing == null -> created++
+                        changed -> updated++
+                        else -> unchanged++
                     }
                 } catch (e: Exception) {
                     log.error(e) { "Error syncing user '${dto.username}'" }
@@ -135,9 +158,11 @@ class GatewaySyncService(
                 }
             }
         }
-        log.info { "User sync complete: created=$created, updated=$updated, errors=$errors" }
-        userGroupCache.setExpired()
-        return SyncResultDto(created = created, updated = updated, errors = errors)
+        log.info { "User sync complete: created=$created, updated=$updated, unchanged=$unchanged, errors=$errors" }
+        if (created + updated > 0) {
+            userGroupCache.setExpired()
+        }
+        return SyncResultDto(created = created, updated = updated, unchanged = unchanged, errors = errors)
     }
 
     /**
@@ -148,6 +173,7 @@ class GatewaySyncService(
         var created = 0
         var updated = 0
         var deleted = 0
+        var unchanged = 0
         var errors = 0
         persistenceService.runInTransaction { context ->
             val em = context.em
@@ -165,9 +191,17 @@ class GatewaySyncService(
                         em.flush()
                         created++
                     } else {
-                        if (group.deleted) {
+                        val restored = group.deleted
+                        if (restored) {
                             group.deleted = false
                             group.lastUpdate = Date()
+                        }
+                        val members = em.createNativeQuery(
+                            "SELECT u.username FROM t_group_user gu JOIN t_pf_user u ON u.pk = gu.user_id WHERE gu.group_id = :gid"
+                        ).setParameter("gid", group.id).resultList.map { it as String }.toSet()
+                        if (!restored && members == dto.memberUsernames.toSet()) {
+                            unchanged++
+                            continue
                         }
                         updated++
                     }
@@ -202,9 +236,11 @@ class GatewaySyncService(
                     }
             }
         }
-        log.info { "Group sync complete: created=$created, updated=$updated, deleted=$deleted, errors=$errors" }
-        userGroupCache.setExpired()
-        return SyncResultDto(created = created, updated = updated, deleted = deleted, errors = errors)
+        log.info { "Group sync complete: created=$created, updated=$updated, deleted=$deleted, unchanged=$unchanged, errors=$errors" }
+        if (created + updated + deleted > 0) {
+            userGroupCache.setExpired()
+        }
+        return SyncResultDto(created = created, updated = updated, deleted = deleted, unchanged = unchanged, errors = errors)
     }
 
     /**

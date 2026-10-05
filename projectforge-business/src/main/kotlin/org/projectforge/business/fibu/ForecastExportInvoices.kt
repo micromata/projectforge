@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelSheet
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.ForecastCol
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -86,7 +86,7 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     val orderId = pos.auftragsId ?: ordersCache.getOrderPositionInfo(orderPosId)?.auftragId
                     order = ordersCache.getOrderInfo(orderId)
                     if (order == null) {
-                        log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
+                        log.error { "Shouldn't occur: can't determine order from order position: $orderPosId" }
                         return@forEach // continue
                     }
                     ctx.orderMapByPositionId[orderPosId] = order

@@ -22,8 +22,6 @@ dependencies {
     api(project(":projectforge-model"))
     api(project(":projectforge-jcr"))
     api(libs.de.micromata.merlin.core)
-    api(libs.com.googlecode.json.simple)
-    api(libs.org.aspectj.aspectjtools)
     api(libs.jakarta.activation.api)
     api(libs.jakarta.annotation.api)
     api(libs.jakarta.persistence.api)
@@ -73,10 +71,14 @@ dependencies {
     api(libs.org.mnode.ical4j.ical4j)
     api(libs.com.googlecode.ez.vcard)
     api(libs.com.thoughtworks.xstream)
-    api(libs.com.itextpdf)
     api(libs.org.apache.groovy.all)
     api(libs.org.jfree.jfreechart)
-    api(libs.net.sourceforge.mpxj)
+    api(libs.net.sf.mpxj) {
+        // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
+        exclude(group = "org.xerial", module = "sqlite-jdbc")
+        exclude(group = "com.healthmarketscience.jackcess", module = "jackcess")
+        exclude(group = "com.jgoodies", module = "jgoodies-binding")
+    }
     api(libs.org.apache.commons.text)
     api(libs.org.apache.poi)
     api(libs.org.apache.poi.ooxml)
@@ -104,11 +106,8 @@ dependencies {
         exclude("org.springframework.boot")
     }*/
 
-    testImplementation(libs.org.apache.directory.server.apacheds.server.integ)
     testImplementation(libs.org.mock.server.mockserver.netty.no.dependencies)
     testImplementation(libs.org.springframework.boot.starter.test)
-
-    compileOnly(libs.com.zaxxer.hikaricp)
 
     testFixturesImplementation(project(":projectforge-commons-test"))
     testFixturesImplementation(libs.org.springframework.spring.test)

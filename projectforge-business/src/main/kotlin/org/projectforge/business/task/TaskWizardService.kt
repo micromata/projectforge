@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.GroupDao
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessType

@@ -26,7 +26,7 @@ package org.projectforge.framework.renderer
 
 import com.lowagie.text.Font
 import com.lowagie.text.pdf.BaseFont
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.springframework.stereotype.Service
 import java.io.File

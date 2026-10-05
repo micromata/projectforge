@@ -24,7 +24,7 @@
 package org.projectforge.business.address
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.image.ImageService
 import org.projectforge.common.extensions.formatBytesForUser
@@ -134,12 +134,12 @@ open class AddressImageDao {
      */
     open fun saveOrUpdate(addressId: Long, image: ByteArray, imageType: ImageType): Boolean {
         if (!isSupportedImageType(imageType)) {
-            log.error("Can't save or update immage of address. Unsupported image type: $imageType.")
+            log.error { "Can't save or update immage of address. Unsupported image type: $imageType." }
             return false
         }
         val address = addressDao.find(addressId)
         if (address == null) {
-            log.error("Can't save or update immage of address. Address #$addressId not found.")
+            log.error { "Can't save or update immage of address. Address #$addressId not found." }
             return false
         }
         address.imageLastUpdate = Date()
@@ -175,7 +175,7 @@ open class AddressImageDao {
                 context.insert(addressImage)
             }
         }
-        log.info("New image for address ${address.id} (${address.fullName}) saved.")
+        log.info { "New image for address ${address.id} (${address.fullName}) saved." }
         addressImageCache.setExpired()
         return true
     }
@@ -186,7 +186,7 @@ open class AddressImageDao {
     open fun delete(addressId: Long): Boolean {
         val address = addressDao.find(addressId)
         if (address == null) {
-            log.error("Can't save or update immage of address. Address #$addressId not found.")
+            log.error { "Can't save or update immage of address. Address #$addressId not found." }
             return false
         }
         address.imageLastUpdate = null
@@ -200,7 +200,7 @@ open class AddressImageDao {
                 Pair("addressId", address.id),
                 attached = true,
             ).forEach { image ->
-                log.info("Image for address ${address.id} (${address.fullName}) deleted.")
+                log.info { "Image for address ${address.id} (${address.fullName}) deleted." }
                 context.delete(image)
                 success = true
             }
@@ -216,7 +216,7 @@ open class AddressImageDao {
      * @return Statistics about the shrinking operation
      */
     open fun shrinkAllImagesAndRebuildPreviews(): String {
-        log.info("Starting shrinking of all address images...")
+        log.info { "Starting shrinking of all address images..." }
         val startTime = System.currentTimeMillis()
 
         val result = StringBuilder()
@@ -322,7 +322,7 @@ open class AddressImageDao {
                 failedImages++
                 totalSizeAfter += sizeBefore
                 result.append("Error processing image for address ${addressImage.address?.id}: ${e.message}\n")
-                log.error("Error processing image for address ${addressImage.address?.id}", e)
+                log.error(e) { "Error processing image for address ${addressImage.address?.id}" }
             }
         }
 
@@ -341,7 +341,7 @@ open class AddressImageDao {
         result.append("  Saved: $savedMB MB (${(savedBytes * 100) / maxOf(totalSizeBefore, 1)}%)\n")
         result.append("  Duration: $duration seconds\n")
 
-        log.info("Image shrinking completed: $shrinkedImages shrinked, $skippedImages skipped, $failedImages failed, saved $savedMB MB")
+        log.info { "Image shrinking completed: $shrinkedImages shrinked, $skippedImages skipped, $failedImages failed, saved $savedMB MB" }
         addressImageCache.setExpired()
 
         return result.toString()

@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.PaymentType
 import org.projectforge.common.StringMatchUtils
@@ -356,7 +356,7 @@ class EingangsrechnungPosImportDTO(
             } catch (e: Exception) {
                 // Info calculation failed, skip amount comparison
                 if (logErrors) {
-                    log.error(e.message, e)
+                    log.error(e) { e.message }
                 }
                 0
             }

@@ -151,6 +151,14 @@ class SupportErrorDigestTest {
         Assertions.assertEquals("Error digest pf.example.org: 1 errors, 2 external failures", renderer.subject(snapshot, problems))
         val details = renderer.details(snapshot)
         Assertions.assertTrue(details.contains("GET /rs/x") && details.contains("at x.Y(Y.kt:1)"), details)
+        val view = renderer.view(snapshot, problems, 0L, 3_600_000L, "error-digest.txt")
+        Assertions.assertEquals(listOf("External systems not reachable", "Sync runs with problems", "Unexpected errors in requests"), view.sections.map { it.title })
+        Assertions.assertEquals(1, view.errors)
+        Assertions.assertEquals(2, view.external)
+        val group = view.sections[2].groups.single()
+        Assertions.assertEquals("IllegalStateException", group.exceptionClass)
+        Assertions.assertEquals("badge-error", group.levelCss)
+        Assertions.assertEquals("1 aborted", view.sections[1].syncProblems.single().counts)
     }
 
     @Test

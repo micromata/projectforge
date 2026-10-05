@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -514,7 +514,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
                     result.add(rechnung)
                 }
             } else {
-                log.error("Unknown filter setting: " + myFilter.listType)
+                log.error { "Unknown filter setting: " + myFilter.listType }
                 break
             }
         }

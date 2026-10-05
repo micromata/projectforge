@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
 import org.projectforge.model.rest.RestPaths

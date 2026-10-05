@@ -34,7 +34,7 @@ test.describe("calendar subscription links", { tag: "@lane-calendar" }, () => {
     expect(url).toMatch(/^https?:\/\/.+\.ics\?/);
 
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("textbox")).toHaveValue(url);
+    await expect(dialog.getByRole("group", { name: headline })).toHaveText(url);
     const qr = dialog.getByRole("img", { name: headline });
     await expect(qr).toBeVisible();
     // Loaded, not just placed: a broken image has no natural width.

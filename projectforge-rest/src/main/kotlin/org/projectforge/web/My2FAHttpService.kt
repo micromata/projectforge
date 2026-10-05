@@ -23,7 +23,7 @@
 
 package org.projectforge.web
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.common.StringHelper

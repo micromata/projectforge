@@ -25,7 +25,7 @@ package org.projectforge.business.address
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
@@ -441,7 +441,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 }
                 val idx = line.indexOf('=')
                 if (idx <= 0) {
-                    log.error("Wrong instant messaging entry format in data base: $line")
+                    log.error { "Wrong instant messaging entry format in data base: $line" }
                     continue
                 }
                 var label = line.substring(0, idx)
@@ -453,7 +453,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
                 try {
                     type = InstantMessagingType.get(label)
                 } catch (ex: Exception) {
-                    log.error("Ignoring unknown Instant Messaging entry: $label", ex)
+                    log.error(ex) { "Ignoring unknown Instant Messaging entry: $label" }
                     continue
                 }
 

@@ -25,7 +25,7 @@ package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.configuration.PFSpringConfiguration
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
@@ -86,7 +86,8 @@ open class RestCsrfProtection {
             return false
         }
         if (RestAuthenticationUtils.isNextClient(request) && isStateChangingMethod(request.method) && !checkToken(request)) {
-            deny(request, response, "CSRF token check failed")
+            // Expected after a session renewal, the next client refreshes its token and retries (see deny).
+            deny(request, response, "CSRF token check failed", expected = true)
             return false
         }
         return true
@@ -115,9 +116,21 @@ open class RestCsrfProtection {
         return sessionCsrfService.checkToken(request, request.getHeader(CSRF_TOKEN_HEADER))
     }
 
-    private fun deny(request: HttpServletRequest, response: HttpServletResponse, reason: String) {
+    /**
+     * @param expected If true, the denial is part of the normal flow (no attack indicator) and logged on info level.
+     */
+    private fun deny(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        reason: String,
+        expected: Boolean = false,
+    ) {
         val msg = "$reason: ${request.method}:${request.requestURI}"
-        log.error { "$msg (${RequestLog.asString(request)})" }
+        if (expected) {
+            log.info { "$msg (${RequestLog.asString(request)})" }
+        } else {
+            log.error { "$msg (${RequestLog.asString(request)})" }
+        }
         SecurityLogging.logSecurityWarn(request, this::class.java, "CSRF CHECK FAILED", msg)
         response.status = HttpStatus.FORBIDDEN.value()
         if (RestAuthenticationUtils.isNextClient(request)) {

@@ -23,7 +23,7 @@
 
 package org.projectforge.common.logging
 
-import mu.KLogger
+import io.github.oshai.kotlinlogging.KLogger
 
 class LogBuilder(val log: KLogger) {
     val sb = StringBuilder()

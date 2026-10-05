@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu.customergroup
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.KundeCache

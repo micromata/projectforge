@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu.contributionmargin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 import java.math.BigDecimal
 

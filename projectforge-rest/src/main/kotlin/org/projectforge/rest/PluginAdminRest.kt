@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.core.PluginAdminService
@@ -115,7 +115,7 @@ class PluginAdminRest {
         require(!(request.activate.not() && pluginAdminService.ensureActivePluginIds.contains(id))) {
             "Plugin '$id' is forced active via projectforge.plugins.ensure-active and cannot be deactivated."
         }
-        log.info("Admin user ${if (request.activate) "activates" else "deactivates"} plugin '$id'.")
+        log.info { "Admin user ${if (request.activate) "activates" else "deactivates"} plugin '$id'." }
         pluginAdminService.storePluginToBeActivated(id, request.activate)
         return MessageResponse(translate("system.pluginAdmin.restartRequired"))
     }
