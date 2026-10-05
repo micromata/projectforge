@@ -24,6 +24,7 @@
 package org.projectforge.common.logging
 
 import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.classic.spi.ThrowableProxyUtil
 import ch.qos.logback.core.CoreConstants
 import org.apache.commons.lang3.ClassUtils
@@ -63,6 +64,11 @@ class LoggingEventData(event: ILoggingEvent, val id: Long) : Cloneable {
   var session: String? = null
   var requestId: String? = null
 
+  /**
+   * The classification given by the logging call ([LogEvent.KEY]) or else by the exception ([LogEventAware]), if any.
+   */
+  val logEvent: LogEvent? = logEventOf(event)
+
   init {
     val throwableProxy = event.throwableProxy
     if (throwableProxy != null) {
@@ -90,6 +96,10 @@ class LoggingEventData(event: ILoggingEvent, val id: Long) : Cloneable {
   }
 
   companion object {
+    internal fun logEventOf(event: ILoggingEvent): LogEvent? =
+      event.keyValuePairs?.firstNotNullOfOrNull { if (it.key == LogEvent.KEY) it.value as? LogEvent else null }
+        ?: LogEventAware.find((event.throwableProxy as? ThrowableProxy)?.throwable)
+
     private val isoDateTimeFormatterMinutes =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
   }

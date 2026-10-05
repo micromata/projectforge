@@ -24,6 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.projectforge.business.sipgate.SipgateUserDevices
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.json.JsonUtils
@@ -94,7 +95,7 @@ open class SipgateSyncService {
           log.info { "Sipgate storage is outdated (older than one day), re-reading..." }
         }
       } catch (ex: Exception) {
-        log.error(ex) { "Error while parsing sipgate storage from '${storageFile.absolutePath}': ${ex.message}" }
+        log.error(SipgateLogEvents.STORAGE_PARSE_FAILED, ex) { "Error while parsing sipgate storage from '${storageFile.absolutePath}': ${ex.message}" }
       }
       remoteRead()
     }
@@ -107,7 +108,7 @@ open class SipgateSyncService {
     try {
       newStorage.numbers = sipgateService.getNumbers()
     } catch (ex: Exception) {
-      log.error(ex) { "Can't read numbers (may-be no access): ${ex.message}" }
+      log.error(SipgateLogEvents.NUMBERS_NOT_READABLE, ex) { "Can't read numbers (may-be no access): ${ex.message}" }
     }
     val userDevices = mutableListOf<SipgateUserDevices>()
     newStorage.users?.forEach { user ->

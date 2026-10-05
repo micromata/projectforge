@@ -24,6 +24,8 @@
 package org.projectforge.web.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.warn
+import org.projectforge.rest.core.RestLogEvents
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.login.LoginService
 import org.projectforge.rest.Authentication
@@ -59,7 +61,7 @@ class RestUserFilter : AbstractRestUserFilter(UserTokenType.REST_CLIENT) {
       val msg =
         "Neither valid session-credentials (request.sessionId=${RequestLog.getTruncatedSessionId(authInfo.request)}), ${Authentication.AUTHENTICATION_USER_ID} nor ${Authentication.AUTHENTICATION_USERNAME}/${Authentication.AUTHENTICATION_TOKEN} is given for rest call: $method:$requestURI. Rest call forbidden."
       // Mostly expired sessions of open browser tabs (e.g. calendar polling), so no error.
-      log.warn { msg }
+      log.warn(RestLogEvents.NO_CREDENTIALS) { msg }
       SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
     }
   }

@@ -23,30 +23,17 @@
 
 package org.projectforge.framework.support
 
+import org.projectforge.common.logging.LogCategory
+import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
-
-/**
- * What the support error digest groups by, most severe first (the order of the digest's sections).
- */
-enum class ErrorCategory(val title: String) {
-    /** A connection error or timeout: an external system (LDAP, IdP, gateway, Sipgate, SMTP, ...) is down. */
-    EXTERNAL_UNREACHABLE("External systems not reachable"),
-
-    /** An unexpected exception in a request of a logged-in user: a bug somebody hit. */
-    REQUEST_ERROR("Unexpected errors in requests"),
-
-    /** Logged errors with stack trace (background jobs, caught exceptions). */
-    ERROR("Logged errors with stack trace"),
-
-    /** Logged errors without stack trace. */
-    ERROR_NO_TRACE("Logged errors without stack trace"),
-}
+import org.projectforge.common.logging.LogNotify
 
 /** One collected error. */
 class ErrorOccurrence(
     val timestampMillis: Long,
     val level: LogLevel,
-    val category: ErrorCategory,
+    /** The classification: given by the logging call or the exception, else found by [ErrorOccurrenceFactory]. */
+    val event: LogEvent,
     /** The root cause's class name, if there is an exception. */
     val exceptionClass: String?,
     val message: String?,
@@ -56,11 +43,20 @@ class ErrorOccurrence(
     val user: String? = null,
     /** Method and uri of the request, if any. */
     val request: String? = null,
-)
+    /**
+     * True if the [event] is specific to the problem (given by the logging call or the exception): its code alone
+     * identifies the group. False for the generic events of [SupportLogEvents].
+     */
+    val groupByCode: Boolean = false,
+) {
+    val category: LogCategory get() = event.category
+}
 
-/** All occurrences that only differ in ids, numbers and the like. */
+/** All occurrences of one problem: the same specific event, or only differing in ids, numbers and the like. */
 class ErrorGroup(val key: String, first: ErrorOccurrence) {
+    val event = first.event
     val category = first.category
+    val groupByCode = first.groupByCode
     val exceptionClass = first.exceptionClass
     val location = first.location
     val message = first.message
@@ -95,9 +91,13 @@ class ErrorGroup(val key: String, first: ErrorOccurrence) {
  * counted as dropped), each with at most [ErrorGroup.MAX_SAMPLES] samples. Thread-safe.
  */
 class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
-    class Snapshot(val groups: List<ErrorGroup>, val dropped: Int) {
+    /**
+     * @param dropped Occurrences not collected because of the group limit.
+     * @param suppressed Occurrences of groups not reported (below their threshold or already reported).
+     */
+    class Snapshot(val groups: List<ErrorGroup>, val dropped: Int, val suppressed: Int = 0) {
         val occurrences: Int get() = groups.sumOf { it.count }
-        fun count(category: ErrorCategory) = groups.filter { it.category == category }.sumOf { it.count }
+        fun count(category: LogCategory) = groups.filter { it.category == category }.sumOf { it.count }
     }
 
     private var groups = LinkedHashMap<String, ErrorGroup>()
@@ -141,7 +141,33 @@ class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
             return message.replace(UUID, "#").replace(HEX, "#").replace(NUMBER, "#").take(300)
         }
 
+        /** The fingerprint: the event's code if it is specific, else code, exception, location and message. */
         internal fun keyOf(o: ErrorOccurrence): String =
-            "${o.category}|${o.exceptionClass}|${o.location}|${normalize(o.message)}"
+            if (o.groupByCode) {
+                o.event.code
+            } else {
+                "${o.event.code}|${o.exceptionClass}|${o.location}|${normalize(o.message)}"
+            }
+    }
+}
+
+/**
+ * Applies the notify rules of the groups' events to a drained snapshot: a group below its event's
+ * [threshold][LogEvent.threshold] isn't reported, a [LogNotify.DIGEST_IF_NEW] group only the first time (remembered
+ * since start-up, at most [maxRemembered] fingerprints). [LogNotify.NONE] isn't collected in the first place.
+ */
+class DigestNotifyFilter(private val maxRemembered: Int = 10_000) {
+    private val reported = object : LinkedHashMap<String, Boolean>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>?) = size > maxRemembered
+    }
+
+    @Synchronized
+    fun apply(snapshot: ErrorDigestCollector.Snapshot): ErrorDigestCollector.Snapshot {
+        val (reportable, suppressed) = snapshot.groups.partition { group ->
+            group.count >= group.event.threshold &&
+                    (group.event.notify != LogNotify.DIGEST_IF_NEW || reported[group.key] == null)
+        }
+        reportable.filter { it.event.notify == LogNotify.DIGEST_IF_NEW }.forEach { reported[it.key] = true }
+        return ErrorDigestCollector.Snapshot(reportable, snapshot.dropped, snapshot.suppressed + suppressed.sumOf { it.count })
     }
 }

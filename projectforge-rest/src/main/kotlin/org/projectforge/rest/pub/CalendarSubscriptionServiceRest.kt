@@ -26,6 +26,8 @@ package org.projectforge.rest.pub
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
+import org.projectforge.rest.core.RestLogEvents
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.teamcal.CalendarHelper
@@ -113,7 +115,7 @@ class CalendarSubscriptionServiceRest {
             var timesheetUser: PFUserDO? = null
             if (timesheetUserParam != null) {
                 timesheetUser = getTimesheetUser(userId, timesheetUserParam) ?: run {
-                    log.error { "Bad request, timesheet user not found: ${request.queryString}" }
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Bad request, timesheet user not found: ${request.queryString}" }
                     return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
                 }
             }
@@ -159,12 +161,12 @@ class CalendarSubscriptionServiceRest {
             val timesheetUserId = parseLong(timesheetUserParam)
             if (timesheetUserId != null) {
                 if (timesheetUserId != userId) {
-                    log.error { "Not yet allowed: all users are only allowed to download their own time-sheets." }
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Not yet allowed: all users are only allowed to download their own time-sheets." }
                     return null
                 }
                 timesheetUser = userGroupCache.getUser(timesheetUserId)
                 if (timesheetUser == null) {
-                    log.error { "Time-sheet user with id '$timesheetUserParam' not found." }
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Time-sheet user with id '$timesheetUserParam' not found." }
                     return null
                 }
             }

@@ -40,16 +40,17 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.test.MailPreview
+import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.integration.SyncStats
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.support.ErrorCategory
 import org.projectforge.framework.support.ErrorDigestCollector
 import org.projectforge.framework.support.ErrorDigestRenderer
 import org.projectforge.framework.support.ErrorOccurrence
+import org.projectforge.framework.support.SupportLogEvents
 import org.projectforge.framework.support.SyncProblemTracker
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.util.AopTestUtils
@@ -185,9 +186,10 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
     @Test
     fun errorDigestMail() {
         val collector = ErrorDigestCollector()
-        collector.add(digestOccurrence(ErrorCategory.EXTERNAL_UNREACHABLE, "Gateway not reachable at https://gw.example.org/heartbeat, sync skipped: 502 Bad Gateway", "GatewaySyncPushService:490", LogLevel.WARN))
-        repeat(3) { collector.add(digestOccurrence(ErrorCategory.REQUEST_ERROR, "Cannot invoke \"String.length()\" because \"name\" is null", "AddressDao:212", LogLevel.ERROR, user = "kai", stackTrace = "java.lang.NullPointerException: name is null\n\tat org.projectforge.business.address.AddressDao.select(AddressDao.kt:212)\n")) }
-        collector.add(digestOccurrence(ErrorCategory.ERROR_NO_TRACE, "Unable to gather subscription calendar #1322396 information, received statusCode: 404", "TeamEventSubscription:282", LogLevel.WARN))
+        collector.add(digestOccurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Gateway not reachable at https://gw.example.org/heartbeat, sync skipped: 502 Bad Gateway", "GatewaySyncPushService:490", LogLevel.WARN))
+        repeat(3) { collector.add(digestOccurrence(SupportLogEvents.REQUEST_ERROR, "Cannot invoke \"String.length()\" because \"name\" is null", "AddressDao:212", LogLevel.ERROR, user = "kai", stackTrace = "java.lang.NullPointerException: name is null\n\tat org.projectforge.business.address.AddressDao.select(AddressDao.kt:212)\n")) }
+        collector.add(digestOccurrence(SupportLogEvents.LOGGED_ERROR, "Unable to gather subscription calendar #1322396 information, received statusCode: 404", "TeamEventSubscription:282", LogLevel.ERROR))
+        repeat(2) { collector.add(digestOccurrence(MailLogEvents.SEND_FAILED, "While creating and sending message: Couldn't connect to host, port: smtp.example.org, 587", "SendMail:310", LogLevel.ERROR, groupByCode = true)) }
         val snapshot = collector.drain()
         val stats = SyncStats("gateway-push").also { it.startRun().abort("Gateway not reachable") }
         val problems = SyncProblemTracker { listOf(stats) }.collect()
@@ -227,20 +229,22 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
     }
 
     private fun digestOccurrence(
-        category: ErrorCategory,
+        event: LogEvent,
         message: String,
         location: String,
         level: LogLevel,
         user: String? = null,
         stackTrace: String? = null,
+        groupByCode: Boolean = false,
     ) = ErrorOccurrence(
         timestampMillis = 1000L,
         level = level,
-        category = category,
+        event = event,
         exceptionClass = stackTrace?.let { "java.lang.NullPointerException" },
         message = message,
         location = location,
         stackTrace = stackTrace,
         user = user,
+        groupByCode = groupByCode,
     )
 }

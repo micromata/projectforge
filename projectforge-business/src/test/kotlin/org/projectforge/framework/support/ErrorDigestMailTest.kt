@@ -26,6 +26,8 @@ package org.projectforge.framework.support
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.logging.LogCategory
+import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.integration.SyncStats
 import org.projectforge.mail.Mail
@@ -41,9 +43,9 @@ class ErrorDigestMailTest : AbstractTestBase() {
     @Test
     fun `html digest is rendered, escaped and sorted by severity`() {
         val collector = ErrorDigestCollector()
-        collector.add(occurrence(ErrorCategory.ERROR_NO_TRACE, "Message with <script>alert(1)</script> and \$x", "UserPrefDO:175", LogLevel.WARN))
-        collector.add(occurrence(ErrorCategory.REQUEST_ERROR, "NPE in list", "Foo:1", LogLevel.ERROR, user = "kai"))
-        collector.add(occurrence(ErrorCategory.EXTERNAL_UNREACHABLE, "Sipgate not reachable", "Sipgate:2", LogLevel.ERROR))
+        collector.add(occurrence(DATA_EVENT, "Message with <script>alert(1)</script> and \$x", "UserPrefDO:175", LogLevel.WARN))
+        collector.add(occurrence(SupportLogEvents.REQUEST_ERROR, "NPE in list", "Foo:1", LogLevel.ERROR, user = "kai"))
+        collector.add(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "Sipgate not reachable", "Sipgate:2", LogLevel.ERROR))
         val snapshot = collector.drain()
         val stats = SyncStats("gateway-push").also { it.startRun().abort("Gateway not reachable") }
         val problems = SyncProblemTracker { listOf(stats) }.collect()
@@ -58,18 +60,19 @@ class ErrorDigestMailTest : AbstractTestBase() {
         Assertions.assertFalse(html.contains("<script>"), html)
         Assertions.assertTrue(html.contains("&lt;script&gt;"), html)
         Assertions.assertTrue(html.contains("\$x"), html)
-        val external = html.indexOf("External systems not reachable")
+        val external = html.indexOf(LogCategory.EXTERNAL.title)
         val sync = html.indexOf("Sync runs with problems")
-        val requests = html.indexOf("Unexpected errors in requests")
-        val noTrace = html.indexOf("Logged errors without stack trace")
-        Assertions.assertTrue(external in 0 until sync && sync < requests && requests < noTrace, html)
+        val data = html.indexOf(LogCategory.DATA.title)
+        val bugs = html.indexOf(LogCategory.BUG.title)
+        Assertions.assertTrue(external in 0 until sync && sync < data && data < bugs, html)
+        Assertions.assertTrue(html.contains("Repair the preferences.") && html.contains("test.data.userPref"), html)
         Assertions.assertTrue(html.contains("badge-warn") && html.contains("badge-error"), html)
         Assertions.assertTrue(html.contains("users: kai"), html)
         Assertions.assertTrue(html.contains("error-digest.txt"), html)
     }
 
     private fun occurrence(
-        category: ErrorCategory,
+        event: LogEvent,
         message: String,
         location: String,
         level: LogLevel,
@@ -77,10 +80,18 @@ class ErrorDigestMailTest : AbstractTestBase() {
     ) = ErrorOccurrence(
         timestampMillis = 1000L,
         level = level,
-        category = category,
+        event = event,
         exceptionClass = null,
         message = message,
         location = location,
         user = user,
+        groupByCode = event === DATA_EVENT,
     )
+
+    companion object {
+        private val DATA_EVENT = LogEvent(
+            "test.data.userPref", LogCategory.DATA,
+            explanation = "A user preference is broken.", action = "Repair the preferences.",
+        )
+    }
 }

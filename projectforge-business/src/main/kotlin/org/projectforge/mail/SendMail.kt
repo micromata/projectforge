@@ -24,6 +24,7 @@
 package org.projectforge.mail
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
@@ -179,12 +180,12 @@ open class SendMail {
       return false
     }
     if (!isConfigured) {
-      log.error { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+      log.error(MailLogEvents.NOT_CONFIGURED) { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
       return false
     }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
-      log.error { "No to address given. Sending of mail cancelled: $composedMessage" }
+      log.error(MailLogEvents.MISSING_RECIPIENT) { "No to address given. Sending of mail cancelled: $composedMessage" }
       throw UserException("mail.error.missingToAddress")
     }
     if (async) {
@@ -252,7 +253,7 @@ open class SendMail {
         Transport.send(message)
       }
     } catch (ex: Exception) {
-      log.error(ex) { "While creating and sending message: $composedMessage" }
+      log.error(MailLogEvents.SEND_FAILED, ex) { "While creating and sending message: $composedMessage" }
       throw InternalErrorException("mail.error.exception")
     }
     log.info { "E-Mail successfully sent: $composedMessage" }

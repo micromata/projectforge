@@ -23,7 +23,9 @@
 
 package org.projectforge.rest.core
 
+import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
+import org.projectforge.common.logging.LogNotify
 import org.projectforge.framework.i18n.InternalErrorException
 import org.springframework.http.HttpStatus
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
@@ -35,8 +37,8 @@ import java.net.NoRouteToHostException
 
 /**
  * Registry for known exceptions. For known exceptions, the log level, status and message can be defined. You may
- * also define a match function to match the exception as well as if an email should be sent to the developers.
- * This class is thread-safe.
+ * also define a match function to match the exception as well as its [LogEvent], which classifies it for the support
+ * error digest. This class is thread-safe.
  */
 object GlobalExceptionRegistry {
     open class ExInfo(
@@ -46,7 +48,10 @@ object GlobalExceptionRegistry {
         val knownException: Class<*>? = null,
         val knownExceptionName: String? = null,
         val knownExceptionMessagePart: String? = null,
-        val sendMailToDevelopers: Boolean = false,
+        /** Classifies the exception for the support error digest; none: a known exception isn't reported. */
+        val logEvent: LogEvent? = null,
+        /** Derived from the notify rule of [logEvent] by default. */
+        val sendMailToDevelopers: Boolean = logEvent != null && logEvent.notify != LogNotify.NONE,
         val match: ((ex: Throwable) -> Boolean)? = null
     ) {
         /**
@@ -85,6 +90,7 @@ object GlobalExceptionRegistry {
         status: HttpStatus = HttpStatus.BAD_REQUEST,
         knownExceptionMessagePart: String? = null,
         match: ((ex: Throwable) -> Boolean)? = null,
+        logEvent: LogEvent? = null,
     ) {
         registerExInfo(
             ExInfo(
@@ -93,6 +99,7 @@ object GlobalExceptionRegistry {
                 status = status,
                 knownException = knownException,
                 knownExceptionMessagePart = knownExceptionMessagePart,
+                logEvent = logEvent,
                 match = match,
             )
         )
