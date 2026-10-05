@@ -24,19 +24,23 @@
 package org.projectforge.rest
 
 import org.projectforge.business.fibu.EmployeeCache
+import org.projectforge.business.fibu.InvoicingQuotaService
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.fibu.MonthlyEmployeeReportRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -53,6 +57,11 @@ import java.math.RoundingMode
  *  1. cumulative planned ("Soll") vs. actually booked ("Ist") working hours, and
  *  2. the average number of days between a timesheet's date and its booking vs. the 2-day goal.
  *
+ * Additionally it tells the page whether the invoicing quota ("Fakturaquote") is available and shown: the
+ * page then offers it as a second tab, whose chart comes from
+ * [org.projectforge.rest.fibu.MonthlyEmployeeReportRest.getInvoicingQuotaHistory]. The switch is the same
+ * user pref as the monthly report's, so toggling it on either page affects both.
+ *
  * CSRF is inherited via `RestAuthenticationUtils`/`RestCsrfProtection` for all `/rs` endpoints; the legacy
  * page was not 2FA-gated, so no 2FA registration is needed.
  */
@@ -64,6 +73,12 @@ class PersonalStatisticsRest {
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var invoicingQuotaService: InvoicingQuotaService
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
 
     /** One day of the discipline chart: planned ("soll") vs. booked ("ist") cumulative working hours. */
     class WorkingHoursPoint(
@@ -87,17 +102,30 @@ class PersonalStatisticsRest {
         val plannedBookingLatency: Double,
     )
 
-    /** Full response: both series plus the legend figures and the covered period. */
+    /**
+     * Full response: both series plus the legend figures and the covered period, and the invoicing quota
+     * state: [invoicingQuotaAvailable] (configured and visible for the user), [showInvoicingQuota] (the user's
+     * switch) and the configured explanation [invoicingQuotaInfo] (only when available).
+     */
     class Statistics(
         val lastNDays: Int,
         val workingHours: List<WorkingHoursPoint>,
         val bookingLatency: List<BookingLatencyPoint>,
         val summary: Summary,
+        val invoicingQuotaAvailable: Boolean,
+        val showInvoicingQuota: Boolean,
+        val invoicingQuotaInfo: String?,
     )
 
+    /**
+     * @param showInvoicingQuota Whether the user wants to see the invoicing quota; defaults to the last choice
+     * (shared with the monthly report, off at first).
+     */
     @AccessChecked("Own user only (logged-in user's data/prefs)")
     @GetMapping
-    fun getStatistics(): Statistics {
+    fun getStatistics(
+        @RequestParam("showInvoicingQuota", required = false) showInvoicingQuota: Boolean?,
+    ): Statistics {
         val userId = ThreadLocalUserContext.loggedInUserId
         val employee = employeeCache.getEmployeeByUserId(userId)
         var workingHoursPerDay = 8.0
@@ -107,6 +135,13 @@ class PersonalStatisticsRest {
         val timesheets = loadTimesheets(userId)
         val workingHours = buildWorkingHours(timesheets, workingHoursPerDay)
         val bookingLatency = buildBookingLatency(timesheets)
+        val prefArea = MonthlyEmployeeReportRest.PREF_AREA
+        val prefName = MonthlyEmployeeReportRest.PREF_SHOW_INVOICING_QUOTA
+        val showQuota = showInvoicingQuota
+            ?: userPrefService.getEntry(prefArea, prefName, Boolean::class.java)
+            ?: false
+        userPrefService.putEntry(prefArea, prefName, showQuota, true)
+        val quotaAvailable = invoicingQuotaService.isEnabled() && invoicingQuotaService.mayViewQuotaOf(userId)
         return Statistics(
             lastNDays = LAST_N_DAYS,
             workingHours = workingHours.points,
@@ -117,6 +152,9 @@ class PersonalStatisticsRest {
                 averageBookingLatency = bookingLatency.average,
                 plannedBookingLatency = PLANNED_AVERAGE_DIFFERENCE_BETWEEN_TIMESHEET_AND_BOOKING,
             ),
+            invoicingQuotaAvailable = quotaAvailable,
+            showInvoicingQuota = showQuota,
+            invoicingQuotaInfo = if (quotaAvailable) invoicingQuotaService.getInfo(ThreadLocalUserContext.locale) else null,
         )
     }
 

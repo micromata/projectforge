@@ -132,11 +132,11 @@ class SipgateClient {
   /**
    * @throws HttpException
    */
-  internal fun <T> execute(
+  internal fun <T : Any> execute(
     headersSpec: WebClient.RequestHeadersSpec<*>,
     expectedReturnClass: Class<T>,
     successStatus: HttpStatus = HttpStatus.OK
-  ): T {
+  ): T? {
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)

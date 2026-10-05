@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.jpa
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.boot.archive.internal.StandardArchiveDescriptorFactory
-import org.hibernate.boot.archive.scan.internal.ScanResultCollector
 import org.hibernate.boot.archive.scan.spi.*
 import org.hibernate.boot.archive.scan.spi.Scanner
 import org.hibernate.boot.archive.spi.*
@@ -69,7 +68,6 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
             log.debug { "environment.explicitlyListedClassNames.add('$it')" }
             environment.explicitlyListedClassNames.add(it)
         }
-        val collector = ScanResultCollector(environment, options, parameters)
         /*
             if (environment.nonRootUrls != null) {
               val context: ArchiveContext = JpaWithExtLibrariesScanner.ArchiveContextImpl(false, collector)
@@ -86,7 +84,9 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
               visitUrl(rootUrl, collector, CommonMatchers.always())
             }
             visitExternUrls(environment, collector, loadedUrls)*/
-        return collector.toScanResult()
+        // Hibernate 7 removed ScanResultCollector. Nothing is visited (see above), so the result is empty as before:
+        // the entities come from the explicitly listed class names of the environment.
+        return EMPTY_SCAN_RESULT
     }
     /*
       private fun visitUrl(url: URL, collector: ScanResultCollector, urlMatcher: Matcher<String?>) {
@@ -417,6 +417,12 @@ class MyJpaWithExtLibrariesScanner @JvmOverloads constructor(private val archive
         @JvmStatic
         fun setInternalSetUnitTestMode() {
             INTERNAL_TEST_MODE = true
+        }
+
+        private val EMPTY_SCAN_RESULT = object : ScanResult {
+            override fun getLocatedPackages(): Set<PackageDescriptor> = emptySet()
+            override fun getLocatedClasses(): Set<ClassDescriptor> = emptySet()
+            override fun getLocatedMappingFiles(): Set<MappingFileDescriptor> = emptySet()
         }
 
         private var pluginEntitiesForTestCases = mutableListOf<String>()

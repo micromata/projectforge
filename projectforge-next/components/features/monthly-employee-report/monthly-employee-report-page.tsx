@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PdfIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import {
   fetchMonthlyEmployeeReport,
 } from "@/lib/rs/monthly-employee-report";
 import { useTabParam } from "@/hooks/use-tab-param";
-import { InvoicingQuotaChartView } from "./invoicing-quota-chart-view";
+import { InvoicingQuotaChartView } from "@/components/shared/invoicing-quota/invoicing-quota-chart-view";
 import { ReportFilterRow } from "./report-filter-row";
 import { ReportHeader } from "./report-header";
 import { ReportMatrix } from "./report-matrix";
@@ -38,7 +38,12 @@ export function MonthlyEmployeeReportPage() {
   const [query, setQueryState] = useState<MonthlyReportQuery>(() =>
     readQueryFromUrl(params)
   );
+  const queryClient = useQueryClient();
   function setQuery(next: MonthlyReportQuery): void {
+    // The personal statistics share the invoicing quota switch; drop their cached state on a toggle.
+    if (next.showInvoicingQuota !== query.showInvoicingQuota) {
+      void queryClient.invalidateQueries({ queryKey: ["personalStatistics"] });
+    }
     setQueryState(next);
     writeQueryToUrl(next);
   }
@@ -121,7 +126,11 @@ export function MonthlyEmployeeReportPage() {
             </TabsContent>
             {quotaTab && (
               <TabsContent value="invoicingQuota">
-                <InvoicingQuotaChartView report={data} />
+                <InvoicingQuotaChartView
+                  userId={data.userId}
+                  year={data.year}
+                  month={data.month}
+                />
               </TabsContent>
             )}
           </Tabs>

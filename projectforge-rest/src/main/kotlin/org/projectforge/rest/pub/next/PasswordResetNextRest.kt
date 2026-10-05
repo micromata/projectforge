@@ -230,7 +230,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
 
     @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
     @GetMapping("webAuthn")
-    fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions?> {
+    fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions> {
         return authenticated(request) { twoFactorSupport.webAuthn(request) }
     }
 
@@ -267,7 +267,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * The user isn't logged-in here, but assigned by the token of the reset mail. This user has to be registered in
      * the thread, because the 2FA services work with the logged-in user.
      */
-    private fun <T> authenticated(request: HttpServletRequest, doIt: () -> T): ResponseEntity<T> {
+    private fun <T : Any> authenticated(request: HttpServletRequest, doIt: () -> T?): ResponseEntity<T> {
         if (LoginService.getUserContext(request) != null) {
             log.warn { "Logged-in user tried to do a 2FA of the password reset (denied)." }
             return ResponseEntity(HttpStatus.BAD_REQUEST)

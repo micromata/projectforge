@@ -32,4 +32,10 @@ export interface PersonalStatistics {
   workingHours: WorkingHoursPoint[];
   bookingLatency: BookingLatencyPoint[];
   summary: PersonalStatisticsSummary;
+  /** Whether the invoicing quota is configured and visible for the user (drives showing the switch). */
+  invoicingQuotaAvailable: boolean;
+  /** The user's persisted choice whether to see the invoicing quota (shared with the monthly report). */
+  showInvoicingQuota: boolean;
+  /** Configured explanation of the quota (markdown), only while available. */
+  invoicingQuotaInfo?: string | null;
 }

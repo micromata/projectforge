@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.login.LoginService
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.web.servlet.error.ErrorController
+import org.springframework.boot.webmvc.error.ErrorController
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

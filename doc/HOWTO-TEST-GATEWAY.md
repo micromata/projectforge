@@ -20,7 +20,12 @@ spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
 spring.datasource.username=sa
 spring.datasource.password=
 projectforge.carddav.server.enable=true
+# Same key as the main instance: the DAV and calendar tokens are pushed encrypted and stored 1:1
+projectforge.security.authenticationTokenEncryptionKey=<key of the main instance>
 ```
+
+Without the main instance's key the gateway generates a random one on first start (appended to this file), and
+every CardDAV or ICS login on the gateway fails with "Can't authenticate user ... by given token".
 
 ### 2. Configure the main instance
 
@@ -74,7 +79,7 @@ curl -X POST http://localhost:8090/api/gateway/sync/users \
   -H "Content-Type: application/json" \
   -d '[{"username":"testuser","email":"test@example.com","active":true}]'
 
-# Check the endpoint filter (must return 404)
+# Check the endpoint filter (without login 403: Spring Security denies the request before the filter answers 404)
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/wa/
 
 # CardDAV reachable
