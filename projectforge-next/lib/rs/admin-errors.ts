@@ -53,6 +53,8 @@ export interface LogGroupFilter {
   category?: LogCategory | null;
   search?: string | null;
   days?: number | null;
+  /** Only the problems of the subsystem (`SubsystemEntry.id`). */
+  subsystem?: string | null;
 }
 
 /** `LogGroupEntry`. */
@@ -126,6 +128,36 @@ export interface LogGroupDetail {
   dailyStart: number;
 }
 
+/** `SubsystemState`, ordered by severity. */
+export type SubsystemState = "OK" | "UNKNOWN" | "DEGRADED" | "DOWN";
+
+/** `SubsystemSync`: the last run of a sync since the start. */
+export interface SubsystemSync {
+  type: string;
+  runs: number;
+  lastRun?: number | null;
+  lastStatus?: "SUCCESS" | "ERRORS" | "ABORTED" | null;
+  lastDurationMs?: number | null;
+  lastError?: string | null;
+  lastErrorDate?: number | null;
+}
+
+/** `SubsystemEntry`: a tile of an active subsystem with the statistics of its problems. */
+export interface SubsystemEntry {
+  id: string;
+  /** Translated by the server. */
+  title: string;
+  detail?: string | null;
+  state: SubsystemState;
+  syncs: SubsystemSync[];
+  occurrences24h: number;
+  newProblems24h: number;
+  /** Its problems with status NEW or ACKNOWLEDGED. */
+  open: number;
+  /** As `LogGroupEntry.trend`, summed over its problems. */
+  trend: number[];
+}
+
 /** `LogGroupUpdate`. [muteDays] for MUTE, [notify] for SET_NOTIFY (null: the event's rule). */
 export interface LogGroupUpdate {
   ids: number[];
@@ -141,6 +173,16 @@ export function fetchAdminErrors(
   return request<LogGroupList>(
     "/rs/adminErrors/list",
     { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
+export function fetchAdminSubsystems(
+  signal?: AbortSignal
+): Promise<SubsystemEntry[]> {
+  return request<SubsystemEntry[]>(
+    "/rs/adminErrors/subsystems",
+    { method: "GET" },
     signal
   );
 }

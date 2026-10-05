@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -19,12 +21,17 @@ const ALL_CATEGORIES = "ALL";
 
 const DAYS = [1, 7, 30, 0];
 
-/** Status, category and period of the problem dashboard's list - the server's filter (the search is the table's). */
+/**
+ * Status, category and period of the problem dashboard's list - the server's filter (the search is the table's). A
+ * subsystem chosen by its tile ([subsystemTitle]) shows as a removable chip.
+ */
 export function AdminErrorsFilters({
   filter,
+  subsystemTitle,
   onChange,
 }: {
   filter: LogGroupFilter;
+  subsystemTitle: string | null;
   onChange: (filter: LogGroupFilter) => void;
 }) {
   const t = useTranslations();
@@ -109,6 +116,21 @@ export function AdminErrorsFilters({
           </SelectContent>
         </Select>
       </div>
+      {subsystemTitle && (
+        <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-sm">
+          {t("system.admin.adminErrors.subsystems.filter", {
+            arg0: subsystemTitle,
+          })}
+          <button
+            type="button"
+            className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
+            aria-label={t("system.admin.adminErrors.subsystems.removeFilter")}
+            onClick={() => onChange({ ...filter, subsystem: null })}
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+          </button>
+        </span>
+      )}
     </div>
   );
 }

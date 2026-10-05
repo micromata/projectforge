@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.support
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.logging.LogAudience
@@ -30,10 +31,19 @@ import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEventRegistry
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogNotify
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.integration.SubsystemProblemMatch
+import org.projectforge.framework.integration.SubsystemState
+import org.projectforge.framework.integration.SubsystemStatus
+import org.projectforge.framework.integration.SubsystemStatusProvider
+import org.projectforge.framework.integration.SubsystemSync
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Date
+
+private val log = KotlinLogging.logger {}
 
 /** Which problems the dashboard lists. [OPEN]: new and acknowledged ones. */
 enum class LogGroupStatusFilter(val statuses: Set<LogGroupStatus>?) {
@@ -54,6 +64,25 @@ class LogGroupFilter(
     var category: LogCategory? = null,
     var search: String? = null,
     var days: Int? = 7,
+    /** Only the problems of the subsystem ([SubsystemStatusProvider.id]); none of an unknown one. */
+    var subsystem: String? = null,
+)
+
+/**
+ * A tile of the dashboard: the state of an active subsystem and the statistics of its problems.
+ * @param open Its problems with status NEW or ACKNOWLEDGED.
+ * @param trend As [LogGroupEntry.trend], summed over its problems.
+ */
+class SubsystemEntry(
+    val id: String,
+    val title: String,
+    val detail: String?,
+    val state: SubsystemState,
+    val syncs: List<SubsystemSync>,
+    val occurrences24h: Int,
+    val newProblems24h: Int,
+    val open: Int,
+    val trend: IntArray,
 )
 
 /**
@@ -175,15 +204,14 @@ class LogGroupAdminService {
     @Autowired
     private lateinit var domainService: DomainService
 
+    /** Lazily: the providers live in all modules and may depend on beans depending on this one. */
+    @Autowired
+    private lateinit var subsystemProviders: ObjectProvider<SubsystemStatusProvider>
+
     fun list(filter: LogGroupFilter, now: Long = System.currentTimeMillis()): LogGroupList {
-        // The counts of the last 30 seconds aren't written yet.
-        logAggregationService.flush()
         val currentHour = PendingLogGroup.hourOf(now)
         val trendStart = currentHour - (TREND_DAYS * 24 - 1) * Constants.MILLIS_PER_HOUR
-        val (rows, buckets) = persistenceService.runReadOnly { context ->
-            context.executeNamedQuery(LogGroupDO.SELECT_ROWS, LogGroupRow::class.java) to
-                    context.executeNamedQuery(LogBucketDO.SELECT_SINCE, LogBucketRow::class.java, "since" to Date(trendStart))
-        }
+        val (rows, buckets) = loadRecent(trendStart)
         val bucketsByGroup = buckets.groupBy { it.groupId }
         val since24h = currentHour - 23 * Constants.MILLIS_PER_HOUR
         val summary = LogGroupSummary(
@@ -193,7 +221,8 @@ class LogGroupAdminService {
             externalProblems24h = rows.count { it.category == LogCategory.EXTERNAL && it.lastSeen.time >= now - Constants.MILLIS_PER_DAY },
             open = rows.count { it.status == LogGroupStatus.NEW },
         )
-        val matching = rows.filter { matches(it, filter, now) }
+        val subsystem = subsystemMatchOf(filter)
+        val matching = rows.filter { matches(it, filter, now, subsystem) }
         val entries = matching.take(MAX_ENTRIES).map { row ->
             val groupBuckets = bucketsByGroup[row.id].orEmpty()
             entryOf(
@@ -203,6 +232,66 @@ class LogGroupAdminService {
             )
         }
         return LogGroupList(logAggregationService.enabled, entries, matching.size, summary)
+    }
+
+    /**
+     * The tiles of the active subsystems ([SubsystemStatusProvider]), ordered by title. Open errors of the last 24
+     * hours degrade a subsystem that is OK by its syncs (or has none, e.g. mail).
+     */
+    fun subsystems(now: Long = System.currentTimeMillis()): List<SubsystemEntry> {
+        val active = subsystemProviders.orderedStream().toList().mapNotNull { provider ->
+            val status = try {
+                provider.status()
+            } catch (ex: Exception) {
+                log.warn(ex) { "Status of subsystem '${provider.id}' not available: ${ex.message}" }
+                SubsystemStatus(SubsystemState.UNKNOWN, detail = ex.message)
+            }
+            status?.let { provider to it }
+        }
+        if (active.isEmpty()) {
+            return emptyList()
+        }
+        val currentHour = PendingLogGroup.hourOf(now)
+        val trendStart = currentHour - (TREND_DAYS * 24 - 1) * Constants.MILLIS_PER_HOUR
+        val since24h = currentHour - 23 * Constants.MILLIS_PER_HOUR
+        val (rows, buckets) = loadRecent(trendStart)
+        val bucketsByGroup = buckets.groupBy { it.groupId }
+        return active.map { (provider, status) ->
+            val own = rows.filter { provider.problems.matches(it.code, it.location, it.message) }
+            val ownBuckets = own.flatMap { bucketsByGroup[it.id].orEmpty() }
+            val open = own.filter { it.status == LogGroupStatus.NEW || it.status == LogGroupStatus.ACKNOWLEDGED }
+            val recentErrors = open.any {
+                it.level <= LogLevel.ERROR && // FATAL or ERROR
+                        it.lastSeen.time >= now - Constants.MILLIS_PER_DAY &&
+                        (it.mutedUntil?.time ?: 0) <= now
+            }
+            SubsystemEntry(
+                id = provider.id,
+                title = translate(provider.titleKey),
+                detail = status.detail,
+                state = if (recentErrors) maxOf(status.state, SubsystemState.DEGRADED) else status.state,
+                syncs = status.syncs,
+                occurrences24h = ownBuckets.filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences },
+                newProblems24h = own.count { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY },
+                open = open.size,
+                trend = bins(ownBuckets, trendStart, TREND_BIN_HOURS, TREND_DAYS * 24 / TREND_BIN_HOURS),
+            )
+        }.sortedBy { it.title.lowercase() }
+    }
+
+    /** All problems and the hourly counts since [since]. Flushes first: the counts of the last 30 seconds. */
+    private fun loadRecent(since: Long): Pair<List<LogGroupRow>, List<LogBucketRow>> {
+        logAggregationService.flush()
+        return persistenceService.runReadOnly { context ->
+            context.executeNamedQuery(LogGroupDO.SELECT_ROWS, LogGroupRow::class.java) to
+                    context.executeNamedQuery(LogBucketDO.SELECT_SINCE, LogBucketRow::class.java, "since" to Date(since))
+        }
+    }
+
+    /** Null without a subsystem filter, a match of nothing for an unknown (e.g. no longer active) subsystem. */
+    private fun subsystemMatchOf(filter: LogGroupFilter): SubsystemProblemMatch? {
+        val id = filter.subsystem?.takeIf { it.isNotBlank() } ?: return null
+        return subsystemProviders.orderedStream().toList().find { it.id == id }?.problems ?: SubsystemProblemMatch()
     }
 
     fun detail(id: Long, now: Long = System.currentTimeMillis()): LogGroupDetail? {
@@ -251,12 +340,13 @@ class LogGroupAdminService {
         val rows = persistenceService.runReadOnly { context ->
             context.executeNamedQuery(LogGroupDO.SELECT_ROWS, LogGroupRow::class.java)
         }
+        val subsystem = subsystemMatchOf(filter)
         return LogAnalysisExport(
             source = LogAnalysisExport.SOURCE_DASHBOARD,
             instance = domainService.domain,
             generatedAt = LogAnalysisExport.iso(now)!!,
             filter = filter,
-            problems = analysisProblems(rows.filter { matches(it, filter, now) }.map { it.id }, now),
+            problems = analysisProblems(rows.filter { matches(it, filter, now, subsystem) }.map { it.id }, now),
         )
     }
 
@@ -346,8 +436,12 @@ class LogGroupAdminService {
         return logAggregationService.modifyGroups(update.ids, change)
     }
 
-    private fun matches(row: LogGroupRow, filter: LogGroupFilter, now: Long): Boolean {
+    /** @param subsystem The match of [LogGroupFilter.subsystem], see [subsystemMatchOf]. */
+    private fun matches(row: LogGroupRow, filter: LogGroupFilter, now: Long, subsystem: SubsystemProblemMatch?): Boolean {
         if (filter.status.statuses?.contains(row.status) == false) {
+            return false
+        }
+        if (subsystem != null && !subsystem.matches(row.code, row.location, row.message)) {
             return false
         }
         if (filter.category != null && row.category != filter.category) {

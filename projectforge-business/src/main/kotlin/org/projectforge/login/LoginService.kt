@@ -86,6 +86,10 @@ open class LoginService {
     lateinit var loginHandler: LoginHandler
         private set
 
+    /** The simple class name of the [loginHandler] (of a proxied one too), e.g. `LdapMasterLoginHandler`. */
+    open val loginHandlerName: String
+        get() = ClassUtils.getUserClass(loginHandler.javaClass).simpleName
+
     @PostConstruct
     fun init() {
         loginHandler = when (loginHandlerClass) {

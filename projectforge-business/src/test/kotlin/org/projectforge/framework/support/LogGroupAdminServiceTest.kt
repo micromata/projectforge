@@ -34,6 +34,8 @@ import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogNotify
+import org.projectforge.framework.integration.SubsystemState
+import org.projectforge.framework.integration.SubsystemStatus
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.Date
 
@@ -176,6 +178,62 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertTrue(logGroupAdminService.analysisProblems(emptyList(), now).isEmpty())
     }
 
+    @Test
+    fun `subsystem tiles and filter`() {
+        val now = System.currentTimeMillis()
+        val day = Constants.MILLIS_PER_DAY
+        val byCode = LogEvent("test.subsystem.code", LogCategory.EXTERNAL)
+        val byLocation = LogEvent("test.subsystemLocation", LogCategory.EXTERNAL)
+        val bySync = LogEvent("test.subsystemSync", LogCategory.EXTERNAL)
+        val other = LogEvent("test.subsystemOther", LogCategory.EXTERNAL)
+        repeat(2) {
+            logAggregationService.add(occurrence(byCode, now - it * Constants.MILLIS_PER_HOUR, level = LogLevel.WARN))
+        }
+        logAggregationService.add(occurrence(byLocation, now - 3 * day, location = "TestSubsystemClient:42"))
+        logAggregationService.add(
+            occurrence(bySync, now - 2 * day, message = "Sync test-subsystem-a errors in 1s", level = LogLevel.WARN),
+        )
+        logAggregationService.add(occurrence(other, now))
+
+        val codes = { subsystem: String? ->
+            logGroupAdminService.list(LogGroupFilter(search = "test.subsystem", subsystem = subsystem), now)
+                .entries.map { it.code }.toSet()
+        }
+        Assertions.assertEquals(setOf(byCode.code, byLocation.code, bySync.code, other.code), codes(null))
+        Assertions.assertEquals(
+            setOf(byCode.code, byLocation.code, bySync.code), codes(TestSubsystemStatusProvider.ID),
+            "By code prefix, location prefix and the message of a sync.",
+        )
+        Assertions.assertTrue(codes("unknown").isEmpty(), "An unknown subsystem matches nothing.")
+
+        val tile = { logGroupAdminService.subsystems(now).find { it.id == TestSubsystemStatusProvider.ID } }
+        try {
+            Assertions.assertNull(tile(), "Not active.")
+            TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.OK, detail = "host")
+            tile()!!.let {
+                Assertions.assertEquals(SubsystemState.OK, it.state, "Only warnings within 24 hours, the error is older.")
+                Assertions.assertEquals("host", it.detail)
+                Assertions.assertEquals(2, it.occurrences24h)
+                Assertions.assertEquals(1, it.newProblems24h)
+                Assertions.assertEquals(3, it.open)
+                Assertions.assertEquals(28, it.trend.size)
+                Assertions.assertEquals(4, it.trend.sum())
+            }
+
+            val error = LogEvent("test.subsystem.error", LogCategory.EXTERNAL)
+            logAggregationService.add(occurrence(error, now))
+            Assertions.assertEquals(SubsystemState.DEGRADED, tile()!!.state, "An open error within 24 hours.")
+            val errorId = logGroupAdminService.list(LogGroupFilter(search = error.code), now).entries.single().id
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.MUTE, muteDays = 1), now)
+            Assertions.assertEquals(SubsystemState.OK, tile()!!.state, "A muted error doesn't degrade.")
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.ACKNOWLEDGE), now)
+            TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.DOWN)
+            Assertions.assertEquals(SubsystemState.DOWN, tile()!!.state, "The worse state of the syncs is kept.")
+        } finally {
+            TestSubsystemStatusProvider.status = null
+        }
+    }
+
     private fun statisticsOf() = SystemStatisticsData().also { logAggregationStatisticsBuilder.addStatisticsEntries(it) }
 
     private fun occurrence(
@@ -185,14 +243,16 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         stackTrace: String? = null,
         message: String = "Something failed",
         request: String? = null,
+        location: String = "Foo:1",
+        level: LogLevel = LogLevel.ERROR,
     ) =
         ErrorOccurrence(
             timestampMillis = millis,
-            level = LogLevel.ERROR,
+            level = level,
             event = event,
             exceptionClass = null,
             message = message,
-            location = "Foo:1",
+            location = location,
             stackTrace = stackTrace,
             user = user,
             request = request,

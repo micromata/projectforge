@@ -3157,6 +3157,28 @@
           "open": "Offen",
           "resolved": "Erledigt"
         },
+        "subsystem": {
+          "state": {
+            "degraded": "Gestört",
+            "down": "Ausgefallen",
+            "ok": "OK",
+            "unknown": "Noch kein Lauf"
+          }
+        },
+        "subsystems": {
+          "_": "Teilsysteme und Schnittstellen",
+          "calendars": "{arg0} Kalender",
+          "filter": "Teilsystem: {arg0}",
+          "lastError": "Letzter Fehler",
+          "lastRun": "Letzter Lauf",
+          "none": "Kein Teilsystem und keine Schnittstelle aktiv.",
+          "removeFilter": "Filter entfernen",
+          "tooltip": "Ein Klick zeigt die Probleme des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
+        },
+        "tab": {
+          "overview": "Übersicht",
+          "problems": "Probleme"
+        },
         "threshold": "Schwelle (pro Stunde)",
         "title": "Problem-Dashboard",
         "totalCount": "Gesamt",

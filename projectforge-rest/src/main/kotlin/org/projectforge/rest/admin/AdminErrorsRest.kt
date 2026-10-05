@@ -32,6 +32,7 @@ import org.projectforge.framework.support.LogGroupDetail
 import org.projectforge.framework.support.LogGroupFilter
 import org.projectforge.framework.support.LogGroupList
 import org.projectforge.framework.support.LogGroupUpdate
+import org.projectforge.framework.support.SubsystemEntry
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -74,6 +75,14 @@ class AdminErrorsRest {
     fun list(@RequestBody filter: LogGroupFilter): LogGroupList {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         return logGroupAdminService.list(filter)
+    }
+
+    /** The tiles of the active subsystems (LDAP, IdP, gateway, ...) with the statistics of their problems. */
+    @AccessChecked("Admin group only")
+    @GetMapping("subsystems")
+    fun subsystems(): List<SubsystemEntry> {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        return logGroupAdminService.subsystems()
     }
 
     @AccessChecked("Admin group only")

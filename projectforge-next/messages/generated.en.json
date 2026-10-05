@@ -3157,6 +3157,28 @@
           "open": "Open",
           "resolved": "Resolved"
         },
+        "subsystem": {
+          "state": {
+            "degraded": "Degraded",
+            "down": "Down",
+            "ok": "OK",
+            "unknown": "No run yet"
+          }
+        },
+        "subsystems": {
+          "_": "Subsystems and interfaces",
+          "calendars": "{arg0} calendars",
+          "filter": "Subsystem: {arg0}",
+          "lastError": "Last error",
+          "lastRun": "Last run",
+          "none": "No subsystem or interface is active.",
+          "removeFilter": "Remove filter",
+          "tooltip": "A click shows the problems of the subsystem. Its state results from the last run of its syncs and from open errors of the last 24 hours."
+        },
+        "tab": {
+          "overview": "Overview",
+          "problems": "Problems"
+        },
         "threshold": "Threshold (per hour)",
         "title": "Problem dashboard",
         "totalCount": "Total",
