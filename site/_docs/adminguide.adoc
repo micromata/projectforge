@@ -304,7 +304,9 @@ interval. Nothing is sent for a period without errors. The digest collects:
   by connection errors and timeouts, also from warnings,
 - sync runs that failed, were aborted or timed out since the last digest.
 
-Equal errors (differing only in ids or numbers) are aggregated. The mail lists new problems, regressions
+Equal errors (differing only in ids, numbers or quoted values such as a user name) are aggregated. If a new
+version groups them more coarsely, the problems recorded before are merged shortly after the start (counts summed, the
+admin's status kept if they agree, else new). The mail lists new problems, regressions
 (problems that occurred again after being resolved) and spikes (much more often than in the last 7 days)
 first, then the 30 most frequent known problems sorted by severity (unreachable external systems first).
 Each problem links to the error dashboard (Administration), where it can be acknowledged, resolved, ignored

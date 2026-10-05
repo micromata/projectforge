@@ -32,6 +32,7 @@ import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogNotify
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
 
 class LogAggregationServiceTest : AbstractTestBase() {
     @Autowired
@@ -174,6 +175,63 @@ class LogAggregationServiceTest : AbstractTestBase() {
         }
         Assertions.assertEquals(1, buckets(quietKey).size, "The bucket of 100 days ago is gone.")
         Assertions.assertEquals("trace", group(recentKey).sampleStackTrace)
+    }
+
+    @Test
+    fun `problems of a changed grouping are merged`() {
+        val hour = PendingLogGroup.hourOf(System.currentTimeMillis())
+        val code = "test.aggregation.merge"
+        fun oldGroup(user: String, firstSeen: Long, total: Long, status: LogGroupStatus, vararg buckets: Pair<Long, Int>) {
+            // As written before quoted values were normalized: one problem per user.
+            persistenceService.runInTransaction { context ->
+                val group = LogGroupDO().also {
+                    it.fingerprint = LogAggregationService.fingerprintOf("$code|null|Foo:1|Error for user '$user'")
+                    it.code = code
+                    it.category = LogCategory.BUG
+                    it.level = LogLevel.ERROR
+                    it.location = "Foo:1"
+                    it.sampleMessage = "Error for user '$user'"
+                    it.firstSeen = Date(firstSeen)
+                    it.lastSeen = Date(firstSeen + 1000)
+                    it.totalCount = total
+                    it.status = status
+                    it.lastNotified = Date(firstSeen)
+                }
+                context.insert(group)
+                buckets.forEach { (start, occurrences) ->
+                    context.insert(LogBucketDO().also {
+                        it.groupId = group.id
+                        it.bucketStart = Date(start)
+                        it.occurrences = occurrences
+                        it.distinctUsers = 1
+                    })
+                }
+            }
+        }
+        val twoHoursAgo = hour - 2 * Constants.MILLIS_PER_HOUR
+        oldGroup("kai", twoHoursAgo, 3, LogGroupStatus.ACKNOWLEDGED, hour to 2, twoHoursAgo to 1)
+        oldGroup("anna.m", hour - Constants.MILLIS_PER_HOUR, 4, LogGroupStatus.IGNORED, hour to 4)
+        val untouched = LogEvent("test.aggregation.merge.byCode", LogCategory.BUG)
+        logAggregationService.add(occurrence(untouched, hour, message = "Code only for 'kai'"))
+        logAggregationService.flush()
+
+        logAggregationService.mergeGroups()
+        val key = "$code|null|Foo:1|Error for user '#'"
+        group(key).let {
+            Assertions.assertEquals(7, it.totalCount)
+            Assertions.assertEquals(twoHoursAgo, it.firstSeen!!.time, "The oldest one's.")
+            Assertions.assertEquals(hour - Constants.MILLIS_PER_HOUR + 1000, it.lastSeen!!.time)
+            Assertions.assertEquals(LogGroupStatus.NEW, it.status, "The statuses differed.")
+            Assertions.assertNotNull(it.lastNotified, "Not reported as new.")
+            Assertions.assertEquals("Error for user 'anna.m'", it.sampleMessage, "The latest sample.")
+        }
+        Assertions.assertEquals(listOf(1, 6), buckets(key).map { it.occurrences })
+        Assertions.assertNull(findGroup("$code|null|Foo:1|Error for user 'kai'"))
+        Assertions.assertNull(findGroup("$code|null|Foo:1|Error for user 'anna.m'"))
+        Assertions.assertNotNull(logAggregationService.stateOf(key))
+        Assertions.assertNotNull(
+            findGroup(ErrorDigestCollector.keyOf(occurrence(untouched, hour))), "Grouped by its code: kept.",
+        )
     }
 
     private fun findGroup(key: String): LogGroupDO? = persistenceService.selectNamedSingleResult(
