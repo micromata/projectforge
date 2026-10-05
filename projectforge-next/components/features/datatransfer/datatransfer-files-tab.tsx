@@ -19,6 +19,8 @@ export function DataTransferFilesTab({ view }: { view: DataTransferView }) {
       <AttachmentList
         entity="datatransfer"
         id={id}
+        // An area may hold many files: sortable and searchable like the legacy grid.
+        layout="table"
         uploadHint={`${t("plugins.datatransfer.maxUploadSize._")}: ${
           view.area.capacity?.maxUploadSizeFormatted ?? ""
         }`}
