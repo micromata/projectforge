@@ -22,7 +22,14 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.mail
 
+import jakarta.mail.Session
+import jakarta.mail.internet.MimeMessage
+import jakarta.mail.internet.MimeMultipart
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsPositionsArt
@@ -43,6 +50,8 @@ import org.projectforge.framework.support.ErrorDigestRenderer
 import org.projectforge.framework.support.ErrorOccurrence
 import org.projectforge.framework.support.SyncProblemTracker
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.util.AopTestUtils
+import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -55,6 +64,9 @@ import java.util.*
  */
 class MailTemplatesPreviewTest : AbstractTestBase() {
     @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
     private lateinit var sendMail: SendMail
 
     private val recipient = PFUserDO().also {
@@ -62,6 +74,31 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         it.lastname = "Reinhard"
         it.email = "k.reinhard@example.org"
         it.locale = Locale.GERMAN
+    }
+
+    /** All mails of this test show the default logo, embedded as inline image. */
+    @BeforeEach
+    fun configureLogo() {
+        // The resource may be packed in a jar, so it is copied to a file first.
+        val logo = File(MailPreview.DIR, "default-logo.png").also { file ->
+            file.parentFile.mkdirs()
+            javaClass.getResourceAsStream("/images/default-logo.png")!!.use { file.writeBytes(it.readBytes()) }
+        }
+        setLogoFile(logo)
+    }
+
+    @AfterEach
+    fun resetLogo() {
+        setLogoFile(null)
+    }
+
+    /** Sets the logo file resolved and cached by ConfigurationService, its setters are protected. */
+    private fun setLogoFile(file: File?) {
+        val target = AopTestUtils.getUltimateTargetObject<ConfigurationService>(configurationService)
+        ConfigurationService::class.java.getDeclaredField("logoFileObject").also {
+            it.isAccessible = true
+            it.set(target, file)
+        }
     }
 
     @Test
@@ -72,7 +109,15 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
             mutableMapOf("link" to "https://projectforge.example.org/next/public/password-reset?token=4711"),
             mail.subject, recipient,
         )
-        MailPreview.write(sendMail, "passwordResetMail", mail)
+        val eml = MailPreview.write(sendMail, "passwordResetMail", mail)
+        Assertions.assertTrue(mail.content.contains("class=\"button\""), mail.content)
+        Assertions.assertTrue(mail.content.contains("src=\"${SendMail.LOGO_CID_URL}\""), mail.content)
+        val message = eml.inputStream().use { MimeMessage(Session.getInstance(Properties()), it) }
+        Assertions.assertTrue(message.contentType.startsWith("multipart/related"), message.contentType)
+        val related = message.content as MimeMultipart
+        Assertions.assertEquals(2, related.count)
+        Assertions.assertTrue(related.getBodyPart(1).contentType.startsWith("image/png"))
+        Assertions.assertArrayEquals(arrayOf("<logo@projectforge>"), related.getBodyPart(1).getHeader("Content-ID"))
     }
 
     @Test
@@ -92,8 +137,9 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         mail.content = sendMail.renderGroovyTemplate(
             mail, "mail/birthdayButlerCronMail.html",
             mutableMapOf("content" to "birthdayButler.email.content", "month" to "Oktober", "listSize" to 7),
-            subject, null,
+            subject, null, Locale.GERMAN,
         )
+        Assertions.assertTrue(mail.content.contains("Im Monat"), "German text expected: ${mail.content}")
         val attachment = MailAttachment("Geburtstage_Oktober.docx", "Sample".toByteArray())
         MailPreview.write(sendMail, "birthdayButlerCronMail", mail, listOf(attachment))
     }

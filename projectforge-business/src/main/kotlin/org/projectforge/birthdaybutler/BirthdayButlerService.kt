@@ -181,7 +181,8 @@ class BirthdayButlerService {
                     "mail/birthdayButlerCronMail.html",
                     data,
                     title = subject,
-                    recipient = null
+                    recipient = null,
+                    locale = locale,
                 )
                 try {
                     sendMail.send(mail, attachments = mailAttachments)
