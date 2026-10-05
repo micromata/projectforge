@@ -38,7 +38,7 @@ version exists, it is in parentheses.
 | Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts |
 | Gradle | 8.14.5 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
 | mockito-kotlin | 5.4.0 | 6.x | |
-| kotlin-logging | `io.github.microutils` 3.0.5 (end of line) | `io.github.oshai` 7/8 | package rename `mu.` → `io.github.oshai.kotlinlogging` |
+| kotlin-logging | `io.github.microutils` 3.0.5 (end of line) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
 | Jackrabbit Oak | 1.92.0 | 2.x (2.6.0) | independent of Spring; storage format must be checked |
 
@@ -53,7 +53,7 @@ Counted in `plugins/` and `projectforge-*` (main and test, Kotlin and Java), exc
 | Topic | Files | Hotspots |
 |---|---|---|
 | Jackson (`com.fasterxml.jackson.*`) | 177 | 98 databind, 103 annotations, 24 custom `Std(De)Serializer`, 34 `ObjectMapper()` instances, `JsonUtils.kt` (Hibernate6Module), `UserPrefDao`, 18 × `JsonProcessingException`, 17 × `SerializerProvider` |
-| Hibernate ORM API (`org.hibernate.*`, without Search) | ~40 | `PropertyDelta.java` (`ClassMetadata`, removed in 7), `PfAbstarctScannerImpl.java` (internal `boot.archive.scan`), `SqmNode`, `HibernateCriteriaBuilder`, `AbstractLazyInitializer`, `SingleTableEntityPersister`, `StatisticsImplementor` |
+| Hibernate ORM API (`org.hibernate.*`, without Search) | ~40 | `MyJpaWithExtLibrariesScanner.kt` (internal `boot.archive.scan`), `SqmNode`, `HibernateCriteriaBuilder`, `AbstractLazyInitializer`, `SingleTableEntityPersister`, `StatisticsImplementor` |
 | JPA Criteria / `createQuery` | 37 | mostly JPA API, stable |
 | Hibernate Search | 97 | mainly mapping annotations; bridges (`TypeBinder`, `ValueBridge`), `MassIndexer`, `LuceneAnalysisConfigurer`, `SearchPredicateFactory` |
 | Spring Boot packages | ~45 | `ServerProperties`, `DataSourceBuilder`, `TomcatServletWebServerFactory`, `ErrorController`, `ServletContextInitializer`, `RestTemplateBuilder`, `EntityScan` (packages moved in Boot 4) |
@@ -61,7 +61,6 @@ Counted in `plugins/` and `projectforge-*` (main and test, Kotlin and Java), exc
 | RestTemplate / WebClient | 13 | sipgate, d.velop, Keycloak/Authentik, gateway push, `RestCallService` |
 | Flyway API | 11 | |
 | JUnit 5 | 443 | mostly annotations/assertions, compatible |
-| kotlin-logging `mu.` | 470 | mechanical |
 | webauthn4j | 5 | passkeys |
 
 ## Order and dependencies
@@ -86,16 +85,17 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
 
 - [ ] **Remove deprecations** for which Hibernate 6.6, Spring 6.2 and Security 6.5 already offer the
       replacement API (compile with `-Xlint:deprecation` / Kotlin warnings, fix the warnings):
-  - [ ] `PropertyDelta.java`: replace `ClassMetadata`/`getClassMetadata` with the JPA metamodel
-        (`EntityManagerFactory.metamodel`) or `MappingMetamodel`.
-  - [ ] `PfAbstarctScannerImpl.java`: check whether the custom scanner is still needed (plugin entities in
-        fat jar). If it is, isolate it, because the internal `org.hibernate.boot.archive.scan.*` classes
-        change in 7 (scanning moves into the separate artifact `hibernate-scan-jandex`).
+  - [x] `ClassMetadata`: the only users were the unused package `de.micromata.hibernate.history.delta`
+        (incl. `PropertyDelta.java`), removed as dead code.
+  - [x] `PfAbstarctScannerImpl.java` was unused and is removed. The active scanner is
+        `MyJpaWithExtLibrariesScanner.kt` (`persistence.xml`, plugin entities in the fat jar); it uses the
+        internal `org.hibernate.boot.archive.scan.*` classes (`ScanResultCollector`), which change in 7
+        (scanning moves into the separate artifact `hibernate-scan-jandex`) → adapt in Phase 1.
   - [ ] Replace deprecated Spring/Spring Security APIs (e.g. `RestTemplate` call sites that already have a
         `RestClient` equivalent; optional, `RestTemplate` still exists in Spring 7).
-- [ ] **kotlin-logging → `io.github.oshai:kotlin-logging-jvm` 7.x** (470 files, `mu.KotlinLogging` →
-      `io.github.oshai.kotlinlogging.KotlinLogging`; check `KLogger` API differences; Kotlin scripts use
-      `log` from the bindings – check `KotlinScriptExecutor` and the example scripts).
+- kotlin-logging (`mu.` → `io.github.oshai`) is **not** part of this plan: the logging framework is
+  addressed separately. `io.github.microutils:kotlin-logging` 3.0.5 has no Spring/Hibernate dependency and
+  doesn't block the phases.
 - [ ] **Kotlin 2.3.21** (the version Boot 4.1 manages). Run `KotlinScriptExecutionTest` **and** the fat jar
       check (see "Kotlin scripting engine").
 - [ ] **JUnit 6 + mockito-kotlin 6**: collapse `org-junit-jupiter`/`org-junit-platform-launcher` into one
@@ -214,7 +214,6 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 
 ## Open questions
 
-- Is the custom Hibernate scanner (`PfAbstarctScannerImpl`) still needed now that Wicket is gone?
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
 - Window for the reindex and the Flyway run of the first Boot 4 release in production.
