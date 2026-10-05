@@ -169,7 +169,7 @@ class SupportErrorDigestTest {
 
     @Test
     fun `notify rules decide what is reported, not the level`() {
-        val digest = SupportErrorDigest()
+        val digest = SupportErrorDigest().also { it.active = true }
         digest.collect(occurrence(CommonLogEvents.USER_ERROR, "Validation failed"))
         digest.collect(occurrence(QUIET, "Expected error"))
         Assertions.assertTrue(digest.collector.drain().groups.isEmpty(), "NONE isn't collected for the digest.")

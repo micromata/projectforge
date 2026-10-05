@@ -1200,6 +1200,11 @@
       "id": "Kost2-ID",
       "kost2s": "Kost2s",
       "number": "Kost2-Nummer",
+      "sharedCost": {
+        "_": "Geteilte Kosten",
+        "inherited": "Wie Strukturelement",
+        "tooltip": "Bei Ja dürfen sich auf diese Kost2 gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten), bei Nein nicht. Diese Einstellung hat Vorrang vor der des Strukturelements. Ist sie leer, entscheidet das Strukturelement. Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt."
+      },
       "title": {
         "add": "Neue Kost2",
         "edit": "Kost2 bearbeiten",
@@ -3180,7 +3185,7 @@
     "_": "Strukturelement",
     "allowTimeOverlap": {
       "_": "Strukturelement mit geteilten Kosten",
-      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt."
+      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",

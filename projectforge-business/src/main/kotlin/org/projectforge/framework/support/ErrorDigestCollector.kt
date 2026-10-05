@@ -151,23 +151,46 @@ class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
     }
 }
 
+
 /**
- * Applies the notify rules of the groups' events to a drained snapshot: a group below its event's
- * [threshold][LogEvent.threshold] isn't reported, a [LogNotify.DIGEST_IF_NEW] group only the first time (remembered
- * since start-up, at most [maxRemembered] fingerprints). [LogNotify.NONE] isn't collected in the first place.
+ * Applies the notify rules to a drained snapshot. A group is not reported if
+ * - its problem is [ignored or muted][LogGroupState.muted] by an admin,
+ * - its notify rule is [LogNotify.NONE]: the admin's [override][LogGroupState.overrideNotify], else the event's,
+ * - it is below its event's [threshold][LogEvent.threshold],
+ * - its rule is [LogNotify.DIGEST_IF_NEW] and it was reported before, unless it reoccurred after it was resolved.
+ *
+ * "Reported before" is taken from the database ([states], it survives restarts); for a problem not yet written there
+ * (or without database) from memory, since start-up and for at most [maxRemembered] groups.
  */
-class DigestNotifyFilter(private val maxRemembered: Int = 10_000) {
+class DigestNotifyFilter(
+    private val states: LogGroupStates? = null,
+    private val maxRemembered: Int = 10_000,
+) {
     private val reported = object : LinkedHashMap<String, Boolean>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>?) = size > maxRemembered
     }
 
     @Synchronized
-    fun apply(snapshot: ErrorDigestCollector.Snapshot): ErrorDigestCollector.Snapshot {
+    fun apply(snapshot: ErrorDigestCollector.Snapshot, now: Long = System.currentTimeMillis()): ErrorDigestCollector.Snapshot {
         val (reportable, suppressed) = snapshot.groups.partition { group ->
-            group.count >= group.event.threshold &&
-                    (group.event.notify != LogNotify.DIGEST_IF_NEW || reported[group.key] == null)
+            val state = states?.stateOf(group.key)
+            val notify = state?.overrideNotify ?: group.event.notify
+            when {
+                state?.muted(now) == true || notify == LogNotify.NONE -> false
+                group.count < group.event.threshold -> false
+                notify != LogNotify.DIGEST_IF_NEW -> true
+                state != null -> state.unreported
+                else -> reported[group.key] == null
+            }
         }
-        reportable.filter { it.event.notify == LogNotify.DIGEST_IF_NEW }.forEach { reported[it.key] = true }
+        reportable.forEach { reported[it.key] = true }
+        states?.markNotified(reportable.map { it.key })
         return ErrorDigestCollector.Snapshot(reportable, snapshot.dropped, snapshot.suppressed + suppressed.sumOf { it.count })
+    }
+
+    companion object {
+        /** The notify rule of an occurrence: the admin's override of its problem, else the one of its event. */
+        fun notifyOf(occurrence: ErrorOccurrence, state: LogGroupState?): LogNotify =
+            state?.overrideNotify ?: occurrence.event.notify
     }
 }
