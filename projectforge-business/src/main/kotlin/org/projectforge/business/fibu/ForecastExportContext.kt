@@ -208,6 +208,9 @@ internal class ForecastExportContext(
     // Month totals for the web charts (see ForecastExport.chartData), summed up while the sheets are filled.
     val chartTotals = ForecastChartTotals()
 
+    // The detail rows for the web tables (see ForecastExport.statistics), collected while the forecast sheet is filled.
+    val tables = ForecastTablesCollector()
+
     companion object {
         /**
          * Pseudo project id for invoices without any assignable project. Needed because the filter selection of the

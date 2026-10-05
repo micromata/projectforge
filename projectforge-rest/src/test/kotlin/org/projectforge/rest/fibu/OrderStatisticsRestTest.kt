@@ -56,6 +56,20 @@ class OrderStatisticsRestTest : AbstractTestBase() {
         assertThrows<AccessException> { orderStatisticsRest.deleteFavorite(1) }
     }
 
+    @Autowired
+    private lateinit var orderEntityRest: OrderEntityRest
+
+    @Test
+    fun `a user without the order right gets neither the charts nor their tables`() {
+        logon(TEST_USER)
+        val forecastRequest = OrderEntityRest.ForecastChartRequest(MagicFilter())
+        val marginRequest = OrderEntityRest.ContributionMarginRequest(MagicFilter())
+        assertThrows<AccessException> { orderEntityRest.forecastChart(forecastRequest) }
+        assertThrows<AccessException> { orderEntityRest.forecastTables(forecastRequest) }
+        assertThrows<AccessException> { orderEntityRest.contributionMargin(marginRequest) }
+        assertThrows<AccessException> { orderEntityRest.contributionMarginDetails(marginRequest) }
+    }
+
     @Test
     fun `a favorite keeps the statistics criteria only and survives a round trip`() {
         logon(TEST_FINANCE_USER)

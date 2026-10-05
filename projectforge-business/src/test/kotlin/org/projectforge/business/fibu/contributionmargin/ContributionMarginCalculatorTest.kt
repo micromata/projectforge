@@ -290,6 +290,53 @@ class ContributionMarginCalculatorTest {
     assertEquals(BigDecimal("10"), data.projects.single { it.projectId == PROJECT_B }.costs)
   }
 
+  @Test
+  fun `the details sum up to the period and value the time sheets by the hourly rate`() {
+    val hourlyRate = BigDecimal("80")
+    val entries = listOf(
+      ContributionMarginEntry(PROJECT_A, LocalDate.of(2026, 2, 10), revenue = BigDecimal("1000")),
+      ContributionMarginEntry(PROJECT_A, LocalDate.of(2026, 2, 20), costs = BigDecimal("-300")),
+      ContributionMarginEntry(PROJECT_B, LocalDate.of(2026, 3, 5), revenue = BigDecimal("500")),
+      // Preliminary (after the booking import): an invoice and time sheets of two kost2.
+      ContributionMarginEntry(
+        PROJECT_A, LocalDate.of(2026, 7, 3), revenue = BigDecimal("400"), type = ContributionMarginEntryType.INVOICE,
+      ),
+      timesheet(PROJECT_A, KOST2_A, LocalDate.of(2026, 7, 6), 2 * HOUR, hourlyRate),
+      timesheet(PROJECT_A, KOST2_A, LocalDate.of(2026, 7, 7), 3 * HOUR, hourlyRate),
+      timesheet(PROJECT_A, 102L, LocalDate.of(2026, 7, 8), HOUR / 2, hourlyRate),
+      // Previous year: not part of the details.
+      ContributionMarginEntry(PROJECT_A, LocalDate.of(2025, 2, 10), revenue = BigDecimal("999")),
+    )
+    val calculator = calculator(bookingImportEnd = LocalDate.of(2026, 6, 30))
+    val data = calculator.calculate(entries, ::info, hourlyRate, ContributionMarginConfig())
+    val details = calculator.details(entries, ::info, { "kost2-$it" }, hourlyRate)
+
+    assertEquals(data.revenue.sumOf { it }, details.months.sumOf { it.revenue })
+    assertEquals(data.costs.sumOf { it }, details.months.sumOf { it.costs })
+    assertEquals(listOf("2026-02", "2026-03", "2026-07"), details.months.map { it.month })
+    val february = details.months.first()
+    assertEquals("Project A", february.project)
+    assertEquals(BigDecimal("700"), february.profit)
+    assertEquals(BigDecimal("70.0"), february.percentage)
+    assertEquals(listOf(false, false, true), details.months.map { it.preliminary })
+
+    assertEquals(listOf("kost2-$KOST2_A", "kost2-102"), details.timesheets.map { it.kost2 })
+    assertEquals(BigDecimal("5.00"), details.timesheets[0].hours)
+    assertEquals(BigDecimal("400.00"), details.timesheets[0].costs)
+    assertEquals(BigDecimal("0.50"), details.timesheets[1].hours)
+    assertEquals(data.costs[6], details.timesheets.sumOf { it.costs })
+    assertTrue(details.invoices.isEmpty(), "The invoices are added by the service.")
+  }
+
+  private fun timesheet(projectId: Long, kost2Id: Long, date: LocalDate, millis: Long, hourlyRate: BigDecimal) =
+    ContributionMarginEntry(
+      projectId,
+      date,
+      costs = ContributionMarginCalculator.timesheetCosts(millis, hourlyRate),
+      type = ContributionMarginEntryType.TIMESHEET,
+      kost2Id = kost2Id,
+    )
+
   private fun calculator(bookingImportEnd: LocalDate?, today: LocalDate = LocalDate.of(2027, 2, 10)) =
     ContributionMarginCalculator(LocalDate.of(2026, 1, 15), bookingImportEnd, today)
 
@@ -323,5 +370,6 @@ class ContributionMarginCalculatorTest {
     private const val PROJECT_A = 1L
     private const val PROJECT_B = 2L
     private const val KOST2_A = 101L
+    private const val HOUR = 3_600_000L
   }
 }

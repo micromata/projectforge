@@ -45,9 +45,11 @@ import { cn } from "@/lib/utils";
 export function HintTooltip({
   title,
   text,
+  content,
   plain,
   side,
   openOnTap,
+  wide,
   children,
 }: {
   /**
@@ -57,6 +59,10 @@ export function HintTooltip({
   title?: string;
   /** Nothing is rendered without one, so a caller may pass an optional backend tooltip as it is. */
   text?: string | null;
+  /**
+   * A structured explanation (e.g. a table of warnings) instead of [text], rendered as it is.
+   */
+  content?: ReactNode;
   /**
    * Renders [text] verbatim instead of as markdown — for content from the database or from the user
    * (a remark, an entity name), where an underscore is an underscore and not emphasis.
@@ -68,13 +74,20 @@ export function HintTooltip({
    * where the trigger is passive; leave it off where the trigger is itself actionable (see above).
    */
   openOnTap?: boolean;
+  /**
+   * Up to the width of a page column instead of the narrow footnote, for lines that must not wrap to be
+   * readable (a list of warnings, one per line).
+   */
+  wide?: boolean;
   /** The element the tooltip explains; it becomes the trigger itself (`asChild`). */
   children: ReactElement;
 }) {
   const coarsePointer = useCoarsePointer();
-  if (!text && !title) return children;
+  if (!text && !title && !content) return children;
 
-  const body = <HintBody title={title} text={text} plain={plain} />;
+  const body = (
+    <HintBody title={title} text={text} content={content} plain={plain} />
+  );
 
   if (openOnTap && coarsePointer) {
     return (
@@ -85,7 +98,7 @@ export function HintTooltip({
             default, which the footnote does not want. */}
         <PopoverContent
           side={side}
-          className={cn(HINT_CONTENT_CLASS, "w-auto")}
+          className={cn(HINT_CONTENT_CLASS, wide && HINT_WIDE_CLASS, "w-auto")}
         >
           {body}
         </PopoverContent>
@@ -96,7 +109,10 @@ export function HintTooltip({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side={side} className={HINT_CONTENT_CLASS}>
+      <TooltipContent
+        side={side}
+        className={cn(HINT_CONTENT_CLASS, wide && HINT_WIDE_CLASS)}
+      >
         {body}
       </TooltipContent>
     </Tooltip>
@@ -110,20 +126,27 @@ export function HintTooltip({
 const HINT_CONTENT_CLASS =
   "max-w-sm flex-col items-start gap-2 text-[11px] leading-relaxed";
 
+/** See [wide]: never wider than the viewport, so a long line still wraps on a phone. */
+const HINT_WIDE_CLASS = "max-w-[min(90vw,64rem)]";
+
 /** The title and explanation, shared by the tooltip and the tap popover so they read identically. */
 function HintBody({
   title,
   text,
+  content,
   plain,
 }: {
   title?: string;
   text?: string | null;
+  content?: ReactNode;
   plain?: boolean;
 }): ReactNode {
   return (
     <>
       {title && <span className="font-semibold">{title}</span>}
-      {text &&
+      {content}
+      {!content &&
+        text &&
         (plain ? (
           // `whitespace-pre-wrap`: the line breaks of the value itself are all its structure.
           <span className="whitespace-pre-wrap">{text}</span>

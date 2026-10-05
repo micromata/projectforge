@@ -20,10 +20,15 @@ import { cn } from "@/lib/utils";
  */
 export function SelectItemWithHint({
   hint,
+  hintClassName,
   children,
   className,
   ...props
-}: ComponentProps<typeof SelectPrimitive.Item> & { hint?: string }) {
+}: ComponentProps<typeof SelectPrimitive.Item> & {
+  hint?: string;
+  /** E.g. a wider hint for an explanation of several sentences. */
+  hintClassName?: string;
+}) {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -41,7 +46,12 @@ export function SelectItemWithHint({
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
       {hint ? (
         // Not pointer-events-none: a click here must still reach the item and select it.
-        <span className="mt-0.5 max-w-64 text-[11px] leading-snug text-muted-foreground">
+        <span
+          className={cn(
+            "mt-0.5 max-w-64 text-[11px] leading-snug text-muted-foreground",
+            hintClassName
+          )}
+        >
           {hint}
         </span>
       ) : null}

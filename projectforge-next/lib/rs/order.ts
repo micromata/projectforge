@@ -206,7 +206,19 @@ export interface ForecastChartSettings {
   startDate: string | null;
   /** Day of the order book snapshot used as plan (the closest one), or null for no plan. */
   planningDate: string | null;
+  /**
+   * Optimistic (true, the unused budget distributed) or conservative (false, run rate; lost budget warnings)
+   * forecast, see `ForecastOrderPosInfo.distributeUnusedBudget`.
+   */
+  distributeUnusedBudget: boolean;
 }
+
+/**
+ * The months of performance a time & materials position needs before its run rate counts in the
+ * conservative forecast, mirroring `ForecastOrderPosInfo.RUN_RATE_MIN_ELAPSED_MONTHS` (argument of the
+ * variant's explanation).
+ */
+export const FORECAST_RUN_RATE_MIN_ELAPSED_MONTHS = 3;
 
 /** The position statuses the forecast sums up, in the order of the Excel template (rows 2-6). */
 export const FORECAST_CHART_STATUSES = [
@@ -261,6 +273,117 @@ export function fetchForecastChart(
 ): Promise<ForecastChartData> {
   return request<ForecastChartData>(
     "/rs/order/forecastChart",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
+/** One project of the forecast's project overview (`ForecastProjectRow`). */
+export interface ForecastProjectRow {
+  /** -1 (`PROJECT_ID_NONE`) for the invoices and positions without any project. */
+  projectId: number;
+  customer: string | null;
+  project: string | null;
+  /** Remaining forecast plus the invoices (IST) of the 12 months. */
+  forecast: number;
+  /** Null if no planning date was given. */
+  plan: number | null;
+  prevYear: number;
+  prevPrevYear: number;
+  /** The sum of the differences of the project's positions. */
+  difference: number;
+  /** The lost budget warnings of the project's positions. */
+  warnings: ForecastWarning[];
+}
+
+/** The lost budget warning of an order position (`ForecastWarning`). */
+export interface ForecastWarning {
+  /** Order and position number, e.g. `7076.1`. */
+  position: string;
+  text: string;
+}
+
+/** One order position of the forecast, a row of the Excel's Forecast_Data (`ForecastPositionRow`). */
+export interface ForecastPositionRow {
+  /** Null for the pseudo rows (invoices without order resp. without project). */
+  orderId: number | null;
+  orderNumber: number | null;
+  positionNumber: number | null;
+  projectId: number | null;
+  customer: string | null;
+  project: string | null;
+  title: string | null;
+  /** Only given if it differs from the order's title. */
+  positionTitle: string | null;
+  art: string | null;
+  paymentType: string | null;
+  /** Translated, as in the Excel. */
+  orderStatus: string;
+  positionStatus: string;
+  personDays: number | null;
+  netSum: number;
+  probability: number;
+  weightedNetSum: number;
+  invoicedSum: number;
+  toBeInvoicedSum: number;
+  periodOfPerformanceBegin: string | null;
+  periodOfPerformanceEnd: string | null;
+  forecastType: string;
+  /** The remaining forecast of the 12 months; null for no value. */
+  months: (number | null)[];
+  /** The remaining forecast after the 12 months. */
+  remaining: number;
+  difference: number;
+  /** The lost budget warning of the conservative forecast, or null. */
+  warning: string | null;
+  /** The indexes 0..11 of the months with a lost budget warning, marked red as in the Excel. */
+  warningMonths: number[];
+  pseudo: boolean;
+}
+
+export type ForecastInvoiceKind = "IST" | "PREV_YEAR" | "PREV_PREV_YEAR";
+
+/** One invoice position of the forecast's invoice sheets (`ForecastInvoiceRow`). */
+export interface ForecastInvoiceRow {
+  invoiceId: number | null;
+  invoiceNumber: number | null;
+  positionNumber: number | null;
+  date: string | null;
+  projectId: number;
+  customer: string | null;
+  project: string | null;
+  subject: string | null;
+  positionText: string | null;
+  orderId: number | null;
+  /** The order position as `<order number>.<position number>`. */
+  order: string | null;
+  netSum: number;
+  /** Index 0..11 of the month within the 12 months of `kind`. */
+  monthIndex: number;
+  kind: ForecastInvoiceKind;
+}
+
+/** The rows behind the forecast charts (`ForecastTables`), of the same request as {@link fetchForecastChart}. */
+export interface ForecastTables {
+  /** The 12 months as `yyyy-MM`. */
+  months: string[];
+  projects: ForecastProjectRow[];
+  positions: ForecastPositionRow[];
+  invoices: ForecastInvoiceRow[];
+}
+
+/**
+ * The rows behind {@link fetchForecastChart} of the same filter and dates. The backend caches the
+ * calculation, so asking right after the charts doesn't run the forecast again. Stores neither filter nor
+ * dates.
+ */
+export function fetchForecastTables(
+  filter: MagicFilter,
+  settings: ForecastChartSettings,
+  signal?: AbortSignal
+): Promise<ForecastTables> {
+  return request<ForecastTables>(
+    "/rs/order/forecastChart/tables",
     { method: "POST", body: JSON.stringify({ filter, ...settings }) },
     signal
   );
@@ -370,6 +493,81 @@ export function fetchContributionMargin(
 ): Promise<ContributionMarginData> {
   return request<ContributionMarginData>(
     "/rs/order/contributionMargin",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
+/** The sums of a project in a month of the period (`ContributionMarginMonthRow`). */
+export interface ContributionMarginMonthRow {
+  /** `yyyy-MM`. */
+  month: string;
+  projectId: number;
+  kost: string | null;
+  customer: string | null;
+  project: string | null;
+  revenue: number;
+  /** Positive amounts. */
+  costs: number;
+  profit: number;
+  percentage: number | null;
+  /** The month contains preliminary values (unbooked invoices, time sheets). */
+  preliminary: boolean;
+}
+
+/** One invoice position of a project in the period (`ContributionMarginInvoiceRow`). */
+export interface ContributionMarginInvoiceRow {
+  invoiceId: number | null;
+  date: string | null;
+  number: number | null;
+  positionNumber: number | null;
+  projectId: number | null;
+  kost: string | null;
+  customer: string | null;
+  project: string | null;
+  subject: string | null;
+  netSum: number;
+  status: string | null;
+  orderId: number | null;
+  /** The order position as `<order number>.<position number>`. */
+  order: string | null;
+  /** Date of the accounting record, null if not booked (yet). */
+  bookedDate: string | null;
+  /** Counts as preliminary revenue (not booked yet). */
+  preliminary: boolean;
+}
+
+/** The time sheet costs (hours × hourly rate) of a kost2 in a month, preliminary by definition. */
+export interface ContributionMarginTimesheetRow {
+  /** `yyyy-MM`. */
+  month: string;
+  projectId: number;
+  kost2: string | null;
+  customer: string | null;
+  project: string | null;
+  hours: number | null;
+  /** Positive amount. */
+  costs: number;
+}
+
+/** The rows behind the contribution margin of the period (`ContributionMarginDetails`). */
+export interface ContributionMarginDetails {
+  months: ContributionMarginMonthRow[];
+  invoices: ContributionMarginInvoiceRow[];
+  timesheets: ContributionMarginTimesheetRow[];
+}
+
+/**
+ * The rows behind {@link fetchContributionMargin} of the same filter and start date, from the backend's
+ * cache of that calculation. Stores neither filter nor start date.
+ */
+export function fetchContributionMarginDetails(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings,
+  signal?: AbortSignal
+): Promise<ContributionMarginDetails> {
+  return request<ContributionMarginDetails>(
+    "/rs/order/contributionMargin/details",
     { method: "POST", body: JSON.stringify({ filter, ...settings }) },
     signal
   );

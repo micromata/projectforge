@@ -28,7 +28,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.KostCache
@@ -81,6 +83,9 @@ open class ContributionMarginService {
 
   @Autowired
   private lateinit var persistenceService: PfPersistenceService
+
+  @Autowired
+  private lateinit var rechnungCache: RechnungCache
 
   @Autowired
   private lateinit var rechnungDao: RechnungDao
@@ -150,11 +155,63 @@ open class ContributionMarginService {
    * the two previous years. The access to the projects must be checked by the caller ([allowedProjectIds]).
    */
   open fun calculate(projectIds: Collection<Long>, startDate: LocalDate): ContributionMarginData {
+    return calculate(projectIds, startDate, withDetails = false).data
+  }
+
+  /** As [calculate], plus the rows behind it ([ContributionMarginDetails]). */
+  open fun calculateWithDetails(projectIds: Collection<Long>, startDate: LocalDate): ContributionMarginResult {
+    return calculate(projectIds, startDate, withDetails = true)
+  }
+
+  private fun calculate(projectIds: Collection<Long>, startDate: LocalDate, withDetails: Boolean): ContributionMarginResult {
     val config = config()
     val bookingImportEnd = bookingImportEnd()
     val calculator = ContributionMarginCalculator(startDate, bookingImportEnd, PFDay.now().localDate)
     val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodEnd, bookingImportEnd, config)
-    return calculator.calculate(source.entries, ::projectInfo, source.hourlyRate, config)
+    val data = calculator.calculate(source.entries, ::projectInfo, source.hourlyRate, config)
+    if (!withDetails) {
+      return ContributionMarginResult(data, ContributionMarginDetails.EMPTY)
+    }
+    val details = calculator.details(source.entries, ::projectInfo, { kostCache.getKost2(it)?.formattedNumber }, source.hourlyRate)
+    val invoices = if (calculator.periodValuesEnd < calculator.periodBegin) {
+      emptyList()
+    } else {
+      invoiceRows(selectInvoices(projectIds, calculator.periodBegin, calculator.periodValuesEnd), source)
+    }
+    return ContributionMarginResult(data, ContributionMarginDetails(details.months, invoices, details.timesheets))
+  }
+
+  /** One row per position of the invoices (planned ones excluded, as they aren't issued yet). */
+  private fun invoiceRows(invoices: List<RechnungDO>, source: ContributionMarginSource): List<ContributionMarginInvoiceRow> {
+    return invoices.filter { it.status != RechnungStatus.GEPLANT }.flatMap { invoice ->
+      val projectId = invoice.projekt?.id
+      val info = projectId?.let { projectInfo(it) }
+      val customer = caches.getKundeIfNotInitialized(invoice.kunde)?.name ?: invoice.kundeText ?: info?.customer
+      val bookedDate = source.bookedInvoices.bookedDate(invoice)?.localDate
+      val preliminary = source.isPreliminaryRevenue(invoice)
+      val status = invoice.status?.i18nKey?.let { translate(it) }
+      val positions = rechnungCache.getRechnungInfo(invoice.id)?.positions ?: emptyList()
+      positions.map { pos ->
+        val orderPos = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
+        ContributionMarginInvoiceRow(
+          invoiceId = invoice.id,
+          date = invoice.datum,
+          number = invoice.nummer,
+          positionNumber = pos.number,
+          projectId = projectId,
+          kost = info?.kost,
+          customer = customer,
+          project = info?.project,
+          subject = invoice.betreff,
+          netSum = pos.netSum,
+          status = status,
+          orderId = orderPos?.auftragId,
+          order = orderPos?.let { "${it.auftragNummer}.${it.number}" },
+          bookedDate = bookedDate,
+          preliminary = preliminary,
+        )
+      }
+    }.sortedWith(compareBy({ it.date }, { it.number }, { it.positionNumber }))
   }
 
   /**
