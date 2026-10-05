@@ -18,7 +18,8 @@ pfDev.sh <command> [slot] [args…] — ProjectForge dev helper
 
 Commands:
   gen              Prepare/generate: source headers, i18n sort, next message
-                   catalogs + field metadata
+                   catalogs + field metadata, changelog (site + next, from
+                   changelog/changelog{,.de}.json), i18n key usage
                    (:projectforge-application:developmentMainForRelease)
   run [slot]       Build (skip tests), then run the app in dev mode
   setup <slot> [pw] Create a slot instance (see below); its first run fills the
@@ -33,6 +34,13 @@ Commands:
                    current); skipped with --dev / --port <n> (dev server)
   e2e:ui [slot] …  Playwright e2e tests in UI mode
   check            Next quality gates: typecheck → lint → format:check
+  release <X.Y.Z> [--skip-tests]
+                   Release X.Y.Z: checks changelog/changelog.json (the release on top,
+                   tagged X.Y.Z-RELEASE; X.Y.0 also needs a news X.Y), sets the version,
+                   runs gen and the build, commits and tags, then commits the next
+                   X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
+  publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
+                   from the changelog, jar attached); asks before each step
   help             Show this help
 
 Slots (1–9) run independent instances side by side, e.g. one per worktree:
@@ -141,6 +149,97 @@ require_slot() {
   fi
 }
 
+# Sets the version of all modules (the single source is gradle.properties).
+set_version() {
+  perl -pi -e "s/^version=.*/version=$1/" "$ROOT/gradle.properties"
+}
+
+confirm() {
+  local answer
+  read -r -p "$1 [y/N] " answer
+  [[ "$answer" == [yY] ]]
+}
+
+RELEASE_USAGE="Usage: pfDev.sh release X.Y.Z [--skip-tests] / pfDev.sh publish X.Y.Z"
+
+release() {
+  local version="${1:-}" skip_tests=false
+  [[ "${2:-}" == --skip-tests ]] && skip_tests=true
+  if [[ ! "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    echo "$RELEASE_USAGE" >&2
+    exit 1
+  fi
+  local next="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((10#${BASH_REMATCH[3]} + 1))-SNAPSHOT" tag="$version-RELEASE" start
+  cd "$ROOT"
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "The working tree isn't clean, commit or stash first." >&2
+    exit 1
+  fi
+  if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+    echo "The tag $tag exists already." >&2
+    exit 1
+  fi
+  git fetch --quiet
+  if git rev-parse -q --verify '@{upstream}' >/dev/null 2>&1 && (($(git rev-list --count 'HEAD..@{upstream}') > 0)); then
+    echo "The branch is behind its upstream, pull first." >&2
+    exit 1
+  fi
+  # Fails with every problem of the changelog, before anything is changed.
+  "$GRADLEW" -p "$ROOT" :projectforge-application:checkReleaseChangelog -PreleaseVersion="$version"
+  confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
+  start="$(git rev-parse --short HEAD)"
+  trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
+  set_version "$version"
+  "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
+  git add -A
+  git commit -q -m "release: $version"
+  git tag -a "$tag" -m "ProjectForge $version"
+  # Built from the tagged commit, so the jar's build.properties show it (and not a dirty tree).
+  if $skip_tests; then "$GRADLEW" -p "$ROOT" build -x test; else "$GRADLEW" -p "$ROOT" build; fi
+  set_version "$next"
+  git commit -q -m "chore: next development version $next" -- gradle.properties
+  trap - ERR
+  # Files touched by the build itself (e.g. an npm lock file) are not part of the release.
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Note: the build changed files that weren't committed:"
+    git status --short
+  fi
+  echo "Released $version (tag $tag), now on $next. Nothing is pushed yet: pfDev.sh publish $version"
+}
+
+publish() {
+  local version="${1:-}"
+  if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "$RELEASE_USAGE" >&2
+    exit 1
+  fi
+  local tag="$version-RELEASE" notes="$ROOT/build/release-notes-$version.md"
+  local jar="$ROOT/projectforge-application/build/libs/projectforge-application-$version.jar"
+  cd "$ROOT"
+  if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+    echo "There is no tag $tag, run pfDev.sh release $version first." >&2
+    exit 1
+  fi
+  for file in "$notes" "$jar"; do
+    if [[ ! -f "$file" ]]; then
+      echo "$file is missing, it's built by pfDev.sh release $version." >&2
+      exit 1
+    fi
+  done
+  echo "----- $notes -----"
+  cat "$notes"
+  echo "-----"
+  confirm "Push $(git branch --show-current) and the tag $tag?" || exit 1
+  git push --follow-tags
+  # gh would create a missing tag on the default branch, so the pushed tag is checked first.
+  if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+    echo "The tag $tag isn't on origin." >&2
+    exit 1
+  fi
+  confirm "Create the GitHub release $tag with $(basename "$jar")?" || exit 1
+  gh release create "$tag" "$jar" --title "ProjectForge $version" --notes-file "$notes" --latest
+}
+
 cmd="${1:-help}"
 shift || true
 parse_slot "${1:-}"
@@ -226,6 +325,12 @@ case "$cmd" in
     export PROJECTFORGE_HOME="$PF_HOME"
     ((SLOT == 0)) || export E2E_BASE_URL="http://localhost:$SPRING_PORT"
     cd "$NEXT" && exec npm run e2e:ui -- "$@"
+    ;;
+  release)
+    release "$@"
+    ;;
+  publish)
+    publish "$@"
     ;;
   check)
     cd "$NEXT" && npm run typecheck && npm run lint && exec npm run format:check
