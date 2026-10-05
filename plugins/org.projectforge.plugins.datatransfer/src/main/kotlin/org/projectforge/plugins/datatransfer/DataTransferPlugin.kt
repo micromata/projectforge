@@ -59,7 +59,7 @@ class DataTransferPlugin :
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         val systemStatistics = WicketSupport.get(SystemStatistics::class.java)
         WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaEntityRest.jcrPath!!)
-        // Files of data transfer areas are stored in the file system (no more in the JCR):
+        // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
         WicketSupport.get(RepoService::class.java).registerFileSystemPath(
             dataTransferAreaEntityRest.jcrPath!!,
             File(ConfigXml.getInstance().applicationHomeDir, FILE_SYSTEM_DIR),

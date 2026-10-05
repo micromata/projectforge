@@ -3261,12 +3261,12 @@
           "info": "Schreibt ein Backup-ZIP aller Dokumente (ohne DataTransfer-Dateien) in das Backup-Verzeichnis. Das nächste Release importiert die Dokumente aus diesem ZIP in die Datenbank, daher am besten direkt vor dem Update ein frisches erzeugen."
         },
         "migrateJcrFiles": {
-          "info": "Verschiebt die DataTransfer-Dateien aus dem JCR ins Dateisystem. Mit projectforge.files.store=db werden zusätzlich alle anderen Dateien in die Datenbank kopiert (das JCR behält sie, ein Zurückschalten ist also möglich). Bereits übernommene Dateien werden übersprungen, ein erneuter Lauf ist also möglich. Jede Datei wird über Größe und Checksumme geprüft; der Report liegt in jcr-migration-report.txt im ProjectForge-Home-Verzeichnis.",
+          "info": "Kopiert alle Dateien aus dem JCR in den neuen Datei-Store (Dokumente in die Datenbank, DataTransfer-Dateien ins Dateisystem). Das JCR behält sie, ein Zurückschalten oder ein Rollback auf das vorherige Release ist also möglich. Bereits übernommene Dateien werden übersprungen, ein erneuter Lauf ist also möglich. Jede Datei wird über Größe und Checksumme geprüft; der Report liegt in jcr-migration-report.txt im ProjectForge-Home-Verzeichnis.",
           "question": "Sollen die Dateien jetzt aus dem JCR übernommen werden? Bei großen Datenmengen dauert das eine Weile."
         },
         "store": {
-          "db": "Dateien liegen in der Datenbank (projectforge.files.store=db). Noch nicht übernommene Dateien werden weiter aus dem JCR gelesen; die Übernahme startet beim Start automatisch, bis ein Lauf ohne Fehler durchgelaufen ist.",
-          "jcr": "Dateien liegen im JCR (projectforge.files.store=jcr), nur DataTransfer-Dateien im Dateisystem. Zum Umschalten projectforge.files.store=db in projectforge.properties setzen und neu starten."
+          "db": "Dateien liegen im neuen Datei-Store (projectforge.files.store=db): Dokumente in der Datenbank, DataTransfer-Dateien im Dateisystem. Noch nicht übernommene Dateien werden weiter aus dem JCR gelesen; die Übernahme startet beim Start automatisch, bis ein Lauf ohne Fehler durchgelaufen ist.",
+          "jcr": "Alle Dateien liegen im JCR (projectforge.files.store=jcr). Zum Umschalten projectforge.files.store=db in projectforge.properties setzen und neu starten; die Dateien werden dann übernommen."
         }
       },
       "logViewer": {

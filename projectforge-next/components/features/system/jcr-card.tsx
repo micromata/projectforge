@@ -13,9 +13,8 @@ import { useSystemJob } from "./use-system-job";
 
 /**
  * Replacement of the JCR (Oak): shows the current store (`projectforge.files.store`), creates a
- * backup ZIP of the JCR and migrates the files out of Oak (DataTransfer files and, with
- * `projectforge.files.store=db`, all files). Both run as background jobs with an inline progress
- * (see [useSystemJob]).
+ * backup ZIP of the JCR and, with `projectforge.files.store=db`, copies all files out of Oak. Both
+ * run as background jobs with an inline progress (see [useSystemJob]).
  */
 export function JcrCard({ data }: { data: SystemAdminData }) {
   const t = useTranslations();
@@ -35,12 +34,14 @@ export function JcrCard({ data }: { data: SystemAdminData }) {
           infoKey="system.admin.jcr.createJcrBackupZip.info"
           startJob={startCreateJcrBackupZip}
         />
-        <JcrJob
-          labelKey="system.admin.button.migrateJcrFiles"
-          infoKey="system.admin.jcr.migrateJcrFiles.info"
-          confirmKey="system.admin.jcr.migrateJcrFiles.question"
-          startJob={startMigrateJcrFiles}
-        />
+        {data.allFilesInFileStore && (
+          <JcrJob
+            labelKey="system.admin.button.migrateJcrFiles"
+            infoKey="system.admin.jcr.migrateJcrFiles.info"
+            confirmKey="system.admin.jcr.migrateJcrFiles.question"
+            startJob={startMigrateJcrFiles}
+          />
+        )}
       </CardContent>
     </Card>
   );

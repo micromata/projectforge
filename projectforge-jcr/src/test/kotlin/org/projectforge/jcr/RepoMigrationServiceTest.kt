@@ -35,40 +35,43 @@ class RepoMigrationServiceTest {
     lateinit var tempDir: File
 
     @Test
-    fun `files of file system paths are moved out of the JCR`() {
+    fun `files are copied out of the JCR in db mode only, the JCR keeps them`() {
         val repoService = RepoService()
         repoService.repoConfig = RepoConfig.createForTests()
         repoService.dataSource = FileStoreTestDataSource.dataSource
         repoService.filesStore = RepoService.FILES_STORE_JCR
+        val fsDir = File(tempDir, "datatransfer")
+        repoService.registerFileSystemPath(DATATRANSFER_PATH, fsDir)
         repoService.init(File(tempDir, "repo"))
-        repoService.fileStore!!.internalClearForJunitTestCases()
+        val fileStore = repoService.fileStore!!
+        fileStore.internalClearForJunitTestCases()
         try {
-            // Stored in the JCR, because the path isn't yet registered as file system path:
+            // jcr mode: all files are stored in the JCR (as before), DataTransfer too.
             val plain = store(repoService, "$DATATRANSFER_PATH/1", "plain.txt", "Plain content".toByteArray())
             val encrypted = store(repoService, "$DATATRANSFER_PATH/2", "secret.txt", "Secret".toByteArray(), "pwd")
             val entityFile = store(repoService, "org.projectforge.fibu.RechnungDO/42", "invoice.txt", "Invoice".toByteArray())
-            Assertions.assertFalse(repoService.fileStore!!.exists(plain))
-
-            val fsDir = File(tempDir, "datatransfer")
-            repoService.registerFileSystemPath(DATATRANSFER_PATH, fsDir)
-            // Not yet migrated files are still found in the JCR:
-            Assertions.assertTrue(repoService.retrieveFile(copy(plain)))
+            Assertions.assertFalse(fileStore.exists(plain))
+            Assertions.assertFalse(fsDir.exists())
             Assertions.assertEquals(setOf("1", "2"), repoService.getChildNames(DATATRANSFER_PATH))
 
             val migrationService = RepoMigrationService()
             migrationService.repoService = repoService
+            val refused = migrationService.migrate()
+            Assertions.assertFalse(refused.ok, "Migration only in db mode.")
+            Assertions.assertEquals(0, refused.copied)
+            Assertions.assertFalse(fileStore.exists(plain))
+
+            repoService.filesStore = RepoService.FILES_STORE_DB
             val progress = mutableListOf<Pair<Int, Int>>()
             val result = migrationService.migrate { processed, total -> progress.add(processed to total) }
-            Assertions.assertEquals(2, result.moved, result.toString())
-            Assertions.assertEquals(0, result.copied, result.toString())
-            Assertions.assertTrue(result.errors.isEmpty(), result.errors.joinToString())
-            Assertions.assertEquals(2 to 2, progress.last())
-
-            val fileStore = repoService.fileStore!!
+            Assertions.assertEquals(3, result.copied, result.toString())
+            Assertions.assertTrue(result.ok, result.errors.joinToString())
+            Assertions.assertEquals(3 to 3, progress.last())
             Assertions.assertTrue(fileStore.exists(plain))
             Assertions.assertTrue(fileStore.exists(encrypted))
-            Assertions.assertFalse(fileStore.exists(entityFile), "Entity files stay in the JCR (projectforge.files.store=jcr).")
+            Assertions.assertTrue(fileStore.exists(entityFile))
             Assertions.assertTrue(File(fsDir, "1/attachments/${plain.fileId}").isFile)
+            Assertions.assertEquals(3, jcrFileCount(repoService), "The JCR keeps the migrated files.")
 
             val plainCopy = copy(plain)
             Assertions.assertTrue(repoService.retrieveFile(plainCopy))
@@ -76,25 +79,42 @@ class RepoMigrationServiceTest {
             Assertions.assertEquals("plain.txt", plainCopy.fileName)
             Assertions.assertEquals(plain.created, plainCopy.created)
             val encryptedCopy = copy(encrypted)
-            Assertions.assertTrue(repoService.retrieveFile(encryptedCopy, "pwd"), "Encrypted payload is moved 1:1.")
+            Assertions.assertTrue(repoService.retrieveFile(encryptedCopy, "pwd"), "Encrypted payload is copied 1:1.")
             Assertions.assertEquals("Secret", String(encryptedCopy.content!!))
-            val entityCopy = copy(entityFile)
-            Assertions.assertTrue(repoService.retrieveFile(entityCopy))
-            Assertions.assertEquals("Invoice", String(entityCopy.content!!))
 
-            // Second run: nothing left in the JCR.
+            // Second run: all files are skipped.
             val second = migrationService.migrate()
-            Assertions.assertEquals(0, second.moved, second.toString())
+            Assertions.assertEquals(0, second.copied, second.toString())
+            Assertions.assertEquals(3, second.skipped, second.toString())
             Assertions.assertEquals(setOf("1", "2"), repoService.getChildNames(DATATRANSFER_PATH))
 
+            // Deletion in both stores (each file is reported once):
             Assertions.assertEquals(1, repoService.deleteAllFilesBelow("$DATATRANSFER_PATH/1").size)
             Assertions.assertEquals(setOf("2"), repoService.getChildNames(DATATRANSFER_PATH))
             Assertions.assertTrue(repoService.deleteFile(copy(encrypted)))
             Assertions.assertFalse(repoService.retrieveFile(copy(encrypted)))
+            Assertions.assertEquals(1, jcrFileCount(repoService))
+            repoService.filesStore = RepoService.FILES_STORE_JCR
+            Assertions.assertFalse(repoService.retrieveFile(copy(encrypted)))
+            Assertions.assertTrue(repoService.retrieveFile(copy(entityFile)))
         } finally {
-            repoService.fileStore!!.internalClearForJunitTestCases()
+            fileStore.internalClearForJunitTestCases()
             repoService.shutdown()
         }
+    }
+
+    /**
+     * Number of files in the JCR (without the new store).
+     */
+    private fun jcrFileCount(repoService: RepoService): Int {
+        var count = 0
+        fun walk(nodeInfo: NodeInfo) {
+            nodeInfo.children?.forEach { child ->
+                if (nodeInfo.name == OakStorage.NODENAME_FILES) ++count else walk(child)
+            }
+        }
+        repoService.getNodeInfoOrNull(repoService.getAbsolutePath(null), true)?.let { walk(it) }
+        return count
     }
 
     @Test
@@ -126,9 +146,7 @@ class RepoMigrationServiceTest {
             migrationService.repoService = repoService
             val result = migrationService.migrate()
             Assertions.assertTrue(result.ok, result.asText())
-            Assertions.assertTrue(result.allFiles)
             Assertions.assertEquals(2, result.copied, result.toString())
-            Assertions.assertEquals(0, result.moved, result.toString())
             Assertions.assertTrue(fileStore.exists(invoice))
             Assertions.assertTrue(fileStore.exists(contract))
             Assertions.assertTrue(result.asText().contains("Result: OK"))
@@ -145,11 +163,13 @@ class RepoMigrationServiceTest {
             Assertions.assertTrue(repoService.deleteFile(copy(contract)))
             Assertions.assertNull(repoService.getFileInfos("org.projectforge.fibu.ContractDO/7", "attachments"))
 
-            // Switching back: the JCR still has the (unchanged) copy of the invoice, the contract is deleted.
+            // Switching back: the JCR serves the (unchanged) copy of the invoice, the contract is deleted.
             repoService.filesStore = RepoService.FILES_STORE_JCR
             Assertions.assertEquals("invoice.txt", repoService.getFileInfo("org.projectforge.fibu.RechnungDO/42", "attachments", fileId = invoice.fileId)!!.fileName)
             Assertions.assertEquals("Invoice", String(retrieve(repoService, invoice)!!))
             Assertions.assertNull(repoService.getFileInfo("org.projectforge.fibu.ContractDO/7", "attachments", fileId = contract.fileId))
+            // Files stored in db mode are still found in the new store:
+            Assertions.assertEquals("Order", String(retrieve(repoService, order)!!))
         } finally {
             fileStore.internalClearForJunitTestCases()
             repoService.shutdown()

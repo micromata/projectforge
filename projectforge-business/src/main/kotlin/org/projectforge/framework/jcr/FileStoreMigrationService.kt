@@ -39,8 +39,8 @@ private val log = KotlinLogging.logger {}
 /**
  * Starts the migration of the files out of the JCR into the file store ([RepoMigrationJob]).
  *
- * With `projectforge.files.store=db` the migration of all files is started automatically on start-up, until a run
- * of all files finished without errors (see [reportFile]).
+ * With `projectforge.files.store=db` the migration is started automatically on start-up, until a run finished without
+ * errors (see [reportFile]).
  */
 @Service
 class FileStoreMigrationService {
@@ -71,14 +71,13 @@ class FileStoreMigrationService {
     }
 
     /**
-     * Called on start-up: starts the migration of all files, if `projectforge.files.store=db` and no run of all files
-     * finished without errors.
+     * Called on start-up: starts the migration, if `projectforge.files.store=db` and no run finished without errors.
      */
     fun autoStart() {
         if (!repoService.allFilesInFileStore) {
             return
         }
-        if (lastRunOfAllFilesOk()) {
+        if (lastRunOk()) {
             log.info { "All files of the JCR are migrated (see '${reportFile.absolutePath}')." }
             return
         }
@@ -86,15 +85,13 @@ class FileStoreMigrationService {
         startMigration()
     }
 
-    private fun lastRunOfAllFilesOk(): Boolean {
+    private fun lastRunOk(): Boolean {
         val file = reportFile
         if (!file.exists()) {
             return false
         }
         return try {
-            val lines = file.readLines()
-            lines.contains("${RepoMigrationService.Result.RESULT_PREFIX}${RepoMigrationService.Result.RESULT_OK}") &&
-                    lines.contains("${RepoMigrationService.Result.ALL_FILES_PREFIX}true")
+            file.readLines().contains("${RepoMigrationService.Result.RESULT_PREFIX}${RepoMigrationService.Result.RESULT_OK}")
         } catch (ex: Exception) {
             log.error(ex) { "Can't read '${file.absolutePath}': ${ex.message}" }
             false

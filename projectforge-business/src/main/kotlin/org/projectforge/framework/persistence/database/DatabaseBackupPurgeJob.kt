@@ -34,6 +34,8 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Purges data base backup files by using [BackupFilesPurging] if backup dir is configured in projectforge.properties.
+ * Several backup series (e. g. the main dump and the dump of the files schema pf_files) may be given as
+ * comma-separated prefixes (projectforge.cron.purgeBackupFilesPrefix); each series is purged on its own.
  */
 @Component
 class DatabaseBackupPurgeJob {
@@ -63,10 +65,22 @@ class DatabaseBackupPurgeJob {
         }
         Thread {
             log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
-            BackupFilesPurging.purgeDirectory(backupDir,
-                filePrefix = dbBackupFilesPrefix,
-                keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
-                keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+            parsePrefixes(dbBackupFilesPrefix).forEach { prefix ->
+                BackupFilesPurging.purgeDirectory(backupDir,
+                    filePrefix = prefix,
+                    keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
+                    keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
+            }
         }.start()
+    }
+
+    companion object {
+        /**
+         * @return The comma-separated prefixes, or a list containing null (all files containing a date), if not given.
+         */
+        internal fun parsePrefixes(prefixes: String?): List<String?> {
+            val list = prefixes?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }?.distinct()
+            return if (list.isNullOrEmpty()) listOf(null) else list
+        }
     }
 }

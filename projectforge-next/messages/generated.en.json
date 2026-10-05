@@ -3261,12 +3261,12 @@
           "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
         },
         "migrateJcrFiles": {
-          "info": "Moves the DataTransfer files out of the JCR into the file system. With projectforge.files.store=db all other files are copied into the database too (the JCR keeps them, so switching back is possible). Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
+          "info": "Copies all files out of the JCR into the file store (documents into the database, DataTransfer files into the file system). The JCR keeps them, so switching back or a rollback to the former release is possible. Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
           "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
         },
         "store": {
-          "db": "Files are stored in the database (projectforge.files.store=db). Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
-          "jcr": "Files are stored in the JCR (projectforge.files.store=jcr), only DataTransfer files in the file system. To switch, set projectforge.files.store=db in projectforge.properties and restart."
+          "db": "Files are stored in the file store (projectforge.files.store=db): documents in the database, DataTransfer files in the file system. Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
+          "jcr": "All files are stored in the JCR (projectforge.files.store=jcr). To switch, set projectforge.files.store=db in projectforge.properties and restart; the files are migrated then."
         }
       },
       "logViewer": {

@@ -39,14 +39,15 @@ import javax.sql.DataSource
 private val log = KotlinLogging.logger {}
 
 /**
- * Facade for storing files. The files are stored in the JCR (Apache Oak), except the files of paths registered by
- * [registerFileSystemPath] (e. g. DataTransfer): they are stored by the new [FileStore] (metadata in the data base,
- * content in the file system). Files of these paths not yet migrated (see [RepoMigrationService]) are still found in
- * the JCR (read, change and delete).
+ * Facade for storing files, the store is chosen by `projectforge.files.store`:
+ * - jcr: all files are stored in the JCR (Apache Oak), as before. Files stored while db mode was active are still
+ *   found in the new [FileStore].
+ * - db: all files are stored by the new [FileStore]: metadata in the data base, content in the data base or, for paths
+ *   registered by [registerFileSystemPath] (e. g. DataTransfer), in the file system. Files not yet migrated (see
+ *   [RepoMigrationService]) are still found in the JCR.
  *
- * With `projectforge.files.store=db` all files are stored by the [FileStore] (entity files in the data base). Files
- * not yet migrated are still found in the JCR, migrated entity files are kept in the JCR as copies (for switching
- * back), but deleted there too, if deleted.
+ * Migrated files are kept in the JCR as copies (for switching back or rolling back to a release without the new
+ * store), but deleted there too, if deleted.
  */
 @Service
 open class RepoService {
@@ -108,7 +109,7 @@ open class RepoService {
 
     /**
      * Files below the given path are stored in the file system (in the given directory) by the new [FileStore] instead
-     * of the JCR. Existing files of the JCR are still found until they're migrated by [RepoMigrationService].
+     * of the data base (db mode only).
      * @param path The path (e. g. jcrPath of DataTransfer).
      */
     fun registerFileSystemPath(path: String, dir: File) {
@@ -186,20 +187,37 @@ open class RepoService {
     }
 
     /**
-     * @return The new store, if all files are stored by the new store or if the given path is registered for the file
-     * system storage, otherwise null (JCR).
+     * @return The new store, if all files are stored by the new store (projectforge.files.store=db), otherwise null
+     * (JCR). New files are written into this store.
      */
-    private fun newStore(parentNodePath: String?, relPath: String? = null): FileStore? {
-        val store = fileStore ?: return null
-        if (allFilesInFileStore) {
-            return store
-        }
-        val path = OakStorage.getAbsolutePath(parentNodePath, relPath)
-        return if (store.isFileSystemPath(path)) store else null
+    private fun newStore(): FileStore? {
+        return if (allFilesInFileStore) fileStore else null
     }
 
     /**
-     * Calls the JCR for files of the new store's paths not yet migrated. The JCR throws an IllegalArgumentException,
+     * @return The store containing the given file, if the file is served by the new store:
+     * - db mode: the file exists in the new store (otherwise it isn't yet migrated and is found in the JCR).
+     * - jcr mode: the file exists in the new store, but not in the JCR (stored while db mode was active).
+     */
+    private fun storeOf(fileObject: FileObject): FileStore? {
+        val store = fileStore ?: return null
+        if (!store.exists(fileObject)) {
+            return null
+        }
+        if (allFilesInFileStore) {
+            return store
+        }
+        return if (jcrExists(fileObject)) null else store
+    }
+
+    private fun jcrExists(fileObject: FileObject): Boolean {
+        return jcrFallback(fileObject, false) {
+            repoStore!!.getFileInfo(fileObject.parentNodePath, fileObject.relPath, fileObject.fileId, fileObject.fileName) != null
+        }
+    }
+
+    /**
+     * Calls the JCR for files not found in the new store. The JCR throws an IllegalArgumentException,
      * if the node doesn't exist (e. g. no file of this area was ever stored in the JCR).
      */
     private fun <T> jcrFallback(fileObject: FileObject, default: T, block: () -> T): T {
@@ -217,7 +235,7 @@ open class RepoService {
      * @param relPath Sub node parent node to create if not exists. Null value results in nop.
      */
     open fun ensureNode(parentNodePath: String?, relPath: String? = null): Node? {
-        if (newStore(parentNodePath, relPath) != null) {
+        if (newStore() != null) {
             return null // Not needed by the new store.
         }
         return repoStore!!.ensureNode(parentNodePath, relPath)
@@ -249,7 +267,7 @@ open class RepoService {
         user: String? = null,
         password: String? = null,
     ) {
-        newStore(fileObject.parentNodePath)?.let { store ->
+        newStore()?.let { store ->
             val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
             store.storeFile(fileObject, content.inputStream(), fileSizeChecker, user, password = password)
             return
@@ -272,7 +290,7 @@ open class RepoService {
         data: Any? = null,
         password: String? = null,
     ) {
-        newStore(fileObject.parentNodePath)?.let { store ->
+        newStore()?.let { store ->
             store.storeFile(fileObject, content, fileSizeChecker, user, data, password)
             return
         }
@@ -280,23 +298,18 @@ open class RepoService {
     }
 
 
-    open fun deleteFile(fileObject: FileObject): Boolean {
-        newStore(fileObject.parentNodePath)?.let { store ->
-            val deleted = store.exists(fileObject) && store.deleteFile(fileObject)
-            // Not yet migrated files and the copies of migrated entity files (see RepoMigrationService) are in the JCR:
-            val jcrExists = jcrFallback(fileObject, false) {
-                repoStore!!.getFileInfo(fileObject.parentNodePath, fileObject.relPath, fileObject.fileId, fileObject.fileName) != null
-            }
-            val jcrDeleted = jcrExists && jcrFallback(fileObject, false) { repoStore!!.deleteFile(fileObject) }
-            return deleted || jcrDeleted
-        }
-        return repoStore!!.deleteFile(fileObject)
-    }
-
     /**
-     * Deletes the file in the JCR only (used after migrating the file to the new store).
+     * Deletes the file in the new store and in the JCR (migrated files are kept in the JCR as copies, see
+     * [RepoMigrationService]).
      */
-    internal fun jcrDeleteFile(fileObject: FileObject): Boolean {
+    open fun deleteFile(fileObject: FileObject): Boolean {
+        fileStore?.let { store ->
+            if (allFilesInFileStore || store.exists(fileObject)) {
+                val deleted = store.exists(fileObject) && store.deleteFile(fileObject)
+                val jcrDeleted = jcrExists(fileObject) && jcrFallback(fileObject, false) { repoStore!!.deleteFile(fileObject) }
+                return deleted || jcrDeleted
+            }
+        }
         return repoStore!!.deleteFile(fileObject)
     }
 
@@ -306,7 +319,7 @@ open class RepoService {
      */
     open fun getChildNames(path: String): Set<String> {
         val result = mutableSetOf<String>()
-        newStore(path)?.let { store ->
+        fileStore?.let { store ->
             result.addAll(store.getChildNames(path))
         }
         repoStore!!.getNodeInfoOrNull(getAbsolutePath(path), true)?.children?.forEach { child ->
@@ -322,11 +335,14 @@ open class RepoService {
      */
     open fun deleteAllFilesBelow(path: String): List<FileObject> {
         val result = mutableListOf<FileObject>()
-        newStore(path)?.let { store ->
+        fileStore?.let { store ->
             result.addAll(store.deleteAllFilesBelow(path))
         }
         repoStore!!.getNodeInfoOrNull(getAbsolutePath(path), true)?.let { nodeInfo ->
-            collectFiles(nodeInfo, result)
+            val jcrFiles = mutableListOf<FileObject>()
+            collectFiles(nodeInfo, jcrFiles)
+            // Migrated files exist in both stores:
+            result.addAll(jcrFiles.filter { jcrFile -> result.none { it.fileId == jcrFile.fileId } })
             repoStore!!.deleteNode(nodeInfo)
         }
         return result
@@ -353,14 +369,13 @@ open class RepoService {
      */
     @JvmOverloads
     open fun getFileInfos(parentNodePath: String?, relPath: String? = null): List<FileObject>? {
-        newStore(parentNodePath, relPath)?.let { store ->
-            val files = store.getFileInfos(parentNodePath, relPath) ?: emptyList()
-            val jcrFiles = repoStore!!.getFileInfos(parentNodePath, relPath)?.filter { jcrFile ->
-                files.none { it.fileId == jcrFile.fileId }
-            } ?: emptyList()
-            return (files + jcrFiles).ifEmpty { null }
-        }
-        return repoStore!!.getFileInfos(parentNodePath, relPath)
+        val store = fileStore ?: return repoStore!!.getFileInfos(parentNodePath, relPath)
+        val storeFiles = store.getFileInfos(parentNodePath, relPath) ?: emptyList()
+        val jcrFiles = repoStore!!.getFileInfos(parentNodePath, relPath) ?: emptyList()
+        // Files existing in both (migrated files): db mode serves the new store, jcr mode the JCR.
+        val (primary, secondary) = if (allFilesInFileStore) storeFiles to jcrFiles else jcrFiles to storeFiles
+        val files = primary + secondary.filter { file -> primary.none { it.fileId == file.fileId } }
+        return files.ifEmpty { null }
     }
 
     /**
@@ -373,10 +388,13 @@ open class RepoService {
         fileId: String? = null,
         fileName: String? = null
     ): FileObject? {
-        newStore(parentNodePath, relPath)?.let { store ->
-            store.getFileInfo(parentNodePath, relPath, fileId, fileName)?.let { return it }
+        val store = fileStore ?: return repoStore!!.getFileInfo(parentNodePath, relPath, fileId, fileName)
+        if (allFilesInFileStore) {
+            return store.getFileInfo(parentNodePath, relPath, fileId, fileName)
+                ?: repoStore!!.getFileInfo(parentNodePath, relPath, fileId, fileName)
         }
         return repoStore!!.getFileInfo(parentNodePath, relPath, fileId, fileName)
+            ?: store.getFileInfo(parentNodePath, relPath, fileId, fileName)
     }
 
     /**
@@ -394,10 +412,10 @@ open class RepoService {
         newZipMode: ZipMode? = null,
         updateLastUpdateInfo: Boolean = true,
     ): FileObject? {
-        newStore(fileObject.parentNodePath)?.let { store ->
-            if (store.exists(fileObject)) {
-                return store.changeFileInfo(fileObject, user, newFileName, newDescription, newZipMode, updateLastUpdateInfo)
-            }
+        storeOf(fileObject)?.let { store ->
+            return store.changeFileInfo(fileObject, user, newFileName, newDescription, newZipMode, updateLastUpdateInfo)
+        }
+        if (allFilesInFileStore) {
             return jcrFallback(fileObject, null) {
                 repoStore!!.changeFileInfo(
                     fileObject,
@@ -424,10 +442,10 @@ open class RepoService {
      * @return new file info including checksum without content.
      */
     open fun checksum(fileObject: FileObject): String? {
-        newStore(fileObject.parentNodePath)?.let { store ->
-            if (store.exists(fileObject)) {
-                return store.checksum(fileObject)
-            }
+        storeOf(fileObject)?.let { store ->
+            return store.checksum(fileObject)
+        }
+        if (allFilesInFileStore) {
             return jcrFallback(fileObject, null) { repoStore!!.checksum(fileObject) }
         }
         return repoStore!!.checksum(fileObject)
@@ -459,19 +477,15 @@ open class RepoService {
 
     @JvmOverloads
     open fun retrieveFile(fileObject: FileObject, password: String? = null): Boolean {
-        newStore(fileObject.parentNodePath)?.let { store ->
-            if (store.exists(fileObject)) {
-                return store.retrieveFile(fileObject, password)
-            }
+        storeOf(fileObject)?.let { store ->
+            return store.retrieveFile(fileObject, password)
         }
         return repoStore!!.retrieveFile(fileObject, password)
     }
 
     open fun retrieveFileInputStream(fileObject: FileObject, password: String? = null): InputStream? {
-        newStore(fileObject.parentNodePath)?.let { store ->
-            if (store.exists(fileObject)) {
-                return store.retrieveFileInputStream(fileObject, password)
-            }
+        storeOf(fileObject)?.let { store ->
+            return store.retrieveFileInputStream(fileObject, password)
         }
         return repoStore!!.retrieveFileInputStream(fileObject, password)
     }
