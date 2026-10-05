@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { useTranslations } from "next-intl";
 import { StatusPill } from "@/components/shared/status-pill";
 import type { LogViewerEvent } from "@/lib/rs/log-viewer";
-import { LOG_LEVEL_KEYS, logLevelTone } from "./log-level";
+import { LOG_LEVEL_KEYS, logLevelTone } from "@/components/shared/log-level";
 
 type T = ReturnType<typeof useTranslations>;
 

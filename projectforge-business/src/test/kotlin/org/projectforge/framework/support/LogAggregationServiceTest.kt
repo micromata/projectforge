@@ -121,6 +121,18 @@ class LogAggregationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `nothing is written after close`() {
+        // Own instance: the shared one must stay open. Closed, it doesn't touch the (not injected) database.
+        val service = LogAggregationService()
+        service.close()
+        val event = LogEvent("test.aggregation.closed", LogCategory.BUG)
+        service.add(occurrence(event, System.currentTimeMillis()))
+        service.flush()
+        service.markNotified(listOf(ErrorDigestCollector.keyOf(occurrence(event, 0))))
+        Assertions.assertEquals(1, service.buffer.size, "Kept in memory, not written.")
+    }
+
+    @Test
     fun `cleanup removes old buckets, samples and problems`() {
         val now = System.currentTimeMillis()
         val day = Constants.MILLIS_PER_DAY

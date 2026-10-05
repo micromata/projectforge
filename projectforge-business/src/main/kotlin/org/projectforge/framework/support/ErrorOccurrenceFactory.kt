@@ -57,6 +57,7 @@ object ErrorOccurrenceFactory {
     /**
      * Null if the event isn't collected. Classified by (first wins):
      * 1. the [LogEvent] of the logging call or of the exception ([LoggingEventData.logEvent]), on any level,
+     *    or of a known message of a library ([ThirdPartyLogEvents]),
      * 2. the text of an unreachable system: [SupportLogEvents.EXTERNAL_UNREACHABLE], on any level,
      * 3. ERROR: [SupportLogEvents.LOGGED_ERROR]; other levels aren't collected.
      *
@@ -68,7 +69,8 @@ object ErrorOccurrenceFactory {
             return null
         }
         val stackTrace = event.stackTrace
-        val logEvent = event.logEvent ?: when {
+        val specificEvent = event.logEvent ?: ThirdPartyLogEvents.find(loggerName, event.message)
+        val logEvent = specificEvent ?: when {
             isConnectionText(event.message) || isConnectionText(stackTrace?.let { exceptionLines(it) }) ->
                 SupportLogEvents.EXTERNAL_UNREACHABLE
 
@@ -79,7 +81,7 @@ object ErrorOccurrenceFactory {
             timestampMillis = event.timestampMillis,
             level = event.level,
             event = logEvent,
-            groupByCode = event.logEvent != null,
+            groupByCode = specificEvent != null,
             exceptionClass = stackTrace?.let { rootExceptionClass(it) },
             message = event.message,
             location = "${event.javaClassSimpleName ?: event.javaClass}:${event.lineNumber}",

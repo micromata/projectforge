@@ -600,6 +600,7 @@ open class MenuCreator {
 
         adminMenu
             .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            .add(MenuItemDef(MenuItemDefId.ADMIN_ERRORS, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
             .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
             // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
             .add(

@@ -21,41 +21,27 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.support
+package org.projectforge.config
 
 import jakarta.annotation.PostConstruct
-import org.projectforge.business.fibu.ExchangeRateLogEvents
-import org.projectforge.business.jobs.JobLogEvents
-import org.projectforge.business.user.UserLogEvents
-import org.projectforge.common.logging.CommonLogEvents
 import org.projectforge.common.logging.LogEventRegistry
-import org.projectforge.framework.integration.IntegrationLogEvents
-import org.projectforge.framework.persistence.jpa.PersistenceLogEvents
-import org.projectforge.mail.MailLogEvents
+import org.projectforge.gateway.push.GatewayLogEvents
 import org.springframework.stereotype.Component
 
 /**
- * Registers the log events of the common and business modules in the [LogEventRegistry].
+ * Registers the log events of the application module in the [LogEventRegistry].
  */
 @Component
-class BusinessLogEventCatalog {
+class ApplicationLogEventCatalog {
     @PostConstruct
     internal fun init() {
         LogEventRegistry.register(*HOLDERS)
     }
 
     companion object {
-        /** New `*LogEvents` objects of these modules belong here. */
-        val HOLDERS = arrayOf(
-            CommonLogEvents,
-            SupportLogEvents,
-            MailLogEvents,
-            PersistenceLogEvents,
-            ExchangeRateLogEvents,
-            JobLogEvents,
-            IntegrationLogEvents,
-            UserLogEvents,
-            ThirdPartyLogEvents,
+        /** New `*LogEvents` objects of this module belong here. */
+        val HOLDERS = arrayOf<Any>(
+            GatewayLogEvents,
         )
     }
 }
