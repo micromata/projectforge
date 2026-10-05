@@ -24,7 +24,7 @@
 package org.projectforge.plugins.datatransfer.restPublic
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.framework.ToStringUtil
@@ -111,7 +111,7 @@ class DataTransferPublicSession {
     if (offset > 0) {
       // Time offset still exists. Ignore login try.
       val seconds = (offset / 1000).toString()
-      log.warn("The account for '${accessToken}', ip=$clientIpAddress, userInfo='$userInfo' is locked for $seconds seconds due to failed login attempts. Please try again later.")
+      log.warn { "The account for '${accessToken}', ip=$clientIpAddress, userInfo='$userInfo' is locked for $seconds seconds due to failed login attempts. Please try again later." }
       val numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(accessToken, clientIpAddress)
       val loginResultStatus = LoginResultStatus.LOGIN_TIME_OFFSET
       loginResultStatus.setMsgParams(

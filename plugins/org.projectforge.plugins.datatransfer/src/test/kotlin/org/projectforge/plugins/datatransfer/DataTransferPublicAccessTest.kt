@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -198,7 +198,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
       )
     } catch (ex: Exception) {
       // Not found or no access
-      log.info(ex.message, ex)
+      log.info(ex) { ex.message }
     }
   }
 
@@ -217,7 +217,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
       )
     } catch (ex: Exception) {
       // Not found or no access
-      log.info(ex.message, ex)
+      log.info(ex) { ex.message }
       return null
     }
     (response.body as InputStreamResource).inputStream.use {

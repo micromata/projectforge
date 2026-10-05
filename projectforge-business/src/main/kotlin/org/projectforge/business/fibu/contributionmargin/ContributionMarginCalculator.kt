@@ -188,6 +188,62 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
   }
 
   /**
+   * The sums per month and project and the time sheet costs per month and kost2 of the period (without the
+   * comparison years), see [ContributionMarginDetails]. The invoices are added by the caller.
+   * @param kost2Number The formatted number of a kost2.
+   */
+  fun details(
+    entries: Collection<ContributionMarginEntry>,
+    projectInfo: (Long) -> ContributionMarginProjectInfo?,
+    kost2Number: (Long) -> String?,
+    hourlyRate: BigDecimal?,
+  ): ContributionMarginDetails {
+    val periodEntries = entries.filter { YearMonth.from(it.date) in months }
+    val preliminaryBegin = preliminaryBegin
+    val infos = mutableMapOf<Long, ContributionMarginProjectInfo?>()
+    fun info(projectId: Long) = infos.getOrPut(projectId) { projectInfo(projectId) }
+    val monthRows = periodEntries
+      .groupBy { YearMonth.from(it.date) to it.projectId }
+      .map { (key, list) ->
+        val (month, projectId) = key
+        val amount = list.fold(Amount()) { acc, entry -> acc.add(entry) }
+        val info = info(projectId)
+        ContributionMarginMonthRow(
+          month = month.toString(),
+          projectId = projectId,
+          kost = info?.kost,
+          customer = info?.customer,
+          project = info?.project,
+          revenue = amount.revenue,
+          costs = -amount.costs,
+          profit = amount.profit,
+          percentage = percentage(amount.revenue, amount.profit),
+          preliminary = preliminaryBegin != null && month.atEndOfMonth() >= preliminaryBegin,
+        )
+      }
+      .sortedWith(compareBy({ it.month }, { it.customer ?: "" }, { it.project ?: "" }))
+    val timesheetRows = periodEntries
+      .filter { it.type == ContributionMarginEntryType.TIMESHEET }
+      .groupBy { Triple(YearMonth.from(it.date), it.projectId, it.kost2Id) }
+      .map { (key, list) ->
+        val (month, projectId, kost2Id) = key
+        val costs = -list.sumOf { it.costs }
+        val info = info(projectId)
+        ContributionMarginTimesheetRow(
+          month = month.toString(),
+          projectId = projectId,
+          kost2 = kost2Id?.let(kost2Number),
+          customer = info?.customer,
+          project = info?.project,
+          hours = hourlyRate?.takeIf { it.signum() != 0 }?.let { costs.divide(it, 2, RoundingMode.HALF_UP) },
+          costs = costs,
+        )
+      }
+      .sortedWith(compareBy({ it.month }, { it.customer ?: "" }, { it.project ?: "" }, { it.kost2 ?: "" }))
+    return ContributionMarginDetails(months = monthRows, invoices = emptyList(), timesheets = timesheetRows)
+  }
+
+  /**
    * The DB % of each month cumulated from the begin of the period on (revenue and profit summed up to and
    * including the month), so it settles in the course of the period instead of jumping from month to month.
    */

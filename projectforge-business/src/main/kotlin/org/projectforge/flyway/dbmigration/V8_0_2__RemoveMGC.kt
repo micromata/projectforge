@@ -23,7 +23,7 @@
 
 package org.projectforge.flyway.dbmigration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.projectforge.Constants
@@ -326,14 +326,14 @@ class V8_0_2__RemoveMGC : BaseJavaMigration() {
             val occurrence = list.groupingBy { it.pk1 }.eachCount()
             val notUnique = list.filter { (occurrence[it.pk1] ?: 0) > 1 }
             if (notUnique.isNotEmpty()) {
-                notUnique.forEach { log.error("Not unique: ${it.pk1}, group=${it.groupName}, property=${it.propertyname}") }
+                notUnique.forEach { log.error { "Not unique: ${it.pk1}, group=${it.groupName}, property=${it.propertyname}" } }
                 throw IllegalStateException("Not unique entries found: ${notUnique.size}")
             }
         } else {
             val occurrence = list.groupingBy { it.pk2 }.eachCount()
             val notUnique = list.filter { (occurrence[it.pk2] ?: 0) > 1 }
             if (notUnique.isNotEmpty()) {
-                notUnique.forEach { log.error("Not unique: ${it.pk2}, group=${it.groupName}, property=${it.propertyname}") }
+                notUnique.forEach { log.error { "Not unique: ${it.pk2}, group=${it.groupName}, property=${it.propertyname}" } }
                 throw IllegalStateException("Not unique entries found: ${notUnique.size}")
             }
         }

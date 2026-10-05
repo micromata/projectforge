@@ -61,8 +61,8 @@ export function bound(
 }
 
 /**
- * The pill popover applies live and has no save button; "Abbrechen" is the footer control a spec
- * waits on to know the popover is open.
+ * The pill popover applies live; "Abbrechen" is the footer control a spec waits on to know the
+ * popover is open.
  */
 export function cancelButton(page: Page, t: Translate): Locator {
   return page.getByRole("button", { name: t("cancel"), exact: true });

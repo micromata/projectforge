@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
@@ -96,7 +96,7 @@ class CalendarFilterServicesRest {
       val userXmlPreferencesDao =
         ApplicationContextProvider.getApplicationContext().getBean(UserXmlPreferencesDao::class.java)
       val legacyFilter = CalendarLegacyFilter.migrate(userXmlPreferencesDao, userId) ?: return null
-      log.info("User's legacy calendar filter migrated.")
+      log.info { "User's legacy calendar filter migrated." }
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, legacyFilter.list)
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, legacyFilter.current)
       // Filter state is now separately stored:
@@ -437,7 +437,7 @@ class CalendarFilterServicesRest {
     // be synchronized with the current filter.
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, CalendarFilter().copyFrom(currentFilter))
     else
-      log.warn("Can't select filter $id, because it's not found in favorites list.")
+      log.warn { "Can't select filter $id, because it's not found in favorites list." }
     return getInitialCalendar()
   }
 
@@ -467,7 +467,7 @@ class CalendarFilterServicesRest {
       ) as? Favorites<CalendarFilter>
         ?: migrateFromLegacyFilter(userPrefService)?.list
     } catch (ex: Exception) {
-      log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
+      log.error { "Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter." }
     }
     if (favorites == null) {
       // Creating empty filter list (user has no filter list yet):

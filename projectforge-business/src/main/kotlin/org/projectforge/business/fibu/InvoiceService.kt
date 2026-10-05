@@ -27,7 +27,7 @@ import de.micromata.merlin.utils.ReplaceUtils
 import de.micromata.merlin.word.RunsProcessor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
 import org.apache.poi.xwpf.usermodel.XWPFDocument
@@ -93,7 +93,7 @@ open class InvoiceService {
             } else if (baseFilename.startsWith("")) {
                 variants.add(baseFilename.substring(1))
             } else {
-                log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_xxxx.docx'.")
+                log.warn { "Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_xxxx.docx'." }
             }
         }
         return variants.sorted().toTypedArray()
@@ -182,7 +182,7 @@ open class InvoiceService {
                 document.asByteArrayOutputStream
             }
         } catch (e: IOException) {
-            log.error("Could not read invoice template", e)
+            log.error(e) { "Could not read invoice template" }
             null
         }
     }
@@ -278,7 +278,7 @@ open class InvoiceService {
             }
         }
         if (posTbl == null) {
-            log.error("Table with marker '\${table}' in first row and first column not found. Can't process invoice positions.")
+            log.error { "Table with marker '\${table}' in first row and first column not found. Can't process invoice positions." }
             return null
         }
         var rowCounter = 2
@@ -316,9 +316,9 @@ open class InvoiceService {
             }
             posTbl.addRow(newRow, rowCounter)
         } catch (ex: IOException) {
-            log.error("Error while trying to copy row: " + ex.message, ex)
+            log.error(ex) { "Error while trying to copy row: " + ex.message }
         } catch (ex: XmlException) {
-            log.error("Error while trying to copy row: " + ex.message, ex)
+            log.error(ex) { "Error while trying to copy row: " + ex.message }
         }
     }
 

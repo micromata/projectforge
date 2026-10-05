@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import javax.jcr.Node
 import javax.jcr.Session
 import javax.jcr.SimpleCredentials

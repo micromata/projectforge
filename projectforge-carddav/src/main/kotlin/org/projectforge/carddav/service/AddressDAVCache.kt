@@ -24,7 +24,7 @@
 package org.projectforge.carddav.service
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.CardDavConfig
@@ -163,7 +163,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     }
 
     override fun refresh() {
-        log.info("Clearing cache ${this::class.java.simpleName}.")
+        log.info { "Clearing cache ${this::class.java.simpleName}." }
         synchronized(contactMap) {
             contactMap.clear()
         }

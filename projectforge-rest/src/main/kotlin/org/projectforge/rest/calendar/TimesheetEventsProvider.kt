@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
@@ -196,7 +196,7 @@ class TimesheetEventsProvider {
             var paranoiaCounter = 0
             do {
                 if (++paranoiaCounter > 1000) {
-                    log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.")
+                    log.error { "Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents." }
                     break
                 }
                 val dayOfYear = day.dayOfYear

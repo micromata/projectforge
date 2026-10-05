@@ -25,7 +25,7 @@ package org.projectforge.plugins.skillmatrix
 
 import de.micromata.merlin.excel.ExcelCellType
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -69,7 +69,7 @@ class SkillMatrixServicesRest {
    */
   @GetMapping(REST_EXCEL_SUB_PATH)
   fun exportFavoritesExcel(): ResponseEntity<Any> {
-    log.info("Exporting skill matrix as Excel file.")
+    log.info { "Exporting skill matrix as Excel file." }
 
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))

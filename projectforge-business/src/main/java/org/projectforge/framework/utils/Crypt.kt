@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.utils
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.UnsupportedEncodingException
@@ -58,10 +58,8 @@ object Crypt {
     return try {
       encrypt(password, data.toByteArray(charset("UTF-8")))
     } catch (ex: Exception) {
-      log.error(
-        "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-            + ex.message, ex
-      )
+      log.error(ex) { "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: " +
+            ex.message }
       null
     }
   }
@@ -86,10 +84,8 @@ object Crypt {
       val encVal = cipher.doFinal(data)
       Base64.encodeBase64URLSafeString(encVal)
     } catch (ex: Exception) {
-      log.error(
-        "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-            + ex.message, ex
-      )
+      log.error(ex) { "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: " +
+            ex.message }
       null
     }
   }
@@ -105,10 +101,8 @@ object Crypt {
       val bytes = decryptBytes(password, encryptedString) ?: return null
       String(bytes, StandardCharsets.UTF_8)
     } catch (ex: Exception) {
-      log.error(
-        "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-            + ex.message, ex
-      )
+      log.error(ex) { "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: " +
+            ex.message }
       null
     }
   }
@@ -129,13 +123,11 @@ object Crypt {
       val decordedValue = Base64.decodeBase64(encryptedString)
       cipher.doFinal(decordedValue)
     } catch (bpe: BadPaddingException) {
-      log.warn(bpe.message)
+      log.warn { bpe.message }
       null
     } catch (ex: Exception) {
-      log.error(
-        "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: "
-            + ex.message, ex
-      )
+      log.error(ex) { "Exception encountered while trying to encrypt with Algorithm 'AES' and the given password: " +
+            ex.message }
       null
     }
   }
@@ -147,16 +139,10 @@ object Crypt {
       digester.update(password.toByteArray(charset("UTF-8")))
       digester.digest()
     } catch (ex: NoSuchAlgorithmException) {
-      log.error(
-        "Exception encountered while trying to create a MD5 password: " + ex.message,
-        ex
-      )
+      log.error(ex) { "Exception encountered while trying to create a MD5 password: " + ex.message }
       null
     } catch (ex: UnsupportedEncodingException) {
-      log.error(
-        "Exception encountered while trying to get bytes in UTF-8: " + ex.message,
-        ex
-      )
+      log.error(ex) { "Exception encountered while trying to get bytes in UTF-8: " + ex.message }
       null
     }
   }
@@ -238,7 +224,7 @@ object Crypt {
       }
       md.algorithm + '{' + ret + '}'
     } catch (ex: NoSuchAlgorithmException) {
-      log.error(ex.toString())
+      log.error { ex.toString() }
       "NONE{xxxxxxx}"
     }
   }

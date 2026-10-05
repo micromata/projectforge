@@ -23,7 +23,7 @@
 
 package org.projectforge.i18n
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.Constants
 import org.projectforge.business.book.BookStatus
@@ -69,7 +69,7 @@ internal class I18nKeysSourceAnalyzer {
     private var htmlTemplatesCounter = 0
 
     fun run(createTmpFile: Boolean = false): Map<String, I18nKeyUsageEntry> {
-        log.info("Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}")
+        log.info { "Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}" }
         reflections = Reflections("org.projectforge", Scanners.entries)
 
         val srcMainDirs = SourcesUtils.getSrcMainDirs()

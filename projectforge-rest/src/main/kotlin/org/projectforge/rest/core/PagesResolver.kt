@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.framework.persistence.api.BaseDao
@@ -161,7 +161,7 @@ object PagesResolver {
     private fun getCategory(clazz: Class<*>): String? {
         val requestMapping = clazz.annotations.find { it is RequestMapping } as? RequestMapping
         if (requestMapping == null) {
-            log.error("RequestMapping annotation not found in class '$clazz'.")
+            log.error { "RequestMapping annotation not found in class '$clazz'." }
             return null
         }
         val path = requestMapping.value[0]
@@ -182,7 +182,7 @@ object PagesResolver {
     private fun getRequestMappingPath(clazz: Class<*>, suffix: String = ""): String? {
         val requestMapping = clazz.annotations.find { it is RequestMapping } as? RequestMapping
         if (requestMapping == null) {
-            log.error("RequestMapping annotation not found in class '$clazz'.")
+            log.error { "RequestMapping annotation not found in class '$clazz'." }
             return null
         }
         val path = requestMapping.value[0]

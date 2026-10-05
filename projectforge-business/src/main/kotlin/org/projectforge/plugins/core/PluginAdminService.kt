@@ -24,7 +24,7 @@
 package org.projectforge.plugins.core
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
@@ -229,10 +229,10 @@ open class PluginAdminService {
         var activatedCount = 0
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
-                log.info("Skipping not activated plugin '${plugin.info.name}'.")
+                log.info { "Skipping not activated plugin '${plugin.info.name}'." }
                 continue
             }
-            log.info("Processing activated plugin: '${plugin.info.name}'.")
+            log.info { "Processing activated plugin: '${plugin.info.name}'." }
             activatePlugin(plugin)
             activatedCount++
         }

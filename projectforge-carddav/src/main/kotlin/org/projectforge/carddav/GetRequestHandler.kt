@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.ImageType
 import org.projectforge.framework.time.PFDateTime

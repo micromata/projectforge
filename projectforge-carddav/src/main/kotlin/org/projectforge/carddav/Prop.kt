@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 

@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
+import { useDataTable } from "@/components/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { SearchInput } from "@/components/shared/list/search-input";
 import { useAttachmentMutations } from "@/hooks/use-attachments";
 import { useAttachmentSelection } from "@/hooks/use-attachment-selection";
 import { useAttachmentEncryption } from "@/hooks/use-attachment-encryption";
 import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
 import { AttachmentRow } from "./attachment-row";
+import {
+  AttachmentTable,
+  attachmentColumns,
+  searchAttachments,
+} from "./attachment-table";
 import { AttachmentToolbar } from "./attachment-toolbar";
 
 interface Props {
@@ -26,6 +33,8 @@ interface Props {
   onFiles?: (files: File[]) => void;
   /** Called after a rename or a delete went through — see AttachmentList, which passes it on. */
   onChanged?: () => void;
+  /** See AttachmentList's `layout`. */
+  layout?: "list" | "table";
 }
 
 /**
@@ -42,11 +51,41 @@ export function AttachmentFiles({
   readOnly,
   onFiles,
   onChanged,
+  layout = "list",
 }: Props) {
   const t = useTranslations();
   const { rename, remove, removeMany, encrypt, testDecryption } =
     useAttachmentMutations(entity, id);
-  const selection = useAttachmentSelection(attachments);
+  const asTable = layout === "table";
+  const [search, setSearch] = useState("");
+  const searched = useMemo(
+    () => (asTable ? searchAttachments(attachments, search) : []),
+    [asTable, attachments, search]
+  );
+  const columns = useMemo(() => attachmentColumns(t, readOnly), [t, readOnly]);
+  // Created here rather than in AttachmentTable: the selection works on the rows the table shows —
+  // searched, filtered by column and sorted — so a Shift range follows the order on screen, "select all"
+  // picks what is visible, and a file a filter hides drops out of the selection instead of being deleted
+  // unseen. Unpaged (manualPagination), so the row model is every displayed row.
+  const table = useDataTable<Attachment>({
+    columns,
+    data: searched,
+    enableColumnFilters: true,
+    manualPagination: true,
+    getRowId: (attachment) => attachment.fileId,
+    highlight: search,
+  });
+  const rows = table.getRowModel().rows;
+  const displayed = useMemo(
+    () => (asTable ? rows.map((row) => row.original) : attachments),
+    [asTable, rows, attachments]
+  );
+  const searchField = asTable && (
+    <div className="relative w-64">
+      <SearchInput value={search} onChange={setSearch} />
+    </div>
+  );
+  const selection = useAttachmentSelection(displayed);
   const [editing, setEditing] = useState<Attachment | null>(null);
   /** The files the open confirmation would delete — one row's, or a whole selection's. */
   const [deleting, setDeleting] = useState<Attachment[]>([]);
@@ -118,28 +157,46 @@ export function AttachmentFiles({
           busy={busy}
           onDeleteSelected={setDeleting}
           onFiles={onFiles}
+          visible={displayed}
+          search={searchField}
         />
       )}
-      <ul className="flex flex-col">
-        {attachments.map((attachment) => (
-          <AttachmentRow
-            key={attachment.fileId}
-            attachment={attachment}
-            entity={entity}
-            id={id}
-            busy={busy}
-            readOnly={readOnly}
-            selected={selection.has(attachment.fileId)}
-            onSelectedChange={
-              readOnly
-                ? undefined
-                : (on, range) => selection.toggle(attachment.fileId, on, range)
-            }
-            onEdit={setEditing}
-            onDelete={(attachment) => setDeleting([attachment])}
-          />
-        ))}
-      </ul>
+      {/* Without a toolbar (read-only) the search stands on its own. */}
+      {readOnly && searchField}
+      {asTable ? (
+        <AttachmentTable
+          table={table}
+          entity={entity}
+          id={id}
+          readOnly={readOnly}
+          busy={busy}
+          selection={readOnly ? undefined : selection}
+          onEdit={setEditing}
+          onDelete={(attachment) => setDeleting([attachment])}
+        />
+      ) : (
+        <ul className="flex flex-col">
+          {attachments.map((attachment) => (
+            <AttachmentRow
+              key={attachment.fileId}
+              attachment={attachment}
+              entity={entity}
+              id={id}
+              busy={busy}
+              readOnly={readOnly}
+              selected={selection.has(attachment.fileId)}
+              onSelectedChange={
+                readOnly
+                  ? undefined
+                  : (on, range) =>
+                      selection.toggle(attachment.fileId, on, range)
+              }
+              onEdit={setEditing}
+              onDelete={(attachment) => setDeleting([attachment])}
+            />
+          ))}
+        </ul>
+      )}
 
       {editing && (
         <AttachmentEditDialog

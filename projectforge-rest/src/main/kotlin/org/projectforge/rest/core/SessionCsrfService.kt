@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.PostData
@@ -66,7 +66,7 @@ open class SessionCsrfService {
     // (see the class comment of RestCsrfProtection).
     val csrfToken = postData.serverData?.csrfToken ?: request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER)
     if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.userContext?.loggedInByAuthenticationToken == true) {
-      if (log.isDebugEnabled) {
+      if (log.isDebugEnabled()) {
         log.debug { "User '${ThreadLocalUserContext.loggedInUser?.username}' logged in by rest call, not by session." }
       }
       return null

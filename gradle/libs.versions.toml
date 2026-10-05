@@ -70,7 +70,7 @@ se-sawano-java-alphanumeric-comparator = "1.4.1"
 
 # logging
 ch-qos-logback = "1.5.32"
-io-github-microutils-kotlin-logging = "3.0.5"
+io-github-oshai-kotlin-logging = "7.0.6"
 jboss-logging = "3.6.3.Final"
 org-apache-logging-log4j = "2.25.4" # Needed by poi.
 org-slf4j = "2.0.17"
@@ -113,7 +113,7 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 de-micromata-merlin-core = { module = "de.micromata.merlin:merlin-core", version.ref = "de-micromata-merlin" }
 fr-opensagres-xdocrepor-poi-xwpf-converter-pdf = { module = "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf", version.ref = "fr-opensagres-xdocreport-poi-xwpf-converter-pdf" }
 io-dropwizard-metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "io-dropwizard-metrics-core" }
-io-github-microutils-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "io-github-microutils-kotlin-logging" }
+io-github-oshai-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "io-github-oshai-kotlin-logging" }
 jakarta-activation-api = { module = "jakarta.activation:jakarta.activation-api", version.ref = "jakarta-activation-api" }
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
 org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", version.ref = "org-eclipse-angus-jakarta-mail" }

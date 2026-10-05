@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.common.extensions.capitalize
 import org.projectforge.rest.config.Rest

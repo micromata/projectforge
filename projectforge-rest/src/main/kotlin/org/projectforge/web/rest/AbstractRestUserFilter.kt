@@ -23,7 +23,7 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
@@ -71,8 +71,8 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
    */
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-    if (log.isDebugEnabled) {
-      log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
+    if (log.isDebugEnabled()) {
+      log.debug { "Processing request ${RequestLog.asString(request as HttpServletRequest)}..." }
     }
     ThreadLocalUserContext.userContext?.let { userContext ->
       // Paranoia:

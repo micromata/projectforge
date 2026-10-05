@@ -21,6 +21,13 @@ interface Props {
   /** Picks files to attach; omitted for a read-only list, which then has no add button. */
   onFiles?: (files: File[]) => void;
   busy?: boolean;
+  /**
+   * The files currently shown, where a search or a column filter hides some (the table layout): "select
+   * all" means these. Defaults to all of them; "download all" always takes all of them.
+   */
+  visible?: Attachment[];
+  /** A search field at the end of the line (the table layout). */
+  search?: React.ReactNode;
 }
 
 /**
@@ -47,11 +54,12 @@ export function AttachmentToolbar({
   onDeleteSelected,
   onFiles,
   busy,
+  visible = attachments,
+  search,
 }: Props) {
   const t = useTranslations();
   const { selected } = selection;
-  const allSelected =
-    attachments.length > 0 && selected.length === attachments.length;
+  const allSelected = visible.length > 0 && selected.length === visible.length;
   const deletable = selected.filter((a) => a.readonly !== true);
   const fileIds = selected.map((a) => a.fileId);
   const allFileIds = attachments.map((a) => a.fileId);
@@ -76,7 +84,7 @@ export function AttachmentToolbar({
                     ? "indeterminate"
                     : false
               }
-              disabled={busy}
+              disabled={busy || visible.length === 0}
               onCheckedChange={(checked) => selection.setAll(checked === true)}
             />
             <Label
@@ -139,6 +147,7 @@ export function AttachmentToolbar({
               {t("file.upload.deleteSelected._")}
             </Button>
           </div>
+          {search && <div className="ml-auto">{search}</div>}
         </>
       )}
     </div>

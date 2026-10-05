@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   keepPreviousData,
@@ -29,7 +30,11 @@ import {
   type LogViewerEvent,
   type LogViewFilter,
 } from "@/lib/rs/log-viewer";
-import { LOG_LEVEL_KEYS, LOG_THRESHOLDS, logLevelRowClass } from "./log-level";
+import {
+  LOG_LEVEL_KEYS,
+  LOG_THRESHOLDS,
+  logLevelRowClass,
+} from "@/components/shared/log-level";
 import { logViewerColumns } from "./log-viewer-columns";
 
 /** Often enough to follow a running import, rare enough not to flood the server. */
@@ -117,9 +122,16 @@ function LogViewerContent({
 }: LogViewerProps & { title: string; initial: LogViewerData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  // A link may start with a search of its own, e.g. the error dashboard's one for a problem (`?search=`).
+  // With its level as `?threshold=`, so that a stored higher threshold doesn't hide the problem's entries.
+  const params = useSearchParams();
+  const linkedSearch = params.get("search");
+  const linkedThreshold = LOG_THRESHOLDS.find(
+    (level) => level === params.get("threshold")
+  );
   const [criteria, setCriteria] = useState<Criteria>({
-    threshold: initial.filter.threshold,
-    search: initial.filter.search ?? "",
+    threshold: linkedThreshold ?? initial.filter.threshold,
+    search: linkedSearch ?? initial.filter.search ?? "",
   });
   const [autoRefresh, setAutoRefresh] = useState(
     initial.filter.autoRefresh === true
@@ -131,12 +143,18 @@ function LogViewerContent({
   };
 
   const entriesKey = ["logViewer", admin, id, "entries", criteria];
-  // The first entries come with the initial answer, so the start filter doesn't query twice.
+  // The first entries come with the initial answer, so the start filter doesn't query twice (not for a linked
+  // search or threshold: the answer was filtered by the stored one).
   const startCriteria = useState(criteria)[0];
   const entries = useQuery({
     queryKey: entriesKey,
     queryFn: ({ signal }) => queryLogViewer(admin, filter, signal),
-    initialData: criteria === startCriteria ? initial.entries : undefined,
+    initialData:
+      criteria === startCriteria &&
+      linkedSearch === null &&
+      linkedThreshold === undefined
+        ? initial.entries
+        : undefined,
     placeholderData: keepPreviousData,
     // Refreshed on demand (button) or by the auto refresh only. Not in a hidden tab (the react-query default):
     // every request touches the session and would keep an idle tab logged in (see use-auth.ts).

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService

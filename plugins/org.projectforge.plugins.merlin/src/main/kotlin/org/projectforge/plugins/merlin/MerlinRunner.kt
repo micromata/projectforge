@@ -32,7 +32,7 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DateFormatType

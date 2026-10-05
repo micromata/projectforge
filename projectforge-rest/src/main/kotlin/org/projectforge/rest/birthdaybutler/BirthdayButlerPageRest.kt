@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.birthdaybutler
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.birthdaybutler.BirthdayButlerService
 import org.projectforge.business.scripting.I18n

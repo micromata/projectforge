@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.MapUtils
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -162,7 +162,7 @@ open class KontoCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     public override fun refresh() {
-        log.info("Initializing KontoCache ...")
+        log.info { "Initializing KontoCache ..." }
         persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val map: MutableMap<Long?, KontoDO?> = HashMap()

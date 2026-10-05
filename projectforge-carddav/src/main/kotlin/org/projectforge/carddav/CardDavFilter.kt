@@ -26,7 +26,7 @@ package org.projectforge.carddav
 import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.carddav.CardDavInit.Companion.CARD_DAV_BASE_PATH
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.web.rest.BasicAuthenticationData
@@ -59,7 +59,7 @@ class CardDavFilter : Filter {
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         request as HttpServletRequest
-        if (log.isDebugEnabled) {
+        if (log.isDebugEnabled()) {
             var username: String? = null
             val authHeader = RestAuthenticationUtils.getHeader(request, "authorization", "Authorization")
             if (authHeader != null) {

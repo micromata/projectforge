@@ -25,7 +25,7 @@ package org.projectforge.rest.importer
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.format
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -229,7 +229,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     ): ResponseEntity<ResponseAction> {
         val importStorage = getImportStorage(request)
         if (importStorage == null) {
-            log.error("No import storage given (expired?). Can't proceed any import here.")
+            log.error { "No import storage given (expired?). Can't proceed any import here." }
             return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
         }
         val selectedIds = multiSelection?.selectedIds

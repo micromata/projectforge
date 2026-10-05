@@ -25,7 +25,7 @@ package org.projectforge.commons.test
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.slf4j.LoggerFactory
 import java.io.File

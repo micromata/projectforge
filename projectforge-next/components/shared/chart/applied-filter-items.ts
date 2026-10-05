@@ -10,7 +10,7 @@ import type { FilterElement, MagicFilter } from "@/lib/rs/types";
 
 /**
  * What a chart did with the list's filter, by field id — as the backend reports it where it can't apply
- * every criterion (the order book's forecast, see `OrderEntityRest.forecastFilterUsage`). A field in none
+ * every criterion (the invoice charts' previous years). A field in none
  * of the lists was applied as it is.
  */
 export interface AppliedFilterUsage {

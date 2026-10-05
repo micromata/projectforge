@@ -23,7 +23,7 @@
 
 package org.projectforge.common.logging
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.projectforge.common.i18n.MessageParam
 import org.slf4j.Logger

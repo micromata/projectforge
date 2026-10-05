@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.feedback.SendFeedback
 import org.projectforge.business.feedback.SendFeedbackData
 import org.projectforge.framework.configuration.Configuration
@@ -99,7 +99,7 @@ class FeedbackPageRest {
             // must surface as a failure here instead of the optimistic "handed over" of the async default.
             sendFeedback.send(data, async = false)
         } catch (ex: Throwable) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             false
         }
         return if (result) {

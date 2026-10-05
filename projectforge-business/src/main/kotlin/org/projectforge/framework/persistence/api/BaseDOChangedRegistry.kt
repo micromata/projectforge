@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
 
 private val log = KotlinLogging.logger {}
@@ -37,7 +37,7 @@ class BaseDOChangedRegistry<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>) :
      * @see BaseDOModifiedListener
      */
     fun register(objectChangedListener: BaseDOModifiedListener<O>) {
-        log.info(javaClass.simpleName + ": Registering " + objectChangedListener.javaClass.name)
+        log.info { javaClass.simpleName + ": Registering " + objectChangedListener.javaClass.name }
         objectChangedListeners.add(objectChangedListener)
     }
 

@@ -24,7 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO

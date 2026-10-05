@@ -26,7 +26,7 @@ package org.projectforge.rest.fibu.importer
 import de.micromata.merlin.excel.ExcelColumnName
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.framework.i18n.translate

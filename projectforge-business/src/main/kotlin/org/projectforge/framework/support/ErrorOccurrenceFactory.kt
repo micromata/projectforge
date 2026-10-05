@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.support
 
+import org.projectforge.common.logging.LogEvent
+import org.projectforge.common.logging.LogEventAware
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LoggingEventData
 import org.projectforge.framework.integration.IntegrationErrors
@@ -53,7 +55,13 @@ object ErrorOccurrenceFactory {
     )
 
     /**
-     * Null if the event isn't collected: ERROR is, WARN only where it looks like an unreachable system.
+     * Null if the event isn't collected. Classified by (first wins):
+     * 1. the [LogEvent] of the logging call or of the exception ([LoggingEventData.logEvent]), on any level,
+     *    or of a known message of a library ([ThirdPartyLogEvents]),
+     * 2. the text of an unreachable system: [SupportLogEvents.EXTERNAL_UNREACHABLE], on any level,
+     * 3. ERROR: [SupportLogEvents.LOGGED_ERROR]; other levels aren't collected.
+     *
+     * Whether an occurrence is reported is up to the caller ([LogEvent.notify]).
      */
     fun fromLogEvent(event: LoggingEventData): ErrorOccurrence? {
         val loggerName = event.loggerName ?: ""
@@ -61,17 +69,19 @@ object ErrorOccurrenceFactory {
             return null
         }
         val stackTrace = event.stackTrace
-        val connectionError = isConnectionText(event.message) || isConnectionText(stackTrace?.let { exceptionLines(it) })
-        val category = when {
-            connectionError -> ErrorCategory.EXTERNAL_UNREACHABLE
-            !event.level.matches(LogLevel.ERROR) -> return null
-            stackTrace != null -> ErrorCategory.ERROR
-            else -> ErrorCategory.ERROR_NO_TRACE
+        val specificEvent = event.logEvent ?: ThirdPartyLogEvents.find(loggerName, event.message)
+        val logEvent = specificEvent ?: when {
+            isConnectionText(event.message) || isConnectionText(stackTrace?.let { exceptionLines(it) }) ->
+                SupportLogEvents.EXTERNAL_UNREACHABLE
+
+            event.level.matches(LogLevel.ERROR) -> SupportLogEvents.LOGGED_ERROR
+            else -> return null
         }
         return ErrorOccurrence(
             timestampMillis = event.timestampMillis,
             level = event.level,
-            category = category,
+            event = logEvent,
+            groupByCode = specificEvent != null,
             exceptionClass = stackTrace?.let { rootExceptionClass(it) },
             message = event.message,
             location = "${event.javaClassSimpleName ?: event.javaClass}:${event.lineNumber}",
@@ -82,6 +92,8 @@ object ErrorOccurrenceFactory {
 
     /**
      * An exception of a request, already found worth reporting by the caller.
+     * Classified by (first wins) [logEvent] (e.g. of the known exception, see `GlobalExceptionRegistry`), the event of
+     * a [LogEventAware] exception in the cause chain, [external] and else as [SupportLogEvents.REQUEST_ERROR].
      * @param external True for a remote system that isn't reachable (connection error, timeout).
      */
     fun fromRequestException(
@@ -90,14 +102,18 @@ object ErrorOccurrenceFactory {
         request: String?,
         external: Boolean = IntegrationErrors.isConnectionError(ex),
         timestampMillis: Long = System.currentTimeMillis(),
+        logEvent: LogEvent? = null,
     ): ErrorOccurrence {
         val rootCause = generateSequence(ex) { it.cause.takeIf { cause -> cause !== it } }.take(20).last()
         val frame = rootCause.stackTrace.firstOrNull { it.className.startsWith("org.projectforge.") }
             ?: rootCause.stackTrace.firstOrNull()
+        val specificEvent = logEvent ?: LogEventAware.find(ex)
         return ErrorOccurrence(
             timestampMillis = timestampMillis,
             level = LogLevel.ERROR,
-            category = if (external) ErrorCategory.EXTERNAL_UNREACHABLE else ErrorCategory.REQUEST_ERROR,
+            event = specificEvent
+                ?: if (external) SupportLogEvents.EXTERNAL_UNREACHABLE else SupportLogEvents.REQUEST_ERROR,
+            groupByCode = specificEvent != null,
             exceptionClass = rootCause::class.java.name,
             message = rootCause.message ?: ex.message,
             location = frame?.let { "${it.className.substringAfterLast('.')}:${it.lineNumber}" } ?: "?",

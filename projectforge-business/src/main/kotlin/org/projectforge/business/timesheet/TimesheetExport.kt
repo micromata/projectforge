@@ -24,7 +24,7 @@
 package org.projectforge.business.timesheet
 
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
 import org.projectforge.business.task.TaskTree
@@ -65,7 +65,7 @@ open class TimesheetExport {
      * Exports the filtered list as table with almost all fields.
      */
     open fun export(list: List<TimesheetDO>): ByteArray {
-        log.info("Exporting timesheet list.")
+        log.info { "Exporting timesheet list." }
         ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
             val sheet = workbook.createOrGetSheet(translate("timesheet.timesheets"))
             val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)

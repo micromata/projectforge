@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.BuchungssatzDO
@@ -76,7 +76,7 @@ class DatevRecordImportJob(
     }
 
     override suspend fun run() {
-        log.info("Starting import of ${selectedEntries.size} DATEV accounting records.")
+        log.info { "Starting import of ${selectedEntries.size} DATEV accounting records." }
         val toPersist = mutableListOf<BuchungssatzDO>()
         for (entry in selectedEntries) {
             if (!isActive) {
@@ -119,7 +119,7 @@ class DatevRecordImportJob(
             log.error(ex) { "Import failed, nothing was saved (all or nothing): ${ex.message}" }
             throw ex
         }
-        log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}.")
+        log.info { "Import completed: inserted=${result.inserted}, updated=${result.updated}." }
     }
 
     private fun buildRecord(read: DatevRecordImportDTO): BuchungssatzDO? {

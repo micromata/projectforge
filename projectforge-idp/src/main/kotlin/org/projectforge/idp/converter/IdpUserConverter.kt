@@ -23,7 +23,7 @@
 
 package org.projectforge.idp.converter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.idp.IdpConfig
@@ -97,7 +97,7 @@ open class IdpUserConverter(private val idpConfig: IdpConfig) {
         for ((pfField, idpAttr) in idpConfig.userAttributes) {
             val accessor = SUPPORTED_USER_FIELDS[pfField]
             if (accessor == null) {
-                log.warn("Unknown PF user field '$pfField' in userAttributes mapping, skipping.")
+                log.warn { "Unknown PF user field '$pfField' in userAttributes mapping, skipping." }
                 continue
             }
             accessor.get(pfUser)?.takeIf { it.isNotBlank() }

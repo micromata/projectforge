@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.jobs
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.persistence.api.ReindexSettings

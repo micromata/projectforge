@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.address.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
@@ -108,7 +108,7 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
                 commitEntity(dto)
             }
         } catch (e: Exception) {
-            log.error("Error parsing VCF data: ${e.message}", e)
+            log.error(e) { "Error parsing VCF data: ${e.message}" }
             addError("Error parsing VCF data: ${e.message}")
         }
     }
@@ -192,7 +192,7 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
             }
         }
 
-        log.info("Reconciliation completed: ${matches.size} matches, ${readAddresses.size - matchedReadIndices.size} new")
+        log.info { "Reconciliation completed: ${matches.size} matches, ${readAddresses.size - matchedReadIndices.size} new" }
     }
 
     /**

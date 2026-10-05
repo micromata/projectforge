@@ -71,6 +71,12 @@ export interface AttachmentListProps {
    * file with a message of its own (see AttachmentDropArea).
    */
   uploadHint?: string;
+  /**
+   * `"table"`: the files as a sortable table with a search field and column filters (see AttachmentTable),
+   * for a page whose content is the files — a data transfer area with many of them. `"list"` (default):
+   * the compact rows for an attachment section inside a form.
+   */
+  layout?: "list" | "table";
 }
 
 /**
@@ -81,9 +87,10 @@ export interface AttachmentListProps {
  * contracts, orders, invoices, scripts), so this is the shared counterpart of the legacy
  * `UIAttachmentList` and its `DynamicAttachmentList.jsx`.
  *
- * Not a `DataTable`: a handful of files per entity inside a form section have no sorting, paging or
- * column state to speak of, and the table primitive's own scroll container would fight the form's.
- * The selection is a set of `fileId`s of its own (see useAttachmentSelection) rather than the
+ * A plain list by default, not a `DataTable`: a handful of files per entity inside a form section have no
+ * sorting, paging or column state to speak of. Only where the files are the page (`layout="table"`)
+ * they are a table, grown to its rows (`autoHeight`) so it adds no scroll container of its own. Either
+ * way the selection is a set of `fileId`s of its own (see useAttachmentSelection) rather than the
  * table's index-keyed row selection.
  */
 export function AttachmentList({
@@ -95,6 +102,7 @@ export function AttachmentList({
   lockedLabel,
   onChanged,
   uploadHint,
+  layout,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -184,6 +192,7 @@ export function AttachmentList({
           readOnly={readOnly}
           onFiles={embedded ? uploads.enqueue : undefined}
           onChanged={onChanged}
+          layout={layout}
         />
       )}
       {/* Nothing stored and nothing on its way: the uploads above would otherwise be contradicted. */}

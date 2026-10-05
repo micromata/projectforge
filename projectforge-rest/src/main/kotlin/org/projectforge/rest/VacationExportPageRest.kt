@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao

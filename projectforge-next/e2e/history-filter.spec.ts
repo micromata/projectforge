@@ -307,7 +307,7 @@ async function openHistoryPill(page: Page, t: Translate): Promise<void> {
   await page
     .getByRole("option", { name: t("filter.history"), exact: true })
     .click();
-  // The popover applies live and has no save button; "Abbrechen" is the footer control it opens with.
+  // The popover applies live; "Abbrechen" is the footer control it opens with.
   await expect(
     page.getByRole("button", { name: t("cancel"), exact: true })
   ).toBeVisible();

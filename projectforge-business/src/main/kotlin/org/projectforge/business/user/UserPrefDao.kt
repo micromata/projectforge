@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -47,6 +47,7 @@ import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.StringHelper
+import org.projectforge.common.logging.error
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.json.*
@@ -533,8 +534,9 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         val valueType = userPref.valueType ?: return null
         val valueString = userPref.serializedValue ?: return null
-        if (userPref.valueType == null) return null
-        userPref.valueObject = fromJson(valueString, valueType)
+        userPref.valueObject = fromJson(
+            valueString, valueType, "id=${userPref.id}, area=${userPref.area}, name=${userPref.name}",
+        )
         return userPref.valueObject
     }
 
@@ -712,14 +714,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             return StringUtils.startsWith(value, MAGIC_JSON_START)
         }*/
 
-        internal fun <T> fromJson(json: String, classOfT: Class<T>): T? {
+        /** @param context Which entry, for the log message. */
+        internal fun <T> fromJson(json: String, classOfT: Class<T>, context: String? = null): T? {
             var useJson = getUncompressed(json)
             useJson = useJson.removePrefix(MAGIC_JSON_START)
             // if (!isJsonObject(useJson)) return null
             try {
                 return objectMapper.readValue(useJson, classOfT)
             } catch (ex: IOException) {
-                log.error { "Can't deserialize json object (may-be incompatible ProjectForge versions): ${ex.message}, json=$useJson" }
+                log.error(UserLogEvents.PREF_NOT_DESERIALIZABLE) {
+                    "Can't deserialize json object${context?.let { " ($it)" } ?: ""} (may-be incompatible ProjectForge versions): ${ex.message}, json=$useJson"
+                }
                 return null
             }
         }

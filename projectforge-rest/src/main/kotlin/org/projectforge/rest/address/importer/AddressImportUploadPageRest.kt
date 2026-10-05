@@ -25,7 +25,7 @@ package org.projectforge.rest.address.importer
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.i18n.translate
@@ -487,7 +487,7 @@ class AddressImportUploadPageRest : AbstractDynamicPageRest() {
             )
 
         } catch (ex: Exception) {
-            log.error("Error processing uploaded file: $filename", ex)
+            log.error(ex) { "Error processing uploaded file: $filename" }
             return result(translate("file.upload.error") + ": ${ex.message}", isStatusError = true)
         }
     }

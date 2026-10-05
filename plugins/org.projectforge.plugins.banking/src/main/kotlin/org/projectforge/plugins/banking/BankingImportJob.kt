@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.banking
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO

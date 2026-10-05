@@ -23,7 +23,7 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext

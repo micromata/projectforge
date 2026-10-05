@@ -26,7 +26,7 @@ package org.projectforge.framework.jobs
 import com.fasterxml.jackson.annotation.JsonIgnore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.StringHelper
@@ -226,7 +226,7 @@ abstract class AbstractJob(
         // OK, not failed.
       } else {
         status = Status.FAILED
-        log.error("Error while executing job $logInfo: ${ex.message}", ex)
+        log.error(ex) { "Error while executing job $logInfo: ${ex.message}" }
         exception = ex
         errorMessage = ex.message
         onAfterException(ex)

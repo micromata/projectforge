@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
@@ -163,7 +163,7 @@ open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), Cand
                 }
 
                 else -> {
-                    log.error("Unknown type: $type")
+                    log.error { "Unknown type: $type" }
                 }
             }
         }

@@ -25,7 +25,7 @@ package org.projectforge.rest.fibu
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.util.WorkbookUtil
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
@@ -196,7 +196,7 @@ class EmployeePagesRest :
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting employees as Excel file.")
+        log.info { "Exporting employees as Excel file." }
         val list = getObjectList(this, baseDao, filter)
         // Ensure the transient, time-dependent attributes (status, weekly working hours) reflect the current values.
         employeeCache.setTimeDependentAttrs(list)

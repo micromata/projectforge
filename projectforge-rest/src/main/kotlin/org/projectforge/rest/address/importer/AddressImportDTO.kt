@@ -25,7 +25,7 @@ package org.projectforge.rest.address.importer
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Transient
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.address.FormOfAddress
@@ -208,9 +208,9 @@ class AddressImportDTO(
                     imageType = imageResult.imageType,
                     previewBytes = previewBytes
                 )
-                log.debug("Processed image for VCard import: ${imageResult.bytes.size} bytes (${imageResult.imageType}), preview: ${previewBytes?.size ?: 0} bytes")
+                log.debug { "Processed image for VCard import: ${imageResult.bytes.size} bytes (${imageResult.imageType}), preview: ${previewBytes?.size ?: 0} bytes" }
             } catch (e: Exception) {
-                log.error("Error processing image for VCard import: ${e.message}", e)
+                log.error(e) { "Error processing image for VCard import: ${e.message}" }
                 // Fallback: Use original image without processing
                 this.addressImage = AddressImage(
                     bytes = image.image!!,

@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.ZipUtils
 import org.projectforge.common.extensions.format
@@ -40,7 +40,8 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Checks the sanity of the JCR repository.
- * This job is scheduled by the cron expression in the application.properties file.
+ * Runs nightly as part of CronSanityCheckJob (projectforge.cron.sanityChecks). Its own schedule
+ * projectforge.jcr.cron.sanityCheck is disabled by default.
  */
 @Component
 open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
@@ -55,11 +56,11 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     )
 
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
-    // projectforge.jcr.cron.backup=0 30 0 * * *
+    // Disabled by default (projectforge.jcr.cron.sanityCheck=-), CronSanityCheckJob runs this job nightly.
     @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
     open fun cron() {
         val started = System.currentTimeMillis()
-        log.info("JCR sanity check job started.")
+        log.info { "JCR sanity check job started." }
         val job = this
         Thread {
             try {
@@ -77,7 +78,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                     log.info { "$msgPart1. $msgPart2" }
                 }
             } catch (ex: Throwable) {
-                log.error("While executing hibernate search re-index job: " + ex.message, ex)
+                log.error(ex) { "While executing hibernate search re-index job: " + ex.message }
             }
         }.start()
     }
@@ -108,7 +109,7 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                         val msg =
                             "Checksum of file '${fileObject.fileName}' from repository not given (skipping checksum check). ['${fileNode.path}']"
                         jobExecutionContext.addWarning(msg)
-                        log.error { msg }
+                        log.warn { msg }
                     }
                 }
                 if (fileObject.fileExtension == "zip") {

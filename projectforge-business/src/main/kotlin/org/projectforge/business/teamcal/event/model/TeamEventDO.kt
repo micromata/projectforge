@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.event.model
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.fortuna.ical4j.model.Month
 import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
@@ -604,7 +604,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             try {
                 recurrenceRuleObject = ICal4JUtils.calculateRRule(recurrenceRule)
             } catch (ex: IllegalArgumentException) {
-                log.error("RecurrenceRule '$recurrenceRule' not parseable: ${ex.message}.", ex)
+                log.error(ex) { "RecurrenceRule '$recurrenceRule' not parseable: ${ex.message}." }
             }
         }
         return recurrenceRuleObject

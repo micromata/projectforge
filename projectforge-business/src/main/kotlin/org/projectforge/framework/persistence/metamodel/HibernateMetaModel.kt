@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.metamodel
 
 import jakarta.persistence.Column
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.persister.entity.SingleTableEntityPersister
 import org.projectforge.framework.persistence.api.BaseDO

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -126,7 +126,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillE
     }
 
     override fun refresh() {
-        log.info("Refreshing SkillMatrixCache ...")
+        log.info { "Refreshing SkillMatrixCache ..." }
         persistenceService.runIsolatedReadOnly {
             val skillStatisticsMap = mutableMapOf<String, Entry>()
             skillEntryDao.selectAll(checkAccess = false)
@@ -146,6 +146,6 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillE
                 .sortedBy { it.skill.lowercase() }
                 .map { SkillStatistic(it.skill, it.totalCounter, it.ratingMean, it.interestMean) }
         }
-        log.info("Refreshing SkillMatrixCache done.")
+        log.info { "Refreshing SkillMatrixCache done." }
     }
 }

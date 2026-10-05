@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal

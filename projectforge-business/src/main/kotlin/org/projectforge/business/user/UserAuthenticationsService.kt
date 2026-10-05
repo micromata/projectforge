@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -191,7 +191,7 @@ open class UserAuthenticationsService {
   open fun decrypt(userId: Long, type: UserTokenType, encryptedString: String): String? {
     val storedAuthenticationToken: String? = internalGetToken(userId, type)
     if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user $userId. So can't decrypt encrypted string.")
+      log.warn { "Can't get authentication token for user $userId. So can't decrypt encrypted string." }
       return ""
     }
     val authenticationToken: String = StringUtils.rightPad(storedAuthenticationToken, 32, "x")
@@ -210,7 +210,7 @@ open class UserAuthenticationsService {
   open fun encrypt(userId: Long, type: UserTokenType, data: String): String? {
     val storedAuthenticationToken: String? = getToken(userId, type)
     if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user $userId. So can't encrypt string.")
+      log.warn { "Can't get authentication token for user $userId. So can't encrypt string." }
       return ""
     }
     val authenticationToken: String = StringUtils.rightPad(storedAuthenticationToken, 32, "x")

@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -222,7 +222,7 @@ open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<Cur
      */
     public override fun refresh() {
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            log.info("Initializing CurrencyConversionCache...")
+            log.info { "Initializing CurrencyConversionCache..." }
             // This method must not be synchronized because it works with a new copy of maps.
             val pairMap = mutableMapOf<Long, CurrencyPairDO>()
             val lookupMap = mutableMapOf<Pair<String, String>, Long>()

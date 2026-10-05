@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.*
@@ -123,8 +123,8 @@ open class LoginService {
                 // User has no access or the user has to do a 2FA check first.
                 return null
             }
-            if (log.isDebugEnabled) {
-                log.debug("User found in session: ${request.requestURI}")
+            if (log.isDebugEnabled()) {
+                log.debug { "User found in session: ${request.requestURI}" }
             }
             return userContext
         }
@@ -167,7 +167,7 @@ open class LoginService {
         if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS || userId == null) {
             return loginResult.loginResultStatus
         }
-        log.info("User successfully logged in: " + user.userDisplayName)
+        log.info { "User successfully logged in: " + user.userDisplayName }
         // Execute login:
         val userContext = UserContext(user)
         handle2FARequiredAfterLogin(request, userContext)
@@ -214,7 +214,7 @@ open class LoginService {
         val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
-            log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
+            log.warn { "The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later." }
 
             val numberOfFailedAttempts =
                 loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
@@ -260,7 +260,7 @@ open class LoginService {
         user?.id?.let { userId ->
             userPrefCache.flushToDB(userId)
             userPrefCache.clear(userId)
-            log.info("User '${user.username}' (#$userId) logged out.")
+            log.info { "User '${user.username}' (#$userId) logged out." }
         }
     }
 
@@ -282,10 +282,10 @@ open class LoginService {
             if (timeOfLastSuccessful2FA != null) ", last successful 2FA: ${timeOfLastSuccessful2FA.isoString} UTC (${
                 TimeAgo.getMessage(timeOfLastSuccessful2FA)
             })" else ""
-        log.info("User's stay logged-in cookie found: ${request.requestURI}$last2FAText")
-        if (log.isDebugEnabled) {
+        log.info { "User's stay logged-in cookie found: ${request.requestURI}$last2FAText" }
+        if (log.isDebugEnabled()) {
             request.cookies?.forEach { cookie ->
-                log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.secure}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
+                log.debug { "Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.secure}, maxAge=${cookie.maxAge}, domain=${cookie.domain}" }
             }
         }
         internalLogin(request, userContext)
@@ -398,8 +398,8 @@ open class LoginService {
             val session = request.getSession(createSession) ?: return null
             val userContext = session.getAttribute(SESSION_KEY_USER) as? UserContext?
             userContext?.refreshUser() // Refresh user from cache: might be deactivated or changed in the meantime.
-            if (log.isDebugEnabled) {
-                log.debug("User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI}).")
+            if (log.isDebugEnabled()) {
+                log.debug { "User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI})." }
             }
             return userContext
         }

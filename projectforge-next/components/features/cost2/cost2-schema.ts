@@ -59,6 +59,8 @@ export const cost2Schema = z.object({
   endziffer: segment("endziffer"),
   project: entityRef,
   workFraction: m.decimalField("workFraction"),
+  // Three states: null leaves the decision to the time sheet's task (see Cost2SharedCostField).
+  sharedCost: m.booleanField("sharedCost").nullable(),
   kostentraegerStatus: m.enumField("kostentraegerStatus"),
   description: m.nullableString("description"),
   comment: m.nullableString("comment"),

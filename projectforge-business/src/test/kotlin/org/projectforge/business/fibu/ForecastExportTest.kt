@@ -462,7 +462,7 @@ class ForecastExportTest : AbstractTestBase() {
         // projectforge.fibu.forecast.distributeUnusedBudget=false).
         val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
         val excelFile = WorkFileHelper.getWorkFile("forecast.xlsx")
-        baseLog.info("Writing forecast Excel file to work directory: " + excelFile.absolutePath)
+        baseLog.info { "Writing forecast Excel file to work directory: " + excelFile.absolutePath }
         FileUtils.writeByteArrayToFile(excelFile, ba)
 
         ExcelWorkbook(ByteArrayInputStream(ba), excelFile.name).use { workbook ->
@@ -571,6 +571,101 @@ class ForecastExportTest : AbstractTestBase() {
     }
 
     /**
+     * The tables of [ForecastExport.statistics] are the rows behind its charts: the months of the positions sum up
+     * to the forecast by status, the invoice rows to IST and the previous years, and the project overview to both.
+     */
+    @Test
+    fun statisticsTablesMatchChartTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1200.0, baseDate,
+            baseDate.plusMonths(1), baseDate.plusMonths(4), baseDate.plusMonths(2), baseDate.plusMonths(3)
+        )
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 800.0, baseDate.plusMonths(-12),
+            baseDate.plusMonths(-12), baseDate.plusMonths(-10), baseDate.plusMonths(-11)
+        )
+        val order = createOrder(today, AuftragsStatus.GELEGT, today.plusMonths(1), today.plusMonths(3))
+        addPosition(order, 1, AuftragsStatus.GELEGT, 2500.00, AuftragsPositionsPaymentType.PAUSCHALE)
+        auftragDao.insert(order)
+        auftragsCache.setExpired()
+
+        val origFilter = AuftragFilter()
+        origFilter.periodOfPerformanceStartDate = baseDate.localDate
+        val orders = auftragDao.select(forecastExport.buildQueryFilter(origFilter, baseDate.beginOfMonth, true))
+        val statistics = forecastExport.statistics(orders, baseDate.localDate, unfiltered = true)
+        Assertions.assertNotNull(statistics, "Statistics expected.")
+        val chart = statistics!!.chart
+        val tables = statistics.tables
+        Assertions.assertEquals(chart.months, tables.months)
+        Assertions.assertTrue(tables.positions.isNotEmpty(), "Position rows expected.")
+        fun monthSums(rows: List<List<BigDecimal?>>): List<BigDecimal> = List(12) { i ->
+            rows.fold(BigDecimal.ZERO) { acc, months -> acc + (months[i] ?: BigDecimal.ZERO) }
+        }
+        chart.forecastByStatus.forEach { (status, values) ->
+            val rows = tables.positions.filter { it.positionStatus == translate(status.i18nKey) }
+            assertAmounts(values, monthSums(rows.map { it.months }), "Positions of $status")
+        }
+        fun invoiceSums(kind: ForecastInvoiceRow.Kind): List<BigDecimal> = monthSums(
+            tables.invoices.filter { it.kind == kind }.map { row ->
+                List(12) { i -> if (i == row.monthIndex) row.netSum else null }
+            }
+        )
+        assertAmounts(chart.ist, invoiceSums(ForecastInvoiceRow.Kind.IST), "IST")
+        assertAmounts(chart.prevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_YEAR), "Previous year")
+        assertAmounts(chart.prevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_YEAR), "Previous previous year")
+        val forecast = chart.forecastByStatus.values.flatten().sumOf { it } + chart.ist.sumOf { it }
+        assertAmount(tables.projects.sumOf { it.forecast }, forecast.toDouble())
+        assertAmount(tables.projects.sumOf { it.prevYear }, chart.prevYear.sumOf { it }.toDouble())
+        Assertions.assertTrue(tables.projects.all { it.plan == null }, "No plan without planning date.")
+        Assertions.assertEquals(tables.projects.size, tables.projects.map { it.projectId }.toSet().size)
+    }
+
+    /**
+     * The lost budget warning of the conservative forecast reaches the position rows, with the months the Excel
+     * marks red; the optimistic one distributes the unused budget, so it has none.
+     */
+    @Test
+    fun statisticsLostBudgetWarningTest() {
+        logon(TEST_FINANCE_USER)
+        val baseDate = PFDay.now().plusMonths(-4)
+        // T&M, 5000 for 5 months, but only 500 invoiced: the run rate loses most of the budget.
+        val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+        addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 500.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        fun tables(distributeUnusedBudget: Boolean) = forecastExport.statistics(
+            listOf(auftragDao.find(orderId)!!),
+            baseDate.localDate,
+            unfiltered = false,
+            distributeUnusedBudget = distributeUnusedBudget,
+        )!!.tables
+        fun row(distributeUnusedBudget: Boolean): ForecastPositionRow =
+            tables(distributeUnusedBudget).positions.single { it.orderId == orderId }
+        val conservative = row(false)
+        Assertions.assertNotNull(conservative.warning, "Lost budget warning expected in the conservative forecast.")
+        Assertions.assertTrue(conservative.warningMonths.isNotEmpty(), "Warning months expected.")
+        conservative.warningMonths.forEach {
+            Assertions.assertNotNull(conservative.months[it], "A warning month carries a value, as its Excel cell.")
+        }
+        // The project overview sums them up, so the project with the warning stands out there already.
+        val project = tables(false).projects.single { it.projectId == (conservative.projectId ?: ForecastExportContext.PROJECT_ID_NONE) }
+        Assertions.assertEquals(1, project.warnings.size)
+        Assertions.assertEquals(conservative.warning, project.warnings.single().text)
+        assertAmount(project.difference, conservative.difference.toDouble())
+        val optimistic = row(true)
+        Assertions.assertNull(optimistic.warning, "No warning expected in the optimistic forecast.")
+        Assertions.assertTrue(optimistic.warningMonths.isEmpty())
+    }
+
+    /**
      * A planning date must not undo the search string: the order book snapshot used as plan can't be searched in
      * full text, so its orders are restricted to those the search found. Neither may the snapshot's positions draw
      * the invoices of other orders into IST and the previous years.
@@ -594,14 +689,17 @@ class ForecastExportTest : AbstractTestBase() {
             addPosition(invoice, amount, auftragDao.find(orderId)!!.getPosition(1))
             rechnungDao.insert(invoice)
         }
-        createInvoicedOrder("Plansearchmatch order", 3, 1000.0)
+        // Unique per run: the test's search index survives the run, its database doesn't, so a fixed term could
+        // match a stale index entry whose id now belongs to another order.
+        val searchTerm = "Plansearchmatch${System.currentTimeMillis()}"
+        createInvoicedOrder("$searchTerm order", 3, 1000.0)
         createInvoicedOrder("Other order", 4, 7000.0)
         auftragsCache.setExpired()
         auftragsCache.forceReload()
         orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
 
         val filter = AuftragFilter()
-        filter.searchString = "Plansearchmatch"
+        filter.searchString = searchTerm
         filter.periodOfPerformanceStartDate = baseDate.localDate
         val withoutPlan = forecastExport.chartData(filter, distributeUnusedBudget = true)!!
         val withPlan = forecastExport.chartData(filter, planningDate = today.localDate, distributeUnusedBudget = true)!!

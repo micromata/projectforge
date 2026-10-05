@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.datev.DatevImportService
@@ -71,7 +71,7 @@ class DatevAccountImportJob(
     }
 
     override suspend fun run() {
-        log.info("Starting import of ${selectedEntries.size} DATEV accounts.")
+        log.info { "Starting import of ${selectedEntries.size} DATEV accounts." }
         val toPersist = mutableListOf<KontoDO>()
         for (entry in selectedEntries) {
             if (!isActive) {
@@ -114,7 +114,7 @@ class DatevAccountImportJob(
             log.error(ex) { "Import failed, nothing was saved (all or nothing): ${ex.message}" }
             throw ex
         }
-        log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}.")
+        log.info { "Import completed: inserted=${result.inserted}, updated=${result.updated}." }
     }
 
     override fun readAccess(user: PFUserDO?): Boolean {

@@ -767,13 +767,10 @@
           "planningDateUsed": "Plan of order book snapshot {arg0}",
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
-          "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
-          "replacedByStartDate": "Replaced by the first month of the forecast.",
           "startDate": {
             "_": "First month of the forecast",
             "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
           },
-          "stateFilterIgnored": "Describes the current state of the orders and would distort the comparison with the previous years, so the charts leave it out (the Excel export applies it).",
           "total": "Forecast"
         },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
@@ -869,6 +866,24 @@
         "tooltip": "Recalculates the invoiced sums and invoice links of all orders from the current invoices."
       },
       "showInactivePosition": "Show inactive positions",
+      "statistics": {
+        "forecast": "Forecast charts",
+        "open": {
+          "tooltip": "Opens the order statistics with the business units, customers and projects of the current filter. Afterwards, its filter is independent of the order book."
+        },
+        "tables": {
+          "bookedDate": "Booked on",
+          "heading": "Underlying data",
+          "invoicesPrevPrevYear": "Invoices year before previous year",
+          "invoicesPrevYear": "Invoices previous year",
+          "months": "DB per month",
+          "orderStatus": "Order status",
+          "positionStatus": "Position status",
+          "preliminaryLegend": "Values in this colour are preliminary: invoices not booked yet, time sheets × hourly rate.",
+          "toBeInvoicedSum": "Weighted open",
+          "warning": "Warning"
+        }
+      },
       "status": {
         "abgelehnt": "declined",
         "abgeschlossen": "completed",
@@ -947,6 +962,7 @@
       "customer": {
         "reference": "Customer reference"
       },
+      "difference": "Difference",
       "invoicingQuota": {
         "_": "Invoicing Quota",
         "tooltip": "How the invoicing quota of this monthly report is calculated:\n\nBilled work time: {arg0} h\n÷ Work time: {arg1} h\n= {arg2}\n\nIgnored cost types (e.g. vacation, absences) are not included."
@@ -1196,6 +1212,11 @@
       "id": "Cost 2 id",
       "kost2s": "cost 2 ids",
       "number": "Cost2 number",
+      "sharedCost": {
+        "_": "Shared costs",
+        "inherited": "As structure element",
+        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets within the same project remain unsupported."
+      },
       "title": {
         "add": "New cost 2",
         "edit": "Edit cost 2",
@@ -1591,6 +1612,9 @@
     },
     "rechnungen": "Invoices",
     "salesManager": "Key account manager",
+    "title": {
+      "fakturiert": "Invoiced"
+    },
     "toBeInvoiced": "to be invoiced",
     "tooltip": {
       "nummerWirdAutomatischVergeben": "Number will automatically set."
@@ -2063,6 +2087,7 @@
   "loading": "Loading...",
   "log": {
     "level": {
+      "_": "Level",
       "debug": "Debug",
       "error": "Error",
       "info": "Info",
@@ -2174,6 +2199,7 @@
       "kost2arten": "Cost 2 types",
       "kostSearch": "Cost search",
       "kunden": "Customers",
+      "orderStatistics": "Order statistics",
       "orderbook": {
         "_": "Order book",
         "htmlSuffixTooltip": "Finished but not fully invoiced orders."
@@ -3042,6 +3068,97 @@
   "sum": "Sum",
   "system": {
     "admin": {
+      "adminErrors": {
+        "action": {
+          "_": "Recommended action",
+          "acknowledge": "Acknowledge",
+          "ignore": "Ignore",
+          "mute": {
+            "day": "Mute for 1 day",
+            "days": "Mute for {arg0} days"
+          },
+          "reopen": "Reopen",
+          "resolve": "Resolved",
+          "unmute": "Unmute"
+        },
+        "audience": {
+          "_": "Audience",
+          "admin": "Administration",
+          "developer": "Development",
+          "security": "Security"
+        },
+        "category": {
+          "_": "Category",
+          "all": "All categories",
+          "bug": "Unexpected errors",
+          "client": "Client errors",
+          "config": "Configuration problems",
+          "data": "Data problems",
+          "external": "External systems",
+          "security": "Security",
+          "unclassified": "Unclassified"
+        },
+        "code": "Code",
+        "count24h": "24 h",
+        "daily": "Last 30 days (per day)",
+        "days": {
+          "_": "Period",
+          "1": "Last 24 hours",
+          "all": "All",
+          "n": "Last {arg0} days"
+        },
+        "disabled": "The log aggregation is disabled (projectforge.support.logAggregation.enabled=false): new problems are not counted.",
+        "distinctUsers24h": "Users (24 h)",
+        "downloadJson": {
+          "_": "Download as JSON",
+          "tooltip": "All problems of the current filter with message, stack trace and trend as one JSON file, e.g. for an analysis and classification by an AI. Messages may contain personal data."
+        },
+        "exceptionClass": "Exception",
+        "explanation": "Explanation",
+        "firstSeen": "First seen",
+        "hourly": "Last 7 days (per hour)",
+        "kpi": {
+          "external": "External systems failing (24 h)",
+          "newProblems": "New problems (24 h)",
+          "occurrences": "Errors (24 h)",
+          "open": "Not looked at yet",
+          "regressions": "Regressions"
+        },
+        "lastNotified": "Last reported",
+        "lastSeen": "Last seen",
+        "location": "Location",
+        "message": "Message",
+        "more": "Only the first {arg0} of {arg1} problems are shown.",
+        "mutedUntil": "Muted until {arg0}",
+        "none": "No problems.",
+        "notRegistered": "Not a known event: no explanation available.",
+        "notify": {
+          "_": "Notification",
+          "default": "As defined by the event ({arg0})",
+          "digest": "In the digest",
+          "digestIfNew": "Once, if new",
+          "immediate": "Immediately",
+          "none": "Never (dashboard only)"
+        },
+        "occurrences": "Occurrences",
+        "regression": "Regression",
+        "reopenedAt": "Occurred again after resolved",
+        "request": "Request",
+        "sampleMessage": "Sample message",
+        "stackTrace": "Stack trace",
+        "status": {
+          "acknowledged": "Acknowledged",
+          "all": "All",
+          "ignored": "Ignored",
+          "new": "New",
+          "open": "Open",
+          "resolved": "Resolved"
+        },
+        "threshold": "Threshold (per hour)",
+        "title": "Error dashboard",
+        "totalCount": "Total",
+        "trend": "Trend (7 days)"
+      },
       "adminLogViewer": {
         "title": "Admin log viewer"
       },
@@ -3175,7 +3292,7 @@
     "_": "Structure element",
     "allowTimeOverlap": {
       "_": "Shared cost element",
-      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported."
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
@@ -3406,6 +3523,7 @@
     "stopTime": "Stop time",
     "tag": "Tag",
     "templates": "Templates",
+    "timesheets": "Time sheets",
     "title": {
       "add": "New time sheet",
       "list": "List of time sheets"

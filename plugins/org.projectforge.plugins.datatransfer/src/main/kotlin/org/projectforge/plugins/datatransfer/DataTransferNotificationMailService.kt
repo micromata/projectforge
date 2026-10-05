@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
@@ -103,7 +103,7 @@ open class DataTransferNotificationMailService {
             ++counter
           }
         } catch (ex: Exception) {
-          log.error(ex.message, ex)
+          log.error(ex) { ex.message }
         }
       }
     }

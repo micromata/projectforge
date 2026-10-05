@@ -23,7 +23,7 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
@@ -42,7 +42,7 @@ class RestCalendarSubscriptionUserFilter : AbstractRestUserFilter(UserTokenType.
                     if (authInfo.resultCode == null) {
                         // error not yet handled.
                         val msg = "UserId not found in request parameters ('user') or can't parse it as int value. Rest call denied."
-                        log.error(msg)
+                        log.error { msg }
                         SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "${UserTokenType.CALENDAR_REST.name} AUTHENTICATION FAILED", msg)
                         authInfo.resultCode = HttpStatus.BAD_REQUEST
                     }

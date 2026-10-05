@@ -7,12 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useRememberedFilter } from "@/components/data-table/use-remembered-filter";
-import { AppliedFilterSummary } from "@/components/shared/chart/applied-filter-summary";
-import { DateInput } from "@/components/shared/date-input";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
-import { Label } from "@/components/ui/label";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
 import {
@@ -21,17 +16,11 @@ import {
   type ContributionMarginSettings,
 } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
-import { ORDER_ENTITY } from "../order.page";
+import { StatisticsDateField } from "../statistics/statistics-date-field";
 import { ContributionMarginHints } from "./contribution-margin-hints";
 import { ContributionMarginKpis } from "./contribution-margin-kpis";
 import { ContributionMarginMonthlyChart } from "./contribution-margin-monthly-chart";
-import { ContributionMarginProjectTable } from "./contribution-margin-project-table";
-
-/** The order list's combined period-of-performance filter (`OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER`). */
-const PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance";
-
-/** The criteria of the order's current state left out, as by the forecast charts (`FORECAST_CHART_STATE_FIELDS`). */
-const STATE_FILTER_FIELDS = ["status", "fakturiert"];
+import { ContributionMarginTables } from "./contribution-margin-tables";
 
 /** React Query key of the user's remembered start date (see fetchContributionMarginSettings). */
 const CONTRIBUTION_MARGIN_SETTINGS_KEY = [
@@ -41,18 +30,18 @@ const CONTRIBUTION_MARGIN_SETTINGS_KEY = [
 ];
 
 /**
- * The "Deckungsbeitrag" tab of `/order` (see `app/(authenticated)/order/page.tsx`): the contribution
- * margin (DB1) of the projects of the orders the list's filter selects, from the accounting records,
- * completed for the months not imported yet by the unbooked invoices and the time sheets
- * (`ContributionMarginService`).
+ * The "Deckungsbeitrag" tab of the order statistics (`OrderStatisticsPage`): the contribution margin (DB1)
+ * of the projects of the orders `filter` selects, from the accounting records, completed for the months
+ * not imported yet by the unbooked invoices and the time sheets (`ContributionMarginService`).
  *
- * Follows the filter the list is showing, as the "Grafiken" tab does (`OrderForecastChartsView`): its
- * period of performance is replaced by the start date, the criteria the backend didn't apply are marked
- * by {@link AppliedFilterSummary}. Project managers see only the projects they are responsible for; the
- * backend drops the others.
+ * `filter` is the page's own, as for the forecast charts (`OrderForecastChartsView`). Project managers see
+ * only the projects they are responsible for; the backend drops the others.
  */
-export function OrderContributionMarginView() {
-  const remembered = useRememberedFilter(ORDER_ENTITY, { fresh: false });
+export function OrderContributionMarginView({
+  filter,
+}: {
+  filter: MagicFilter;
+}) {
   const settings = useQuery({
     queryKey: CONTRIBUTION_MARGIN_SETTINGS_KEY,
     queryFn: ({ signal }) => fetchContributionMarginSettings(signal),
@@ -66,34 +55,28 @@ export function OrderContributionMarginView() {
       </p>
     );
   }
-  if (remembered.isPending || settings.isPending) {
+  if (settings.isPending) {
     return (
       <div className="flex flex-1 items-center justify-center p-8">
         <Spinner />
       </div>
     );
   }
-  return (
-    <OrderContributionMargin
-      filter={remembered.filter}
-      settings={settings.data}
-    />
-  );
+  return <OrderContributionMargin filter={filter} settings={settings.data} />;
 }
 
 /**
- * The start date over the monthly chart and the project table. Every change re-posts the request after a
+ * The start date over the monthly chart, the project table and the rows behind it. Every change re-posts the request after a
  * short debounce; the backend persists the date with it, so there is no "apply" button.
  */
 function OrderContributionMargin({
   filter,
   settings,
 }: {
-  filter: MagicFilter | undefined;
+  filter: MagicFilter;
   settings: ContributionMarginSettings;
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
-  const tf = useTranslations("fibu.auftrag.forecast.chart");
   const tc = useTranslations();
   const [startDate, setStartDate] = useState<string | null>(
     settings.startDate ?? null
@@ -104,13 +87,13 @@ function OrderContributionMargin({
   );
   const debouncedParams = useDebouncedValue(params);
   const queryClient = useQueryClient();
-  // The filter drives the query key, so a changed list filter refetches when the user returns to this tab.
-  const filterKey = useMemo(() => JSON.stringify(filter ?? {}), [filter]);
+  // The filter drives the query key, so a changed filter refetches.
+  const filterKey = useMemo(() => JSON.stringify(filter), [filter]);
   const query = useQuery({
     queryKey: ["order", "contributionMargin", filterKey, debouncedParams],
     queryFn: async ({ signal }) => {
       const data = await fetchContributionMargin(
-        filter ?? { entries: [], sortProperties: [] },
+        filter,
         debouncedParams,
         signal
       );
@@ -129,56 +112,25 @@ function OrderContributionMargin({
     !query.isPending && (query.isFetching || params !== debouncedParams);
 
   const data = query.data;
-  const usage = useMemo(
-    () =>
-      data && {
-        ignored: data.ignoredFilterFields,
-        replaced: data.replacedFilterFields,
-      },
-    [data]
-  );
-  const notes = useMemo(
-    () => ({
-      [PERIOD_OF_PERFORMANCE_FILTER]: tf("replacedByStartDate"),
-      ...Object.fromEntries(
-        STATE_FILTER_FIELDS.map((field) => [field, tf("stateFilterIgnored")])
-      ),
-    }),
-    [tf]
-  );
 
   return (
-    <div className="space-y-6 p-4">
-      {usage && (
-        <AppliedFilterSummary
-          entity={ORDER_ENTITY}
-          filter={filter}
-          usage={usage}
-          notes={notes}
+    <div className="space-y-4 px-4 pb-4 pt-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <StatisticsDateField
+          id="contributionMarginStartDate"
+          label={t("startDate._")}
+          tooltip={t("startDate.tooltip")}
+          value={startDate}
+          onChange={setStartDate}
         />
-      )}
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-1.5">
-          <HintTooltip text={t("startDate.tooltip")} openOnTap>
-            <Label htmlFor="contributionMarginStartDate">
-              {t("startDate._")}
-            </Label>
-          </HintTooltip>
-          <DateInput
-            id="contributionMarginStartDate"
-            value={startDate}
-            onChange={setStartDate}
-            aria-label={t("startDate._")}
-          />
-        </div>
         {recalculating && (
-          <p
-            className="flex items-center gap-2 pb-2 text-sm text-muted-foreground"
+          <div
+            className="flex items-center gap-2 text-sm text-muted-foreground"
             role="status"
           >
             <Spinner className="h-4 w-4 border-2" />
             {tc("loading")}
-          </p>
+          </div>
         )}
       </div>
 
@@ -209,10 +161,13 @@ function OrderContributionMargin({
             <h3 className="text-sm font-semibold">{t("monthly")}</h3>
             <ContributionMarginMonthlyChart data={query.data} />
           </section>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("projects")}</h3>
-            <ContributionMarginProjectTable data={query.data} />
-          </section>
+          <ContributionMarginTables
+            data={query.data}
+            filter={filter}
+            filterKey={filterKey}
+            params={debouncedParams}
+            enabled={query.isSuccess && !query.isPlaceholderData}
+          />
         </div>
       )}
     </div>

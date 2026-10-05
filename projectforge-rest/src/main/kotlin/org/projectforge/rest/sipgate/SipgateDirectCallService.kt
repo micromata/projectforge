@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateDevice
 import org.projectforge.business.sipgate.SipgateNumber

@@ -23,9 +23,10 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
+import org.projectforge.rest.admin.AdminErrorsRest
 import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
@@ -76,6 +77,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       UserPagesRest::class.java,
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
+      AdminErrorsRest::class.java,
       GroupAccessEntityRest::class.java,
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,

@@ -24,7 +24,7 @@
 package org.projectforge.business.privacyprotection
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
@@ -72,10 +72,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
                 calendarEntries = entries?.toList()
                 purgeCronPrivacyProtectionJob.register(this)
             } catch (ex: Exception) {
-                log.error(
-                    "Error in configuration of property 'projectforge.privacyProtection.purgeCalendars': ${ex.message}",
-                    ex
-                )
+                log.error(ex) { "Error in configuration of property 'projectforge.privacyProtection.purgeCalendars': ${ex.message}" }
             }
         }
     }
@@ -84,7 +81,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
         if (calendarEntries.isNullOrEmpty()) {
             return // Nothing to do, no calendar defined.
         }
-        log.info("Purge calendars...")
+        log.info { "Purge calendars..." }
         calendarEntries!!.forEach {
             val calendar = teamCalDao.find(it.calendarId, checkAccess = false)
             val expiryDays = it.expiryDays ?: 0
@@ -107,14 +104,14 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
                         teamEventDao.forceDelete(event, checkAccess = false)
                     }
                     if (counter > 0) {
-                        log.info("Removed $counter calendar entries in calendar #${it.calendarId} '${calendar.title}' in the past (before ${expiryDate.isoString}Z).")
+                        log.info { "Removed $counter calendar entries in calendar #${it.calendarId} '${calendar.title}' in the past (before ${expiryDate.isoString}Z)." }
                     } else {
-                        log.info("No calendar event older than ${expiryDate.isoString}Z. Nothing to delete.")
+                        log.info { "No calendar event older than ${expiryDate.isoString}Z. Nothing to delete." }
                     }
                     true
                 }
             }
         }
-        log.info("Purging of calendars done.")
+        log.info { "Purging of calendars done." }
     }
 }

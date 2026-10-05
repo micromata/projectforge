@@ -24,7 +24,7 @@
 package org.projectforge.jcr
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.ZipMode
 import javax.jcr.Node
@@ -65,7 +65,7 @@ class FileObject() : FileInfo() {
     lastUpdateByUser = nodeInfo.getProperty(OakStorage.PROPERTY_LAST_UPDATE_BY_USER)?.value?.string
     fileId = nodeInfo.name
     size = nodeInfo.getProperty(OakStorage.PROPERTY_FILESIZE)?.value?.long
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
   }
@@ -87,7 +87,7 @@ class FileObject() : FileInfo() {
     PFJcrUtils.getProperty(node, OakStorage.PROPERTY_ZIP_MODE)?.string?.let {
       zipMode = ZipMode.valueOf(it)
     }
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       log.debug { "Restoring: ${PFJcrUtils.toJson(this)}" }
     }
   }
