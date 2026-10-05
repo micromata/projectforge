@@ -30,7 +30,9 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
+import org.projectforge.ProjectForgeApp
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.jcr.FileStoreMigrationService
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,6 +58,9 @@ open class PluginAdminService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var fileStoreMigrationService: FileStoreMigrationService
 
     @Value("\${projectforge.plugins.ensure-active:}")
     private var ensureActivePluginsConfig: String = ""
@@ -167,6 +172,12 @@ open class PluginAdminService {
         log.info { "Initializing plugins on application ready..." }
         WicketSupport.register(applicationContext)
         initializeActivePlugins(true)
+        if (!ProjectForgeApp.isJunitTestMode()) {
+            // projectforge.files.store=db: migrates the files of the JCR to the file store (until done). Not before the
+            // plugins are initialized: the file system paths (DataTransfer) must be registered, otherwise their files
+            // would be migrated into the database.
+            fileStoreMigrationService.autoStart()
+        }
     }
 
     /**
