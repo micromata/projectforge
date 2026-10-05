@@ -53,12 +53,11 @@ org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.3.21"
 org-jetbrains-kotlinx-coroutines-core = "1.10.2"
 org-jfree-jfreechart = "1.5.6"
-org-junit-jupiter = "5.14.4"
-org-junit-platform-launcher = "1.14.4"
+org-junit = "6.0.3" # Jupiter and Platform share one version since JUnit 6.
 org-mnode-ical4j-ical4j = "4.4.0"
 org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
 org-mockito = "5.24.0"
-org-mockito-kotlin = "5.4.0"
+org-mockito-kotlin = "6.4.0"
 org-mustangproject = "2.26.0"
 org-postgresql = "42.7.13"
 org-reflections = "0.10.2"
@@ -80,9 +79,9 @@ org-slf4j = "2.0.20"
 [libraries]
 ### test libraries
 # Used by buildlogic.pf_modules.gradle.kts:
-org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit-jupiter" }
-org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
-org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit-platform-launcher" }
+org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "org-junit" }
+org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit" }
+org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit" }
 
 org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
 org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }

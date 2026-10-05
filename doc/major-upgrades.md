@@ -33,11 +33,11 @@ version exists, it is in parentheses.
 | webauthn4j | 0.30.3 | 0.31.x | only possible together with Jackson 3 |
 | Flyway | 11.20.3 | 12.4.0 (13.9.0) | |
 | HikariCP | 6.3.3 | 7.0.2 (7.1.0) | |
-| JUnit Jupiter / Platform | 5.14.4 / 1.14.4 | 6.0.3 (6.1.3) | Jupiter and Platform share one version from 6.0 on |
-| Kotlin | 2.2.21 | 2.3.21 (2.4.20) | **scripting engine**, see below |
+| JUnit Jupiter / Platform | 6.0.3 | 6.0.3 (6.1.3) | Jupiter and Platform share one version from 6.0 on |
+| Kotlin | 2.3.21 | 2.3.21 (2.4.20) | **scripting engine**, see below |
 | Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts |
 | Gradle | 8.14.5 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
-| mockito-kotlin | 5.4.0 | 6.x | |
+| mockito-kotlin | 6.4.0 | 6.x | |
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
 | Jackrabbit Oak | 1.92.0 | 2.x (2.6.0) | independent of Spring; storage format must be checked |
@@ -99,12 +99,14 @@ Each item can be committed and released on its own, so the risk of Phase 1 shrin
 - [x] **Kotlin 2.3.21** (the version Boot 4.1 manages). Run `KotlinScriptExecutionTest` **and** the fat jar
       check (see "Kotlin scripting engine"). Done; the only change: K2 2.3 marks the `=` token instead of
       the initializer for a type mismatch, the test no longer depends on the marked range.
-- [ ] **JUnit 6 + mockito-kotlin 6**: collapse `org-junit-jupiter`/`org-junit-platform-launcher` into one
+- [x] **JUnit 6 + mockito-kotlin 6**: collapse `org-junit-jupiter`/`org-junit-platform-launcher` into one
       catalog key. Keep the JUnit override in `projectforge-application/build.gradle.kts`
-      (`extra["junit-jupiter.version"]`).
+      (`extra["junit-jupiter.version"]`). Done with JUnit 6.0.3 (the version of the Boot 4.1 BOM) and
+      mockito-kotlin 6.4.0; no code changes needed.
 - [ ] **Gradle 9** (Boot 3.5 plugin and Kotlin 2.2/2.3 support it; check node-gradle 7.1.0 and buildSrc).
-- [ ] Fix the 8 stale entries of `rest-endpoint-access-baseline.txt`, so `RestEndpointAccessCheckTest` is
-      green again and stays meaningful for the Spring 7 changes to request mapping.
+- [x] Fix the 8 stale entries of `rest-endpoint-access-baseline.txt`, so `RestEndpointAccessCheckTest` is
+      green again and stays meaningful for the Spring 7 changes to request mapping. Green since the
+      develop merge of 2026-10-05, nothing to do here.
 
 ## Phase 1 – Spring Boot 4, Spring 7, Hibernate 7, Tomcat 11
 

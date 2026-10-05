@@ -34,7 +34,7 @@ tasks.withType<KotlinCompile> {
 }*/
 
 tasks.withType<Test> {
-    useJUnitPlatform() // JUnit 5
+    useJUnitPlatform() // JUnit Jupiter
 }
 
 tasks.withType<Javadoc>() {

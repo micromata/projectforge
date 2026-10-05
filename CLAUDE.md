@@ -29,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Include standard ProjectForge license header in all new files
 - Organize imports with Kotlin stdlib first, followed by domain/project imports
 - Use non-null types by default; use Kotlin's nullable types (Type?) when needed
-- Use JUnit 5 for tests with descriptive method names
+- Use JUnit (Jupiter, JUnit 6) for tests with descriptive method names
 - Prefer Kotlin extension functions for utility methods
 - Use SpringBoot annotations for dependency injection
 - Use Kotlin Coroutines for async operations

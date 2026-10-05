@@ -17,12 +17,12 @@ tasks.withType<KotlinCompile> {
 }
 
 // Spring Boot's BOM (io.spring.dependency-management, applied above and only in this module) pins
-// JUnit to its own version, which would mix junit-platform-engine 1.11.4 with the launcher 1.14.3
-// of our version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
-extra["junit-jupiter.version"] = libs.versions.org.junit.jupiter.get()
+// JUnit to its own version, which would mix the platform engine of the BOM with the launcher of our
+// version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
+extra["junit-jupiter.version"] = libs.versions.org.junit.get()
 
 tasks.withType<Test> {
-    useJUnitPlatform() // JUnit 5. Same as buildlogic.pf-module-conventions does for the other modules.
+    useJUnitPlatform() // JUnit Jupiter. Same as buildlogic.pf-module-conventions does for the other modules.
 }
 
 springBoot {
@@ -64,7 +64,7 @@ dependencies {
     testImplementation(libs.org.mockito.kotlin)
     // This module doesn't apply buildlogic.pf-module-conventions (that plugin's java-library,
     // group/version and resolutionStrategy would clash with the Spring Boot setup below), so the
-    // JUnit 5 engine and launcher have to be declared here. Without them no test of this module
+    // JUnit engine and launcher have to be declared here. Without them no test of this module
     // runs at all, see the useJUnitPlatform() call below.
     testImplementation(libs.org.junit.jupiter.engine)
     testImplementation(libs.org.junit.platform.launcher)
