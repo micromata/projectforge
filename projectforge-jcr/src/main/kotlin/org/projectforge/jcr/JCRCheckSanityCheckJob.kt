@@ -146,8 +146,33 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
             }
         }
         walker.walk()
+        var numberOfVisitedFiles = walker.numberOfVisitedFiles
+        repoService.fileStore?.let { fileStore ->
+            var storeFiles = 0
+            var storeFailed = 0
+            var storeSize = 0L
+            fileStore.checkSanity { result ->
+                ++storeFiles
+                storeSize += result.fileObject.size ?: 0
+                result.error?.let { error ->
+                    ++storeFailed
+                    val msg = "File '${result.fileObject.fileName}' (${result.storage}): $error ['${result.fileObject.location}/${result.fileObject.fileId}']"
+                    jobExecutionContext.addError(msg)
+                    log.error { msg }
+                }
+            }
+            numberOfVisitedFiles += storeFiles
+            jobExecutionContext.addMessage(
+                "Checksums of ${storeFiles.format()} files (${storeSize.formatBytes()}) of the file store checked."
+            )
+            if (storeFailed > 0) {
+                jobExecutionContext.addError(
+                    "Checks of $storeFailed/${storeFiles.format()} files of the file store failed."
+                )
+            }
+        }
         jobExecutionContext.setAttribute(NUMBER_OF_VISITED_NODES, walker.numberOfVisitedNodes)
-        jobExecutionContext.setAttribute(NUMBER_OF_VISITED_FILES, walker.numberOfVisitedFiles)
+        jobExecutionContext.setAttribute(NUMBER_OF_VISITED_FILES, numberOfVisitedFiles)
         jobExecutionContext.addMessage(
             "Checksums of ${walker.numberOfVisitedFiles.format()} files (${walker.numberOfVisitedNodes.format()} nodes) checked."
         )

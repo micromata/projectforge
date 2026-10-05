@@ -44,6 +44,15 @@ object DatabaseHelper {
                 .forEach { tableName ->
                     em.createNativeQuery("DELETE FROM $tableName").executeUpdate()
                 }
+            // Files of the file store (schema pf_files, created by PfFilesTestSchema):
+            em.createNativeQuery("SELECT TABLE_NAME \n" +
+                    "FROM INFORMATION_SCHEMA.TABLES \n" +
+                    "WHERE TABLE_TYPE = 'BASE TABLE' \n" +
+                    "AND TABLE_SCHEMA = 'PF_FILES'")
+                .resultList
+                .forEach { tableName ->
+                    em.createNativeQuery("DELETE FROM PF_FILES.$tableName").executeUpdate()
+                }
         }
         persistenceService.runInTransaction { context ->
             context.executeNativeUpdate("SET DATABASE REFERENTIAL INTEGRITY TRUE")

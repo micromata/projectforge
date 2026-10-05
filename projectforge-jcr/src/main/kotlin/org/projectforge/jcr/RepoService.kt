@@ -26,20 +26,42 @@ package org.projectforge.jcr
 import jakarta.annotation.PreDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ZipMode
+import org.projectforge.jcr.store.FileStore
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.InputStream
 import javax.jcr.Node
+import javax.sql.DataSource
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Facade for storing files. The files are stored in the JCR (Apache Oak), except the files of paths registered by
+ * [registerFileSystemPath] (e. g. DataTransfer): they are stored by the new [FileStore] (metadata in the data base,
+ * content in the file system). Files of these paths not yet migrated (see [RepoMigrationService]) are still found in
+ * the JCR (read, change and delete).
+ */
 @Service
 open class RepoService {
     private var repoStore: OakStorage? = null
 
     @Autowired
     internal lateinit var repoConfig: RepoConfig
+
+    /**
+     * Data source of ProjectForge (for the new [FileStore]). Not available in plain unit tests of this module.
+     */
+    @Autowired(required = false)
+    internal var dataSource: DataSource? = null
+
+    /**
+     * The new store (null, if no data source is available).
+     */
+    var fileStore: FileStore? = null
+        private set
+
+    private val fileSystemPaths = mutableMapOf<String, File>()
 
     val mainNodeName: String?
         get() = repoStore?.mainNodeName
@@ -62,7 +84,26 @@ open class RepoService {
      */
     fun internalResetForJunitTestCases() {
         repoStore = null
+        fileStore = null
     }
+
+    /**
+     * Files below the given path are stored in the file system (in the given directory) by the new [FileStore] instead
+     * of the JCR. Existing files of the JCR are still found until they're migrated by [RepoMigrationService].
+     * @param path The path (e. g. jcrPath of DataTransfer).
+     */
+    fun registerFileSystemPath(path: String, dir: File) {
+        synchronized(this) {
+            fileSystemPaths[path] = dir
+            fileStore?.registerFileSystemPath(path, dir)
+        }
+    }
+
+    /**
+     * The registered paths of the file system storage (see [registerFileSystemPath]).
+     */
+    val registeredFileSystemPaths: Set<String>
+        get() = synchronized(this) { fileSystemPaths.keys.toSet() }
 
     /**
      * @param mainNodeName All activities (working with nodes) will done under topNode. TopNode should be given for backing up and
@@ -87,6 +128,36 @@ open class RepoService {
             } else {
                 repoStore = SegmentTarStorage(mainNodeName, repositoryDir)
             }
+            val ds = dataSource
+            if (ds != null) {
+                fileStore = FileStore(ds, mainNodeName).also { store ->
+                    fileSystemPaths.forEach { (path, dir) -> store.registerFileSystemPath(path, dir) }
+                }
+            } else {
+                log.warn { "No data source available, all files are stored in the JCR (OK for test cases)." }
+            }
+        }
+    }
+
+    /**
+     * @return The new store, if the given path is registered for the file system storage, otherwise null (JCR).
+     */
+    private fun newStore(parentNodePath: String?, relPath: String? = null): FileStore? {
+        val store = fileStore ?: return null
+        val path = OakStorage.getAbsolutePath(parentNodePath, relPath)
+        return if (store.isFileSystemPath(path)) store else null
+    }
+
+    /**
+     * Calls the JCR for files of the new store's paths not yet migrated. The JCR throws an IllegalArgumentException,
+     * if the node doesn't exist (e. g. no file of this area was ever stored in the JCR).
+     */
+    private fun <T> jcrFallback(fileObject: FileObject, default: T, block: () -> T): T {
+        return try {
+            block()
+        } catch (ex: IllegalArgumentException) {
+            log.debug { "File not found in JCR: $fileObject (${ex.message})" }
+            default
         }
     }
 
@@ -96,6 +167,9 @@ open class RepoService {
      * @param relPath Sub node parent node to create if not exists. Null value results in nop.
      */
     open fun ensureNode(parentNodePath: String?, relPath: String? = null): Node? {
+        if (newStore(parentNodePath, relPath) != null) {
+            return null // Not needed by the new store.
+        }
         return repoStore!!.ensureNode(parentNodePath, relPath)
     }
 
@@ -125,6 +199,11 @@ open class RepoService {
         user: String? = null,
         password: String? = null,
     ) {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            val content = fileObject.content ?: ByteArray(0) // Assuming 0 byte file if no content is given.
+            store.storeFile(fileObject, content.inputStream(), fileSizeChecker, user, password = password)
+            return
+        }
         repoStore!!.storeFile(fileObject, fileSizeChecker, user, password)
     }
 
@@ -143,12 +222,73 @@ open class RepoService {
         data: Any? = null,
         password: String? = null,
     ) {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            store.storeFile(fileObject, content, fileSizeChecker, user, data, password)
+            return
+        }
         repoStore!!.storeFile(fileObject, content, fileSizeChecker, user, data, password)
     }
 
 
     open fun deleteFile(fileObject: FileObject): Boolean {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            if (store.exists(fileObject)) {
+                return store.deleteFile(fileObject)
+            }
+            return jcrFallback(fileObject, false) { repoStore!!.deleteFile(fileObject) }
+        }
         return repoStore!!.deleteFile(fileObject)
+    }
+
+    /**
+     * Deletes the file in the JCR only (used after migrating the file to the new store).
+     */
+    internal fun jcrDeleteFile(fileObject: FileObject): Boolean {
+        return repoStore!!.deleteFile(fileObject)
+    }
+
+    /**
+     * @param path The path, e. g. "org.projectforge.plugins.datatransfer".
+     * @return The names of the child nodes of the given path (e. g. the ids of all data transfer areas with files).
+     */
+    open fun getChildNames(path: String): Set<String> {
+        val result = mutableSetOf<String>()
+        newStore(path)?.let { store ->
+            result.addAll(store.getChildNames(path))
+        }
+        repoStore!!.getNodeInfoOrNull(getAbsolutePath(path), true)?.children?.forEach { child ->
+            child.name?.let { result.add(it) }
+        }
+        return result
+    }
+
+    /**
+     * Deletes all files of the given path and its descendants (e. g. of a deleted data transfer area).
+     * @param path The path, e. g. "org.projectforge.plugins.datatransfer/42".
+     * @return The deleted files (without content).
+     */
+    open fun deleteAllFilesBelow(path: String): List<FileObject> {
+        val result = mutableListOf<FileObject>()
+        newStore(path)?.let { store ->
+            result.addAll(store.deleteAllFilesBelow(path))
+        }
+        repoStore!!.getNodeInfoOrNull(getAbsolutePath(path), true)?.let { nodeInfo ->
+            collectFiles(nodeInfo, result)
+            repoStore!!.deleteNode(nodeInfo)
+        }
+        return result
+    }
+
+    private fun collectFiles(nodeInfo: NodeInfo, result: MutableList<FileObject>) {
+        nodeInfo.children?.forEach { child ->
+            if (nodeInfo.name == OakStorage.NODENAME_FILES) {
+                if (child.hasProperty(OakStorage.PROPERTY_FILENAME)) {
+                    result.add(FileObject(child))
+                }
+            } else {
+                collectFiles(child, result)
+            }
+        }
     }
 
     open fun deleteNode(nodeInfo: NodeInfo): Boolean {
@@ -160,6 +300,13 @@ open class RepoService {
      */
     @JvmOverloads
     open fun getFileInfos(parentNodePath: String?, relPath: String? = null): List<FileObject>? {
+        newStore(parentNodePath, relPath)?.let { store ->
+            val files = store.getFileInfos(parentNodePath, relPath) ?: emptyList()
+            val jcrFiles = repoStore!!.getFileInfos(parentNodePath, relPath)?.filter { jcrFile ->
+                files.none { it.fileId == jcrFile.fileId }
+            } ?: emptyList()
+            return (files + jcrFiles).ifEmpty { null }
+        }
         return repoStore!!.getFileInfos(parentNodePath, relPath)
     }
 
@@ -173,6 +320,9 @@ open class RepoService {
         fileId: String? = null,
         fileName: String? = null
     ): FileObject? {
+        newStore(parentNodePath, relPath)?.let { store ->
+            store.getFileInfo(parentNodePath, relPath, fileId, fileName)?.let { return it }
+        }
         return repoStore!!.getFileInfo(parentNodePath, relPath, fileId, fileName)
     }
 
@@ -191,6 +341,21 @@ open class RepoService {
         newZipMode: ZipMode? = null,
         updateLastUpdateInfo: Boolean = true,
     ): FileObject? {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            if (store.exists(fileObject)) {
+                return store.changeFileInfo(fileObject, user, newFileName, newDescription, newZipMode, updateLastUpdateInfo)
+            }
+            return jcrFallback(fileObject, null) {
+                repoStore!!.changeFileInfo(
+                    fileObject,
+                    user,
+                    newFileName,
+                    newDescription,
+                    newZipMode,
+                    updateLastUpdateInfo
+                )
+            }
+        }
         return repoStore!!.changeFileInfo(
             fileObject,
             user,
@@ -206,6 +371,12 @@ open class RepoService {
      * @return new file info including checksum without content.
      */
     open fun checksum(fileObject: FileObject): String? {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            if (store.exists(fileObject)) {
+                return store.checksum(fileObject)
+            }
+            return jcrFallback(fileObject, null) { repoStore!!.checksum(fileObject) }
+        }
         return repoStore!!.checksum(fileObject)
     }
 
@@ -235,10 +406,20 @@ open class RepoService {
 
     @JvmOverloads
     open fun retrieveFile(fileObject: FileObject, password: String? = null): Boolean {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            if (store.exists(fileObject)) {
+                return store.retrieveFile(fileObject, password)
+            }
+        }
         return repoStore!!.retrieveFile(fileObject, password)
     }
 
     open fun retrieveFileInputStream(fileObject: FileObject, password: String? = null): InputStream? {
+        newStore(fileObject.parentNodePath)?.let { store ->
+            if (store.exists(fileObject)) {
+                return store.retrieveFileInputStream(fileObject, password)
+            }
+        }
         return repoStore!!.retrieveFileInputStream(fileObject, password)
     }
 

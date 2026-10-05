@@ -3180,6 +3180,7 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
+        "createJcrBackupZip": "Create JCR backup ZIP",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -3206,6 +3207,7 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
+        "migrateJcrFileSystemPaths": "Move DataTransfer files to the file system",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -3244,6 +3246,7 @@
           "checks": "Checks",
           "databaseActions": "Database actions",
           "development": "Development",
+          "jcr": "Document repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -3251,6 +3254,15 @@
             "caches": "Caches",
             "configuration": "Configuration"
           }
+        }
+      },
+      "jcr": {
+        "createJcrBackupZip": {
+          "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
+        },
+        "migrateJcrFileSystemPaths": {
+          "info": "Moves the DataTransfer files out of the JCR into the file system (directory datatransfer in the ProjectForge home directory). Files already moved are skipped, so it may run again. Each file is removed from the JCR after its checksum is verified; the disk space is freed by the JCR cleanup at the end of the run.",
+          "question": "Move all DataTransfer files out of the JCR into the file system now? With large data volumes this takes a while and needs free disk space of the size of the DataTransfer files."
         }
       },
       "logViewer": {

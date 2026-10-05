@@ -3180,6 +3180,7 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
+        "createJcrBackupZip": "JCR-Backup-ZIP erzeugen",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -3206,6 +3207,7 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
+        "migrateJcrFileSystemPaths": "DataTransfer-Dateien ins Dateisystem verschieben",
         "optimizeAddressImages": {
           "_": "Adressbilder optimieren",
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
@@ -3244,6 +3246,7 @@
           "checks": "Prüfungen",
           "databaseActions": "Database actions",
           "development": "Entwicklung",
+          "jcr": "Dokumenten-Repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -3251,6 +3254,15 @@
             "caches": "Caches",
             "configuration": "Configuration"
           }
+        }
+      },
+      "jcr": {
+        "createJcrBackupZip": {
+          "info": "Schreibt ein Backup-ZIP aller Dokumente (ohne DataTransfer-Dateien) in das Backup-Verzeichnis. Das nächste Release importiert die Dokumente aus diesem ZIP in die Datenbank, daher am besten direkt vor dem Update ein frisches erzeugen."
+        },
+        "migrateJcrFileSystemPaths": {
+          "info": "Verschiebt die DataTransfer-Dateien aus dem JCR ins Dateisystem (Verzeichnis datatransfer im ProjectForge-Home-Verzeichnis). Bereits verschobene Dateien werden übersprungen, ein erneuter Lauf ist also möglich. Jede Datei wird erst nach geprüfter Checksumme aus dem JCR entfernt; der Platz wird mit dem JCR-Cleanup am Ende des Laufs frei.",
+          "question": "Sollen jetzt alle DataTransfer-Dateien aus dem JCR ins Dateisystem verschoben werden? Bei großen Datenmengen dauert das eine Weile und braucht freien Plattenplatz in der Größe der DataTransfer-Dateien."
         }
       },
       "logViewer": {

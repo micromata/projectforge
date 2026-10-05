@@ -47,10 +47,14 @@ import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.database.DatabaseTester
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.jcr.RepoBackupService
+import org.projectforge.jcr.RepoMigrationService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.jobs.JcrBackupZipJob
 import org.projectforge.rest.jobs.ReindexJob
+import org.projectforge.rest.jobs.RepoMigrationJob
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -110,6 +114,12 @@ class SystemRest {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
+    @Autowired
+    private lateinit var repoBackupService: RepoBackupService
+
+    @Autowired
+    private lateinit var repoMigrationService: RepoMigrationService
+
     /**
      * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
      * on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test contexts can
@@ -148,8 +158,11 @@ class SystemRest {
 
     class ReindexRequest(var newestNEntries: Int? = null, var fromDate: LocalDate? = null)
 
-    /** The id of the started [ReindexJob], which the frontend polls (see JobsMonitorPageRest) for the progress. */
-    class ReindexResponse(val jobId: Int)
+    /**
+     * The id of the started job ([ReindexJob], [JcrBackupZipJob], [RepoMigrationJob]), which the frontend polls (see
+     * JobsMonitorPageRest) for the progress.
+     */
+    class JobResponse(val jobId: Int)
 
     @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
     @GetMapping
@@ -290,7 +303,7 @@ class SystemRest {
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("reindex")
-    fun reindex(@RequestBody request: ReindexRequest): ReindexResponse {
+    fun reindex(@RequestBody request: ReindexRequest): JobResponse {
         checkWriteAccess()
         log.info { "Administration: re-index (newestNEntries=${request.newestNEntries}, fromDate=${request.fromDate})." }
         val fromDate = request.fromDate?.let { Date.from(it.atStartOfDay(ZoneId.systemDefault()).toInstant()) }
@@ -304,7 +317,33 @@ class SystemRest {
                 title = translate("system.admin.button.reindex"),
             )
         )
-        return ReindexResponse(job.id)
+        return JobResponse(job.id)
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // JCR replacement: backup ZIP as source for the import of the entity files, DataTransfer files out of Oak.
+    // ------------------------------------------------------------------------------------------
+
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
+    @PostMapping("createJcrBackupZip")
+    fun createJcrBackupZip(): JobResponse {
+        checkWriteAccess()
+        log.info { "Administration: create JCR backup ZIP." }
+        val job = jobHandler.addJob(
+            JcrBackupZipJob(repoBackupService, title = translate("system.admin.button.createJcrBackupZip"))
+        )
+        return JobResponse(job.id)
+    }
+
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
+    @PostMapping("migrateJcrFileSystemPaths")
+    fun migrateJcrFileSystemPaths(): JobResponse {
+        checkWriteAccess()
+        log.info { "Administration: move DataTransfer files out of the JCR into the file system." }
+        val job = jobHandler.addJob(
+            RepoMigrationJob(repoMigrationService, title = translate("system.admin.button.migrateJcrFileSystemPaths"))
+        )
+        return JobResponse(job.id)
     }
 
     // ------------------------------------------------------------------------------------------

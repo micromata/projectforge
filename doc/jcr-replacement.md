@@ -45,7 +45,7 @@ gegenüber einer einfachen Tabelle.
 
 **Empfehlung: ablösen**, aber in zwei Releases und mit klarer Reihenfolge:
 1. Release N (mit Oak):
-   - Button "JCR-Backup-ZIP erzeugen" und "DataTransfer ins Dateisystem exportieren".
+   - Buttons "JCR-Backup-ZIP erzeugen" und "DataTransfer-Dateien ins Dateisystem verschieben".
    - Der neue Store wird schon eingebaut, zunächst nur für DataTransfer. So entschärft sich das
      Compaction-Problem sofort, mit dem kleinsten Risiko, denn die Daten sind kurzlebig.
 2. Release N+1:
@@ -93,10 +93,12 @@ bleibt auch die Abhängigkeit. Komplett beim Status quo zu bleiben empfehle ich 
   `aesEncrypted`) wird NONE gespeichert. Sonst wird komprimiert. Ist das Ergebnis nicht mindestens ~10 %
   kleiner, wird beim Abschluss des Uploads auf NONE zurückgeschrieben (oder man nimmt den Verlust bei
   kleinen Dateien einfach hin).
-- Die Checksumme (SHA-256) wird immer über den Originalinhalt gebildet, damit sie mit den Altdaten aus JCR
-  vergleichbar bleibt.
-- Reihenfolge beim Schreiben: Original → SHA-256 → komprimieren → (AES-at-rest, falls aktiv) → Chunks.
-  Erst komprimieren, dann verschlüsseln, denn verschlüsselte Daten lassen sich nicht mehr komprimieren.
+- Die Checksumme (SHA-256) wird wie im JCR über den gespeicherten Inhalt gebildet, also bei verschlüsselten
+  Dateien über den verschlüsselten Inhalt, aber vor der Kompression. So bleibt sie mit den Altdaten aus dem
+  JCR vergleichbar, und die Migration kann jede Datei gegen die JCR-Checksumme prüfen.
+- Reihenfolge beim Schreiben: Original → (AES, falls ein Passwort angegeben ist) → SHA-256 und Größe →
+  komprimieren → Chunks. Verschlüsselte Dateien werden nicht komprimiert, denn verschlüsselte Daten lassen
+  sich nicht mehr komprimieren.
 - TOAST-Spalten bekommen `STORAGE EXTERNAL`, weil PostgreSQL nicht noch einmal komprimieren soll.
 
 **Wie die Blobs speichern?** Bei bis zu 100 MB pro Datei kommt es darauf an, ob man streamen kann:
@@ -111,17 +113,20 @@ bleibt auch die Abhängigkeit. Komplett beim Status quo zu bleiben empfehle ich 
 
 **DataTransfer im Dateisystem: ja.** Die Dateien sind kurzlebig, groß und nicht im Backup. Sie in die DB zu
 legen würde nur WAL und Backups aufblähen. Die Metadaten bleiben in der DB (dieselbe Tabelle
-`t_attachment`, Flag `storage = FS`). Die Binaries liegen unter `<home>/datatransfer/<area>/<fileId>`.
+`t_attachment`, Flag `storage = FS`). Die Binaries liegen unter `<home>/datatransfer/<areaId>/attachments/<fileId>`.
 Schreiben geht über eine Temp-Datei mit atomarem Rename. Der bestehende Cleanup-Job löscht Datei und Zeile.
 Für die Gateway-Instanz passt das ebenfalls.
 
 ## Was wir selbst entwickeln müssten
 1. **Schema (Flyway, postgresql + hsqldb):**
-   - `t_attachment`: id, parent_path (z. B. `org.projectforge.auftrag`), parent_id, list_id, file_id (bleibt
-     als öffentliche ID, damit REST-URLs stabil bleiben), name, description, size, stored_size,
-     compression, checksum, aes_encrypted, zip_mode, storage, created(_by), last_update(_by).
+   - `t_attachment`: pk, file_id (bleibt als öffentliche ID, damit REST-URLs stabil bleiben), parent_path
+     (z. B. `org.projectforge.fibu.RechnungDO/42`), rel_path (z. B. `attachments`), file_name, description,
+     file_size, stored_size, chunk_count, compression_type, storage_type, checksum, aes_encrypted, zip_mode,
+     created(_by), last_update(_by).
+     - Wie im JCR zählt nur die Verkettung von parent_path und rel_path. Normalisiert wird so, dass das
+       letzte Segment rel_path ist und die Segmente davor parent_path sind.
    - `t_attachment_chunk` wie oben.
-   - Indizes auf (parent_path, parent_id, list_id) und unique auf file_id.
+   - Indizes auf (parent_path, rel_path) und unique auf file_id.
 2. **Neue Storage-Schicht** statt `OakStorage` (geschätzt 600–900 LOC):
    - Interface `FileStore` (put als Stream, get als Stream, delete, list, changeFileInfo) mit den
      Implementierungen `DbFileStore` (Chunks) und `FsFileStore`.
@@ -146,17 +151,19 @@ Für die Gateway-Instanz passt das ebenfalls.
      Zielorte: Entitäts-Dateien in die DB, DataTransfer ins Dateisystem.
      - Idempotent über `file_id`, damit ein abgebrochener Import einfach erneut laufen kann.
    - **DataTransfer (mehrere 100 GB, weder in die DB noch ins Backup):** Ein ZIP kommt nicht infrage.
-     Im Oak-Release gibt es stattdessen einen zweiten Button "DataTransfer ins Dateisystem exportieren".
-     - Er streamt jede Datei direkt in das spätere Zielverzeichnis `<home>/datatransfer/<areaId>/<fileId>`
-       und schreibt pro Area eine `files.json` mit den Metadaten (inkl. aesEncrypted, zipMode, Checksumme).
-     - Der Export ist inkrementell: Bereits exportierte Dateien mit gleicher Checksumme werden
-       übersprungen, also kann er kurz vor dem Update ein zweites Mal laufen.
-     - Das neue Release übernimmt Verzeichnis und `files.json` nur noch als Metadaten in `t_attachment`
-       (storage = FS). Binaries werden nicht noch einmal kopiert.
-     - Achtung: Bis Oak entfernt ist, liegen die Daten doppelt auf der Platte (JCR plus FS). Danach wird
-       das JCR-Verzeichnis gelöscht. Vorher den freien Plattenplatz prüfen.
-     - Fallback: kein Export. Die Nutzer werden informiert und DataTransfer startet leer. Die Dateien sind
-       ohnehin nach höchstens 60 Tagen abgelaufen.
+     Schon im Oak-Release nutzt DataTransfer den neuen Store (Metadaten in `t_attachment` mit storage = FS,
+     Binaries im Dateisystem). Neue Dateien landen sofort dort.
+     - Bestehende Dateien werden über `RepoService` weiter aus dem JCR gelesen, geändert und gelöscht,
+       bis sie verschoben sind.
+     - Der zweite Button "DataTransfer-Dateien ins Dateisystem verschieben" (`RepoMigrationService`) streamt
+       jede Datei 1:1 (noch verschlüsselt) in den neuen Store und prüft die Checksumme gegen die des JCR.
+       Erst dann wird die Datei aus dem JCR gelöscht. Am Ende gibt ein JCR-Cleanup den Platz frei.
+     - Bereits verschobene Dateien werden übersprungen (über `file_id`). Ein erneuter Lauf ist also möglich.
+     - Eine `files.json` ist nicht nötig, weil die Metadaten direkt in `t_attachment` landen.
+     - Freier Plattenplatz: Bis zum Cleanup am Ende des Laufs liegen die verschobenen Dateien doppelt auf
+       der Platte (JCR-Segmente plus FS).
+     - Fallback: nicht verschieben. Die Nutzer werden informiert und DataTransfer startet mit dem Release
+       ohne Oak leer. Die Dateien sind ohnehin nach höchstens 60 Tagen abgelaufen.
    - Danach Verifikation: Anzahl, Größe und SHA-256 pro Datei, außerdem ein Abgleich mit den
      `attachments_*`-Feldern der Entities. Das Ergebnis kommt als Report-Download.
 5. **Getrennter Dump für die Dateien (Wunsch):**
@@ -198,3 +205,16 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
   Checksummen-Report ohne Abweichungen, Stichproben für Download, Upload, Encrypt und Multi-Download in
   Auftrag, Rechnung (inkl. E-Invoice-Export), Vertrag, Script, Merlin und DataTransfer (inkl. externem
   Zugriff und Cleanup-Job).
+
+## Umsetzungsstand
+**Release N (mit Oak):**
+- Store `projectforge-jcr/.../jcr/store` (`FileStore`, `DbBlobStore`, `FsBlobStore`, `FileMetaDao` per JDBC).
+  Flyway-Skripte `V8.0.34__RELEASE-PfFiles.sql` (postgresql, hsqldb) in projectforge-business. Die Tests
+  legen das Schema über dasselbe hsqldb-Skript an (`PfFilesTestSchema`), weil Flyway dort nicht läuft.
+- `RepoService` leitet Pfade, die über `registerFileSystemPath` angemeldet sind (DataTransfer), an den
+  `FileStore` weiter. Alles andere bleibt im JCR.
+- System-Seite: Karte "Dokumenten-Repository (JCR)" mit den Jobs `JcrBackupZipJob`
+  (`RepoBackupService.createBackupFile`, jetzt streamend) und `RepoMigrationJob`.
+- Sanity-Check und `DiskUsageStatisticsBuilder` berücksichtigen den neuen Store.
+
+**Release N+1:** offen (DB-Store für alle Pfade, Import aus dem Backup-ZIP mit Report, Oak entfernen).
