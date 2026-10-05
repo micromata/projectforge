@@ -130,16 +130,18 @@ class ErrorDigestCollector(private val maxGroups: Int = MAX_GROUPS) {
     private var groups = LinkedHashMap<String, ErrorGroup>()
     private var dropped = 0
 
-    fun add(occurrence: ErrorOccurrence) {
+    /** @return The count of the occurrence's group in this period, 0 if dropped. */
+    fun add(occurrence: ErrorOccurrence): Int {
         val key = keyOf(occurrence)
         synchronized(this) {
             val group = groups[key] ?: if (groups.size >= maxGroups) {
                 ++dropped
-                return
+                return 0
             } else {
                 ErrorGroup(key, occurrence).also { groups[key] = it }
             }
             group.add(occurrence)
+            return group.count
         }
     }
 
@@ -241,6 +243,13 @@ class DigestNotifyFilter(
             reportable, snapshot.dropped, snapshot.suppressed + suppressed.sumOf { it.count }, snapshot.muted + muted,
         )
     }
+
+    /**
+     * A problem not reported yet, or reopened since: by its [state] from the database, else (not yet written there)
+     * by memory.
+     */
+    @Synchronized
+    fun isUnreported(key: String, state: LogGroupState?): Boolean = state?.unreported ?: (reported[key] == null)
 
     companion object {
         /** A spike: at least this many times as often per hour as in the 7 days before. */

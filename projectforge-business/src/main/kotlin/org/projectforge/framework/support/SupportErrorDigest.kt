@@ -31,6 +31,7 @@ import org.projectforge.ShutdownService
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.logging.LogAudience
+import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogEventListener
 import org.projectforge.common.logging.LogNotify
@@ -66,7 +67,9 @@ private val log = KotlinLogging.logger {}
  *
  * Whether an error is reported is decided by the notify rule of its [LogEvent], not by its level: [LogNotify.NONE]
  * is never mailed, [LogNotify.DIGEST_IF_NEW] only once, groups below the event's threshold not at all and
- * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]). An admin may ignore, mute or resolve a
+ * [LogNotify.IMMEDIATE] sends the digest early (see [DigestNotifyFilter]), as does a new problem (or regression) of the
+ * [alarm categories][ALARM_CATEGORIES], security and data, once it reaches its threshold; early, but at most every
+ * 5 minutes. An admin may ignore, mute or resolve a
  * problem or override its rule, see [LogGroupDO].
  *
  * Every collected occurrence, reported or not, is also counted in the database by [LogAggregationService] (if
@@ -211,12 +214,20 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
             return
         }
         val state = aggregation?.stateOf(key)
-        when (DigestNotifyFilter.notifyOf(occurrence, state)) {
-            LogNotify.NONE -> return
-            LogNotify.IMMEDIATE -> if (state?.muted() != true) immediatePending = true
-            else -> {}
+        val notify = DigestNotifyFilter.notifyOf(occurrence, state)
+        if (notify == LogNotify.NONE) {
+            return
         }
-        collector.add(occurrence)
+        val count = collector.add(occurrence)
+        if (immediatePending || state?.muted() == true) {
+            return
+        }
+        if (notify == LogNotify.IMMEDIATE ||
+            occurrence.category in ALARM_CATEGORIES && count == maxOf(1, occurrence.event.threshold) &&
+            notifyFilter.isUnreported(key, state)
+        ) {
+            immediatePending = true
+        }
     }
 
     @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
@@ -344,8 +355,14 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
             }
         }
 
-        /** [LogNotify.IMMEDIATE] sends the digest early, but not more often than this. */
+        /** [LogNotify.IMMEDIATE] and alarms send the digest early, but not more often than this. */
         private const val IMMEDIATE_MIN_GAP_MILLIS = 5 * Constants.MILLIS_PER_MINUTE
+
+        /**
+         * A new problem of these categories (or a regression) is an alarm: it sends the digest early, as soon as it
+         * reaches its event's threshold, instead of waiting for the end of the interval.
+         */
+        internal val ALARM_CATEGORIES = setOf(LogCategory.SECURITY, LogCategory.DATA)
 
         /** `1h`, `15m`, `PT2H`, a plain number in milliseconds; blank or invalid is the default of 1 hour. */
         internal fun parseInterval(value: String?): Duration {

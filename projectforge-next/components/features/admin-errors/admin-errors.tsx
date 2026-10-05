@@ -37,6 +37,20 @@ export function AdminErrors() {
   // The error digest links a problem as `?id=<id>`: its detail opens at once.
   const linkedId = Number(useSearchParams().get("id")) || null;
   const [detailId, setDetailId] = useState<number | null>(linkedId);
+  const closeDetail = () => {
+    setDetailId(null);
+    // Drops the link's id, so that a reload doesn't open the detail again. The native History API, not
+    // `router.replace`, as in the order statistics.
+    const query = new URLSearchParams(window.location.search);
+    if (!query.has("id")) return;
+    query.delete("id");
+    const search = query.toString();
+    window.history.replaceState(
+      null,
+      "",
+      search ? `?${search}` : window.location.pathname
+    );
+  };
 
   const list = useQuery({
     queryKey: ["adminErrors", "list", filter],
@@ -110,7 +124,7 @@ export function AdminErrors() {
           </div>
         </>
       )}
-      <AdminErrorDetailDialog id={detailId} onClose={() => setDetailId(null)} />
+      <AdminErrorDetailDialog id={detailId} onClose={closeDetail} />
     </PageShell>
   );
 }
