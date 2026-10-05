@@ -20,6 +20,9 @@ tasks.withType<KotlinCompile> {
 // JUnit to its own version, which would mix the platform engine of the BOM with the launcher of our
 // version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
 extra["junit-jupiter.version"] = libs.versions.org.junit.get()
+// Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, sql, ...) with
+// the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
+extra["groovy.version"] = libs.versions.org.apache.groovy.get()
 
 configurations.all {
     // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
