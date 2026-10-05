@@ -253,6 +253,7 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         runGuarded("clean up") { cleanup() }
     }
 
+    @Synchronized
     internal fun cleanup(now: Long = System.currentTimeMillis()) {
         fun daysAgo(days: Int) = Date(now - days * Constants.MILLIS_PER_DAY)
         persistenceService.runInNewTransaction { context ->
@@ -273,7 +274,23 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
         reloadStates()
     }
 
-    /** Also for the dashboard after changing a problem's status. */
+    /**
+     * Changes problems of the dashboard ([LogGroupAdminService]). Under the lock of [flush], which would otherwise
+     * overwrite the change with the problem it loaded before; the digest sees the change at once.
+     * @return The number of problems found and changed.
+     */
+    @Synchronized
+    fun modifyGroups(ids: Collection<Long>, change: (LogGroupDO) -> Unit): Int {
+        if (ids.isEmpty()) {
+            return 0
+        }
+        val count = persistenceService.runInNewTransaction { context ->
+            ids.distinct().mapNotNull { context.find(LogGroupDO::class.java, it, attached = true) }.onEach(change).size
+        }
+        reloadStates()
+        return count
+    }
+
     fun reloadStates() {
         val loaded = persistenceService.runReadOnly { context ->
             context.executeNamedQuery(LogGroupDO.SELECT_STATES, LogGroupState::class.java)

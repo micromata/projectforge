@@ -29,7 +29,11 @@ import {
   type LogViewerEvent,
   type LogViewFilter,
 } from "@/lib/rs/log-viewer";
-import { LOG_LEVEL_KEYS, LOG_THRESHOLDS, logLevelRowClass } from "./log-level";
+import {
+  LOG_LEVEL_KEYS,
+  LOG_THRESHOLDS,
+  logLevelRowClass,
+} from "@/components/shared/log-level";
 import { logViewerColumns } from "./log-viewer-columns";
 
 /** Often enough to follow a running import, rare enough not to flood the server. */
