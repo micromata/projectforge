@@ -68,6 +68,10 @@ export function HistoryFilterPill({
       // three fields one by one would be the only alternative.
       removable
       onCancel={cancel}
+      onApply={() => {
+        onSave(draft);
+        onOpenChange(false);
+      }}
       onDelete={onDelete}
       // Roomier than a single-field pill: it holds an autocomplete, two bounds and the presets.
       contentClassName="w-80"

@@ -32,15 +32,20 @@ interface FilterPillShellProps {
   onOpenChange: (open: boolean) => void;
   /** Default filters stay on the row, so they only offer emptying, not removing. */
   removable: boolean;
-  /** Restores the value the popover opened with — edits apply live, so there is no "save". */
+  /** Restores the value the popover opened with and closes. */
   onCancel: () => void;
+  /**
+   * "Übernehmen": applies the draft at once (without waiting for the debounce) and closes. Edits apply
+   * live anyway, so this is the explicit "done", the counterpart of "Abbrechen".
+   */
+  onApply: () => void;
   onDelete: () => void;
   /** Wider than the default for a pill holding more than one field. */
   contentClassName?: string;
   /**
    * A pill with a single on/off state (a BOOLEAN filter): the trigger toggles the value in place
    * instead of opening a popover, so there is no checkbox step. When set, the popover, its children
-   * and the cancel/delete footer are not rendered — the trailing remove X (for a non-default filter)
+   * and the delete/cancel/apply footer are not rendered — the trailing remove X (for a non-default filter)
    * and any step arrows stay as they are. See [FilterPill].
    */
   onToggle?: () => void;
@@ -57,8 +62,33 @@ interface FilterPillShellProps {
 }
 
 /**
+ * Enter in the popover that no control claimed for itself, so "Übernehmen" is its default button. The
+ * inputs that submit on Enter prevent the default already; buttons, options and open comboboxes keep
+ * their own Enter, and keys from a portalled child (a Select's list) are not the popover's. Where Enter
+ * is taken (toggling an entry of an option list), ⌘/Ctrl+Enter applies (see [isApplyShortcut]).
+ */
+function isDefaultButtonEnter(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== "Enter" || event.defaultPrevented) return false;
+  if (event.nativeEvent.isComposing) return false;
+  const target = event.target as HTMLElement;
+  if (!event.currentTarget.contains(target)) return false;
+  return !target.closest(
+    'button, a, textarea, select, [role="option"], [role="combobox"], [role="menuitem"], [aria-expanded="true"]'
+  );
+}
+
+/** ⌘/Ctrl+Enter: "Übernehmen" from anywhere in the popover, whatever the focused control. */
+function isApplyShortcut(event: React.KeyboardEvent<HTMLElement>) {
+  return (
+    event.key === "Enter" &&
+    (event.metaKey || event.ctrlKey) &&
+    !event.nativeEvent.isComposing
+  );
+}
+
+/**
  * The chrome of a filter pill: the trigger, the popover, the remove button and the
- * cancel/delete footer.
+ * delete/cancel/apply footer.
  *
  * Shared so that a pill standing for one backend field ([FilterPill]) and the one standing for the
  * three grouped history fields ([HistoryFilterPill]) are the same thing on screen and by keyboard —
@@ -75,6 +105,7 @@ export function FilterPillShell({
   onOpenChange,
   removable,
   onCancel,
+  onApply,
   onDelete,
   contentClassName,
   onStep,
@@ -158,6 +189,20 @@ export function FilterPillShell({
               event.preventDefault();
               (event.currentTarget as HTMLElement | null)?.focus();
             }}
+            // Capture phase, so it comes before an option list's own Enter (cmdk ignores modifiers).
+            onKeyDownCapture={(event) => {
+              if (isApplyShortcut(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                onApply();
+              }
+            }}
+            onKeyDown={(event) => {
+              if (isDefaultButtonEnter(event)) {
+                event.preventDefault();
+                onApply();
+              }
+            }}
           >
             {/* A close cross top-right, on every filter's popover: edits apply live, so closing simply
               leaves the panel with what is applied (unlike "Abbrechen", which restores what it opened
@@ -171,7 +216,9 @@ export function FilterPillShell({
               <HugeiconsIcon icon={Cancel01Icon} size={12} />
             </button>
             <div className="pr-6">{children}</div>
-            <div className="flex justify-end gap-1">
+            {/* Dialog order: the destructive "Löschen" apart on the left, "Abbrechen" right before the
+                primary "Übernehmen". */}
+            <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -180,13 +227,17 @@ export function FilterPillShell({
               >
                 {tAction("delete")}
               </Button>
+              <div className="flex-1" />
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 className="h-7 text-xs"
                 onClick={onCancel}
               >
                 {tAction("cancel")}
+              </Button>
+              <Button size="sm" className="h-7 text-xs" onClick={onApply}>
+                {tAction("apply")}
               </Button>
             </div>
           </PopoverContent>
