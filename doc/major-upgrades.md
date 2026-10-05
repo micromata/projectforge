@@ -42,8 +42,9 @@ version exists, it is in parentheses.
 | logback | 1.5.38 | 1.5.38 (Boot 4.1); 1.6.x is optional | |
 | Jackrabbit Oak | 1.92.0 | 2.x (2.6.0) | independent of Spring; storage format must be checked |
 
-Java target stays at 17: Boot 4 still requires only Java 17. Running on Java 21/25 is recommended but
-separate.
+Java target stays at 17 for now: Boot 4 still requires only Java 17. If an upgrade fails because of
+Java 17 (a library requiring 21, or Gradle/Kotlin tooling), switch to Java 21 as part of that phase. The
+switch is already prepared in a separate branch.
 
 ## Impact on the code (inventory)
 
@@ -213,7 +214,6 @@ path (see `JarExtractor.createFixedTempDirectory`). Check for each phase:
 
 ## Open questions
 
-- Production JDK: stay on 17 or move to 21/25 at the same time? (Boot 4 runs on 17.)
 - Is the custom Hibernate scanner (`PfAbstarctScannerImpl`) still needed now that Wicket is gone?
 - Jackson 3 defaults: restore Jackson 2 behaviour globally (less risk) or adopt the new defaults and adapt
   the frontends?
