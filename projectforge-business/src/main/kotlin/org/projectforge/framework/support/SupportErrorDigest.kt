@@ -30,6 +30,7 @@ import org.projectforge.ShutdownListener
 import org.projectforge.ShutdownService
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.common.logging.LogAudience
 import org.projectforge.common.logging.LogEvent
 import org.projectforge.common.logging.LogEventListener
 import org.projectforge.common.logging.LogNotify
@@ -71,9 +72,14 @@ private val log = KotlinLogging.logger {}
  * Every collected occurrence, reported or not, is also counted in the database by [LogAggregationService] (if
  * enabled), also without a support mail address.
  *
- * The digest groups equal errors and sorts them by category, unreachable external systems first; each group shows
- * the explanation and recommended action of its event, the single occurrences with their stack traces are attached
- * as a text file.
+ * The digest groups equal errors and lists the new problems, regressions and spikes first, then the known ones by
+ * category, unreachable external systems first (see [ErrorDigestRenderer]); each group shows the explanation and
+ * recommended action of its event and links the problem in the error dashboard, the single occurrences with their
+ * stack traces are attached as a text file.
+ *
+ * Each problem is mailed to the recipients of its event's [audience][LogEvent.audience]
+ * (`projectforge.support.errorDigest.recipients.<developer|admin|security>`, default: the support mail address),
+ * one mail per recipients ([splitByRecipients]).
  *
  * On shutdown (before the database is closed, see [ShutdownService]) the last digest is sent and the log
  * aggregation is closed.
@@ -98,6 +104,15 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
 
     @Value("\${projectforge.support.errorDigest.interval:1h}")
     private var intervalProperty: String = "1h"
+
+    @Value("\${projectforge.support.errorDigest.recipients.developer:}")
+    internal var developerRecipients: String = ""
+
+    @Value("\${projectforge.support.errorDigest.recipients.admin:}")
+    internal var adminRecipients: String = ""
+
+    @Value("\${projectforge.support.errorDigest.recipients.security:}")
+    internal var securityRecipients: String = ""
 
     internal val collector = ErrorDigestCollector()
 
@@ -132,12 +147,16 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         interval = parseInterval(intervalProperty)
         if (interval.isZero) {
             log.info { "Support error digest disabled (projectforge.support.errorDigest.interval=0)." }
-        } else if (configurationService.pfSupportMailAddress.isNullOrBlank() || !configurationService.isSendMailConfigured) {
-            log.info { "Support error digest inactive: no support mail address (projectforge.support.mail) or no mail configured." }
+        } else if (LogAudience.entries.all { recipientsOf(it) == null } || !configurationService.isSendMailConfigured) {
+            log.info {
+                "Support error digest inactive: no support mail address (projectforge.support.mail or " +
+                        "projectforge.support.errorDigest.recipients.*) or no mail configured."
+            }
         } else {
             active = true
             periodStart = System.currentTimeMillis()
-            log.info { "Support error digest active, sent at most every $interval to ${configurationService.pfSupportMailAddress}." }
+            val recipients = LogAudience.entries.joinToString { "${it.name.lowercase()}: ${recipientsOf(it) ?: "-"}" }
+            log.info { "Support error digest active, sent at most every $interval to $recipients." }
         }
         if (!active && logAggregation?.enabled != true) {
             return
@@ -223,6 +242,17 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         logAggregation?.close()
     }
 
+    /**
+     * The addresses (comma separated) of an audience: `projectforge.support.errorDigest.recipients.<audience>`, else
+     * the support mail address. Null if neither is configured.
+     */
+    internal fun recipientsOf(audience: LogAudience): String? =
+        when (audience) {
+            LogAudience.DEVELOPER -> developerRecipients
+            LogAudience.ADMIN -> adminRecipients
+            LogAudience.SECURITY -> securityRecipients
+        }.takeIf { it.isNotBlank() } ?: configurationService.pfSupportMailAddress?.takeIf { it.isNotBlank() }
+
     private fun send() {
         val from = periodStart
         val to = System.currentTimeMillis()
@@ -230,19 +260,22 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         immediatePending = false
         // The problems' states must be up to date: a new one is in the database only after its first flush.
         logAggregation?.flush()
-        val snapshot = notifyFilter.apply(collector.drain())
+        val snapshot = notifyFilter.apply(collector.drain(), to, from)
         val syncProblems = syncProblemTracker.collect()
-        if (snapshot.groups.isEmpty() && syncProblems.isEmpty()) {
-            return
-        }
+        splitByRecipients(snapshot, syncProblems) { recipientsOf(it) }.forEach { send(it, from, to) }
+    }
+
+    private fun send(digest: DigestMail, from: Long, to: Long) {
+        val snapshot = digest.snapshot
+        val syncProblems = digest.syncProblems
         sending.set(true)
         try {
-            val renderer = ErrorDigestRenderer(domainService.domain)
+            val renderer = ErrorDigestRenderer(domainService.domain, dashboardUrl = domainService.getDomain(DASHBOARD_PATH))
             val attachmentName = if (snapshot.groups.isNotEmpty()) {
                 "error-digest-${LocalDateTime.now().format(FILENAME_FORMAT)}.txt"
             } else null
             val mail = Mail()
-            mail.addTo(configurationService.pfSupportMailAddress)
+            digest.recipients.split(',', ';').map { it.trim() }.filter { it.isNotEmpty() }.forEach { mail.addTo(it) }
             sendMail.mailFromStandardEmailSender?.takeIf { it.isNotBlank() }?.let { mail.setFrom(it) }
             mail.setProjectForgeSubject(renderer.subject(snapshot, syncProblems))
             val html = try {
@@ -265,7 +298,9 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
             val attachments = attachmentName?.let {
                 listOf(MailAttachment(it, renderer.details(snapshot).toByteArray(Charsets.UTF_8)))
             }
-            log.info { "Sending support error digest: ${snapshot.occurrences} occurrences, ${syncProblems.size} sync problems." }
+            log.info {
+                "Sending support error digest to ${digest.recipients}: ${snapshot.occurrences} occurrences, ${syncProblems.size} sync problems."
+            }
             // Synchronously: in the scheduler's thread (or on shutdown), where [sending] keeps its errors out.
             sendMail.send(mail, null, attachments, async = false)
         } catch (t: Throwable) {
@@ -275,8 +310,39 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
         }
     }
 
+    /** One mail of a digest: the groups of the audiences mailed to [recipients]. */
+    internal class DigestMail(
+        val recipients: String,
+        val snapshot: ErrorDigestCollector.Snapshot,
+        val syncProblems: List<SyncProblemTracker.Problem>,
+    )
+
     companion object {
         private val FILENAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm")
+
+        /** The error dashboard, linked by the digest. */
+        private const val DASHBOARD_PATH = "next/adminErrors"
+
+        /**
+         * One mail per recipients, with the groups of the audiences ([LogEvent.audience]) they are configured for;
+         * the sync problems go to the admins. Groups whose audience has no recipients aren't mailed. The counts of
+         * the groups not listed are repeated in every mail. Nothing reported, no mail.
+         */
+        internal fun splitByRecipients(
+            snapshot: ErrorDigestCollector.Snapshot,
+            syncProblems: List<SyncProblemTracker.Problem>,
+            recipientsOf: (LogAudience) -> String?,
+        ): List<DigestMail> {
+            val groups = snapshot.groups.groupBy { recipientsOf(it.event.audience) }
+            val syncRecipients = recipientsOf(LogAudience.ADMIN).takeIf { syncProblems.isNotEmpty() }
+            return (groups.keys + syncRecipients).filterNotNull().distinct().map { to ->
+                DigestMail(
+                    to,
+                    ErrorDigestCollector.Snapshot(groups[to].orEmpty(), snapshot.dropped, snapshot.suppressed, snapshot.muted),
+                    if (to == syncRecipients) syncProblems else emptyList(),
+                )
+            }
+        }
 
         /** [LogNotify.IMMEDIATE] sends the digest early, but not more often than this. */
         private const val IMMEDIATE_MIN_GAP_MILLIS = 5 * Constants.MILLIS_PER_MINUTE
