@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LOG_LEVEL_KEYS, logLevelTone } from "@/components/shared/log-level";
+import { LogViewerLink } from "@/components/shared/log-viewer-link";
 import { StatusPill } from "@/components/shared/status-pill";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import {
   fetchAdminErrorDetail,
   updateAdminErrors,
   type LogGroupDetail,
+  type LogGroupEntry,
   type LogGroupUpdate,
 } from "@/lib/rs/admin-errors";
 import { toast } from "@/lib/toast";
@@ -74,6 +76,16 @@ export function AdminErrorDetailDialog({
   );
 }
 
+/**
+ * The admin log viewer, searching for the class of the problem's location (`Foo` of `Foo:42`): its search
+ * doesn't know the codes, and a normalized message isn't found. Only the last log events are there.
+ */
+function logViewerUrl(entry: LogGroupEntry): string | null {
+  const className = entry.location?.split(":")[0];
+  if (!className || className === "?") return null;
+  return `next/adminLogViewer?search=${encodeURIComponent(className)}`;
+}
+
 function DetailContent({
   detail,
   pending,
@@ -98,6 +110,9 @@ function DetailContent({
             label={t(LOG_LEVEL_KEYS[entry.level])}
           />
           <StatusPill tone="neutral" label={t(CATEGORY_KEYS[entry.category])} />
+          <span className="ml-auto">
+            <LogViewerLink url={logViewerUrl(entry)} />
+          </span>
         </div>
       </DialogHeader>
       <AdminErrorActions

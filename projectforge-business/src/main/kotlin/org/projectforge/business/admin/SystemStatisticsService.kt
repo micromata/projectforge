@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.integration.SyncStatsRegistry
+import org.projectforge.framework.support.LogAggregationStatisticsBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -47,6 +48,9 @@ class SystemStatistics {
     @Autowired
     private lateinit var diskUsageStatisticsBuilder: DiskUsageStatisticsBuilder
 
+    @Autowired
+    private lateinit var logAggregationStatisticsBuilder: LogAggregationStatisticsBuilder
+
     private var statisticsBuilderRegistry = mutableSetOf<SystemsStatisticsBuilderInterface>()
 
     @PostConstruct
@@ -58,6 +62,7 @@ class SystemStatistics {
         registerStatisticsBuilder(MemoryStatisticsBuilder())
         registerStatisticsBuilder(diskUsageStatisticsBuilder)
         registerStatisticsBuilder(SyncStatsRegistry)
+        registerStatisticsBuilder(logAggregationStatisticsBuilder)
     }
 
     /**

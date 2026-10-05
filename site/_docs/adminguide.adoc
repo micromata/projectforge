@@ -311,6 +311,9 @@ Each problem links to the error dashboard (Administration), where it can be ackn
 or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
 
+A new security or data problem (or one that occurred again after being resolved) doesn't wait for the end of
+the interval: it sends the digest early, as soon as it reaches its threshold, but at most every 5 minutes.
+
 Each problem goes to the recipients of its audience: developers (bugs, data problems), admins (external
 systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
 at `projectforge.support.mail`.

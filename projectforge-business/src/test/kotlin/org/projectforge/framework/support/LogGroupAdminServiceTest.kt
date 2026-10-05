@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.projectforge.Constants
+import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
@@ -41,6 +42,9 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var logGroupAdminService: LogGroupAdminService
+
+    @Autowired
+    private lateinit var logAggregationStatisticsBuilder: LogAggregationStatisticsBuilder
 
     @Test
     fun `list, detail and status changes`() {
@@ -118,6 +122,21 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
     }
 
     private fun stateOf(event: LogEvent) = logAggregationService.stateOf(ErrorDigestCollector.keyOf(occurrence(event, 0)))!!
+
+    @Test
+    fun `key figures in the system statistics, for admins only`() {
+        logAggregationService.add(occurrence(LogEvent("test.admin.statistics", LogCategory.BUG), System.currentTimeMillis()))
+        logon(TEST_USER)
+        Assertions.assertTrue(statisticsOf().entries.isEmpty(), "Visible for all users, but not these.")
+        logon(TEST_ADMIN_USER)
+        val entries = statisticsOf().entries.associate { it.id to it.value }
+        Assertions.assertEquals(
+            listOf("errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
+        )
+        Assertions.assertNotEquals("0", entries["errorsNew24h"])
+    }
+
+    private fun statisticsOf() = SystemStatisticsData().also { logAggregationStatisticsBuilder.addStatisticsEntries(it) }
 
     private fun occurrence(event: LogEvent, millis: Long, user: String? = null, stackTrace: String? = null) =
         ErrorOccurrence(

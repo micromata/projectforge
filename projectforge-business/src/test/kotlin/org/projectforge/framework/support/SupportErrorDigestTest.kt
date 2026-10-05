@@ -209,6 +209,22 @@ class SupportErrorDigestTest {
     }
 
     @Test
+    fun `new security and data problems are alarms`() {
+        val digest = SupportErrorDigest().also { it.active = true }
+        digest.collect(occurrence(SupportLogEvents.LOGGED_ERROR, "NPE"))
+        digest.collect(occurrence(SupportLogEvents.EXTERNAL_UNREACHABLE, "LDAP down"))
+        Assertions.assertFalse(digest.immediatePending, "Bugs and external failures wait for the interval.")
+        digest.collect(occurrence(DATA_EVENT, "Inconsistent order"))
+        Assertions.assertTrue(digest.immediatePending, "A new data problem.")
+
+        val next = SupportErrorDigest().also { it.active = true }
+        repeat(2) { next.collect(occurrence(SPIKE, "Login failed")) }
+        Assertions.assertFalse(next.immediatePending, "Below the threshold of 3.")
+        next.collect(occurrence(SPIKE, "Login failed"))
+        Assertions.assertTrue(next.immediatePending)
+    }
+
+    @Test
     fun `log event codes are unique`() {
         Assertions.assertEquals(emptyList<String>(), LogEventRegistry.findProblems(*BusinessLogEventCatalog.HOLDERS))
         Assertions.assertTrue(BusinessLogEventCatalog.HOLDERS.all { LogEventRegistry.eventsOf(it).isNotEmpty() })
