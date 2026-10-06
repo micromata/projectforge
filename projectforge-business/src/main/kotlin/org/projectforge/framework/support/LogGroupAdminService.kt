@@ -70,8 +70,9 @@ class LogGroupFilter(
 
 /**
  * A tile of the dashboard: the state of an active subsystem and the statistics of its problems.
- * @param open Its problems with status NEW or ACKNOWLEDGED.
- * @param trend As [LogGroupEntry.trend], summed over its problems.
+ * @param occurrences24h Occurrences of its open problems within the last 24 hours, the sum of the list's column.
+ * @param open Its problems with status NEW or ACKNOWLEDGED (the list's status filter OPEN).
+ * @param trend As [LogGroupEntry.trend], summed over its open problems.
  */
 class SubsystemEntry(
     val id: String,
@@ -258,8 +259,9 @@ class LogGroupAdminService {
         val bucketsByGroup = buckets.groupBy { it.groupId }
         return active.map { (provider, status) ->
             val own = rows.filter { provider.problems.matches(it.code, it.location, it.message) }
-            val ownBuckets = own.flatMap { bucketsByGroup[it.id].orEmpty() }
-            val open = own.filter { it.status == LogGroupStatus.NEW || it.status == LogGroupStatus.ACKNOWLEDGED }
+            val open = own.filter { LogGroupStatusFilter.OPEN.statuses!!.contains(it.status) }
+            // Of the open problems only: what a click on the tile shows (the list with status OPEN).
+            val openBuckets = open.flatMap { bucketsByGroup[it.id].orEmpty() }
             val recentErrors = open.any {
                 it.level <= LogLevel.ERROR && // FATAL or ERROR
                         it.lastSeen.time >= now - Constants.MILLIS_PER_DAY &&
@@ -271,10 +273,10 @@ class LogGroupAdminService {
                 detail = status.detail,
                 state = if (recentErrors) maxOf(status.state, SubsystemState.DEGRADED) else status.state,
                 syncs = status.syncs,
-                occurrences24h = ownBuckets.filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences },
+                occurrences24h = openBuckets.filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences },
                 newProblems24h = own.count { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY },
                 open = open.size,
-                trend = bins(ownBuckets, trendStart, TREND_BIN_HOURS, TREND_DAYS * 24 / TREND_BIN_HOURS),
+                trend = bins(openBuckets, trendStart, TREND_BIN_HOURS, TREND_DAYS * 24 / TREND_BIN_HOURS),
             )
         }.sortedBy { it.title.lowercase() }
     }
