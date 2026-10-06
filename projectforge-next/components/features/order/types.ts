@@ -123,9 +123,8 @@ export interface OrderDetail {
   kundeText?: string | null;
   project?: EntityRefDto | null;
   contactPerson?: EntityRefDto | null;
-  projectManager?: EntityRefDto | null;
-  headOfBusinessManager?: EntityRefDto | null;
-  salesManager?: EntityRefDto | null;
+  /** The further contact persons next to `contactPerson` (`Auftrag.additionalContacts`). */
+  additionalContacts?: EntityRefDto[] | null;
   erfassungsDatum?: string | null;
   angebotsDatum?: string | null;
   entscheidungsDatum?: string | null;

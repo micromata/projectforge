@@ -79,9 +79,6 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.PROJECT_CUSTOMER, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.TITLE, "fibu.auftrag.title", MyXlsContentProvider.LENGTH_STD),
-                new I18nExportColumn(OrderCol.PROJECTMANAGER, "fibu.projectManager", 30),
-                new I18nExportColumn(OrderCol.HEADOFBUSINESSMANAGER, "fibu.headOfBusinessManager", 30),
-                new I18nExportColumn(OrderCol.SALESMANAGER, "fibu.salesManager", 30),
                 new I18nExportColumn(OrderCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.INVOICED, "fibu.fakturiert", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.TO_BE_INVOICED, "fibu.toBeInvoiced", MyXlsContentProvider.LENGTH_CURRENCY),
@@ -93,6 +90,7 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.FORECAST_TYPE, AuftragForecastType.getBaseKey(), MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", MyXlsContentProvider.LENGTH_STD),
+                new I18nExportColumn(OrderCol.ADDITIONAL_CONTACTS, "fibu.auftrag.additionalContacts", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.REFERENCE, "fibu.common.reference", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)
         };
@@ -117,9 +115,6 @@ public class OrderExport {
                 order.getKundeText());
         mapping.add(OrderCol.PROJECT_CUSTOMER, projectCustomer);
         mapping.add(OrderCol.TITLE, order.getTitel());
-        mapping.add(OrderCol.PROJECTMANAGER, order.getProjectManager() != null ? order.getProjectManager().getFullname() : "");
-        mapping.add(OrderCol.HEADOFBUSINESSMANAGER, order.getHeadOfBusinessManager() != null ? order.getHeadOfBusinessManager().getFullname() : "");
-        mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
         final BigDecimal netSum = orderInfo.getNetSum();
         final BigDecimal invoicedSum = orderInfo.getInvoicedSum();
         final BigDecimal toBeInvoicedSum = orderInfo.getNotYetInvoicedSum();
@@ -138,6 +133,7 @@ public class OrderExport {
 
         final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
         mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
+        mapping.add(OrderCol.ADDITIONAL_CONTACTS, order.getAdditionalContactsAsString());
         mapping.add(OrderCol.REFERENCE, order.getReferenz());
         mapping.add(OrderCol.COMMENT, order.getBemerkung());
     }
@@ -362,7 +358,7 @@ public class OrderExport {
     }
 
     private enum OrderCol {
-        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, REFERENCE, COMMENT
+        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, ADDITIONAL_CONTACTS, REFERENCE, COMMENT
     }
 
     private enum PosCol {

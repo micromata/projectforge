@@ -114,11 +114,7 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
      */
     fun matchUser(auftrag: AuftragDO): Boolean {
         val uid = user?.id ?: return true
-        return (auftrag.projectManager?.id == uid ||
-                auftrag.headOfBusinessManager?.id == uid ||
-                auftrag.contactPerson?.id == uid ||
-                auftrag.salesManager?.id == uid
-                )
+        return auftrag.isContact(uid)
     }
 
     /**

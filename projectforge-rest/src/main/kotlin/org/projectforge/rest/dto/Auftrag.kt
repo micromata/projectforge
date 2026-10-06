@@ -55,9 +55,10 @@ class Auftrag(
     var referenz: String? = null,
     var assignedPersons: String? = null,
     var contactPerson: User? = null,
-    var projectManager: User? = null,
-    var headOfBusinessManager: User? = null,
-    var salesManager: User? = null,
+    /**
+     * The further contact persons next to [contactPerson], see [AuftragDO.additionalContactUserIds].
+     */
+    var additionalContacts: List<User>? = null,
     var angebotsDatum: LocalDate? = null,
     var erfassungsDatum: LocalDate? = null,
     var entscheidungsDatum: LocalDate? = null,
@@ -153,19 +154,22 @@ class Auftrag(
      * So the sums *and* the position count come from the cache here, and the two collections are only
      * mapped when the caller asks for them — the edit page does, via [copyFromWithCollections].
      *
-     * The six `ManyToOne`s are lazy as well, and mapping them reads more than an id: [User.copyFromMinimal]
+     * The three `ManyToOne`s are lazy as well, and mapping them reads more than an id: [User.copyFromMinimal]
      * reads the user's name, [Customer]/[Project] their display name. So each one is another select per
-     * row, and [PfCaches.initialize] replaces all six with their cached instances first — which is exactly
+     * row, and [PfCaches.initialize] replaces all three with their cached instances first — which is exactly
      * what `AuftragListPage` does for the customer and the project, under the comment "Avoid lazy loading".
+     * The additional contacts are plain ids, named from the user cache.
      */
     override fun copyFrom(src: AuftragDO) {
         // Before super.copyFrom, which is what would otherwise touch the proxies. Mutates src, as the
         // Wicket list does too: it swaps a proxy for the identical cached object, nothing more.
         PfCaches.instance.initialize(src)
         super.copyFrom(src)
-        // super.copyFrom covers the scalars and every *DO -> *DTO relation (contact person and the three
-        // managers included, mapped by BaseDTO.copy via copyFromMinimal). Only the collections and the
-        // calculated sums are left, both of which it skips by design.
+        // super.copyFrom covers the scalars and every *DO -> *DTO relation (contact person included, mapped
+        // by BaseDTO.copy via copyFromMinimal). Only the additional contacts (a csv of ids), the collections
+        // and the calculated sums are left, all of which it skips by design.
+        additionalContacts = User.toUserList(src.additionalContactUserIds)
+        User.restoreDisplayNames(additionalContacts)
         this.customer = src.kunde?.let {
             Customer(it)
         }
@@ -205,7 +209,7 @@ class Auftrag(
      * is left out and why:
      * - the four `formatted*` sums (~141 B/row): the client formats currency in the user's locale
      *   (`lib/format.ts`), and a string column would sort "900,00" after "1.100,00" anyway.
-     * - [contactPerson] and the three managers (~524 B/row): the column shows the derived
+     * - [contactPerson] and the [additionalContacts]: the column shows the derived
      *   [assignedPersons] string, nothing of the users themselves.
      * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
      *   carries a [Customer]/[Project] holding that name and nothing else.
@@ -310,6 +314,9 @@ class Auftrag(
      */
     override fun copyTo(dest: AuftragDO) {
         super.copyTo(dest)
+        // Without duplicates and without the main contact person, who is a contact anyway.
+        dest.additionalContactUserIds = additionalContacts?.mapNotNull { it.id }?.distinct()
+            ?.filter { it != contactPerson?.id }?.takeIf { it.isNotEmpty() }?.joinToString(", ")
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
         dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
         dest.positionen = positionen?.map { dto ->

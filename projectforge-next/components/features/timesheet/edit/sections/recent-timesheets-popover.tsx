@@ -29,6 +29,11 @@ export interface RecentTimesheetsPopoverProps {
   cost2Visible: boolean;
   /** A recent entry was picked; the caller merges its fields into the sheet on screen (see applyRecent). */
   onSelect: (entry: TimesheetDetail) => void;
+  /**
+   * Narrower, to stay within a dialog: opened from inside one (the multi-day booking), the box ends at
+   * the dialog's edge instead of reaching over it.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -45,6 +50,7 @@ export function RecentTimesheetsPopover({
   entries,
   cost2Visible,
   onSelect,
+  compact = false,
 }: RecentTimesheetsPopoverProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
@@ -122,7 +128,10 @@ export function RecentTimesheetsPopover({
         align="start"
         // A fixed, viewport-bounded box with overflow-hidden so the table can't push it wider than
         // the screen; the scroll region below then scrolls both ways within it.
-        className="flex max-h-[min(28rem,70vh)] w-[92vw] flex-col gap-0 overflow-hidden p-0 sm:w-[min(72rem,92vw)]"
+        className={cn(
+          "flex max-h-[min(28rem,70vh)] w-[92vw] flex-col gap-0 overflow-hidden p-0",
+          compact ? "sm:w-[min(46rem,85vw)]" : "sm:w-[min(72rem,92vw)]"
+        )}
       >
         <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
           <HugeiconsIcon

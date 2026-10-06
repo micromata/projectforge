@@ -303,7 +303,7 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     }
   });
 
-  test("fills customer and managers in from the project, without overwriting", async ({
+  test("fills customer and contacts in from the project, without overwriting", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -314,13 +314,13 @@ test.describe("order book", { tag: "@lane-order" }, () => {
       page.getByLabel(label(format, "fibu.auftrag.title"), { exact: true })
     ).toBeVisible({ timeout: 60_000 });
 
-    // A manager chosen by hand first — the autofill must leave it alone. An order may deliberately
-    // name a stand-in (`fibu.auftrag.hint.kannVonProjektKundenAbweichen`).
+    // A contact person chosen by hand first — the autofill must leave it alone (it only fills the
+    // further contacts with the project's managers, and only while that list is empty).
     // The logged-in account's own name, so the lookup is certain to match without naming a person in
     // the source (see fixtures/seed.ts).
     const manager = await pickFirst(
       page,
-      label(format, "fibu.projectManager"),
+      label(format, "contactPerson"),
       await ownUserSearchTerm(page)
     );
     test.skip(
@@ -345,8 +345,8 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     test.skip(project === null, "no project matched its own name");
 
     await expect(
-      trigger(page, label(format, "fibu.projectManager")),
-      "a manager chosen by hand is kept"
+      trigger(page, label(format, "contactPerson")),
+      "a contact person chosen by hand is kept"
     ).toHaveText(manager!);
     // The empty ones are filled from what the project knows. By role and a name prefix rather than
     // through `trigger`: the customer is the merged customer/free-text field (EntityOrTextField),

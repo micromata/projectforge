@@ -657,6 +657,7 @@
     "attachment": "Anlagen",
     "auftrag": {
       "_": "Auftrag",
+      "additionalContacts": "Weitere Ansprechpartner:innen",
       "angebot": {
         "datum": "Angebotsdatum"
       },
@@ -665,6 +666,9 @@
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf den Auftrag und seine Rechnungen und bekommen eine E-Mail, wenn er geändert wird (ebenso alle, die ihn bisher bearbeitet haben)."
+      },
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
@@ -1010,7 +1014,7 @@
       "viaTask": "über Strukturelement"
     },
     "common": {
-      "assignedPersons": "PL/BUL/KAM/AP",
+      "assignedPersons": "Ansprechpartner:innen",
       "betrag": "Betrag",
       "brutto": "Brutto",
       "creditor": "Kreditor",
@@ -3603,6 +3607,29 @@
         "_": "Einheit",
         "info": "Ersparnis in Stunden durch KI oder in Prozent (Beispiel Prozent: ich habe 9 Stunden gebraucht und hätte ohne KI 10 h gebraucht, dann habe ich 10% gespart):\n\nBeachte: Es kann bei einem Zeitbericht von einer Stunde auch ein Aufwand von vielen Stunden oder Tagen eingespart werden. "
       }
+    },
+    "bookDays": {
+      "hoursPerDay": "Stunden pro Tag",
+      "info": "Bucht an jedem Arbeitstag des Zeitraums einen Zeitbericht, z. B. für einen Urlaub. Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen.",
+      "preview": "Vorschau",
+      "previewEmpty": "Bitte einen Zeitraum angeben.",
+      "status": {
+        "book": "wird gebucht",
+        "booked": "bereits gebucht",
+        "holiday": "Feiertag",
+        "partial": "anteilig",
+        "weekend": "Wochenende"
+      },
+      "submit": "Buchen ({arg0})",
+      "success": "Gebuchte Tage: {arg0}",
+      "summary": "Zu buchende Tage: {arg0}, Stunden: {arg1}",
+      "title": "Mehrere Tage buchen",
+      "vacation": "Urlaub übernehmen",
+      "vacationDays": "{arg0} Tag(e)",
+      "vacationDescription": "Urlaub",
+      "vacationHint": "Die Urlaubstage werden auf die Urlaubs-Kost2 gebucht.",
+      "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
+      "vacationPlaceholder": "Urlaub auswählen"
     },
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",

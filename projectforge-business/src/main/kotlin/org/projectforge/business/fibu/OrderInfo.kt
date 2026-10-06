@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Transient
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.StringHelper2
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
@@ -83,6 +84,11 @@ class OrderInfo : Serializable {
 
     @JsonSerialize(using = IdOnlySerializer::class)
     var contactPerson: PFUserDO? = null
+
+    /**
+     * @see AuftragDO.additionalContactUserIds
+     */
+    var additionalContactUserIds: String? = null
     var bemerkung: String? = null
     var statusBeschreibung: String? = null
     var paymentScheduleEntries: Collection<PaymentScheduleInfo>? = null
@@ -142,9 +148,20 @@ class OrderInfo : Serializable {
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
+        additionalContactUserIds = order.additionalContactUserIds
         bemerkung = order.bemerkung.abbreviate(30)
         statusBeschreibung = order.statusBeschreibung
         updatePaymentScheduleEntries(paymentSchedules)
+    }
+
+    /**
+     * True if the given user is the contact person or one of the additional contacts.
+     * @see AuftragDO.isContact
+     */
+    fun isContact(userId: Long?): Boolean {
+        userId ?: return false
+        return contactPerson?.id == userId
+                || StringHelper2.splitToListOfLongValues(additionalContactUserIds).contains(userId)
     }
 
     fun updatePaymentScheduleEntries(paymentSchedules: Collection<PaymentScheduleDO>?) {

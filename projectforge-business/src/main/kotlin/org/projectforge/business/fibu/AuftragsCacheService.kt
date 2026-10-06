@@ -78,6 +78,7 @@ class AuftragsCacheService {
                     getLong(tuple, "contactPersonId")?.let { userId ->
                         order.contactPerson = em.getReference(PFUserDO::class.java, userId)
                     }
+                    order.additionalContactUserIds = getString(tuple, "additionalContactUserIds")
                 }
             }
         }
@@ -146,7 +147,8 @@ class AuftragsCacheService {
                    a.probabilityOfOccurrence as probabilityOfOccurrence,
                    a.forecastType as forecastType,
                    a.periodOfPerformanceBegin as periodOfPerformanceBegin, a.periodOfPerformanceEnd as periodOfPerformanceEnd,
-                   a.contactPerson.id as contactPersonId, a.kunde.id as kundeId, a.projekt.id as projektId, a.kundeText as kundeText
+                   a.contactPerson.id as contactPersonId, a.additionalContactUserIds as additionalContactUserIds,
+                   a.kunde.id as kundeId, a.projekt.id as projektId, a.kundeText as kundeText
             FROM ${AuftragDO::class.simpleName} a
         """.trimIndent()
         private val SELECT_POSITIONS = """
