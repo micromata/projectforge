@@ -35,8 +35,11 @@ import {
  */
 export function OrderForecastMonthlyChart({
   data,
+  className = "h-[27rem] w-full",
 }: {
   data: ForecastChartData;
+  /** Size of the chart, e.g. a dashboard tile's height step. */
+  className?: string;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -59,7 +62,7 @@ export function OrderForecastMonthlyChart({
   return (
     <ChartContainer
       config={config}
-      className="h-[27rem] w-full"
+      className={className}
       role="img"
       aria-label={t("fibu.auftrag.forecast.chart.monthly")}
     >

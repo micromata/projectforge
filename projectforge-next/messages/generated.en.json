@@ -553,6 +553,32 @@
       "help": "You can enter amounts as well as percent values (e.g. 10%)."
     }
   },
+  "dashboard": {
+    "arrange": {
+      "_": "Arrange",
+      "tooltip": "Arrange, resize and hide the tiles"
+    },
+    "done": "Done",
+    "dragHandle": "Drag to move",
+    "height": {
+      "_": "Height",
+      "L": "Large",
+      "M": "Medium",
+      "S": "Small"
+    },
+    "hiddenTiles": "Hidden tiles ({arg0})",
+    "hide": "Hide",
+    "noTiles": "All tiles are hidden.",
+    "reset": "Reset layout",
+    "tileMenu": "Tile options",
+    "width": {
+      "_": "Width",
+      "full": "Full width",
+      "half": "Half",
+      "third": "One third",
+      "twoThirds": "Two thirds"
+    }
+  },
   "datatable": {
     "no-records-found": "No records were found."
   },
@@ -678,6 +704,7 @@
         "empty": "No revenue or costs found for the projects of the selected orders.",
         "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the preliminary months lack the costs of the time sheets.",
         "kost": "Cost unit",
+        "kpis": "Key figures",
         "monthly": "Contribution margin monthly",
         "noImport": "No accounting records are imported at all. All values are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
         "noRevenue": "No revenue in the period, only costs.",
@@ -2393,8 +2420,10 @@
       "chart": {
         "averageLatency": "Actual (average)",
         "bookedHours": "Booked working hours",
+        "bookingLatency": "Booking latency",
         "goal": "Target (goal)",
-        "plannedHours": "Target working hours"
+        "plannedHours": "Target working hours",
+        "workingHours": "Working hours"
       },
       "tab": {
         "timeTracking": "Time tracking"

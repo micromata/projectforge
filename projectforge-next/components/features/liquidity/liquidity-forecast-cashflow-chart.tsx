@@ -32,8 +32,11 @@ import type { LiquidityForecastDay } from "@/lib/rs/liquidity";
  */
 export function LiquidityForecastCashflowChart({
   data,
+  className = "h-[27rem] w-full",
 }: {
   data: LiquidityForecastDay[];
+  /** Size of the chart, e.g. a dashboard tile's height step. */
+  className?: string;
 }) {
   const t = useTranslations("plugins.liquidityplanning");
   const ctx = useFormatContext();
@@ -63,7 +66,7 @@ export function LiquidityForecastCashflowChart({
   return (
     <ChartContainer
       config={config}
-      className="h-[27rem] w-full"
+      className={className}
       role="img"
       aria-label={t("forecast.cashflow")}
     >

@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { ChartDashboard } from "@/components/shared/dashboard/chart-dashboard";
 import { Spinner } from "@/components/shared/spinner";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
@@ -156,11 +157,27 @@ function OrderContributionMargin({
           )}
           aria-busy={recalculating}
         >
-          <ContributionMarginKpis data={query.data} />
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("monthly")}</h3>
-            <ContributionMarginMonthlyChart data={query.data} />
-          </section>
+          <ChartDashboard
+            id="order.contributionMargin"
+            tiles={[
+              {
+                id: "kpis",
+                title: t("kpis"),
+                fixedHeight: true,
+                render: () => <ContributionMarginKpis data={query.data} />,
+              },
+              {
+                id: "monthly",
+                title: t("monthly"),
+                render: (className) => (
+                  <ContributionMarginMonthlyChart
+                    data={query.data}
+                    className={className}
+                  />
+                ),
+              },
+            ]}
+          />
           <ContributionMarginTables
             data={query.data}
             filter={filter}

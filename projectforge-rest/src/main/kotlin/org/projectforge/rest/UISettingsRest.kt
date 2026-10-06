@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.*
  * Per-user UI preferences of the Next.js frontend that have no counterpart in [org.projectforge.rest.MyAccountPageRest]
  * because they only steer the client's appearance, not the account.
  *
- * Currently only the colour theme (light/dark/system). Persisted per user through [UserPrefService] (no DB migration),
+ * The colour theme (light/dark/system) and the tile layouts of the chart dashboards. Persisted per user through [UserPrefService] (no DB migration),
  * so the choice follows the user across devices and browsers. Reads are plain JSON; the state-changing POST relies on
  * the central `X-PF-CSRF-Token` protection (see `RestCsrfProtection`), like the calendar's `saveSettingsJson`.
  */
@@ -60,6 +60,48 @@ class UISettingsRest {
     return ResponseEntity.ok(UIThemeSettings(value))
   }
 
+  /**
+   * The stored tile layout of the chart dashboard [id] (one per page, e.g. `liquidity.forecast`); an empty layout
+   * if the user never arranged it, which the client fills with the defaults of its tiles.
+   */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
+  @GetMapping("dashboard/{id}")
+  fun getDashboard(@PathVariable id: String): ResponseEntity<DashboardLayout> {
+    if (!isValidId(id)) return ResponseEntity.badRequest().build()
+    val stored = userPrefService.getEntry(PREF_AREA, dashboardPrefName(id), DashboardLayout::class.java)
+    return ResponseEntity.ok(normalize(stored))
+  }
+
+  /** Stores the tile layout of dashboard [id]; an empty layout resets it to the client's defaults. */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
+  @PostMapping("dashboard/{id}")
+  fun setDashboard(@PathVariable id: String, @RequestBody layout: DashboardLayout): ResponseEntity<DashboardLayout> {
+    if (!isValidId(id)) return ResponseEntity.badRequest().build()
+    val value = normalize(layout)
+    userPrefService.putEntry(PREF_AREA, dashboardPrefName(id), value)
+    return ResponseEntity.ok(value)
+  }
+
+  /**
+   * Keeps only what the client may send: valid, distinct tile ids, known sizes (others become `null`, i.e. the
+   * tile's default) and at most [MAX_TILES] tiles — the value is stored as is, so nothing else may get in.
+   */
+  internal fun normalize(layout: DashboardLayout?): DashboardLayout {
+    val tiles = layout?.tiles.orEmpty()
+      .filter { isValidId(it.id) }
+      .distinctBy { it.id }
+      .take(MAX_TILES)
+      .map {
+        DashboardTileLayout(
+          id = it.id,
+          width = it.width?.takeIf { w -> w in ALLOWED_WIDTHS },
+          height = it.height?.takeIf { h -> h in ALLOWED_HEIGHTS },
+          hidden = it.hidden == true,
+        )
+      }
+    return DashboardLayout(tiles.toMutableList())
+  }
+
   /** Falls back to [DEFAULT_THEME] for anything the client shouldn't be sending, so a bad value can't be stored. */
   private fun normalize(theme: String?): String {
     return theme?.takeIf { it in ALLOWED_THEMES } ?: DEFAULT_THEME
@@ -70,8 +112,33 @@ class UISettingsRest {
     const val PREF_NAME_THEME = "theme"
     const val DEFAULT_THEME = "system"
     val ALLOWED_THEMES = setOf("light", "dark", "system")
+
+    const val MAX_TILES = 50
+    val ALLOWED_WIDTHS = setOf("third", "half", "twoThirds", "full")
+    val ALLOWED_HEIGHTS = setOf("S", "M", "L")
+    private val ID_REGEX = Regex("[a-zA-Z0-9._-]{1,64}")
+
+    internal fun isValidId(id: String?): Boolean = id != null && ID_REGEX.matches(id)
+
+    internal fun dashboardPrefName(id: String) = "dashboard.$id"
   }
 }
 
 /** Serializable value stored in the user's preferences; a class (not a bare String) so it can grow without a migration. */
 class UIThemeSettings(var theme: String? = null)
+
+/**
+ * The user's arrangement of a chart dashboard: its tiles in display order. Tiles the client defines but the
+ * layout doesn't list are shown with their defaults, listed ids the client no longer knows are ignored.
+ */
+class DashboardLayout(var tiles: MutableList<DashboardTileLayout> = mutableListOf())
+
+/** One tile of a [DashboardLayout]; `null` width/height mean the tile's default size. */
+class DashboardTileLayout(
+  var id: String? = null,
+  /** One of [UISettingsRest.ALLOWED_WIDTHS]. */
+  var width: String? = null,
+  /** One of [UISettingsRest.ALLOWED_HEIGHTS]. */
+  var height: String? = null,
+  var hidden: Boolean? = null,
+)

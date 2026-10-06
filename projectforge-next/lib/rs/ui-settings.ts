@@ -34,3 +34,46 @@ export function saveThemeSetting(
     signal
   );
 }
+
+/** Width of a dashboard tile in the 12-column grid: 4, 6, 8 or 12 columns (always full width below `lg`). */
+export type DashboardTileWidth = "third" | "half" | "twoThirds" | "full";
+/** Height step of a dashboard tile's chart. */
+export type DashboardTileHeight = "S" | "M" | "L";
+
+/** One tile of a stored dashboard layout; unset width/height mean the tile's default. */
+export interface DashboardTileLayout {
+  id: string;
+  width?: DashboardTileWidth | null;
+  height?: DashboardTileHeight | null;
+  hidden?: boolean | null;
+}
+
+/** The user's arrangement of a chart dashboard, tiles in display order; empty = defaults. */
+export interface DashboardLayout {
+  tiles: DashboardTileLayout[];
+}
+
+/** The stored layout of the chart dashboard `id` (`GET dashboard/{id}`), empty if never arranged. */
+export function fetchDashboardLayout(
+  id: string,
+  signal?: AbortSignal
+): Promise<DashboardLayout> {
+  return request<DashboardLayout>(
+    `${BASE}/dashboard/${encodeURIComponent(id)}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** Persists the layout of dashboard `id` (`POST dashboard/{id}`); an empty layout resets it. */
+export function saveDashboardLayout(
+  id: string,
+  layout: DashboardLayout,
+  signal?: AbortSignal
+): Promise<DashboardLayout> {
+  return request<DashboardLayout>(
+    `${BASE}/dashboard/${encodeURIComponent(id)}`,
+    { method: "POST", body: JSON.stringify(layout) },
+    signal
+  );
+}
