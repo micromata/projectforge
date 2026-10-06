@@ -119,9 +119,10 @@ export const ORDER_PAGE = definePage<
       minSize: 180,
       className: "font-semibold text-primary",
       pinned: "left",
-      cell: ({ row }) => (
+      cell: ({ row, table }) => (
         <JiraLinkedText
           text={row.original.titel}
+          highlight={table.options.meta?.highlight}
           className="font-semibold text-primary"
         />
       ),
@@ -210,7 +211,12 @@ export const ORDER_PAGE = definePage<
     {
       name: "referenz",
       size: 120,
-      cell: ({ row }) => <JiraLinkedText text={row.original.referenz} />,
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.referenz}
+          highlight={table.options.meta?.highlight}
+        />
+      ),
     },
     attachmentsColumn<OrderListRow>(),
     // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").

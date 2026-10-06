@@ -129,7 +129,12 @@ export const HR_PLANNING_LIST_PAGE = defineListPage<
       size: 360,
       wrap: true,
       // JIRA issue keys become links, as in the legacy list.
-      cell: ({ row }) => <JiraLinkedText text={row.original.description} />,
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.description}
+          highlight={table.options.meta?.highlight}
+        />
+      ),
     },
   ],
   // The sum of the planned hours over the rows of the filter, above the table.
