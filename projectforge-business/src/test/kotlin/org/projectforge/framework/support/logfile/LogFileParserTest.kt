@@ -56,7 +56,7 @@ class LogFileParserTest {
             Assertions.assertEquals("@", it.user)
             Assertions.assertEquals("While sending message", it.message)
             Assertions.assertTrue(it.stackTrace!!.startsWith("org.eclipse.angus.mail.util.MailConnectException: Couldn't"))
-            Assertions.assertTrue(it.stackTrace!!.endsWith("... 15 common frames omitted"))
+            Assertions.assertTrue(it.stackTrace.endsWith("... 15 common frames omitted"))
             Assertions.assertEquals(1, it.line)
             Assertions.assertEquals(Instant.parse("2026-10-05T02:47:46.946Z").toEpochMilli(), it.timestampMillis)
         }

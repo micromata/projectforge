@@ -144,7 +144,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         }
         data.stayLoggedInDevices = describeStayLoggedInDevices(userId)
         data.groups = groupService.getGroupnames(userId)
-        data.locale = ThreadLocalUserContext.locale ?: Locale("DEFAULT")
+        data.locale = ThreadLocalUserContext.locale
         data.dateFormat = user.dateFormat
         data.excelDateFormat = user.excelDateFormat
         data.timeNotation = user.timeNotation

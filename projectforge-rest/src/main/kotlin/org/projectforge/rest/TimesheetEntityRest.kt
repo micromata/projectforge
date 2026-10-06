@@ -606,7 +606,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                     }
                 }
                 maxStopDate?.let {
-                    startTime = PFDateTime.from(maxStopDate!!)
+                    startTime = PFDateTime.from(maxStopDate)
                     stopTime = startTime
                 }
             }

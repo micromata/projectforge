@@ -391,11 +391,11 @@ open class AuthentikAdminClient(
         val previous: Int? = null,
         val count: Int = 0,
         val current: Int = 1,
-        @com.fasterxml.jackson.annotation.JsonProperty("total_pages")
+        @param:com.fasterxml.jackson.annotation.JsonProperty("total_pages")
         val totalPages: Int = 1,
-        @com.fasterxml.jackson.annotation.JsonProperty("start_index")
+        @param:com.fasterxml.jackson.annotation.JsonProperty("start_index")
         val startIndex: Int = 1,
-        @com.fasterxml.jackson.annotation.JsonProperty("end_index")
+        @param:com.fasterxml.jackson.annotation.JsonProperty("end_index")
         val endIndex: Int = 0,
     )
 }

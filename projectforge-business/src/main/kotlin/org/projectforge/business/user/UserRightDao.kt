@@ -110,7 +110,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         }
                     }
                 } else {
-                    rightDO!!.let {
+                    rightDO.let {
                         copy(it, rightVO)
                         val rightId = userRightService.getRightId(it.rightIdString)
                         val right = userRightService.getRight(rightId)

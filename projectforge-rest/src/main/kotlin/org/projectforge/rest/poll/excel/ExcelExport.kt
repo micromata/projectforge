@@ -195,7 +195,7 @@ class ExcelExport {
 
                     when (question.type) {
                         BaseType.PollTextQuestion -> {
-                            if (choices?.answers?.isNotEmpty() == true) {
+                            if (choices.answers?.isNotEmpty() == true) {
                                 excelRow.getCell(cell).setCellValue(choices.answers?.get(0).toString())
                                 if (countLines(answer) > countLines(largestAnswer)) {
                                     largestAnswer = answer
@@ -205,7 +205,7 @@ class ExcelExport {
                         }
 
                         BaseType.PollSingleResponseQuestion, BaseType.PollMultiResponseQuestion -> {
-                            if (choices?.answers?.get(ind).toString() == "true") {
+                            if (choices.answers?.get(ind).toString() == "true") {
                                 excelRow.getCell(cell).setCellValue("X")
                             }
                             cell++;

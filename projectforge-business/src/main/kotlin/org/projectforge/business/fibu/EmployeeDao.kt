@@ -85,9 +85,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         userId ?: return null
         return persistenceService.selectNamedSingleResult(
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("userId", userId),
-        )?.toLong()
+        )
     }
 
 

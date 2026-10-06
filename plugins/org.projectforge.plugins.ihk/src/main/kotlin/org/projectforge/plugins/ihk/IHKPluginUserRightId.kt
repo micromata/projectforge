@@ -51,7 +51,7 @@ enum class IHKPluginUserRightId
     }
 
     override fun toString(): String {
-        return id.toString()
+        return id
     }
 
     override fun compareTo(o: IUserRightId?): Int {

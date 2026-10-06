@@ -102,12 +102,12 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
 
     companion object {
         private val numberTypes = listOf(
-            java.lang.Integer::class.java,
+            Int::class.javaObjectType,
             Int::class.java,
             Long::class.java,
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Short::class.java,
-            java.lang.Short::class.java,
+            Short::class.javaObjectType,
         )
     }
 }

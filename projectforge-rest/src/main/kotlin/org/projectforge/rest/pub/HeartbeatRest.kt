@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(Rest.PUBLIC_URL)
 class HeartbeatRest(
     private val systemStatus: SystemStatus,
-    @Value("\${projectforge.gateway.enabled:false}") private val gatewayMode: Boolean,
+    @param:Value("\${projectforge.gateway.enabled:false}") private val gatewayMode: Boolean,
 ) {
     data class Heartbeat(
         /** [STATUS_UP] or [STATUS_STARTING]. */

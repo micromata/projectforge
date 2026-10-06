@@ -66,7 +66,7 @@ class GroovyEngine @JvmOverloads constructor(
   )
       : this(configurationService, mutableMapOf(), locale, timeZone)
 
-  private val locale = locale ?: ThreadLocalUserContext.locale!!
+  private val locale = locale ?: ThreadLocalUserContext.locale
   private val timeZone = timeZone ?: Configuration.instance.defaultTimeZone
   private val htmlFormat = true
   private val groovyExecutor = GroovyExecutor()

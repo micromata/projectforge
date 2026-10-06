@@ -54,7 +54,7 @@ public class RecentQueueTest {
     checkQueue(queue, 0, 1, 2, 3);
     queue.append(3);
     checkQueue(queue, 3, 0, 1, 2);
-    assertEquals(new Integer(3), queue.get(null));
+    assertEquals(Integer.valueOf(3), queue.get(null));
     assertNull(queue.get(5));
     assertNull(queue.get(-1));
   }

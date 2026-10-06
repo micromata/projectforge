@@ -113,7 +113,7 @@ class ImportFieldSettings(
         sb.append("|:${DateFormats.getFormatString(DateFormatType.DATE_SHORT)}")
       } else if (type == BigDecimal::class.java) {
         sb.append("|:#,##0.0#|:#0.0#")
-      } else if (type == Integer::class.java || type == Int::class.java || type == Short::class.java) {
+      } else if (type == Int::class.javaObjectType || type == Int::class.java || type == Short::class.java) {
         sb.append("|:#,##0|:#0")
       }
 

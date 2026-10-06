@@ -286,8 +286,8 @@ open class ContributionMarginService {
   open fun bookingImportEnd(): LocalDate? {
     val period = persistenceService.selectSingleResult(
       "select max(t.year * 100 + t.month) from BuchungssatzDO t where t.deleted = false",
-      Integer::class.java,
-    )?.toInt() ?: return null
+      Int::class.javaObjectType,
+    ) ?: return null
     return YearMonth.of(period / 100, period % 100).atEndOfMonth()
   }
 

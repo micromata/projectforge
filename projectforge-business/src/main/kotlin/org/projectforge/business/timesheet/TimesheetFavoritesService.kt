@@ -142,7 +142,7 @@ class TimesheetFavoritesService {
         LEGACY_SHARED_AREA,
         Favorites.PREF_NAME_LIST,
         Favorites::class.java
-      ) as? Favorites<*>
+      )
     } catch (ex: Exception) {
       log.error("Exception while reading legacy shared timesheet favorites: ${ex.message}. Ignoring.")
       null

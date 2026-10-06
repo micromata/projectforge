@@ -91,7 +91,7 @@ class ExtractPFTradingPartners {
   }
 
   fun extractTradingPartnersAsExcel(dvelopTradingPartners: List<TradingPartner>): ByteArray {
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       createTradingPartnersSheet(workbook, "D.velop TradingPartners", dvelopTradingPartners)
       createTradingPartnersSheet(workbook, "ProjectForge TradingPartners", extractTradingPartners())
       return workbook.asByteArrayOutputStream.toByteArray()

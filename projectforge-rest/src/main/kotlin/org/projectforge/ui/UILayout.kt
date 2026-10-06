@@ -181,8 +181,8 @@ class UILayout(
     return this
   }
 
-  override fun add(element: UIElement): UILayout {
-    layout.add(element)
+  override fun add(el: UIElement): UILayout {
+    layout.add(el)
     return this
   }
 

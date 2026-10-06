@@ -62,7 +62,7 @@ object JsonUtils {
         objectMapper.registerModule(module)
         objectMapperIgnoreNullableProps.registerModule(module)
         objectMapperIgnoreNullableProps.registerModule(Hibernate7Module())
-        objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        objectMapperIgnoreNullableProps.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
         objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 

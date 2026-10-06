@@ -79,7 +79,6 @@ internal open class RepoConfig {
                 .driverClassName(dataSourceDriver)
                 .type(HikariDataSource::class.java)
                 .build().also {
-                    it as HikariDataSource
                     it.minimumIdle = dataSourceMinimumIdle
                     it.maximumPoolSize = dataSourceMaximumPoolSize
                     it.connectionTimeout = dataSourceConnectionTimeout // in milliseconds (optional)

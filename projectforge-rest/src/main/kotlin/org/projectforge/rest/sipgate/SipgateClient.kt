@@ -151,7 +151,7 @@ class SipgateClient {
           if (debugConsoleOutForTesting) {
             println("Success")
           }
-          return@exchangeToMono response.bodyToMono(expectedReturnClass) as Mono<T>
+          return@exchangeToMono response.bodyToMono(expectedReturnClass)
         } else {
           log.error { "Error while calling $headersSpec." }
           if (debugConsoleOutForTesting) {

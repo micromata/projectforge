@@ -223,7 +223,7 @@ object GenerateNextI18nMessagesMain {
     if (path.isNotEmpty()) {
       keys.add(path)
     }
-    node.fields().forEach { (name, child) ->
+    node.properties().forEach { (name, child) ->
       val childPath = if (path.isEmpty()) name else "$path.$name"
       if (child.isObject) {
         collectKeys(child, childPath, keys)

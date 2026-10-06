@@ -110,9 +110,6 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
             EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
                 layout.add(UIInput("value", dataType = UIDataType.INT, label = "fibu.employee.urlaubstage"))
             }
-            else -> {
-                throw IllegalArgumentException("Unknown type: $type")
-            }
         }
         layout.add(lc, "comment")
         if (id < 0) {

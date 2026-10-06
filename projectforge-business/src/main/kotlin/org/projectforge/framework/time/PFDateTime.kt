@@ -805,7 +805,7 @@ open class PFDateTime internal constructor(
         }
 
         internal fun getUsersLocale(): Locale {
-            return ThreadLocalUserContext.locale!!
+            return ThreadLocalUserContext.locale
         }
 
         /**

@@ -57,8 +57,8 @@ open class UICol(
     }
   }
 
-  override fun add(element: UIElement): UICol {
-    content.add(element)
+  override fun add(el: UIElement): UICol {
+    content.add(el)
     return this
   }
 

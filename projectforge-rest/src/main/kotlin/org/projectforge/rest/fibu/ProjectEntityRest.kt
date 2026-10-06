@@ -252,7 +252,7 @@ class ProjectEntityRest
     private fun addKost2ArtCriterion(target: QueryFilter, source: MagicFilter) {
         val entry = source.entries.find { it.field == Kost2FilterUtils.kost2ArtFieldId() } ?: return
         entry.synthetic = true
-        val artIds = entry.value.values?.mapNotNull { it?.toLongOrNull() }.orEmpty()
+        val artIds = entry.value.values?.mapNotNull { it.toLongOrNull() }.orEmpty()
         if (artIds.isEmpty()) {
             return
         }
@@ -269,7 +269,7 @@ class ProjectEntityRest
     private fun addKost2ArtsNotActiveCriterion(target: QueryFilter, source: MagicFilter) {
         val entry = source.entries.find { it.field == KOST2_ARTS_NOT_ACTIVE_FIELD } ?: return
         entry.synthetic = true
-        val artIds = entry.value.values?.mapNotNull { it?.toLongOrNull() }.orEmpty()
+        val artIds = entry.value.values?.mapNotNull { it.toLongOrNull() }.orEmpty()
         if (artIds.isEmpty()) {
             return
         }

@@ -51,7 +51,7 @@ private val log = KotlinLogging.logger {}
 @Service
 open class LibreOfficeService(
     private val configurationService: ConfigurationService,
-    @Value("\${projectforge.libreoffice.path:}") private val configuredPath: String?,
+    @param:Value("\${projectforge.libreoffice.path:}") private val configuredPath: String?,
 ) {
     private val lock = ReentrantLock()
 

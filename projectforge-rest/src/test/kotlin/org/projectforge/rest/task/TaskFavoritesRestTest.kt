@@ -45,6 +45,6 @@ class TaskFavoritesRestTest : AbstractTestBase() {
         val updated = taskFavoritesRest.updatePost(created.id!!, taskB.id!!).single { it.id == created.id }
         assertEquals("fav", updated.name)
         assertEquals(taskB.id, updated.taskId)
-        assertEquals(taskB.id, taskFavoritesRest.selectPost(created.id!!))
+        assertEquals(taskB.id, taskFavoritesRest.selectPost(created.id))
     }
 }

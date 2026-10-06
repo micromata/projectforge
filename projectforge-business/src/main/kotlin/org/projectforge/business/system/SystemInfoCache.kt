@@ -64,12 +64,12 @@ class SystemInfoCache : AbstractCache() {
     }
 
     override fun refresh() {
-        log.info("Refreshing SystemInfoCache...")
+        log.info { "Refreshing SystemInfoCache..." }
 
         customerEntriesExists = hasTableEntries(KundeDO::class.java)
         projectEntriesExists = hasTableEntries(ProjektDO::class.java)
         cost2EntriesExists = hasTableEntries(Kost2DO::class.java)
-        log.info("Refreshing SystemInfoCache done.")
+        log.info { "Refreshing SystemInfoCache done." }
     }
 
     private fun hasTableEntries(entity: Class<*>): Boolean {

@@ -396,48 +396,48 @@ class AddressImportDTO(
         this.uid = src.uid
     }
 
-    override fun copyTo(obj: AddressDO) {
-        if (this.id != null) obj.id = this.id
-        obj.name = this.name
-        obj.firstName = this.firstName
-        obj.organization = this.organization
-        obj.division = this.division
-        obj.positionText = this.positionText
-        obj.title = this.title
-        obj.form = this.form
-        obj.birthName = this.birthName
-        obj.birthday = this.birthday
-        obj.email = this.email
-        obj.businessPhone = this.businessPhone
-        obj.mobilePhone = this.mobilePhone
-        obj.fax = this.fax
-        obj.privateEmail = this.privateEmail
-        obj.privatePhone = this.privatePhone
-        obj.privateMobilePhone = this.privateMobilePhone
-        obj.addressText = this.addressText
-        obj.addressText2 = this.addressText2
-        obj.zipCode = this.zipCode
-        obj.city = this.city
-        obj.country = this.country
-        obj.state = this.state
-        obj.privateAddressText = this.privateAddressText
-        obj.privateAddressText2 = this.privateAddressText2
-        obj.privateZipCode = this.privateZipCode
-        obj.privateCity = this.privateCity
-        obj.privateCountry = this.privateCountry
-        obj.privateState = this.privateState
-        obj.postalAddressText = this.postalAddressText
-        obj.postalAddressText2 = this.postalAddressText2
-        obj.postalZipCode = this.postalZipCode
-        obj.postalCity = this.postalCity
-        obj.postalCountry = this.postalCountry
-        obj.postalState = this.postalState
-        obj.website = this.website
-        obj.communicationLanguage = this.communicationLanguage
-        obj.fingerprint = this.fingerprint
-        obj.publicKey = this.publicKey
-        obj.comment = this.comment
-        obj.uid = this.uid
+    override fun copyTo(dest: AddressDO) {
+        if (this.id != null) dest.id = this.id
+        dest.name = this.name
+        dest.firstName = this.firstName
+        dest.organization = this.organization
+        dest.division = this.division
+        dest.positionText = this.positionText
+        dest.title = this.title
+        dest.form = this.form
+        dest.birthName = this.birthName
+        dest.birthday = this.birthday
+        dest.email = this.email
+        dest.businessPhone = this.businessPhone
+        dest.mobilePhone = this.mobilePhone
+        dest.fax = this.fax
+        dest.privateEmail = this.privateEmail
+        dest.privatePhone = this.privatePhone
+        dest.privateMobilePhone = this.privateMobilePhone
+        dest.addressText = this.addressText
+        dest.addressText2 = this.addressText2
+        dest.zipCode = this.zipCode
+        dest.city = this.city
+        dest.country = this.country
+        dest.state = this.state
+        dest.privateAddressText = this.privateAddressText
+        dest.privateAddressText2 = this.privateAddressText2
+        dest.privateZipCode = this.privateZipCode
+        dest.privateCity = this.privateCity
+        dest.privateCountry = this.privateCountry
+        dest.privateState = this.privateState
+        dest.postalAddressText = this.postalAddressText
+        dest.postalAddressText2 = this.postalAddressText2
+        dest.postalZipCode = this.postalZipCode
+        dest.postalCity = this.postalCity
+        dest.postalCountry = this.postalCountry
+        dest.postalState = this.postalState
+        dest.website = this.website
+        dest.communicationLanguage = this.communicationLanguage
+        dest.fingerprint = this.fingerprint
+        dest.publicKey = this.publicKey
+        dest.comment = this.comment
+        dest.uid = this.uid
     }
 
     override fun buildOldDiffValues(map: MutableMap<String, Any>, old: AddressImportDTO) {

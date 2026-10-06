@@ -77,7 +77,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         throwException: Boolean
     ): Boolean {
         require(obj?.user != null) { "UserAuthenticationsDO must have a user." }
-        return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
+        return hasLoggedInUserAccess(obj.user!!.id, throwException)
     }
 
     private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {

@@ -374,7 +374,7 @@ class GatewaySyncPushService(
                     holidaysIcsData = exportIcs(userId, holidaysQ, HOLIDAYS_PARAMS)
                 }
                 val holidaysAdded = holidaysQ != null && holidaysIcsData != null &&
-                        addIfChanged(userId, HOLIDAYS_PARAMS, holidaysQ, holidaysIcsData!!, icsEntries)
+                        addIfChanged(userId, HOLIDAYS_PARAMS, holidaysQ, holidaysIcsData, icsEntries)
                 if (!holidaysAdded) skippedUnchanged++
 
             } catch (e: Exception) {

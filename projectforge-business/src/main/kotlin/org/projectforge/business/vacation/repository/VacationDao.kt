@@ -452,7 +452,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             "SELECT COUNT(*) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status AND v.deleted = false"
         return persistenceService.selectSingleResult(
             sql,
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("employee", employee),
             Pair("status", VacationStatus.IN_PROGRESS),
             nullAllowed = false,
