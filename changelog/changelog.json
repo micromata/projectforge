@@ -58,6 +58,34 @@
   ],
   "releases": [
     {
+      "id": "9-0-1",
+      "version": "9.0.1",
+      "date": "2026-10-06",
+      "title": "ProjectForge 9.0.1 released",
+      "tag": "9.0.1-RELEASE",
+      "published": false,
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.",
+            "The status of projects can be changed in the mass update.",
+            "The gateway's ICS push generates each team calendar only once per run."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "The gateway's ICS push delivered only the first calendar of each user.",
+            "A subsystem tile of the problem dashboard counts only open problems, like the list behind it.",
+            "Long file names and values no longer push tables beyond the mail card.",
+            "The nightly re-index of the search no longer fails on tables of non-active plugins.",
+            "No more needless error log entries when saving orders."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-0",
       "version": "9.0.0",
       "date": "2026-10-06",

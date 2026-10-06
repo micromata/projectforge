@@ -47,6 +47,29 @@
     }
   },
   "releases": {
+    "9-0-1": {
+      "title": "ProjectForge 9.0.1 veröffentlicht",
+      "sections": [
+        {
+          "type": "improved",
+          "items": [
+            "Problem-Dashboard und Fehler-Sammelmail: Probleme statt Vorkommen als führende Kennzahl, damit ein häufiges Problem nicht mehr alle anderen verdeckt; Zahlen mit Tausendertrennzeichen.",
+            "Der Status von Projekten ist in der Massenänderung änderbar.",
+            "Der ICS-Push des Gateways erzeugt jeden Teamkalender nur noch einmal pro Lauf."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Der ICS-Push des Gateways lieferte pro Benutzer nur den ersten Kalender.",
+            "Eine Subsystem-Kachel des Problem-Dashboards zählt nur offene Probleme, wie die Liste dahinter.",
+            "Lange Dateinamen und Werte schieben Tabellen nicht mehr über die Mail-Karte hinaus.",
+            "Die nächtliche Neuindizierung der Suche scheitert nicht mehr an Tabellen nicht aktiver Plugins.",
+            "Keine unnötigen Fehlereinträge mehr im Log beim Speichern von Aufträgen."
+          ]
+        }
+      ]
+    },
     "9-0-0": {
       "title": "ProjectForge 9.0.0 veröffentlicht",
       "intro": [
