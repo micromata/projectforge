@@ -10,6 +10,10 @@ import {
   moneyColumn,
   textColumn,
 } from "../statistics/statistics-table-columns";
+import {
+  OrderForecastButton,
+  type ForecastOrderRef,
+} from "../forecast/order-forecast-dialog";
 import { StatisticsTable } from "../statistics/statistics-table";
 import { useStatisticsLabels } from "../statistics/use-statistics-labels";
 
@@ -17,9 +21,16 @@ type Row = ForecastInvoiceRow;
 
 /**
  * The invoice positions of one of the invoice sheets (Rechnungen, Rechnungen Vorjahr, Rechnungen
- * Vorvorjahr), already reduced to the projects of the forecast.
+ * Vorvorjahr), already reduced to the projects of the forecast. The icon behind an order opens its forecast
+ * analysis (`onOpenForecast`).
  */
-export function ForecastInvoiceTable({ rows }: { rows: Row[] }) {
+export function ForecastInvoiceTable({
+  rows,
+  onOpenForecast,
+}: {
+  rows: Row[];
+  onOpenForecast?: (order: ForecastOrderRef) => void;
+}) {
   const t = useStatisticsLabels();
   const ctx = useFormatContext();
   const columns = useMemo<ColumnDef<Row, unknown>[]>(
@@ -55,11 +66,19 @@ export function ForecastInvoiceTable({ rows }: { rows: Row[] }) {
         t.order,
         (row) => row.order,
         (row) => (row.orderId != null ? `/order/${row.orderId}` : null),
-        90
+        110,
+        (row) =>
+          onOpenForecast && row.orderId != null && row.order ? (
+            <OrderForecastButton
+              order={{ id: row.orderId, label: row.order.split(".")[0] }}
+              label={t.forecastDetails}
+              onOpen={onOpenForecast}
+            />
+          ) : null
       ),
       moneyColumn<Row>("netSum", t.net, (row) => row.netSum, ctx),
     ],
-    [t, ctx]
+    [t, ctx, onOpenForecast]
   );
   return (
     <StatisticsTable<Row>

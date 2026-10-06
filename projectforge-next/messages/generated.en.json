@@ -899,6 +899,7 @@
         },
         "tables": {
           "bookedDate": "Booked on",
+          "forecastDetails": "Show the forecast analysis of the order",
           "heading": "Underlying data",
           "invoicesPrevPrevYear": "Invoices year before previous year",
           "invoicesPrevYear": "Invoices previous year",

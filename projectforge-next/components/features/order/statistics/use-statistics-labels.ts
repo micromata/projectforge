@@ -63,6 +63,7 @@ export function useStatisticsLabels() {
       toBeInvoicedSum: t("fibu.auftrag.statistics.tables.toBeInvoicedSum"),
       bookedDate: t("fibu.auftrag.statistics.tables.bookedDate"),
       warning: t("fibu.auftrag.statistics.tables.warning"),
+      forecastDetails: t("fibu.auftrag.statistics.tables.forecastDetails"),
       preliminaryLegend: t("fibu.auftrag.statistics.tables.preliminaryLegend"),
     }),
     [t]

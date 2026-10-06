@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   formatCurrency,
@@ -152,13 +153,17 @@ export function dateColumn<T>(
   };
 }
 
-/** A text linking to `href` of the row (e.g. the order or invoice); plain text without one. */
+/**
+ * A text linking to `href` of the row (e.g. the order or invoice); plain text without one. An `action`
+ * (e.g. an icon button opening details) stands at the right edge of the cell.
+ */
 export function linkColumn<T>(
   id: string,
   label: string,
   value: (row: T) => string | number | null | undefined,
   href: (row: T) => string | null,
-  size = 90
+  size = 90,
+  action?: (row: T) => ReactNode
 ): Col<T> {
   return {
     id,
@@ -170,12 +175,21 @@ export function linkColumn<T>(
       const text = value(row.original);
       const target = href(row.original);
       if (text == null || text === "") return null;
-      return target ? (
+      const content = target ? (
         <Link href={target} className="hover:underline">
           {text}
         </Link>
       ) : (
         text
+      );
+      const extra = action?.(row.original);
+      return extra ? (
+        <span className="flex w-full items-center justify-between gap-1">
+          {content}
+          {extra}
+        </span>
+      ) : (
+        content
       );
     },
   };

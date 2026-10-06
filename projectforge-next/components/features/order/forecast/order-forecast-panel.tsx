@@ -29,7 +29,14 @@ import { ORDER_ENTITY } from "../order.page";
  * forecast to keep in step with `ForecastExport`. The source is the same server that serves this page,
  * over an authenticated call.
  */
-export function OrderForecastPanel({ id }: { id: number }) {
+export function OrderForecastPanel({
+  id,
+  savedOnlyHint = true,
+}: {
+  id: number;
+  /** The hint that the saved order is analyzed; of use beside the edit form only, not in a dialog. */
+  savedOnlyHint?: boolean;
+}) {
   const t = useTranslations();
 
   // The JSON export is gated by `SystemStatus.isDevelopmentMode()` on the backend; the same flag rides
@@ -49,9 +56,11 @@ export function OrderForecastPanel({ id }: { id: number }) {
   return (
     <>
       {/* The analysis is computed over the saved order, see above — so say so where it is read. */}
-      <p className="mb-3 text-sm text-muted-foreground">
-        {t("order.forecast.savedOnlyHint")}
-      </p>
+      {savedOnlyHint && (
+        <p className="mb-3 text-sm text-muted-foreground">
+          {t("order.forecast.savedOnlyHint")}
+        </p>
+      )}
       {/* The JSON export exists in development mode only (see above), so the button is shown there
           alone rather than answering a 404 on a productive system. */}
       {systemStatus?.developmentMode && (

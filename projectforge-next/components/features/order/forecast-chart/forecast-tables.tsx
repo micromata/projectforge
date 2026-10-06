@@ -10,6 +10,10 @@ import {
   type ForecastInvoiceKind,
 } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
+import {
+  OrderForecastDialog,
+  type ForecastOrderRef,
+} from "../forecast/order-forecast-dialog";
 import { StatisticsTableTabs } from "../statistics/statistics-table-tabs";
 import { ForecastInvoiceTable } from "./forecast-invoice-table";
 import { ForecastPositionTable } from "./forecast-position-table";
@@ -21,7 +25,8 @@ import { useStatisticsLabels } from "../statistics/use-statistics-labels";
  * charts of the same filter and dates are there (`enabled`): the backend has cached that calculation by
  * then, so the tables come without running the forecast a second time.
  *
- * A click on a row of the project overview opens the positions at the project's first one.
+ * A click on a row of the project overview opens the positions at the project's first one. The icon behind
+ * an order number of the positions and invoices opens the forecast analysis of that order in a dialog.
  */
 export function ForecastTables({
   filter,
@@ -39,6 +44,9 @@ export function ForecastTables({
   const [tab, setTab] = useState("projects");
   /** The project the positions were opened for from the overview; cleared by any other tab change. */
   const [focusProjectId, setFocusProjectId] = useState<number | null>(null);
+  const [forecastOrder, setForecastOrder] = useState<ForecastOrderRef | null>(
+    null
+  );
   const query = useQuery({
     queryKey: ["order", "forecastChart", "tables", filterKey, params],
     queryFn: ({ signal }) => fetchForecastTables(filter, params, signal),
@@ -105,6 +113,7 @@ export function ForecastTables({
               <ForecastPositionTable
                 tables={tables}
                 focusProjectId={focusProjectId}
+                onOpenForecast={setForecastOrder}
               />
             ),
           },
@@ -112,21 +121,40 @@ export function ForecastTables({
             value: "invoices",
             label: t.invoices,
             count: ist.length,
-            content: <ForecastInvoiceTable rows={ist} />,
+            content: (
+              <ForecastInvoiceTable
+                rows={ist}
+                onOpenForecast={setForecastOrder}
+              />
+            ),
           },
           {
             value: "invoicesPrevYear",
             label: t.invoicesPrevYear,
             count: prevYear.length,
-            content: <ForecastInvoiceTable rows={prevYear} />,
+            content: (
+              <ForecastInvoiceTable
+                rows={prevYear}
+                onOpenForecast={setForecastOrder}
+              />
+            ),
           },
           {
             value: "invoicesPrevPrevYear",
             label: t.invoicesPrevPrevYear,
             count: prevPrevYear.length,
-            content: <ForecastInvoiceTable rows={prevPrevYear} />,
+            content: (
+              <ForecastInvoiceTable
+                rows={prevPrevYear}
+                onOpenForecast={setForecastOrder}
+              />
+            ),
           },
         ]}
+      />
+      <OrderForecastDialog
+        order={forecastOrder}
+        onClose={() => setForecastOrder(null)}
       />
     </section>
   );
