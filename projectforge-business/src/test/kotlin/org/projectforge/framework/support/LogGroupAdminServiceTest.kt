@@ -169,7 +169,7 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertEquals(2L, problem.totalCount)
         Assertions.assertEquals(30, problem.daily30!!.size)
         Assertions.assertEquals(2, problem.daily30!!.sum())
-        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/adminErrors?id=${problem.id}"))
+        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/problemDashboard?id=${problem.id}"))
 
         val json = export.toJson()
         val tree = ObjectMapper().readTree(json)

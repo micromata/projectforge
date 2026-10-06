@@ -84,7 +84,7 @@ class ErrorDigestMailTest : AbstractTestBase() {
         data.problemId = 42
         bug.novelty = DigestNovelty.SPIKE
         bug.hourlyMean = 0.25
-        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/adminErrors")
+        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/problemDashboard")
         Assertions.assertEquals(
             "Error digest https://pf.example.org: 2 problems, 1 external failures (1 new, 1 spikes)",
             renderer.subject(snapshot, emptyList()),
@@ -98,7 +98,7 @@ class ErrorDigestMailTest : AbstractTestBase() {
         val spikes = html.indexOf("Spikes:")
         val known = html.indexOf(LogCategory.EXTERNAL.title)
         Assertions.assertTrue(newSection in 0 until spikes && spikes < known, html)
-        Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/adminErrors?id=42\""), html)
+        Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/problemDashboard?id=42\""), html)
         Assertions.assertTrue(html.contains("usually 0.3 per hour"), html)
         Assertions.assertTrue(html.contains("ignored or muted problems"), html)
         Assertions.assertTrue(html.contains("13 occurrences"), "The occurrences below the problems: $html")
@@ -106,7 +106,7 @@ class ErrorDigestMailTest : AbstractTestBase() {
         Assertions.assertEquals(DigestNovelty.KNOWN, external.novelty)
         val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
         Assertions.assertTrue(body.indexOf("== New problems (1) ==") < body.indexOf("== ${LogCategory.EXTERNAL.title} (1) =="), body)
-        Assertions.assertTrue(body.contains("category: ${LogCategory.DATA.title}") && body.contains("adminErrors?id=42"), body)
+        Assertions.assertTrue(body.contains("category: ${LogCategory.DATA.title}") && body.contains("problemDashboard?id=42"), body)
         Assertions.assertTrue(body.contains("2 ignored or muted problems not listed"), body)
     }
 

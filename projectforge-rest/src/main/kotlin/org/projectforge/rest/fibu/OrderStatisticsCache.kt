@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The results of the forecast and contribution margin calculations of the order statistics page
- * (`/next/orderStatistics`), so switching between the tabs, favorites and back again doesn't recalculate
+ * (`/next/finance/statistics`), so switching between the tabs, favorites and back again doesn't recalculate
  * everything. The charts and the tables below them are served from the same entry, so they are calculated once.
  *
  * The user is part of the key, as the orders found depend on the user's rights: no user ever gets a result

@@ -61,7 +61,7 @@ class ProjectForge2FAInitializationTest {
       My2FAShortCut.INTERNAL_TEST3
     ))
 
-    // The error dashboard (next/adminErrors), as a whole:
+    // The error dashboard (next/problemDashboard), as a whole:
     Assertions.assertTrue(my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN)?.contains("/rs/adminErrors;") == true)
 
     // logoutAllDevices is a self service call of /rs/user (a path otherwise registered for ADMIN):

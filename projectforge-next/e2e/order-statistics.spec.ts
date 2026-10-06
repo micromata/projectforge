@@ -8,7 +8,7 @@ import type { OrderStatisticsMeta } from "../lib/rs/order-statistics";
 import type { Page } from "@playwright/test";
 
 /**
- * The order statistics (`/orderStatistics`): forecast and contribution margin over a filter of their own.
+ * The order statistics (`/finance/statistics`): forecast and contribution margin over a filter of their own.
  *
  * What has to hold across the modules: the order book's buttons hand its business units, customers and
  * projects over once (`?fromOrderBook=1`, `OrderStatisticsRest.getMeta`), every other criterion stays
@@ -107,7 +107,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       data: { filter: { entries: [], sortProperties: [] } },
     });
     expect(reset.ok()).toBe(true);
-    await goto(page, "/orderStatistics");
+    await goto(page, "/finance/statistics");
     await expect(
       page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
     ).toBeVisible({ timeout: 60_000 });
@@ -194,7 +194,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       await login(page, "normalo-user");
       const menu = await page.request.get("/rs/menu", { headers: HEADERS });
       expect(JSON.stringify(await menu.json())).not.toContain(
-        "next/orderStatistics"
+        "next/finance/statistics"
       );
       const meta = await page.request.get("/rs/orderStatistics/meta", {
         headers: HEADERS,
@@ -213,7 +213,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       }
 
       const format = await userFormat(page);
-      await goto(page, "/orderStatistics");
+      await goto(page, "/finance/statistics");
       await expect(
         page.getByText(format.t("access.exception.noAccess"))
       ).toBeVisible({ timeout: 60_000 });
