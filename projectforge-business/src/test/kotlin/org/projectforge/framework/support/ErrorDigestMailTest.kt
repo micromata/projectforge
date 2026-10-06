@@ -109,6 +109,23 @@ class ErrorDigestMailTest : AbstractTestBase() {
     }
 
     @Test
+    fun `counts are formatted with thousands separators`() {
+        Assertions.assertEquals("159,098", ErrorDigestRenderer.formatCount(159_098))
+        Assertions.assertEquals("999", ErrorDigestRenderer.formatCount(999))
+        val collector = ErrorDigestCollector()
+        collector.add(occurrence(SupportLogEvents.REQUEST_ERROR, "NPE", "Foo:1", LogLevel.ERROR))
+        val snapshot = collector.drain().let { ErrorDigestCollector.Snapshot(it.groups, 0, suppressed = 1_149_892) }
+        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC)
+        val html = sendMail.renderGroovyTemplate(
+            Mail(), "mail/errorDigestMail.html",
+            renderer.htmlData(snapshot, emptyList(), 0L, 3_600_000L, null), "Error digest", null,
+        )
+        Assertions.assertTrue(html.contains(">1,149,892</span>"), html)
+        val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
+        Assertions.assertTrue(body.contains("1,149,892 occurrences not listed"), body)
+    }
+
+    @Test
     fun `only the most frequent known problems are listed`() {
         val collector = ErrorDigestCollector()
         repeat(ErrorDigestRenderer.MAX_KNOWN_GROUPS + 3) {

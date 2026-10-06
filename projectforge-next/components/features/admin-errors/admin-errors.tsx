@@ -10,6 +10,7 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useFormatContext } from "@/hooks/use-format";
+import { formatNumber } from "@/lib/format";
 import { isAccessDenied } from "@/hooks/use-read-access-guard";
 import {
   fetchAdminErrors,
@@ -97,8 +98,8 @@ export function AdminErrors() {
             {data.total > data.entries.length && (
               <p className="text-sm text-muted-foreground">
                 {t("system.admin.adminErrors.more", {
-                  arg0: data.entries.length,
-                  arg1: data.total,
+                  arg0: formatNumber(data.entries.length, ctx, 0),
+                  arg1: formatNumber(data.total, ctx, 0),
                 })}
               </p>
             )}

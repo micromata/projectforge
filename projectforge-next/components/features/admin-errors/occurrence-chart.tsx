@@ -59,10 +59,11 @@ export function OccurrenceChart({
             tickFormatter={(value) => formatDate(value, ctx)}
           />
           <YAxis
-            width={36}
+            width={64}
             tickLine={false}
             axisLine={false}
             allowDecimals={false}
+            tickFormatter={(value) => formatNumber(value, ctx, 0)}
           />
           <ChartValueTooltip
             config={config}
