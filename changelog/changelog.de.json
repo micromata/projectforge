@@ -55,7 +55,8 @@
           "items": [
             "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.",
             "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme.",
-            "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert."
+            "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert.",
+            "Kalender: mehrere Tage auf einmal buchen, z. B. einen Urlaub oder eine Abwesenheit für Kolleg:innen; Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen, halbe Arbeitstage anteilig gebucht, Vorlagen, zuletzt verwendete Zeitberichte und die Urlaube der gebuchten Person können übernommen werden (Urlaubs-Strukturelement und -Kost2 konfigurierbar über projectforge.timesheet.vacation.taskId/kost2)."
           ]
         },
         {

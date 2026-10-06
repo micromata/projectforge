@@ -3608,6 +3608,29 @@
         "info": "Ersparnis in Stunden durch KI oder in Prozent (Beispiel Prozent: ich habe 9 Stunden gebraucht und hätte ohne KI 10 h gebraucht, dann habe ich 10% gespart):\n\nBeachte: Es kann bei einem Zeitbericht von einer Stunde auch ein Aufwand von vielen Stunden oder Tagen eingespart werden. "
       }
     },
+    "bookDays": {
+      "hoursPerDay": "Stunden pro Tag",
+      "info": "Bucht an jedem Arbeitstag des Zeitraums einen Zeitbericht, z. B. für einen Urlaub. Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen.",
+      "preview": "Vorschau",
+      "previewEmpty": "Bitte einen Zeitraum angeben.",
+      "status": {
+        "book": "wird gebucht",
+        "booked": "bereits gebucht",
+        "holiday": "Feiertag",
+        "partial": "anteilig",
+        "weekend": "Wochenende"
+      },
+      "submit": "Buchen ({arg0})",
+      "success": "Gebuchte Tage: {arg0}",
+      "summary": "Zu buchende Tage: {arg0}, Stunden: {arg1}",
+      "title": "Mehrere Tage buchen",
+      "vacation": "Urlaub übernehmen",
+      "vacationDays": "{arg0} Tag(e)",
+      "vacationDescription": "Urlaub",
+      "vacationHint": "Die Urlaubstage werden auf die Urlaubs-Kost2 gebucht.",
+      "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
+      "vacationPlaceholder": "Urlaub auswählen"
+    },
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
