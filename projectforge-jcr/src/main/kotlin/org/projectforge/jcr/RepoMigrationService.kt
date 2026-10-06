@@ -215,15 +215,15 @@ open class RepoMigrationService {
         val fileObject = FileObject(file.parentNodePath, file.relPath, file.fileObject.fileId, file.fileObject)
         val jcrChecksum = file.fileObject.checksum
         val jcrSize = file.fileObject.size
-        if (jcrSize != null && jcrSize >= LARGE_FILE_SIZE) {
-            val target = if (fileStore.isFileSystemPath(file.parentNodePath)) "file system" else "data base"
-            log.info { "Copying large file (${FormatterUtils.formatBytes(jcrSize)}) from JCR to the $target: $fileObject" }
-        }
         // Already migrated before (checked first, so the JCR content isn't read on every start):
         val existing = fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
         val importResult = if (existing != null) {
             null
         } else {
+            if (jcrSize != null && jcrSize >= LARGE_FILE_SIZE) {
+                val target = if (fileStore.isFileSystemPath(file.parentNodePath)) "file system" else "data base"
+                log.info { "Copying large file (${FormatterUtils.formatBytes(jcrSize)}) from JCR to the $target: $fileObject" }
+            }
             repoService.runInSession { session ->
                 val fileNode = session.getNode(file.fileNodePath)
                 repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
