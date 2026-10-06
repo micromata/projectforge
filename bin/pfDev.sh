@@ -41,7 +41,10 @@ Commands:
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
                    from the changelog, jar attached); asks before each step. The docker
-                   images follow with docker/push-release.sh (see its --help)
+                   images follow with docker/push-release.sh (see its --help). A release
+                   with "published": false in the changelog is only pushed (mini release,
+                   no GitHub release, jar or docker images); its changes go into the
+                   notes of the next published release
   help             Show this help
 
 Slots (1–9) run independent instances side by side, e.g. one per worktree:
@@ -230,6 +233,18 @@ publish() {
   if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
     echo "There is no tag $tag, run pfDev.sh release $version first." >&2
     exit 1
+  fi
+  # A mini release ("published": false) is only pushed, its notes are part of the next published release.
+  local published
+  published="$(node -e '
+    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
+    console.log(release?.published === false ? "false" : "true");
+  ' "$ROOT/changelog/changelog.json" "$version")"
+  if [[ "$published" == false ]]; then
+    confirm "Push $(git branch --show-current) and the tag $tag (unpublished: no GitHub release, jar or docker images)?" || exit 1
+    git push --follow-tags
+    echo "Pushed $tag. Its changes are part of the release notes of the next published release."
+    return
   fi
   for file in "$notes" "$jar"; do
     if [[ ! -f "$file" ]]; then
