@@ -35,8 +35,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.Constants;
-import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.integration.RetryBackoff;
 import org.projectforge.framework.integration.SyncStats;
@@ -47,8 +45,6 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.mail.Mail;
-import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -82,18 +78,15 @@ public class TeamEventExternalSubscriptionCache {
 
     /**
      * If at least this number of subscriptions and more than half of all subscriptions fail for more than a day, the
-     * cause is probably on our side (bug, network): nothing is deactivated, and the administrators are informed.
+     * cause is probably on our side (bug, network): nothing is deactivated, but an error is logged (and reported by
+     * the support error digest).
      */
     static final int MIN_SYSTEMIC_FAILURES = 3;
-
-    private static final int MAX_CALENDARS_IN_MAIL = 20;
 
     /**
      * Result of the update of one subscribed calendar.
      */
     public enum UpdateResult {UPDATED, FAILED, DEACTIVATION_DUE, SKIPPED}
-
-    private Long lastSystemicFailureMail;
 
     private final Map<Long, TeamEventSubscription> subscriptions = new HashMap<>();
 
@@ -125,9 +118,6 @@ public class TeamEventExternalSubscriptionCache {
 
     @Autowired
     private UserGroupCache userGroupCache;
-
-    @Autowired
-    private SendMail sendMail;
 
     // @PostConstruct doesn't work (it will be called to early before TenantRegistryMap is ready).
     private synchronized void init() {
@@ -290,7 +280,7 @@ public class TeamEventExternalSubscriptionCache {
 
     /**
      * Deactivates the candidates, unless most of the subscriptions fail (probably a bug or a network problem on our
-     * side): then nothing is deactivated, and the administrators are informed by mail (at most once a day).
+     * side): then nothing is deactivated, but an error is logged (and reported by the support error digest).
      *
      * @param subscribedCalendars All subscribed calendars.
      * @param candidates          Subscriptions failing for more than {@link #deactivateAfterDays} days.
@@ -316,7 +306,6 @@ public class TeamEventExternalSubscriptionCache {
                     + " subscribed calendars are failing for more than a day. Probably a bug or a network problem,"
                     + " so no subscription is deactivated" + (candidates.isEmpty() ? "." : " (" + candidates.size()
                     + " candidates)."));
-            notifyAdministrators(failingForADay, active.size(), now);
             return 0;
         }
         for (final TeamCalDO calendar : candidates) {
@@ -327,74 +316,6 @@ public class TeamEventExternalSubscriptionCache {
 
     static boolean isSystemicFailure(final int failing, final int total) {
         return failing >= MIN_SYSTEMIC_FAILURES && 2 * failing > total;
-    }
-
-    /**
-     * Mail to the system administrator and feedback addresses (if configured), at most once a day.
-     */
-    private void notifyAdministrators(final List<TeamCalDO> failing, final int total, final long now) {
-        if (lastSystemicFailureMail != null && lastSystemicFailureMail + DAY > now) {
-            return;
-        }
-        lastSystemicFailureMail = now;
-        final Set<String> recipients = getAdministratorRecipients();
-        if (recipients.isEmpty()) {
-            log.warn("No system administrator or feedback e-mail configured, can't inform about failing calendar subscriptions.");
-            return;
-        }
-        try {
-            sendMail.send(createSystemicFailureMail(recipients, failing, total));
-        } catch (final Exception ex) {
-            log.error("Can't send mail about failing calendar subscriptions: " + ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * The configured system administrator and feedback e-mail addresses (several addresses may be separated by
-     * comma, semicolon or blanks).
-     */
-    static Set<String> getAdministratorRecipients() {
-        final Set<String> recipients = new LinkedHashSet<>();
-        for (final ConfigurationParam param : List.of(ConfigurationParam.SYSTEM_ADMIN_E_MAIL,
-                ConfigurationParam.FEEDBACK_E_MAIL)) {
-            final String value = Configuration.getInstance().getStringValue(param);
-            if (StringUtils.isNotBlank(value)) {
-                for (final String address : value.split("[,;\\s]+")) {
-                    if (StringUtils.isNotBlank(address)) {
-                        recipients.add(address.trim());
-                    }
-                }
-            }
-        }
-        return recipients;
-    }
-
-    Mail createSystemicFailureMail(final Set<String> recipients, final List<TeamCalDO> failing, final int total) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(failing.size()).append(" of ").append(total)
-                .append(" subscribed calendars are failing for more than a day.\n")
-                .append("This looks like a bug or a network problem of ProjectForge, so no subscription is deactivated")
-                .append(" automatically. Please check the log (TeamEventSubscription).\n\n");
-        int counter = 0;
-        for (final TeamCalDO calendar : failing) {
-            if (++counter > MAX_CALENDARS_IN_MAIL) {
-                sb.append("...\n");
-                break;
-            }
-            final TeamEventSubscription subscription = subscriptions.get(calendar.getId());
-            sb.append("#").append(calendar.getId())
-                    .append(" (").append(calendar.getExternalSubscriptionUrlAnonymized()).append(")")
-                    .append(", failing since (UTC) ").append(DateHelper.formatAsUTC(calendar.getExternalSubscriptionFailingSince()))
-                    .append(": ").append(subscription != null && subscription.getLastErrorMessage() != null
-                            ? subscription.getLastErrorMessage() : "-")
-                    .append("\n");
-        }
-        final Mail msg = new Mail();
-        recipients.forEach(msg::addTo);
-        msg.setProjectForgeSubject("Subscribed calendars: " + failing.size() + " of " + total + " failing.");
-        msg.setContent(sb.toString());
-        msg.setContentType(Mail.CONTENTTYPE_TEXT);
-        return msg;
     }
 
     private void setFailingSince(final TeamCalDO calendar, final Date failingSince) {

@@ -29,8 +29,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.framework.configuration.ConfigurationDao
-import org.projectforge.framework.configuration.ConfigurationParam
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.Date
 
@@ -40,9 +38,6 @@ class TeamCalSubscriptionDeactivationTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var subscriptionCache: TeamEventExternalSubscriptionCache
-
-    @Autowired
-    private lateinit var configurationDao: ConfigurationDao
 
     @Test
     fun `permanently failing subscription is deactivated`() {
@@ -105,23 +100,8 @@ class TeamCalSubscriptionDeactivationTest : AbstractTestBase() {
         val ago91Days = Date(System.currentTimeMillis() - 91L * 24 * 60 * 60 * 1000)
         ids.forEach { teamCalDao.updateExternalSubscriptionFailingSince(it, ago91Days) }
         val calendars = ids.map { reload(it) }
-        val sysopEntry = configurationDao.getEntry(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)!!
-        try {
-            sysopEntry.stringValue = "sysop@example.org; sysop2@example.org"
-            configurationDao.update(sysopEntry, false)
-            // 3 of 3 failing: probably our bug, so nothing is deactivated, but the admins are informed.
-            assertEquals(0, subscriptionCache.handleFailingSubscriptions(calendars, calendars, System.currentTimeMillis()))
-            val recipients = TeamEventExternalSubscriptionCache.getAdministratorRecipients()
-            assertTrue(recipients.containsAll(listOf("sysop@example.org", "sysop2@example.org")), recipients.toString())
-            val mail = subscriptionCache.createSystemicFailureMail(recipients, calendars, 3)
-            assertEquals(recipients.size, mail.to.size)
-            assertTrue(mail.subject.contains("3 of 3 failing"), mail.subject)
-            ids.forEach { assertTrue(mail.content.contains("#$it ("), mail.content) }
-            assertTrue(mail.content.contains("Connection refused"), mail.content) // Last errors.
-        } finally {
-            sysopEntry.stringValue = null
-            configurationDao.update(sysopEntry, false)
-        }
+        // 3 of 3 failing: probably our bug, so nothing is deactivated (an error is logged for the support digest).
+        assertEquals(0, subscriptionCache.handleFailingSubscriptions(calendars, calendars, System.currentTimeMillis()))
         ids.forEach { assertTrue(reload(it).externalSubscription) }
     }
 
