@@ -207,10 +207,10 @@ release() {
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
   git add -A
   git commit -q -m "release: $version"
-  git tag -a "$tag" -m "ProjectForge $version"
-  # Built from the tagged commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
-  # so no leftovers of earlier builds end up in the release jar.
+  # Built from the release commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
+  # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build.
   if $skip_tests; then "$GRADLEW" -p "$ROOT" clean build -x test; else "$GRADLEW" -p "$ROOT" clean build; fi
+  git tag -a "$tag" -m "ProjectForge $version"
   set_version "$next"
   git commit -q -m "chore: next development version $next" -- gradle.properties
   trap - ERR
