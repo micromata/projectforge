@@ -256,7 +256,7 @@ class LogGroupAdminService {
 
     /**
      * The tiles of the active subsystems ([SubsystemStatusProvider]), ordered by title. Open errors of the last 24
-     * hours degrade a subsystem that is OK by its syncs (or has none, e.g. mail).
+     * hours degrade a subsystem that is OK by its syncs.
      */
     fun subsystems(now: Long = System.currentTimeMillis()): List<SubsystemEntry> {
         val active = subsystemProviders.orderedStream().toList().mapNotNull { provider ->

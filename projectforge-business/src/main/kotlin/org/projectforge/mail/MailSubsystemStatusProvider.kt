@@ -30,7 +30,10 @@ import org.projectforge.framework.integration.SubsystemStatusProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/** Sending of mails, if enabled and a SMTP host is configured. Without a sync: its state is the one of its errors. */
+/**
+ * Sending of mails, if enabled and a SMTP host is configured. Its state is the one of the last mail sent
+ * ([MailSendStats]), unknown before the first one.
+ */
 @Component
 class MailSubsystemStatusProvider : SubsystemStatusProvider {
     @Autowired
@@ -45,6 +48,11 @@ class MailSubsystemStatusProvider : SubsystemStatusProvider {
         locationPrefixes = listOf("SendMail"),
     )
 
-    override fun status(): SubsystemStatus? =
-        if (sendMail.isConfigured) SubsystemStatus(SubsystemState.OK) else null
+    override fun status(): SubsystemStatus? {
+        if (!sendMail.isConfigured) {
+            return null
+        }
+        val sync = sendMail.sendStats.toSync() ?: return SubsystemStatus(SubsystemState.UNKNOWN)
+        return SubsystemStatus(SubsystemStatus.stateOf(sync.lastStatus), syncs = listOf(sync))
+    }
 }

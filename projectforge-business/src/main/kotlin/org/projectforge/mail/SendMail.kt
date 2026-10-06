@@ -196,6 +196,9 @@ open class SendMail {
     return true
   }
 
+  /** The outcome of the mails sent since the start (problem dashboard). */
+  val sendStats = MailSendStats()
+
   val isConfigured: Boolean
     get() = this.mailingEnabled == "true" && !this.mailSmtpHost.isNullOrBlank()
 
@@ -245,6 +248,7 @@ open class SendMail {
     attachments: Collection<IMailAttachment>?
   ) {
     log.info { "Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", ") }
+    val start = System.currentTimeMillis()
     try {
       val message = createMimeMessage(composedMessage, icalContent, attachments)
       if (testMode) {
@@ -253,9 +257,11 @@ open class SendMail {
         Transport.send(message)
       }
     } catch (ex: Exception) {
+      sendStats.recordFailure(start, ex)
       log.error(MailLogEvents.SEND_FAILED, ex) { "While creating and sending message: $composedMessage" }
       throw InternalErrorException("mail.error.exception")
     }
+    sendStats.recordSuccess(start)
     log.info { "E-Mail successfully sent: $composedMessage" }
   }
 
