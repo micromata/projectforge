@@ -303,6 +303,111 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun fragmentsHoldTheEnglishAndGermanTextOfAnItemOrGroup() {
+    fun parse(name: String, content: String): Pair<GenerateChangelogMain.Fragment?, List<String>> {
+      val errors = mutableListOf<String>()
+      return GenerateChangelogMain.parseFragment(name, content, errors) to errors
+    }
+    val (item, itemErrors) = parse("20261006-item.json", """{"type": "added", "en": "Item\n- sub", "de": "Punkt\n- unter"}""")
+    assertEquals(emptyList<String>(), itemErrors)
+    assertEquals(LocalDate.of(2026, 10, 6), item!!.date)
+    assertEquals("Punkt\n- unter", item.de.asText())
+    val (group, groupErrors) = parse(
+      "20261007-group.json",
+      """{"type": "changed", "en": "Group", "de": "Gruppe", "items": [{"en": "a", "de": "b"}]}"""
+    )
+    assertEquals(emptyList<String>(), groupErrors)
+    assertEquals("""{"title":"Gruppe","items":["b"]}""", group!!.de.toString())
+
+    fun error(name: String, content: String) = parse(name, content).second.single()
+    val valid = """{"type": "added", "en": "a", "de": "b"}"""
+    assertTrue(error("item.json", valid).contains("yyyyMMdd"))
+    assertTrue(error("20261306-a.json", valid).contains("yyyyMMdd"))
+    assertTrue(error("20261006-a.json", "{").contains("invalid JSON"))
+    assertTrue(error("20261006-a.json", """{"type": "new", "en": "a", "de": "b"}""").contains("unknown type"))
+    assertTrue(error("20261006-a.json", """{"type": "added", "en": "a"}""").contains("'de' is missing"))
+    assertTrue(error("20261006-a.json", """{"type": "added", "en": "a", "de": "b", "id": 1}""").contains("unknown field 'id'"))
+    assertTrue(error("20261006-a.json", """{"type": "added", "en": "a\n- s", "de": "b"}""").contains("sub list lines"))
+    assertTrue(error("20261006-a.json", """{"type": "added", "en": "a", "de": "<b>b</b>"}""").contains("raw HTML"))
+    assertTrue(error("20261006-a.json", """{"type": "added", "en": "G", "de": "G", "items": []}""").contains("non-empty"))
+    assertTrue(
+      error("20261006-a.json", """{"type": "added", "en": "G", "de": "G", "items": [{"en": "a"}]}""")
+        .contains("'de' is missing")
+    )
+  }
+
+  @Test
+  fun foldAddsTheFragmentsAtTheSamePositionToBothLanguages() {
+    val mapper = ObjectMapper()
+    val root = mapper.readTree(
+      """
+      {"news": [], "releases": [{"id": "s", "version": "1.0.1-SNAPSHOT", "date": "2026-10-01", "title": "S",
+        "fromCommit": "aaaaaaa", "toCommit": "bbbbbbb",
+        "sections": [{"type": "added", "items": ["old"]}, {"type": "fixed", "items": ["bug"]}]}]}
+      """.trimIndent()
+    )
+    val translation = mapper.readTree(
+      """
+      {"news": {}, "releases": {"s": {"title": "S",
+        "sections": [{"type": "added", "items": ["alt"]}, {"type": "fixed", "items": ["Fehler"]}]}}}
+      """.trimIndent()
+    )
+    val fragments = listOf(
+      fragment("20261002-a.json", """{"type": "fixed", "en": "fix", "de": "Korrektur"}"""),
+      fragment("20261003-b.json", """{"type": "improved", "en": "better", "de": "besser"}"""),
+      fragment("20261004-c.json", """{"type": "added", "en": "new", "de": "neu"}"""),
+    )
+    val (folded, foldedTranslation) = GenerateChangelogMain.fold(root, translation, "s", fragments)
+    assertEquals(
+      """[{"type":"added","items":["old","new"]},{"type":"improved","items":["better"]},{"type":"fixed","items":["bug","fix"]}]""",
+      folded["releases"][0]["sections"].toString()
+    )
+    assertEquals(
+      """[{"type":"added","items":["alt","neu"]},{"type":"improved","items":["besser"]},{"type":"fixed","items":["Fehler","Korrektur"]}]""",
+      foldedTranslation["releases"]["s"]["sections"].toString()
+    )
+    assertEquals(emptyList<String>(), GenerateChangelogMain.validate(folded))
+    assertEquals(emptyList<String>(), GenerateChangelogMain.validateTranslation(folded, foldedTranslation))
+    // The sources themselves are unchanged.
+    assertEquals(2, root["releases"][0]["sections"].size())
+    // A release entry may have no sections of its own, they all come from the fragments.
+    val empty = root.deepCopy<ObjectNode>().also { (it["releases"][0] as ObjectNode).remove("sections") }
+    val emptyTranslation = translation.deepCopy<ObjectNode>().also { (it["releases"]["s"] as ObjectNode).remove("sections") }
+    val (onlyFragments, onlyFragmentsTranslation) = GenerateChangelogMain.fold(empty, emptyTranslation, "s", fragments)
+    assertEquals(listOf("added", "improved", "fixed"), onlyFragments["releases"][0]["sections"].map { it["type"].asText() })
+    assertEquals(emptyList<String>(), GenerateChangelogMain.validateTranslation(onlyFragments, onlyFragmentsTranslation))
+
+    // projectforge-next shows the fragments as the newest release.
+    val (next, nextTranslation) = GenerateChangelogMain.withUnreleased(root, translation, fragments)
+    val unreleased = next["releases"][0]
+    assertEquals(GenerateChangelogMain.UNRELEASED_ID, unreleased["id"].asText())
+    assertEquals("1.0.1-SNAPSHOT", unreleased["version"].asText())
+    assertEquals("2026-10-04", unreleased["date"].asText())
+    assertEquals(listOf("added", "improved", "fixed"), unreleased["sections"].map { it["type"].asText() })
+    assertEquals(2, next["releases"].size())
+    assertEquals(emptyList<String>(), GenerateChangelogMain.validateTranslation(next, nextTranslation))
+    assertEquals(
+      "neu",
+      GenerateChangelogMain.translate(next, nextTranslation)["releases"][0]["sections"][0]["items"][0].asText()
+    )
+    assertEquals(root to translation, GenerateChangelogMain.withUnreleased(root, translation, emptyList()))
+  }
+
+  @Test
+  fun sourcesAreWrittenInTheirOwnFormat() {
+    val rootDir = GenerateChangelogMain.resolveRootDir()
+    listOf(GenerateChangelogMain.SOURCE, GenerateChangelogMain.SOURCE_DE).forEach { path ->
+      val text = File(rootDir, path).readText(StandardCharsets.UTF_8)
+      assertEquals(text, GenerateChangelogMain.sourceJson(ObjectMapper().readTree(text)), path)
+    }
+  }
+
+  private fun fragment(name: String, content: String): GenerateChangelogMain.Fragment {
+    val errors = mutableListOf<String>()
+    return GenerateChangelogMain.parseFragment(name, content, errors).also { assertEquals(emptyList<String>(), errors) }!!
+  }
+
+  @Test
   fun generatedFilesAreUpToDate() {
     val rootDir = GenerateChangelogMain.resolveRootDir()
     assertTrue(
