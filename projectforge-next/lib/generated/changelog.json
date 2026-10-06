@@ -6,7 +6,7 @@
     "title" : "ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date",
     "text" : "ProjectForge 9.0 is a major update. The classic Wicket user interface was replaced by **projectforge-next**, a new frontend built with Next.js and React, and all libraries were brought up to date. It also brings a problem dashboard for operations, many new charts with key figures, robust interfaces to external systems, e-invoicing and an identity provider integration. The development builds leading up to it are listed in the changelog as 8.2 snapshots.",
     "highlights" : [ "**New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.", "**Problem dashboard:** log events are classified and aggregated into problems with a persistent status, with links into the log viewer, a JSON export for an AI-assisted analysis and prioritized error digest mails instead of one mail per error.", "**Charts and key figures:** order statistics with budget scenario, contribution margins, forecast, invoicing and net sum charts with a year-earlier comparison, invoicing quota and error figures in the system statistics.", "**Robust interfaces:** timeouts, connection pools, bounded sync threads and sync statistics for LDAP, identity provider, iCal, SMS, Sipgate and the gateway; an unreachable system fails fast instead of blocking, failing calendar subscriptions are retried with a growing interval.", "**E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.", "**Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).", "**Finance:** recurring liquidity entries, DATEV import of incoming invoices, salary import, currency conversion with online exchange rates.", "**Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table." ],
-    "releaseId" : "9-0-0"
+    "releaseId" : "9-0-1"
   }, {
     "version" : "8.1",
     "date" : "2025-09-01",
@@ -37,6 +37,20 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
+    "id" : "9-0-1",
+    "version" : "9.0.1",
+    "date" : "2026-10-06",
+    "title" : "ProjectForge 9.0.1 released",
+    "tag" : "9.0.1-RELEASE",
+    "published" : false,
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.", "The status of projects can be changed in the mass update.", "The gateway's ICS push generates each team calendar only once per run." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "The gateway's ICS push delivered only the first calendar of each user.", "A subsystem tile of the problem dashboard counts only open problems, like the list behind it.", "Long file names and values no longer push tables beyond the mail card.", "The nightly re-index of the search no longer fails on tables of non-active plugins.", "No more needless error log entries when saving orders." ]
+    } ]
+  }, {
     "id" : "9-0-0",
     "version" : "9.0.0",
     "date" : "2026-10-06",
