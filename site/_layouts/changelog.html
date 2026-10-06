@@ -11,7 +11,7 @@ layout: default
             {{ content }}
         </div>
 
-        {% comment %}sort_key (generated from changelog/changelog.json): the release date, a news above its release.{% endcomment %}
+        {% comment %}sort_key (generated from changelog/changelog.json): the release date, its position for releases of the same date, a news above its release.{% endcomment %}
         {% assign changelogs = (site.changelogs | sort: 'sort_key') | reverse %}
         {% for changelog in changelogs %}
             <article class="uk-article uk-margin-medium-top{% if changelog.news %} changelog-news{% endif %}">

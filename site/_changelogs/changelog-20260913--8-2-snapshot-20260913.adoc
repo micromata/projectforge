@@ -1,7 +1,7 @@
 ---
 title: "ProjectForge 8.2 snapshot (2026-09-13)"
 date: 2026-09-13
-sort_key: "2026-09-13 0"
+sort_key: "2026-09-13 0025 0"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.

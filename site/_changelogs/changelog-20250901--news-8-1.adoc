@@ -1,7 +1,7 @@
 ---
 title: "ProjectForge 8.1: stability and memory fixes"
 date: 2025-09-01
-sort_key: "2025-09-01 1"
+sort_key: "2025-09-01 0011 1"
 news: true
 ---
 :page-liquid:

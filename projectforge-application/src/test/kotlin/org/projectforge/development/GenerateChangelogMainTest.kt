@@ -116,7 +116,7 @@ class GenerateChangelogMainTest {
   }
 
   @Test
-  fun newsIsShownAboveTheNewestBuildOfItsVersion() {
+  fun newsIsShownAboveTheReleaseOpeningItsVersion() {
     val root = ObjectMapper().readTree(
       """
       {"news": [{"version": "8.2"}], "releases": [
@@ -124,7 +124,7 @@ class GenerateChangelogMainTest {
       ]}
       """.trimIndent()
     )
-    assertEquals(listOf("s"), GenerateChangelogMain.newsAnchors(root))
+    assertEquals(listOf("r0"), GenerateChangelogMain.newsAnchors(root))
     assertEquals("8.2", GenerateChangelogMain.newsVersion("8.2.37"))
     assertEquals("8.2", GenerateChangelogMain.newsVersion("8.2-SNAPSHOT"))
   }
