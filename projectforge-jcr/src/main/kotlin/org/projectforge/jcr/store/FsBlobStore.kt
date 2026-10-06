@@ -52,7 +52,7 @@ internal class FsBlobStore {
             roots.removeIf { it.path == path }
             roots.add(Root(path, dir))
         }
-        log.info { "Files below '$path' are stored in the file system: ${dir.absolutePath}" }
+        log.info { "Files below '$path' are stored in the file system (projectforge.files.store=db only): ${dir.absolutePath}" }
     }
 
     val registeredPaths: List<String>
@@ -60,6 +60,12 @@ internal class FsBlobStore {
 
     val rootDirs: List<File>
         get() = synchronized(roots) { roots.map { it.dir } }
+
+    /**
+     * Registered paths and their directories.
+     */
+    val pathDirs: Map<String, File>
+        get() = synchronized(roots) { roots.associate { it.path to it.dir } }
 
     /**
      * @param parentPath Normalized parent path.

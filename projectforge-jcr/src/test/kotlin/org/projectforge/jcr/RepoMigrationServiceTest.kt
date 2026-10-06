@@ -156,6 +156,16 @@ class RepoMigrationServiceTest {
             Assertions.assertEquals(0, second.copied, second.toString())
             Assertions.assertEquals(2, second.skipped, second.toString())
 
+            // Stopped by a shutdown: the report isn't OK, so the migration is continued on the next start.
+            val stoppedService = RepoMigrationService()
+            stoppedService.repoService = repoService
+            stoppedService.onShutdown()
+            val stopped = stoppedService.migrate()
+            Assertions.assertTrue(stopped.aborted, stopped.toString())
+            Assertions.assertFalse(stopped.ok, stopped.toString())
+            Assertions.assertEquals(0, stopped.copied + stopped.skipped, stopped.toString())
+            Assertions.assertTrue(stopped.asText().contains("Result: ABORTED"))
+
             // Rename and delete in the file store; the deletion is done in the JCR too:
             repoService.changeFileInfo(copy(invoice), "kai", newFileName = "renamed.txt")
             Assertions.assertEquals(1, repoService.getFileInfos("org.projectforge.fibu.RechnungDO/42", "attachments")!!.size)

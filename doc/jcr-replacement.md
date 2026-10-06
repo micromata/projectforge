@@ -232,6 +232,8 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
 - Migration (nur im Modus `db`): Beim Start läuft sie automatisch (`FileStoreMigrationService`,
   `RepoMigrationJob`), solange `<home>/jcr-migration-report.txt` nicht `Result: OK` meldet. Auf der
   System-Seite lässt sie sich auch manuell starten.
+  - Beim Shutdown hält sie nach der gerade laufenden Datei an (Report `Result: ABORTED`) und läuft beim
+    nächsten Start weiter. Bereits kopierte Dateien werden übersprungen.
   - Jede Datei wird per SHA-256 und Größe gegen das JCR geprüft.
   - Alle Dateien werden **kopiert**, auch DataTransfer. Das JCR bleibt vollständig, ein Zurückschalten
     oder Rollback ist also möglich. Nach einem Rollback fehlen nur die Dateien, die unter `db` neu

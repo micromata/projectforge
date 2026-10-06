@@ -26,7 +26,10 @@ package org.projectforge.jcr
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.jcr.store.FileStore
+import org.projectforge.jcr.store.StorageType
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.event.ContextClosedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import javax.jcr.Node
 
@@ -45,6 +48,12 @@ open class RepoMigrationService {
     @Autowired
     internal lateinit var repoService: RepoService
 
+    /**
+     * Set on shutdown: a running migration stops after the current file and is continued on the next start.
+     */
+    @Volatile
+    private var stopRequested = false
+
     class Result {
         /**
          * Number of files found in the JCR.
@@ -61,20 +70,39 @@ open class RepoMigrationService {
             internal set
 
         /**
+         * Number of copied files stored in the data base.
+         */
+        var copiedToDb = 0
+            internal set
+
+        /**
+         * Number of copied files stored in the file system (e. g. DataTransfer).
+         */
+        var copiedToFs = 0
+            internal set
+
+        /**
          * Number of files already migrated by a former run.
          */
         var skipped = 0
             internal set
         var durationMillis = 0L
             internal set
+
+        /**
+         * True, if the migration was stopped by a shutdown before all files were processed.
+         */
+        var aborted = false
+            internal set
         val errors = mutableListOf<String>()
 
         val ok: Boolean
-            get() = errors.isEmpty()
+            get() = errors.isEmpty() && !aborted
 
         override fun toString(): String {
-            return "files=$total, copied=$copied (${FormatterUtils.formatBytes(migratedSize)}), " +
-                    "already migrated=$skipped, errors=${errors.size}"
+            return "files=$total, copied=$copied (${FormatterUtils.formatBytes(migratedSize)}; data base=$copiedToDb, " +
+                    "file system=$copiedToFs), " +
+                    "already migrated=$skipped, errors=${errors.size}${if (aborted) ", aborted by shutdown" else ""}"
         }
 
         /**
@@ -83,9 +111,14 @@ open class RepoMigrationService {
         fun asText(): String {
             val sb = StringBuilder()
             sb.appendLine("Migration of the files from the JCR to the file store")
-            sb.appendLine("$RESULT_PREFIX${if (ok) RESULT_OK else "ERRORS"}")
+            sb.appendLine("$RESULT_PREFIX${if (ok) RESULT_OK else if (aborted) "ABORTED" else "ERRORS"}")
+            if (aborted) {
+                sb.appendLine("Stopped by a shutdown, the migration is continued on the next start.")
+            }
             sb.appendLine("Files in the JCR: $total")
             sb.appendLine("Copied (kept in the JCR): $copied")
+            sb.appendLine("  into the data base: $copiedToDb")
+            sb.appendLine("  into the file system: $copiedToFs")
             sb.appendLine("Size of migrated files: ${FormatterUtils.formatBytes(migratedSize)}")
             sb.appendLine("Already migrated before: $skipped")
             sb.appendLine("Duration: ${durationMillis / 1000} s")
@@ -123,8 +156,17 @@ open class RepoMigrationService {
         val files = collectFiles()
         result.total = files.size
         log.info { "Migrating ${files.size} files from the JCR to the file store..." }
+        log.info { "Target of the migration: data base (schema pf_files), except the file system paths below." }
+        fileStore.fileSystemPathDirs.forEach { (path, dir) ->
+            log.info { "Target of the migration: files below '$path' are stored in the file system: ${dir.absolutePath}" }
+        }
         progress?.invoke(0, files.size)
-        files.forEachIndexed { index, file ->
+        for ((index, file) in files.withIndex()) {
+            if (stopRequested) {
+                result.aborted = true
+                log.warn { "Migration stopped by shutdown after $index of ${files.size} files, it's continued on the next start." }
+                break
+            }
             try {
                 migrate(fileStore, file, result)
             } catch (ex: Exception) {
@@ -136,6 +178,11 @@ open class RepoMigrationService {
         result.durationMillis = System.currentTimeMillis() - started
         log.info { "Migration of files from the JCR to the file store finished: $result" }
         return result
+    }
+
+    @EventListener(ContextClosedEvent::class)
+    open fun onShutdown() {
+        stopRequested = true
     }
 
     private fun collectFiles(): List<JcrFile> {
@@ -167,6 +214,11 @@ open class RepoMigrationService {
     private fun migrate(fileStore: FileStore, file: JcrFile, result: Result) {
         val fileObject = FileObject(file.parentNodePath, file.relPath, file.fileObject.fileId, file.fileObject)
         val jcrChecksum = file.fileObject.checksum
+        val jcrSize = file.fileObject.size
+        if (jcrSize != null && jcrSize >= LARGE_FILE_SIZE) {
+            val target = if (fileStore.isFileSystemPath(file.parentNodePath)) "file system" else "data base"
+            log.info { "Copying large file (${FormatterUtils.formatBytes(jcrSize)}) from JCR to the $target: $fileObject" }
+        }
         val importResult = repoService.runInSession { session ->
             val fileNode = session.getNode(file.fileNodePath)
             repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
@@ -184,7 +236,6 @@ open class RepoMigrationService {
         }
         val checksum = importResult?.checksum ?: migrated?.checksum
         val size = importResult?.size ?: migrated?.size
-        val jcrSize = file.fileObject.size
         val checksumDiffers = !jcrChecksum.isNullOrBlank() && jcrChecksum.startsWith("SHA256:") && jcrChecksum != checksum
         val sizeDiffers = jcrSize != null && size != null && jcrSize != size
         if (checksumDiffers || sizeDiffers) {
@@ -202,7 +253,15 @@ open class RepoMigrationService {
         } else {
             ++result.copied
             result.migratedSize += importResult.size
-            log.info { "File copied from JCR to file store: $fileObject" }
+            if (importResult.storage == StorageType.FS) ++result.copiedToFs else ++result.copiedToDb
+            log.info { "File copied from JCR to file store (${importResult.storage}): $fileObject" }
         }
+    }
+
+    companion object {
+        /**
+         * Files of this size or larger are logged before copying (copying takes a while).
+         */
+        private const val LARGE_FILE_SIZE = 100L * 1024 * 1024
     }
 }

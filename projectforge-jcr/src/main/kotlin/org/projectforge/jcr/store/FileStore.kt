@@ -81,6 +81,12 @@ class FileStore internal constructor(
         get() = fsBlobStore.rootDirs
 
     /**
+     * Registered file system paths (see [registerFileSystemPath]) and their directories.
+     */
+    val fileSystemPathDirs: Map<String, File>
+        get() = fsBlobStore.pathDirs
+
+    /**
      * Content of file should be given as [FileObject.content].
      * @param password Optional password for encryption. The password will not be stored in any kind!
      */

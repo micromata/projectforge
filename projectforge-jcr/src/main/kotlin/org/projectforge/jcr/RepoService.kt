@@ -166,7 +166,7 @@ open class RepoService {
                         FILES_STORE_JCR
                     }
                 }
-                log.info { "Files are stored ${if (allFilesInFileStore) "by the file store (projectforge.files.store=db)" else "in the JCR (projectforge.files.store=jcr), DataTransfer by the file store"}." }
+                log.info { "Files are stored ${if (allFilesInFileStore) "by the file store (projectforge.files.store=db)" else "in the JCR (projectforge.files.store=jcr), only files stored while db mode was active are read from the file store"}." }
             } else {
                 log.warn { "No data source available, all files are stored in the JCR (OK for test cases)." }
             }
