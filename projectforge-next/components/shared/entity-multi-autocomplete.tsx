@@ -16,6 +16,7 @@ import { compareText } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import { EntitySearchList } from "./entity-search-list";
+import { SelectMeButton } from "./select-me-button";
 
 export interface EntityMultiAutocompleteProps {
   /** The lookup url, with its literal `:search` placeholder — as [EntityAutocomplete] takes it. */
@@ -37,6 +38,11 @@ export interface EntityMultiAutocompleteProps {
    * the order means nothing. The value itself keeps its order, so sorting marks no form dirty.
    */
   sorted?: boolean;
+  /**
+   * The logged-in user, offered as a one-click pick beside the field — for a field that asks for people
+   * (see [useCurrentUserRef]). Hidden while the user is picked already: there is nothing to add then.
+   */
+  selectMe?: EntityRef | null;
 }
 
 /**
@@ -59,6 +65,7 @@ export function EntityMultiAutocomplete({
   className,
   removeLabel,
   sorted,
+  selectMe,
   "aria-label": ariaLabel,
 }: EntityMultiAutocompleteProps) {
   const t = useTranslations();
@@ -74,55 +81,65 @@ export function EntityMultiAutocomplete({
     <Popover open={open} onOpenChange={setOpen}>
       {/* The anchor is the whole box, not the trigger inside it: the popover follows the field's left
           edge and takes its width, which the trigger has none of once the chips push it into a corner. */}
-      <PopoverAnchor asChild>
-        <div
-          className={cn(
-            // The look of a text field (see components/ui/input.tsx), because that is what it is: a
-            // control one puts values into, only that the values are chips.
-            "flex min-h-7 min-w-0 flex-wrap items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 py-px focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 dark:bg-input/30",
-            className
-          )}
-        >
-          {chips.map((entry) => (
-            <span
-              key={entry.id}
-              className="inline-flex h-6 max-w-full items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 text-xs font-semibold text-primary"
-            >
-              <span className="truncate">{entry.displayName}</span>
-              <button
-                type="button"
-                onClick={() => onChange(value.filter((e) => e.id !== entry.id))}
-                aria-label={removeLabel(entry)}
-                className="cursor-pointer opacity-60 hover:opacity-100"
+      {/* The select-me button stands beside the box, as it does beside the single picker. */}
+      <div className={cn("flex min-w-0 items-center gap-1", className)}>
+        <PopoverAnchor asChild>
+          <div
+            className={cn(
+              // The look of a text field (see components/ui/input.tsx), because that is what it is: a
+              // control one puts values into, only that the values are chips.
+              "flex min-h-7 min-w-0 flex-1 flex-wrap items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 py-px focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 dark:bg-input/30"
+            )}
+          >
+            {chips.map((entry) => (
+              <span
+                key={entry.id}
+                className="inline-flex h-6 max-w-full items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 text-xs font-semibold text-primary"
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={12} />
-              </button>
-            </span>
-          ))}
-          <PopoverTrigger asChild>
-            {/* The box carries the border, so the trigger inside it has none of its own — it is the
-                empty rest of the row, and clicking there opens the search. */}
-            <Button
-              id={id}
-              type="button"
-              variant="ghost"
-              role="combobox"
-              aria-expanded={open}
-              aria-label={ariaLabel}
-              // No background of its own in any state — the box behind it is the field, and the
-              // ghost variant would paint a second one over it while the search is open
-              // (`aria-expanded:bg-muted`).
-              className="h-6 min-w-24 flex-1 justify-between gap-1 px-0 text-xs font-normal text-muted-foreground hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent"
-            >
-              {/* Only while nothing is picked: with chips in the box the invitation is said twice. */}
-              <span className="truncate">
-                {value.length === 0 ? t("filter.chooseEntity") : ""}
+                <span className="truncate">{entry.displayName}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange(value.filter((e) => e.id !== entry.id))
+                  }
+                  aria-label={removeLabel(entry)}
+                  className="cursor-pointer opacity-60 hover:opacity-100"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                </button>
               </span>
-              <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
-            </Button>
-          </PopoverTrigger>
-        </div>
-      </PopoverAnchor>
+            ))}
+            <PopoverTrigger asChild>
+              {/* The box carries the border, so the trigger inside it has none of its own — it is the
+                empty rest of the row, and clicking there opens the search. */}
+              <Button
+                id={id}
+                type="button"
+                variant="ghost"
+                role="combobox"
+                aria-expanded={open}
+                aria-label={ariaLabel}
+                // No background of its own in any state — the box behind it is the field, and the
+                // ghost variant would paint a second one over it while the search is open
+                // (`aria-expanded:bg-muted`).
+                className="h-6 min-w-24 flex-1 justify-between gap-1 px-0 text-xs font-normal text-muted-foreground hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent"
+              >
+                {/* Only while nothing is picked: with chips in the box the invitation is said twice. */}
+                <span className="truncate">
+                  {value.length === 0 ? t("filter.chooseEntity") : ""}
+                </span>
+                <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
+              </Button>
+            </PopoverTrigger>
+          </div>
+        </PopoverAnchor>
+        {selectMe && !value.some((picked) => picked.id === selectMe.id) && (
+          <SelectMeButton
+            me={selectMe}
+            onPick={() => onChange([...value, selectMe])}
+          />
+        )}
+      </div>
       <PopoverContent
         align="start"
         // As wide as the field, but capped: a members field spans the whole form, and a search list

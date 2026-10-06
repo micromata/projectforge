@@ -46,6 +46,9 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ "Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.", "Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.", "Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before." ]
     } ]
   }, {
     "id" : "9-0-1",

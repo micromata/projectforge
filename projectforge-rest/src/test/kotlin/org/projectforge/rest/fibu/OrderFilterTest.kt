@@ -89,7 +89,7 @@ class OrderFilterTest {
             it.entries.add(entry("kunde.name").also { entry -> entry.value.value = "ACME" })
         }))
         assertFalse(OrderEntityRest.isUnfiltered(MagicFilter().also {
-            it.entries.add(entry("projectManager").also { entry -> entry.value.id = 42L })
+            it.entries.add(entry("additionalContacts").also { entry -> entry.value.id = 42L })
         }))
     }
 

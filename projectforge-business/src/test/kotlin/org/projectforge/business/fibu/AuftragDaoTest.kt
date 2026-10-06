@@ -350,6 +350,55 @@ class AuftragDaoTest : AbstractTestBase() {
         }
     }
 
+    @Test
+    fun checkAdditionalContactAccess() {
+        lateinit var user: PFUserDO
+        lateinit var id: Serializable
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_ADMIN_USER)
+            user = initTestDB.addUser("AuftragDaoCheckAdditionalContactAccess")
+            val projectAssistants = getGroup(PROJECT_ASSISTANT)
+            projectAssistants.addUser(user)
+            groupDao.update(projectAssistants)
+            user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE))
+            userRightDao.insert(user.rights!!.toList())
+            userService.update(user)
+            logon(TEST_FINANCE_USER)
+            val auftrag = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.contactPerson = getUser(TEST_PROJECT_MANAGER_USER)
+                it.addPosition(createOrderPos())
+            }
+            id = auftragDao.insert(auftrag)
+            dbNumber++ // Needed for getNextNumber test;
+        }
+        logon(user)
+        checkNoAccess(id, "Not (yet) contact")
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val auftrag = auftragDao.find(id, attached = true)!!
+            auftrag.additionalContactUserIds = "${user.id}"
+            auftragDao.update(auftrag)
+        }
+        logon(user)
+        val auftrag = auftragDao.find(id, attached = true)!! // Access as additional contact.
+        Assertions.assertTrue(auftrag.isContact(user.id))
+        Assertions.assertEquals(listOf(user.id), auftrag.additionalContactUserIdList)
+        Assertions.assertTrue(
+            auftragDao.select(AuftragFilter().also { it.user = user }).any { it.id == id },
+            "The user filter matches an additional contact.",
+        )
+        // The change mail goes to the contact persons (and editors), never to the one who saves.
+        logon(TEST_FINANCE_USER)
+        val recipientIds = auftragDao.getNotificationRecipients(auftrag, emptyList()).map { it.id }
+        Assertions.assertEquals(listOf(getUser(TEST_PROJECT_MANAGER_USER).id, user.id), recipientIds)
+        logon(user)
+        Assertions.assertEquals(
+            listOf(getUser(TEST_PROJECT_MANAGER_USER).id),
+            auftragDao.getNotificationRecipients(auftrag, emptyList()).map { it.id },
+        )
+    }
+
     private fun checkHasUpdateAccess(auftragsId: Serializable?) {
         var auftrag = auftragDao.find(auftragsId, attached = true)!! // Attached is important, otherwise deadlock.
         val value = random.nextLong().toString()

@@ -57,6 +57,12 @@
             "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme.",
             "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert."
           ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Aufträge: eine Ansprechpartner:in und beliebig viele weitere Ansprechpartner:innen statt Projektleitung, Bereichsleitung und Key-Account-Management (bestehende Einträge werden übernommen, die alten Felder bleiben in der Datenbank). Weitere Ansprechpartner:innen haben denselben Zugriff auf den Auftrag und seine Rechnungen wie die Ansprechpartner:in, und die Änderungsmail geht jetzt auch an sie und an alle, die den Auftrag bisher bearbeitet haben."
+          ]
         }
       ]
     },

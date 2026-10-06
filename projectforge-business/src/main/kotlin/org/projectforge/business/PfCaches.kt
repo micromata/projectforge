@@ -92,9 +92,6 @@ class PfCaches {
         order.kunde = getKundeIfNotInitialized(order.kunde)
         order.projekt = getProjektIfNotInitialized(order.projekt)
         order.contactPerson = getUserIfNotInitialized(order.contactPerson)
-        order.headOfBusinessManager = getUserIfNotInitialized(order.headOfBusinessManager)
-        order.projectManager = getUserIfNotInitialized(order.projectManager)
-        order.salesManager = getUserIfNotInitialized(order.salesManager)
         // order.paymentSchedules
         // order.positionen
         return order

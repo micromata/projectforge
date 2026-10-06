@@ -149,7 +149,8 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
         } else if (obj != null) {
             // User should be a PROJECT_MANAGER or PROJECT_ASSISTANT or user has PARTLYREADWRITE access:
             var hasAccess = false
-            if (accessChecker.userEquals(user, obj.contactPerson)) {
+            // The contact person and the additional contacts alike.
+            if (obj.isContact(user.id)) {
                 hasAccess = true
             }
             obj.projekt?.let { projektRef ->

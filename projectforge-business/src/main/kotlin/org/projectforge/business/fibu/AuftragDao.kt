@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.AuftragsPositionsPaymentTypeFilter.Compani
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.MessageParamType
@@ -52,8 +53,11 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -256,15 +260,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             )
         }
 
-        if (myFilter.user != null) {
-            queryFilter.add(
-                or(
-                    eq("contactPerson", myFilter.user!!),
-                    eq("projectManager", myFilter.user!!),
-                    eq("headOfBusinessManager", myFilter.user!!),
-                    eq("salesManager", myFilter.user!!)
-                )
-            )
+        myFilter.user?.let { user ->
+            queryFilter.add(contactPredicate(user))
         }
         myFilter.projectList?.let { projectList ->
             if (projectList.isNotEmpty()) {
@@ -531,7 +528,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     /**
-     * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
+     * Sends an e-mail to everybody concerned with the order ([getNotificationRecipients]): one mail per recipient,
+     * rendered in the recipient's locale.
      *
      * The order's relations are resolved from the caches first: the REST layer builds the [AuftragDO]
      * from its DTO ([org.projectforge.rest.dto.Auftrag.copyTo]), so contact person, customer and project
@@ -545,9 +543,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * nothing but an id passes `HibernateUtils.isFullyInitialized` and would be kept as it is. For
      * Wicket, which passes its fully loaded object, the lookup yields the same entities from the cache.
      *
-     * @param auftrag
-     * @param operationType
-     * @return
+     * A failing mail doesn't stop the mails to the other recipients; the first failure is thrown after all
+     * recipients were tried, so the caller can still report it.
+     *
+     * @return true if at least one mail was sent.
      */
     fun sendNotificationIfRequired(
         auftrag: AuftragDO, operationType: OperationType,
@@ -557,17 +556,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             return false
         }
         resolveRelationsForNotification(auftrag)
-        val contactPerson = auftrag.contactPerson ?: return false
-        if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
+        val history = flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag)
+        val recipients = getNotificationRecipients(auftrag, history)
+        if (recipients.isEmpty()) {
             return false
         }
-        val data: MutableMap<String, Any?> = HashMap()
-        data["contactPerson"] = contactPerson
-        data["auftrag"] = auftrag
-        data["requestUrl"] = requestUrl
-        data["history"] = flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag).take(10)
-        val msg = Mail()
-        msg.setTo(contactPerson)
         val subject = if (operationType == OperationType.INSERT) {
             "Auftrag #" + auftrag.nummer + " wurde angelegt."
         } else if (operationType == OperationType.DELETE) {
@@ -575,6 +568,36 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         } else {
             "Auftrag #" + auftrag.nummer + " wurde geändert."
         }
+        var sent = false
+        var failure: Exception? = null
+        recipients.forEach { recipient ->
+            try {
+                if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
+                    sent = true
+                }
+            } catch (ex: Exception) {
+                log.error("Can't send the notification of order #${auftrag.nummer} to user ${recipient.username}: ${ex.message}", ex)
+                failure = failure ?: ex
+            }
+        }
+        failure?.let { throw it }
+        return sent
+    }
+
+    private fun sendNotification(
+        auftrag: AuftragDO,
+        recipient: PFUserDO,
+        subject: String,
+        requestUrl: String?,
+        history: List<FlatDisplayHistoryEntry>,
+    ): Boolean {
+        val data: MutableMap<String, Any?> = HashMap()
+        data["contactPerson"] = auftrag.contactPerson
+        data["auftrag"] = auftrag
+        data["requestUrl"] = requestUrl
+        data["history"] = history
+        val msg = Mail()
+        msg.setTo(recipient)
         msg.setProjectForgeSubject(subject)
         data["subject"] = subject
         val content = sendMail.renderGroovyTemplate(
@@ -582,7 +605,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             "mail/orderChangeNotification.html",
             data,
             getLocalizedMessage("fibu.auftrag"),
-            contactPerson
+            recipient
         )
         msg.content = content
         msg.contentType = Mail.CONTENTTYPE_HTML
@@ -594,10 +617,47 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     /**
+     * The users to notify about a change of the order: its contact person, its additional contacts and everybody
+     * who has edited the order before (its history, including the one of positions and payment schedules), in this
+     * order and without duplicates. Left out are the logged-in user (who makes the change), deleted or deactivated
+     * users and users without select access to the order.
+     *
+     * @param history The history of the order, if already loaded. Otherwise it's loaded here.
+     */
+    fun getNotificationRecipients(
+        auftrag: AuftragDO,
+        history: List<FlatDisplayHistoryEntry>? = null,
+    ): List<PFUserDO> {
+        val userIds = LinkedHashSet<Long>()
+        auftrag.contactPerson?.id?.let { userIds.add(it) }
+        userIds.addAll(auftrag.additionalContactUserIdList)
+        (history ?: flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag))
+            .forEach { entry -> entry.user?.id?.let { userIds.add(it) } }
+        userIds.remove(ThreadLocalUserContext.loggedInUserId)
+        val userGroupCache = UserGroupCache.getInstance()
+        return userIds.mapNotNull { userGroupCache.getUser(it) }
+            .filter { !it.deleted && !it.deactivated }
+            .filter { hasAccess(it, auftrag, null, OperationType.SELECT, false) }
+    }
+
+    /**
+     * Matches the orders the given user is a contact of: as [AuftragDO.contactPerson] or as one of the
+     * [AuftragDO.additionalContactUserIds] (by their ids from the [AuftragsCache], the comma separated ids can't be
+     * compared in the query).
+     */
+    fun contactPredicate(user: PFUserDO): DBPredicate {
+        val orderIds = AuftragsCache.instance.getOrderIdsWithAdditionalContact(user.id)
+        if (orderIds.isEmpty()) {
+            return eq("contactPerson", user)
+        }
+        return or(eq("contactPerson", user), isIn("id", orderIds))
+    }
+
+    /**
      * Replaces the relations the notification reads by the cached entities, looked up by id.
      *
-     * Only the fields the mail needs: its recipient ([AuftragDO.contactPerson], for the e-mail address)
-     * and the two the template prints ([AuftragDO.kunde], [AuftragDO.projekt], for their display names).
+     * Only the fields the mail needs: the contact person (printed, and maybe a recipient) and the two the
+     * template prints ([AuftragDO.kunde], [AuftragDO.projekt], for their display names).
      * A stub whose id is unknown to the cache is left alone rather than nulled — the order was written
      * with it, so dropping it here would silently change what the mail says about the order.
      */

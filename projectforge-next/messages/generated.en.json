@@ -657,6 +657,7 @@
     "attachment": "Attachments",
     "auftrag": {
       "_": "Order",
+      "additionalContacts": "Additional contact persons",
       "angebot": {
         "datum": "Date of order"
       },
@@ -665,6 +666,9 @@
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
       "commissioned": "commissioned",
+      "contacts": {
+        "info": "Contact persons have access to the order and its invoices and get an e-mail when the order is changed (as does everyone who has edited it before)."
+      },
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
@@ -1010,7 +1014,7 @@
       "viaTask": "via structure element"
     },
     "common": {
-      "assignedPersons": "PM/HOB/KAM/CP",
+      "assignedPersons": "Contact persons",
       "betrag": "Amount",
       "brutto": "Gross",
       "creditor": "Creditor",

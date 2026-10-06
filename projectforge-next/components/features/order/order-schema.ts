@@ -94,9 +94,14 @@ export const orderSchema = z.object({
   kundeText: m.nullableString("kundeText"),
   project: entityRef,
   contactPerson: m.entityField("contactPerson"),
-  projectManager: m.entityField("projectManager"),
-  headOfBusinessManager: m.entityField("headOfBusinessManager"),
-  salesManager: m.entityField("salesManager"),
+  /**
+   * The further contact persons. No metadata: the DTO carries them as user references, the entity as
+   * comma separated ids (`AuftragDO.additionalContactUserIds`). An empty list rather than null, which is
+   * what the picker holds.
+   */
+  additionalContacts: z.array(
+    z.looseObject({ id: z.number(), displayName: z.string().optional() })
+  ),
   erfassungsDatum: m.nullableString("erfassungsDatum"),
   angebotsDatum: m.nullableString("angebotsDatum"),
   entscheidungsDatum: m.nullableString("entscheidungsDatum"),
@@ -146,4 +151,5 @@ export const ORDER_FIELDS = Object.keys(
 export const ORDER_ARRAY_FIELDS: readonly string[] = [
   "positionen",
   "paymentSchedules",
+  "additionalContacts",
 ];

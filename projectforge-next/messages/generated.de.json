@@ -657,6 +657,7 @@
     "attachment": "Anlagen",
     "auftrag": {
       "_": "Auftrag",
+      "additionalContacts": "Weitere Ansprechpartner:innen",
       "angebot": {
         "datum": "Angebotsdatum"
       },
@@ -665,6 +666,9 @@
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf den Auftrag und seine Rechnungen und bekommen eine E-Mail, wenn er geändert wird (ebenso alle, die ihn bisher bearbeitet haben)."
+      },
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
@@ -1010,7 +1014,7 @@
       "viaTask": "über Strukturelement"
     },
     "common": {
-      "assignedPersons": "PL/BUL/KAM/AP",
+      "assignedPersons": "Ansprechpartner:innen",
       "betrag": "Betrag",
       "brutto": "Brutto",
       "creditor": "Kreditor",

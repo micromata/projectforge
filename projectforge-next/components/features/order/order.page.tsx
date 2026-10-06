@@ -5,6 +5,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
+import { AdditionalContactsField } from "./edit/additional-contacts-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { OrderForecastPanel } from "./forecast/order-forecast-panel";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -332,16 +333,15 @@ export const ORDER_PAGE = definePage<
         ],
       },
       {
-        // The four people an order is assigned to (the "PM/HOB/KAM/CP" of the list column), gathered into
-        // one card of their own rather than trailing the head grid. A generic key, so any other form that
-        // groups the same fields can reuse it.
+        // The people an order is assigned to (the "contact persons" of the list column): the main contact
+        // and any number of further ones, gathered into one card of their own rather than trailing the head
+        // grid. A generic key, so any other form that groups the same fields can reuse it.
         id: "contactPersons",
         titleKey: "contactPersons",
         fields: [
-          { name: "contactPerson" },
-          { name: "projectManager" },
-          { name: "headOfBusinessManager" },
-          { name: "salesManager" },
+          // Both say what being a contact means: access to the order and its change mail.
+          { name: "contactPerson", hintKey: "fibu.auftrag.contacts.info" },
+          { custom: AdditionalContactsField, span: 2 },
         ],
       },
       {

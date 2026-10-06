@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.StringHelper2
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -161,6 +162,18 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         orderNumber ?: return null
         checkRefresh()
         return orderInfoMap.values.find { it.nummer == orderNumber } // No sync, immutable map.
+    }
+
+    /**
+     * The ids of all orders listing the given user as additional contact ([AuftragDO.additionalContactUserIds]).
+     * Meant for database queries filtering by user: the comma separated ids can't be matched by an equality there.
+     */
+    fun getOrderIdsWithAdditionalContact(userId: Long?): List<Long> {
+        userId ?: return emptyList()
+        checkRefresh()
+        return orderInfoMap.values.filter { // No sync, immutable map.
+            StringHelper2.splitToListOfLongValues(it.additionalContactUserIds).contains(userId)
+        }.mapNotNull { it.id }
     }
 
 
