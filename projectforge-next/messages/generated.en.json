@@ -672,6 +672,7 @@
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
           "error": {
+            "duplicateKost2": "The cost unit {arg0} is already assigned above.",
             "kostNumber": "{arg0} is no number of three parts like 6.000.10.",
             "negative": "must not be negative.",
             "percentage": "must be between 0 and 100.",
