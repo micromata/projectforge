@@ -247,7 +247,7 @@
             /* The negative margin compensates the border spacing, so the tiles are aligned with the text. */
             width: calc(100% + 16px);
             margin: 16px -8px 8px;
-            table-layout: fixed;
+            /* Not table-layout: fixed (equal tiles): a big number like 1,149,892 wouldn't fit into its tile. */
             border-collapse: separate;
             border-spacing: 8px 0;
         }
@@ -263,6 +263,7 @@
             font-size: 24px;
             font-weight: 600;
             line-height: 1.2;
+            white-space: nowrap;
             color: #252525;
         }
 

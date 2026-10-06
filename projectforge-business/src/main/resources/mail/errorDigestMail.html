@@ -18,49 +18,49 @@
         <tr>
           <% if (digest.newProblems > 0) { %>
           <td>
-            <span class="number error"><%= digest.newProblems %></span>
+            <span class="number error"><%= digest.format(digest.newProblems) %></span>
             <span class="muted small">new</span>
           </td>
           <% } %>
           <% if (digest.regressions > 0) { %>
           <td>
-            <span class="number error"><%= digest.regressions %></span>
+            <span class="number error"><%= digest.format(digest.regressions) %></span>
             <span class="muted small">regressions</span>
           </td>
           <% } %>
           <% if (digest.spikes > 0) { %>
           <td>
-            <span class="number warn"><%= digest.spikes %></span>
+            <span class="number warn"><%= digest.format(digest.spikes) %></span>
             <span class="muted small">spikes</span>
           </td>
           <% } %>
           <td>
-            <span class="number<%= digest.errors > 0 ? ' error' : '' %>"><%= digest.errors %></span>
+            <span class="number<%= digest.errors > 0 ? ' error' : '' %>"><%= digest.format(digest.errors) %></span>
             <span class="muted small">errors</span>
           </td>
           <td>
-            <span class="number<%= digest.external > 0 ? ' warn' : '' %>"><%= digest.external %></span>
+            <span class="number<%= digest.external > 0 ? ' warn' : '' %>"><%= digest.format(digest.external) %></span>
             <span class="muted small">external failures</span>
           </td>
           <td>
-            <span class="number"><%= digest.groups %></span>
+            <span class="number"><%= digest.format(digest.groups) %></span>
             <span class="muted small">groups</span>
           </td>
           <% if (digest.dropped > 0) { %>
           <td>
-            <span class="number warn"><%= digest.dropped %></span>
+            <span class="number warn"><%= digest.format(digest.dropped) %></span>
             <span class="muted small">dropped (group limit)</span>
           </td>
           <% } %>
           <% if (digest.suppressed > 0) { %>
           <td>
-            <span class="number"><%= digest.suppressed %></span>
+            <span class="number"><%= digest.format(digest.suppressed) %></span>
             <span class="muted small">not listed (below threshold, already reported or muted)</span>
           </td>
           <% } %>
           <% if (digest.muted > 0) { %>
           <td>
-            <span class="number"><%= digest.muted %></span>
+            <span class="number"><%= digest.format(digest.muted) %></span>
             <span class="muted small">ignored or muted problems</span>
           </td>
           <% } %>
@@ -70,11 +70,11 @@
       <p><a class="button" href="<%= pf.getString(digest.dashboardUrl) %>">Open the problem dashboard</a></p>
       <% } %>
       <% for (section in digest.sections) { %>
-      <h2 class="section"><%= pf.getString(section.title) %><span class="pill"><%= section.count %></span></h2>
+      <h2 class="section"><%= pf.getString(section.title) %><span class="pill"><%= digest.format(section.count) %></span></h2>
       <table class="list">
         <% for (g in section.groups) { %>
         <tr>
-          <td class="count"><%= g.count %>&times;</td>
+          <td class="count"><%= digest.format(g.count) %>&times;</td>
           <td>
             <span class="badge <%= g.levelCss %>"><%= pf.getString(g.level) %></span>
             <% if (g.exceptionClass != null) { %><span class="mono"><%= pf.getString(g.exceptionClass) %></span> &middot; <% } %>
@@ -104,7 +104,7 @@
       </table>
       <% } %>
       <% if (digest.omitted > 0) { %>
-      <p class="footer"><%= digest.omitted %> further known problems are not listed, see the problem dashboard.</p>
+      <p class="footer"><%= digest.format(digest.omitted) %> further known problems are not listed, see the problem dashboard.</p>
       <% } %>
       <% if (digest.attachmentName != null) { %>
       <p class="footer">
