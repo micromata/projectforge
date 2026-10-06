@@ -672,6 +672,7 @@
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
           "error": {
+            "duplicateKost2": "Der Kostenträger {arg0} ist weiter oben bereits zugeordnet.",
             "kostNumber": "{arg0} ist keine dreiteilige Nummer wie 6.000.10.",
             "negative": "darf nicht negativ sein.",
             "percentage": "muss zwischen 0 und 100 liegen.",
