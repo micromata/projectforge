@@ -30,7 +30,7 @@ import javax.sql.DataSource
  * plain JDBC without JPA entities. So the HSQLDB Flyway script is executed here.
  */
 object PfFilesTestSchema {
-    private const val SCRIPT = "/flyway/migrate/hsqldb/V8.0.34__RELEASE-PfFiles.sql"
+    private const val SCRIPT = "/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql"
 
     @JvmStatic
     fun ensure(dataSource: DataSource) {

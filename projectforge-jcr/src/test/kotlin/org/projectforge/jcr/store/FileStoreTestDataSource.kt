@@ -37,7 +37,7 @@ object FileStoreTestDataSource {
         ds.setURL("jdbc:hsqldb:mem:fileStoreTest")
         ds.user = "sa"
         ds.setPassword("")
-        val script = File("../projectforge-business/src/main/resources/flyway/migrate/hsqldb/V8.0.34__RELEASE-PfFiles.sql")
+        val script = File("../projectforge-business/src/main/resources/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql")
         ds.connection.use { conn ->
             script.readLines().filterNot { it.trimStart().startsWith("--") }.joinToString("\n")
                 .split(';').map { it.trim() }.filter { it.isNotEmpty() }

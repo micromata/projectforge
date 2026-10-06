@@ -209,7 +209,7 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
 ## Umsetzungsstand
 **Release N (mit Oak):**
 - Store `projectforge-jcr/.../jcr/store` (`FileStore`, `DbBlobStore`, `FsBlobStore`, `FileMetaDao` per JDBC).
-  Flyway-Skripte `V8.0.34__RELEASE-PfFiles.sql` (postgresql, hsqldb) in projectforge-business. Die Tests
+  Flyway-Skripte `V8.0.37__RELEASE-PfFiles.sql` (postgresql, hsqldb) in projectforge-business. Die Tests
   legen das Schema über dasselbe hsqldb-Skript an (`PfFilesTestSchema`), weil Flyway dort nicht läuft.
 - `RepoService` leitet Pfade, die über `registerFileSystemPath` angemeldet sind (DataTransfer), an den
   `FileStore` weiter. Alles andere bleibt im JCR.
