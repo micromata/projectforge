@@ -227,6 +227,13 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
             logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.MUTE, muteDays = 1), now)
             Assertions.assertEquals(SubsystemState.OK, tile()!!.state, "A muted error doesn't degrade.")
             logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.ACKNOWLEDGE), now)
+            Assertions.assertEquals(3, tile()!!.occurrences24h, "An acknowledged problem is open.")
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.RESOLVE), now)
+            tile()!!.let {
+                Assertions.assertEquals(2, it.occurrences24h, "Only the open problems, as the list shows on a click.")
+                Assertions.assertEquals(3, it.open)
+                Assertions.assertEquals(4, it.trend.sum())
+            }
             TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.DOWN)
             Assertions.assertEquals(SubsystemState.DOWN, tile()!!.state, "The worse state of the syncs is kept.")
         } finally {
