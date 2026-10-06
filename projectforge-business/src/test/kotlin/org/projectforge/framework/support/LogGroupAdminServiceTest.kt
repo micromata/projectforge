@@ -120,6 +120,28 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `scopes of the key figures`() {
+        val now = System.currentTimeMillis()
+        val fresh = LogEvent("test.scope.fresh", LogCategory.BUG)
+        val old = LogEvent("test.scope.old", LogCategory.BUG)
+        logAggregationService.add(occurrence(fresh, now - Constants.MILLIS_PER_HOUR))
+        logAggregationService.add(occurrence(old, now - 3 * Constants.MILLIS_PER_DAY))
+        val codes = { scope: LogGroupScope? ->
+            logGroupAdminService.list(LogGroupFilter(status = LogGroupStatusFilter.ALL, search = "test.scope.", days = 0, scope = scope), now)
+                .entries.map { it.code }.sorted()
+        }
+        Assertions.assertEquals(listOf(fresh.code, old.code), codes(null))
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "First seen within 24 hours.")
+        Assertions.assertTrue(codes(LogGroupScope.REGRESSION).isEmpty())
+
+        val oldId = logGroupAdminService.list(LogGroupFilter(search = old.code, days = 0), now).entries.single().id
+        logGroupAdminService.update(LogGroupUpdate(listOf(oldId), LogGroupAction.RESOLVE), now)
+        logAggregationService.add(occurrence(old, now))
+        Assertions.assertEquals(listOf(old.code), codes(LogGroupScope.REGRESSION), "Resolved and occurred again.")
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "A regression isn't new.")
+    }
+
+    @Test
     fun bins() {
         val start = 1_000 * Constants.MILLIS_PER_HOUR
         val buckets = listOf(-1, 0, 5, 6, 23, 24).map { LogBucketRow(1, Date(start + it * Constants.MILLIS_PER_HOUR), 1, 1) }
