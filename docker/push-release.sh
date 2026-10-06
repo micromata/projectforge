@@ -127,25 +127,46 @@ build_and_push_arch() {
   "$TOOL" build --platform "linux/$arch" --build-arg "JAR_FILE=$jar_file" -t "$image" "$CONTEXT"
   confirm "Push $image?" || exit 1
   "$TOOL" push "$image"
-  local machine="the amd64 machine (e. g. the Linux server)"
-  [ "$arch" = arm64 ] || machine="the arm64 machine (e. g. the Mac)"
-  # The script itself may be newer than the tag, so the other machine updates its branch, not to the tag.
-  cat <<EOF
-
-------------------------------------------------------------------------------
+  local other=amd64 machine="the amd64 machine (e. g. the Linux server)"
+  if [ "$arch" = amd64 ]; then
+    other=arm64 machine="the arm64 machine (e. g. the Mac)"
+  fi
+  echo
+  echo "------------------------------------------------------------------------------"
+  if remote_tag_exists "$VERSION-$other"; then
+    echo "Pushed $image, $REPO:$VERSION-$other is there already. Next, on either machine:"
+  else
+    # The script itself may be newer than the tag, so the other machine updates its branch, not to the tag.
+    cat <<EOF
 Pushed $image. Next, on $machine, in its ProjectForge checkout:
   git fetch --tags
   git checkout $(git -C "$BASE_DIR" branch --show-current) && git pull
   docker/push-release.sh $VERSION arch
 
 Then, on either machine:
-  docker/push-release.sh $VERSION manifest
-------------------------------------------------------------------------------
 EOF
+  fi
+  echo "  docker/push-release.sh $VERSION manifest"
+  echo "------------------------------------------------------------------------------"
+}
+
+# Whether the registry has the tag, e. g. pushed by `arch` on the other machine.
+remote_tag_exists() {
+  if [ "$TOOL" = podman ]; then
+    podman search --list-tags --limit 10000 --format '{{.Tag}}' "$REPO" 2>/dev/null | grep -qx -- "$1"
+  else
+    docker manifest inspect "$REPO:$1" >/dev/null 2>&1
+  fi
 }
 
 push_manifests() {
   local amd64="$REPO:$VERSION-amd64" arm64="$REPO:$VERSION-arm64" tag
+  for tag in "$VERSION-amd64" "$VERSION-arm64"; do
+    if ! remote_tag_exists "$tag"; then
+      echo "Error: $REPO:$tag isn't in the registry, run docker/push-release.sh $VERSION arch on that machine first." >&2
+      exit 1
+    fi
+  done
   confirm "Push $REPO:$VERSION and $REPO:latest from $amd64 and $arm64?" || exit 1
   for tag in "$VERSION" latest; do
     if [ "$TOOL" = podman ]; then
