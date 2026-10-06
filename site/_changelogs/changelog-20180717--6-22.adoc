@@ -1,7 +1,7 @@
 ---
 title: "ProjectForge 6.22.0 released"
 date: 2018-07-17
-sort_key: "2018-07-17 0"
+sort_key: "2018-07-17 0001 0"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.

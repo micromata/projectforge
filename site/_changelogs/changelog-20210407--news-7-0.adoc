@@ -1,7 +1,7 @@
 ---
 title: "ProjectForge 7.0: new frontend and data transfer"
 date: 2021-04-07
-sort_key: "2021-04-07 1"
+sort_key: "2021-04-07 0002 1"
 news: true
 ---
 :page-liquid:
