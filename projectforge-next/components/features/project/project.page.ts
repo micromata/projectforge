@@ -83,6 +83,30 @@ export const PROJECT_PAGE = definePage<
     },
     // The enum cell renders the translated status label (ProjektStatus), so no separate statusAsString.
     { name: "status", size: 120 },
+    // When the project was last active, to spot the ones probably ended: the latest time sheet on its task
+    // tree, the youngest date of its orders (offer, decision, end of the period of performance, ...) and
+    // the later of both. Computed from the caches (ProjectEntityRest.createListRow), sorted by the backend.
+    {
+      id: "lastActivityDate",
+      labelKey: "fibu.projekt.lastActivity",
+      accessor: (row) => row.lastActivityDate ?? "",
+      dataType: "DATE",
+      size: 110,
+    },
+    {
+      id: "lastTimesheetDate",
+      labelKey: "fibu.projekt.lastTimesheet",
+      accessor: (row) => row.lastTimesheetDate ?? "",
+      dataType: "DATE",
+      size: 110,
+    },
+    {
+      id: "lastOrderDate",
+      labelKey: "fibu.projekt.lastOrder",
+      accessor: (row) => row.lastOrderDate ?? "",
+      dataType: "DATE",
+      size: 110,
+    },
     {
       name: "headOfBusinessManager",
       size: 140,

@@ -58,6 +58,22 @@
   ],
   "releases": [
     {
+      "id": "9-0-2-snapshot-20261006",
+      "version": "9.0.2-SNAPSHOT",
+      "date": "2026-10-06",
+      "title": "ProjectForge 9.0.2 snapshot (2026-10-06)",
+      "fromCommit": "04c534efc",
+      "toCommit": "3177287b6",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-1",
       "version": "9.0.1",
       "date": "2026-10-06",

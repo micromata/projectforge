@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.framework.i18n.translate
+import java.time.LocalDate
 
 class Project(
     id: Long? = null,
@@ -64,6 +65,20 @@ class Project(
      * The two-digit ids of the project's cost 2 types, for the list column only.
      */
     var kost2ArtsAsString: String? = null,
+    /**
+     * The day of the latest time sheet on the project's task tree, for the list column only
+     * (see `ProjectEntityRest.createListRow`).
+     */
+    var lastTimesheetDate: LocalDate? = null,
+    /**
+     * The youngest date of the project's orders, for the list column only
+     * ([org.projectforge.business.fibu.AuftragsCache.getLatestOrderDate]).
+     */
+    var lastOrderDate: LocalDate? = null,
+    /**
+     * The later of [lastTimesheetDate] and [lastOrderDate], for the list column only.
+     */
+    var lastActivityDate: LocalDate? = null,
     /**
      * True if the project has cost 2 units, so its number and customer can't be changed any more
      * ([org.projectforge.business.fibu.ProjektDao.isNumberLocked]). For the edit form only; ignored when

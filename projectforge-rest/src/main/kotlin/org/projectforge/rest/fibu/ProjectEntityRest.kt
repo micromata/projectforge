@@ -26,12 +26,14 @@ package org.projectforge.rest.fibu
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.kost.ProjektKost2Service
+import org.projectforge.business.task.TaskTree
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -45,6 +47,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -65,6 +68,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 /**
  * The project (Projekt) list and edit page, layout free — its list and form are hand built in
@@ -97,6 +101,12 @@ class ProjectEntityRest
 
     @Autowired
     private lateinit var projektKost2Service: ProjektKost2Service
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
 
     @PostConstruct
     private fun postConstruct() {
@@ -163,8 +173,35 @@ class ProjectEntityRest
                 it.active = projektKost2Service.isActive(kost2)
             }
         }
+        dto.lastTimesheetDate = lastTimesheetDate(obj)
+        dto.lastOrderDate = lastOrderDate(obj)
+        dto.lastActivityDate = lastActivityDate(obj)
         return dto
     }
+
+    /**
+     * The activity columns, sorted in memory: both values come from caches ([TaskTree], [AuftragsCache]).
+     */
+    override val computedSortProperties: Map<String, (ProjektDO) -> Comparable<*>?> = mapOf(
+        "lastTimesheetDate" to ::lastTimesheetDate,
+        "lastOrderDate" to ::lastOrderDate,
+        "lastActivityDate" to ::lastActivityDate,
+    )
+
+    /** The day (in the user's time zone) of the latest time sheet on the project's task tree. */
+    private fun lastTimesheetDate(obj: ProjektDO): LocalDate? {
+        val date = taskTree.getLatestTimesheetStopDate(obj.id, obj.task?.id)
+        return PFDay.fromOrNull(date)?.localDate
+    }
+
+    private fun lastOrderDate(obj: ProjektDO): LocalDate? = auftragsCache.getLatestOrderDate(obj.id)
+
+    /**
+     * The later of the last time sheet and the last order date: a project without any recent one has
+     * probably ended.
+     */
+    private fun lastActivityDate(obj: ProjektDO): LocalDate? =
+        listOfNotNull(lastTimesheetDate(obj), lastOrderDate(obj)).maxOrNull()
 
     /**
      * Replaces the auto-detected `status` filter by the list type the Wicket list offered: "not ended"
