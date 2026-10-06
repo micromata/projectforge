@@ -136,6 +136,13 @@
             vertical-align: top;
         }
 
+        /* Cells with long values without spaces (file names, URLs), which would otherwise push the table beyond
+         * the card. Not for all cells, because the table layout would then break short words, too. */
+        td.wrap, table.width-2 td, table.width-3 td {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
         /* Column headers of data tables, e.g. the history of changes. */
         tr th {
             padding: 6px 12px 6px 0;
