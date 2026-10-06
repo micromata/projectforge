@@ -12,36 +12,23 @@ link:index{outfilesuffix}[Top]
 
 == How to deploy a new release?
 
-1. Modify `site/_changelogs` with updated release information
-2. Run `DevelopmentMainForRelease.kt` main to sort all i18n resources and fix source file headers, if any.
-3. Define new release variable: +
-   `./build.gradle.kts: version = '8.0'`
-4. `./gradlew clean build`
-5. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceed:
-6. Copy executable jar file from `projectforge-application/build/libs/projectforge-application-\*.jar` to SourceForge and tag this file as default for all platforms
-7. Building and pushing docker
-    a. For testing docker images first, please refer `/docker/README.adoc`.
-    b. `export PF_VERSION=8.0`
-    c. `export DOCKER_USER=micromata`
-    d. `cp projectforge-application/build/libs/projectforge-application*.jar .`
-    e. `docker buildx build --platform linux/arm64,linux/amd64
-          --build-arg JAR_FILE=projectforge-application-$PF_VERSION.jar
-          -t $DOCKER_USER/projectforge:$PF_VERSION
-          -t $DOCKER_USER/projectforge:latest --push .`
-    f. Check docker images: https://hub.docker.com/r/micromata/projectforge/tags (both should be available: arm64 and amd64)
-8. Merge the release branch into the master and develop branch (Git Flow: Finish release)
-9. Tag master branch with version number
-10. Change to develop branch
-11. Create new SNAPSHOT-Release by increasing version number: +
-`./build.gradle.kts: version = '8.0.1-SNAPSHOT'`
-12. Commit everything to master and develop branch and push it to Github
-13. Upload the saved jar files to Github (Create release from tagged version) and SourceForge (e.g. as zip (see previous versions as example)).
+The version is set only by the release script (`gradle.properties`, `version=`). Releases are numbered
+`X.Y.Z`; `X.Y.0` opens a new version and needs a news entry.
 
-Optional (if not done before):
+1. Write the changelog: `changelog/changelog.json` (English) and its German translation
+   `changelog/changelog.de.json`. The release `X.Y.Z` goes on top of `releases` with the tag `X.Y.Z-RELEASE`.
+2. `bin/pfDev.sh release X.Y.Z`: checks the changelog, sets the version, runs `gen` and the build with all
+   tests, commits and tags `X.Y.Z-RELEASE`, then commits the next `X.Y.(Z+1)-SNAPSHOT`. Nothing is pushed.
+3. `bin/pfDev.sh publish X.Y.Z`: pushes the branch and the tag, and creates the GitHub release with the notes
+   generated from the changelog and the jar attached. It asks before each step.
+4. Docker images, each architecture built natively (docker or podman, log in first with `podman login
+   docker.io` or `docker login`):
+    a. On the arm64 machine (e.g. the Mac): `docker/push-release.sh X.Y.Z arch`. It pushes
+       `micromata/projectforge:X.Y.Z-arm64` and shows the commands for the other machine.
+    b. On the amd64 machine (e.g. a Linux server): `git fetch --tags`, update the branch, then
+       `docker/push-release.sh X.Y.Z arch`. The jar is downloaded from the GitHub release.
+    c. On either machine: `docker/push-release.sh X.Y.Z manifest`. It pushes the multi-arch tags `X.Y.Z` and
+       `latest`.
+    d. Check https://hub.docker.com/r/micromata/projectforge/tags: both architectures, amd64 and arm64.
 
-[source]
-----
-docker buildx create --name mybuilder --use
-docker buildx inspect mybuilder --bootstrap
-----
-
+For testing docker images first, please refer `/docker/README.adoc`.
