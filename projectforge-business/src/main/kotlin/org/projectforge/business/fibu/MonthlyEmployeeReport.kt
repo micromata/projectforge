@@ -28,6 +28,7 @@ import org.apache.commons.lang3.Validate
 import org.apache.commons.text.StringEscapeUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.common.OutputType
+import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
@@ -106,14 +107,17 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
             /**
              * The cost type name is only shown for customer cost units (Nummernkreis 4 and 5). For internal ones
-             * it is misleading (e.g. vacation shown as "Akquise"), so it is left empty.
+             * it is misleading (e.g. vacation shown as "Akquise"), so it is left empty. Used by the cost 2 list
+             * and its Excel export too.
+             * @param kost2Art The cost type of [kost2], if the caller already has it (e.g. from the cache).
              */
             @JvmStatic
-            fun displayedKost2ArtName(kost2: Kost2DO?): String? {
+            @JvmOverloads
+            fun displayedKost2ArtName(kost2: Kost2DO?, kost2Art: Kost2ArtDO? = kost2?.kost2Art): String? {
                 if (kost2 == null || (kost2.nummernkreis != 4 && kost2.nummernkreis != 5)) {
                     return null
                 }
-                return kost2.kost2Art?.name
+                return kost2Art?.name
             }
         }
     }
