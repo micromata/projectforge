@@ -40,6 +40,7 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -62,6 +63,9 @@ class HibernateSearchReindexer {
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
 
+    @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
+
     private lateinit var indexedEntities: Collection<SearchIndexedEntity<*>>
 
     @PostConstruct
@@ -72,10 +76,26 @@ class HibernateSearchReindexer {
     /**
      * All entity classes known to Hibernate Search, in the order used for a full re-index (same set the no-arg
      * [rebuildDatabaseSearchIndices] iterates). Exposed so a full re-index can be handed to a [ReindexJob], which
-     * needs the explicit class list to report per-class progress.
+     * needs the explicit class list to report per-class progress. Entities of not activated plugins are excluded.
      */
     val indexedEntityClasses: List<Class<*>>
-        get() = indexedEntities.map { it.javaClass() }
+        get() = indexedEntities.map { it.javaClass() }.filterNot { isEntityOfInactivePlugin(it) }
+
+    /**
+     * Hibernate maps the entities of all plugins found in the classpath, but only an activated plugin runs its
+     * Flyway migrations. So the table of a not activated plugin may be missing or outdated (e.g. left from an earlier
+     * activation, lacking newer columns): loading its entities fails and must not be tried.
+     * An entity belongs to a plugin, if it's located in the plugin's package or a sub package.
+     */
+    private fun isEntityOfInactivePlugin(clazz: Class<*>): Boolean {
+        val activePlugins = pluginAdminService.activePlugins.map { it.javaClass }.toSet()
+        return pluginAdminService.availablePlugins
+            .filter { it.javaClass !in activePlugins }
+            .any { plugin ->
+                val pluginPackage = plugin.javaClass.packageName
+                clazz.packageName == pluginPackage || clazz.packageName.startsWith("$pluginPackage.")
+            }
+    }
 
     fun execute() {
         log.info { "Re-index job started." }
@@ -145,6 +165,10 @@ class HibernateSearchReindexer {
     }
 
     private fun reindex(clazz: Class<*>, settings: ReindexSettings, sb: StringBuilder) {
+        if (isEntityOfInactivePlugin(clazz)) {
+            log.info { "Class '$clazz' belongs to a non-active plugin, skipping re-index." }
+            return
+        }
         try {
             // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
             persistenceService.selectSingleResult("select count(*) from " + clazz.simpleName + " t", Long::class.java)?.let {
