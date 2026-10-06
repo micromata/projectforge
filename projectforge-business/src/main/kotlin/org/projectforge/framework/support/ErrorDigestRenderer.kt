@@ -50,7 +50,14 @@ class ErrorDigestRenderer(
     class DigestView(
         val domain: String?,
         val period: String,
+        /**
+         * Problems (groups) without the external ones: the lead figure, not the occurrences, as a single problem may
+         * occur 100,000 times.
+         */
         val errors: Int,
+        /** Occurrences of the [errors]. */
+        val errorOccurrences: Int,
+        /** Problems of external systems (category EXTERNAL) and sync runs with problems. */
         val external: Int,
         val occurrences: Int,
         val groups: Int,
@@ -123,14 +130,20 @@ class ErrorDigestRenderer(
     private val time = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(zone)
 
     fun subject(snapshot: ErrorDigestCollector.Snapshot, syncProblems: List<SyncProblemTracker.Problem>): String {
-        val external = snapshot.count(LogCategory.EXTERNAL) + syncProblems.size
-        val errors = snapshot.occurrences - snapshot.count(LogCategory.EXTERNAL)
         val news = NOVELTY_COUNTS.mapNotNull { (novelty, label) ->
             snapshot.groups.count { it.novelty == novelty }.takeIf { it > 0 }?.let { "$it $label" }
         }.joinToString(", ")
-        return ("Error digest ${domain ?: ""}: ${formatCount(errors)} errors, ${formatCount(external)} external failures" +
+        return ("Error digest ${domain ?: ""}: ${problems(errors(snapshot).size)}, ${formatCount(external(snapshot, syncProblems))} external failures" +
                 if (news.isEmpty()) "" else " ($news)").replace("  ", " ")
     }
+
+    private fun errors(snapshot: ErrorDigestCollector.Snapshot) =
+        snapshot.groups.filter { it.category != LogCategory.EXTERNAL }
+
+    private fun external(snapshot: ErrorDigestCollector.Snapshot, syncProblems: List<SyncProblemTracker.Problem>) =
+        snapshot.groups.count { it.category == LogCategory.EXTERNAL } + syncProblems.size
+
+    private fun problems(count: Int) = "${formatCount(count)} ${if (count == 1) "problem" else "problems"}"
 
     fun view(
         snapshot: ErrorDigestCollector.Snapshot,
@@ -158,12 +171,13 @@ class ErrorDigestRenderer(
                 sections.add(SectionView(SYNC_TITLE, syncProblems.size, syncProblems = syncProblems.map { syncView(it) }))
             }
         }
-        val externalOccurrences = snapshot.count(LogCategory.EXTERNAL)
+        val errors = errors(snapshot)
         return DigestView(
             domain = domain,
             period = "${dateTime.format(Instant.ofEpochMilli(fromMillis))} - ${dateTime.format(Instant.ofEpochMilli(toMillis))} (${zone.id})",
-            errors = snapshot.occurrences - externalOccurrences,
-            external = externalOccurrences + syncProblems.size,
+            errors = errors.size,
+            errorOccurrences = errors.sumOf { it.count },
+            external = external(snapshot, syncProblems),
             occurrences = snapshot.occurrences,
             groups = snapshot.groups.size,
             dropped = snapshot.dropped,
@@ -199,7 +213,7 @@ class ErrorDigestRenderer(
         val view = view(snapshot, syncProblems, fromMillis, toMillis, attachmentName)
         appendLine("ProjectForge error digest${domain?.let { " of $it" } ?: ""}")
         appendLine("Period: ${view.period}")
-        append("${formatCount(view.occurrences)} occurrences in ${view.groups} groups")
+        append("${problems(view.groups)} with ${formatCount(view.occurrences)} occurrences")
         if (view.dropped > 0) append(", ${formatCount(view.dropped)} further occurrences dropped (group limit reached)")
         if (view.suppressed > 0) append(", ${formatCount(view.suppressed)} occurrences not listed (below threshold, already reported or muted)")
         appendLine()

@@ -3151,6 +3151,9 @@
           "newProblems": "New problems (24 h)",
           "occurrences": "Errors (24 h)",
           "open": "Not looked at yet",
+          "problems": "Problems (24 h)",
+          "problemsOccurrences": "{arg0} errors",
+          "problemsTopShare": "{arg0} errors, {arg1} of them from the most frequent problem",
           "regressions": "Regressions"
         },
         "lastNotified": "Last reported",

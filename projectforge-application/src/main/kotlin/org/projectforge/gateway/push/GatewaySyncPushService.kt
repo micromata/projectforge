@@ -30,6 +30,8 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.teamcal.admin.TeamCalCache
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
+import org.projectforge.business.teamcal.admin.right.TeamCalRight
 import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
@@ -45,6 +47,7 @@ import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.gateway.sync.dto.SyncAddressDto
@@ -87,6 +90,8 @@ class GatewaySyncPushService(
     private var calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest? = null
 
     private val lastPushHashes = mutableMapOf<String, Int>()
+
+    private val teamCalRight = TeamCalRight()
 
     /**
      * Start of the last successful address push. Null until the first successful push, so the first sync after
@@ -341,6 +346,9 @@ class GatewaySyncPushService(
 
         // Holidays are identical for all users – generate once and reuse
         var holidaysIcsData: String? = null
+        // The ICS of a team calendar is the same for all users of the same access class and locale (see
+        // teamCalIcsKey): generated once per run, not once per user (users × calendars exports per run).
+        val teamCalIcs = mutableMapOf<String, String?>()
 
         for (user in users) {
             try {
@@ -352,7 +360,9 @@ class GatewaySyncPushService(
                 val calendars = teamCalCache.allAccessibleCalendars
                 for (cal in calendars.orEmpty()) {
                     val calId = cal.id ?: continue
-                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries)) skippedUnchanged++
+                    if (!addIcsEntry(userId, token, "teamCals=$calId", icsEntries, teamCalIcs, teamCalIcsKey(cal, user))) {
+                        skippedUnchanged++
+                    }
                 }
 
                 // Generate Timesheets ICS for this user
@@ -397,6 +407,7 @@ class GatewaySyncPushService(
     }
 
     /**
+     * @param cache ICS data of this run by [cacheKey]: an export with an already known key isn't generated again.
      * @return true if the entry was added, false if skipped (unchanged or error).
      */
     private fun addIcsEntry(
@@ -404,10 +415,35 @@ class GatewaySyncPushService(
         token: String,
         additionalParams: String,
         entries: MutableList<SyncIcsEntryDto>,
+        cache: MutableMap<String, String?>? = null,
+        cacheKey: String? = null,
     ): Boolean {
         val encryptedQ = encryptQuery(userId, token, additionalParams) ?: return false
-        val icsData = exportIcs(userId, encryptedQ, additionalParams) ?: return false
+        val icsData = if (cache != null && cacheKey != null) {
+            if (cache.containsKey(cacheKey)) {
+                cache[cacheKey]
+            } else {
+                exportIcs(userId, encryptedQ, additionalParams).also { cache[cacheKey] = it }
+            }
+        } else {
+            exportIcs(userId, encryptedQ, additionalParams)
+        } ?: return false
         return addIfChanged(userId, additionalParams, encryptedQ, icsData, entries)
+    }
+
+    /**
+     * What the ICS of a team calendar depends on besides the calendar: the events the user sees and how
+     * (TeamEventRight.hasSelectAccess: owner, full and readonly access see all fields, minimal access sees cleared
+     * events) and the locale (title of the included vacation days). Requires the user context of the user.
+     */
+    private fun teamCalIcsKey(cal: TeamCalDO, user: PFUserDO): String {
+        val userId = user.id
+        val access = when {
+            cal.ownerId == userId || teamCalRight.hasFullAccess(cal, userId) || teamCalRight.hasReadonlyAccess(cal, userId) -> "read"
+            teamCalRight.hasMinimalAccess(cal, userId) -> "minimal"
+            else -> "none"
+        }
+        return "${cal.id}:$access:${ThreadLocalUserContext.locale}"
     }
 
     /**

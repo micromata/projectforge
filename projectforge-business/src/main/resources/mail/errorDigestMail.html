@@ -36,15 +36,14 @@
           <% } %>
           <td>
             <span class="number<%= digest.errors > 0 ? ' error' : '' %>"><%= digest.format(digest.errors) %></span>
-            <span class="muted small">errors</span>
+            <span class="muted small"><%= digest.errors == 1 ? 'problem' : 'problems' %></span>
+            <% if (digest.errorOccurrences > digest.errors) { %>
+            <br><span class="muted small"><%= digest.format(digest.errorOccurrences) %> occurrences</span>
+            <% } %>
           </td>
           <td>
             <span class="number<%= digest.external > 0 ? ' warn' : '' %>"><%= digest.format(digest.external) %></span>
             <span class="muted small">external failures</span>
-          </td>
-          <td>
-            <span class="number"><%= digest.format(digest.groups) %></span>
-            <span class="muted small">groups</span>
           </td>
           <% if (digest.dropped > 0) { %>
           <td>

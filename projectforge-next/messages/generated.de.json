@@ -3151,6 +3151,9 @@
           "newProblems": "Neue Probleme (24 h)",
           "occurrences": "Fehler (24 h)",
           "open": "Noch unbearbeitet",
+          "problems": "Probleme (24 h)",
+          "problemsOccurrences": "{arg0} Fehler",
+          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus dem häufigsten Problem",
           "regressions": "Regressionen"
         },
         "lastNotified": "Zuletzt gemeldet",

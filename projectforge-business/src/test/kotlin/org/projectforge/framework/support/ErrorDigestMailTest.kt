@@ -86,7 +86,7 @@ class ErrorDigestMailTest : AbstractTestBase() {
         bug.hourlyMean = 0.25
         val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/adminErrors")
         Assertions.assertEquals(
-            "Error digest https://pf.example.org: 13 errors, 1 external failures (1 new, 1 spikes)",
+            "Error digest https://pf.example.org: 2 problems, 1 external failures (1 new, 1 spikes)",
             renderer.subject(snapshot, emptyList()),
         )
         val html = sendMail.renderGroovyTemplate(
@@ -101,6 +101,8 @@ class ErrorDigestMailTest : AbstractTestBase() {
         Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/adminErrors?id=42\""), html)
         Assertions.assertTrue(html.contains("usually 0.3 per hour"), html)
         Assertions.assertTrue(html.contains("ignored or muted problems"), html)
+        Assertions.assertTrue(html.contains("13 occurrences"), "The occurrences below the problems: $html")
+        Assertions.assertFalse(html.contains(">groups<"), html)
         Assertions.assertEquals(DigestNovelty.KNOWN, external.novelty)
         val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
         Assertions.assertTrue(body.indexOf("== New problems (1) ==") < body.indexOf("== ${LogCategory.EXTERNAL.title} (1) =="), body)
