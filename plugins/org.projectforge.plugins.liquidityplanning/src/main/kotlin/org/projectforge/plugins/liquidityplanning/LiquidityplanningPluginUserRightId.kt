@@ -54,8 +54,4 @@ enum class LiquidityplanningPluginUserRightId
     override fun toString(): String {
         return id
     }
-
-    override fun compareTo(o: IUserRightId?): Int {
-        return this.compareTo(o)
-    }
 }
