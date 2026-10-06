@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { FavoritesMenu } from "@/components/shared/favorites/favorites-menu";
+import type { TimesheetTemplateList } from "../../use-timesheet-template-list";
 import { useTimesheetTemplates } from "../use-timesheet-templates";
 import { RecentTimesheetsPopover } from "./recent-timesheets-popover";
 
@@ -16,6 +17,21 @@ import { RecentTimesheetsPopover } from "./recent-timesheets-popover";
  * rename and delete but no in-place update.
  */
 export function TemplatesRecentBar() {
+  return <TemplatesRecentBarView templates={useTimesheetTemplates()} />;
+}
+
+/**
+ * The bar itself, bound to no form — also above the fields of the multi-day booking dialog, which fills
+ * its own state from a template.
+ */
+export function TemplatesRecentBarView({
+  templates,
+  compact = false,
+}: {
+  templates: TimesheetTemplateList;
+  /** Inside a dialog: the recent entries open in a narrower box (see RecentTimesheetsPopover). */
+  compact?: boolean;
+}) {
   const t = useTranslations();
   const {
     recent,
@@ -25,7 +41,7 @@ export function TemplatesRecentBar() {
     create,
     rename,
     remove,
-  } = useTimesheetTemplates();
+  } = templates;
   const entries = recent?.timesheets ?? [];
 
   return (
@@ -46,6 +62,7 @@ export function TemplatesRecentBar() {
           entries={entries}
           cost2Visible={recent?.cost2Visible ?? false}
           onSelect={applyRecent}
+          compact={compact}
         />
       )}
     </div>

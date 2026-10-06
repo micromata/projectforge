@@ -672,6 +672,7 @@
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
           "error": {
+            "duplicateKost2": "The cost unit {arg0} is already assigned above.",
             "kostNumber": "{arg0} is no number of three parts like 6.000.10.",
             "negative": "must not be negative.",
             "percentage": "must be between 0 and 100.",
@@ -3602,6 +3603,29 @@
         "_": "Unit",
         "info": "Percentage time savings in percent in this time report (e.g. 10% of 10 hours is 1 hour) or in hours:\n\nNote: A time report of one hour can also save many hours or days of effort."
       }
+    },
+    "bookDays": {
+      "hoursPerDay": "Hours per day",
+      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends, holidays and days already booked are skipped.",
+      "preview": "Preview",
+      "previewEmpty": "Please enter a period.",
+      "status": {
+        "book": "will be booked",
+        "booked": "already booked",
+        "holiday": "Holiday",
+        "partial": "pro rata",
+        "weekend": "Weekend"
+      },
+      "submit": "Book ({arg0})",
+      "success": "Booked days: {arg0}",
+      "summary": "Days to book: {arg0}, hours: {arg1}",
+      "title": "Book several days",
+      "vacation": "Take over vacation",
+      "vacationDays": "{arg0} day(s)",
+      "vacationDescription": "Vacation",
+      "vacationHint": "The days of the vacation are booked on the vacation cost unit.",
+      "vacationNotConfigured": "No vacation cost unit is configured: please choose structure element and cost unit yourself.",
+      "vacationPlaceholder": "Choose a vacation"
     },
     "description": "Activity report",
     "duration": "Duration",
