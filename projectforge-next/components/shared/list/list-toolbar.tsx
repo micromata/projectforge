@@ -92,7 +92,11 @@ export function ListToolbar({
 
       <div className="flex items-center gap-3 px-4 py-2.5">
         <div className="relative max-w-md flex-1">
-          <SearchInput value={searchValue} onChange={onSearchChange} />
+          <SearchInput
+            value={searchValue}
+            onChange={onSearchChange}
+            focusIfIdle
+          />
         </div>
       </div>
 

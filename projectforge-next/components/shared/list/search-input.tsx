@@ -22,6 +22,12 @@ export interface SearchInputProps {
   onEnter?: (backwards: boolean) => void;
   /** Focus the box on mount, for a page whose first thing to do is searching it. */
   autoFocus?: boolean;
+  /**
+   * Focus the box on mount, but only where nothing else holds the focus yet — the list pages, whose box
+   * is the likeliest first target but must not pull the cursor out of a field or a dialog that got it
+   * first. Not on a touch device, where focusing a field opens the on-screen keyboard over the list.
+   */
+  focusIfIdle?: boolean;
 }
 
 /**
@@ -41,6 +47,7 @@ export function SearchInput({
   onChange,
   onEnter,
   autoFocus,
+  focusIfIdle,
 }: SearchInputProps) {
   const t = useTranslations();
   const placeholder = t("filter.searchList");
@@ -57,6 +64,18 @@ export function SearchInput({
       setTyped(value);
     }
   }, [value]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!focusIfIdle) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    // preventScroll: a list returned to by browser-back restores its scroll position (useRememberScroll).
+    inputRef.current?.focus({ preventScroll: true });
+    // On mount only: a later render must not take the focus back from wherever the user moved it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (debounced === sent.current) return;
@@ -75,6 +94,7 @@ export function SearchInput({
         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
       />
       <Input
+        ref={inputRef}
         value={typed}
         onChange={(e) => setTyped(e.target.value)}
         onKeyDown={(e) => {
