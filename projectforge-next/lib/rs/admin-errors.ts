@@ -87,7 +87,11 @@ export interface LogGroupEntry {
 
 /** `LogGroupSummary`: the key figures of all problems, whatever the filter. */
 export interface LogGroupSummary {
+  /** Problems with occurrences within the last 24 hours. */
+  problems24h: number;
   occurrences24h: number;
+  /** The occurrences of the most frequent problem within the last 24 hours. */
+  topOccurrences24h: number;
   newProblems24h: number;
   regressions: number;
   externalProblems24h: number;

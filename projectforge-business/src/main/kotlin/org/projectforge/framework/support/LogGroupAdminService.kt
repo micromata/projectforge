@@ -116,8 +116,12 @@ class LogGroupEntry(
 
 /** The key figures of all problems, whatever the filter. */
 class LogGroupSummary(
+    /** Problems with occurrences within the last 24 hours, the lead figure (a single problem may occur 100,000 times). */
+    val problems24h: Int,
     /** Occurrences of all problems within the last 24 hours. */
     val occurrences24h: Int,
+    /** Occurrences of the most frequent problem within the last 24 hours, its share of [occurrences24h]. */
+    val topOccurrences24h: Int,
     /** Problems first seen within the last 24 hours. */
     val newProblems24h: Int,
     /** Resolved problems that occurred again and are new again. */
@@ -215,8 +219,13 @@ class LogGroupAdminService {
         val (rows, buckets) = loadRecent(trendStart)
         val bucketsByGroup = buckets.groupBy { it.groupId }
         val since24h = currentHour - 23 * Constants.MILLIS_PER_HOUR
+        val occurrencesByGroup24h = buckets.filter { it.bucketStart.time >= since24h }
+            .groupBy { it.groupId }.mapValues { (_, groupBuckets) -> groupBuckets.sumOf { it.occurrences } }
+            .filterValues { it > 0 }
         val summary = LogGroupSummary(
-            occurrences24h = buckets.filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences },
+            problems24h = occurrencesByGroup24h.size,
+            occurrences24h = occurrencesByGroup24h.values.sum(),
+            topOccurrences24h = occurrencesByGroup24h.values.maxOrNull() ?: 0,
             newProblems24h = rows.count { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY },
             regressions = rows.count { isRegression(it) },
             externalProblems24h = rows.count { it.category == LogCategory.EXTERNAL && it.lastSeen.time >= now - Constants.MILLIS_PER_DAY },

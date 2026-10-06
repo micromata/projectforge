@@ -61,6 +61,7 @@ class LogAggregationStatisticsBuilder : SystemsStatisticsBuilderInterface {
             log.warn { "Can't get the key figures of the log aggregation: ${ex.message}" }
             return
         }
+        stats.add("errorsProblems24h", GROUP, "'problems (24h)", summary.problems24h)
         stats.add("errors24h", GROUP, "'occurrences (24h)", summary.occurrences24h)
         stats.add("errorsNew24h", GROUP, "'new problems (24h)", summary.newProblems24h)
         stats.add("errorsRegressions", GROUP, "'regressions", summary.regressions)

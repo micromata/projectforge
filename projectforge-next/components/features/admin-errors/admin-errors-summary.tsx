@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatPercentageDecimal } from "@/lib/format";
 import type { LogGroupSummary } from "@/lib/rs/admin-errors";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +10,31 @@ import { cn } from "@/lib/utils";
 export function AdminErrorsSummary({ summary }: { summary: LogGroupSummary }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const tiles: { label: string; value: number; alert?: boolean }[] = [
+  const occurrences = formatNumber(summary.occurrences24h, ctx, 0);
+  // The problems lead: a single problem may occur 100,000 times and hide the others in the sum.
+  const problemsDetail =
+    summary.problems24h > 1 && summary.occurrences24h > 0
+      ? t("system.admin.adminErrors.kpi.problemsTopShare", {
+          arg0: occurrences,
+          arg1: formatPercentageDecimal(
+            summary.topOccurrences24h / summary.occurrences24h,
+            ctx,
+            0
+          ),
+        })
+      : t("system.admin.adminErrors.kpi.problemsOccurrences", {
+          arg0: occurrences,
+        });
+  const tiles: {
+    label: string;
+    value: number;
+    alert?: boolean;
+    detail?: string;
+  }[] = [
     {
-      label: t("system.admin.adminErrors.kpi.occurrences"),
-      value: summary.occurrences24h,
+      label: t("system.admin.adminErrors.kpi.problems"),
+      value: summary.problems24h,
+      detail: problemsDetail,
     },
     {
       label: t("system.admin.adminErrors.kpi.newProblems"),
@@ -45,6 +66,11 @@ export function AdminErrorsSummary({ summary }: { summary: LogGroupSummary }) {
           >
             {formatNumber(tile.value, ctx, 0)}
           </div>
+          {tile.detail && (
+            <div className="text-xs text-muted-foreground tabular-nums">
+              {tile.detail}
+            </div>
+          )}
         </div>
       ))}
     </div>

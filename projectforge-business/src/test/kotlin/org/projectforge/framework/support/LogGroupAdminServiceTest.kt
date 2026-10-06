@@ -69,6 +69,12 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertEquals(28, entry.trend.size)
         Assertions.assertEquals(4, entry.trend.sum())
         Assertions.assertTrue(list.summary.externalProblems24h >= 1)
+        list.summary.let {
+            // Other tests may have written problems too.
+            Assertions.assertTrue(it.problems24h >= 1)
+            Assertions.assertTrue(it.topOccurrences24h >= 3)
+            Assertions.assertTrue(it.occurrences24h >= it.topOccurrences24h)
+        }
         Assertions.assertEquals(
             2, logGroupAdminService.list(LogGroupFilter(search = "test.admin.", days = 0), now).total,
         )
@@ -134,7 +140,7 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         logon(TEST_ADMIN_USER)
         val entries = statisticsOf().entries.associate { it.id to it.value }
         Assertions.assertEquals(
-            listOf("errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
+            listOf("errorsProblems24h", "errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
         )
         Assertions.assertNotEquals("0", entries["errorsNew24h"])
     }
