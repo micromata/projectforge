@@ -27,6 +27,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.hibernate.collection.spi.PersistentBag
 import org.hibernate.collection.spi.PersistentList
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
@@ -223,7 +224,7 @@ open class CollectionHandler : CandHIHandler {
         val collection: MutableCollection<Any?> = when (srcCollection) {
             is TreeSet<*> -> TreeSet()
             is HashSet<*>, is PersistentSet<*> -> HashSet()
-            is ArrayList<*>, is PersistentList<*> -> ArrayList()
+            is ArrayList<*>, is PersistentList<*>, is PersistentBag<*> -> ArrayList()
             else -> {
                 log.error { "createCollectionInstance: Unsupported collection type: " + srcCollection.javaClass.name }
                 ArrayList()
