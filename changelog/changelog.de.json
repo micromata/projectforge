@@ -47,6 +47,17 @@
     }
   },
   "releases": {
+    "9-0-2-snapshot-20261006": {
+      "title": "ProjectForge 9.0.2 Snapshot (2026-10-06)",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen."
+          ]
+        }
+      ]
+    },
     "9-0-1": {
       "title": "ProjectForge 9.0.1 veröffentlicht",
       "sections": [

@@ -313,6 +313,37 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     }
 
     /**
+     * The latest stop time of all time sheets booked on the project's task and its sub tasks, read from the
+     * cached per-task values (no query per call). A sub task assigned to another project is skipped with its
+     * whole sub tree: those time sheets belong to that project.
+     *
+     * @param projektId The project the [taskId] is assigned to.
+     * @param taskId The project's task ([ProjektDO.task]).
+     * @return null, if no time sheet exists (or the project has no task).
+     */
+    fun getLatestTimesheetStopDate(projektId: Long?, taskId: Long?): Date? {
+        val node = getTaskNodeById(taskId) ?: return null
+        return latestTimesheetStopDate(node, projektId)
+    }
+
+    private fun latestTimesheetStopDate(node: TaskNode, projektId: Long?): Date? {
+        var result = node.getLatestTimesheetStopDate(this, false)
+        // The package-visible field, not getChildren(): it is null for a leaf.
+        node.children?.forEach { child ->
+            val childProjektId = child.getProjekt(false)?.id
+            if (childProjektId != null && childProjektId != projektId) {
+                return@forEach
+            }
+            latestTimesheetStopDate(child, projektId)?.let { date ->
+                if (result == null || date.after(result)) {
+                    result = date
+                }
+            }
+        }
+        return result
+    }
+
+    /**
      * @param taskId
      * @return true, if the task or any ancestor task is marked as a shared cost element (allowing time sheet overlap).
      * @see TaskNode.isTimeOverlapAllowed

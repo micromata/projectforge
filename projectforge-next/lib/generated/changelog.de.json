@@ -6,7 +6,7 @@
     "title" : "ProjectForge 9.0: neues Frontend, Wicket abgelöst, alle Bibliotheken aktuell",
     "text" : "ProjectForge 9.0 ist ein großes Update. Die klassische Wicket-Oberfläche wurde durch **projectforge-next** ersetzt, ein neues, mit Next.js und React gebautes Frontend, und alle Bibliotheken wurden auf den aktuellen Stand gebracht. Dazu kommen ein Problem-Dashboard für den Betrieb, viele neue Diagramme mit Kennzahlen, robuste Schnittstellen zu externen Systemen, E-Rechnungen und eine Anbindung an Identity Provider. Die Entwicklungs-Builds bis dahin sind im Changelog als 8.2-Snapshots aufgeführt.",
     "highlights" : [ "**Neues Frontend projectforge-next:** alle Seiten migriert, darunter Kalender, Zeitberichte, Auftragsbuch, Rechnungen, Strukturbaum, Zugriffsrechte, Monatsbericht, Liquiditätsplanung und Administration. Das klassische Wicket-Modul wurde entfernt.", "**Problem-Dashboard:** Log-Ereignisse werden klassifiziert und zu Problemen mit dauerhaftem Status zusammengefasst, mit Links in den Log-Viewer, JSON-Export für eine KI-gestützte Analyse und priorisierten Fehler-Sammelmails statt einer Mail pro Fehler.", "**Diagramme und Kennzahlen:** Auftragsstatistik mit Budget-Szenario, Deckungsbeiträge, Forecast-, Fakturierungs- und Nettosummen-Diagramme mit Vorjahresvergleich, Fakturierungsquote und Fehlerzahlen in der Systemstatistik.", "**Robuste Schnittstellen:** Timeouts, Verbindungspools, begrenzte Sync-Threads und Sync-Statistiken für LDAP, Identity Provider, iCal, SMS, Sipgate und das Gateway; ein nicht erreichbares System bricht schnell ab statt zu blockieren, fehlschlagende Kalenderabos werden in wachsenden Abständen wiederholt.", "**E-Rechnungen:** XRechnung- und ZUGFeRD-Export von Ausgangsrechnungen, PEPPOL-Validierung, Stornorechnungen und ein E-Rechnungs-Prüfer.", "**Identity Provider:** Synchronisation von Benutzern, Gruppen und Passwörtern mit Authentik oder Keycloak (Modul projectforge-idp).", "**Finanzen:** wiederkehrende Liquiditätseinträge, DATEV-Import von Eingangsrechnungen, Gehaltsimport, Währungsumrechnung mit online ermittelten Wechselkursen.", "**Technologie:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table." ],
-    "releaseId" : "9-0-1"
+    "releaseId" : "9-0-2-snapshot-20261006"
   }, {
     "version" : "8.1",
     "date" : "2025-09-01",
@@ -37,6 +37,17 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
+    "id" : "9-0-2-snapshot-20261006",
+    "version" : "9.0.2-SNAPSHOT",
+    "date" : "2026-10-06",
+    "title" : "ProjectForge 9.0.2 Snapshot (2026-10-06)",
+    "fromCommit" : "04c534efc",
+    "toCommit" : "3177287b6",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen." ]
+    } ]
+  }, {
     "id" : "9-0-1",
     "version" : "9.0.1",
     "date" : "2026-10-06",

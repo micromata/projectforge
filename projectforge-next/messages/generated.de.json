@@ -1383,6 +1383,9 @@
       "konto": {
         "tooltip": "Wird für den Export von Debitorenrechnungen verwendet. Wenn kein Konto angegeben, wird ein evtl. vorhandenes Konto des diesem Projekt zugeordneten Kundens verwendet."
       },
+      "lastActivity": "Letzte Aktivität",
+      "lastOrder": "Letzter Auftrag",
+      "lastTimesheet": "Letzte Zeitbuchung",
       "leiter": "Projektmanagement",
       "list": {
         "select": {
@@ -3619,7 +3622,7 @@
     "selectTask": "Strukturelement wählen",
     "shortcut": {
       "addEntry": {
-        "_": "N oder + drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
+        "_": "N oder + drücken (außerhalb eines Eingabefelds), oder ALT-N (macOS: Option-N), auch in einem Eingabefeld.",
         "title": "Tastaturkürzel N oder +"
       },
       "selectAll": {

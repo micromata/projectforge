@@ -80,6 +80,12 @@ export interface ProjectDetail {
   kostFormatted?: string | null;
   /** The two-digit ids of the project's cost 2 types ("00, 01, 03") — list rows only. Read-only. */
   kost2ArtsAsString?: string | null;
+  /** Day of the latest time sheet on the project's task tree (ISO date) — list rows only. Read-only. */
+  lastTimesheetDate?: string | null;
+  /** Youngest date of the project's orders (ISO date) — list rows only. Read-only. */
+  lastOrderDate?: string | null;
+  /** The later of `lastTimesheetDate` and `lastOrderDate` — list rows only. Read-only. */
+  lastActivityDate?: string | null;
   /** The translated status label (`Project.statusAsString`). Read-only. */
   statusAsString?: string | null;
   /**
