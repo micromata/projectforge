@@ -332,3 +332,12 @@ tasks.register<JavaExec>("checkReleaseChangelog") {
     workingDir = rootDir
     args("--check-release", providers.gradleProperty("releaseVersion").getOrElse(""))
 }
+
+/** Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest). */
+tasks.register<JavaExec>("foldChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
+}
