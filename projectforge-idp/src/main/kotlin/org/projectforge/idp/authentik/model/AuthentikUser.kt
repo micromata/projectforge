@@ -43,7 +43,7 @@ data class AuthentikUser(
     val username: String? = null,
     val name: String? = null,
     val email: String? = null,
-    @JsonProperty("is_active")
+    @param:JsonProperty("is_active")
     val isActive: Boolean = true,
     val attributes: Map<String, Any?>? = null,
     val groups: List<String>? = null,

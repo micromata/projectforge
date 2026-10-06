@@ -1648,7 +1648,7 @@ constructor(
         jcrPath = if (identifier != null) {
             getJcrPath(identifier)
         } else {
-            baseDao.identifier?.let {
+            baseDao.identifier.let {
                 getJcrPath(it)
             }
         }

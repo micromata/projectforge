@@ -60,7 +60,9 @@ tasks {
         outputs.dir("dist")
     }
 
-    register<Copy>("copyReactBuild") {
+    // Sync, not Copy: Vite's asset names carry content hashes, so a Copy kept the bundles (and source maps)
+    // of every earlier build in static/assets and they all went into the jar.
+    register<Sync>("copyReactBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"

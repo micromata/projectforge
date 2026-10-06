@@ -36,13 +36,13 @@ constructor(filter: BaseSearchFilter? = null) : BaseSearchFilter(filter), Serial
     var fromYear: Int? = null
         set(value) {
             // Backwards compatibility for year <= 0
-            field = if (value != null && value.toInt() > 0) value else null
+            field = if (value != null && value > 0) value else null
         }
 
     var toYear: Int? = null
         set(value) {
             // Backwards compatibility for year <= 0
-            field = if (value != null && value.toInt() > 0) value else null
+            field = if (value != null && value > 0) value else null
         }
 
     /**

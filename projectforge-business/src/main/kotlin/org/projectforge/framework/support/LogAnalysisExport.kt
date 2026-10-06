@@ -70,7 +70,7 @@ class LogAnalysisExport(
         const val SOURCE_DIGEST = "digest"
 
         private val MAPPER = jacksonObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
             .enable(SerializationFeature.INDENT_OUTPUT)
 
         internal fun iso(millis: Long?): String? = millis?.let { Instant.ofEpochMilli(it).toString() }

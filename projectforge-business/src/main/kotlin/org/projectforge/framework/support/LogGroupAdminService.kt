@@ -55,6 +55,15 @@ enum class LogGroupStatusFilter(val statuses: Set<LogGroupStatus>?) {
     RESOLVED(setOf(LogGroupStatus.RESOLVED)),
 }
 
+/** A selection of a key figure of the dashboard ([LogGroupSummary]) the other filters can't express. */
+enum class LogGroupScope {
+    /** First seen within the last 24 hours ([LogGroupSummary.newProblems24h]). */
+    NEW_24H,
+
+    /** Resolved problems that occurred again ([LogGroupSummary.regressions]). */
+    REGRESSION,
+}
+
 /**
  * @param days Only problems occurred within the last days; null or 0 for all.
  * @param search Part of code, message, location or exception class, case-insensitive.
@@ -66,6 +75,7 @@ class LogGroupFilter(
     var days: Int? = 7,
     /** Only the problems of the subsystem ([SubsystemStatusProvider.id]); none of an unknown one. */
     var subsystem: String? = null,
+    var scope: LogGroupScope? = null,
 )
 
 /**
@@ -457,6 +467,11 @@ class LogGroupAdminService {
         }
         if (filter.category != null && row.category != filter.category) {
             return false
+        }
+        when (filter.scope) {
+            LogGroupScope.NEW_24H -> if (row.firstSeen.time < now - Constants.MILLIS_PER_DAY) return false
+            LogGroupScope.REGRESSION -> if (!isRegression(row)) return false
+            null -> {}
         }
         filter.days?.takeIf { it > 0 }?.let { days ->
             if (row.lastSeen.time < now - days * Constants.MILLIS_PER_DAY) {

@@ -23,7 +23,6 @@
 
 package org.projectforge.business.test;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
@@ -139,8 +138,8 @@ public class ConfigXmlTest {
         createTestConfiguration();
         String exported_config = ConfigXml.getInstance().exportConfiguration();
         // on windows other paths may be used.
-        String expected_config = StringUtils.replace(exportXml, "\\", "/");
-        exported_config = StringUtils.replace(exported_config, "\\", "/");
+        String expected_config = exportXml.replace("\\", "/");
+        exported_config = exported_config.replace("\\", "/");
         assertEquals(expected_config, exported_config);
     }
 

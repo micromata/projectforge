@@ -137,7 +137,7 @@ object Kost2FilterUtils {
     fun preProcessKost2Art(target: QueryFilter, source: MagicFilter, kost2Path: String = "kost2"): Boolean {
         val entry = source.entries.find { it.field == kost2ArtFieldId(kost2Path) } ?: return false
         entry.synthetic = true
-        val ids = entry.value.values?.mapNotNull { it?.toLongOrNull() } ?: emptyList()
+        val ids = entry.value.values?.mapNotNull { it.toLongOrNull() } ?: emptyList()
         if (ids.isNotEmpty()) {
             target.add(QueryFilter.isIn("$kost2Path.kost2Art.id", ids))
         }

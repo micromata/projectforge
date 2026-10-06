@@ -14,6 +14,7 @@ import type {
 import {
   CATEGORIES,
   CATEGORY_KEYS,
+  SCOPE_KEYS,
   STATUS_FILTER_KEYS,
 } from "./admin-errors-labels";
 
@@ -23,18 +24,20 @@ const DAYS = [1, 7, 30, 0];
 
 /**
  * Status, category and period of the problem dashboard's list - the server's filter (the search is the table's). A
- * subsystem chosen by its tile ([subsystemTitle]) shows as a removable chip.
+ * subsystem chosen by its tile ([subsystemTitle]) and the scope of a key figure show as removable chips.
  */
 export function AdminErrorsFilters({
   filter,
   subsystemTitle,
   onChange,
   onRemoveSubsystem,
+  onRemoveScope,
 }: {
   filter: LogGroupFilter;
   subsystemTitle: string | null;
   onChange: (filter: LogGroupFilter) => void;
   onRemoveSubsystem: () => void;
+  onRemoveScope: () => void;
 }) {
   const t = useTranslations();
   const days = (value: number) =>
@@ -119,20 +122,42 @@ export function AdminErrorsFilters({
         </Select>
       </div>
       {subsystemTitle && (
-        <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-sm">
-          {t("system.admin.adminErrors.subsystems.filter", {
+        <FilterChip
+          label={t("system.admin.adminErrors.subsystems.filter", {
             arg0: subsystemTitle,
           })}
-          <button
-            type="button"
-            className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
-            aria-label={t("system.admin.adminErrors.subsystems.removeFilter")}
-            onClick={onRemoveSubsystem}
-          >
-            <HugeiconsIcon icon={Cancel01Icon} size={12} />
-          </button>
-        </span>
+          onRemove={onRemoveSubsystem}
+        />
+      )}
+      {filter.scope && (
+        <FilterChip
+          label={t(SCOPE_KEYS[filter.scope])}
+          onRemove={onRemoveScope}
+        />
       )}
     </div>
+  );
+}
+
+function FilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-sm">
+      {label}
+      <button
+        type="button"
+        className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
+        aria-label={t("system.admin.adminErrors.subsystems.removeFilter")}
+        onClick={onRemove}
+      >
+        <HugeiconsIcon icon={Cancel01Icon} size={12} />
+      </button>
+    </span>
   );
 }

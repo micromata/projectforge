@@ -105,7 +105,7 @@ object I18nHelper {
 
     @JvmStatic
     fun getLocalizedString(locale: Locale?, i18nKey: String): String {
-        val lc = locale ?: ThreadLocalUserContext.locale!!
+        val lc = locale ?: ThreadLocalUserContext.locale
         for (bundleName in BUNDLE_NAMES) {
             val translation = getLocalizedString(bundleName, lc, i18nKey)
             if (translation != null) {

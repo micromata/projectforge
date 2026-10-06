@@ -99,12 +99,17 @@ class ContributionMarginConfig(
     } else if (redThreshold > targetPercentage) {
       errors += Error(RED_THRESHOLD, "$ERROR_PREFIX.redAboveTarget")
     }
+    // A kost2 assigned twice would go to one of the projects only, see ContributionMarginService.kost2ToProject.
+    val assignedKost2 = mutableSetOf<List<Int>>()
     kost2Assignments.forEachIndexed { index, assignment ->
       if (assignment.isBlank) {
         return@forEachIndexed
       }
-      if (parseKostNumber(assignment.kost2) == null) {
+      val kost2 = parseKostNumber(assignment.kost2)
+      if (kost2 == null) {
         errors += Error(KOST2_ASSIGNMENTS, "$ERROR_PREFIX.kostNumber", index, assignment.kost2 ?: "")
+      } else if (!assignedKost2.add(kost2)) {
+        errors += Error(KOST2_ASSIGNMENTS, "$ERROR_PREFIX.duplicateKost2", index, assignment.kost2)
       }
       val project = parseKostNumber(assignment.project)
       if (project == null) {

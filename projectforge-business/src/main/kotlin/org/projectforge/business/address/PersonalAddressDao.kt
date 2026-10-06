@@ -236,7 +236,7 @@ class PersonalAddressDao {
         return persistenceService.selectNamedSingleResult(
             PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID,
             PersonalAddressDO::class.java,
-            Pair("ownerId", owner!!.id),
+            Pair("ownerId", owner.id),
             Pair("addressId", addressId),
             attached = attached,
             errorMessage = "Multiple personal address book entries for same user (${owner.id} and same address ($addressId). Should not occur?!",

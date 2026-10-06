@@ -228,9 +228,9 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
      * excluded.
      */
     @Deprecated("Use value with json serialization instead.")
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
-        val src = source as UserPrefDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        var modificationStatus = super.copyValuesFrom(src, *ignoreFields)
+        src as UserPrefDO
         src.userPrefEntries?.let { srcUserPrefEntries ->
             for (srcEntry in srcUserPrefEntries) {
                 srcEntry.parameter?.let { param ->

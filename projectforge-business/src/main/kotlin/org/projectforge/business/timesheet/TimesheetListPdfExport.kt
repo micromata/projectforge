@@ -47,7 +47,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.utils.FileHelper
+import org.projectforge.common.FilenameUtils
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTimeUtils
@@ -258,10 +258,10 @@ open class TimesheetListPdfExport {
     fun filename(context: Context): String {
         val buf = StringBuilder("timesheets_")
         context.userId?.let { userGroupCache.getUser(it)?.lastname }?.let {
-            buf.append(FileHelper.createSafeFilename(it, 20)).append("_")
+            buf.append(FilenameUtils.createSafeFilename(it, maxlength = 20)).append("_")
         }
         context.taskId?.let { taskTree.getTaskById(it)?.title }?.let {
-            buf.append(FileHelper.createSafeFilename(it, 8)).append("_")
+            buf.append(FilenameUtils.createSafeFilename(it, maxlength = 8)).append("_")
         }
         buf.append(filenameDate(context.periodFrom)).append("_").append(filenameDate(context.periodTo)).append(".pdf")
         return buf.toString()

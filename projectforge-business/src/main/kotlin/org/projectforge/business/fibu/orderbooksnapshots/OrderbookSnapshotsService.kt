@@ -53,6 +53,15 @@ private val log = KotlinLogging.logger {}
 class OrderbookSnapshotsService {
     class SerializedSnapshot(val count: Int, val gzBytes: ByteArray?, var date: LocalDate = LocalDate.now())
 
+    // Access order: the least recently used snapshot is removed first, see [parsedSnapshot].
+    private val parsedSnapshots = object : LinkedHashMap<LocalDate, List<Order>>(4, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<LocalDate, List<Order>>?): Boolean =
+            size > PARSED_SNAPSHOTS_MAX
+    }
+
+    /** Incremented whenever [parsedSnapshots] is cleared. */
+    private var parsedSnapshotsGeneration = 0
+
     @Autowired
     private lateinit var auftragDao: AuftragDao
 
@@ -193,6 +202,11 @@ class OrderbookSnapshotsService {
                 }
             }
         }
+        // A stored snapshot may be the base of incremental ones, so all parsed snapshots may be outdated.
+        synchronized(parsedSnapshots) {
+            parsedSnapshots.clear()
+            parsedSnapshotsGeneration++
+        }
         log.info { "Storing order book done." }
         return rawSnapshot
     }
@@ -205,11 +219,31 @@ class OrderbookSnapshotsService {
     }
 
     fun readSnapshot(date: LocalDate): List<AuftragDO>? {
-        val orderbook = mutableMapOf<Long, Order>()
-        readSnapshot(date, orderbook)
-        return orderConverterService.convertFromOrder(orderbook.values, date).also {
+        return orderConverterService.convertFromOrder(parsedSnapshot(date), date).also {
             log.info { "${it?.size} orders restored from snapshot of $date." }
         }
+    }
+
+    /**
+     * The orders of the snapshot of [date], incremental ones applied to their base. Unzipping and parsing take
+     * their time and the planning of the order statistics asks for the same date again and again, so the last
+     * [PARSED_SNAPSHOTS_MAX] are kept. The [Order]s aren't modified by [OrderConverterService.convertFromOrder].
+     */
+    private fun parsedSnapshot(date: LocalDate): Collection<Order> {
+        val generation = synchronized(parsedSnapshots) {
+            parsedSnapshots[date]?.let { return it }
+            parsedSnapshotsGeneration
+        }
+        val orderbook = mutableMapOf<Long, Order>()
+        readSnapshot(date, orderbook)
+        val orders = orderbook.values.toList()
+        synchronized(parsedSnapshots) {
+            // Not, if a snapshot was stored meanwhile: the parsed one may already be outdated.
+            if (generation == parsedSnapshotsGeneration) {
+                parsedSnapshots[date] = orders
+            }
+        }
+        return orders
     }
 
     private fun readSnapshot(date: LocalDate, orderbook: MutableMap<Long, Order>) {
@@ -333,5 +367,7 @@ class OrderbookSnapshotsService {
     companion object {
         lateinit var instance: OrderbookSnapshotsService
             private set
+
+        private const val PARSED_SNAPSHOTS_MAX = 3
     }
 }

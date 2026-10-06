@@ -135,11 +135,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 }
             }
 
-            importStorage?.lastJobRun?.result?.asUIAlert?.let {
+            importStorage.lastJobRun?.result?.asUIAlert?.let {
                 layout.add(it)
             }
 
-            if (importStorage?.pairEntries?.isNotEmpty() == true) {
+            if (importStorage.pairEntries.isNotEmpty()) {
                 fieldset.add(
                     UIButton.createDefaultButton(
                         "reconcile",
@@ -171,7 +171,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             agGrid.add(col)
             createListLayout(request, layout, agGrid)
             // Only show import button if data has been reconciled with database
-            if (importStorage?.hasBeenReconciled == true) {
+            if (importStorage.hasBeenReconciled == true) {
                 agGrid.withMultiRowSelection()
                 agGrid.multiSelectButtonTitle = translate("import")
                 agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")

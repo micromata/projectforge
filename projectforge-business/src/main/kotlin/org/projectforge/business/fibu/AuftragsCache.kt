@@ -56,6 +56,12 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
 
     private var orderPositionMapByPosId = mapOf<Long, OrderPositionInfo>()
 
+    /**
+     * The positions per order id, built with [orderPositionMapByPosId]. [OrderInfo.infoPositions] asks for them on
+     * every read, so filtering all positions each time made the forecast of all orders quadratic.
+     */
+    private var orderPositionInfosByOrderId = mapOf<Long, List<OrderPositionInfo>>()
+
     /** The youngest order date per project, see [buildLatestOrderDateByProjektId]. */
     private var latestOrderDateByProjektId = mapOf<Long, LocalDate>()
 
@@ -75,8 +81,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
         auftragId ?: return null
         checkRefresh()
-        // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
-        return orderPositionMapByPosId.values.filter { it.auftragId == auftragId } // No sync, immutable map.
+        return orderPositionInfosByOrderId[auftragId] ?: emptyList() // No sync, immutable map.
     }
 
     /**
@@ -271,6 +276,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         }
         orderInfoMap = nOrderInfoMap
         orderPositionMapByPosId = nOrderPositionMapByPosId
+        orderPositionInfosByOrderId = nOrderPositionInfosByOrderId
         latestOrderDateByProjektId = buildLatestOrderDateByProjektId(nOrderInfoMap.values, nOrderPositionInfosByOrderId)
         toBeInvoicedCounter = null // Force recalculation.
         log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }

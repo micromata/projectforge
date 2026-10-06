@@ -34,6 +34,7 @@ import org.mustangproject.FileAttachment
 import org.mustangproject.Invoice
 import org.mustangproject.Item
 import org.mustangproject.Product
+import org.mustangproject.ReferencedDocument
 import org.mustangproject.TradeParty
 import org.mustangproject.SchemedID
 import org.mustangproject.ZUGFeRD.Profiles
@@ -374,8 +375,9 @@ class EInvoiceExportService(
         // Preceding invoice reference (BT-25, BT-26): the invoice this cancellation cancels.
         if (invoice.typ == RechnungTyp.CANCELLATION) {
             invoice.originalRechnung?.let { original ->
-                mustangInvoice.setInvoiceReferencedDocumentID(original.nummer.toString())
-                original.datum?.let { mustangInvoice.setInvoiceReferencedIssueDate(toDate(it)) }
+                val reference = ReferencedDocument().setIssuerAssignedID(original.nummer.toString())
+                original.datum?.let { reference.setFormattedIssueDateTime(toDate(it)) }
+                mustangInvoice.addInvoiceReferencedDocument(reference)
             }
         }
 
@@ -393,7 +395,7 @@ class EInvoiceExportService(
 
         // Buyer order reference (BT-13)
         if (!invoice.customerref1.isNullOrBlank() && invoice.kunde?.konto?.leitwegId != null) {
-            mustangInvoice.setBuyerOrderReferencedDocumentID(invoice.customerref1)
+            mustangInvoice.setBuyerOrderReferencedDocument(ReferencedDocument().setIssuerAssignedID(invoice.customerref1))
         }
 
         // Cash discount (Skonto), none for a cancellation: there is nothing to pay early.

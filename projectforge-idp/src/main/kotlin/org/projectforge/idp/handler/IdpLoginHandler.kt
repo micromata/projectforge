@@ -283,7 +283,7 @@ open class IdpLoginHandler : LoginHandler {
         idpGroups.forEach { idpGroupShallow ->
             try {
                 val idpGroup = if (syncGroupAttributes && idpGroupShallow.id != null) {
-                    idpAdminClient.getGroup(idpGroupShallow.id!!)
+                    idpAdminClient.getGroup(idpGroupShallow.id)
                 } else {
                     idpGroupShallow
                 }

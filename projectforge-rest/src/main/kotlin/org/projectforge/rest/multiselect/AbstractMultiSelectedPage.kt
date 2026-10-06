@@ -92,7 +92,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                         is Number -> id.toLong()  // Handles Int, Integer, Short, etc.
                         is String -> id.toLongOrNull() ?: id
                         else -> id
-                    } as Serializable
+                    }
                 }
             }
     }

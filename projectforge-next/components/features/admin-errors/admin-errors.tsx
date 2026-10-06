@@ -23,6 +23,7 @@ import {
   fetchAdminErrors,
   fetchAdminSubsystems,
   type LogGroupFilter,
+  type LogGroupScope,
 } from "@/lib/rs/admin-errors";
 import { AdminErrorDetailDialog } from "./admin-error-detail-dialog";
 import { AdminErrorsOverview } from "./admin-errors-overview";
@@ -35,12 +36,17 @@ const TABS = ["overview", "problems"];
 /** The subsystem of a tile, see AdminSubsystemTiles. */
 const SUBSYSTEM_PARAM = "subsystem";
 
+/** The scope of a key figure, see AdminErrorsSummary. */
+const SCOPE_PARAM = "scope";
+
+const SCOPES: readonly LogGroupScope[] = ["NEW_24H", "REGRESSION"];
+
 /**
  * The problem dashboard (`/next/problemDashboard`, admin group only): the problems the log aggregation counted - every
  * collected error and warning, grouped -, their trends and status. A problem's detail explains it and changes
  * its status (acknowledge, resolve, ignore, mute), which also decides what the error digest reports. The digest
  * links each problem as `?id=<id>`, which opens its detail. The overview tab shows the key figures and the state
- * of the active subsystems; a subsystem's tile shows its problems in the problems tab.
+ * of the active subsystems; a key figure or a subsystem's tile shows its problems in the problems tab.
  */
 export function AdminErrors() {
   const t = useTranslations();
@@ -50,16 +56,17 @@ export function AdminErrors() {
   // The error digest links a problem as `?id=<id>`: its detail opens at once, above the problems.
   const linkedId = Number(params.get("id")) || null;
   const [detailId, setDetailId] = useState<number | null>(linkedId);
-  // Tab and subsystem are kept in the url, so that the back button returns to the previous view. The tab a link
+  // Tab, subsystem and scope are kept in the url, so that the back button returns to the previous view. The tab a link
   // opened stays when its id is dropped.
   const [fallbackTab] = useState(linkedId ? "problems" : "overview");
   const [tab, setTab] = useTabParam(fallbackTab, TABS);
   const subsystem = params.get(SUBSYSTEM_PARAM) || null;
+  const scope = SCOPES.find((it) => it === params.get(SCOPE_PARAM)) ?? null;
   // Status, category and period stay local: going back shouldn't undo every change of a select. All of them are
   // the server's; the search works on the loaded problems (see AdminErrorsTable), so typing doesn't fetch the list
   // anew on every key.
   const [localFilter, setFilter] = useState<LogGroupFilter>(START_FILTER);
-  const filter: LogGroupFilter = { ...localFilter, subsystem };
+  const filter: LogGroupFilter = { ...localFilter, subsystem, scope };
   const [search, setSearch] = useState("");
   const closeDetail = () => {
     setDetailId(null);
@@ -144,8 +151,24 @@ export function AdminErrors() {
               summary={data.summary}
               subsystems={subsystems.data}
               subsystemsError={subsystems.isError}
+              onOpenSummary={(it) => {
+                // The key figures count all problems: a subsystem chosen before is dropped.
+                setFilter({
+                  status: it.status,
+                  category: it.category,
+                  days: it.days,
+                });
+                setSearch("");
+                setTab("problems", {
+                  [SUBSYSTEM_PARAM]: null,
+                  [SCOPE_PARAM]: it.scope ?? null,
+                });
+              }}
               onOpenSubsystem={(it) =>
-                setTab("problems", { [SUBSYSTEM_PARAM]: it.id })
+                setTab("problems", {
+                  [SUBSYSTEM_PARAM]: it.id,
+                  [SCOPE_PARAM]: null,
+                })
               }
             />
           </TabsContent>
@@ -161,6 +184,9 @@ export function AdminErrors() {
               onFilterChange={setFilter}
               onRemoveSubsystem={() =>
                 updateSearchParams({ [SUBSYSTEM_PARAM]: null }, "push")
+              }
+              onRemoveScope={() =>
+                updateSearchParams({ [SCOPE_PARAM]: null }, "push")
               }
               search={search}
               onSearchChange={setSearch}

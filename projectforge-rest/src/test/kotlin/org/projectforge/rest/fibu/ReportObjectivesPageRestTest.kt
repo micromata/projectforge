@@ -110,7 +110,7 @@ class ReportObjectivesPageRestTest : AbstractTestBase() {
         data = reportObjectivesPageRest.select(ReportObjectivesPageRest.SelectRequest("ACME-WEB-Portal"))
         assertEquals("ACME-WEB-Portal", data.report?.id)
         assertEquals(listOf("ACME"), data.report!!.path.map { it.id })
-        assertEquals(listOf("ACME-WEB-Portal", "ACME-WEB-Portal-Frontend"), data.report!!.columns.map { it.id })
+        assertEquals(listOf("ACME-WEB-Portal", "ACME-WEB-Portal-Frontend"), data.report.columns.map { it.id })
 
         // A new evaluation keeps the report the user navigated to:
         data = create("2020-02", null)

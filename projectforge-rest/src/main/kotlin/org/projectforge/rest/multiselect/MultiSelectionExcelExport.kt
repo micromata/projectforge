@@ -53,7 +53,7 @@ object MultiSelectionExcelExport {
     multiSelectedPage: AbstractMultiSelectedPage<T>
   ): ByteArray {
     log.info { "Exporting results of mass update as Excel file." }
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
       val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("boldStyle")

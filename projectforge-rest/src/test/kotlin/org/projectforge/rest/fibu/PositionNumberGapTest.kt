@@ -104,7 +104,7 @@ class PositionNumberGapTest : AbstractTestBase() {
                 })
             }
         }
-        val id = auftragDao.insert(order, checkAccess = false)!!
+        val id = auftragDao.insert(order, checkAccess = false)
         openGaps("t_fibu_auftrag_position", "auftrag_fk", id)
         openGaps("t_fibu_payment_schedule", "auftrag_id", id)
 
@@ -137,7 +137,7 @@ class PositionNumberGapTest : AbstractTestBase() {
                 })
             }
         }
-        val id = rechnungDao.insert(invoice)!!
+        val id = rechnungDao.insert(invoice)
         openGaps("t_fibu_rechnung_position", "rechnung_fk", id)
 
         val loaded = rechnungDao.find(id)!!
@@ -162,7 +162,7 @@ class PositionNumberGapTest : AbstractTestBase() {
                 })
             }
         }
-        val id = eingangsrechnungDao.insert(invoice)!!
+        val id = eingangsrechnungDao.insert(invoice)
         openGaps("t_fibu_eingangsrechnung_position", "eingangsrechnung_fk", id)
 
         val loaded = eingangsrechnungDao.find(id)!!
@@ -195,7 +195,7 @@ class PositionNumberGapTest : AbstractTestBase() {
             serverData = sessionCsrfService.createServerData(request),
         )
         val response = rest.saveOrUpdate(request, postData)
-        assertEquals(200, response.statusCode.value(), "Save refused: ${(response.body as? org.projectforge.ui.ResponseAction)?.validationErrors?.map { "${it.fieldId}: ${it.message}" } ?: response.body}")
+        assertEquals(200, response.statusCode.value(), "Save refused: ${response.body?.validationErrors?.map { "${it.fieldId}: ${it.message}" } ?: response.body}")
     }
 
     companion object {

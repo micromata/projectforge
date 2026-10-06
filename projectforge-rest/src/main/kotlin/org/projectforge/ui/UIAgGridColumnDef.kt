@@ -496,7 +496,7 @@ open class UIAgGridColumnDef(
                         if (col.filter == null) {
                             col.filter = true
                         }
-                    } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == java.lang.Boolean::class.java) {
+                    } else if (elementInfo.propertyClass == Boolean::class.java || elementInfo.propertyClass == Boolean::class.javaObjectType) {
                         useFormatter = Formatter.BOOLEAN
                     }
                 }

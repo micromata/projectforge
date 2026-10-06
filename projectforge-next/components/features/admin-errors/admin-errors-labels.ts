@@ -3,6 +3,7 @@ import type {
   LogAudience,
   LogCategory,
   LogGroupEntry,
+  LogGroupScope,
   LogGroupStatus,
   LogGroupStatusFilter,
   LogNotify,
@@ -37,6 +38,12 @@ export const STATUS_FILTER_KEYS: Record<LogGroupStatusFilter, string> = {
   IGNORED: "system.admin.adminErrors.status.ignored",
   RESOLVED: "system.admin.adminErrors.status.resolved",
   ALL: "system.admin.adminErrors.status.all",
+};
+
+/** The scope's chip shows the title of its key figure. */
+export const SCOPE_KEYS: Record<LogGroupScope, string> = {
+  NEW_24H: "system.admin.adminErrors.kpi.newProblems",
+  REGRESSION: "system.admin.adminErrors.kpi.regressions",
 };
 
 export const NOTIFY_KEYS: Record<LogNotify, string> = {

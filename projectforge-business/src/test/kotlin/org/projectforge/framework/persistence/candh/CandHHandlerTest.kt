@@ -129,8 +129,8 @@ class CandHHandlerTest {
         assertProperties: Boolean = true,
     ) {
         val context = CandHContext(src)
-        val property = kClass.memberProperties.find { it.name == propertyName }!!
-        @Suppress("UNCHECKED_CAST") property as KMutableProperty1<BaseDO<*>, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val property = kClass.memberProperties.find { it.name == propertyName }!! as KMutableProperty1<BaseDO<*>, Any?>
         property.set(src, srcFieldValue)  // Setzt den neuen Wert
         property.set(dest, destFieldValue)
         val fieldContext = PropertyContext(

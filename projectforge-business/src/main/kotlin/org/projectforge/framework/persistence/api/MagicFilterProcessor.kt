@@ -235,7 +235,7 @@ object MagicFilterProcessor {
             } else {
                 queryFilter.add(QueryFilter.isNull(field))
             }
-        } else if (fieldType == Integer::class.java) {
+        } else if (fieldType == Int::class.javaObjectType) {
             val valueInt = NumberHelper.parseInteger(magicFilterEntry.value.value)
             val fromInt = NumberHelper.parseInteger(magicFilterEntry.value.fromValue)
             val toInt = NumberHelper.parseInteger(magicFilterEntry.value.toValue)
@@ -246,7 +246,7 @@ object MagicFilterProcessor {
             } else {
                 queryFilter.add(QueryFilter.isNull(field))
             }
-        } else if (fieldType == java.lang.Boolean::class.java) {
+        } else if (fieldType == Boolean::class.javaObjectType) {
             val valueBoolean = magicFilterEntry.value.value == "true"
             queryFilter.add(QueryFilter.eq(field, valueBoolean))
         } else if (TaskDO::class.java.isAssignableFrom(fieldType)) {

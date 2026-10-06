@@ -66,7 +66,7 @@ class BirthdayButlerService {
         val name: String = if (user?.nickname.isNullOrBlank()) {
             "${address.firstName} ${address.name}"
         } else {
-            "${user?.nickname} ${address.name}"
+            "${user.nickname} ${address.name}"
         }
         val birthday: LocalDate = address.birthday ?: LocalDate.now()
     }
@@ -294,7 +294,7 @@ class BirthdayButlerService {
         birthdayList.sortedBy { it.birthday.dayOfMonth }.forEach { birthdayUser ->
             createBirthdayRow(posTbl, rowCounter++, birthdayUser)
         }
-        posTbl!!.removeRow(1)
+        posTbl.removeRow(1)
         return posTbl
     }
 

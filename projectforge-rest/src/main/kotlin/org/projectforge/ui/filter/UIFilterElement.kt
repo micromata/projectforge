@@ -118,7 +118,7 @@ open class UIFilterElement(
             return
         }
         when (propertyType) {
-            Boolean::class.java, java.lang.Boolean::class.java ->
+            Boolean::class.java, Boolean::class.javaObjectType ->
                 filterType = FilterType.BOOLEAN
             Date::class.java ->
                 filterType = FilterType.TIMESTAMP

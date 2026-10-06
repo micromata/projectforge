@@ -616,15 +616,15 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (!name.isNullOrBlank() && !firstName.isNullOrBlank()) {
             // Both fields provided: search for exact match on both
             queryFilter.add(
-                QueryFilter.eq("name", name!!, ignoreCase = true)
+                QueryFilter.eq("name", name, ignoreCase = true)
             )
             queryFilter.add(
-                QueryFilter.eq("firstName", firstName!!, ignoreCase = true)
+                QueryFilter.eq("firstName", firstName, ignoreCase = true)
             )
         } else if (!name.isNullOrBlank()) {
             // Only name provided
             queryFilter.add(
-                QueryFilter.eq("name", name!!, ignoreCase = true)
+                QueryFilter.eq("name", name, ignoreCase = true)
             )
         } else {
             // Only firstName provided

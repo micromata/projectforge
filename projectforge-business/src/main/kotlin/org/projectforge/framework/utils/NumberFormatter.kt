@@ -46,7 +46,7 @@ object NumberFormatter {
   @JvmOverloads
   fun format(value: Number?, pattern: String, roundingMode: RoundingMode = RoundingMode.HALF_UP): String {
     value ?: return ""
-    return format(value, pattern, ThreadLocalUserContext.locale!!, roundingMode)
+    return format(value, pattern, ThreadLocalUserContext.locale, roundingMode)
   }
 
   /**
@@ -136,7 +136,7 @@ object NumberFormatter {
   private fun internalFormat(
     value: Number?,
     scale: Int? = null,
-    locale: Locale = ThreadLocalUserContext.locale!!
+    locale: Locale = ThreadLocalUserContext.locale
   ): String? {
     if (value == null)
       return null

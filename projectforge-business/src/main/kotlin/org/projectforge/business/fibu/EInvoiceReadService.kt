@@ -123,6 +123,8 @@ class EInvoiceReadService {
         val profile = importer.zugFeRDProfil
 
         val xmlAttachments = try {
+            // Deprecated without a drop-in replacement on the importer.
+            @Suppress("DEPRECATION")
             importer.fileAttachmentsXML ?: emptyList()
         } catch (e: Exception) {
             emptyList()
@@ -213,7 +215,7 @@ class EInvoiceReadService {
             currency = invoice.currency ?: safeGet { importer.invoiceCurrencyCode },
             documentTypeCode = invoice.documentCode ?: safeGet { importer.documentCode },
             buyerReference = invoice.referenceNumber ?: safeGet { importer.reference },
-            orderReference = invoice.buyerOrderReferencedDocumentID,
+            orderReference = invoice.buyerOrderReferencedDocument?.issuerAssignedID,
             paymentTerms = invoice.paymentTermDescription ?: safeGet { importer.paymentTerms },
             deliveryDate = formatDate(invoice.deliveryDate),
             seller = seller,

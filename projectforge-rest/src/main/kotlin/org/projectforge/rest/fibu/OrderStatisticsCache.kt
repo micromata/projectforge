@@ -27,13 +27,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.cache.CacheListener
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -52,7 +55,8 @@ private val log = KotlinLogging.logger {}
  * The user is part of the key, as the orders found depend on the user's rights: no user ever gets a result
  * calculated for another one. The callers check the access before asking the cache.
  *
- * Any change of orders, invoices, projects or accounting records clears the whole cache. Time sheets aren't
+ * Any change of orders, invoices, projects or accounting records clears the whole cache, as does a reload of the
+ * order or invoice cache (e.g. "refresh caches" of the administration). Time sheets aren't
  * watched (the contribution margin ends with the previous month), the entries expire after [TTL_MILLIS] anyway.
  */
 @Service
@@ -93,12 +97,27 @@ class OrderStatisticsCache {
   @Autowired
   private lateinit var buchungssatzDao: BuchungssatzDao
 
+  @Autowired
+  private lateinit var auftragsCache: AuftragsCache
+
+  @Autowired
+  private lateinit var rechnungCache: RechnungCache
+
+  /** A reload of the cache (e.g. by "refresh caches" of the administration) clears this cache as well. */
+  private val reloadListener = object : CacheListener {
+    override fun onAfterCacheRefresh() {
+      clear()
+    }
+  }
+
   @PostConstruct
   private fun postConstruct() {
     auftragDao.register(listener<AuftragDO>())
     rechnungDao.register(listener<RechnungDO>())
     projektDao.register(listener<ProjektDO>())
     buchungssatzDao.register(listener<BuchungssatzDO>())
+    auftragsCache.register(reloadListener)
+    rechnungCache.register(reloadListener)
   }
 
   /**

@@ -926,6 +926,7 @@
         },
         "tables": {
           "bookedDate": "Gebucht am",
+          "forecastDetails": "Forecast-Analyse des Auftrags anzeigen",
           "heading": "Zugrundeliegende Daten",
           "invoicesPrevPrevYear": "Rechnungen Vorvorjahr",
           "invoicesPrevYear": "Rechnungen Vorjahr",

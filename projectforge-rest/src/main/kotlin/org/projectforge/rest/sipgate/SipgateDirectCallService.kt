@@ -234,7 +234,7 @@ open class SipgateDirectCallService {
         log.error { "No caller-id found for user '${user.username}' and callerId='$callerId'." }
         return null
       }
-      return CallData(callerId = callerId!!, caller = caller, deviceId = callerDeviceId, callee = callee)
+      return CallData(callerId = callerId, caller = caller, deviceId = callerDeviceId, callee = callee)
     }
 
     private fun getFullNumber(basePhoneNumber: String?, number: String?): String? {

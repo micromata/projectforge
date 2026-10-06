@@ -61,6 +61,7 @@ class IndexProgressMonitor(
         // Diese Methode wird aufgerufen, wenn Entitäten aus der Datenbank geladen werden
     }
 
+    @Suppress("OVERRIDE_DEPRECATION") // Still called by Hibernate Search's mass indexer.
     override fun addToTotalCount(count: Long) {
         synchronized(this) {
             totalEntities += count

@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class AuthentikGroup(
     val pk: String? = null,
     val name: String? = null,
-    @JsonProperty("is_superuser")
+    @param:JsonProperty("is_superuser")
     val isSuperuser: Boolean = false,
     val users: List<Int>? = null,
     val attributes: Map<String, Any?>? = null,

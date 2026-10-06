@@ -79,6 +79,9 @@ open class ContributionMarginService {
   private lateinit var caches: PfCaches
 
   @Autowired
+  private lateinit var contributionMarginCache: ContributionMarginCache
+
+  @Autowired
   private lateinit var kostCache: KostCache
 
   @Autowired
@@ -163,22 +166,55 @@ open class ContributionMarginService {
     return calculate(projectIds, startDate, withDetails = true)
   }
 
+  /**
+   * The parts of the projects come from the [ContributionMarginCache], only the missing ones are loaded. The
+   * sums are calculated of all parts, they are sums over the projects.
+   */
   private fun calculate(projectIds: Collection<Long>, startDate: LocalDate, withDetails: Boolean): ContributionMarginResult {
     val config = config()
     val bookingImportEnd = bookingImportEnd()
     val calculator = ContributionMarginCalculator(startDate, bookingImportEnd, PFDay.now().localDate)
-    val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodEnd, bookingImportEnd, config)
-    val data = calculator.calculate(source.entries, ::projectInfo, source.hourlyRate, config)
+    val context = ContributionMarginCache.Context(
+      startMonth = calculator.start,
+      today = calculator.today,
+      bookingImportEnd = bookingImportEnd,
+      config = Configuration.instance.getStringValue(ConfigurationParam.FIBU_CONTRIBUTION_MARGIN),
+      zoneId = ThreadLocalUserContext.zoneId,
+      locale = ThreadLocalUserContext.locale,
+    )
+    val parts = contributionMarginCache.get(context, projectIds.toSet()) { missing ->
+      loadParts(missing, calculator, bookingImportEnd, config)
+    }.values
+    val entries = parts.flatMap { it.entries }
+    val hourlyRate = config.effectiveHourlyRate
+    val data = calculator.calculate(entries, ::projectInfo, hourlyRate, config)
     if (!withDetails) {
       return ContributionMarginResult(data, ContributionMarginDetails.EMPTY)
     }
-    val details = calculator.details(source.entries, ::projectInfo, { kostCache.getKost2(it)?.formattedNumber }, source.hourlyRate)
-    val invoices = if (calculator.periodValuesEnd < calculator.periodBegin) {
+    val details = calculator.details(entries, ::projectInfo, { kostCache.getKost2(it)?.formattedNumber }, hourlyRate)
+    val invoices = parts.flatMap { it.invoiceRows }
+      .sortedWith(compareBy({ it.date }, { it.number }, { it.positionNumber }))
+    return ContributionMarginResult(data, ContributionMarginDetails(details.months, invoices, details.timesheets))
+  }
+
+  /** The entries and invoice rows of [projectIds], one part per project (empty ones too). */
+  private fun loadParts(
+    projectIds: Set<Long>,
+    calculator: ContributionMarginCalculator,
+    bookingImportEnd: LocalDate?,
+    config: ContributionMarginConfig,
+  ): Map<Long, ContributionMarginCache.ProjectPart> {
+    val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodEnd, bookingImportEnd, config)
+    val invoiceRows = if (calculator.periodValuesEnd < calculator.periodBegin) {
       emptyList()
     } else {
       invoiceRows(selectInvoices(projectIds, calculator.periodBegin, calculator.periodValuesEnd), source)
     }
-    return ContributionMarginResult(data, ContributionMarginDetails(details.months, invoices, details.timesheets))
+    val entriesByProject = source.entries.groupBy { it.projectId }
+    val rowsByProject = invoiceRows.groupBy { it.projectId }
+    return projectIds.associateWith { id ->
+      ContributionMarginCache.ProjectPart(entriesByProject[id].orEmpty(), rowsByProject[id].orEmpty())
+    }
   }
 
   /** One row per position of the invoices (planned ones excluded, as they aren't issued yet). */
@@ -286,14 +322,16 @@ open class ContributionMarginService {
   open fun bookingImportEnd(): LocalDate? {
     val period = persistenceService.selectSingleResult(
       "select max(t.year * 100 + t.month) from BuchungssatzDO t where t.deleted = false",
-      Integer::class.java,
-    )?.toInt() ?: return null
+      Int::class.javaObjectType,
+    ) ?: return null
     return YearMonth.of(period / 100, period % 100).atEndOfMonth()
   }
 
   /**
    * The project of each kost2 (of the given projects, of all if null): its own project, or for a kost2
-   * without one the project assigned by [ContributionMarginConfig.kost2Assignments].
+   * without one the project assigned by [ContributionMarginConfig.kost2Assignments]. The assignments are
+   * resolved for all projects first, so a kost2 assigned twice goes to the same project whichever projects
+   * are asked for (the contribution margins of single projects are combined, see [ContributionMarginCache]).
    */
   private fun kost2ToProject(projectIds: Collection<Long>?, config: ContributionMarginConfig): Map<Long, Long> {
     val projectIdSet = projectIds?.toSet()
@@ -301,9 +339,7 @@ open class ContributionMarginService {
     kostCache.getAllKost2(includeDeleted = true).forEach { kost2 ->
       val kost2Id = kost2.id ?: return@forEach
       val projectId = kost2.projekt?.id ?: return@forEach
-      if (projectIdSet == null || projectId in projectIdSet) {
-        result[kost2Id] = projectId
-      }
+      result[kost2Id] = projectId
     }
     config.kost2Assignments.filter { !it.isBlank }.forEach { assignment ->
       val kost2 = ContributionMarginConfig.parseKostNumber(assignment.kost2)
@@ -317,9 +353,6 @@ open class ContributionMarginService {
         log.warn { "Contribution margin: project ${assignment.project} of the kost2 assignment not found." }
         return@forEach
       }
-      if (projectIdSet != null && projectId !in projectIdSet) {
-        return@forEach
-      }
       val (kost2Nummernkreis, kost2Bereich, kost2Teilbereich) = kost2
       val kost2List = kostCache.getKost2List(kost2Nummernkreis, kost2Bereich, kost2Teilbereich, includeDeleted = true)
         .filter { it.projekt == null }
@@ -328,7 +361,8 @@ open class ContributionMarginService {
       }
       kost2List.forEach { kost2 -> kost2.id?.let { result[it] = projectId } }
     }
-    return result
+    projectIdSet ?: return result
+    return result.filterValues { it in projectIdSet }
   }
 
   /** The project of the given kost (three parts), found by its kost2 (also deleted ones). */

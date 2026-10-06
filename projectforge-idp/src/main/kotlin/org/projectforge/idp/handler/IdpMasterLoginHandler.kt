@@ -224,7 +224,7 @@ open class IdpMasterLoginHandler : LoginHandler {
         val idpUserByUsername = idpUsers.filter { it.username != null }.associateBy { it.username!! }
 
         val idpUserIdByUsername = mutableMapOf<String, String>()
-        idpUsers.forEach { u -> if (u.username != null && u.id != null) idpUserIdByUsername[u.username!!] = u.id!! }
+        idpUsers.forEach { u -> if (u.username != null && u.id != null) idpUserIdByUsername[u.username] = u.id }
 
         var uCreated = 0; var uUpdated = 0; var uDisabled = 0; var uUnmodified = 0; var uErrors = 0
 
@@ -256,7 +256,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                         uUnmodified++
                     }
                     if (idpUser.id != null) {
-                        idpUserIdByUsername[username] = idpUser.id!!
+                        idpUserIdByUsername[username] = idpUser.id
                         if (pfUser.idpExternalId != idpUser.id) {
                             log.debug { "User '$username': backfilling idpExternalId '${idpUser.id}' into PF" }
                             pfUser.idpExternalId = idpUser.id
@@ -281,10 +281,10 @@ open class IdpMasterLoginHandler : LoginHandler {
         val idpGroups = idpAdminClient.getAllGroups()
         val idpGroupByName = idpGroups.filter { it.name != null }.associateBy { it.name!! }
         val idpGroupIdByName = mutableMapOf<String, String>()
-        idpGroups.forEach { g -> if (g.name != null && g.id != null) idpGroupIdByName[g.name!!] = g.id!! }
+        idpGroups.forEach { g -> if (g.name != null && g.id != null) idpGroupIdByName[g.name] = g.id }
         // Cache memberIds from the already-fetched groups to avoid per-group API calls during membership sync.
         val idpGroupMemberIds = mutableMapOf<String, Set<String>>()
-        idpGroups.forEach { g -> if (g.id != null) idpGroupMemberIds[g.id!!] = g.memberIds ?: emptySet() }
+        idpGroups.forEach { g -> if (g.id != null) idpGroupMemberIds[g.id] = g.memberIds ?: emptySet() }
 
         var gCreated = 0; var gUpdated = 0; var gUnmodified = 0; var gErrors = 0
         val syncGroupAttributes = idpConfig.groupAttributes.isNotEmpty()
@@ -301,11 +301,11 @@ open class IdpMasterLoginHandler : LoginHandler {
                     idpGroupMemberIds[newId] = emptySet()
                     gCreated++
                 } else {
-                    if (existing.id != null) idpGroupIdByName[groupName] = existing.id!!
+                    if (existing.id != null) idpGroupIdByName[groupName] = existing.id
                     if (syncGroupAttributes && existing.id != null) {
                         val desired = idpGroupConverter.toIdpGroup(group)
                         if (isGroupChanged(groupName, desired, existing)) {
-                            idpAdminClient.updateGroup(existing.id!!, desired.copy(id = existing.id))
+                            idpAdminClient.updateGroup(existing.id, desired.copy(id = existing.id))
                             gUpdated++
                         } else {
                             gUnmodified++

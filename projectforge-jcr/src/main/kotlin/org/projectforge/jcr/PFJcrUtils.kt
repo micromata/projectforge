@@ -75,8 +75,8 @@ object PFJcrUtils {
   init {
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    // mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+    mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+    // mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_DEFAULT)
     mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
     val module = SimpleModule()
     mapper.registerModule(module)

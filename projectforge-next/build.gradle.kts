@@ -78,7 +78,9 @@ tasks {
         outputs.dir("out")
     }
 
-    register<Copy>("copyNextBuild") {
+    // Sync, not Copy: the export's file names carry content hashes, so a Copy kept the chunks of every
+    // earlier build in static/next and they all went into the jar.
+    register<Sync>("copyNextBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies the Next.js static export to /static/next in the build resources"

@@ -60,12 +60,12 @@ class TimesheetFavoritesCollisionTestFork : AbstractTestBase() {
         assertTrue(favorites.favoriteNames.contains("myTemplate"), "Stranded template favorite should be adopted.")
 
         // The dedicated area now holds the adopted list.
-        val dedicated = userPrefService.getEntry(NEW_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<*>
+        val dedicated = userPrefService.getEntry(NEW_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java)
         assertNotNull(dedicated, "Adopted favorites should be stored under the dedicated area.")
         assertTrue(dedicated!!.favoriteNames.contains("myTemplate"))
 
         // The old shared slot is cleared so the react list no longer sees a foreign-typed entry.
-        val shared = userPrefService.getEntry(LEGACY_SHARED_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java) as? Favorites<*>
+        val shared = userPrefService.getEntry(LEGACY_SHARED_AREA, Favorites.PREF_NAME_LIST, Favorites::class.java)
         assertTrue(shared == null || shared.favoriteNames.isEmpty(), "Old shared slot should be cleared after adoption.")
     }
 

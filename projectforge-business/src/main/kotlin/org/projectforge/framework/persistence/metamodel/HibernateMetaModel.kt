@@ -99,7 +99,7 @@ object HibernateMetaModel {
         val mappingMetamodel = sessionFactory.mappingMetamodel
         val jpaMetamodel = (sessionFactory as jakarta.persistence.EntityManagerFactory).metamodel
         // Register all entities:
-        mappingMetamodel.streamEntityDescriptors().forEach { entityPersister ->
+        mappingMetamodel.forEachEntityDescriptor { entityPersister ->
             val entityClass = entityPersister.mappedClass
             val entityType = jpaMetamodel.entity(entityClass)
             val tableName = if (entityPersister is SingleTableEntityPersister) {

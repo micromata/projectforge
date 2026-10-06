@@ -74,7 +74,7 @@ class Consumption(
       val maxHours = node.task.maxHours
       val finished = node.isFinished
       val taskTree = TaskTree.instance
-      val maxDays = if (maxHours != null && maxHours.toInt() == 0) {
+      val maxDays = if (maxHours != null && maxHours == 0) {
         null
       } else {
         NumberHelper.setDefaultScale(taskTree.getPersonDays(node))

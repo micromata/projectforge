@@ -11,6 +11,10 @@ import {
   numberColumn,
   textColumn,
 } from "../statistics/statistics-table-columns";
+import {
+  OrderForecastButton,
+  type ForecastOrderRef,
+} from "../forecast/order-forecast-dialog";
 import { StatisticsHintCell } from "../statistics/statistics-hint-cell";
 import { StatisticsTable } from "../statistics/statistics-table";
 import { formatChartMonth } from "./order-forecast-series";
@@ -22,12 +26,15 @@ type Row = ForecastPositionRow;
 /**
  * The sheet Forecast_Data: one row per order position with its remaining forecast spread over the 12
  * months. The pseudo rows (invoices without order resp. project) carry their invoiced sums only.
+ * The icon behind an order number opens the forecast analysis of the order (`onOpenForecast`).
  */
 export function ForecastPositionTable({
   tables,
   focusProjectId,
+  onOpenForecast,
 }: {
   tables: ForecastTables;
+  onOpenForecast?: (order: ForecastOrderRef) => void;
   /**
    * The project whose first position with a warning (else with a difference, else its first one) is
    * marked and scrolled to (opened from the project overview).
@@ -62,7 +69,15 @@ export function ForecastPositionTable({
             ? null
             : `${row.orderNumber}${row.positionNumber != null ? `.${row.positionNumber}` : ""}`,
         (row) => (row.orderId != null ? `/order/${row.orderId}` : null),
-        80
+        100,
+        (row) =>
+          onOpenForecast && row.orderId != null && row.orderNumber != null ? (
+            <OrderForecastButton
+              order={{ id: row.orderId, label: String(row.orderNumber) }}
+              label={t.forecastDetails}
+              onOpen={onOpenForecast}
+            />
+          ) : null
       ),
       textColumn<Row>(
         "customer",
@@ -173,7 +188,7 @@ export function ForecastPositionTable({
           ) : null,
       },
     ];
-  }, [t, ctx, months]);
+  }, [t, ctx, months, onOpenForecast]);
   return (
     <StatisticsTable<Row>
       columns={columns}

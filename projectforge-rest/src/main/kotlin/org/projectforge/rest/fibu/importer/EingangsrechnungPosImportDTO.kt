@@ -169,28 +169,28 @@ class EingangsrechnungPosImportDTO(
         // this.kost2 = src.kost2
     }
 
-    override fun copyTo(obj: EingangsrechnungDO) {
-        if (this.id != null) obj.id = this.id
-        obj.kreditor = this.kreditor
-        obj.konto = this.konto?.id?.let { kontoId ->
+    override fun copyTo(dest: EingangsrechnungDO) {
+        if (this.id != null) dest.id = this.id
+        dest.kreditor = this.kreditor
+        dest.konto = this.konto?.id?.let { kontoId ->
             val kontoDO = org.projectforge.business.fibu.KontoDO()
             kontoDO.id = kontoId
             kontoDO
         }
-        obj.referenz = this.referenz
-        obj.betreff = this.betreff
-        obj.datum = this.datum
+        dest.referenz = this.referenz
+        dest.betreff = this.betreff
+        dest.datum = this.datum
         // Nur überschreiben, wenn im Import gesetzt (verhindert Löschen beim Positions-Import)
-        this.faelligkeit?.let { obj.faelligkeit = it }
-        this.bezahlDatum?.let { obj.bezahlDatum = it }
-        this.zahlBetrag?.let { obj.zahlBetrag = it }
-        obj.currency = this.currency
-        obj.iban = this.iban
-        obj.bic = this.bic
-        obj.receiver = this.receiver
-        obj.paymentType = this.paymentType
-        obj.customernr = this.customernr
-        obj.bemerkung = this.bemerkung
+        this.faelligkeit?.let { dest.faelligkeit = it }
+        this.bezahlDatum?.let { dest.bezahlDatum = it }
+        this.zahlBetrag?.let { dest.zahlBetrag = it }
+        dest.currency = this.currency
+        dest.iban = this.iban
+        dest.bic = this.bic
+        dest.receiver = this.receiver
+        dest.paymentType = this.paymentType
+        dest.customernr = this.customernr
+        dest.bemerkung = this.bemerkung
     }
 
     override fun buildOldDiffValues(map: MutableMap<String, Any>, old: EingangsrechnungPosImportDTO) {

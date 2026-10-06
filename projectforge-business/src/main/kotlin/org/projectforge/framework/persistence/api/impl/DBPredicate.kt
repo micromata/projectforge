@@ -614,10 +614,10 @@ abstract class DBPredicate(
 
     fun getValue(value: Number, type: Class<*>): Any {
         return when (type) {
-            Int::class.java, Integer::class.java -> value.toInt()
-            Long::class.java, java.lang.Long::class.java -> value.toLong()
-            Float::class.java, java.lang.Float::class.java -> value.toFloat()
-            Double::class.java, java.lang.Double::class.java -> value.toDouble()
+            Int::class.java, Int::class.javaObjectType -> value.toInt()
+            Long::class.java, Long::class.javaObjectType -> value.toLong()
+            Float::class.java, Float::class.javaObjectType -> value.toFloat()
+            Double::class.java, Double::class.javaObjectType -> value.toDouble()
             BigDecimal::class.java -> BigDecimal(value.toString())
             BigInteger::class.java -> BigInteger(value.toString())
             else -> value

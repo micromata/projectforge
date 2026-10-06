@@ -73,18 +73,18 @@ object VEventUtils {
                 ?: deriveEnd(component, startTemporal)
             // Not via component.dateTimeStamp: DtStamp is typed as Instant, but relaxed parsing returns e.g.
             // OffsetDateTime or ZonedDateTime, so the implicit cast would fail.
-            val dtTemporal = component.getProperty<DateProperty<Temporal>>(Property.DTSTAMP)?.orElse(null)?.date
+            val dtTemporal = component.getProperty<DateProperty<Temporal>>(Property.DTSTAMP).orElse(null)?.date
             allDay = startTemporal is LocalDate
             startDate = temporalToUTCDate(startTemporal)
             endDate = temporalToUTCDate(endTemporal)
             dtStamp = temporalToUTCDate(dtTemporal)
-            val rrule = component.getProperty<RRule<Temporal>>(Property.RRULE)?.orElse(null)
+            val rrule = component.getProperty<RRule<Temporal>>(Property.RRULE).orElse(null)
             recurrenceRule = rrule?.value
-            recurrenceExDate = component.getProperty<ExDate<Temporal>>(Property.EXDATE)?.orElse(null)?.value
+            recurrenceExDate = component.getProperty<ExDate<Temporal>>(Property.EXDATE).orElse(null)?.value
             organizer = component.organizer?.value
             organizerAdditionalParams = component.organizer?.getParameters()?.joinToString()
             sequence = component.sequence?.sequenceNo
-            uid = component.uid?.orElse(null)?.value
+            uid = component.uid.orElse(null)?.value
             storeAttendees(extractAttendees(component))
         }
     }
@@ -95,13 +95,13 @@ object VEventUtils {
      */
     internal fun extractAttendees(component: VEvent): List<TeamEventAttendee> {
         return component.getProperties<Attendee>(Property.ATTENDEE).mapNotNull { attendee ->
-            val name = attendee.getParameter<Cn>(Parameter.CN)?.orElse(null)?.value?.takeIf { it.isNotBlank() }
-            val email = attendee.value?.trim()?.removePrefix("mailto:")?.removePrefix("MAILTO:")
-                ?.takeIf { it.isNotBlank() }
+            val name = attendee.getParameter<Cn>(Parameter.CN).orElse(null)?.value?.takeIf { it.isNotBlank() }
+            val email = attendee.value.trim().removePrefix("mailto:").removePrefix("MAILTO:")
+                .takeIf { it.isNotBlank() }
             if (name == null && email == null) {
                 return@mapNotNull null
             }
-            val partStat = attendee.getParameter<PartStat>(Parameter.PARTSTAT)?.orElse(null)?.value
+            val partStat = attendee.getParameter<PartStat>(Parameter.PARTSTAT).orElse(null)?.value
             TeamEventAttendee(name, email, TeamEventAttendeeStatus.getStatusForPartStat(partStat))
         }
     }
@@ -113,7 +113,7 @@ object VEventUtils {
      */
     internal fun deriveEnd(component: VEvent, start: Temporal?): Temporal? {
         start ?: return null
-        val duration = component.getProperty<Duration>(Property.DURATION)?.orElse(null)?.duration
+        val duration = component.getProperty<Duration>(Property.DURATION).orElse(null)?.duration
         if (duration != null) {
             runCatching { start.plus(duration) }.getOrNull()?.let { return it }
         }
@@ -123,11 +123,9 @@ object VEventUtils {
     fun extractExdates(event: VEvent): List<Temporal> {
         val exDates = mutableListOf<Temporal>()
         event.getProperties<ExDate<Temporal>>(Property.EXDATE).forEach { property ->
-            if (property is ExDate<*>) {
-                // Exception Dates aus der EXDATE-Property extrahieren
-                property.dates.forEach { date ->
-                    exDates.add(date)
-                }
+            // Exception Dates aus der EXDATE-Property extrahieren
+            property.dates.forEach { date ->
+                exDates.add(date)
             }
         }
         return exDates
@@ -181,7 +179,7 @@ object VEventUtils {
         val stringReader = StringReader(asCalendar(icsString))
         val calendarBuilder = CalendarBuilder()
         val calendar = calendarBuilder.build(stringReader)
-        return calendar.getComponents<VEvent>(Component.VEVENT).firstOrNull() as? VEvent
+        return calendar.getComponents<VEvent>(Component.VEVENT).firstOrNull()
     }
 
     fun createSetupEvent(): VEvent {
@@ -265,11 +263,11 @@ object VEventUtils {
     }
 
     fun getPropertyValue(event: VEvent, propertyKey: String): String? {
-        return event.getProperty<Property>(propertyKey)?.orElse(null)?.value
+        return event.getProperty<Property>(propertyKey).orElse(null)?.value
     }
 
     fun getRRuleString(event: VEvent): String? {
-        val rrule = event.getProperty<RRule<Temporal>>(Property.RRULE)?.orElse(null)
+        val rrule = event.getProperty<RRule<Temporal>>(Property.RRULE).orElse(null)
         return rrule?.value
     }
 
