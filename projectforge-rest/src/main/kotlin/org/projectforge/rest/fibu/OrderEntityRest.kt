@@ -1050,7 +1050,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   )
 
   /**
-   * The parameters of the forecast charts of `/next/orderStatistics`, remembered per user, as the liquidity
+   * The parameters of the forecast charts of `/next/finance/statistics`, remembered per user, as the liquidity
    * forecast tab does. Returns the defaults (begin of the current year, no plan) if never used.
    */
   @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess); own user pref")
@@ -1182,7 +1182,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * The start date of the contribution margin tab of `/next/orderStatistics`, remembered per user. Returns the
+   * The start date of the contribution margin tab of `/next/finance/statistics`, remembered per user. Returns the
    * default (begin of the current year) if never used.
    */
   @AccessChecked("contributionMarginService.checkAccess (fibu, project manager/assistant)")

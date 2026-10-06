@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { ChartDashboard } from "@/components/shared/dashboard/chart-dashboard";
 import { Spinner } from "@/components/shared/spinner";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useFormatContext } from "@/hooks/use-format";
@@ -175,14 +176,31 @@ function OrderForecastCharts({
           )}
           aria-busy={recalculating}
         >
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("monthly")}</h3>
-            <OrderForecastMonthlyChart data={query.data} />
-          </section>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("cumulative")}</h3>
-            <OrderForecastCumulativeChart data={query.data} />
-          </section>
+          <ChartDashboard
+            id="order.forecast"
+            tiles={[
+              {
+                id: "monthly",
+                title: t("monthly"),
+                render: (className) => (
+                  <OrderForecastMonthlyChart
+                    data={query.data}
+                    className={className}
+                  />
+                ),
+              },
+              {
+                id: "cumulative",
+                title: t("cumulative"),
+                render: (className) => (
+                  <OrderForecastCumulativeChart
+                    data={query.data}
+                    className={className}
+                  />
+                ),
+              },
+            ]}
+          />
           <ForecastTables
             filter={filter}
             filterKey={filterKey}

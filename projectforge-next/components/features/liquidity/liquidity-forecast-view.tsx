@@ -12,6 +12,7 @@ import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { DateInput } from "@/components/shared/date-input";
 import { NumberBox } from "@/components/shared/form/number-box";
+import { ChartDashboard } from "@/components/shared/dashboard/chart-dashboard";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
@@ -178,16 +179,31 @@ function LiquidityForecastControls({
           {t("datatable.no-records-found")}
         </p>
       ) : (
-        <div className="space-y-8">
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{tf("balance")}</h3>
-            <LiquidityForecastBalanceChart data={points} />
-          </section>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{tf("cashflow")}</h3>
-            <LiquidityForecastCashflowChart data={points} />
-          </section>
-        </div>
+        <ChartDashboard
+          id="liquidity.forecast"
+          tiles={[
+            {
+              id: "balance",
+              title: tf("balance"),
+              render: (className) => (
+                <LiquidityForecastBalanceChart
+                  data={points}
+                  className={className}
+                />
+              ),
+            },
+            {
+              id: "cashflow",
+              title: tf("cashflow"),
+              render: (className) => (
+                <LiquidityForecastCashflowChart
+                  data={points}
+                  className={className}
+                />
+              ),
+            },
+          ]}
+        />
       )}
     </div>
   );

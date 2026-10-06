@@ -205,7 +205,7 @@ class LogGroupUpdate(
 )
 
 /**
- * The admin dashboard of the log aggregation (`next/adminErrors`): lists the problems ([LogGroupDO]) with their
+ * The admin dashboard of the log aggregation (`next/problemDashboard`): lists the problems ([LogGroupDO]) with their
  * trends ([LogBucketDO]) and changes their status. No access checks here, see `AdminErrorsRest`.
  */
 @Service
@@ -520,7 +520,7 @@ class LogGroupAdminService {
         const val MAX_MUTE_DAYS = 365
 
         /** The problem dashboard of projectforge-next, a problem is linked as `?id=<id>`. */
-        const val DASHBOARD_PATH = "next/adminErrors"
+        const val DASHBOARD_PATH = "next/problemDashboard"
         private const val MAX_IN_IDS = 1000
 
         internal fun isRegression(row: LogGroupRow) = row.status == LogGroupStatus.NEW && row.reopenedAt != null

@@ -553,6 +553,32 @@
       "help": "Es können sowohl Beträge als auch Prozentzahlen (z. B. 10%) eingegeben werden."
     }
   },
+  "dashboard": {
+    "arrange": {
+      "_": "Anordnen",
+      "tooltip": "Kacheln anordnen, in der Größe ändern und ausblenden"
+    },
+    "done": "Fertig",
+    "dragHandle": "Ziehen zum Verschieben",
+    "height": {
+      "_": "Höhe",
+      "L": "Groß",
+      "M": "Mittel",
+      "S": "Klein"
+    },
+    "hiddenTiles": "Ausgeblendete Kacheln ({arg0})",
+    "hide": "Ausblenden",
+    "noTiles": "Alle Kacheln sind ausgeblendet.",
+    "reset": "Anordnung zurücksetzen",
+    "tileMenu": "Kachel-Optionen",
+    "width": {
+      "_": "Breite",
+      "full": "Volle Breite",
+      "half": "Halb",
+      "third": "Ein Drittel",
+      "twoThirds": "Zwei Drittel"
+    }
+  },
   "datatable": {
     "no-records-found": "Keine Einträge gefunden."
   },
@@ -678,6 +704,7 @@
         "empty": "Für die Projekte der ausgewählten Aufträge wurden weder Erlöse noch Kosten gefunden.",
         "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher fehlen in den vorläufigen Monaten die Kosten der Zeitberichte.",
         "kost": "Kostenträger",
+        "kpis": "Kennzahlen",
         "monthly": "Deckungsbeitrag Monatswerte",
         "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
         "noRevenue": "Keine Erlöse im Zeitraum, nur Kosten.",
@@ -2394,8 +2421,10 @@
       "chart": {
         "averageLatency": "Ist (Durchschnitt)",
         "bookedHours": "Erfasste Arbeitszeit",
+        "bookingLatency": "Erfassungsverzug",
         "goal": "Soll (Zielgröße)",
-        "plannedHours": "Soll-Arbeitszeit"
+        "plannedHours": "Soll-Arbeitszeit",
+        "workingHours": "Arbeitszeit"
       },
       "tab": {
         "timeTracking": "Zeiterfassung"

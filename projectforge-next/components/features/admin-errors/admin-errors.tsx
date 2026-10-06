@@ -42,7 +42,7 @@ const SCOPE_PARAM = "scope";
 const SCOPES: readonly LogGroupScope[] = ["NEW_24H", "REGRESSION"];
 
 /**
- * The problem dashboard (`/next/adminErrors`, admin group only): the problems the log aggregation counted - every
+ * The problem dashboard (`/next/problemDashboard`, admin group only): the problems the log aggregation counted - every
  * collected error and warning, grouped -, their trends and status. A problem's detail explains it and changes
  * its status (acknowledge, resolve, ignore, mute), which also decides what the error digest reports. The digest
  * links each problem as `?id=<id>`, which opens its detail. The overview tab shows the key figures and the state

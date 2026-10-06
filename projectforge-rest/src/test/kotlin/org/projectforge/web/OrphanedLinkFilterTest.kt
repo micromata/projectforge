@@ -86,6 +86,26 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/react/taskTree"))
     }
 
+    /**
+     * Renamed next pages: a bookmarked or mailed link to the former route leads to the new one, its query
+     * carried over. Neither the new routes nor siblings or the client router's payloads are caught.
+     */
+    @Test
+    fun `renamed next pages are redirected to their new route`() {
+        Assertions.assertEquals("/next/finance/statistics", redirectOf("/next/orderStatistics"))
+        Assertions.assertEquals(
+            "/next/finance/statistics?tab=forecast",
+            redirectOf("/next/orderStatistics", mapOf("tab" to "forecast")),
+        )
+        Assertions.assertEquals("/next/problemDashboard", redirectOf("/next/adminErrors/"))
+        Assertions.assertEquals("/next/problemDashboard?id=42", redirectOf("/next/adminErrors", mapOf("id" to "42")))
+        Assertions.assertNull(redirectOf("/next/finance/statistics"))
+        Assertions.assertNull(redirectOf("/next/problemDashboard"))
+        Assertions.assertNull(redirectOf("/next/orderStatisticsXyz"))
+        Assertions.assertNull(redirectOf("/next/adminErrors.txt"))
+        Assertions.assertNull(redirectOf("/rs/adminErrors/list"))
+    }
+
     /** Old Wicket calendars, bookmarked by some users, still lead to the next calendar. */
     @Test
     fun `the old wicket calendar is redirected to next`() {

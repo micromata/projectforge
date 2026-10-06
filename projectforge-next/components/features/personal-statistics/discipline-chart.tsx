@@ -30,6 +30,8 @@ interface DisciplineChartProps {
   fractionDigits: number;
   /** Accessible name of the chart (the chart title). */
   ariaLabel: string;
+  /** Size of the chart, e.g. a dashboard tile's height step. */
+  className?: string;
 }
 
 /**
@@ -44,6 +46,7 @@ export function DisciplineChart({
   unitLabel,
   fractionDigits,
   ariaLabel,
+  className = "h-56 w-full",
 }: DisciplineChartProps) {
   const ctx = useFormatContext();
   const config: ChartConfig = {
@@ -53,7 +56,7 @@ export function DisciplineChart({
   return (
     <ChartContainer
       config={config}
-      className="h-56 w-full"
+      className={className}
       role="img"
       aria-label={ariaLabel}
     >
