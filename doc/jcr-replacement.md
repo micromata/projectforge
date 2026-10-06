@@ -230,8 +230,10 @@ Docs 2 Tage. Insgesamt also etwa 1,5–2 Wochen inklusive e2e-Prüfung gegen ein
     auf das vorherige Release ist ohne Mischbestand möglich (das Schema `pf_files` und die
     Flyway-Migration stören das alte Release nicht).
 - Migration (nur im Modus `db`): Beim Start läuft sie automatisch (`FileStoreMigrationService`,
-  `RepoMigrationJob`), solange `<home>/jcr-migration-report.txt` nicht `Result: OK` meldet. Auf der
-  System-Seite lässt sie sich auch manuell starten.
+  `RepoMigrationJob`), und zwar bei jedem Start. Bereits migrierte Dateien werden per DB-Abfrage
+  übersprungen, ein Lauf ohne Arbeit dauert nur Sekunden. Der Report `<home>/jcr-migration-report.txt`
+  ist nur Information, keine Markierung: Nach einem Restore der DB (leeres `pf_files`) passt er nicht
+  mehr zur DB. Auf der System-Seite lässt sich die Migration auch manuell starten.
   - Beim Shutdown hält sie nach der gerade laufenden Datei an (Report `Result: ABORTED`) und läuft beim
     nächsten Start weiter. Bereits kopierte Dateien werden übersprungen.
   - Jede Datei wird per SHA-256 und Größe gegen das JCR geprüft.

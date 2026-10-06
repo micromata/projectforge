@@ -219,14 +219,20 @@ open class RepoMigrationService {
             val target = if (fileStore.isFileSystemPath(file.parentNodePath)) "file system" else "data base"
             log.info { "Copying large file (${FormatterUtils.formatBytes(jcrSize)}) from JCR to the $target: $fileObject" }
         }
-        val importResult = repoService.runInSession { session ->
-            val fileNode = session.getNode(file.fileNodePath)
-            repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
-                ?.let { istream -> fileStore.importFile(fileObject, istream) }
+        // Already migrated before (checked first, so the JCR content isn't read on every start):
+        val existing = fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
+        val importResult = if (existing != null) {
+            null
+        } else {
+            repoService.runInSession { session ->
+                val fileNode = session.getNode(file.fileNodePath)
+                repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
+                    ?.let { istream -> fileStore.importFile(fileObject, istream) }
+            }
         }
         val migrated = if (importResult == null) {
             // Already migrated before or no content in the JCR:
-            fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
+            existing ?: fileStore.getFileInfo(file.parentNodePath, file.relPath, fileId = fileObject.fileId)
                 ?: run {
                     result.error("No content found in the JCR for file '${file.fileNodePath}'. File is left in the JCR.")
                     return

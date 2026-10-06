@@ -39,8 +39,9 @@ private val log = KotlinLogging.logger {}
 /**
  * Starts the migration of the files out of the JCR into the file store ([RepoMigrationJob]).
  *
- * With `projectforge.files.store=db` the migration is started automatically on start-up, until a run finished without
- * errors (see [reportFile]).
+ * With `projectforge.files.store=db` the migration is started automatically on every start-up. Already migrated files
+ * are skipped by a look-up in the data base, so a run without anything to do is cheap. The report file isn't used as
+ * marker: it lives in the home directory and doesn't fit any more after a restore of the data base (empty `pf_files`).
  */
 @Service
 class FileStoreMigrationService {
@@ -71,31 +72,14 @@ class FileStoreMigrationService {
     }
 
     /**
-     * Called on start-up: starts the migration, if `projectforge.files.store=db` and no run finished without errors.
+     * Called on start-up: starts the migration, if `projectforge.files.store=db`. Files migrated before are skipped.
      */
     fun autoStart() {
         if (!repoService.allFilesInFileStore) {
             return
         }
-        if (lastRunOk()) {
-            log.info { "All files of the JCR are migrated (see '${reportFile.absolutePath}')." }
-            return
-        }
-        log.info { "projectforge.files.store=db: starting the migration of all files of the JCR to the file store..." }
+        log.info { "projectforge.files.store=db: migrating the files of the JCR to the file store (already migrated files are skipped)..." }
         startMigration()
-    }
-
-    private fun lastRunOk(): Boolean {
-        val file = reportFile
-        if (!file.exists()) {
-            return false
-        }
-        return try {
-            file.readLines().contains("${RepoMigrationService.Result.RESULT_PREFIX}${RepoMigrationService.Result.RESULT_OK}")
-        } catch (ex: Exception) {
-            log.error(ex) { "Can't read '${file.absolutePath}': ${ex.message}" }
-            false
-        }
     }
 
     companion object {

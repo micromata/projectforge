@@ -173,7 +173,7 @@ open class PluginAdminService {
         WicketSupport.register(applicationContext)
         initializeActivePlugins(true)
         if (!ProjectForgeApp.isJunitTestMode()) {
-            // projectforge.files.store=db: migrates the files of the JCR to the file store (until done). Not before the
+            // projectforge.files.store=db: migrates the files of the JCR to the file store (skips migrated ones). Not before the
             // plugins are initialized: the file system paths (DataTransfer) must be registered, otherwise their files
             // would be migrated into the database.
             fileStoreMigrationService.autoStart()
