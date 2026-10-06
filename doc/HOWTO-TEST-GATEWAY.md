@@ -290,14 +290,96 @@ After this, the files are no longer editable directly — see the troubleshootin
 
 ### 5. Start on the server
 
+Enable lingering for the user once, otherwise systemd-logind kills all of the user's
+processes — including rootless containers — when the last login session ends (logout, SSH
+timeout), even with `-d`:
+
+```bash
+sudo loginctl enable-linger $USER
+loginctl show-user $USER --property=Linger   # Linger=yes
+```
+
+Then start the stack detached (`-d`). Without `-d` it is bound to the terminal: Ctrl-C, a
+closed terminal or a dropped SSH connection stops all containers.
+
 ```bash
 cd ~/gateway
 podman-compose -f docker-compose-gateway.yml up -d
 ```
 
+`podman compose` (with a blank) is the same: it delegates to `podman-compose`.
+
 The gateway is now reachable at `https://gateway.example.com`. Nginx terminates TLS and
 forwards internally to the Spring Boot container. Certbot renews the certificate
 automatically every 12h.
+
+Day-to-day operation (in `~/gateway`, `-f docker-compose-gateway.yml` omitted for brevity):
+
+| Command | Effect |
+|---------|--------|
+| `podman-compose start` / `stop` | starts/stops the existing containers |
+| `podman-compose down` | stops and removes the containers; the database (named volume `postgres-data`) and `./ProjectForge` are kept. Never add `-v`, it deletes the volume |
+| `podman-compose down && podman-compose up -d` | recreates the containers, e.g. after a new image was built |
+| `podman ps -a --filter name=gateway_` | status of all gateway containers |
+
+Once the stack runs via systemd (step 5a), use `systemctl --user start|stop|restart
+projectforge-gateway` instead, so that systemd's state stays in line with the containers.
+
+### 5a. Survive reboots (systemd user service)
+
+Podman has no daemon: `restart: unless-stopped` only restarts a container that crashes while
+Podman is around, nothing starts the stack after a reboot. A systemd user service does this,
+together with lingering from step 5 (which starts the user's systemd instance at boot,
+without anyone logging in).
+
+Create `~/.config/systemd/user/projectforge-gateway.service`:
+
+```ini
+[Unit]
+Description=ProjectForge gateway (podman-compose stack)
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/gateway
+# Removes containers left over from an unclean stop (otherwise "container name ... is already in use").
+ExecStartPre=-/usr/bin/podman-compose -f docker-compose-gateway.yml down
+ExecStart=/usr/bin/podman-compose -f docker-compose-gateway.yml up -d
+# Gives ProjectForge 60s to shut down cleanly (default 10s, then SIGKILL).
+ExecStop=/usr/bin/podman-compose -f docker-compose-gateway.yml down -t 60
+TimeoutStartSec=600
+TimeoutStopSec=180
+
+[Install]
+WantedBy=default.target
+```
+
+`TimeoutStartSec` is generous because the first start may pull images and waits for the
+Postgres health check. Activate it — stop a manually started stack first, so systemd takes
+over:
+
+```bash
+cd ~/gateway && podman-compose -f docker-compose-gateway.yml down
+systemctl --user daemon-reload
+systemctl --user enable --now projectforge-gateway
+systemctl --user status projectforge-gateway
+podman ps
+```
+
+If `systemctl --user` fails with `Failed to connect to bus` (e.g. after `su`/`sudo -u`), log in
+directly as the user via SSH, or set `export XDG_RUNTIME_DIR=/run/user/$(id -u)`.
+
+Test it with `sudo reboot`; afterwards `podman ps` must show all four containers, without
+having to log in first. Output of the unit:
+
+```bash
+journalctl --user -u projectforge-gateway
+```
+
+Alternatives: `podman-compose systemd -a register` generates a similar unit
+(`podman-compose@.service`), but requires the stack to run in a pod. Quadlets
+(`~/.config/containers/systemd/*.container`) are the native Podman way, but the compose file
+would have to be rewritten into one unit file per container.
 
 ### 6. Point the main instance at the remote gateway
 
@@ -460,6 +542,36 @@ podman unshare chown 0:0 ~/gateway/ProjectForge/projectforge.properties
 # edit
 podman unshare chown 101:101 ~/gateway/ProjectForge/projectforge.properties
 ```
+
+### Gateway stops by itself (`Commencing graceful shutdown`)
+
+The log ends with a normal shutdown without any error before it:
+
+```
+GracefulShutdown : Commencing graceful shutdown. Waiting for active requests to complete
+ProjectForgeApp  : Shutdown...
+HikariPool-1 - Failed to validate connection ... (This connection has been closed.)
+```
+
+The application did not crash, the container received SIGTERM from outside. If Hikari reports
+closed connections at the same time, Postgres was stopped together with it — the whole stack
+was stopped. Typical causes: the stack was started without `-d` and the terminal/SSH session
+ended, or lingering is off and the last login session of the user ended. Check:
+
+```bash
+loginctl show-user $USER --property=Linger
+journalctl -b --since "<time of the shutdown minus 1 min>"   # "Removed session", "Stopping User Manager"
+podman events --since "<time>" --until "<time + 1 min>"
+```
+
+Fix: step 5 (lingering, `-d`) and step 5a (systemd service).
+
+### `the container name "gateway_postgres_1" is already in use`
+
+`up -d` tries to create containers that still exist (stopped) from the last run. Either start
+them with `podman-compose -f docker-compose-gateway.yml start`, or remove and recreate them
+with `down` followed by `up -d` (the data is kept, see step 5). The systemd service from
+step 5a does this automatically before every start.
 
 ### Base image not found
 

@@ -136,7 +136,8 @@ tbd.
 
 == Deploying docker images
 
-Please refer /doc/deployment.adoc for detailed information.
+The images of a release are pushed by `docker/push-release.sh` (see `--help`), one run per
+architecture plus one for the multi-arch tags. Please refer /doc/deployment.adoc for detailed information.
 
 
 == FAQ

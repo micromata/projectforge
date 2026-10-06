@@ -40,7 +40,8 @@ Commands:
                    runs gen and the build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
-                   from the changelog, jar attached); asks before each step
+                   from the changelog, jar attached); asks before each step. The docker
+                   images follow with docker/push-release.sh (see its --help)
   help             Show this help
 
 Slots (1–9) run independent instances side by side, e.g. one per worktree:
@@ -248,6 +249,7 @@ publish() {
   fi
   confirm "Create the GitHub release $tag with $(basename "$jar")?" || exit 1
   gh release create "$tag" "$jar" --title "ProjectForge $version" --notes-file "$notes" --latest
+  echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
 }
 
 cmd="${1:-help}"
