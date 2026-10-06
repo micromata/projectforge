@@ -16,6 +16,7 @@ import { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
 import { useCalendarAction } from "./use-calendar-action";
 import { useCreateShortcut } from "./use-create-shortcut";
 import { useGotoDate } from "./use-goto-date";
+import { dateOf, isoOf } from "@/lib/date-parse";
 import { normalizeInitialDate } from "./view-config";
 import { CalendarToolbar } from "./calendar-toolbar";
 import { CalendarSelect } from "./calendar-select";
@@ -75,6 +76,22 @@ export function CalendarPage() {
     });
   }, [requestAction, firstHour]);
   useCreateShortcut(handleCreate);
+
+  // The current period's own first day (`currentStart`), not the grid's (`activeStart`): a month view
+  // starts with the trailing days of the previous month.
+  const getViewStart = useCallback(() => {
+    const start = apiRef.current?.view.currentStart;
+    return start ? isoOf(start) : null;
+  }, []);
+  // Moves to the period of `iso` in the current view (week, month …) unless it is in view already; the
+  // move fires `datesSet` → a new range → the events of the new period are fetched.
+  const showDate = useCallback((iso: string) => {
+    const api = apiRef.current;
+    const target = dateOf(iso);
+    if (!api || !target) return;
+    const { activeStart, activeEnd } = api.view;
+    if (target < activeStart || target >= activeEnd) api.gotoDate(target);
+  }, []);
 
   const onRangeChange = useCallback(
     (next: CalendarRange) => {
@@ -141,7 +158,12 @@ export function CalendarPage() {
         }
       >
         <AddEntryButton onClick={handleCreate} />
-        <CalendarToolbar init={init} mutations={mutations} />
+        <CalendarToolbar
+          init={init}
+          mutations={mutations}
+          getViewStart={getViewStart}
+          showDate={showDate}
+        />
       </PageTitleRow>
       <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
         <FullCalendarPanel

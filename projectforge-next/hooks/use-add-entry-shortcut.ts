@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { isTypingTarget } from "@/lib/typing-target";
 
 /**
- * Whether a key event is the "new entry" chord — `N` or `+`, or `ALT-N` (macOS: `CTRL-ALT-N`).
+ * Whether a key event is the "new entry" chord — `N` or `+`, or `ALT-N` (macOS: `Option-N`).
  *
  * Not the HTML `accesskey` the legacy Wicket pages used (`WebConstants.ACCESS_KEY_ADD`): on macOS
  * the browsers demand `CTRL-ALT-N` for it and swallow it often enough that the shortcut was simply

@@ -131,8 +131,11 @@ export const TASK_PAGE = definePage<
     {
       name: "shortDescription",
       size: 300,
-      cell: ({ row }) => (
-        <JiraLinkedText text={row.original.shortDescription} />
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.shortDescription}
+          highlight={table.options.meta?.highlight}
+        />
       ),
     },
     {
@@ -144,7 +147,12 @@ export const TASK_PAGE = definePage<
     {
       name: "reference",
       size: 120,
-      cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.reference}
+          highlight={table.options.meta?.highlight}
+        />
+      ),
     },
     { name: "priority", size: 110 },
     {

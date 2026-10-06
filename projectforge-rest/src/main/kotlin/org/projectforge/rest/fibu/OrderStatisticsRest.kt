@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * The filter and the favorites of the order statistics page (`/next/orderStatistics`), see
+ * The filter and the favorites of the order statistics page (`/next/finance/statistics`), see
  * [OrderStatisticsFilterService]. The charts themselves are computed by [OrderEntityRest.forecastChart] and
  * [OrderEntityRest.contributionMargin], which store the filter they are asked for as the current one.
  *

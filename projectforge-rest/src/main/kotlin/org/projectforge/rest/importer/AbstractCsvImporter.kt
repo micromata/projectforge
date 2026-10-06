@@ -301,15 +301,15 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
                 }
             }
 
-            Int::class.java, Integer::class.java -> {
+            Int::class.java, Int::class.javaObjectType -> {
                 fieldSettings.parseInt(value)
             }
 
-            Long::class.java, java.lang.Long::class.java -> {
+            Long::class.java, Long::class.javaObjectType -> {
                 fieldSettings.parseLong(value)
             }
 
-            Boolean::class.java, java.lang.Boolean::class.java -> {
+            Boolean::class.java, Boolean::class.javaObjectType -> {
                 fieldSettings.parseBoolean(value)
             }
 

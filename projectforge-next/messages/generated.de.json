@@ -553,6 +553,32 @@
       "help": "Es können sowohl Beträge als auch Prozentzahlen (z. B. 10%) eingegeben werden."
     }
   },
+  "dashboard": {
+    "arrange": {
+      "_": "Anordnen",
+      "tooltip": "Kacheln anordnen, in der Größe ändern und ausblenden"
+    },
+    "done": "Fertig",
+    "dragHandle": "Ziehen zum Verschieben",
+    "height": {
+      "_": "Höhe",
+      "L": "Groß",
+      "M": "Mittel",
+      "S": "Klein"
+    },
+    "hiddenTiles": "Ausgeblendete Kacheln ({arg0})",
+    "hide": "Ausblenden",
+    "noTiles": "Alle Kacheln sind ausgeblendet.",
+    "reset": "Anordnung zurücksetzen",
+    "tileMenu": "Kachel-Optionen",
+    "width": {
+      "_": "Breite",
+      "full": "Volle Breite",
+      "half": "Halb",
+      "third": "Ein Drittel",
+      "twoThirds": "Zwei Drittel"
+    }
+  },
   "datatable": {
     "no-records-found": "Keine Einträge gefunden."
   },
@@ -631,6 +657,7 @@
     "attachment": "Anlagen",
     "auftrag": {
       "_": "Auftrag",
+      "additionalContacts": "Weitere Ansprechpartner:innen",
       "angebot": {
         "datum": "Angebotsdatum"
       },
@@ -639,6 +666,9 @@
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf den Auftrag und seine Rechnungen und bekommen eine E-Mail, wenn er geändert wird (ebenso alle, die ihn bisher bearbeitet haben)."
+      },
       "contributionMargin": {
         "_": "Deckungsbeitrag",
         "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
@@ -646,6 +676,7 @@
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
           "error": {
+            "duplicateKost2": "Der Kostenträger {arg0} ist weiter oben bereits zugeordnet.",
             "kostNumber": "{arg0} ist keine dreiteilige Nummer wie 6.000.10.",
             "negative": "darf nicht negativ sein.",
             "percentage": "muss zwischen 0 und 100 liegen.",
@@ -678,6 +709,7 @@
         "empty": "Für die Projekte der ausgewählten Aufträge wurden weder Erlöse noch Kosten gefunden.",
         "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher fehlen in den vorläufigen Monaten die Kosten der Zeitberichte.",
         "kost": "Kostenträger",
+        "kpis": "Kennzahlen",
         "monthly": "Deckungsbeitrag Monatswerte",
         "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
         "noRevenue": "Keine Erlöse im Zeitraum, nur Kosten.",
@@ -899,6 +931,7 @@
         },
         "tables": {
           "bookedDate": "Gebucht am",
+          "forecastDetails": "Forecast-Analyse des Auftrags anzeigen",
           "heading": "Zugrundeliegende Daten",
           "invoicesPrevPrevYear": "Rechnungen Vorvorjahr",
           "invoicesPrevYear": "Rechnungen Vorjahr",
@@ -981,7 +1014,7 @@
       "viaTask": "über Strukturelement"
     },
     "common": {
-      "assignedPersons": "PL/BUL/KAM/AP",
+      "assignedPersons": "Ansprechpartner:innen",
       "betrag": "Betrag",
       "brutto": "Brutto",
       "creditor": "Kreditor",
@@ -1383,6 +1416,9 @@
       "konto": {
         "tooltip": "Wird für den Export von Debitorenrechnungen verwendet. Wenn kein Konto angegeben, wird ein evtl. vorhandenes Konto des diesem Projekt zugeordneten Kundens verwendet."
       },
+      "lastActivity": "Letzte Aktivität",
+      "lastOrder": "Letzter Auftrag",
+      "lastTimesheet": "Letzte Zeitbuchung",
       "leiter": "Projektmanagement",
       "list": {
         "select": {
@@ -2390,8 +2426,10 @@
       "chart": {
         "averageLatency": "Ist (Durchschnitt)",
         "bookedHours": "Erfasste Arbeitszeit",
+        "bookingLatency": "Erfassungsverzug",
         "goal": "Soll (Zielgröße)",
-        "plannedHours": "Soll-Arbeitszeit"
+        "plannedHours": "Soll-Arbeitszeit",
+        "workingHours": "Arbeitszeit"
       },
       "tab": {
         "timeTracking": "Zeiterfassung"
@@ -3151,6 +3189,9 @@
           "newProblems": "Neue Probleme (24 h)",
           "occurrences": "Fehler (24 h)",
           "open": "Noch unbearbeitet",
+          "problems": "Probleme (24 h)",
+          "problemsOccurrences": "{arg0} Fehler",
+          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus dem häufigsten Problem",
           "regressions": "Regressionen"
         },
         "lastNotified": "Zuletzt gemeldet",
@@ -3583,6 +3624,29 @@
         "info": "Ersparnis in Stunden durch KI oder in Prozent (Beispiel Prozent: ich habe 9 Stunden gebraucht und hätte ohne KI 10 h gebraucht, dann habe ich 10% gespart):\n\nBeachte: Es kann bei einem Zeitbericht von einer Stunde auch ein Aufwand von vielen Stunden oder Tagen eingespart werden. "
       }
     },
+    "bookDays": {
+      "hoursPerDay": "Stunden pro Tag",
+      "info": "Bucht an jedem Arbeitstag des Zeitraums einen Zeitbericht, z. B. für einen Urlaub. Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen.",
+      "preview": "Vorschau",
+      "previewEmpty": "Bitte einen Zeitraum angeben.",
+      "status": {
+        "book": "wird gebucht",
+        "booked": "bereits gebucht",
+        "holiday": "Feiertag",
+        "partial": "anteilig",
+        "weekend": "Wochenende"
+      },
+      "submit": "Buchen ({arg0})",
+      "success": "Gebuchte Tage: {arg0}",
+      "summary": "Zu buchende Tage: {arg0}, Stunden: {arg1}",
+      "title": "Mehrere Tage buchen",
+      "vacation": "Urlaub übernehmen",
+      "vacationDays": "{arg0} Tag(e)",
+      "vacationDescription": "Urlaub",
+      "vacationHint": "Die Urlaubstage werden auf die Urlaubs-Kost2 gebucht.",
+      "vacationNotConfigured": "Keine Urlaubs-Kost2 konfiguriert: Strukturelement und Kost2 bitte selbst wählen.",
+      "vacationPlaceholder": "Urlaub auswählen"
+    },
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
@@ -3632,7 +3696,7 @@
     "selectTask": "Strukturelement wählen",
     "shortcut": {
       "addEntry": {
-        "_": "N oder + drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
+        "_": "N oder + drücken (außerhalb eines Eingabefelds), oder ALT-N (macOS: Option-N), auch in einem Eingabefeld.",
         "title": "Tastaturkürzel N oder +"
       },
       "selectAll": {

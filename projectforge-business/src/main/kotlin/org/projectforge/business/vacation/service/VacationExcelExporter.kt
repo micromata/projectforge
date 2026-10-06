@@ -110,7 +110,7 @@ object VacationExcelExporter {
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
   ): ByteArray {
     log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->

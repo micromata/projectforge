@@ -191,7 +191,7 @@ class OutgoingInvoiceKostZuweisungSaveTest : AbstractTestBase() {
                 }
             })
         }
-        return rechnungDao.insert(invoice)!!
+        return rechnungDao.insert(invoice)
     }
 
     companion object {

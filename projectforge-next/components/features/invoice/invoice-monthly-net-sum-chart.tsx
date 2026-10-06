@@ -27,8 +27,11 @@ import {
  */
 export function InvoiceMonthlyNetSumChart({
   data,
+  className = "h-[27rem] w-full",
 }: {
   data: InvoiceNetSumChartData;
+  /** Size of the chart, e.g. a dashboard tile's height step. */
+  className?: string;
 }) {
   const t = useTranslations("fibu.rechnung.chart");
   const ctx = useFormatContext();
@@ -44,7 +47,7 @@ export function InvoiceMonthlyNetSumChart({
   return (
     <ChartContainer
       config={config}
-      className="h-[27rem] w-full"
+      className={className}
       role="img"
       aria-label={t("monthly")}
     >

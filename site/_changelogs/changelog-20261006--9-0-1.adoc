@@ -1,0 +1,25 @@
+---
+title: "ProjectForge 9.0.1 released"
+date: 2026-10-06
+sort_key: "2026-10-06 0030 0"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+__Tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE].__
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.
+- The status of projects can be changed in the mass update.
+- The gateway's ICS push generates each team calendar only once per run.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- The gateway's ICS push delivered only the first calendar of each user.
+- A subsystem tile of the problem dashboard counts only open problems, like the list behind it.
+- Long file names and values no longer push tables beyond the mail card.
+- The nightly re-index of the search no longer fails on tables of non-active plugins.
+- No more needless error log entries when saving orders.

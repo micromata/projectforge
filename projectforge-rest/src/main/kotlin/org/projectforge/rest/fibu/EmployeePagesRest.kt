@@ -200,7 +200,7 @@ class EmployeePagesRest :
         val list = getObjectList(this, baseDao, filter)
         // Ensure the transient, time-dependent attributes (status, weekly working hours) reflect the current values.
         employeeCache.setTimeDependentAttrs(list)
-        ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+        ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
             // Excel sheet names must not contain the chars \ / ? * [ ] : (e.g. "Mitarbeiter:in"), so sanitize.
             val sheetName = WorkbookUtil.createSafeSheetName(translate("fibu.employee.title.heading"))
             val sheet = workbook.createOrGetSheet(sheetName)

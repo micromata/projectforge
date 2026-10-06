@@ -553,6 +553,32 @@
       "help": "You can enter amounts as well as percent values (e.g. 10%)."
     }
   },
+  "dashboard": {
+    "arrange": {
+      "_": "Arrange",
+      "tooltip": "Arrange, resize and hide the tiles"
+    },
+    "done": "Done",
+    "dragHandle": "Drag to move",
+    "height": {
+      "_": "Height",
+      "L": "Large",
+      "M": "Medium",
+      "S": "Small"
+    },
+    "hiddenTiles": "Hidden tiles ({arg0})",
+    "hide": "Hide",
+    "noTiles": "All tiles are hidden.",
+    "reset": "Reset layout",
+    "tileMenu": "Tile options",
+    "width": {
+      "_": "Width",
+      "full": "Full width",
+      "half": "Half",
+      "third": "One third",
+      "twoThirds": "Two thirds"
+    }
+  },
   "datatable": {
     "no-records-found": "No records were found."
   },
@@ -631,6 +657,7 @@
     "attachment": "Attachments",
     "auftrag": {
       "_": "Order",
+      "additionalContacts": "Additional contact persons",
       "angebot": {
         "datum": "Date of order"
       },
@@ -639,6 +666,9 @@
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
       "commissioned": "commissioned",
+      "contacts": {
+        "info": "Contact persons have access to the order and its invoices and get an e-mail when the order is changed (as does everyone who has edited it before)."
+      },
       "contributionMargin": {
         "_": "Contribution margin",
         "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
@@ -646,6 +676,7 @@
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
           "error": {
+            "duplicateKost2": "The cost unit {arg0} is already assigned above.",
             "kostNumber": "{arg0} is no number of three parts like 6.000.10.",
             "negative": "must not be negative.",
             "percentage": "must be between 0 and 100.",
@@ -678,6 +709,7 @@
         "empty": "No revenue or costs found for the projects of the selected orders.",
         "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the preliminary months lack the costs of the time sheets.",
         "kost": "Cost unit",
+        "kpis": "Key figures",
         "monthly": "Contribution margin monthly",
         "noImport": "No accounting records are imported at all. All values are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
         "noRevenue": "No revenue in the period, only costs.",
@@ -899,6 +931,7 @@
         },
         "tables": {
           "bookedDate": "Booked on",
+          "forecastDetails": "Show the forecast analysis of the order",
           "heading": "Underlying data",
           "invoicesPrevPrevYear": "Invoices year before previous year",
           "invoicesPrevYear": "Invoices previous year",
@@ -981,7 +1014,7 @@
       "viaTask": "via structure element"
     },
     "common": {
-      "assignedPersons": "PM/HOB/KAM/CP",
+      "assignedPersons": "Contact persons",
       "betrag": "Amount",
       "brutto": "Gross",
       "creditor": "Creditor",
@@ -1383,6 +1416,9 @@
       "konto": {
         "tooltip": "Is used for the export of invoices. If not given the account number of a assigned customer is used (if given)."
       },
+      "lastActivity": "Last activity",
+      "lastOrder": "Last order",
+      "lastTimesheet": "Last time sheet",
       "leiter": "Project manager",
       "list": {
         "select": {
@@ -2390,8 +2426,10 @@
       "chart": {
         "averageLatency": "Actual (average)",
         "bookedHours": "Booked working hours",
+        "bookingLatency": "Booking latency",
         "goal": "Target (goal)",
-        "plannedHours": "Target working hours"
+        "plannedHours": "Target working hours",
+        "workingHours": "Working hours"
       },
       "tab": {
         "timeTracking": "Time tracking"
@@ -3151,6 +3189,9 @@
           "newProblems": "New problems (24 h)",
           "occurrences": "Errors (24 h)",
           "open": "Not looked at yet",
+          "problems": "Problems (24 h)",
+          "problemsOccurrences": "{arg0} errors",
+          "problemsTopShare": "{arg0} errors, {arg1} of them from the most frequent problem",
           "regressions": "Regressions"
         },
         "lastNotified": "Last reported",
@@ -3583,6 +3624,29 @@
         "info": "Percentage time savings in percent in this time report (e.g. 10% of 10 hours is 1 hour) or in hours:\n\nNote: A time report of one hour can also save many hours or days of effort."
       }
     },
+    "bookDays": {
+      "hoursPerDay": "Hours per day",
+      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends, holidays and days already booked are skipped.",
+      "preview": "Preview",
+      "previewEmpty": "Please enter a period.",
+      "status": {
+        "book": "will be booked",
+        "booked": "already booked",
+        "holiday": "Holiday",
+        "partial": "pro rata",
+        "weekend": "Weekend"
+      },
+      "submit": "Book ({arg0})",
+      "success": "Booked days: {arg0}",
+      "summary": "Days to book: {arg0}, hours: {arg1}",
+      "title": "Book several days",
+      "vacation": "Take over vacation",
+      "vacationDays": "{arg0} day(s)",
+      "vacationDescription": "Vacation",
+      "vacationHint": "The days of the vacation are booked on the vacation cost unit.",
+      "vacationNotConfigured": "No vacation cost unit is configured: please choose structure element and cost unit yourself.",
+      "vacationPlaceholder": "Choose a vacation"
+    },
     "description": "Activity report",
     "duration": "Duration",
     "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
@@ -3632,7 +3696,7 @@
     "selectTask": "Select structure element",
     "shortcut": {
       "addEntry": {
-        "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
+        "_": "Press N or + (outside an input field), or ALT-N (macOS: Option-N), also inside an input field.",
         "title": "Keyboard shortcut N or +"
       },
       "selectAll": {

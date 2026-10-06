@@ -121,7 +121,7 @@ class OutgoingInvoiceWordExportTest : AbstractTestBase() {
             position(invoice, 1, BigDecimal("2"), BigDecimal("1000.00")),
             position(invoice, 2, BigDecimal("1"), BigDecimal("500.00")),
         )
-        return rechnungDao.insert(invoice)!!
+        return rechnungDao.insert(invoice)
     }
 
     private fun position(

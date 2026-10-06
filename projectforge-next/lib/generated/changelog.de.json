@@ -37,6 +37,37 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
+    "id" : "9-0-2",
+    "version" : "9.0.2",
+    "date" : "2026-10-06",
+    "title" : "ProjectForge 9.0.2 veröffentlicht",
+    "tag" : "9.0.2-RELEASE",
+    "downloadLink" : true,
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.", "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme.", "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert.", "Kalender: mehrere Tage auf einmal buchen, z. B. einen Urlaub oder eine Abwesenheit für Kolleg:innen; Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen, halbe Arbeitstage anteilig gebucht, Vorlagen, zuletzt verwendete Zeitberichte und die Urlaube der gebuchten Person können übernommen werden (Urlaubs-Strukturelement und -Kost2 konfigurierbar über projectforge.timesheet.vacation.taskId/kost2).", "Statistiken: Eine Pille hinter der Auftragsnummer in den Forecast-Tabellen öffnet die Forecast-Analyse des Auftrags in einem Dialog, ohne die Tabelle zu verlassen.", "Listen: Das Suchfeld erhält beim Laden der Seite den Fokus (nicht auf Touch-Geräten)." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Aufträge: eine Ansprechpartner:in und beliebig viele weitere Ansprechpartner:innen statt Projektleitung, Bereichsleitung und Key-Account-Management (bestehende Einträge werden übernommen, die alten Felder bleiben in der Datenbank). Weitere Ansprechpartner:innen haben denselben Zugriff auf den Auftrag und seine Rechnungen wie die Ansprechpartner:in, und die Änderungsmail geht jetzt auch an sie und an alle, die den Auftrag bisher bearbeitet haben.", "Statistiken: Forecast und Deckungsbeitrag werden deutlich schneller berechnet; der Deckungsbeitrag wird pro Projekt zwischengespeichert.", "Konfiguration der Deckungsbeiträge: Ein doppelt zugeordneter Kostenträger wird als Fehler markiert.", "Kostenträger: Die Kostenart wird in Liste und Export nur für Kundenkostenträger (4.x und 5.x) angezeigt, wie im Monatsbericht.", "Problem-Dashboard: Die Mail-Kachel zeigt das Ergebnis der zuletzt gesendeten Mail (unbekannt, OK, Versand fehlgeschlagen oder Mailserver nicht erreichbar).", "Fehlschlagende Kalenderabos senden keine eigene Mail mehr an die Administration und die Feedback-Adresse; die Fehler-Sammelmail meldet sie.", "Die Statistikseite liegt jetzt unter /next/finance/statistics, das Problem-Dashboard unter /next/problemDashboard; alte Links werden weitergeleitet." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Ein geklonter Zeitbericht (z. B. im Kalender gezogen) behält seinen Benutzer, wenn der angemeldete Benutzer für ihn buchen darf.", "Suchbegriffe werden auch in Listenzellen mit JIRA-Links hervorgehoben (Auftragstitel und -referenz, Strukturelement, Zeitbericht, HR-Planung).", "Das Release-Jar enthält keine veralteten Frontend-Dateien früherer Builds mehr." ]
+    } ]
+  }, {
+    "id" : "9-0-1",
+    "version" : "9.0.1",
+    "date" : "2026-10-06",
+    "title" : "ProjectForge 9.0.1 veröffentlicht",
+    "tag" : "9.0.1-RELEASE",
+    "published" : false,
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Problem-Dashboard und Fehler-Sammelmail: Probleme statt Vorkommen als führende Kennzahl, damit ein häufiges Problem nicht mehr alle anderen verdeckt; Zahlen mit Tausendertrennzeichen.", "Der Status von Projekten ist in der Massenänderung änderbar.", "Der ICS-Push des Gateways erzeugt jeden Teamkalender nur noch einmal pro Lauf." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Der ICS-Push des Gateways lieferte pro Benutzer nur den ersten Kalender.", "Eine Subsystem-Kachel des Problem-Dashboards zählt nur offene Probleme, wie die Liste dahinter.", "Lange Dateinamen und Werte schieben Tabellen nicht mehr über die Mail-Karte hinaus.", "Die nächtliche Neuindizierung der Suche scheitert nicht mehr an Tabellen nicht aktiver Plugins.", "Keine unnötigen Fehlereinträge mehr im Log beim Speichern von Aufträgen." ]
+    } ]
+  }, {
     "id" : "9-0-0",
     "version" : "9.0.0",
     "date" : "2026-10-06",

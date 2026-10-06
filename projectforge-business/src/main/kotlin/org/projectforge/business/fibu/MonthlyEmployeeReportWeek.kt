@@ -118,7 +118,7 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
                 entry = taskEntries[taskId]
                 if (entry == null) {
                     entry = MonthlyEmployeeReportEntry(timesheet.task)
-                    taskEntries[taskId] = entry!!
+                    taskEntries[taskId] = entry
                 }
             }
         }

@@ -167,6 +167,8 @@ class PfPersistenceContext internal constructor(
         return runCatching {
             val session = em.unwrap(SessionImplementor::class.java)
             val persister = session.factory.mappingMetamodel.getEntityDescriptor(entityClass)
+            // Annotated @NonNull, but returns null for an entity not in the persistence context.
+            @Suppress("SENSELESS_COMPARISON")
             session.persistenceContextInternal.getEntity(session.generateEntityKey(id, persister)) != null
         }.getOrDefault(false)
     }

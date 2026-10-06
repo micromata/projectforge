@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
 class GatewaySyncController(
     private val gatewaySyncService: GatewaySyncService,
-    @Value("\${projectforge.gateway.sync.secret:}") private val syncSecret: String,
+    @param:Value("\${projectforge.gateway.sync.secret:}") private val syncSecret: String,
 ) {
 
     @PostMapping("/users")

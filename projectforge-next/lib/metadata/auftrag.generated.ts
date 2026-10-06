@@ -8,6 +8,12 @@ export const AUFTRAG_METADATA = {
   entity: "AuftragDO",
   historizable: true,
   fields: {
+    additionalContactUserIds: {
+      dataType: "STRING",
+      i18nKey: "fibu.auftrag.additionalContacts",
+      required: false,
+      maxLength: 4000,
+    },
     angebotsDatum: {
       dataType: "DATE",
       i18nKey: "fibu.auftrag.angebot.datum",

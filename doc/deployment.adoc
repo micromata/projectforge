@@ -34,4 +34,9 @@ The version is set only by the release script (`gradle.properties`, `version=`).
        `latest`.
     d. Check https://hub.docker.com/r/micromata/projectforge/tags: both architectures, amd64 and arm64.
 
+A mini release without downloads (no GitHub release, jar or docker images) gets `"published": false` in its
+entry in `changelog/changelog.json`. `bin/pfDev.sh publish X.Y.Z` then only pushes the branch and the tag, and
+step 4 is skipped. The release notes of the next published release also contain the changes of all unpublished
+releases since the last published one.
+
 For testing docker images first, please refer `/docker/README.adoc`.

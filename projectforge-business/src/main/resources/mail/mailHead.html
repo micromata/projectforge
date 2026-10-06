@@ -136,6 +136,13 @@
             vertical-align: top;
         }
 
+        /* Cells with long values without spaces (file names, URLs), which would otherwise push the table beyond
+         * the card. Not for all cells, because the table layout would then break short words, too. */
+        td.wrap, table.width-2 td, table.width-3 td {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
         /* Column headers of data tables, e.g. the history of changes. */
         tr th {
             padding: 6px 12px 6px 0;
@@ -247,7 +254,7 @@
             /* The negative margin compensates the border spacing, so the tiles are aligned with the text. */
             width: calc(100% + 16px);
             margin: 16px -8px 8px;
-            table-layout: fixed;
+            /* Not table-layout: fixed (equal tiles): a big number like 1,149,892 wouldn't fit into its tile. */
             border-collapse: separate;
             border-spacing: 8px 0;
         }
@@ -263,6 +270,7 @@
             font-size: 24px;
             font-weight: 600;
             line-height: 1.2;
+            white-space: nowrap;
             color: #252525;
         }
 

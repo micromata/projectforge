@@ -86,7 +86,7 @@ object AnnotationsUtils {
     }
 
     fun <T : Annotation> getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<T>): T? {
-        return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass } as? T
+        return getAnnotations(clazz, propertyName).filterIsInstance(annotationClass).firstOrNull()
     }
 
     fun hasAnnotation(property: KProperty1<*, *>, annotationClass: Class<out Annotation>): Boolean {

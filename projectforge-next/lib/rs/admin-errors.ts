@@ -47,6 +47,9 @@ export type LogGroupAction =
   | "UNMUTE"
   | "SET_NOTIFY";
 
+/** `LogGroupScope`: a key figure's selection the other filters can't express. */
+export type LogGroupScope = "NEW_24H" | "REGRESSION";
+
 /** `LogGroupFilter`. [days]: only problems seen within the last days, 0 for all. */
 export interface LogGroupFilter {
   status: LogGroupStatusFilter;
@@ -55,6 +58,8 @@ export interface LogGroupFilter {
   days?: number | null;
   /** Only the problems of the subsystem (`SubsystemEntry.id`). */
   subsystem?: string | null;
+  /** Only the problems of a key figure, see AdminErrorsSummary. */
+  scope?: LogGroupScope | null;
 }
 
 /** `LogGroupEntry`. */
@@ -87,7 +92,11 @@ export interface LogGroupEntry {
 
 /** `LogGroupSummary`: the key figures of all problems, whatever the filter. */
 export interface LogGroupSummary {
+  /** Problems with occurrences within the last 24 hours. */
+  problems24h: number;
   occurrences24h: number;
+  /** The occurrences of the most frequent problem within the last 24 hours. */
+  topOccurrences24h: number;
   newProblems24h: number;
   regressions: number;
   externalProblems24h: number;

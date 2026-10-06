@@ -260,7 +260,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
                 pos.vat = BigDecimal("0.19")
             },
         )
-        return rechnungDao.insert(invoice)!!
+        return rechnungDao.insert(invoice)
     }
 
     companion object {

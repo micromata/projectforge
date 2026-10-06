@@ -45,7 +45,8 @@ interface IUserRightId : I18nEnum {
      */
     val orderString: String?
 
-    operator fun compareTo(o: IUserRightId?): Int {
-        return this.compareTo(o)
-    }
+    /**
+     * Orders by [id], an id-less right first.
+     */
+    operator fun compareTo(o: IUserRightId?): Int = if (o == null) 1 else compareValues(id, o.id)
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useFormatContext } from "@/hooks/use-format";
+import { formatNumber } from "@/lib/format";
 import type {
   LogGroupEntry,
   LogGroupFilter,
@@ -17,6 +19,7 @@ export function AdminErrorsProblems({
   subsystemTitle,
   onFilterChange,
   onRemoveSubsystem,
+  onRemoveScope,
   search,
   onSearchChange,
   onOpen,
@@ -27,11 +30,13 @@ export function AdminErrorsProblems({
   subsystemTitle: string | null;
   onFilterChange: (filter: LogGroupFilter) => void;
   onRemoveSubsystem: () => void;
+  onRemoveScope: () => void;
   search: string;
   onSearchChange: (search: string) => void;
   onOpen: (entry: LogGroupEntry) => void;
 }) {
   const t = useTranslations();
+  const ctx = useFormatContext();
   return (
     <>
       <AdminErrorsFilters
@@ -39,12 +44,13 @@ export function AdminErrorsProblems({
         subsystemTitle={subsystemTitle}
         onChange={onFilterChange}
         onRemoveSubsystem={onRemoveSubsystem}
+        onRemoveScope={onRemoveScope}
       />
       {data.total > data.entries.length && (
         <p className="text-muted-foreground">
           {t("system.admin.adminErrors.more", {
-            arg0: data.entries.length,
-            arg1: data.total,
+            arg0: formatNumber(data.entries.length, ctx, 0),
+            arg1: formatNumber(data.total, ctx, 0),
           })}
         </p>
       )}

@@ -49,7 +49,7 @@ class LuceneIndexTester {
                         // Abrufen der Term-Daten für das Feld
                         val terms: Terms? = leafReader.terms(fieldInfo.name)
                         if (terms != null) {
-                            sb.append(" Number of Terms=").append(terms.size() ?: "unknown")
+                            sb.append(" Number of Terms=").append(terms.size().let { if (it < 0) "unknown" else it })
                             val termsEnum: TermsEnum = terms.iterator()
                             var docFrequencySum = 0L
 

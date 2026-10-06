@@ -33,6 +33,7 @@ import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -252,12 +253,18 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     /**
-     * The copy is booked by the logged-in user, as Wicket's TimesheetEditPage.cloneData did: a project
-     * manager copying a member's sheet books their own work, not a second sheet of the member.
+     * The copy keeps the sheet's user if the logged-in user may book time sheets for them on its task (e.g. a
+     * project manager or the finance group re-booking a member's time in the calendar); otherwise, as
+     * Wicket's TimesheetEditPage.cloneData did, it falls back to the logged-in user.
      */
     override fun prepareClone(dto: Timesheet): Timesheet {
         super.prepareClone(dto)
-        dto.user = User.getUser(ThreadLocalUserContext.loggedInUserId)
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        val keepUser = loggedInUser != null && dto.user?.id != null && dto.task?.id != null &&
+                baseDao.hasAccess(loggedInUser, transformForDB(dto), null, OperationType.INSERT, false)
+        if (!keepUser) {
+            dto.user = User.getUser(ThreadLocalUserContext.loggedInUserId)
+        }
         return dto
     }
 
@@ -599,7 +606,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
                     }
                 }
                 maxStopDate?.let {
-                    startTime = PFDateTime.from(maxStopDate!!)
+                    startTime = PFDateTime.from(maxStopDate)
                     stopTime = startTime
                 }
             }

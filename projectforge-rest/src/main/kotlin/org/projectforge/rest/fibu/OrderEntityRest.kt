@@ -216,7 +216,13 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         ?: auftrag.angebotsDatum
             ?: LocalDate.now()
     }
-    auftrag.sendEMailNotification = !orderAccessChecker.userEqualsToContextUser(obj.contactPerson)
+    // Preselected as soon as anybody but the logged-in user would be notified: the contact persons and
+    // everybody who has edited the order before (AuftragDao.getNotificationRecipients).
+    auftrag.sendEMailNotification = runCatching { baseDao.getNotificationRecipients(obj).isNotEmpty() }
+      .getOrElse { ex ->
+        log.warn(ex) { "Can't determine the notification recipients of order #${obj.nummer}: ${ex.message}" }
+        false
+      }
     return auftrag
   }
 
@@ -253,12 +259,13 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * Sends the notification mail to the contact person, if the form asked for it.
+   * Sends the notification mail to the contact persons and previous editors of the order, if the form asked for it
+   * (see AuftragDao.sendNotificationIfRequired).
    *
    * Deliberate deviation from Wicket, which notifies on an update only for
    * `EntityCopyStatus.MAJOR`: that status doesn't reach this hook, so every save notifies here. The
-   * checkbox is unchecked by default whenever the contact person is the logged-in user, so this affects
-   * the case of an explicit request only.
+   * checkbox is unchecked by default whenever there is nobody to notify but the logged-in user, so this
+   * affects the case of an explicit request only.
    *
    * A failing notification must never fail the save: this hook runs after the order has been committed
    * (`AbstractPagesRestUtils.saveOrUpdate`), so an exception escaping here would answer a written order
@@ -469,10 +476,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     // replacing the pills on every field of the embedded project, its customer's included.
     elements.removeTextFilters("kunde", "kundeText", "projekt")
     elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
-    // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
-    // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
-    // user picker each, as the edit form offers — a person is searched by picking them, not by typing a
-    // name fragment. Consumed by the picked user's id in preProcessMagicFilter.
+    // The contact person is an @IndexedEmbedded PFUserDO reference, so `searchFields` expands it into
+    // free-text pills on the user's name parts (username/firstname/lastname). Replace those with a user
+    // picker, as the edit form offers — a person is searched by picking them, not by typing a name
+    // fragment. The additional contacts (a csv of ids, no pills) get a picker of their own. Both are
+    // consumed by the picked user's id in preProcessMagicFilter.
     USER_FILTER_FIELDS.forEach { (property, i18nKey) ->
       elements.removeIf { it is UIFilterElement && it.id.startsWith("$property.") }
       elements.add(
@@ -519,17 +527,29 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         filters.add(AuftragFakturiertFilter.create(it))
       }
     }
-    // The three person pickers (see addMagicFilterElements) send the chosen user as `value.id`; turn each
-    // into an equality on the reference's id, as AuftragDao filters contactPerson/projectManager by the
-    // whole user. Synthetic, so the generic processor doesn't also try to match the bare property name.
+    // The person pickers (see addMagicFilterElements) send the chosen user as `value.id`. The contact
+    // person becomes an equality on the reference's id; the additional contacts, comma separated ids, the
+    // orders the cache knows the user as additional contact of. Synthetic, so the generic processor doesn't
+    // also try to match the bare property name.
     USER_FILTER_FIELDS.forEach { (property, _) ->
       source.entries.find { it.field == property }?.let { entry ->
         entry.synthetic = true
         val userId = entry.value.id ?: entry.value.value?.toLongOrNull()
         if (userId != null) {
-          target.add(QueryFilter.eq("$property.id", userId))
+          if (property == ADDITIONAL_CONTACTS_FILTER) {
+            val orderIds = AuftragsCache.instance.getOrderIdsWithAdditionalContact(userId)
+            // No order: an id no order has, for an empty IN clause isn't valid SQL.
+            target.add(if (orderIds.isEmpty()) QueryFilter.eq("id", -1L) else QueryFilter.isIn("id", orderIds))
+          } else {
+            target.add(QueryFilter.eq("$property.id", userId))
+          }
         }
       }
+    }
+    // Pickers of the former manager fields, still in filters the users saved before. The fields are no
+    // longer maintained, so they are ignored.
+    LEGACY_USER_FILTER_FIELDS.forEach { property ->
+      source.entries.find { it.field == property }?.synthetic = true
     }
     source.entries.find { it.field == NEXT_INVOICE_DATE_FILTER }?.let { entry ->
       entry.synthetic = true // No property of AuftragDO, but calculated by OrderInfo.
@@ -1050,7 +1070,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   )
 
   /**
-   * The parameters of the forecast charts of `/next/orderStatistics`, remembered per user, as the liquidity
+   * The parameters of the forecast charts of `/next/finance/statistics`, remembered per user, as the liquidity
    * forecast tab does. Returns the defaults (begin of the current year, no plan) if never used.
    */
   @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess); own user pref")
@@ -1182,7 +1202,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * The start date of the contribution margin tab of `/next/orderStatistics`, remembered per user. Returns the
+   * The start date of the contribution margin tab of `/next/finance/statistics`, remembered per user. Returns the
    * default (begin of the current year) if never used.
    */
   @AccessChecked("contributionMarginService.checkAccess (fibu, project manager/assistant)")
@@ -1484,14 +1504,18 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
 
     /**
-     * The PFUserDO reference fields whose free-text name pills are replaced by a user picker, each with the
-     * i18n key of its label (see [addMagicFilterElements] and [preProcessMagicFilter]).
+     * The person fields offered as a user picker, each with the i18n key of its label (see [addMagicFilterElements] and [preProcessMagicFilter]).
      */
     private val USER_FILTER_FIELDS = listOf(
       "contactPerson" to "contactPerson",
-      "projectManager" to "fibu.projectManager",
-      "headOfBusinessManager" to "fibu.headOfBusinessManager",
+      ADDITIONAL_CONTACTS_FILTER to "fibu.auftrag.additionalContacts",
     )
+
+    /** Id of the additional contacts filter, matched via [AuftragsCache.getOrderIdsWithAdditionalContact]. */
+    private const val ADDITIONAL_CONTACTS_FILTER = "additionalContacts"
+
+    /** The former manager fields of an order, replaced by its additional contacts. */
+    private val LEGACY_USER_FILTER_FIELDS = listOf("projectManager", "headOfBusinessManager", "salesManager")
 
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"

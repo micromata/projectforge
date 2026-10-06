@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * The filter of the order statistics page (`/next/orderStatistics`: forecast charts and contribution margin)
+ * The filter of the order statistics page (`/next/finance/statistics`: forecast charts and contribution margin)
  * and its favorites, stored per user in an area of their own ([AREA]), so they are independent of the order
  * book's filter and favorites (`order` area, see `AbstractEntityRest.getFilterFavorites`).
  *

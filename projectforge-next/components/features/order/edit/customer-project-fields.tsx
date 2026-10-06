@@ -23,10 +23,10 @@ interface ProjectDetail {
  * Custom rather than declared, twice over: `customer` and `project` reference `KundeDO`/`ProjektDO`, for
  * which there is no `UIDataType`, so the generated metadata cannot carry them however the entity is
  * annotated (hence `metadataLess`); and picking a project fills in what the project knows — its
- * customer and its three managers — which is a rule between fields, not a property of one.
+ * customer, and its three managers as the order's further contacts — which is a rule between fields, not a property of one.
  *
  * The autofill only ever fills what is **empty**: an order may deliberately name a different customer
- * than its project does (`fibu.auftrag.hint.kannVonProjektKundenAbweichen`) or a stand-in manager, and
+ * than its project does (`fibu.auftrag.hint.kannVonProjektKundenAbweichen`) or other contacts, and
  * overwriting that would quietly undo the user's choice. The free-text customer blocks the customer
  * being filled in for the same reason — it is what someone typed because no customer record fits.
  */
@@ -39,12 +39,31 @@ export function CustomerProjectFields({ className }: { className?: string }) {
     // Read after the pick rather than from the autosearch result: `{entity}/autosearch` answers
     // `DisplayObject`s (id and display name only), so the managers have to be fetched.
     const detail = await fetchOne<ProjectDetail>("project", project.id);
-    fillIfEmpty("projectManager", detail.projectManager);
-    fillIfEmpty("headOfBusinessManager", detail.headOfBusinessManager);
-    fillIfEmpty("salesManager", detail.salesManager);
+    fillAdditionalContactsIfEmpty([
+      detail.projectManager,
+      detail.headOfBusinessManager,
+      detail.salesManager,
+    ]);
     if (!form.getFieldValue("kundeText")) {
       fillIfEmpty("customer", detail.customer);
     }
+  }
+
+  /**
+   * The project's managers as further contacts, if the order has none yet: distinct, and without the
+   * main contact, who is one already.
+   */
+  function fillAdditionalContactsIfEmpty(managers: (EntityRef | null | undefined)[]) {
+    const current = form.getFieldValue("additionalContacts") as EntityRef[] | null | undefined;
+    if (current && current.length > 0) return;
+    const contactPersonId = (form.getFieldValue("contactPerson") as EntityRef | null | undefined)?.id;
+    const contacts: EntityRef[] = [];
+    for (const manager of managers) {
+      if (!manager || manager.id === contactPersonId) continue;
+      if (contacts.some((contact) => contact.id === manager.id)) continue;
+      contacts.push(manager);
+    }
+    if (contacts.length > 0) form.setFieldValue("additionalContacts", contacts);
   }
 
   function fillIfEmpty(name: string, value: EntityRef | null | undefined) {

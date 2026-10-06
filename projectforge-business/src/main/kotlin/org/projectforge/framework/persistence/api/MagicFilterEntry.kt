@@ -43,13 +43,13 @@ class MagicFilterEntry(
             /**
              * Find entries where the given field is equals or higher than the given fromValue (range search).
              */
-            @JsonProperty("from")
+            @param:JsonProperty("from")
             var fromValue: String? = null,
 
             /**
              * Find entries where the given field is equals or lower than the given toValue (range search).
              */
-            @JsonProperty("to")
+            @param:JsonProperty("to")
             var toValue: String? = null,
 
             /**

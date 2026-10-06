@@ -1,6 +1,6 @@
 import { test, expect, goto, login } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
-import { userFormat } from "./fixtures/format";
+import { userFormat, type UserFormat } from "./fixtures/format";
 import { resetFilter } from "./fixtures/filter-pill";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import type { MagicFilter } from "../lib/rs/types";
@@ -8,7 +8,7 @@ import type { OrderStatisticsMeta } from "../lib/rs/order-statistics";
 import type { Page } from "@playwright/test";
 
 /**
- * The order statistics (`/orderStatistics`): forecast and contribution margin over a filter of their own.
+ * The order statistics (`/finance/statistics`): forecast and contribution margin over a filter of their own.
  *
  * What has to hold across the modules: the order book's buttons hand its business units, customers and
  * projects over once (`?fromOrderBook=1`, `OrderStatisticsRest.getMeta`), every other criterion stays
@@ -101,25 +101,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
-    // The page's own filter (left by another case, e.g. a customer) is stored by the chart call.
-    const reset = await page.request.post("/rs/order/forecastChart", {
-      headers: await writeHeaders(page),
-      data: { filter: { entries: [], sortProperties: [] } },
-    });
-    expect(reset.ok()).toBe(true);
-    await goto(page, "/orderStatistics");
-    await expect(
-      page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
-    ).toBeVisible({ timeout: 60_000 });
-    const heading = page.getByRole("heading", {
-      name: format.t("fibu.auftrag.statistics.tables.heading"),
-    });
-    const empty = page.getByText(format.t("fibu.auftrag.forecast.chart.empty"));
-    await expect(heading.or(empty)).toBeVisible({ timeout: 120_000 });
-    test.skip(
-      await empty.isVisible(),
-      "no forecast data in this instance (the tables only exist with charts)"
-    );
+    await openForecastTables(page, format);
     for (const key of [
       "fibu.projekt.projekte",
       "fibu.auftrag.positions",
@@ -184,6 +166,48 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     await expect(positions).toHaveCount(total);
   });
 
+  test("opens the forecast analysis of an order from its position", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await openForecastTables(page, format);
+    const positionsTab = page.getByRole("tab", {
+      name: new RegExp(`^${escape(format.t("fibu.auftrag.positions"))}`),
+    });
+    await positionsTab.click();
+    const open = page.getByRole("button", {
+      name: format.t("fibu.auftrag.statistics.tables.forecastDetails"),
+    });
+    await expect(
+      open.first().or(page.locator("tbody tr").first())
+    ).toBeVisible();
+    test.skip(
+      (await open.count()) === 0,
+      "no position with an order in the forecast"
+    );
+    await open.first().click();
+
+    // The analysis of the whole order, the backend's HTML, in a dialog above the tables.
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByRole("heading", {
+        name: new RegExp(`^${escape(format.t("fibu.auftrag.forecast._"))}`),
+      })
+    ).toBeVisible();
+    await expect(dialog.locator(".order-forecast")).toBeVisible({
+      timeout: 60_000,
+    });
+    // The order number in the title opens the order at its Forecast tab.
+    await expect(dialog.getByRole("link")).toHaveAttribute(
+      "href",
+      /\/order\/\d+\?tab=forecast$/
+    );
+    // Closed again, the tables are where they were.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(positionsTab).toHaveAttribute("aria-selected", "true");
+  });
+
   test.describe("for a user without the order right", () => {
     test.skip(
       !hasRole("normalo-user"),
@@ -194,7 +218,7 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       await login(page, "normalo-user");
       const menu = await page.request.get("/rs/menu", { headers: HEADERS });
       expect(JSON.stringify(await menu.json())).not.toContain(
-        "next/orderStatistics"
+        "next/finance/statistics"
       );
       const meta = await page.request.get("/rs/orderStatistics/meta", {
         headers: HEADERS,
@@ -213,13 +237,39 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       }
 
       const format = await userFormat(page);
-      await goto(page, "/orderStatistics");
+      await goto(page, "/finance/statistics");
       await expect(
         page.getByText(format.t("access.exception.noAccess"))
       ).toBeVisible({ timeout: 60_000 });
     });
   });
 });
+
+/**
+ * Opens the forecast statistics over an empty filter and waits for the tables below the charts; skips the
+ * test if this instance has no forecast data.
+ */
+async function openForecastTables(page: Page, format: UserFormat) {
+  // The page's own filter (left by another case, e.g. a customer) is stored by the chart call.
+  const reset = await page.request.post("/rs/order/forecastChart", {
+    headers: await writeHeaders(page),
+    data: { filter: { entries: [], sortProperties: [] } },
+  });
+  expect(reset.ok()).toBe(true);
+  await goto(page, "/finance/statistics");
+  await expect(
+    page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
+  ).toBeVisible({ timeout: 60_000 });
+  const heading = page.getByRole("heading", {
+    name: format.t("fibu.auftrag.statistics.tables.heading"),
+  });
+  const empty = page.getByText(format.t("fibu.auftrag.forecast.chart.empty"));
+  await expect(heading.or(empty)).toBeVisible({ timeout: 120_000 });
+  test.skip(
+    await empty.isVisible(),
+    "no forecast data in this instance (the tables only exist with charts)"
+  );
+}
 
 /** `text` as a literal part of a regular expression. */
 function escape(text: string): string {

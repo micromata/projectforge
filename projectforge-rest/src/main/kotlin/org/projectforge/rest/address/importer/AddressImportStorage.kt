@@ -257,10 +257,10 @@ class AddressImportStorage : ImportStorage<AddressImportDTO>(
                     }
 
                     if (bestScore >= 50 && bestDbIndex != null) {
-                        matches.add(Pair(readIndex, bestDbIndex!!))
+                        matches.add(Pair(readIndex, bestDbIndex))
                         matchedReadIndices.add(readIndex)
-                        matchedDbIndices.add(bestDbIndex!!)
-                        log.debug { "DISAMBIGUATED MATCH (score $bestScore): '${readAddress.name}/${readAddress.firstName}' -> DB ID ${dbAddresses[bestDbIndex!!].id}" }
+                        matchedDbIndices.add(bestDbIndex)
+                        log.debug { "DISAMBIGUATED MATCH (score $bestScore): '${readAddress.name}/${readAddress.firstName}' -> DB ID ${dbAddresses[bestDbIndex].id}" }
                     }
                 }
             }

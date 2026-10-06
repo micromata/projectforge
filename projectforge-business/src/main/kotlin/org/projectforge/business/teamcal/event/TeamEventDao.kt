@@ -661,23 +661,21 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
         // remove ex range values
         val col: MutableCollection<ICalendarEvent> = ArrayList()
-        if (dateList != null) {
-            for (dateTime in dateList) {
-                val day = ICalDateUtils.extractLocalDate(dateTime)
-                if (RRuleUtils.isEventExcluded(day, exDates)) {
-                    log.debug { "= ${dateTime} included in exdates: ${exDates?.joinToString()}" }
-                    // this date is part of ex dates, so don't use it.
-                    continue
-                }
-                if (seedDate.localDate == day) {
-                    // Put event itself to the list.
-                    col.add(event)
-                } else {
-                    // Now we need this event as date with the user's time-zone.
-                    val date = fromTemporal(dateTime, timeZone.toZoneId())
-                    val recurEvent = TeamRecurrenceEvent(event, date)
-                    col.add(recurEvent)
-                }
+        for (dateTime in dateList) {
+            val day = ICalDateUtils.extractLocalDate(dateTime)
+            if (RRuleUtils.isEventExcluded(day, exDates)) {
+                log.debug { "= ${dateTime} included in exdates: ${exDates?.joinToString()}" }
+                // this date is part of ex dates, so don't use it.
+                continue
+            }
+            if (seedDate.localDate == day) {
+                // Put event itself to the list.
+                col.add(event)
+            } else {
+                // Now we need this event as date with the user's time-zone.
+                val date = fromTemporal(dateTime, timeZone.toZoneId())
+                val recurEvent = TeamRecurrenceEvent(event, date)
+                col.add(recurEvent)
             }
         }
         if (log.isDebugEnabled()) {

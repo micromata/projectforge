@@ -278,7 +278,7 @@ class SupportErrorDigestTest {
         Assertions.assertTrue(body.contains("gateway-push: 1 aborted"), body)
         Assertions.assertTrue(body.contains("action: Repair the order."), body)
         Assertions.assertFalse(body.contains(SupportLogEvents.REQUEST_ERROR.action!!), "Not repeated for generic events: $body")
-        Assertions.assertEquals("Error digest pf.example.org: 2 errors, 2 external failures", renderer.subject(snapshot, problems))
+        Assertions.assertEquals("Error digest pf.example.org: 2 problems, 2 external failures", renderer.subject(snapshot, problems))
         val details = renderer.details(snapshot)
         Assertions.assertTrue(details.contains("GET /rs/x") && details.contains("at x.Y(Y.kt:1)"), details)
         Assertions.assertTrue(details.contains("Code: test.data.inconsistent"), details)
@@ -289,6 +289,8 @@ class SupportErrorDigestTest {
         )
         Assertions.assertEquals(2, view.errors)
         Assertions.assertEquals(2, view.external)
+        Assertions.assertEquals(2, view.errorOccurrences)
+        Assertions.assertTrue(body.contains("3 problems with 3 occurrences"), body)
         val group = view.sections[3].groups.single()
         Assertions.assertEquals("IllegalStateException", group.exceptionClass)
         Assertions.assertEquals("badge-error", group.levelCss)
@@ -313,7 +315,7 @@ class SupportErrorDigestTest {
             totalCount = 17, daily30 = List(30) { 0 },
         )
         val export = LogAnalysisExport.ofDigest(
-            snapshot, 0L, 3_600_000L, "https://pf.example.org", "https://pf.example.org/next/adminErrors",
+            snapshot, 0L, 3_600_000L, "https://pf.example.org", "https://pf.example.org/next/problemDashboard",
             mapOf(42L to stored),
         )
         Assertions.assertEquals(LogAnalysisExport.SOURCE_DIGEST, export.source)
@@ -322,7 +324,7 @@ class SupportErrorDigestTest {
         Assertions.assertEquals(17L, data.totalCount, "Completed by the database.")
         Assertions.assertEquals(2, data.periodCount)
         Assertions.assertEquals(DigestNovelty.REGRESSION, data.novelty)
-        Assertions.assertEquals("https://pf.example.org/next/adminErrors?id=42", data.dashboardUrl)
+        Assertions.assertEquals("https://pf.example.org/next/problemDashboard?id=42", data.dashboardUrl)
         Assertions.assertEquals("at x.Y(Y.kt:1)", data.samples!!.first().stackTrace)
         val request = export.problems.single { it.code != DATA_EVENT.code }
         Assertions.assertNull(request.id, "Not in the database.")

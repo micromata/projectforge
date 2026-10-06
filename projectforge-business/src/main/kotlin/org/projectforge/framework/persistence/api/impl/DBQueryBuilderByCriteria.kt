@@ -25,13 +25,11 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Nulls
 import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.hibernate.query.NullPrecedence
-import org.hibernate.query.SortDirection
-import org.hibernate.query.criteria.HibernateCriteriaBuilder
-import org.hibernate.query.criteria.JpaExpression
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -93,7 +91,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
         check(projection) { "Build the query builder with projection = true." }
         @Suppress("UNCHECKED_CAST")
         val cr = ctx.cr as CriteriaQuery<Array<Any?>>
-        cr.multiselect(paths.map { ctx.getOrderField<Any>(it) }).distinct(true).where(*predicates.toTypedArray())
+        cr.select(ctx.cb.array(paths.map { ctx.getOrderField<Any>(it) })).distinct(true).where(*predicates.toTypedArray())
         return entityManager.createQuery(cr).resultList
     }
 
@@ -109,22 +107,20 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
      */
     fun addOrder(sortProperty: SortProperty) {
         try {
-            // Hibernate's criteria builder: JPA 3.1 has no null precedence of its own.
-            val cb = ctx.cb as HibernateCriteriaBuilder
+            val cb = ctx.cb
             val field = ctx.getOrderField<Any>(sortProperty.property)
-            val expression: JpaExpression<*> = if (field.javaType == String::class.java) {
+            val expression: Expression<*> = if (field.javaType == String::class.java) {
                 @Suppress("UNCHECKED_CAST")
-                cb.nullif(field as Path<String>, "") as JpaExpression<*>
+                cb.nullif(field as Path<String>, "")
             } else {
-                field as JpaExpression<*>
+                field
             }
-            val direction = if (sortProperty.ascending) SortDirection.ASCENDING else SortDirection.DESCENDING
             // Nulls count as the smallest value, so they flip with the direction.
-            val nulls = if (sortProperty.ascending) NullPrecedence.FIRST else NullPrecedence.LAST
+            val nulls = if (sortProperty.ascending) Nulls.FIRST else Nulls.LAST
             if (log.isDebugEnabled()) {
-                log.debug { "Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls ${nulls.name.lowercase()}." }
+                log.debug { "Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} ${if (sortProperty.ascending) "asc" else "desc"} nulls ${nulls.name.lowercase()}." }
             }
-            order.add(cb.sort(expression, direction, nulls))
+            order.add(if (sortProperty.ascending) cb.asc(expression, nulls) else cb.desc(expression, nulls))
         } catch (ex: Exception) {
             log.error { "Can't add order for property '${ctx.entityName}.${sortProperty.property}': ${ex.message}. " +
                         "The query goes out without this ORDER BY. If this is a computed/transient column (no " +

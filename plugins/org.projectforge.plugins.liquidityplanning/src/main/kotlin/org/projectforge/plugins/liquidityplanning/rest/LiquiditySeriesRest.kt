@@ -97,7 +97,7 @@ class LiquiditySeriesRest :
         }
         val n = splitService.countBefore(original, effectiveFrom)
         splitService.createContinuationAndMigrate(
-            oldId!!,
+            oldId,
             LiquiditySeriesSplitService.EditedTemplate(edited),
             original,
             n,

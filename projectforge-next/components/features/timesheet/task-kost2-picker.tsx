@@ -194,6 +194,8 @@ export function TaskKost2Picker({
           invalid={kost2Errors.length > 0}
           errors={kost2Errors}
           ids={kost2Ids}
+          // Two of the three columns: "6.300.00.00: Urlaub" and longer would be cut off in one.
+          className="md:col-span-2"
         >
           <Select
             value={kost2Id != null ? String(kost2Id) : ""}

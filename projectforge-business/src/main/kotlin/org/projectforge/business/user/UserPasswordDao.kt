@@ -85,7 +85,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         throwException: Boolean
     ): Boolean {
         require(obj?.user != null) { "UserPasswordDO must have a obj.user." }
-        return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
+        return hasLoggedInUserAccess(obj.user!!.id, throwException)
     }
 
     private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {

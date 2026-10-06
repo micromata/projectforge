@@ -220,11 +220,11 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
      * Copies all values from the given src object excluding the values created and modified. Null values will be
      * excluded.
      *
-     * @param source
+     * @param src
      */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
-        val src = source as GroupTaskAccessDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        var modificationStatus = super.copyValuesFrom(src, *ignoreFields)
+        src as GroupTaskAccessDO
         if (src.accessEntries != null) {
             for (srcEntry in src.accessEntries!!) {
                 val destEntry = ensureAndGetAccessEntry(srcEntry.accessType)

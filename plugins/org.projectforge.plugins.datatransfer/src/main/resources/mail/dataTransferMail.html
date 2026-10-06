@@ -19,8 +19,8 @@
                 <% for (audit in auditEntries) { %>
                 <tr>
                     <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
-                    <td><%= audit.filenameAsString %></td>
-                    <td><%= audit.descriptionAsString %></td>
+                    <td class="wrap"><%= audit.filenameAsString %></td>
+                    <td class="wrap"><%= audit.descriptionAsString %></td>
                     <td><%= pf.getString(audit.eventType) %></td>
                     <td><%= audit.byUserAsString %></td>
                 </tr>
@@ -48,7 +48,7 @@
                 <% for (audit in downloadAuditEntries) { %>
                 <tr>
                     <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
-                    <td><%= audit.filenameAsString %></td>
+                    <td class="wrap"><%= audit.filenameAsString %></td>
                     <td><%= pf.getString(audit.eventType) %></td>
                     <td><%= audit.byUserAsString %></td>
                 </tr>

@@ -5,6 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRememberedFilter } from "@/components/data-table/use-remembered-filter";
 import { AppliedFilterSummary } from "@/components/shared/chart/applied-filter-summary";
+import { ChartDashboard } from "@/components/shared/dashboard/chart-dashboard";
 import { Spinner } from "@/components/shared/spinner";
 import { fetchInvoiceNetSumChart } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -97,16 +98,31 @@ function InvoiceCharts({ filter }: { filter: MagicFilter | undefined }) {
         // netSumChart).
         <p className="text-sm text-muted-foreground">{t("boundedRangeHint")}</p>
       ) : (
-        <>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("cumulative")}</h3>
-            <InvoiceCumulativeNetSumChart data={query.data} />
-          </section>
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("monthly")}</h3>
-            <InvoiceMonthlyNetSumChart data={query.data} />
-          </section>
-        </>
+        <ChartDashboard
+          id="invoice.netSum"
+          tiles={[
+            {
+              id: "cumulative",
+              title: t("cumulative"),
+              render: (className) => (
+                <InvoiceCumulativeNetSumChart
+                  data={query.data}
+                  className={className}
+                />
+              ),
+            },
+            {
+              id: "monthly",
+              title: t("monthly"),
+              render: (className) => (
+                <InvoiceMonthlyNetSumChart
+                  data={query.data}
+                  className={className}
+                />
+              ),
+            },
+          ]}
+        />
       )}
     </div>
   );

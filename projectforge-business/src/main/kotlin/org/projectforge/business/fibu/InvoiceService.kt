@@ -287,7 +287,7 @@ open class InvoiceService {
         for (position in invoice.positionenExcludingDeleted) {
             createInvoicePositionRow(posTbl, rowCounter++, invoice, position)
         }
-        posTbl!!.removeRow(1)
+        posTbl.removeRow(1)
         return posTbl
     }
 

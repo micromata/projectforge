@@ -233,6 +233,7 @@ class TaskEntityRestTest : AbstractTestBase() {
         assertOutOfRange("duration", duration = BigDecimal(-1))
     }
 
+    @Suppress("DEPRECATION") // progress and duration are still persisted and validated.
     private fun rangeErrors(
         progress: Int? = null,
         maxHours: Int? = null,

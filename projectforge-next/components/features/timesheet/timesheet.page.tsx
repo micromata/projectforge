@@ -217,7 +217,12 @@ export const TIMESHEET_PAGE = definePage<
       name: "reference",
       size: 140,
       hiddenByDefault: true,
-      cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.reference}
+          highlight={table.options.meta?.highlight}
+        />
+      ),
     },
     // The tag, shown only where any tag is configured — the Wicket column gated on a non-empty tag list
     // (the `tagsConfigured` list variable, see TimesheetEntityRest.addVariablesForListPage). Off by default
@@ -233,7 +238,12 @@ export const TIMESHEET_PAGE = definePage<
       name: "description",
       size: 320,
       wrap: true,
-      cell: ({ row }) => <JiraLinkedText text={row.original.description} />,
+      cell: ({ row, table }) => (
+        <JiraLinkedText
+          text={row.original.description}
+          highlight={table.options.meta?.highlight}
+        />
+      ),
     },
   ],
   // The list's footer between the toolbar and the table: the summed duration and, where the installation

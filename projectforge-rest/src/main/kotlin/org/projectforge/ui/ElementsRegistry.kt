@@ -127,7 +127,7 @@ object ElementsRegistry {
                         }
                     }
 
-                    Boolean::class.java, java.lang.Boolean::class.java -> UICheckbox(property)
+                    Boolean::class.java, Boolean::class.javaObjectType -> UICheckbox(property)
 
                     Date::class.java,
                     LocalDate::class.java,
@@ -146,7 +146,7 @@ object ElementsRegistry {
                         dataType = dataType!!
                     )
 
-                    Integer::class.java, Long::class.java, BigDecimal::class.java -> UIInput(
+                    Int::class.javaObjectType, Long::class.java, BigDecimal::class.java -> UIInput(
                         property,
                         required = elementInfo.required,
                         layoutContext = lc,
@@ -265,7 +265,7 @@ object ElementsRegistry {
         if (colinfo != null) {
             elementInfo.maxLength = colinfo.length
             if ((!(colinfo.nullable) || propertyInfo.required)) {
-                if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != java.lang.Boolean::class.java) {
+                if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != Boolean::class.javaObjectType) {
                     elementInfo.required = true
                 }
             }

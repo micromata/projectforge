@@ -34,14 +34,23 @@ Commands:
                    current); skipped with --dev / --port <n> (dev server)
   e2e:ui [slot] …  Playwright e2e tests in UI mode
   check            Next quality gates: typecheck → lint → format:check
+  changelog-fold [id]
+                   Moves the entries of changelog/unreleased/ (one file per change,
+                   English and German) into the release id of changelog/changelog{,.de}.json,
+                   by default the newest one, and regenerates the changelog. Done by
+                   release itself, by hand only for a snapshot entry
   release <X.Y.Z> [--skip-tests]
                    Release X.Y.Z: checks changelog/changelog.json (the release on top,
-                   tagged X.Y.Z-RELEASE; X.Y.0 also needs a news X.Y), sets the version,
-                   runs gen and the build, commits and tags, then commits the next
+                   tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
+                   only; X.Y.0 also needs a news X.Y), folds changelog/unreleased/ into it, sets the version,
+                   runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
                    from the changelog, jar attached); asks before each step. The docker
-                   images follow with docker/push-release.sh (see its --help)
+                   images follow with docker/push-release.sh (see its --help). A release
+                   with "published": false in the changelog is only pushed (mini release,
+                   no GitHub release, jar or docker images); its changes go into the
+                   notes of the next published release
   help             Show this help
 
 Slots (1–9) run independent instances side by side, e.g. one per worktree:
@@ -200,13 +209,16 @@ release() {
   confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
   start="$(git rev-parse --short HEAD)"
   trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
+  # The entries of changelog/unreleased/ go into the release (checked folded already).
+  "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog --rerun
   set_version "$version"
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
   git add -A
   git commit -q -m "release: $version"
+  # Built from the release commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
+  # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build.
+  if $skip_tests; then "$GRADLEW" -p "$ROOT" clean build -x test; else "$GRADLEW" -p "$ROOT" clean build; fi
   git tag -a "$tag" -m "ProjectForge $version"
-  # Built from the tagged commit, so the jar's build.properties show it (and not a dirty tree).
-  if $skip_tests; then "$GRADLEW" -p "$ROOT" build -x test; else "$GRADLEW" -p "$ROOT" build; fi
   set_version "$next"
   git commit -q -m "chore: next development version $next" -- gradle.properties
   trap - ERR
@@ -230,6 +242,18 @@ publish() {
   if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
     echo "There is no tag $tag, run pfDev.sh release $version first." >&2
     exit 1
+  fi
+  # A mini release ("published": false) is only pushed, its notes are part of the next published release.
+  local published
+  published="$(node -e '
+    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
+    console.log(release?.published === false ? "false" : "true");
+  ' "$ROOT/changelog/changelog.json" "$version")"
+  if [[ "$published" == false ]]; then
+    confirm "Push $(git branch --show-current) and the tag $tag (unpublished: no GitHub release, jar or docker images)?" || exit 1
+    git push --follow-tags
+    echo "Pushed $tag. Its changes are part of the release notes of the next published release."
+    return
   fi
   for file in "$notes" "$jar"; do
     if [[ ! -f "$file" ]]; then
@@ -337,6 +361,9 @@ case "$cmd" in
     export PROJECTFORGE_HOME="$PF_HOME"
     ((SLOT == 0)) || export E2E_BASE_URL="http://localhost:$SPRING_PORT"
     cd "$NEXT" && exec npm run e2e:ui -- "$@"
+    ;;
+  changelog-fold)
+    exec "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog ${1:+-PreleaseId="$1"}
     ;;
   release)
     release "$@"

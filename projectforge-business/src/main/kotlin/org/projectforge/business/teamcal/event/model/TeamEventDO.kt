@@ -172,7 +172,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         set(recurrenceRule) {
             this.recurrenceRuleObject = null
             field = if (recurrenceRule?.startsWith("RRULE:") == true) {
-                recurrenceRule!!.substring(6)
+                recurrenceRule.substring(6)
             } else recurrenceRule
         }
 
@@ -355,7 +355,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      */
     @Transient
     fun setRecurrence(rRule: RRule<ZonedDateTime>?): TeamEventDO {
-        if (rRule == null || rRule.recur == null) {
+        if (rRule == null) {
             this.recurrenceRuleObject = null
             this.recurrenceRule = null
             this.recurrenceUntil = null
@@ -444,6 +444,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             if (this.allDay) {
                 // just use date, no time
                 val until = PFDateTime.fromOrNull(recurrenceData.until)
+                @Suppress("DEPRECATION")
                 until?.let { recur.setUntil(it.dateTime) } // Deprecated in ical4j, but Recur.until isn't assignable in Kotlin 2.2 anymore.
                 this.recurrenceUntil = recurrenceData.until
             } else {
@@ -463,6 +464,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     private fun fixUntilInRecur(recur: Recur<Temporal>, until: Date, timezone: TimeZone?): Date {
         val dateTime = PFDateTime.from(until, timezone).endOfDay
+        @Suppress("DEPRECATION") // Recur.until isn't assignable in Kotlin 2.2 anymore.
         recur.setUntil(dateTime.dateTime)
         return dateTime.utilDate
     }
@@ -551,7 +553,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             for (day in recur.monthDayList) {
                 recurrenceData.isCustomized = true
                 recurrenceData.monthMode = RecurrenceMonthMode.EACH
-                monthdays[day!! - 1] = true
+                monthdays[day - 1] = true
             }
             recurrenceData.monthdays = monthdays
 
@@ -573,7 +575,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             for (day in recur.monthList) {
                 recurrenceData.isCustomized = true
 
-                months[day!!.monthOfYear - 1] = true
+                months[day.monthOfYear - 1] = true
             }
             recurrenceData.months = months
 

@@ -69,6 +69,12 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertEquals(28, entry.trend.size)
         Assertions.assertEquals(4, entry.trend.sum())
         Assertions.assertTrue(list.summary.externalProblems24h >= 1)
+        list.summary.let {
+            // Other tests may have written problems too.
+            Assertions.assertTrue(it.problems24h >= 1)
+            Assertions.assertTrue(it.topOccurrences24h >= 3)
+            Assertions.assertTrue(it.occurrences24h >= it.topOccurrences24h)
+        }
         Assertions.assertEquals(
             2, logGroupAdminService.list(LogGroupFilter(search = "test.admin.", days = 0), now).total,
         )
@@ -114,6 +120,28 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `scopes of the key figures`() {
+        val now = System.currentTimeMillis()
+        val fresh = LogEvent("test.scope.fresh", LogCategory.BUG)
+        val old = LogEvent("test.scope.old", LogCategory.BUG)
+        logAggregationService.add(occurrence(fresh, now - Constants.MILLIS_PER_HOUR))
+        logAggregationService.add(occurrence(old, now - 3 * Constants.MILLIS_PER_DAY))
+        val codes = { scope: LogGroupScope? ->
+            logGroupAdminService.list(LogGroupFilter(status = LogGroupStatusFilter.ALL, search = "test.scope.", days = 0, scope = scope), now)
+                .entries.map { it.code }.sorted()
+        }
+        Assertions.assertEquals(listOf(fresh.code, old.code), codes(null))
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "First seen within 24 hours.")
+        Assertions.assertTrue(codes(LogGroupScope.REGRESSION).isEmpty())
+
+        val oldId = logGroupAdminService.list(LogGroupFilter(search = old.code, days = 0), now).entries.single().id
+        logGroupAdminService.update(LogGroupUpdate(listOf(oldId), LogGroupAction.RESOLVE), now)
+        logAggregationService.add(occurrence(old, now))
+        Assertions.assertEquals(listOf(old.code), codes(LogGroupScope.REGRESSION), "Resolved and occurred again.")
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "A regression isn't new.")
+    }
+
+    @Test
     fun bins() {
         val start = 1_000 * Constants.MILLIS_PER_HOUR
         val buckets = listOf(-1, 0, 5, 6, 23, 24).map { LogBucketRow(1, Date(start + it * Constants.MILLIS_PER_HOUR), 1, 1) }
@@ -134,7 +162,7 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         logon(TEST_ADMIN_USER)
         val entries = statisticsOf().entries.associate { it.id to it.value }
         Assertions.assertEquals(
-            listOf("errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
+            listOf("errorsProblems24h", "errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
         )
         Assertions.assertNotEquals("0", entries["errorsNew24h"])
     }
@@ -163,7 +191,7 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertEquals(2L, problem.totalCount)
         Assertions.assertEquals(30, problem.daily30!!.size)
         Assertions.assertEquals(2, problem.daily30!!.sum())
-        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/adminErrors?id=${problem.id}"))
+        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/problemDashboard?id=${problem.id}"))
 
         val json = export.toJson()
         val tree = ObjectMapper().readTree(json)

@@ -52,7 +52,7 @@ object SipgateExcelExporter {
   }
 
   fun export(storage: SipgateDataStorage): ByteArray {
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook, storage)
       addUsersSheet(context)
       addNumbersSheet(context)

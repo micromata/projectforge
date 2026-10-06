@@ -49,7 +49,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
-    ADMIN_ERRORS("system.admin.adminErrors.title", "next/adminErrors"), //
+    ADMIN_ERRORS("system.admin.adminErrors.title", "next/problemDashboard"), //
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "next/adminLogViewer"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
@@ -103,7 +103,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.
-    ORDER_STATISTICS("menu.fibu.orderStatistics", "next/orderStatistics"), //
+    ORDER_STATISTICS("menu.fibu.orderStatistics", "next/finance/statistics"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //

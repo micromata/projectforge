@@ -151,7 +151,7 @@ class JsonValidator(val json: String) {
                 if (idx == null)
                     throw IllegalArgumentException("Illegal path: '${path}' contains illegal attribute ('${attrPattern}' or '${attrPatternWithIndex}' are supported: '${it}'.")
 
-                val arr = currentMap?.get(attr)
+                val arr = currentMap.get(attr)
                 if (arr == null || !(arr is List<*>)) {
                     throw IllegalArgumentException("Illegal path: '${attr}' not found as array: '${path}': '${arr}'")
                 }
@@ -159,7 +159,7 @@ class JsonValidator(val json: String) {
             } else if (!it.matches(attrReqex)) {
                 throw IllegalArgumentException("Illegal path: '${path}' contains illegal attribute ('${attrPattern}' or '${attrPatternWithIndex}' are supported: '${it}'.")
             } else {
-                value = currentMap?.get(attr)
+                value = currentMap.get(attr)
             }
             if (value == null) {
                 currentMap = null

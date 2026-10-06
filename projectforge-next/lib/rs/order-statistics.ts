@@ -1,5 +1,5 @@
 /**
- * The filter and the favorites of the order statistics page (`/orderStatistics`), see
+ * The filter and the favorites of the order statistics page (`/finance/statistics`), see
  * `OrderStatisticsRest`. The charts themselves are fetched by `fetchForecastChart` and
  * `fetchContributionMargin` (`./order`), which store the filter they are asked for as the current one.
  *

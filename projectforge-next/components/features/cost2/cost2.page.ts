@@ -42,11 +42,16 @@ export const COST2_PAGE = definePage<
       size: 120,
       className: "font-mono font-semibold",
     },
-    // The Kost2Art the number's last part names, and whether its costs are invoiced.
+    // The Kost2Art the number's last part names, and whether its costs are invoiced. The name only for
+    // customer cost units (4.x and 5.x): for internal ones it misleads (vacation as "Akquise"), as in
+    // the monthly report (MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName).
     {
       id: "kost2Art.name",
       labelKey: "fibu.kost2.art",
-      accessor: (row) => row.kost2Art?.name ?? "",
+      accessor: (row) =>
+        row.nummernkreis === 4 || row.nummernkreis === 5
+          ? (row.kost2Art?.name ?? "")
+          : "",
       referenceKey: "kost2Art",
       size: 140,
     },

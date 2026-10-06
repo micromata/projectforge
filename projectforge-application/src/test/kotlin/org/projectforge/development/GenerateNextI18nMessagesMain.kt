@@ -121,6 +121,8 @@ object GenerateNextI18nMessagesMain {
     "search.sinceYesterday",
     // Column chooser and the column titles the data table asks for by name.
     "columns",
+    // Chrome of the chart dashboards (components/shared/dashboard/), size labels picked by value.
+    "dashboard.",
     // Zip mode of an attachment, whose value names its own key
     // (components/shared/attachments/attachment-metadata.tsx).
     "attachment.zip.",
@@ -223,7 +225,7 @@ object GenerateNextI18nMessagesMain {
     if (path.isNotEmpty()) {
       keys.add(path)
     }
-    node.fields().forEach { (name, child) ->
+    node.properties().forEach { (name, child) ->
       val childPath = if (path.isEmpty()) name else "$path.$name"
       if (child.isObject) {
         collectKeys(child, childPath, keys)

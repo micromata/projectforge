@@ -109,21 +109,19 @@ object LayoutListFilterUtils {
                 }
                 element as UILabelledElement
                 element.label = getLabel(elInfo)
-                if (element is UIFilterElement) {
-                    // Nested fields carry their parents in the label ("Kunde - Name"), which is what the
-                    // client groups them by; it shows the leaf alone under the group's heading.
-                    groupLabel(elInfo)?.let { group ->
-                        element.group = group
-                        element.shortLabel = leafLabel(elInfo)
-                    }
-                    val attachmentsLabel = AttachmentsFilterSupport.searchFieldLabel(it)
-                    if (attachmentsLabel != null) {
-                        element.label = attachmentsLabel
-                    } else if (elInfo.i18nKey.isNullOrBlank()) {
-                        // No @PropertyInfo, so no translation: getLabel fell back to the property name above.
-                        // Indexed plumbing, searchable but not a field a user looks for.
-                        element.technical = true
-                    }
+                // Nested fields carry their parents in the label ("Kunde - Name"), which is what the
+                // client groups them by; it shows the leaf alone under the group's heading.
+                groupLabel(elInfo)?.let { group ->
+                    element.group = group
+                    element.shortLabel = leafLabel(elInfo)
+                }
+                val attachmentsLabel = AttachmentsFilterSupport.searchFieldLabel(it)
+                if (attachmentsLabel != null) {
+                    element.label = attachmentsLabel
+                } else if (elInfo.i18nKey.isNullOrBlank()) {
+                    // No @PropertyInfo, so no translation: getLabel fell back to the property name above.
+                    // Indexed plumbing, searchable but not a field a user looks for.
+                    element.technical = true
                 }
                 elements.add(element)
             }

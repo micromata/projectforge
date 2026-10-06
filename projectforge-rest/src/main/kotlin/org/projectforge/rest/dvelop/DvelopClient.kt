@@ -157,7 +157,7 @@ class DvelopClient {
           if (debugConsoleOutForTesting) {
             println("Success")
           }
-          return@exchangeToMono response.bodyToMono(expectedReturnClass) as Mono<T>
+          return@exchangeToMono response.bodyToMono(expectedReturnClass)
         } else {
           log.error(DvelopLogEvents.CALL_FAILED) { "Error while calling $headersSpec: status=${response.statusCode()}." }
           if (debugConsoleOutForTesting) {

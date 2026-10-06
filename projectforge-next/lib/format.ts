@@ -147,6 +147,18 @@ export function formatMonthShortName(
 }
 
 /**
+ * The abbreviated weekday of an ISO date in the user's language, e.g. `2026-10-06` → "Di." — for a list
+ * of days. Only the date part is read (a calendar day has no time zone); empty for anything else.
+ */
+export function formatWeekdayShort(iso: unknown, ctx: FormatContext): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso ?? ""));
+  if (!match) return "";
+  return new Intl.DateTimeFormat(ctx.locale, { weekday: "short" }).format(
+    new Date(+match[1], +match[2] - 1, +match[3])
+  );
+}
+
+/**
  * The month an ISO date lies in, with its year, e.g. `2026-03-17` → "März 2026". Only the date part is
  * read (no time zone applies to a calendar month); empty for anything that is no ISO date.
  */

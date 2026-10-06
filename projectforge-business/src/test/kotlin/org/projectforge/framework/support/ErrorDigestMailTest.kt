@@ -84,9 +84,9 @@ class ErrorDigestMailTest : AbstractTestBase() {
         data.problemId = 42
         bug.novelty = DigestNovelty.SPIKE
         bug.hourlyMean = 0.25
-        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/adminErrors")
+        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC, "https://pf.example.org/next/problemDashboard")
         Assertions.assertEquals(
-            "Error digest https://pf.example.org: 13 errors, 1 external failures (1 new, 1 spikes)",
+            "Error digest https://pf.example.org: 2 problems, 1 external failures (1 new, 1 spikes)",
             renderer.subject(snapshot, emptyList()),
         )
         val html = sendMail.renderGroovyTemplate(
@@ -98,14 +98,33 @@ class ErrorDigestMailTest : AbstractTestBase() {
         val spikes = html.indexOf("Spikes:")
         val known = html.indexOf(LogCategory.EXTERNAL.title)
         Assertions.assertTrue(newSection in 0 until spikes && spikes < known, html)
-        Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/adminErrors?id=42\""), html)
+        Assertions.assertTrue(html.contains("href=\"https://pf.example.org/next/problemDashboard?id=42\""), html)
         Assertions.assertTrue(html.contains("usually 0.3 per hour"), html)
         Assertions.assertTrue(html.contains("ignored or muted problems"), html)
+        Assertions.assertTrue(html.contains("13 occurrences"), "The occurrences below the problems: $html")
+        Assertions.assertFalse(html.contains(">groups<"), html)
         Assertions.assertEquals(DigestNovelty.KNOWN, external.novelty)
         val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
         Assertions.assertTrue(body.indexOf("== New problems (1) ==") < body.indexOf("== ${LogCategory.EXTERNAL.title} (1) =="), body)
-        Assertions.assertTrue(body.contains("category: ${LogCategory.DATA.title}") && body.contains("adminErrors?id=42"), body)
+        Assertions.assertTrue(body.contains("category: ${LogCategory.DATA.title}") && body.contains("problemDashboard?id=42"), body)
         Assertions.assertTrue(body.contains("2 ignored or muted problems not listed"), body)
+    }
+
+    @Test
+    fun `counts are formatted with thousands separators`() {
+        Assertions.assertEquals("159,098", ErrorDigestRenderer.formatCount(159_098))
+        Assertions.assertEquals("999", ErrorDigestRenderer.formatCount(999))
+        val collector = ErrorDigestCollector()
+        collector.add(occurrence(SupportLogEvents.REQUEST_ERROR, "NPE", "Foo:1", LogLevel.ERROR))
+        val snapshot = collector.drain().let { ErrorDigestCollector.Snapshot(it.groups, 0, suppressed = 1_149_892) }
+        val renderer = ErrorDigestRenderer("https://pf.example.org", ZoneOffset.UTC)
+        val html = sendMail.renderGroovyTemplate(
+            Mail(), "mail/errorDigestMail.html",
+            renderer.htmlData(snapshot, emptyList(), 0L, 3_600_000L, null), "Error digest", null,
+        )
+        Assertions.assertTrue(html.contains(">1,149,892</span>"), html)
+        val body = renderer.body(snapshot, emptyList(), 0L, 3_600_000L, null)
+        Assertions.assertTrue(body.contains("1,149,892 occurrences not listed"), body)
     }
 
     @Test

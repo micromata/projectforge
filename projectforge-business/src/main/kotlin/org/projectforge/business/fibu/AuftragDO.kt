@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.StringHelper2
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
@@ -61,12 +62,6 @@ import java.time.LocalDate
         name = "idx_fk_t_fibu_auftrag_contact_person_fk",
         columnList = "contact_person_fk"
     ),
-        jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
-        jakarta.persistence.Index(
-            name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk",
-            columnList = "headofbusinessmanager_fk"
-        ),
-        jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
         jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
         jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk")]
 )
@@ -139,6 +134,30 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
     @JsonSerialize(using = IdOnlySerializer::class)
     open var contactPerson: PFUserDO? = null
+
+    /**
+     * Further contact persons next to the main [contactPerson], as comma separated user ids. They have the same
+     * access to the order as the main contact person and get its change notifications, too. Replaces the former
+     * [projectManager], [headOfBusinessManager] and [salesManager] of an order (migrated by V8_0_36).
+     */
+    @PropertyInfo(i18nKey = "fibu.auftrag.additionalContacts")
+    @get:Column(name = "additional_contact_user_ids", length = 4000)
+    open var additionalContactUserIds: String? = null
+
+    /**
+     * The ids of [additionalContactUserIds].
+     */
+    open val additionalContactUserIdList: List<Long>
+        @Transient
+        get() = StringHelper2.splitToListOfLongValues(additionalContactUserIds)
+
+    /**
+     * True if the given user is the [contactPerson] or one of the [additionalContactUserIds].
+     */
+    open fun isContact(userId: Long?): Boolean {
+        userId ?: return false
+        return contactPerson?.id == userId || additionalContactUserIdList.contains(userId)
+    }
 
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(includeDepth = 1)
@@ -266,28 +285,36 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(name = "probability_of_occurrence")
     open var probabilityOfOccurrence: Int? = null
 
+    // The three managers of an order are replaced by [additionalContactUserIds] (migrated by V8_0_36). Their
+    // columns are kept in the database as they were, read-only: never written (insertable/updatable = false),
+    // never copied on update (CandHIgnore), so saving an order can't wipe them. Still mapped, so that their
+    // old history entries keep their labels and types.
+
+    @Deprecated("Replaced by additionalContactUserIds, read-only legacy column.")
     @PropertyInfo(i18nKey = "fibu.projectManager")
-    @IndexedEmbedded(includeDepth = 1)
+    @NoHistory
+    @CandHIgnore
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:JoinColumn(name = "projectmanager_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
+    @get:JoinColumn(name = "projectmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var projectManager: PFUserDO? = null
 
+    @Deprecated("Replaced by additionalContactUserIds, read-only legacy column.")
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
-    @IndexedEmbedded(includeDepth = 1)
+    @NoHistory
+    @CandHIgnore
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:JoinColumn(name = "headofbusinessmanager_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
+    @get:JoinColumn(name = "headofbusinessmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var headOfBusinessManager: PFUserDO? = null
 
+    @Deprecated("Replaced by additionalContactUserIds, read-only legacy column.")
     @PropertyInfo(i18nKey = "fibu.salesManager")
-    @IndexedEmbedded(includeDepth = 1)
+    @NoHistory
+    @CandHIgnore
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:JoinColumn(name = "salesmanager_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
+    @get:JoinColumn(name = "salesmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var salesManager: PFUserDO? = null
 
     @JsonIgnore
@@ -363,14 +390,26 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         @Transient
         get() = paymentSchedules?.filter { !it.deleted } ?: emptyList()
 
+    /**
+     * The full names of the contact person and the additional contacts, "; " separated.
+     */
     val assignedPersons: String
         @Transient
         get() {
             val result = ArrayList<String>()
-            addUser(result, projectManager)
-            addUser(result, headOfBusinessManager)
-            addUser(result, salesManager)
-            addUser(result, contactPerson)
+            addUser(result, contactPerson?.id)
+            additionalContactUserIdList.forEach { addUser(result, it) }
+            return result.joinToString("; ")
+        }
+
+    /**
+     * The full names of the additional contacts, "; " separated.
+     */
+    open val additionalContactsAsString: String
+        @Transient
+        get() {
+            val result = ArrayList<String>()
+            additionalContactUserIdList.forEach { addUser(result, it) }
             return result.joinToString("; ")
         }
 
@@ -415,8 +454,8 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
             return if (status != null) I18nHelper.getLocalizedMessage(status!!.i18nKey) else null
         }
 
-    private fun addUser(result: ArrayList<String>, user: PFUserDO?) {
-        UserGroupCache.getInstance().getUser(user?.id)?.let { result.add(it.getFullname()) }
+    private fun addUser(result: ArrayList<String>, userId: Long?) {
+        UserGroupCache.getInstance().getUser(userId)?.let { result.add(it.getFullname()) }
     }
 
     /**

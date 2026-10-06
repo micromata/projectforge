@@ -98,7 +98,7 @@ class Configuration(
         // reflective, field-name based copy in BaseDTO does not carry them - fill them explicitly.
         i18nKey = src.i18nKey
         descriptionI18nKey = src.descriptionI18nKey
-        label = src.i18nKey?.let { translate(it) }
+        label = src.i18nKey.let { translate(it) }
         // booleanValue is a computed getter on the DO (proxying stringValue) and is only meaningful for a
         // BOOLEAN parameter; fill it here since it, too, has no backing field to copy reflectively.
         booleanValue = if (src.configurationType == ConfigurationType.BOOLEAN) src.booleanValue else null

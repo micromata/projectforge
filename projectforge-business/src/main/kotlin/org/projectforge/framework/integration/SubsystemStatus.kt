@@ -69,7 +69,7 @@ class SubsystemSync(
 
 /**
  * @param detail E.g. the server or the provider (Authentik, Keycloak).
- * @param syncs The syncs run since the start; a subsystem without syncs (e.g. mail) is OK by itself.
+ * @param syncs The syncs run since the start (for mail: the last mail sent, see `MailSendStats`).
  */
 class SubsystemStatus(
     val state: SubsystemState,
@@ -96,7 +96,8 @@ class SubsystemStatus(
             return runCatching { URI(value).host }.getOrNull() ?: value
         }
 
-        private fun stateOf(status: SyncStats.Status?): SubsystemState = when (status) {
+        @JvmStatic
+        fun stateOf(status: SyncStats.Status?): SubsystemState = when (status) {
             SyncStats.Status.SUCCESS -> SubsystemState.OK
             SyncStats.Status.ERRORS -> SubsystemState.DEGRADED
             SyncStats.Status.ABORTED -> SubsystemState.DOWN

@@ -208,7 +208,7 @@ open class JacksonConfiguration {
     //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 
     val module = object : SimpleModule() {
       override fun setupModule(context: SetupContext) {
@@ -251,7 +251,9 @@ open class JacksonConfiguration {
     })
     JsonUtils.initializeMapper(module)
     module.addDeserializer(String::class.java, TextDeserializer())
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") // Typed like the deserializers (see Deserializers.kt).
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     module.addDeserializer(java.lang.Long::class.java, LongDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
     module.addDeserializer(Date::class.java, UtcDateDeserializer())
