@@ -201,6 +201,68 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun releaseNotesIncludeTheUnpublishedReleasesSinceTheLastPublishedOne() {
+    val root = ObjectMapper().readTree(
+      """
+      {"news": [{"version": "8.3", "date": "2026-10-01", "title": "News title", "text": "News text."}],
+       "releases": [
+         {"id": "r3", "version": "8.3.3", "tag": "8.3.3-RELEASE",
+          "sections": [{"type": "fixed", "items": ["fix 3"]}]},
+         {"id": "s", "version": "8.3.3-SNAPSHOT", "sections": [{"type": "added", "items": ["snapshot"]}]},
+         {"id": "r2", "version": "8.3.2", "tag": "8.3.2-RELEASE", "published": false,
+          "intro": ["Intro 2."], "sections": [{"type": "added", "items": ["feature 2"]}, {"type": "fixed", "items": ["fix 2"]}]},
+         {"id": "r1", "version": "8.3.1", "tag": "8.3.1-RELEASE", "published": false,
+          "sections": [{"type": "fixed", "items": ["fix 1"]}]},
+         {"id": "r0", "version": "8.3.0", "tag": "8.3.0-RELEASE",
+          "sections": [{"type": "fixed", "items": ["fix 0"]}]}]}
+      """.trimIndent()
+    )
+    assertEquals(
+      """
+      # ProjectForge 8.3.3
+
+      Also includes the changes of 8.3.2 and 8.3.1, released without downloads.
+
+      Intro 2.
+
+      ## Fixed
+
+      - fix 3
+      - fix 2
+      - fix 1
+
+      ## Added
+
+      - feature 2
+
+      """.trimIndent(),
+      GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.3")
+    )
+    // A published release directly after a published one lists its own changes only.
+    assertEquals(listOf("r0"), GenerateChangelogMain.aggregatedReleases(root, "8.3.0").map { it["id"].asText() })
+  }
+
+  @Test
+  fun onlyATaggedReleaseWithoutDownloadLinkCanBeUnpublished() {
+    val root = ObjectMapper().readTree(
+      """
+      {"news": [], "releases": [
+        {"id": "a", "version": "1.0.2", "date": "2026-01-03", "title": "A", "tag": "1.0.2-RELEASE", "published": "no",
+         "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "b", "version": "1.0.1", "date": "2026-01-02", "title": "B", "tag": "1.0.1-RELEASE", "published": false,
+         "downloadLink": true, "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "c", "version": "1.0.1-SNAPSHOT", "date": "2026-01-01", "title": "C", "published": false,
+         "fromCommit": "aaaaaaa", "toCommit": "bbbbbbb", "sections": [{"type": "fixed", "items": ["bug"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val errors = GenerateChangelogMain.validate(root)
+    assertTrue(errors.any { it.contains("(a): 'published' must be true or false") }, errors.toString())
+    assertTrue(errors.any { it.contains("(b): an unpublished release has no download link") }, errors.toString())
+    assertTrue(errors.any { it.contains("(c): only a tagged release can be unpublished") }, errors.toString())
+  }
+
+  @Test
   fun translationKeepsTheStructureOfTheSource() {
     val mapper = ObjectMapper()
     val root = mapper.readTree(

@@ -56,6 +56,10 @@ import kotlin.system.exitProcess
  * 3. `projectforge-next/lib/generated/changelog.json` and `changelog.de.json` (the German version) for the
  *    page `/next/changelog`.
  *
+ * A tagged release with `"published": false` is a mini release: `bin/pfDev.sh publish` only pushes its tag, without
+ * a GitHub release, jar or docker images. Its changes are part of the release notes of the next published
+ * release (see [releaseNotesMarkdown]).
+ *
  * Both targets show a news directly above the newest release of its version (see [newsAnchors]): 8.2 above
  * the latest 8.2 snapshot, 8.1 above the 8.1 release and so on.
  *
@@ -189,19 +193,26 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The GitHub release notes of the release [version] (Markdown, English): its intro, the news of its version
-   * for a major or minor release (`X.Y.0`) and its sections.
+   * The GitHub release notes of the release [version] (Markdown, English): the intros, the news of a major or
+   * minor release (`X.Y.0`) and the sections, merged by type, of the release and of the unpublished releases
+   * since the last published one (see [aggregatedReleases]), newest first.
    */
   internal fun releaseNotesMarkdown(root: JsonNode, version: String): String {
-    val release = root["releases"].first { it["version"]?.asText() == version }
+    val releases = aggregatedReleases(root, version)
     val sb = StringBuilder()
     sb.appendLine("# ProjectForge $version")
-    release["intro"]?.forEach {
+    if (releases.size > 1) {
+      sb.appendLine()
+      val versions = releases.drop(1).map { it["version"].asText() }
+      val list = if (versions.size == 1) versions[0] else "${versions.dropLast(1).joinToString(", ")} and ${versions.last()}"
+      sb.appendLine("Also includes the changes of $list, released without downloads.")
+    }
+    releases.flatMap { it["intro"]?.toList().orEmpty() }.forEach {
       sb.appendLine()
       sb.appendLine(textToMarkdown(it.asText()))
     }
-    if (version.endsWith(".0")) {
-      root["news"].firstOrNull { it["version"]?.asText() == newsVersion(version) }?.let { news ->
+    releases.map { it["version"].asText() }.filter { it.endsWith(".0") }.forEach { releaseVersion ->
+      root["news"].firstOrNull { it["version"]?.asText() == newsVersion(releaseVersion) }?.let { news ->
         sb.appendLine()
         sb.appendLine("## ${news["title"].asText()}")
         sb.appendLine()
@@ -212,11 +223,16 @@ object GenerateChangelogMain {
         }
       }
     }
-    release["sections"].forEach { section ->
+    // The order of the types is the one of their first appearance, items of newer releases first.
+    val sections = linkedMapOf<String, MutableList<JsonNode>>()
+    releases.forEach { release ->
+      release["sections"].forEach { sections.getOrPut(it["type"].asText()) { mutableListOf() }.addAll(it["items"]) }
+    }
+    sections.forEach { (type, items) ->
       sb.appendLine()
-      sb.appendLine("## ${section["type"].asText().replaceFirstChar { it.uppercase() }}")
+      sb.appendLine("## ${type.replaceFirstChar { it.uppercase() }}")
       sb.appendLine()
-      section["items"].forEach { item ->
+      items.forEach { item ->
         if (item.isTextual) {
           val lines = textToMarkdown(item.asText()).split('\n')
           sb.appendLine("- ${lines.first()}")
@@ -229,6 +245,21 @@ object GenerateChangelogMain {
     }
     return sb.toString()
   }
+
+  /**
+   * The release [version] followed by the older tagged releases with `"published": false` up to the next older
+   * published one, newest first. Snapshots in between aren't part of a GitHub release and are skipped.
+   */
+  internal fun aggregatedReleases(root: JsonNode, version: String): List<JsonNode> {
+    val releases = root["releases"].toList()
+    val index = releases.indexOfFirst { it["version"]?.asText() == version }
+    require(index >= 0) { "No release of version $version." }
+    val older = releases.drop(index + 1).filter { it["tag"] != null }.takeWhile { !isPublished(it) }
+    return listOf(releases[index]) + older
+  }
+
+  /** A release is published (GitHub release, jar, docker images) unless it says `"published": false`. */
+  internal fun isPublished(release: JsonNode): Boolean = release["published"]?.asBoolean() != false
 
   /** The markdown subset is GitHub Markdown already, except red text: a bold warning there. */
   internal fun textToMarkdown(text: String): String =
@@ -321,6 +352,14 @@ object GenerateChangelogMain {
           errors.add("$where: releases must be sorted by date, newest first.")
         }
         previousDate = date
+      }
+      release["published"]?.let { published ->
+        when {
+          !published.isBoolean -> errors.add("$where: 'published' must be true or false.")
+          published.asBoolean() -> {}
+          release["tag"] == null -> errors.add("$where: only a tagged release can be unpublished.")
+          release["downloadLink"]?.asBoolean() == true -> errors.add("$where: an unpublished release has no download link.")
+        }
       }
       val from = release["fromCommit"]?.asText()
       val to = release["toCommit"]?.asText()
