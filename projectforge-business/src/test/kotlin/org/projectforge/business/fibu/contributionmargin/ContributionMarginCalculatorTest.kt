@@ -223,6 +223,7 @@ class ContributionMarginCalculatorTest {
         ContributionMarginConfig.Kost2Assignment("6.000", "5.999.11"),
         ContributionMarginConfig.Kost2Assignment("6.000.12", "5.999.12"),
         ContributionMarginConfig.Kost2Assignment(" ", null),
+        ContributionMarginConfig.Kost2Assignment("6.0.10", "5.999.11"),
       ),
     )
     val errors = config.validate { it != listOf(5, 999, 12) }
@@ -233,10 +234,12 @@ class ContributionMarginCalculatorTest {
         ContributionMarginConfig.RED_THRESHOLD to null,
         ContributionMarginConfig.KOST2_ASSIGNMENTS to 1,
         ContributionMarginConfig.KOST2_ASSIGNMENTS to 2,
+        ContributionMarginConfig.KOST2_ASSIGNMENTS to 4,
       ),
       errors.map { it.field to it.index },
     )
-    assertEquals("5.999.12", errors.last().param)
+    assertEquals("5.999.12", errors[4].param)
+    assertEquals("fibu.auftrag.contributionMargin.config.error.duplicateKost2", errors.last().i18nKey)
     assertEquals(1, ContributionMarginConfig(targetPercentage = 101, redThreshold = 50).validate { true }.size)
   }
 
