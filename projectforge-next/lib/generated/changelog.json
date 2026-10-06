@@ -6,7 +6,7 @@
     "title" : "ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date",
     "text" : "ProjectForge 9.0 is a major update. The classic Wicket user interface was replaced by **projectforge-next**, a new frontend built with Next.js and React, and all libraries were brought up to date. It also brings a problem dashboard for operations, many new charts with key figures, robust interfaces to external systems, e-invoicing and an identity provider integration. The development builds leading up to it are listed in the changelog as 8.2 snapshots.",
     "highlights" : [ "**New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.", "**Problem dashboard:** log events are classified and aggregated into problems with a persistent status, with links into the log viewer, a JSON export for an AI-assisted analysis and prioritized error digest mails instead of one mail per error.", "**Charts and key figures:** order statistics with budget scenario, contribution margins, forecast, invoicing and net sum charts with a year-earlier comparison, invoicing quota and error figures in the system statistics.", "**Robust interfaces:** timeouts, connection pools, bounded sync threads and sync statistics for LDAP, identity provider, iCal, SMS, Sipgate and the gateway; an unreachable system fails fast instead of blocking, failing calendar subscriptions are retried with a growing interval.", "**E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.", "**Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).", "**Finance:** recurring liquidity entries, DATEV import of incoming invoices, salary import, currency conversion with online exchange rates.", "**Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table." ],
-    "releaseId" : "9-0-2-snapshot-20261006"
+    "releaseId" : "9-0-0"
   }, {
     "version" : "8.1",
     "date" : "2025-09-01",
@@ -37,18 +37,21 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
-    "id" : "9-0-2-snapshot-20261006",
-    "version" : "9.0.2-SNAPSHOT",
+    "id" : "9-0-2",
+    "version" : "9.0.2",
     "date" : "2026-10-06",
-    "title" : "ProjectForge 9.0.2 snapshot (2026-10-06)",
-    "fromCommit" : "04c534efc",
-    "toCommit" : "3177287b6",
+    "title" : "ProjectForge 9.0.2 released",
+    "tag" : "9.0.2-RELEASE",
+    "downloadLink" : true,
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.", "Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.", "Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.", "Calendar: book several days at once, e.g. a vacation or an absence booked on behalf of a colleague; weekends, holidays and already booked days are skipped, half working days are booked pro rata, templates, recent time sheets and the booked user's vacations can be taken over (vacation task and cost unit configurable via projectforge.timesheet.vacation.taskId/kost2)." ]
+      "items" : [ "Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.", "Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.", "Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.", "Calendar: book several days at once, e.g. a vacation or an absence booked on behalf of a colleague; weekends, holidays and already booked days are skipped, half working days are booked pro rata, templates, recent time sheets and the booked user's vacations can be taken over (vacation task and cost unit configurable via projectforge.timesheet.vacation.taskId/kost2).", "Statistics: a pill behind the order number in the forecast tables opens the forecast analysis of the order in a dialog, without leaving the table.", "Lists: the search box gets the focus on page load (not on touch devices)." ]
     }, {
       "type" : "improved",
-      "items" : [ "Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before." ]
+      "items" : [ "Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before.", "Statistics: forecast and contribution margin are calculated much faster; the contribution margin is cached per project.", "Contribution margin configuration: a cost unit assigned twice is marked as an error.", "Cost units: the cost type is shown only for customer cost units (4.x and 5.x) in the list and export, as in the monthly report.", "Problem dashboard: the mail tile shows the outcome of the last mail sent (unknown, OK, send failed or mail server unreachable).", "Failing calendar subscriptions no longer send a separate mail to the administrator and the feedback address; the error digest reports them.", "The statistics page moves to /next/finance/statistics and the problem dashboard to /next/problemDashboard; old links are redirected." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "A cloned time sheet (e.g. dragged in the calendar) keeps its user if the logged-in user may book for them.", "Search terms are highlighted in list cells with JIRA links, too (order title and reference, task, time sheet, HR planning).", "The release jar no longer carries stale frontend files of earlier builds." ]
     } ]
   }, {
     "id" : "9-0-1",

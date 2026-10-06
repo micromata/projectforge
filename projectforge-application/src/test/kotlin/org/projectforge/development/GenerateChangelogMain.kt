@@ -67,8 +67,8 @@ import kotlin.system.exitProcess
  * a GitHub release, jar or docker images. Its changes are part of the release notes of the next published
  * release (see [releaseNotesMarkdown]).
  *
- * Both targets show a news directly above the newest release of its version (see [newsAnchors]): 8.2 above
- * the latest 8.2 snapshot, 8.1 above the 8.1 release and so on.
+ * Both targets show a news directly above the release opening its version (see [newsAnchors]): 9.0 above the
+ * 9.0.0 release (below the builds 9.0.1, 9.0.2), 8.2 above the latest 8.2 snapshot (no 8.2 release yet) and so on.
  *
  * New changes are collected in `changelog/unreleased/`, one file per change with its English and German
  * text (see [parseFragment]), so that branches working on the same release don't touch the same lines.
@@ -218,7 +218,7 @@ object GenerateChangelogMain {
    * Checks that the changelog [root] (and its [translation]) is ready for the release [version] `X.Y.Z`: valid,
    * its release is the newest entry of `releases`, tagged `X.Y.Z-RELEASE`, not dated in the future and not
    * released before. Major and minor releases (`X.Y.0`) open a line and need its news (version `X.Y`), a build
-   * (`X.Y.Z`, Z > 0) is listed below the news of its line.
+   * (`X.Y.Z`, Z > 0) is listed above the news of its line.
    */
   internal fun checkRelease(
     root: JsonNode,
@@ -337,12 +337,15 @@ object GenerateChangelogMain {
     val (nextRoot, nextTranslation) = withUnreleased(root, translation, readFragments(rootDir))
     val result = linkedMapOf<String, String>()
     val anchors = newsAnchors(root)
-    root["releases"].forEach { release ->
-      result["$CHANGELOGS_DIR/${adocFileName(release)}"] = releaseToAdoc(release)
+    val releases = root["releases"].toList()
+    // Releases are sorted newest first, the rank keeps their order on the website for releases of the same date.
+    fun rank(release: JsonNode) = releases.size - releases.indexOf(release)
+    releases.forEach { release ->
+      result["$CHANGELOGS_DIR/${adocFileName(release)}"] = releaseToAdoc(release, rank(release))
     }
     root["news"].forEachIndexed { index, news ->
-      val anchor = root["releases"].first { it["id"].asText() == anchors[index] }
-      result["$CHANGELOGS_DIR/${newsFileName(news)}"] = newsToAdoc(news, anchor)
+      val anchor = releases.first { it["id"].asText() == anchors[index] }
+      result["$CHANGELOGS_DIR/${newsFileName(news)}"] = newsToAdoc(news, anchor, rank(anchor))
     }
     result[POSTS_PAGE] = postsPage()
     result[NEXT_FILE] = nextJson(nextRoot)
@@ -518,16 +521,21 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The id of the release each news is shown above, by index of the news: the newest release whose major.minor
-   * version (see [newsVersion], `8.2` of `8.2.37` or `8.2-SNAPSHOT`) is the version of the news. Null if there
-   * is none.
+   * The id of the release each news is shown above, by index of the news: the release opening the line of the
+   * news (`8.2.0` or `8.2`), so the later builds of the line are listed above the news. Without such a release
+   * (only snapshots so far) the newest release whose major.minor version (see [newsVersion], `8.2` of `8.2.37`
+   * or `8.2-SNAPSHOT`) is the version of the news. Null if there is none.
    */
   internal fun newsAnchors(root: JsonNode): List<String?> =
     root["news"].map { news ->
       val version = news["version"]?.asText()?.let { newsVersion(it) }
-      root["releases"].firstOrNull { release ->
+      val line = root["releases"].filter { release ->
         release["version"]?.asText()?.let { newsVersion(it) } == version
-      }?.get("id")?.asText()
+      }
+      val opening = line.firstOrNull { release ->
+        release["version"].asText().let { it == version || it == "$version.0" }
+      }
+      (opening ?: line.firstOrNull())?.get("id")?.asText()
     }
 
   internal fun validate(root: JsonNode): List<String> {
@@ -800,17 +808,18 @@ object GenerateChangelogMain {
 
   /**
    * Sort key of the website's layout (`site/_layouts/changelog.html`, sorted descending): the date of the
-   * release, a news ranking above the release it belongs to.
+   * release, its [rank] (the position in the source, counted from the oldest) for releases of the same date and a
+   * news ranking above the release it belongs to.
    */
-  private fun sortKey(release: JsonNode, news: Boolean): String =
-    "\"${release["date"].asText()} ${if (news) 1 else 0}\""
+  private fun sortKey(release: JsonNode, rank: Int, news: Boolean): String =
+    "\"${release["date"].asText()} ${"%04d".format(rank)} ${if (news) 1 else 0}\""
 
-  internal fun newsToAdoc(news: JsonNode, anchor: JsonNode): String {
+  internal fun newsToAdoc(news: JsonNode, anchor: JsonNode, rank: Int): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("title: ${yamlString(news["title"].asText())}")
     sb.appendLine("date: ${news["date"].asText()}")
-    sb.appendLine("sort_key: ${sortKey(anchor, true)}")
+    sb.appendLine("sort_key: ${sortKey(anchor, rank, true)}")
     sb.appendLine("news: true")
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
@@ -824,12 +833,12 @@ object GenerateChangelogMain {
     return sb.toString()
   }
 
-  internal fun releaseToAdoc(release: JsonNode): String {
+  internal fun releaseToAdoc(release: JsonNode, rank: Int): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("title: ${yamlString(release["title"].asText())}")
     sb.appendLine("date: ${release["date"].asText()}")
-    sb.appendLine("sort_key: ${sortKey(release, false)}")
+    sb.appendLine("sort_key: ${sortKey(release, rank, false)}")
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")

@@ -43,7 +43,7 @@ Commands:
                    Release X.Y.Z: checks changelog/changelog.json (the release on top,
                    tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
                    only; X.Y.0 also needs a news X.Y), folds changelog/unreleased/ into it, sets the version,
-                   runs gen and the build, commits and tags, then commits the next
+                   runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
                    from the changelog, jar attached); asks before each step. The docker
@@ -216,8 +216,9 @@ release() {
   git add -A
   git commit -q -m "release: $version"
   git tag -a "$tag" -m "ProjectForge $version"
-  # Built from the tagged commit, so the jar's build.properties show it (and not a dirty tree).
-  if $skip_tests; then "$GRADLEW" -p "$ROOT" build -x test; else "$GRADLEW" -p "$ROOT" build; fi
+  # Built from the tagged commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
+  # so no leftovers of earlier builds end up in the release jar.
+  if $skip_tests; then "$GRADLEW" -p "$ROOT" clean build -x test; else "$GRADLEW" -p "$ROOT" clean build; fi
   set_version "$next"
   git commit -q -m "chore: next development version $next" -- gradle.properties
   trap - ERR

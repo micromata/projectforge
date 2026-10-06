@@ -6,7 +6,7 @@
     "title" : "ProjectForge 9.0: neues Frontend, Wicket abgelöst, alle Bibliotheken aktuell",
     "text" : "ProjectForge 9.0 ist ein großes Update. Die klassische Wicket-Oberfläche wurde durch **projectforge-next** ersetzt, ein neues, mit Next.js und React gebautes Frontend, und alle Bibliotheken wurden auf den aktuellen Stand gebracht. Dazu kommen ein Problem-Dashboard für den Betrieb, viele neue Diagramme mit Kennzahlen, robuste Schnittstellen zu externen Systemen, E-Rechnungen und eine Anbindung an Identity Provider. Die Entwicklungs-Builds bis dahin sind im Changelog als 8.2-Snapshots aufgeführt.",
     "highlights" : [ "**Neues Frontend projectforge-next:** alle Seiten migriert, darunter Kalender, Zeitberichte, Auftragsbuch, Rechnungen, Strukturbaum, Zugriffsrechte, Monatsbericht, Liquiditätsplanung und Administration. Das klassische Wicket-Modul wurde entfernt.", "**Problem-Dashboard:** Log-Ereignisse werden klassifiziert und zu Problemen mit dauerhaftem Status zusammengefasst, mit Links in den Log-Viewer, JSON-Export für eine KI-gestützte Analyse und priorisierten Fehler-Sammelmails statt einer Mail pro Fehler.", "**Diagramme und Kennzahlen:** Auftragsstatistik mit Budget-Szenario, Deckungsbeiträge, Forecast-, Fakturierungs- und Nettosummen-Diagramme mit Vorjahresvergleich, Fakturierungsquote und Fehlerzahlen in der Systemstatistik.", "**Robuste Schnittstellen:** Timeouts, Verbindungspools, begrenzte Sync-Threads und Sync-Statistiken für LDAP, Identity Provider, iCal, SMS, Sipgate und das Gateway; ein nicht erreichbares System bricht schnell ab statt zu blockieren, fehlschlagende Kalenderabos werden in wachsenden Abständen wiederholt.", "**E-Rechnungen:** XRechnung- und ZUGFeRD-Export von Ausgangsrechnungen, PEPPOL-Validierung, Stornorechnungen und ein E-Rechnungs-Prüfer.", "**Identity Provider:** Synchronisation von Benutzern, Gruppen und Passwörtern mit Authentik oder Keycloak (Modul projectforge-idp).", "**Finanzen:** wiederkehrende Liquiditätseinträge, DATEV-Import von Eingangsrechnungen, Gehaltsimport, Währungsumrechnung mit online ermittelten Wechselkursen.", "**Technologie:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table." ],
-    "releaseId" : "9-0-2-snapshot-20261006"
+    "releaseId" : "9-0-0"
   }, {
     "version" : "8.1",
     "date" : "2025-09-01",
@@ -37,18 +37,21 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
-    "id" : "9-0-2-snapshot-20261006",
-    "version" : "9.0.2-SNAPSHOT",
+    "id" : "9-0-2",
+    "version" : "9.0.2",
     "date" : "2026-10-06",
-    "title" : "ProjectForge 9.0.2 Snapshot (2026-10-06)",
-    "fromCommit" : "04c534efc",
-    "toCommit" : "3177287b6",
+    "title" : "ProjectForge 9.0.2 veröffentlicht",
+    "tag" : "9.0.2-RELEASE",
+    "downloadLink" : true,
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.", "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme.", "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert.", "Kalender: mehrere Tage auf einmal buchen, z. B. einen Urlaub oder eine Abwesenheit für Kolleg:innen; Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen, halbe Arbeitstage anteilig gebucht, Vorlagen, zuletzt verwendete Zeitberichte und die Urlaube der gebuchten Person können übernommen werden (Urlaubs-Strukturelement und -Kost2 konfigurierbar über projectforge.timesheet.vacation.taskId/kost2)." ]
+      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.", "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme.", "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert.", "Kalender: mehrere Tage auf einmal buchen, z. B. einen Urlaub oder eine Abwesenheit für Kolleg:innen; Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen, halbe Arbeitstage anteilig gebucht, Vorlagen, zuletzt verwendete Zeitberichte und die Urlaube der gebuchten Person können übernommen werden (Urlaubs-Strukturelement und -Kost2 konfigurierbar über projectforge.timesheet.vacation.taskId/kost2).", "Statistiken: Eine Pille hinter der Auftragsnummer in den Forecast-Tabellen öffnet die Forecast-Analyse des Auftrags in einem Dialog, ohne die Tabelle zu verlassen.", "Listen: Das Suchfeld erhält beim Laden der Seite den Fokus (nicht auf Touch-Geräten)." ]
     }, {
       "type" : "improved",
-      "items" : [ "Aufträge: eine Ansprechpartner:in und beliebig viele weitere Ansprechpartner:innen statt Projektleitung, Bereichsleitung und Key-Account-Management (bestehende Einträge werden übernommen, die alten Felder bleiben in der Datenbank). Weitere Ansprechpartner:innen haben denselben Zugriff auf den Auftrag und seine Rechnungen wie die Ansprechpartner:in, und die Änderungsmail geht jetzt auch an sie und an alle, die den Auftrag bisher bearbeitet haben." ]
+      "items" : [ "Aufträge: eine Ansprechpartner:in und beliebig viele weitere Ansprechpartner:innen statt Projektleitung, Bereichsleitung und Key-Account-Management (bestehende Einträge werden übernommen, die alten Felder bleiben in der Datenbank). Weitere Ansprechpartner:innen haben denselben Zugriff auf den Auftrag und seine Rechnungen wie die Ansprechpartner:in, und die Änderungsmail geht jetzt auch an sie und an alle, die den Auftrag bisher bearbeitet haben.", "Statistiken: Forecast und Deckungsbeitrag werden deutlich schneller berechnet; der Deckungsbeitrag wird pro Projekt zwischengespeichert.", "Konfiguration der Deckungsbeiträge: Ein doppelt zugeordneter Kostenträger wird als Fehler markiert.", "Kostenträger: Die Kostenart wird in Liste und Export nur für Kundenkostenträger (4.x und 5.x) angezeigt, wie im Monatsbericht.", "Problem-Dashboard: Die Mail-Kachel zeigt das Ergebnis der zuletzt gesendeten Mail (unbekannt, OK, Versand fehlgeschlagen oder Mailserver nicht erreichbar).", "Fehlschlagende Kalenderabos senden keine eigene Mail mehr an die Administration und die Feedback-Adresse; die Fehler-Sammelmail meldet sie.", "Die Statistikseite liegt jetzt unter /next/finance/statistics, das Problem-Dashboard unter /next/problemDashboard; alte Links werden weitergeleitet." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Ein geklonter Zeitbericht (z. B. im Kalender gezogen) behält seinen Benutzer, wenn der angemeldete Benutzer für ihn buchen darf.", "Suchbegriffe werden auch in Listenzellen mit JIRA-Links hervorgehoben (Auftragstitel und -referenz, Strukturelement, Zeitbericht, HR-Planung).", "Das Release-Jar enthält keine veralteten Frontend-Dateien früherer Builds mehr." ]
     } ]
   }, {
     "id" : "9-0-1",
