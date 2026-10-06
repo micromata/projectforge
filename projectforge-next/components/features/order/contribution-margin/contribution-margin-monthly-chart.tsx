@@ -48,8 +48,11 @@ import { ContributionMarginTargetBands } from "./contribution-margin-target-band
  */
 export function ContributionMarginMonthlyChart({
   data,
+  className = "h-[27rem] w-full",
 }: {
   data: ContributionMarginData;
+  /** Size of the chart, e.g. a dashboard tile's height step. */
+  className?: string;
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const ctx = useFormatContext();
@@ -79,7 +82,7 @@ export function ContributionMarginMonthlyChart({
   return (
     <ChartContainer
       config={config}
-      className="h-[27rem] w-full"
+      className={className}
       role="img"
       aria-label={t("monthly")}
     >

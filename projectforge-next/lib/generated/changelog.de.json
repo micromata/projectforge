@@ -45,7 +45,7 @@
     "toCommit" : "3177287b6",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen." ]
+      "items" : [ "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.", "Seiten mit Grafiken (Statistiken, Liquiditätsvorschau, Rechnungen, Meine Statistiken): Grafiken als Kacheln, per Drag & Drop anzuordnen, in Stufen in der Größe zu ändern und auszublenden; die Anordnung wird pro Benutzer gespeichert." ]
     } ]
   }, {
     "id" : "9-0-1",

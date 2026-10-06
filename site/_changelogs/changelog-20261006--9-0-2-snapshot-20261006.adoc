@@ -12,3 +12,4 @@ __Snapshot build https://github.com/micromata/projectforge/commit/3177287b6[deve
 {% include tag.html tag="added" %}
 ++++
 - Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.
+- Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.

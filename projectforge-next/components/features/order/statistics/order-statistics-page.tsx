@@ -21,7 +21,7 @@ import { FROM_ORDER_BOOK_PARAM } from "./order-statistics-url";
 import { useOrderStatisticsFilter } from "./use-order-statistics-filter";
 
 /**
- * The order statistics ("Auftragsstatistik", `/orderStatistics`): the forecast charts and, for finance,
+ * The order statistics ("Auftragsstatistik", `/finance/statistics`): the forecast charts and, for finance,
  * controlling and project managers (`meta.contributionMargin`), the contribution margin, over a filter
  * of their own (business units, customers, projects) with its own favorites.
  *

@@ -13,5 +13,5 @@ export function orderStatisticsUrl(
 ): string {
   const query = new URLSearchParams({ [TAB_PARAM]: tab });
   if (fromOrderBook) query.set(FROM_ORDER_BOOK_PARAM, "1");
-  return `/orderStatistics?${query}`;
+  return `/finance/statistics?${query}`;
 }

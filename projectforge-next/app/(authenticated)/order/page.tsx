@@ -10,7 +10,7 @@ import {
   type OrderStatisticsTab,
 } from "@/components/features/order/statistics/order-statistics-url";
 
-/** The tabs the order book had before forecast and contribution margin moved to `/orderStatistics`. */
+/** The tabs the order book had before forecast and contribution margin moved to `/finance/statistics`. */
 const MOVED_TABS: Record<string, OrderStatisticsTab> = {
   charts: "forecast",
   contributionMargin: "contributionMargin",

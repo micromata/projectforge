@@ -39,7 +39,7 @@ import java.util.Locale
  * the [MAX_KNOWN_GROUPS] most frequent known ones sorted by severity (one section per category, the sync problems
  * right after the unreachable systems). Ignored and muted problems are only counted.
  *
- * @param dashboardUrl The problem dashboard (`next/adminErrors`): linked by the digest and by each problem.
+ * @param dashboardUrl The problem dashboard (`next/problemDashboard`): linked by the digest and by each problem.
  */
 class ErrorDigestRenderer(
     private val domain: String?,
