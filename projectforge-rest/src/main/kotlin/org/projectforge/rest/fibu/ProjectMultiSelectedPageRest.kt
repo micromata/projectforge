@@ -91,6 +91,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       MassUpdateFieldDeclaration("headOfBusinessManager"),
       MassUpdateFieldDeclaration("projectManager"),
       MassUpdateFieldDeclaration("salesManager"),
+      MassUpdateFieldDeclaration("status"),
       MassUpdateFieldDeclaration("description", showAppendOption = true, minLengthOfTextArea = 1001),
       MassUpdateFieldDeclaration(KOST2_ARTS, custom = true, values = kost2ArtValues()),
     )
@@ -130,12 +131,21 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       proceedMassUpdateUserField(params, ProjektDO::headOfBusinessManager, project)
       proceedMassUpdateUserField(params, ProjektDO::projectManager, project)
       proceedMassUpdateUserField(params, ProjektDO::salesManager, project)
+      params["status"]?.let { param ->
+        if (param.delete == true) {
+          project.status = null
+        }
+        param.textValue?.let { textValue ->
+          project.status = ProjektStatus.valueOf(textValue)
+        }
+      }
       massUpdateContext.commitUpdate(
         identifier4Message = project.displayName,
         project,
         update = {
           projektDao.update(project)
-          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone.
+          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone
+          // (also if it is ended by this mass update).
           val projektId = project.id
           if (kost2ArtIds.isNotEmpty() && projektId != null && project.status != ProjektStatus.ENDED) {
             val changed = if (kost2ArtsParam?.append == true) {
