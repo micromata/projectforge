@@ -429,6 +429,9 @@ class GatewaySyncPushService(
      */
     private fun exportIcs(userId: Long, encryptedQ: String, additionalParams: String): String? {
         val serviceRest = calendarSubscriptionServiceRest ?: return null
+        // exportCalendar clears the user context in its finally block (it's a request entry point), but the caller
+        // exports several calendars per user: restore it, otherwise every further export of this user fails.
+        val userContext = ThreadLocalUserContext.userContext
         try {
             val response = serviceRest.exportCalendar(MockIcsRequest(userId, encryptedQ))
             if (response.statusCode.is2xxSuccessful && response.body != null) {
@@ -440,6 +443,8 @@ class GatewaySyncPushService(
             }
         } catch (e: Exception) {
             log.debug { "Failed to generate ICS for user $userId, params=$additionalParams: ${e.message}" }
+        } finally {
+            ThreadLocalUserContext.userContext = userContext
         }
         return null
     }
