@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.MonthlyEmployeeReport
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
@@ -306,7 +307,7 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
                 val art = caches.getKost2ArtIfNotInitialized(kost2.kost2Art)
                 val row = sheet.createRow()
                 row.getCell(COL_NUMBER)?.setCellValue(kost2.formattedNumber)
-                row.getCell(COL_TYPE)?.setCellValue(art?.name)
+                row.getCell(COL_TYPE)?.setCellValue(MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName(kost2, art))
                 row.getCell(COL_INVOICED)?.setCellValue(if (art?.fakturiert == true) "X" else "")
                 row.getCell(COL_PROJECT)?.setCellValue(formatProject(kost2))
                 kost2.effectiveKostentraegerStatus?.let {

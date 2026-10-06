@@ -19,6 +19,7 @@ export function AdminErrorsProblems({
   subsystemTitle,
   onFilterChange,
   onRemoveSubsystem,
+  onRemoveScope,
   search,
   onSearchChange,
   onOpen,
@@ -29,6 +30,7 @@ export function AdminErrorsProblems({
   subsystemTitle: string | null;
   onFilterChange: (filter: LogGroupFilter) => void;
   onRemoveSubsystem: () => void;
+  onRemoveScope: () => void;
   search: string;
   onSearchChange: (search: string) => void;
   onOpen: (entry: LogGroupEntry) => void;
@@ -42,6 +44,7 @@ export function AdminErrorsProblems({
         subsystemTitle={subsystemTitle}
         onChange={onFilterChange}
         onRemoveSubsystem={onRemoveSubsystem}
+        onRemoveScope={onRemoveScope}
       />
       {data.total > data.entries.length && (
         <p className="text-muted-foreground">

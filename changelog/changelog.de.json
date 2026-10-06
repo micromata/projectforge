@@ -53,7 +53,8 @@
         {
           "type": "added",
           "items": [
-            "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen."
+            "Projektliste: Spalten für die letzte Zeitbuchung, das letzte Auftragsdatum und die letzte Aktivität (das spätere von beiden), sortierbar, um vermutlich beendete Projekte zu erkennen.",
+            "Problem-Dashboard: Ein Klick auf eine Kennzahl (neue Probleme, Regressionen, externe Systeme usw.) zeigt genau die gezählten Probleme."
           ]
         }
       ]
