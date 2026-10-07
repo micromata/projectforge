@@ -63,7 +63,52 @@
       "date": "2026-10-08",
       "title": "ProjectForge 9.0.3 released",
       "tag": "9.0.3-RELEASE",
-      "downloadLink": true
+      "downloadLink": true,
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "File store",
+              "items": [
+                "New file store replacing the JCR (Apache Oak): with `projectforge.files.store=db` all files are stored in the database (schema `pf_files`), data transfer files in the file system (directory `datatransfer` of the home directory). Existing installations stay on the JCR until switched to `db` (see the admin guide).",
+                "After switching to `db`, all files of the JCR are copied in the background and verified by size and checksum, with a report in `jcr-migration-report.txt` in the home directory; the JCR keeps them, so switching back or a rollback to the former release is possible. The migration continues on the next start if it was interrupted.",
+                "System page: the card \"Document repository (JCR)\" shows the active store and starts the JCR backup ZIP and the migration.",
+                "Backups: the admin guide describes two dumps, the main dump without the schema `pf_files` and a separate dump of the files; the backup purge accepts several comma-separated prefixes and purges each backup series on its own."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed.",
+            "Data transfer: the list of areas is sorted by the last modification, latest first, by default."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            {
+              "title": "Problems from the problem dashboard",
+              "items": [
+                "Structure tree and list filters no longer fail without a session.",
+                "A time sheet without a task shows a field error instead of a server error.",
+                "The vacation list is sortable by the mode column.",
+                "Invoices are found by the number of their order.",
+                "No more needless error log entries for unsaved orders, invalid search syntax (now a warning) and a systemic failure of calendar subscriptions (logged at most once a day)."
+              ]
+            },
+            "Legacy pages: a tall company logo is limited in height and no longer covers parts of the application.",
+            "Mails: wider layout; field names in the change history no longer wrap letter by letter.",
+            "Projects: changing the cost 2 types of an already ended project in the mass update is an error instead of being silently skipped; the Excel export of the mass update shows the changed cost 2 types and lists failed entries with their reason. The edit form of an ended project shows its existing cost 2 units checked and ended.",
+            "Safari: browser back from an entry returns to the list again instead of skipping it and landing on an earlier page.",
+            "Changed user settings (e.g. list filters and column layouts) are saved again on logout instead of being lost.",
+            "E-invoice checker: an e-invoice whose amount due doesn't match its lines is shown with this error instead of \"no e-invoice data found\".",
+            "Orders: opening an order could rarely fail with an internal error."
+          ]
+        }
+      ]
     },
     {
       "id": "9-0-2",

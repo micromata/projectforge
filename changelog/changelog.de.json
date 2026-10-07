@@ -48,7 +48,52 @@
   },
   "releases": {
     "9-0-3": {
-      "title": "ProjectForge 9.0.3 veröffentlicht"
+      "title": "ProjectForge 9.0.3 veröffentlicht",
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Dateiablage",
+              "items": [
+                "Neue Dateiablage als Ablösung des JCR (Apache Oak): Mit `projectforge.files.store=db` werden alle Dateien in der Datenbank (Schema `pf_files`) gespeichert, Dateien des Datentransfers im Dateisystem (directory `datatransfer` of the home directory). Bestehende Installationen bleiben beim JCR, bis auf `db` umgestellt wird (siehe Admin-Handbuch).",
+                "Nach der Umstellung auf `db` werden alle Dateien des JCR im Hintergrund kopiert und anhand von Größe und Prüfsumme verifiziert, mit einem Bericht in `jcr-migration-report.txt` im Home-Verzeichnis; das JCR behält sie, sodass ein Zurückstellen oder ein Rollback auf das vorige Release möglich ist. Eine unterbrochene Migration wird beim nächsten Start fortgesetzt.",
+                "Systemseite: Die Karte „Dokumenten-Repository (JCR)“ zeigt die aktive Ablage und startet das JCR-Backup-ZIP und die Migration.",
+                "Backups: Das Admin-Handbuch beschreibt zwei Dumps, den Haupt-Dump ohne das Schema `pf_files` und einen eigenen Dump der Dateien; das Aufräumen der Backups akzeptiert mehrere kommagetrennte Präfixe und räumt jede Backup-Serie für sich auf."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Kalender, mehrere Tage buchen: Ein bereits gebuchter Tag wird ebenfalls gebucht, wenn sich der neue Zeitbericht nicht unzulässig mit einem vorhandenen überschneidet (eine durch geteilte Kosten erlaubte Überschneidung ist in Ordnung); die Vorschau zeigt jede Überschneidung und ob sie erlaubt ist.",
+            "Datentransfer: Die Liste der Bereiche ist standardmäßig nach der letzten Änderung sortiert, die neueste zuerst."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            {
+              "title": "Probleme aus dem Problem-Dashboard",
+              "items": [
+                "Strukturbaum und Listenfilter schlagen ohne Sitzung nicht mehr fehl.",
+                "Ein Zeitbericht ohne Strukturelement zeigt einen Feldfehler statt eines Serverfehlers.",
+                "Die Urlaubsliste ist nach der Spalte Modus sortierbar.",
+                "Rechnungen werden über die Nummer ihres Auftrags gefunden.",
+                "Keine unnötigen Fehlereinträge im Log mehr für ungespeicherte Aufträge, eine ungültige Suchsyntax (jetzt eine Warnung) und einen systemischen Ausfall der Kalenderabonnements (höchstens einmal am Tag protokolliert)."
+              ]
+            },
+            "Alte Seiten: Ein hohes Firmenlogo wird in der Höhe begrenzt und verdeckt keine Teile der Anwendung mehr.",
+            "Mails: breiteres Layout; Feldnamen in der Änderungshistorie werden nicht mehr buchstabenweise umbrochen.",
+            "Projekte: Das Ändern der Kost2-Arten eines bereits beendeten Projekts in der Massenänderung ist ein Fehler, statt stillschweigend übersprungen zu werden; der Excel-Export der Massenänderung zeigt die geänderten Kost2-Arten und listet fehlgeschlagene Einträge mit ihrem Grund. Das Formular eines beendeten Projekts zeigt seine vorhandenen Kostenträger angehakt und beendet.",
+            "Safari: Browser-Zurück aus einem Eintrag führt wieder zur Liste, statt sie zu überspringen und auf einer früheren Seite zu landen.",
+            "Geänderte Benutzereinstellungen (z. B. Listenfilter und Spaltenlayouts) werden beim Abmelden wieder gespeichert, statt verloren zu gehen.",
+            "E-Rechnungsprüfung: Eine E-Rechnung, deren Zahlbetrag nicht zu ihren Positionen passt, wird mit diesem Fehler angezeigt statt mit „keine E-Rechnungsdaten gefunden“.",
+            "Aufträge: Das Öffnen eines Auftrags konnte in seltenen Fällen mit einem internen Fehler abbrechen."
+          ]
+        }
+      ]
     },
     "9-0-2": {
       "title": "ProjectForge 9.0.2 veröffentlicht",

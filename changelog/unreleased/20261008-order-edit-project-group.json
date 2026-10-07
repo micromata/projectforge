@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Orders: opening an order could rarely fail with an internal error.",
-  "de": "Aufträge: Das Öffnen eines Auftrags konnte in seltenen Fällen mit einem internen Fehler abbrechen."
-}
