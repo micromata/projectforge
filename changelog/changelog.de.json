@@ -47,6 +47,9 @@
     }
   },
   "releases": {
+    "9-0-3": {
+      "title": "ProjectForge 9.0.3 veröffentlicht"
+    },
     "9-0-2": {
       "title": "ProjectForge 9.0.2 veröffentlicht",
       "sections": [
