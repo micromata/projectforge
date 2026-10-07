@@ -1398,7 +1398,7 @@
       "_": "Projekt",
       "edit": {
         "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
-        "kost2LockedEnded": "Das Projekt ist beendet: Seine Kostenarten sind nicht mehr änderbar.",
+        "kost2LockedEnded": "Das Projekt ist beendet und damit auch seine Kost2-Einheiten (angehakt): Sie sind nicht mehr änderbar.",
         "selectStandardKost2Arts": "Alle Standard-Kostenarten auswählen"
       },
       "filter": {
@@ -1432,7 +1432,10 @@
             "activate": "{arg0}: „{arg1}“ werden angelegt bzw. aktiviert",
             "deactivate": "{arg0}: „{arg1}“ werden deaktiviert (sofern im Projekt aktiv)"
           },
-          "deactivate": "Deaktivieren"
+          "deactivate": "Deaktivieren",
+          "error": {
+            "ended": "Das Projekt ist beendet: Seine Kost2-Arten werden nicht geändert."
+          }
         }
       },
       "multiselected": {

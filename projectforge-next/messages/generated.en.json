@@ -1398,7 +1398,7 @@
       "_": "Project",
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
-        "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
+        "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
       "filter": {
@@ -1432,7 +1432,10 @@
             "activate": "{arg0}: \"{arg1}\" will be created or activated",
             "deactivate": "{arg0}: \"{arg1}\" will be deactivated (where active in the project)"
           },
-          "deactivate": "Deactivate"
+          "deactivate": "Deactivate",
+          "error": {
+            "ended": "The project is ended: its cost 2 types are not changed."
+          }
         }
       },
       "multiselected": {

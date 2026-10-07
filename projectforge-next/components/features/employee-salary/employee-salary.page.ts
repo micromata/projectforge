@@ -36,7 +36,7 @@ export const EMPLOYEE_SALARY_PAGE = definePage<
   route: "/employeeSalary",
   queryKey: EMPLOYEE_SALARY_LIST_QUERY_KEY,
   // Where the entry sits in the main menu: Finance > Salaries (MenuItemDefId.EMPLOYEE_SALARY_LIST).
-  categoryKey: "menu.fibu",
+  categoryKey: "menu.fibu._",
   titleKey: "fibu.employee.salary.title.list",
   // Newest first, as Wicket's list (EmployeeSalaryDao orders year, month descending). No column holds
   // the value, so the backend maps this id onto year+month (EmployeeSalaryEntityRest.postProcessMagicFilter).
