@@ -519,6 +519,23 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     /**
+     * @return true, if the two time sheets, overlapping in time, are a forbidden collision as [hasTimeOverlap] refuses
+     * it: none of them is booked on a shared cost element, or both belong to the same project. The time sheets
+     * themselves aren't compared, the caller knows that they overlap. Only the ids of task and cost unit are used
+     * (resolved by the caches), so detached time sheets with lazy cost units are fine.
+     */
+    open fun isCollision(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        val taskId = timesheet.taskId
+        val kost2Id = timesheet.kost2?.id
+        val otherTaskId = other.taskId
+        val otherKost2Id = other.kost2?.id
+        return !isOverlapAllowed(
+            isSharedCost(taskId, kost2Id), { projektIdOf(taskId, kost2Id) },
+            isSharedCost(otherTaskId, otherKost2Id), { projektIdOf(otherTaskId, otherKost2Id) },
+        )
+    }
+
+    /**
      * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of them is booked
      * on a shared cost element (see [isSharedCost]) and the two time sheets don't belong to the same project.
      */
@@ -607,7 +624,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     private fun projektIdOf(sheet: CollisionCandidate): Long? {
-        return taskTree.getProjekt(sheet.taskId)?.id ?: PfCaches.instance.getKost2(sheet.kost2Id)?.projekt?.id
+        return projektIdOf(sheet.taskId, sheet.kost2Id)
+    }
+
+    private fun projektIdOf(taskId: Long?, kost2Id: Long?): Long? {
+        return taskTree.getProjekt(taskId)?.id ?: PfCaches.instance.getKost2(kost2Id)?.projekt?.id
     }
 
     private fun getProjektId(timesheet: TimesheetDO): Long? {

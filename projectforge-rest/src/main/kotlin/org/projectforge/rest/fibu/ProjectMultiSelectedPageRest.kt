@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektKost2Service
 import org.projectforge.common.StringHelper
+import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -127,6 +128,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     val kost2ArtIds = kost2ArtsParam?.let { kost2ArtIdsOf(it) }.orEmpty()
     projects.forEach { project ->
       massUpdateContext.startUpdate(project)
+      val endedBefore = project.status == ProjektStatus.ENDED
       TextFieldModification.processTextParameter(project, "description", params)
       proceedMassUpdateUserField(params, ProjektDO::headOfBusinessManager, project)
       proceedMassUpdateUserField(params, ProjektDO::projectManager, project)
@@ -143,9 +145,12 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
         identifier4Message = project.displayName,
         project,
         update = {
+          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone. An
+          // already ended one is an error rather than silently unchanged; one ended by this mass update is not.
+          if (kost2ArtIds.isNotEmpty() && endedBefore && project.status == ProjektStatus.ENDED) {
+            throw UserException("fibu.projekt.massUpdate.kost2Arts.error.ended")
+          }
           projektDao.update(project)
-          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone
-          // (also if it is ended by this mass update).
           val projektId = project.id
           if (kost2ArtIds.isNotEmpty() && projektId != null && project.status != ProjektStatus.ENDED) {
             val oldArtIds = activeKost2ArtIds(projektId)

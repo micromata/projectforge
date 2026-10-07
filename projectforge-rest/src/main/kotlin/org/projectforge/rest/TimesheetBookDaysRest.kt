@@ -101,6 +101,8 @@ class TimesheetBookDaysRest {
         val status: TimesheetDayBookingService.Status,
         val hours: BigDecimal,
         val note: String?,
+        /** The time of an existing time sheet the booked one overlaps, as a shared cost element allows. */
+        val sharedOverlap: String?,
     )
 
     class Result(val days: List<Day>, val bookedCount: Int)
@@ -200,7 +202,7 @@ class TimesheetBookDaysRest {
                 dayBookingService.book(serviceRequest)
             }
             Result(
-                days.map { Day(it.date, it.status, hoursOf(it.minutes), it.note) },
+                days.map { Day(it.date, it.status, hoursOf(it.minutes), it.note, it.sharedOverlap) },
                 days.count { it.booking },
             )
         }

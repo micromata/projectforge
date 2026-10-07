@@ -115,6 +115,16 @@ object MultiSelectionExcelExport {
         }
         row.createCell().setCellValue(massUpdateObject.getId())
       }
+      if (massUpdateContext.errorMessages.isNotEmpty()) {
+        // The failed objects aren't part of the rows above: their identifier and the reason, below them.
+        sheet.createRow()
+        sheet.createRow().createCell().setCellValue(translate("massUpdate.excel.errors")).setCellStyle(boldStyle)
+        massUpdateContext.errorMessages.forEach { error ->
+          val row = sheet.createRow()
+          row.createCell().setCellValue(error.identifier)
+          row.createCell().setCellValue(error.message)
+        }
+      }
       return workbook.asByteArrayOutputStream.toByteArray()
     }
   }

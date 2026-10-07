@@ -44,6 +44,12 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses).", "Lanes & Planes interface: additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter \"Lanes & Planes\". They are sent with name and email only, so they aren't deactivated and their role and managers are kept.", "Lanes & Planes interface: the active employees are pushed with the general Kost1 as cost centers, the general Kost2 and the Kost2 they may book on (restricted by patterns like 5.*.02) as cost units, their Kost1 as reference cost center, their creditor account and their nickname as abbreviation. Numbers are sent without dots (as the DATEV export of Lanes & Planes requires). Finance maintains these settings in the configuration parameter \"Lanes & Planes\"; activation and API key are set in projectforge.lanesandplanes.*." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Legacy pages: a tall company logo is limited in height and no longer covers parts of the application." ]
     } ]
   }, {
     "id" : "9-0-2",

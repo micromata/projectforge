@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed.",
+  "de": "Kalender, mehrere Tage buchen: Ein bereits gebuchter Tag wird ebenfalls gebucht, wenn sich der neue Zeitbericht nicht unzulässig mit einem vorhandenen überschneidet (eine durch geteilte Kosten erlaubte Überschneidung ist in Ordnung); die Vorschau zeigt jede Überschneidung und ob sie erlaubt ist."
+}

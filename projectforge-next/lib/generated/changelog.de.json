@@ -44,6 +44,12 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten).", "Lanes-&-Planes-Schnittstelle: Im Konfigurationsparameter „Lanes & Planes“ können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten.", "Lanes-&-Planes-Schnittstelle: Die aktiven Mitarbeitenden werden mit den allgemeinen Kost1 als Kostenstellen, den allgemeinen Kost2 und den Kost2, auf die sie buchen dürfen (über Muster wie 5.*.02 einschränkbar), als Kostenträger, ihrer Kost1 als Referenz-Kostenstelle, ihrem Kreditorenkonto und ihrem Spitznamen als Kürzel übertragen. Die Nummern werden ohne Punkte übertragen, wie es der DATEV-Export von Lanes & Planes braucht. Die Einstellungen pflegt die Buchhaltung im Konfigurationsparameter „Lanes & Planes“, Aktivierung und API-Key stehen in projectforge.lanesandplanes.*." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Kalender, mehrere Tage buchen: Ein bereits gebuchter Tag wird ebenfalls gebucht, wenn sich der neue Zeitbericht nicht unzulässig mit einem vorhandenen überschneidet (eine durch geteilte Kosten erlaubte Überschneidung ist in Ordnung); die Vorschau zeigt jede Überschneidung und ob sie erlaubt ist." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Alte Seiten: Ein hohes Firmenlogo wird in der Höhe begrenzt und verdeckt keine Teile der Anwendung mehr." ]
     } ]
   }, {
     "id" : "9-0-2",

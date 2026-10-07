@@ -1406,7 +1406,7 @@
       "_": "Project",
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
-        "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
+        "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
       "filter": {
@@ -1440,7 +1440,10 @@
             "activate": "{arg0}: \"{arg1}\" will be created or activated",
             "deactivate": "{arg0}: \"{arg1}\" will be deactivated (where active in the project)"
           },
-          "deactivate": "Deactivate"
+          "deactivate": "Deactivate",
+          "error": {
+            "ended": "The project is ended: its cost 2 types are not changed."
+          }
         }
       },
       "multiselected": {
@@ -3671,14 +3674,16 @@
     },
     "bookDays": {
       "hoursPerDay": "Hours per day",
-      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends, holidays and days already booked are skipped.",
+      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends and holidays are skipped; on a day already booked, the time sheet is only booked if it does not collide with an existing one.",
       "preview": "Preview",
       "previewEmpty": "Please enter a period.",
       "status": {
         "book": "will be booked",
-        "booked": "already booked",
         "holiday": "Holiday",
+        "overlap": "overlaps {arg0}",
+        "overlapUnknown": "overlaps {arg0} – depends on the structure element",
         "partial": "pro rata",
+        "sharedOverlap": "allowed overlap with {arg0} (shared cost)",
         "weekend": "Weekend"
       },
       "submit": "Book ({arg0})",
