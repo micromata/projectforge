@@ -771,7 +771,14 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 return true
             }
         }
-        val taskNode = taskTree.getTaskNodeById(timesheet.taskId, checkTaskTreeRefresh)
+        return checkTaskBookable(taskTree.getTaskNodeById(timesheet.taskId, checkTaskTreeRefresh)!!, throwException)
+    }
+
+    /**
+     * The task part of [checkTaskBookable] (without the update short-cut): may time sheets be booked on the given
+     * task at all?
+     */
+    open fun checkTaskBookable(taskNode: TaskNode, throwException: Boolean): Boolean {
         // 1. Is the task or any of the ancestor tasks closed, deleted or has the booking status TREE_CLOSED?
         var node: TaskNode? = taskNode
         do {
@@ -795,7 +802,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         // 2. Determine the effective booking status: start with the task's own status and walk up the
         // ancestors as long as the status is INHERIT. The first explicitly set status wins, so an
         // explicit status on a nearer (descendant) node overrides the setting of a higher ancestor.
-        var bookingStatus = taskNode!!.task.timesheetBookingStatus
+        var bookingStatus = taskNode.task.timesheetBookingStatus
         node = taskNode
         while (bookingStatus == TimesheetBookingStatus.INHERIT && node?.parent != null) {
             node = node.parent

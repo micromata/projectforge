@@ -26,6 +26,7 @@ package org.projectforge.framework.support
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.fibu.ExchangeRateLogEvents
 import org.projectforge.business.jobs.JobLogEvents
+import org.projectforge.business.lanesandplanes.LanesAndPlanesLogEvents
 import org.projectforge.business.user.UserLogEvents
 import org.projectforge.common.logging.CommonLogEvents
 import org.projectforge.common.logging.LogEventRegistry
@@ -54,6 +55,7 @@ class BusinessLogEventCatalog {
             ExchangeRateLogEvents,
             JobLogEvents,
             IntegrationLogEvents,
+            LanesAndPlanesLogEvents,
             UserLogEvents,
             ThirdPartyLogEvents,
         )

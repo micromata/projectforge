@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Lanes & Planes interface: the active employees are pushed with the cost units (Kost2) they may book on and their Kost1 as reference cost center (configured by projectforge.lanesandplanes.*).",
+  "de": "Lanes-&-Planes-Schnittstelle: Die aktiven Mitarbeitenden werden mit den Kostenträgern (Kost2), auf die sie buchen dürfen, und ihrer Kost1 als Referenz-Kostenstelle übertragen (Konfiguration über projectforge.lanesandplanes.*)."
+}

@@ -37,6 +37,15 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
+    "id" : "unreleased",
+    "version" : "9.0.2",
+    "date" : "2026-10-07",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "Lanes-&-Planes-Schnittstelle: Die aktiven Mitarbeitenden werden mit den Kostenträgern (Kost2), auf die sie buchen dürfen, und ihrer Kost1 als Referenz-Kostenstelle übertragen (Konfiguration über projectforge.lanesandplanes.*)." ]
+    } ]
+  }, {
     "id" : "9-0-2",
     "version" : "9.0.2",
     "date" : "2026-10-06",
