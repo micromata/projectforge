@@ -40,4 +40,17 @@ object IntegrationLogEvents {
         explanation = "The summary of a sync run that was aborted or had errors (the sync type is in the message).",
         action = "See the log messages logged before by the sync for the cause.",
     )
+
+    /**
+     * Logged at most once a day (TeamEventExternalSubscriptionCache), not on every update run.
+     */
+    @JvmField
+    val ICAL_SUBSCRIPTIONS_SYSTEMIC_FAILURE = LogEvent(
+        code = "ical.subscriptions.systemicFailure",
+        category = LogCategory.EXTERNAL,
+        explanation = "Most of the subscribed calendars are failing for more than a day. Probably a network problem " +
+                "(proxy, DNS, firewall) or a bug on our side, so no failing subscription is deactivated.",
+        action = "See the log messages 'Unable to gather subscription calendar #...' for the cause. If the calendars " +
+                "are really gone, ask their owners to remove the subscriptions.",
+    )
 }

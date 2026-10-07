@@ -43,10 +43,11 @@ class ListFilterService {
      * @param keySuffix Appended to the filter class' name, so two lists of the same filter type can
      * keep their own settings. Used by the task tree, whose select popover filters independently of
      * the page. Null (the default) is the filter of the entity's own list page.
+     * @param session Null for requests without session, e.g. authenticated by token (see [UserPrefRestService]).
      */
     @JvmOverloads
     fun getSearchFilter(
-        session: HttpSession,
+        session: HttpSession?,
         filterClazz: Class<out BaseSearchFilter>,
         keySuffix: String? = null,
     ): BaseSearchFilter {

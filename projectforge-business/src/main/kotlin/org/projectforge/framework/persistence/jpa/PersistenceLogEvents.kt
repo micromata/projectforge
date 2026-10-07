@@ -35,4 +35,12 @@ object PersistenceLogEvents {
                 "The exception is rethrown, so a request shows the user an error.",
         action = "Analyze the stack trace. Constraint violations or lock timeouts may also point to inconsistent data or a database problem.",
     )
+
+    @JvmField
+    val FULLTEXT_QUERY_INVALID = LogEvent(
+        code = "persistence.fulltextQueryInvalid",
+        category = LogCategory.CLIENT,
+        explanation = "A search term the full text query parser can't parse (e.g. a trailing '/' or a dangling AND): " +
+                "the user gets no result for it.",
+    )
 }

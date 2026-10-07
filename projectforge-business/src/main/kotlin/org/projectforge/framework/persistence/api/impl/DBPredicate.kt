@@ -27,6 +27,7 @@ import jakarta.persistence.criteria.Predicate
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.math.NumberUtils
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
+import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
@@ -553,7 +554,8 @@ abstract class DBPredicate(
             value: String,
             fields: Array<String>,
         ) {
-            if (value.isBlank()) {
+            if (value.isBlank() || fields.isEmpty()) {
+                // Without any field Hibernate Search fails with an NPE (LuceneCommonQueryStringPredicateBuilder).
                 return
             }
             logDebugFunCall(log) {
@@ -592,14 +594,18 @@ abstract class DBPredicate(
                 it.mtd("search(value, fields)")
                     .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$stringQuery\")))")
             }
+            // Without any field Hibernate Search fails with an NPE (LuceneCommonQueryStringPredicateBuilder).
+            val stringPredicates: Array<PredicateFinalStep> = if (stringFields.isEmpty()) {
+                emptyArray()
+            } else {
+                arrayOf(searchPredicateFactory.queryString().fields(*stringFields).matching(stringQuery))
+            }
             boolCollector.must(
                 searchPredicateFactory.or(
                     searchPredicateFactory
                         .id()
                         .matching(value.toLong()),
-                    searchPredicateFactory.queryString()
-                        .fields(*stringFields)
-                        .matching(stringQuery),
+                    *stringPredicates,
                     *predicates
                 )
             )

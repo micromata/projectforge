@@ -269,6 +269,11 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
+        // The generic validation ignores required on references (@ManyToOne), and without a task
+        // TimesheetDao.hasUpdateAccess fails with an IllegalArgumentException (500 instead of a field error).
+        if (dto.task?.id == null) {
+            validationErrors.add(ValidationError.createFieldRequired(TimesheetDO::class.java, "task"))
+        }
         if (baseDao.timeSavingsByAIEnabled) {
             timesheetDao.validateTimeSavingsByAI(dto.timeSavedByAI, dto.timeSavedByAIUnit)?.let {
                 validationErrors.add(ValidationError(translate(it), fieldId = "timeSavedByAI"))
