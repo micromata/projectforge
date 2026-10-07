@@ -77,6 +77,18 @@ abstract class MassUpdateContext<T>(
   }
 
   /**
+   * Records the old and new value of a [field] that isn't a property of the object (such as a project's cost 2
+   * types), so the Excel export shows it. If both differ, the object counts as modified.
+   */
+  fun recordCurrentModification(field: String, oldValue: Any?, newValue: Any?) {
+    current?.let {
+      it.fieldModifications[field] = MassUpdateObject.FieldModification(oldValue, massUpdateParams[field]).also { mod ->
+        mod.newValue = newValue
+      }
+    }
+  }
+
+  /**
    * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
    * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
    */

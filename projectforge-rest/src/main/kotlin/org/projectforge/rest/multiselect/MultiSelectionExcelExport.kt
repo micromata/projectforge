@@ -85,16 +85,16 @@ object MultiSelectionExcelExport {
         sheet.registerColumns(head)
       }
       headRow.fillHeadRow()
-      massUpdateContext.massUpdateParams.forEach { (field, _) ->
-        if (modifiedFields.contains(field)) {
-          val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
-          firstRow.createCell()
-          firstRow.addMergeRegion(colNumber, colNumber + 1)
-          headRow.createCell().setCellValue(translate("massUpdate.excel.column.old"))
-          headRow.createCell().setCellValue(translate("massUpdate.excel.column.new"))
-          sheet.setColumnWidth(colNumber, 30 * 256)
-          sheet.setColumnWidth(colNumber + 1, 30 * 256)
-        }
+      // Column order of the modified fields, also used for the rows (an object may lack a field's modification).
+      val columnFields = massUpdateContext.massUpdateParams.keys.filter { modifiedFields.contains(it) }
+      columnFields.forEach { field ->
+        val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
+        firstRow.createCell()
+        firstRow.addMergeRegion(colNumber, colNumber + 1)
+        headRow.createCell().setCellValue(translate("massUpdate.excel.column.old"))
+        headRow.createCell().setCellValue(translate("massUpdate.excel.column.new"))
+        sheet.setColumnWidth(colNumber, 30 * 256)
+        sheet.setColumnWidth(colNumber + 1, 30 * 256)
       }
       sheet.setColumnWidth(headRow.createCell().setCellValue("Id").colNumber, 11 * 256) // Id column as last one
       headRow.fillHeadRow(boldStyle)
@@ -104,14 +104,13 @@ object MultiSelectionExcelExport {
         multiSelectedPage.getExcelIdentifierCells(massUpdateObject).forEach {
           row.createCell().setCellValue(it)
         }
-        massUpdateObject.fieldModifications.forEach { (field, modification) ->
-          if (modifiedFields.contains(field)) {
-            val oldValueCell = row.createCell()
-            val newValueCell = row.createCell()
-            if (modification.oldValue != modification.newValue) {
-              displayValue(context, oldValueCell, field, modification.oldValue)
-              displayValue(context, newValueCell, field, modification.newValue)
-            }
+        columnFields.forEach { field ->
+          val modification = massUpdateObject.fieldModifications[field]
+          val oldValueCell = row.createCell()
+          val newValueCell = row.createCell()
+          if (modification != null && modification.oldValue != modification.newValue) {
+            displayValue(context, oldValueCell, field, modification.oldValue)
+            displayValue(context, newValueCell, field, modification.newValue)
           }
         }
         row.createCell().setCellValue(massUpdateObject.getId())
