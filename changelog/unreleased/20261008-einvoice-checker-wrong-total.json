@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "E-invoice checker: an e-invoice whose amount due doesn't match its lines is shown with this error instead of \"no e-invoice data found\".",
+  "de": "E-Rechnungsprüfung: Eine E-Rechnung, deren Zahlbetrag nicht zu ihren Positionen passt, wird mit diesem Fehler angezeigt statt mit „keine E-Rechnungsdaten gefunden“."
+}

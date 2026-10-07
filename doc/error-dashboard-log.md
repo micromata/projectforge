@@ -13,6 +13,28 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-08 (export 2026-10-07 22:44, 18 problems OPEN, last 7 days, running version 9.0.2)
+
+Delta to the analysis of 2026-10-07. `04fd7072b` is not deployed yet, so these still occur:
+`AbstractUserPrefCache:282` (1×, marked REGRESSION only because it was resolved in the dashboard before the deploy),
+`OrderInfo:133` (4×, 2 users, unsaved orders in the next edit form), `TeamEventExternalSubscriptionCache:305`
+(the old per-run ERROR). `rest.noCredentials` now also on `/rs/order/<id>` (expired session tab), noise as before.
+
+### Fixed (develop, after 9.0.2)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `PfCaches:503` NPE "this.session is null" in `AbstractPersistentCollection.withTemporarySessionIfNeeded`, on `GET /rs/order/<id>` (`OrderEntityRest.transformFromDB` → `PfCaches.initialize(order)` → `getProjektIfNotInitialized` → `getGroupIfNotInitialized`; line 503 is beyond EOF: inlined `mapNotNull`) | `getGroupIfNotInitialized` iterated `group.assignedUsers`. `isFullyInitialized` checks only the entity, so a group loaded in an already closed session (presumably a projekt of the `ProjektCache` refreshed via `runReadOnlyForCacheMaintenance` within a request's transaction) passed with a lazy, detached `assignedUsers`. **Cause assumed, not reproduced.** | If `assignedUsers` isn't initialized, the group of the `UserGroupCache` is used (its users are loaded in the refresh); without one the users are left as they are. | If the NPE reappears with another collection or entity, the stale objects come from the `ProjektCache` itself. |
+| `ZUGFeRDInvoiceImporter:201` "Failed to parse PDF" (`ArithmeticException` "Payable total in XML is …, but calculated total is …", e-invoice checker upload) | mustang checks the totals while reading and rejects the invoice; the checker then reported "no ZUGFeRD data found in PDF" instead of the actual error of the supplier's invoice. | `EInvoiceReadService` reads with `doIgnoreCalculationErrors()` (ZUGFeRD and XRechnung, the latter via `LenientXRechnungImporter`) into a `CalculatedInvoice` and reports the mismatch itself as `[BR-CO-16]` validation error (`checkTotals`). `amountDue` is now the XML's DuePayableAmount (was GrandTotal). | mustang's other parse errors still log ERROR under `ZUGFeRDInvoiceImporter`. |
+
+### Open
+
+- **7 of 10 calendar subscriptions failing**: the server log of a regular run shows 21 subscribed calendars, 11
+  skipped (deactivated/deleted owner), 3 fetched successfully and the 7 failing ones skipped by the back-off (daily
+  retry, counted as `unchanged`). A run without retry therefore shows no error; the cause is only in the run that
+  retries them (`Retrying subscribed calendar #…` followed by `Unable to gather subscription calendar #…`; WARN only
+  for the first failure after a restart, then INFO). Last run with these errors: 2026-10-06 ~23:00 UTC.
+
 ## 2026-10-07 (export 05:42, 17 problems OPEN, last 7 days, running version 9.0.2)
 
 Deploy timeline derived from the data: 9.0.0 ~2026-10-05 21:40 UTC, 9.0.1 ~2026-10-06 08:20 UTC, 9.0.2
