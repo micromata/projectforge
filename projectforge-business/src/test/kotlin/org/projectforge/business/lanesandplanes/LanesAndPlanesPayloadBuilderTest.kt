@@ -26,6 +26,8 @@ package org.projectforge.business.lanesandplanes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.KontoDO
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -85,17 +87,60 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             Assertions.assertNull(result[withoutAccess.id], "No task access, no Kost2.")
             Assertions.assertEquals(
                 listOf(kost2b.formattedNumber),
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(2L))[withAccess.id]?.map { it.formattedNumber },
-                "Filtered by Kost2Art.",
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.02")))[withAccess.id]
+                    ?.map { it.formattedNumber },
+                "Filtered by pattern.",
+            )
+            Assertions.assertNull(
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.03")))[withAccess.id],
+                "Kost2 3 matches, but isn't bookable.",
+            )
+            Assertions.assertEquals(
+                listOf(kost2c.formattedNumber),
+                payloadBuilder.getGeneralKost2(listOf(kost2c.formattedNumber, kost2Nonactive.formattedNumber, "9.999.99.99"))
+                    .map { it.formattedNumber },
+                "General Kost2: inactive and unknown ones are skipped.",
             )
 
             val employee = EmployeeDO().also { it.staffNumber = " 4711 " }
             withAccess.firstname = "Kai"
             withAccess.lastname = "Tester"
-            val user = payloadBuilder.createUser(employee, withAccess, "k.tester@example.org", listOf(kost2b, kost2a), listOf(123L))
+            val settings = LanesAndPlanesSettings(accountingInvoiceProfileIds = listOf(123L, null))
+            val kost1List = listOf(kost1(1, 5, 2, "Travel costs"), kost1(1, 5, 1, null))
+            val user = payloadBuilder.createUser(employee, withAccess, "k.tester@example.org", kost1List, listOf(kost2b, kost2a), settings)
             Assertions.assertEquals("4711", user.personnelNumber)
+            Assertions.assertEquals("", user.middleName, "No middle name in PF: cleared in L&P.")
+            Assertions.assertEquals("", user.abbreviation, "Without nickname: cleared in L&P.")
             Assertions.assertNull(user.referenceCostCenter)
-            Assertions.assertEquals(listOf(kost2a.formattedNumber, kost2b.formattedNumber), user.costUnits.map { it.ident })
+            Assertions.assertNull(user.creditorAccount)
+            Assertions.assertEquals(
+                listOf(LanesAndPlanesCostObject("10050100", "10050100"), LanesAndPlanesCostObject("10050200", "10050200 Travel costs")),
+                user.costCenters,
+                "General Kost1 as cost centers, sorted, without dots.",
+            )
+            Assertions.assertEquals(listOf(kost2a.rawNumberString, kost2b.rawNumberString), user.costUnits?.map { it.ident })
+            user.costUnits!!.forEach {
+                Assertions.assertFalse(it.ident.contains('.'), "No dots for the DATEV export of L&P: ${it.ident}")
+                // Without project and description (as here) the name is the number only.
+                Assertions.assertTrue(it.name == it.ident || it.name.startsWith("${it.ident} "), it.name)
+                Assertions.assertFalse(it.name.contains(':'), it.name)
+            }
+            Assertions.assertEquals(listOf(123L), user.accountingInvoiceProfileIds)
+            employee.konto = KontoDO().also { it.nummer = 70123 }
+            withAccess.nickname = " kt "
+            val user2 = payloadBuilder.createUser(employee, withAccess, "k.tester@example.org", emptyList(), emptyList(), settings)
+            Assertions.assertEquals("70123", user2.creditorAccount)
+            Assertions.assertEquals("kt", user2.abbreviation)
+            Assertions.assertNull(user2.costCenters, "Without general Kost1 the cost centers of L&P are kept.")
+            Assertions.assertEquals(emptyList<LanesAndPlanesCostObject>(), user2.costUnits)
+            val additional = payloadBuilder.createAdditionalUser(
+                LanesAndPlanesSettings.AdditionalUser(" ext@example.org", " Ext ", "Accountant "), "ext@example.org", settings,
+            )
+            Assertions.assertEquals(
+                """{"first_name":"Ext","last_name":"Accountant","email":"ext@example.org","accounting_invoice_profile_ids":[123]}""",
+                JsonUtils.toJson(additional, ignoreNullableProps = true),
+                "Additional users: no ident, cost centers etc., so they are kept in L&P.",
+            )
             null
         }
     }
@@ -105,20 +150,34 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
         val user = LanesAndPlanesUser(
             ident = "42",
             firstName = "Kai",
+            middleName = "",
             lastName = "Tester",
             email = "k.tester@example.org",
-            costUnits = listOf(LanesAndPlanesCostObject("5.123.45.01", "5.123.45.01: Development - Project")),
+            abbreviation = "kt",
+            creditorAccount = "70123",
+            costUnits = listOf(LanesAndPlanesCostObject("51234501", "51234501 Development - Project")),
+            costCenters = listOf(LanesAndPlanesCostObject("10050200", "10050200 Travel costs")),
             accountingInvoiceProfileIds = listOf(123L),
         )
         val json = JsonUtils.toJson(LanesAndPlanesUsersRequest(listOf(user)), ignoreNullableProps = true)
         Assertions.assertEquals(
-            """{"users":[{"ident":"42","first_name":"Kai","last_name":"Tester","email":"k.tester@example.org",""" +
-                    """"cost_units":[{"ident":"5.123.45.01","name":"5.123.45.01: Development - Project"}],""" +
+            """{"users":[{"ident":"42","first_name":"Kai","middle_name":"","last_name":"Tester","email":"k.tester@example.org",""" +
+                    """"abbreviation":"kt",""" +
+                    """"creditor_account":"70123",""" +
+                    """"cost_units":[{"ident":"51234501","name":"51234501 Development - Project"}],""" +
+                    """"cost_centers":[{"ident":"10050200","name":"10050200 Travel costs"}],""" +
                     """"accounting_invoice_profile_ids":[123]}]}""",
             json,
         )
         val unzipped = GZIPInputStream(LanesAndPlanesSyncService.gzip(json).inputStream()).readBytes().toString(Charsets.UTF_8)
         Assertions.assertEquals(json, unzipped)
+    }
+
+    private fun kost1(nummernkreis: Int, bereich: Int, teilbereich: Int, description: String?) = Kost1DO().also {
+        it.nummernkreis = nummernkreis
+        it.bereich = bereich
+        it.teilbereich = teilbereich
+        it.description = description
     }
 
     private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null): Kost2DO {

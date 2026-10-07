@@ -30,6 +30,8 @@ import org.springframework.context.annotation.Configuration
 /**
  * Push of the active employees with their bookable cost units (Kost2) to Lanes & Planes (user import of the
  * ExtAPI). Every push replaces the complete user list in Lanes & Planes: users not sent are deactivated there.
+ * The technical settings only, read on start; the content (invoice profiles, Kost2) is maintained in the
+ * configuration parameter `lanesAndPlanes`, see [LanesAndPlanesSettings].
  */
 @Configuration
 @ConfigurationProperties(prefix = "projectforge.lanesandplanes")
@@ -39,10 +41,6 @@ open class LanesAndPlanesConfig {
     var url: String = "https://api.lanes-planes.com/ext/users"
     /** The API access token, created in the personal settings of a Lanes & Planes admin account. */
     var apiKey: String = ""
-    /** Required by Lanes & Planes for every user, the ids are provided by Lanes & Planes. */
-    var accountingInvoiceProfileIds: List<Long> = emptyList()
-    /** Only Kost2 of these types (Kost2Art ids, the last two digits) are sent. Empty: all types. */
-    var kost2ArtIds: List<Long> = emptyList()
     /** Builds the payload and writes it to the work directory, but doesn't send it. */
     var dryRun: Boolean = true
     /** Nothing is sent, if fewer users are found (protection against deactivating all users in Lanes & Planes). */

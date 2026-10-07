@@ -34,19 +34,32 @@ data class LanesAndPlanesUsersRequest(val users: List<LanesAndPlanesUser>)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class LanesAndPlanesUser(
-    val ident: String,
+    /** The id of the ProjectForge user; not sent for the additional users (so kept in Lanes & Planes). */
+    val ident: String? = null,
     @JsonProperty("first_name")
     val firstName: String,
+    /** Sent empty for the employees (cleared in L&P): there is no middle name in ProjectForge. */
+    @JsonProperty("middle_name")
+    val middleName: String? = null,
     @JsonProperty("last_name")
     val lastName: String,
     /** The unique key of the user in Lanes & Planes. */
     val email: String,
+    /** The nickname of the user, sent empty if not set (so cleared in L&P). */
+    val abbreviation: String? = null,
     @JsonProperty("personnel_number")
     val personnelNumber: String? = null,
     @JsonProperty("reference_cost_center")
     val referenceCostCenter: String? = null,
+    /** The account of the employee (number of the DATEV account). */
+    @JsonProperty("creditor_account")
+    val creditorAccount: String? = null,
+    /** The Kost2: the general ones and the bookable ones. */
     @JsonProperty("cost_units")
-    val costUnits: List<LanesAndPlanesCostObject>,
+    val costUnits: List<LanesAndPlanesCostObject>? = null,
+    /** The general Kost1. */
+    @JsonProperty("cost_centers")
+    val costCenters: List<LanesAndPlanesCostObject>? = null,
     @JsonProperty("accounting_invoice_profile_ids")
     val accountingInvoiceProfileIds: List<Long>,
 )

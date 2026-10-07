@@ -77,6 +77,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   FIBU_CONTRIBUTION_MARGIN("fibu.contributionMargin", ConfigurationType.JSON), //
   /**
+   * The settings of the Lanes &amp; Planes push as JSON object (invoice profile ids, general Kost2, patterns of the
+   * user-specific Kost2, target field), see {@code LanesAndPlanesSettings}.
+   */
+  LANES_AND_PLANES("lanesAndPlanes", ConfigurationType.JSON), //
+  /**
    * Cost configured configuration param.
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
@@ -206,6 +211,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case TIMESHEET_NOTE_SAVINGS_BY_AI:
       case TIMESHEET_TAGS:
       case CUSTOMER_GROUPS:
+      case LANES_AND_PLANES:
         return ConfigurationEditors.FINANCE;
       default:
         return ConfigurationEditors.ADMIN;

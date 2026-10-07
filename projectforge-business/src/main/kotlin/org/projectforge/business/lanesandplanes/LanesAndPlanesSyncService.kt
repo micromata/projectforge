@@ -59,6 +59,7 @@ private val log = KotlinLogging.logger {}
 open class LanesAndPlanesSyncService(
     private val config: LanesAndPlanesConfig,
     private val payloadBuilder: LanesAndPlanesPayloadBuilder,
+    private val settingsService: LanesAndPlanesSettingsService,
 ) {
     private val syncStats = SyncStatsRegistry.get(SYNC_TYPE)
 
@@ -78,9 +79,10 @@ open class LanesAndPlanesSyncService(
         }
         try {
             val run = syncStats.startRun(if (config.dryRun) "dry run" else null)
+            val settings = settingsService.settings()
             val result = try {
                 run.step("build") { counts ->
-                    payloadBuilder.build(config.accountingInvoiceProfileIds, config.kost2ArtIds).also {
+                    payloadBuilder.build(settings).also {
                         counts.unchanged = it.request.users.size
                         counts.errors = it.skippedUsers
                     }
@@ -91,7 +93,7 @@ open class LanesAndPlanesSyncService(
                 return
             }
             val users = result.request.users
-            refuseReason(users.size)?.let { reason ->
+            refuseReason(users.size, settings)?.let { reason ->
                 log.error(LanesAndPlanesLogEvents.PUSH_REFUSED) { "Lanes & Planes push refused: $reason" }
                 run.abort(reason)
                 return
@@ -102,7 +104,13 @@ open class LanesAndPlanesSyncService(
                 file.writeText(json)
                 log.info {
                     "Lanes & Planes dry run (projectforge.lanesandplanes.dryRun=true): ${users.size} users with " +
-                            "${users.sumOf { it.costUnits.size }} cost units written to ${file.absolutePath}, nothing sent."
+                            "${users.sumOf { it.costCenters?.size ?: 0 }} cost centers " +
+                            "(${settings.generalKost1Numbers.size} general Kost1) and " +
+                            "${users.sumOf { it.costUnits?.size ?: 0 }} cost units " +
+                            "(${settings.generalKost2Numbers.size} general Kost2, patterns ${settings.kost2Patterns}), " +
+                            "${users.count { it.creditorAccount != null }} with creditor account, " +
+                            "${settings.additionalUserList.size} additional users, " +
+                            "written to ${file.absolutePath}, nothing sent."
                 }
                 run.finish()
                 return
@@ -137,12 +145,12 @@ open class LanesAndPlanesSyncService(
     /**
      * @return The reason, why the push mustn't be sent, or null.
      */
-    internal fun refuseReason(userCount: Int): String? {
+    internal fun refuseReason(userCount: Int, settings: LanesAndPlanesSettings): String? {
         if (config.apiKey.isBlank() && !config.dryRun) {
             return "projectforge.lanesandplanes.apiKey not configured."
         }
-        if (config.accountingInvoiceProfileIds.isEmpty()) {
-            return "projectforge.lanesandplanes.accountingInvoiceProfileIds not configured (required by Lanes & Planes)."
+        if (settings.invoiceProfileIds.isEmpty()) {
+            return "no invoice profile ids in the configuration parameter 'lanesAndPlanes' (required by Lanes & Planes)."
         }
         if (userCount < config.minUsers) {
             return "only $userCount users found (projectforge.lanesandplanes.minUsers=${config.minUsers}), all " +

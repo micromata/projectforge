@@ -6,8 +6,10 @@ import { HighlightedText } from "@/components/shared/highlighted-text";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber, formatPercentageDecimal } from "@/lib/format";
 import { CONTRIBUTION_MARGIN_PARAM } from "../contribution-margin-config";
+import { LANES_AND_PLANES_PARAM } from "../lanes-and-planes-config";
 import type { ConfigurationRow } from "../types";
 import { ContributionMarginConfigSummary } from "./contribution-margin-config-summary";
+import { LanesAndPlanesConfigSummary } from "./lanes-and-planes-config-summary";
 
 /**
  * The current value of a configuration parameter, read-only, formatted for the type it is stored as —
@@ -50,6 +52,9 @@ export function ConfigurationValueCell({
     case "JSON":
       if (row.parameter === CONTRIBUTION_MARGIN_PARAM) {
         return <ContributionMarginConfigSummary json={row.stringValue} />;
+      }
+      if (row.parameter === LANES_AND_PLANES_PARAM) {
+        return <LanesAndPlanesConfigSummary json={row.stringValue} />;
       }
       return (
         <span className="line-clamp-2 break-all font-mono text-xs">

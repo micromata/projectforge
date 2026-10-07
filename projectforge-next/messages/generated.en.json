@@ -195,6 +195,10 @@
             "description": "Mailaddress of HR for request of leave"
           }
         },
+        "lanesAndPlanes": {
+          "_": "Lanes & Planes",
+          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, and the additional users who aren't employees. The technical settings (activation, API key, dry run) are in projectforge.properties."
+        },
         "messageOfTheDay": {
           "_": "Message of the day",
           "description": "This message will be displayed on the user's login screen. Please note: This message is also visible for unauthorized users!"
@@ -1117,6 +1121,10 @@
       "austrittsdatum": "Leaving date",
       "division": "Division",
       "eintrittsdatum": "Entry date",
+      "konto": {
+        "_": "Creditor account",
+        "tooltip": "The account of the employee, e.g. for travel expenses (sent to Lanes & Planes as creditor account)."
+      },
       "salaries": {
         "import": {
           "_": "Import of salaries",
@@ -2072,6 +2080,43 @@
       "short": "Pos"
     },
     "sendEMailNotification": "Send an e-mail notification?"
+  },
+  "lanesAndPlanes": {
+    "config": {
+      "accountingInvoiceProfileIds": {
+        "_": "Invoice profile ids",
+        "tooltip": "Required by Lanes & Planes for every user. The ids are provided by Lanes & Planes (see the column invoice_profiles of the user export)."
+      },
+      "add": "Add",
+      "additionalUsers": {
+        "_": "Additional users (no employees)",
+        "email": "Email",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "tooltip": "Users of Lanes & Planes who aren't employees, e.g. an external accountant or the service admin of Lanes & Planes. Sent with name, email and invoice profiles only, so their role, managers and cost centers are kept. Otherwise they would be deactivated by the push, and if one of them has responsibilities (e.g. as accountant or travel manager), the whole push fails."
+      },
+      "generalKost1": {
+        "_": "General Kost1 (cost centers)",
+        "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.005.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."
+      },
+      "generalKost2": {
+        "_": "General Kost2 (cost units)",
+        "tooltip": "Sent to all users as cost units (cost_units) in addition to the bookable Kost2, independent of their booking rights, e.g. internal Kost2 like trainings or sales. Formatted number like 5.999.10.09."
+      },
+      "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+      "kost2Patterns": {
+        "_": "Patterns of the bookable Kost2",
+        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent."
+      },
+      "kostNotFound": "not found",
+      "mode": {
+        "list": "List",
+        "text": "Text"
+      },
+      "remove": "Remove {arg0}",
+      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users",
+      "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file."
+    }
   },
   "lastUpdate": "last modification",
   "ldap": {

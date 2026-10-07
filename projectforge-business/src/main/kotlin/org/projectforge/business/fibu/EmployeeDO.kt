@@ -61,6 +61,9 @@ private val log = KotlinLogging.logger {}
     indexes = [jakarta.persistence.Index(
         name = "idx_fk_t_fibu_employee_kost1_id",
         columnList = "kost1_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_employee_konto_id",
+        columnList = "konto_id"
     ), jakarta.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")]
 )
 @AUserRightId("HR_EMPLOYEE")
@@ -102,6 +105,15 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kost1_id", nullable = true)
     open var kost1: Kost1DO? = null
+
+    /**
+     * The (creditor) account of the employee, e.g. for travel expenses (sent to Lanes & Planes).
+     */
+    @PropertyInfo(i18nKey = "fibu.employee.konto", tooltip = "fibu.employee.konto.tooltip")
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "konto_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var konto: KontoDO? = null
 
     /**
      * Field will be set by EmployeeDao automatically from validity period attr.

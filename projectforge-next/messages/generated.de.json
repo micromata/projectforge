@@ -195,6 +195,10 @@
             "description": "Mailadresse von HR für Urlaubseinträge"
           }
         },
+        "lanesAndPlanes": {
+          "_": "Lanes & Planes",
+          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, und die weiteren User, die keine Mitarbeitenden sind. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
+        },
         "messageOfTheDay": {
           "_": "Meldung des Tages",
           "description": "Diese Meldung wird im Logindialog angezeigt. Achtung, sie ist auch für nicht autorisierte Besucher sichtbar!"
@@ -1117,6 +1121,10 @@
       "austrittsdatum": "Austrittsdatum",
       "division": "Team",
       "eintrittsdatum": "Eintrittsdatum",
+      "konto": {
+        "_": "Kreditorenkonto",
+        "tooltip": "Das Konto der Mitarbeiterin bzw. des Mitarbeiters, z. B. für Reisekosten (wird an Lanes & Planes als Kreditorenkonto übertragen)."
+      },
       "salaries": {
         "import": {
           "_": "Gehälterimport",
@@ -2072,6 +2080,43 @@
       "short": "Pos"
     },
     "sendEMailNotification": "E-Mail-Benachrichtigung versenden?"
+  },
+  "lanesAndPlanes": {
+    "config": {
+      "accountingInvoiceProfileIds": {
+        "_": "Rechnungsprofil-IDs",
+        "tooltip": "Von Lanes & Planes für jeden User verlangt. Die IDs werden von Lanes & Planes vergeben (siehe Spalte invoice_profiles des User-Exports)."
+      },
+      "add": "Hinzufügen",
+      "additionalUsers": {
+        "_": "Weitere User (keine Mitarbeitenden)",
+        "email": "E-Mail",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "tooltip": "User von Lanes & Planes, die keine Mitarbeitenden sind, z. B. eine externe Buchhaltung oder der Service-Admin von Lanes & Planes. Werden nur mit Name, E-Mail und Rechnungsprofilen übertragen, ihre Rolle, Manager und Kostenstellen bleiben also erhalten. Ohne Eintrag würden sie von der Übertragung deaktiviert, und hat einer von ihnen Verantwortlichkeiten (z. B. als Buchhaltung oder Reisemanager), schlägt die ganze Übertragung fehl."
+      },
+      "generalKost1": {
+        "_": "Allgemeine Kost1 (Kostenstellen)",
+        "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.005.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
+      },
+      "generalKost2": {
+        "_": "Allgemeine Kost2 (Kostenträger)",
+        "tooltip": "Werden allen Usern zusätzlich zu den bebuchbaren Kost2 als Kostenträger (cost_units) übertragen, unabhängig von ihren Buchungsrechten, z. B. interne Kost2 wie Fortbildung oder Vertrieb. Formatierte Nummer wie 5.999.10.09."
+      },
+      "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
+      "kost2Patterns": {
+        "_": "Muster der bebuchbaren Kost2",
+        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen."
+      },
+      "kostNotFound": "nicht gefunden",
+      "mode": {
+        "list": "Liste",
+        "text": "Text"
+      },
+      "remove": "{arg0} entfernen",
+      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User",
+      "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt."
+    }
   },
   "lastUpdate": "letzte Änderung",
   "ldap": {

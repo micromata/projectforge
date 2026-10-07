@@ -43,7 +43,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Lanes & Planes interface: the active employees are pushed with the cost units (Kost2) they may book on and their Kost1 as reference cost center (configured by projectforge.lanesandplanes.*)." ]
+      "items" : [ "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses).", "Lanes & Planes interface: additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter \"Lanes & Planes\". They are sent with name and email only, so they aren't deactivated and their role and managers are kept.", "Lanes & Planes interface: the active employees are pushed with the general Kost1 as cost centers, the general Kost2 and the Kost2 they may book on (restricted by patterns like 5.*.02) as cost units, their Kost1 as reference cost center, their creditor account and their nickname as abbreviation. Numbers are sent without dots (as the DATEV export of Lanes & Planes requires). Finance maintains these settings in the configuration parameter \"Lanes & Planes\"; activation and API key are set in projectforge.lanesandplanes.*." ]
     } ]
   }, {
     "id" : "9-0-2",

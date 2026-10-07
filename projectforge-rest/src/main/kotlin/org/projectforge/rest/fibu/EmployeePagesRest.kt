@@ -76,6 +76,9 @@ class EmployeePagesRest :
     private lateinit var employeeService: EmployeeService
 
     @Autowired
+    private lateinit var kontoCache: KontoCache
+
+    @Autowired
     private lateinit var kostCache: KostCache
 
     @Autowired
@@ -96,6 +99,10 @@ class EmployeePagesRest :
             Kost1(kost).let { dto ->
                 employee.kost1 = dto
             }
+        }
+        employee.konto = kontoCache.getKontoIfNotInitialized(obj.konto)?.let { konto ->
+            // displayName is a computed getter of KontoDO, so it isn't copied by the constructor.
+            Konto(konto).also { it.displayName = konto.displayName }
         }
         employeeCache.setTimeDependentAttrs(obj)
         employee.status = obj.status
@@ -281,9 +288,17 @@ class EmployeePagesRest :
                     )
                     .add(
                         UICol()
+                            .add(lc, "staffNumber")
                             .add(
-                                lc, "staffNumber", "eintrittsDatum", "austrittsDatum"
+                                UISelect<Long>(
+                                    "konto",
+                                    lc,
+                                    label = "fibu.employee.konto",
+                                    tooltip = "fibu.employee.konto.tooltip",
+                                    autoCompletion = AutoCompletion<Long>(url = AutoCompletion.getAutoCompletionUrl("account")),
+                                )
                             )
+                            .add(lc, "eintrittsDatum", "austrittsDatum")
                     )
             )
             .add(

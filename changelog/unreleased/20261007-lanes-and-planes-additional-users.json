@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Lanes & Planes interface: additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter \"Lanes & Planes\". They are sent with name and email only, so they aren't deactivated and their role and managers are kept.",
+  "de": "Lanes-&-Planes-Schnittstelle: Im Konfigurationsparameter „Lanes & Planes“ können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten."
+}
