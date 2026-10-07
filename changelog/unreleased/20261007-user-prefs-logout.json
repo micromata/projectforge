@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Changed user settings (e.g. list filters and column layouts) are saved again on logout instead of being lost.",
+  "de": "Geänderte Benutzereinstellungen (z. B. Listenfilter und Spaltenlayouts) werden beim Abmelden wieder gespeichert, statt verloren zu gehen."
+}
