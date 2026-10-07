@@ -91,6 +91,10 @@ public class ProjectForgeApp {
         junitTestMode = true;
     }
 
+    public static boolean isJunitTestMode() {
+        return junitTestMode;
+    }
+
     private static ConfigurableApplicationContext springApplicationRunContext;
 
     private static Class<?> springApplication;

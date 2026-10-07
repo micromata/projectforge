@@ -26,12 +26,12 @@ package org.projectforge.business.fibu
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
+import org.mustangproject.CalculatedInvoice
 import org.mustangproject.FileAttachment
-import org.mustangproject.Invoice
 import org.mustangproject.TradeParty
+import org.mustangproject.ZUGFeRD.TransactionCalculator
 import org.mustangproject.ZUGFeRD.ZUGFeRDImporter
 import org.mustangproject.ZUGFeRD.ZUGFeRDInvoiceImporter
-import org.mustangproject.ZUGFeRD.XRechnungImporter
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
@@ -58,7 +58,13 @@ class EInvoiceReadService {
     }
 
     private fun parseZUGFeRD(content: ByteArray): ParseResult {
-        val importer = ZUGFeRDImporter(ByteArrayInputStream(content))
+        // Without ignoring calculation errors, mustang rejects an invoice whose totals don't add up while reading it
+        // (logged as error, canParse() false). The checker shall show such an invoice and report the error instead,
+        // see checkTotals.
+        val importer = ZUGFeRDImporter().apply {
+            doIgnoreCalculationErrors()
+            setInputStream(ByteArrayInputStream(content))
+        }
         if (!importer.canParse()) {
             return ParseResult(
                 EInvoiceData(
@@ -118,7 +124,7 @@ class EInvoiceReadService {
     }
 
     private fun parseXRechnung(content: ByteArray): ParseResult {
-        val importer = XRechnungImporter(content)
+        val importer = LenientXRechnungImporter(content)
         val invoice = extractInvoice(importer)
         val profile = importer.zugFeRDProfil
 
@@ -159,16 +165,17 @@ class EInvoiceReadService {
         return ParseResult(invoiceData, attachmentBytes)
     }
 
-    private fun extractInvoice(importer: ZUGFeRDImporter): Invoice? {
+    private fun extractInvoice(importer: ZUGFeRDImporter): CalculatedInvoice? {
         return try {
-            importer.extractInvoice()
+            // A CalculatedInvoice keeps the totals stated in the XML (e.g. the amount due), see checkTotals.
+            CalculatedInvoice().also { importer.extractInto(it) }
         } catch (e: Exception) {
             log.warn(e) { "Failed to extract invoice object: ${e.message}" }
             null
         }
     }
 
-    private fun buildInvoiceData(invoice: Invoice?, importer: ZUGFeRDImporter): EInvoiceData {
+    private fun buildInvoiceData(invoice: CalculatedInvoice?, importer: ZUGFeRDImporter): EInvoiceData {
         val validationErrors = mutableListOf<String>()
 
         if (invoice == null) {
@@ -223,12 +230,25 @@ class EInvoiceReadService {
             totalNetAmount = parseBigDecimal(safeGet { importer.lineTotalAmount }),
             totalGrossAmount = parseBigDecimal(safeGet { importer.amount }),
             totalTaxAmount = parseBigDecimal(safeGet { importer.taxTotalAmount }),
-            amountDue = parseBigDecimal(safeGet { importer.amount }),
+            amountDue = invoice.duePayable ?: parseBigDecimal(safeGet { importer.amount }),
             lineItems = lineItems,
             validationErrors = validationErrors,
         ).let { data ->
-            data.copy(validationErrors = data.validationErrors + validate(data))
+            data.copy(validationErrors = data.validationErrors + validate(data) + listOfNotNull(checkTotals(invoice, data)))
         }
+    }
+
+    /**
+     * The check mustang does while reading (skipped by doIgnoreCalculationErrors): the amount due for payment in the
+     * XML must match the total calculated from the lines, allowances, charges and taxes.
+     */
+    private fun checkTotals(invoice: CalculatedInvoice, data: EInvoiceData): String? {
+        val payable = invoice.duePayable ?: data.totalGrossAmount ?: return null
+        val calculated = safeGet { TransactionCalculator(invoice).duePayable } ?: return null
+        if (payable.compareTo(calculated) == 0) {
+            return null
+        }
+        return "[BR-CO-16] Amount due for payment (BT-115) is ${payable.toPlainString()}, but the calculated total is ${calculated.toPlainString()}."
     }
 
     private fun validate(data: EInvoiceData): List<String> {
@@ -342,6 +362,18 @@ class EInvoiceReadService {
             block()
         } catch (e: Exception) {
             null
+        }
+    }
+
+    /**
+     * Like mustang's XRechnungImporter, but ignores calculation errors (see parseZUGFeRD). XRechnungImporter reads
+     * the XML in its constructor, so the flag can't be set on it.
+     */
+    private class LenientXRechnungImporter(content: ByteArray) : ZUGFeRDImporter() {
+        init {
+            doIgnoreCalculationErrors()
+            setRawXML(content)
+            containsMeta = true
         }
     }
 }

@@ -24,7 +24,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   a manual change would be overwritten on the next run anyway.
 - The changelog is written only in `changelog/changelog.json` (English, published — no names of persons,
   customers or internal teams), its German translation for the app in `changelog/changelog.de.json` (same
-  structure, texts only, by version/id; every entry must be translated). `site/_changelogs/*.adoc`,
+  structure, texts only, by version/id; every entry must be translated). A new change in a branch goes into
+  its own file `changelog/unreleased/yyyyMMdd-<slug>.json` with English and German text (see the README
+  there), not into these two files; `bin/pfDev.sh release` moves them into the release entry. `site/_changelogs/*.adoc`,
   `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
   them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 

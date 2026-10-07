@@ -8,14 +8,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { fetchSystemAdminData } from "@/lib/rs/system";
 import { AlertMessageCard } from "./alert-message-card";
 import { FormatLogEntriesCard } from "./format-log-entries-card";
+import { JcrCard } from "./jcr-card";
 import { ReindexCard } from "./reindex-card";
 import { SystemActionGroups } from "./system-action-groups";
 
 /**
  * The System (administration) page ("/next/system"), successor of Wicket's `wa/admin`. A standalone,
  * action-driven admin page: set the site-wide alert message, reindex the search indices (with an
- * inline progress bar), format log entries, and run the caches/configuration/checks/database/dev
- * actions. Admin-group only — every endpoint self-checks. The Wicket page is gone; old `wa/admin`
+ * inline progress bar), format log entries, prepare the JCR replacement, and run the
+ * caches/configuration/checks/database/dev actions. Admin-group only — every endpoint self-checks. The Wicket page is gone; old `wa/admin`
  * links are redirected here.
  */
 export function SystemPage() {
@@ -53,6 +54,7 @@ export function SystemPage() {
             <AlertMessageCard data={query.data} />
             <ReindexCard data={query.data} />
             <SystemActionGroups data={query.data} />
+            <JcrCard data={query.data} />
             <FormatLogEntriesCard />
           </>
         )}

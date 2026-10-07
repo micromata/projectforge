@@ -1343,13 +1343,16 @@ ____
 All datasets of ProjectForge® will be stored in the underlaying
 database (e. g. PostgreSQL).  +
 You should install an Unix cron script making frequently a backup of the
-database. A dump of containing table entries as SQL statements for
-PostgreSQL is possible by using:
+database (see <<Backup script>>).
 
-[cols=",",]
-|===
-|  |pg_dump -D -U projectforge -f pf_dump_`date '+%Y-%m-%d_%H-%M'`.sql
-|===
+The files of the new file store (attachments of contracts, orders, invoices etc., see <<Moving the files out of the JCR>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
+
+* The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
+* The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
+
+Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the JCR sanity check.
+
+Data transfer files (`<home>/datatransfer`) are not part of any backup: their metadata is in `pf_files`, but the content is stored in the file system and is short-lived.
 
 === Restoring a backup
 
@@ -1357,8 +1360,18 @@ PostgreSQL is possible by using:
 
 [source,shell,linenums]
 ----
-psql -q -f projectforge_2008-05-12_02-00.sql -U postgres projectforge 2>&1 > log.txt
+gunzip projectforge_2026-10-06_02-00.sql.gz
+psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge 2>&1 > log.txt
 ----
+
+Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
+
+[source,shell,linenums]
+----
+pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
+----
+
+Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. Run the JCR sanity check on the system page after restoring.
 
 For further details concerning dropping and creating a new data base.  +
 Don't forget to create indices (thru admin web page)!
@@ -1387,6 +1400,27 @@ For restoring a JCR backup, please refer the file `backupReadme.txt` inside the 
 
 If you have a corrupted JCR repository or if you want to make a full backup, refer `backupReadme.txt` as well. You will also find the readme here: `https://github.com/micromata/projectforge/blob/develop/projectforge-jcr/src/main/resources/backupReadme.txt`.
 
+==== Moving the files out of the JCR
+
+The JCR (Apache Oak) is going to be replaced by a new file store: the files are stored in the data base (schema `pf_files`), the data transfer files in the file system (`<home>/datatransfer`). The store is chosen in `projectforge.properties`:
+
+[source,properties]
+----
+# jcr: all files stay in the JCR (as before).
+# db: all files are stored in the new file store.
+projectforge.files.store=db
+----
+
+If not configured, `db` is used for new installations and `jcr` for installations with an existing JCR (unless the new file store already contains files of the data base storage, then `db`). So nothing changes for an existing installation until you switch to `db`.
+
+After switching to `db` and restarting, ProjectForge copies all files of the JCR in the background. Every file is verified by size and SHA-256 checksum. The result is written to `<home>/jcr-migration-report.txt`; the migration is started on every start-up until a run finished without errors. It may also be started manually on the system page (card "Document repository (JCR)").
+
+* All files are copied, the JCR keeps them. So you may switch back to `jcr` or roll back to the former release; only files uploaded under `db` are missing after a rollback.
+* Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
+* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<Backup script>>), data transfer files are not backed up.
+
+Switch to `db` and wait for a successful migration before updating to the release without JCR.
+
 === Automatical backup
 
 ==== Backup script
@@ -1402,26 +1436,48 @@ server starting the following script:
 
 PGSQL_DIR=/usr/bin
 BACKUPDIR=/home/projectforge/backup
-BASENAME=projectforge PASSWD=...
+BASENAME=projectforge
+TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
 echo Starting backup of ProjectForge ...
-BACKUPFILE=$BACKUPDIR/${BASENAME}_`date '+%Y-%m-%d_%H-%M'`.sql
 
-echo Using filename $BACKUPFILE ...
-echo Exporting ...
-$PGSQL_DIR/pg_dump -D -U projectforge -W $PASSWD -f $BACKUPFILE
+# Main dump: all data except the files (schema pf_files).
+BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
+# Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
+FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+
+echo Using filenames $BACKUPFILE and $FILES_BACKUPFILE ...
+
+echo Exporting data ...
+$PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
 
 echo Zipping backupfile ...
 gzip $BACKUPFILE
 
-# For using scp for remote backup:
-#scp $BACKUPFILE <user>@backup.mydomain:backup/
+echo Exporting files ...
+# Custom format; -Z 0: the content is already compressed (or not compressible).
+$PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
 
-echo Deleting backups older than 14 days
-find $BACKUPDIR -mtime +14 | xargs rm
+# For using scp for remote backup:
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE <user>@backup.mydomain:backup/
+
+# Deleting of daily backups is done by ProjectForge (projectforge.cron.purgeBackupDir, see below). Monthly backups
+# are kept forever, because they're needed for financial, yearly comparisons.
 
 echo Backup of ProjectForge finished.
 ----
+
+ProjectForge purges the daily backups (keeping weekly and monthly ones), if the backup dir is configured in `projectforge.properties`:
+
+[source,properties]
+----
+projectforge.cron.purgeBackupDir=/home/projectforge/backup
+# Optional: comma-separated prefixes of the backup series. If not given, all files containing a date are processed.
+# Each series (text in front of the date, here projectforge_ and projectforge_files_) is purged on its own.
+#projectforge.cron.purgeBackupFilesPrefix=projectforge_
+----
+
+The files dump `projectforge_files_...` is its own series, so it is purged like the main dump (also with the prefix `projectforge_`, because it starts with it).
 
 For allowing `pg_dump` without prompting password (if set), you can add
 the following line to:

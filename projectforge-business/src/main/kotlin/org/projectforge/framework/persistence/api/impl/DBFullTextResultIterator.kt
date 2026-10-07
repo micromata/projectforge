@@ -28,13 +28,19 @@ package org.projectforge.framework.persistence.api.impl
 import jakarta.persistence.EntityManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.util.common.SearchException
+import org.projectforge.common.logging.warn
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
+import org.projectforge.framework.persistence.jpa.PersistenceLogEvents
 
 
 private val log = KotlinLogging.logger {}
+
+/** Hibernate Search: "An error occurred while parsing the query string ...". */
+private const val QUERY_PARSE_ERROR = "HSEARCH600180"
 
 /**
  * Block wise search result iterator. (100 was much too low: 100 caused a lot of queries)
@@ -118,7 +124,12 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
             return searchResult as List<O>
         } catch (ex: Exception) {
             val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
-            log.error(errorMsg)
+            if (ex is SearchException && ex.message?.startsWith(QUERY_PARSE_ERROR) == true) {
+                // The user's search term isn't valid query syntax: no bug.
+                log.warn(PersistenceLogEvents.FULLTEXT_QUERY_INVALID) { errorMsg }
+            } else {
+                log.error(errorMsg)
+            }
             return emptyList()
         }
     }

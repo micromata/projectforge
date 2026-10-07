@@ -2,7 +2,7 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { cn } from "@/lib/utils";
 import { LIQUIDITY_ROUTE } from "../liquidity.page";
@@ -49,14 +49,14 @@ export function SeriesLink({ className }: { className?: string }) {
         {/* The generator renders positional `{0}` placeholders as `{arg0}` (see messages/generated.*.json). */}
         {t("plugins.liquidityplanning.series.partOf", { arg0: subject ?? "" })}{" "}
         {/* next/link prepends the app's basePath (/next) itself — see menu-url.ts. */}
-        <Link
+        <GuardedLink
           href={`${LIQUIDITY_ROUTE}/series/${seriesId}${
             seriesDate ? `?from=${seriesDate}` : ""
           }`}
           className="font-medium text-primary underline underline-offset-2"
         >
           {t("plugins.liquidityplanning.series.editLink")}
-        </Link>
+        </GuardedLink>
       </p>
       {/* The copy-on-write hint: only while the occurrence is still virtual (first save freezes it). */}
       {isNew && (

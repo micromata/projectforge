@@ -633,6 +633,15 @@ abstract class OakStorage(val mainNodeName: String) {
         }
     }
 
+    /**
+     * @return true, if the main node has any child nodes (the repository is in use).
+     */
+    fun hasContent(): Boolean {
+        return runInSession { session ->
+            session.rootNode.hasNode(mainNodeName) && session.rootNode.getNode(mainNodeName).hasNodes()
+        }
+    }
+
     protected fun initRepository() {
         runInSession { session ->
             if (!session.rootNode.hasNode(mainNodeName)) {

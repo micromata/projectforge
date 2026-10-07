@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useAddEntryShortcut } from "@/hooks/use-add-entry-shortcut";
 
@@ -74,7 +74,7 @@ export function AddEntryButton(props: AddEntryButtonProps) {
           {isLegacy ? (
             <a href={href}>{icon}</a>
           ) : (
-            <Link href={href}>{icon}</Link>
+            <GuardedLink href={href}>{icon}</GuardedLink>
           )}
         </Button>
       )}

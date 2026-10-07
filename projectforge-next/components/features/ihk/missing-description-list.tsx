@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,12 @@ export function MissingDescriptionList({
                 <span className="text-muted-foreground">{item.label}</span>
               </span>
               <Button asChild size="sm" variant="outline">
-                <Link
+                <GuardedLink
                   href={`/timesheet/${item.id}?returnTo=/ihk`}
                   aria-label={`${t("plugins.ihk.edit")}: ${formatDate(item.startTime, ctx)} ${item.label}`}
                 >
                   {t("plugins.ihk.edit")}
-                </Link>
+                </GuardedLink>
               </Button>
             </li>
           ))}

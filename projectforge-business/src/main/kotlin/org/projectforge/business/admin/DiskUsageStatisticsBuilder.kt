@@ -23,11 +23,16 @@
 
 package org.projectforge.business.admin
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.extensions.format
+import org.projectforge.common.extensions.formatBytes
 import org.projectforge.framework.persistence.database.DatabaseBackupPurgeJob
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.jcr.RepoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class DiskUsageStatisticsBuilder : SystemsStatisticsBuilderInterface {
@@ -44,6 +49,19 @@ class DiskUsageStatisticsBuilder : SystemsStatisticsBuilderInterface {
 
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     stats.addDiskUsage("jcrDiskUsage", "disk usage", "'JCR storage", repoService.fileStoreLocation)
+    repoService.fileStore?.let { fileStore ->
+      fileStore.fileSystemDirs.forEachIndexed { index, dir ->
+        stats.addDiskUsage("fileStoreDiskUsage$index", "disk usage", "'File store (${dir.name})", dir)
+      }
+      try {
+        val info = fileStore.getStatistics().joinToString(", ") {
+          "${it.storage}: ${it.count.format()} files (${it.size.formatBytes()}, stored ${it.storedSize.formatBytes()})"
+        }
+        stats.add("fileStoreStatistics", "disk usage", "'File store", info)
+      } catch (ex: Exception) {
+        log.error(ex) { "Can't get statistics of file store: ${ex.message}" }
+      }
+    }
     stats.addDiskUsage(
       "jcrBackupDiskUsage", "disk usage", "'JCR backup storage",
       repoBackupService.backupDirectory

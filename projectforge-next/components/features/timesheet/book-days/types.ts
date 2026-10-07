@@ -64,7 +64,8 @@ export type DayPlanStatus =
   | "PARTIAL"
   | "WEEKEND"
   | "HOLIDAY"
-  | "BOOKED";
+  | "OVERLAP"
+  | "OVERLAP_UNKNOWN";
 
 /** One day of the period and what the booking does with it. */
 export interface DayPlan {
@@ -72,8 +73,13 @@ export interface DayPlan {
   status: DayPlanStatus;
   /** Hours booked on this day; 0 for a skipped one. */
   hours: number;
-  /** The holiday's name, if the day is one. */
+  /**
+   * The holiday's name, if the day is one; for an overlap the time of the existing time sheet,
+   * e.g. "10:00–11:00".
+   */
   note?: string;
+  /** The time of an existing time sheet the booked one overlaps, as a shared cost element allows. */
+  sharedOverlap?: string;
 }
 
 /** Mirror of `TimesheetBookDaysRest.Result`. */

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import type { ReactNode } from "react";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
@@ -176,9 +176,9 @@ export function linkColumn<T>(
       const target = href(row.original);
       if (text == null || text === "") return null;
       const content = target ? (
-        <Link href={target} className="hover:underline">
+        <GuardedLink href={target} className="hover:underline">
           {text}
-        </Link>
+        </GuardedLink>
       ) : (
         text
       );

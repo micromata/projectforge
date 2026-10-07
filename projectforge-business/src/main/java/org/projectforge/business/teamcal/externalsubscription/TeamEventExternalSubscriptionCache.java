@@ -35,7 +35,9 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.Constants;
+import org.projectforge.common.logging.PfLog;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.integration.IntegrationLogEvents;
 import org.projectforge.framework.integration.RetryBackoff;
 import org.projectforge.framework.integration.SyncStats;
 import org.projectforge.framework.integration.SyncStatsRegistry;
@@ -95,6 +97,12 @@ public class TeamEventExternalSubscriptionCache {
     private transient TeamCalRight teamCalRight;
 
     private boolean initialized;
+
+    /**
+     * When the systemic failure was logged last (see {@link #handleFailingSubscriptions}): at most once a day, not on
+     * every update run.
+     */
+    private long lastSystemicFailureLog;
 
     private final SyncStats syncStats = SyncStatsRegistry.get("ical-subscriptions");
 
@@ -302,10 +310,13 @@ public class TeamEventExternalSubscriptionCache {
             }
         }
         if (isSystemicFailure(failingForADay.size(), active.size())) {
-            log.error(failingForADay.size() + " of " + active.size()
-                    + " subscribed calendars are failing for more than a day. Probably a bug or a network problem,"
-                    + " so no subscription is deactivated" + (candidates.isEmpty() ? "." : " (" + candidates.size()
-                    + " candidates)."));
+            if (now - lastSystemicFailureLog >= DAY) {
+                lastSystemicFailureLog = now;
+                PfLog.error(log, IntegrationLogEvents.ICAL_SUBSCRIPTIONS_SYSTEMIC_FAILURE, failingForADay.size()
+                        + " of " + active.size() + " subscribed calendars are failing for more than a day. Probably a"
+                        + " bug or a network problem, so no subscription is deactivated" + (candidates.isEmpty() ? "."
+                        : " (" + candidates.size() + " candidates)."));
+            }
             return 0;
         }
         for (final TeamCalDO calendar : candidates) {

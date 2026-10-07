@@ -25,7 +25,9 @@ package org.projectforge.plugins.datatransfer
 
 import org.projectforge.NextMigration
 import org.projectforge.business.admin.SystemStatistics
+import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.jcr.RepoBackupService
+import org.projectforge.jcr.RepoService
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.MenuCreator
@@ -37,6 +39,7 @@ import org.projectforge.plugins.datatransfer.rest.DataTransferArea
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.web.WicketSupport
+import java.io.File
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -56,6 +59,11 @@ class DataTransferPlugin :
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         val systemStatistics = WicketSupport.get(SystemStatistics::class.java)
         WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaEntityRest.jcrPath!!)
+        // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
+        WicketSupport.get(RepoService::class.java).registerFileSystemPath(
+            dataTransferAreaEntityRest.jcrPath!!,
+            File(ConfigXml.getInstance().applicationHomeDir, FILE_SYSTEM_DIR),
+        )
 
         // Register it:
         register(dataTransferAreaDao::class.java, dataTransferAreaDao, "plugins.datatransfer")
@@ -99,5 +107,10 @@ class DataTransferPlugin :
     companion object {
         const val ID = PluginAdminService.PLUGIN_DATA_TRANSFER_ID
         const val RESOURCE_BUNDLE_NAME = "DataTransferI18nResources"
+
+        /**
+         * Directory (relative to the application home dir) for the files of the data transfer areas.
+         */
+        const val FILE_SYSTEM_DIR = "datatransfer"
     }
 }

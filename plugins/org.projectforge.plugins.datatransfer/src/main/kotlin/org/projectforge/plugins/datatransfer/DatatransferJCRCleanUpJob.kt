@@ -27,7 +27,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.jcr.OakStorage
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
@@ -116,46 +115,31 @@ class DataTransferJCRCleanUpJob {
             }
         }
 
-        val nodePath = repoService.getAbsolutePath(dataTransferAreaEntityRest.jcrPath)
-        // The node doesn't exist until the first file is uploaded (e. g. on a new gateway instance).
-        val nodeInfo = repoService.getNodeInfoOrNull(nodePath, true)
-        nodeInfo?.children?.let { children ->
-            for (child in children) {
-                val dbId = NumberHelper.parseLong(child.name)
-                if (dbId == null) {
-                    log.warn { "Oups, name of node isn't of type int (db id): '${child.name}'. Ignoring node." }
-                    continue
-                }
-                if (processedDBOs.any { it == dbId }) {
-                    continue
-                }
-                val files = mutableListOf<String>()
-                child.findDescendant(
-                    AttachmentsService.DEFAULT_NODE,
-                    OakStorage.NODENAME_FILES
-                )?.children?.forEach {
-                    deletedCounter++
-                    deletedSize += it.getProperty("size")?.value?.long ?: 0
-                    files.add(
-                        "file=[${it.name}: '${it.getProperty("fileName")?.value?.string}' (${
-                            FormatterUtils.formatBytes(
-                                it.getProperty("size")?.value?.long
-                            )
-                        })]"
-                    )
-                }
-                log.info { "Removing orphaned node (area was deleted): ${files.joinToString(", ")}" }
-                repoService.deleteNode(child)
+        val jcrPath = dataTransferAreaEntityRest.jcrPath!!
+        for (childName in repoService.getChildNames(jcrPath)) {
+            val dbId = NumberHelper.parseLong(childName)
+            if (dbId == null) {
+                log.warn { "Oups, name of node isn't of type int (db id): '$childName'. Ignoring node." }
+                continue
             }
-            log.info { "JCR clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of deleted files: $deletedCounter (${
-                    FormatterUtils.formatBytes(
-                        deletedSize
-                    )
-                }), remaining size: $preservedCounter (${
-                    FormatterUtils.formatBytes(
-                        preservedSize
-                    )
-                })." }
+            if (processedDBOs.any { it == dbId }) {
+                continue
+            }
+            val files = repoService.deleteAllFilesBelow("$jcrPath/$childName")
+            files.forEach {
+                deletedCounter++
+                deletedSize += it.size ?: 0
+            }
+            log.info {
+                "Removed orphaned files (area was deleted): ${
+                    files.joinToString(", ") { "file=[${it.fileId}: '${it.fileName}' (${FormatterUtils.formatBytes(it.size)})]" }
+                }"
+            }
+        }
+        log.info {
+            "Data transfer clean-up job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of deleted files: $deletedCounter (${
+                FormatterUtils.formatBytes(deletedSize)
+            }), remaining files: $preservedCounter (${FormatterUtils.formatBytes(preservedSize)})."
         }
         repoService.cleanup()
         return deletedCounter

@@ -206,6 +206,23 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
+    /**
+     * The next edit form posts the order position of an invoice position as id-only stub (see
+     * RechnungsPosition.copyTo). The order position is embedded in the invoice's search index
+     * (positionen.auftragsPosition, see HibernateSearchAuftragsPositionBridge), and a stub has no order: the
+     * position was indexed without its order number, so the invoice wasn't found by it until the next re-index.
+     * The reference loads the order position (and its order) lazily within this transaction when indexed.
+     */
+    private fun resolveOrderPositions(obj: RechnungDO) {
+        obj.positionen?.forEach { pos ->
+            val orderPos = pos.auftragsPosition ?: return@forEach
+            val id = orderPos.id ?: return@forEach
+            if (orderPos.auftrag == null) {
+                pos.auftragsPosition = persistenceService.getReference(AuftragsPositionDO::class.java, id)
+            }
+        }
+    }
+
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         if (operationType == OperationType.UPDATE && obj.id != null) {
             checkStoredCancellationUnchanged(obj)
@@ -234,6 +251,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
 
         AuftragAndRechnungDaoHelper.onSaveOrModify(obj)
+        resolveOrderPositions(obj)
 
         validate(obj)
 

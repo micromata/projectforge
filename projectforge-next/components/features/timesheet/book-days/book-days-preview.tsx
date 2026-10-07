@@ -13,12 +13,17 @@ const STATUS_KEYS: Record<DayPlanStatus, string> = {
   PARTIAL: "timesheet.bookDays.status.partial",
   WEEKEND: "timesheet.bookDays.status.weekend",
   HOLIDAY: "timesheet.bookDays.status.holiday",
-  BOOKED: "timesheet.bookDays.status.booked",
+  OVERLAP: "timesheet.bookDays.status.overlap",
+  OVERLAP_UNKNOWN: "timesheet.bookDays.status.overlapUnknown",
 };
+
+/** Statuses whose text takes the note (the time of the overlapped time sheet) as argument. */
+const WITH_TIME: ReadonlySet<DayPlanStatus> = new Set(["OVERLAP", "OVERLAP_UNKNOWN"]);
 
 /**
  * Day by day, what the booking would do: booked (in full or in part) or skipped, and why — the
- * backend's dry run of the very request the primary button sends.
+ * backend's dry run of the very request the primary button sends. An overlap with an existing time
+ * sheet skips the day, unless a shared cost element allows it (then it is booked and noted).
  *
  * @param error Why the server refuses the request as it stands (no access, a protected period, …).
  */
@@ -67,12 +72,15 @@ export function BookDaysPreview({
         <ul className="max-h-[28rem] overflow-y-auto rounded-md border text-sm">
           {days.map((day) => {
             const skipped = day.hours <= 0;
+            const withTime = WITH_TIME.has(day.status);
             return (
               <li
                 key={day.date}
                 className={cn(
                   "flex items-center gap-3 border-b px-3 py-1 last:border-b-0",
-                  skipped && "text-muted-foreground"
+                  skipped && "text-muted-foreground",
+                  day.status === "OVERLAP" && "text-destructive",
+                  day.status === "OVERLAP_UNKNOWN" && "text-amber-700 dark:text-amber-500"
                 )}
               >
                 <span className="w-8 shrink-0">
@@ -81,9 +89,18 @@ export function BookDaysPreview({
                 <span className="w-24 shrink-0 tabular-nums">
                   {formatDate(day.date, ctx)}
                 </span>
-                <span className={cn("flex-1 truncate", skipped && "italic")}>
-                  {t(STATUS_KEYS[day.status])}
-                  {day.note && ` – ${day.note}`}
+                <span className={cn("min-w-0 flex-1", skipped && "italic")}>
+                  {withTime
+                    ? t(STATUS_KEYS[day.status], { arg0: day.note ?? "" })
+                    : t(STATUS_KEYS[day.status])}
+                  {!withTime && day.note && ` – ${day.note}`}
+                  {day.sharedOverlap && (
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {t("timesheet.bookDays.status.sharedOverlap", {
+                        arg0: day.sharedOverlap,
+                      })}
+                    </span>
+                  )}
                 </span>
                 <span className="w-12 shrink-0 text-right tabular-nums">
                   {day.hours > 0 && `${formatNumber(day.hours, ctx)} h`}

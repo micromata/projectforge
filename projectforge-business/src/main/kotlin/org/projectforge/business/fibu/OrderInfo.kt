@@ -129,7 +129,9 @@ class OrderInfo : Serializable {
         order.status.let {
             if (it != null) {
                 status = it
-            } else {
+            } else if (order.id != null) {
+                // Only for stored orders: an unsaved one (e.g. the sums of the next edit form, see
+                // Auftrag.calculateOrderInfo) may have no status yet, the default POTENZIAL is fine for it.
                 log.error { "Order without status: $order shouldn't occur. Assuming POTENZIAL." }
             }
         }

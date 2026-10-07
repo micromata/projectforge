@@ -29,6 +29,7 @@ dependencies {
     api(libs.org.jetbrains.kotlinx.coroutines.core)
     api(libs.org.jetbrains.kotlin.stdlib)
     testImplementation(project(":projectforge-commons-test"))
+    testImplementation(libs.org.hsqldb.hsqldb)
 }
 
 description = "projectforge-jcr"

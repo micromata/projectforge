@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import Link from "next/link";
+import { GestureLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import {
   fetchSetupState,
@@ -129,12 +129,12 @@ function Setup() {
       <AuthCard title={t("title")}>
         <div className="grid gap-4">
           <FormAlert tone="info">{t("alreadyInitialized")}</FormAlert>
-          <Link
+          <GestureLink
             href="/login"
             className="text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             {t("backToLogin")}
-          </Link>
+          </GestureLink>
         </div>
       </AuthCard>
     );

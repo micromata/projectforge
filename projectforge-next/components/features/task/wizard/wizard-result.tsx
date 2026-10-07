@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick02Icon } from "@hugeicons/core-free-icons";
@@ -81,7 +81,9 @@ export function WizardResult({ result, onAgain }: WizardResultProps) {
           {t("task.wizard.result.again")}
         </Button>
         <Button asChild>
-          <Link href={TASK_TREE_ROUTE}>{t("task.wizard.result.toTree")}</Link>
+          <GuardedLink href={TASK_TREE_ROUTE}>
+            {t("task.wizard.result.toTree")}
+          </GuardedLink>
         </Button>
       </div>
     </div>

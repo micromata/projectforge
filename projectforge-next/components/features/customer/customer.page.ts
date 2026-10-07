@@ -40,7 +40,7 @@ export const CUSTOMER_PAGE = definePage<
   route: "/customer",
   queryKey: CUSTOMER_LIST_QUERY_KEY,
   // Where the entry sits in the main menu: Finance > Customers (MenuCreator, CUSTOMER_LIST).
-  categoryKey: "menu.fibu",
+  categoryKey: "menu.fibu._",
   titleKey: "fibu.kunde.title.list",
   columns: [
     // The formatted number ("5.###"), read as one — the same value the legacy list leads with. The

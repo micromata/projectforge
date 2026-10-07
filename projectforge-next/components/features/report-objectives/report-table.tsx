@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Note01Icon } from "@hugeicons/core-free-icons";
@@ -64,14 +64,14 @@ export function ReportTable({
       <span className="inline-flex items-center gap-1">
         {label}
         {canShowRecords && (
-          <Link
+          <GuardedLink
             href={recordsHref(id)}
             className="text-muted-foreground hover:text-primary"
             aria-label={`${t("fibu.kost.reporting.showRecords")}: ${id}`}
             title={t("fibu.kost.reporting.showRecords")}
           >
             <HugeiconsIcon icon={Note01Icon} size={13} />
-          </Link>
+          </GuardedLink>
         )}
       </span>
     );
@@ -177,13 +177,13 @@ export function ReportTable({
                         )}
                       >
                         {text && canShowRecords && column.id ? (
-                          <Link
+                          <GuardedLink
                             href={recordsHref(column.id, row.no)}
                             className="underline-offset-2 hover:underline"
                             aria-label={`${t("fibu.kost.reporting.showRecords")}: ${column.id}, ${row.title ?? row.no}`}
                           >
                             {text}
-                          </Link>
+                          </GuardedLink>
                         ) : (
                           text
                         )}

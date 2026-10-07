@@ -2,6 +2,7 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -19,10 +20,11 @@ import type { Kost2ArtSelection } from "./types";
  * (`ProjectEntityRest.onAfterSaveOrUpdate`) creates or reactivates it. Unchecking an existing one sets
  * its cost 2 unit non-active — never deleted: no new time sheets can be booked on it, the ones booked keep
  * it. An existing non-active one says so and may be checked again. The types of an ended project (also one
- * set to ended in this form) are read-only, the save leaves its cost 2 units alone.
+ * set to ended in this form) are read-only, the save leaves its cost 2 units alone: every existing one is
+ * checked and marked ended (an ended project ends them all, whatever their own status).
  *
  * The project standard types are coloured as in the former Wicket form: green when checked, red while one is still
- * unchecked. A type whose costs are not invoiced says so (Wicket's "(nf)"). A button checks all project
+ * unchecked (not for an ended project, where there is nothing left to check). A type whose costs are not invoiced says so (Wicket's "(nf)"). A button checks all project
  * standard types at once; it is hidden once none is left to check.
  *
  * A custom field because `kost2Arts` is a list of the DTO only (see project-schema.ts); each box binds
@@ -42,9 +44,10 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
     (s: unknown) => (s as FormState).values.status === "ENDED"
   ) as boolean;
   const locked = readOnly || ended;
-  // An ended project keeps its cost 2 units as they are (the save ignores the boxes), so show them so.
+  // An ended project keeps its cost 2 units as they are (the save ignores the boxes): all existing ones are
+  // ended with it, so they are checked and marked ended rather than all shown unchecked as non-active.
   const isChecked = (art: Kost2ArtSelection) =>
-    ended ? art.active : art.selected;
+    ended ? art.existsAlready : art.selected;
   const legend = t("fibu.kost2art.kost2arten");
   // The project standard types not checked yet: missing, non-active, or unchecked in this form.
   const missingStandards = arts.filter(
@@ -75,9 +78,11 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
         )}
       </legend>
       {ended && (
-        <p className="text-xs text-muted-foreground">
-          {t("fibu.projekt.edit.kost2LockedEnded")}
-        </p>
+        <Alert className="border-warning bg-warning/10">
+          <AlertDescription className="text-foreground">
+            {t("fibu.projekt.edit.kost2LockedEnded")}
+          </AlertDescription>
+        </Alert>
       )}
       <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
         {arts.map((art, index) => {
@@ -90,6 +95,7 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
               className={cn(
                 "flex items-center gap-2 text-sm",
                 art.projektStandard &&
+                  !ended &&
                   (checked ? "text-emerald-600" : "text-destructive")
               )}
             >
@@ -120,9 +126,15 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
                   {art.name}
                 </span>
               </HintTooltip>
-              {art.existsAlready && !art.active && (
+              {art.existsAlready && (ended || !art.active) && (
                 <span className="text-xs text-muted-foreground">
-                  ({t("fibu.kost.status.nonactive")})
+                  (
+                  {t(
+                    ended
+                      ? "fibu.kost.status.ended"
+                      : "fibu.kost.status.nonactive"
+                  )}
+                  )
                 </span>
               )}
               {art.fakturiert === false && (

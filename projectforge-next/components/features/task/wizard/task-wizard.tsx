@@ -25,6 +25,7 @@ import { WizardGroupStepCard } from "./wizard-group-step";
 import { WizardPreview } from "./wizard-preview";
 import { WizardResult } from "./wizard-result";
 import { WizardTaskStep } from "./wizard-task-step";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * The structure wizard: picks one structure element and up to three groups, then grants each group its
@@ -157,7 +158,7 @@ export function TaskWizard() {
           hasAction={taskId != null && anyGroup}
           canFinish={taskId != null}
           isPending={execute.isPending}
-          onCancel={() => router.push(TASK_TREE_ROUTE)}
+          onCancel={() => navigateInGesture(router, TASK_TREE_ROUTE)}
           onFinish={() => execute.mutate()}
         />
       </div>

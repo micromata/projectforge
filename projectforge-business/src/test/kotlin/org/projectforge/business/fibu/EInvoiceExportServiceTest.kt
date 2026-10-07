@@ -342,4 +342,30 @@ class EInvoiceExportServiceTest {
 
         assertTrue(service.validate(invoice).contains(eInvoiceError("noPositions")), "Should report missing positions")
     }
+
+    /**
+     * An e-invoice whose amount due doesn't match its lines is read anyway, and the mismatch is reported: mustang
+     * rejects such an invoice by default, so the checker showed "no e-invoice data" instead of the actual error.
+     */
+    @Test
+    fun readInvoiceWithWrongTotal() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val xmlString = String(service.exportAsXRechnung(createTestInvoice()), Charsets.UTF_8)
+        val readService = EInvoiceReadService()
+
+        val valid = readService.parseFile("invoice.xml", xmlString.toByteArray()).invoiceData
+        assertEquals("2024001", valid.invoiceNumber)
+        assertTrue(valid.validationErrors.none { it.startsWith("[BR-CO-16]") }, "Totals match: ${valid.validationErrors}")
+
+        val duePayable = Regex("<ram:DuePayableAmount>([^<]*)</ram:DuePayableAmount>")
+        val amount = duePayable.find(xmlString)!!.groupValues[1]
+        val wrong = BigDecimal(amount).add(BigDecimal("0.15")).toPlainString()
+        val tampered = xmlString.replace(duePayable, "<ram:DuePayableAmount>$wrong</ram:DuePayableAmount>")
+        val invalid = readService.parseFile("invoice.xml", tampered.toByteArray()).invoiceData
+        assertEquals("2024001", invalid.invoiceNumber, "The invoice is read despite the wrong total")
+        assertTrue(
+            invalid.validationErrors.any { it.startsWith("[BR-CO-16]") && it.contains(wrong) && it.contains(amount) },
+            "Wrong total is reported: ${invalid.validationErrors}",
+        )
+    }
 }

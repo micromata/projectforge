@@ -205,8 +205,11 @@ abstract class AbstractTestBase protected constructor() {
             // System.out.println("******** " + instance.getClass());
         }
         if (testRepoDir != null) {
+            PfFilesTestSchema.ensure(dataSource)
             repoService.internalResetForJunitTestCases()
             repoService.init(testRepoDir!!)
+            // A fresh repository (as before for each test class with its own JCR repository):
+            repoService.fileStore?.internalClearForJunitTestCases()
             testRepoDir = null // Don't initialize twice.
         }
         if (!initialized) {

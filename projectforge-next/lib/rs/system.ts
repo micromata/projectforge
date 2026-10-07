@@ -5,7 +5,7 @@
  *
  * Every endpoint is admin-only and self-checks on the backend (there is no DAO access backstop); the
  * message actions answer with a translated `{ message }`, the export actions with a file, and the
- * reindex with the id of a background job to poll (see ./jobs.ts).
+ * reindex and the JCR jobs with the id of a background job to poll (see ./jobs.ts).
  */
 
 import { request } from "./client";
@@ -80,3 +80,18 @@ export function startReindex(
     signal
   );
 }
+
+function postJob(action: string): Promise<{ jobId: number }> {
+  return request<{ jobId: number }>(`/rs/system/${action}`, {
+    method: "POST",
+  });
+}
+
+/** Writes a JCR backup ZIP (without DataTransfer) into the backup directory; answers with the job id. */
+export const startCreateJcrBackupZip = () => postJob("createJcrBackupZip");
+
+/**
+ * Migrates the files out of the JCR (DataTransfer files and, with `projectforge.files.store=db`,
+ * all files); answers with the job id.
+ */
+export const startMigrateJcrFiles = () => postJob("migrateJcrFiles");

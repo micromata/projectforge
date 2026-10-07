@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -70,7 +70,7 @@ export function WizardTaskStep({
           on with. The groups picked so far don't fit into a url and travel outside React instead (see
           wizard-handover.ts). */}
       <HintTooltip text={t("task.wizard.button.createTask.tooltip")}>
-        <Link
+        <GuardedLink
           onClick={onLeave}
           href={newTaskHref({
             parentTaskId: root?.id,
@@ -80,7 +80,7 @@ export function WizardTaskStep({
         >
           <HugeiconsIcon icon={PlusSignIcon} size={12} />
           {t("task.wizard.button.createTask._")}
-        </Link>
+        </GuardedLink>
       </HintTooltip>
     </WizardStepCard>
   );

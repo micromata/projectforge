@@ -10,4 +10,6 @@ export interface SystemAdminData {
   developmentMode: boolean;
   /** The localized copy&paste maintenance-notice sample, with the current version filled in. */
   alertMessageSample: string;
+  /** True if all files are stored by the file store (`projectforge.files.store=db`), false: JCR. */
+  allFilesInFileStore: boolean;
 }

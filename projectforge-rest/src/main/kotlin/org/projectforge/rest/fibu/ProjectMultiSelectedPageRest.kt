@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektKost2Service
 import org.projectforge.common.StringHelper
+import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -127,6 +128,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     val kost2ArtIds = kost2ArtsParam?.let { kost2ArtIdsOf(it) }.orEmpty()
     projects.forEach { project ->
       massUpdateContext.startUpdate(project)
+      val endedBefore = project.status == ProjektStatus.ENDED
       TextFieldModification.processTextParameter(project, "description", params)
       proceedMassUpdateUserField(params, ProjektDO::headOfBusinessManager, project)
       proceedMassUpdateUserField(params, ProjektDO::projectManager, project)
@@ -143,18 +145,30 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
         identifier4Message = project.displayName,
         project,
         update = {
+          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone. An
+          // already ended one is an error rather than silently unchanged; one ended by this mass update is not.
+          if (kost2ArtIds.isNotEmpty() && endedBefore && project.status == ProjektStatus.ENDED) {
+            throw UserException("fibu.projekt.massUpdate.kost2Arts.error.ended")
+          }
           projektDao.update(project)
-          // As the edit form: an ended project's cost 2 units are ended anyway, so they are left alone
-          // (also if it is ended by this mass update).
           val projektId = project.id
           if (kost2ArtIds.isNotEmpty() && projektId != null && project.status != ProjektStatus.ENDED) {
-            val changed = if (kost2ArtsParam?.append == true) {
+            val oldArtIds = activeKost2ArtIds(projektId)
+            val append = kost2ArtsParam?.append == true
+            val changed = if (append) {
               projektKost2Service.activate(projektId, kost2ArtIds)
             } else {
               projektKost2Service.deactivate(projektId, kost2ArtIds) // A no-op for a type it has no active unit of.
             }
             if (changed) {
               massUpdateContext.markCurrentModified()
+              // After activate all picked types are active, after deactivate none of them.
+              val newArtIds = if (append) oldArtIds + kost2ArtIds else oldArtIds - kost2ArtIds.toSet()
+              massUpdateContext.recordCurrentModification(
+                KOST2_ARTS,
+                formatKost2ArtIds(oldArtIds),
+                formatKost2ArtIds(newArtIds),
+              )
             }
           }
         },
@@ -204,6 +218,19 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       val number = StringHelper.format2DigitNumber(id)
       UISelectValue(id.toString(), if (art.name.isNullOrBlank()) number else "$number: ${art.name}")
     }
+  }
+
+  /** The types of the project's active cost 2 units (as the list column shows them). */
+  private fun activeKost2ArtIds(projektId: Long): Set<Long> {
+    return kostCache.getKost2ForProjekt(projektId)
+      .filter { projektKost2Service.isActive(it) }
+      .mapNotNull { it.kost2Art?.id }
+      .toSet()
+  }
+
+  /** "01, 04, 33" as the list's cost 2 types column. */
+  private fun formatKost2ArtIds(artIds: Collection<Long>): String {
+    return artIds.sorted().joinToString { StringHelper.format2DigitNumber(it) }
   }
 
   private fun kost2ArtIdsOf(param: MassUpdateParameter): List<Long> {

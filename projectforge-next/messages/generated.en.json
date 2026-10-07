@@ -1398,7 +1398,7 @@
       "_": "Project",
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
-        "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
+        "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
       "filter": {
@@ -1432,7 +1432,10 @@
             "activate": "{arg0}: \"{arg1}\" will be created or activated",
             "deactivate": "{arg0}: \"{arg1}\" will be deactivated (where active in the project)"
           },
-          "deactivate": "Deactivate"
+          "deactivate": "Deactivate",
+          "error": {
+            "ended": "The project is ended: its cost 2 types are not changed."
+          }
         }
       },
       "multiselected": {
@@ -3283,6 +3286,7 @@
           "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
+        "createJcrBackupZip": "Create JCR backup ZIP",
         "createMissingDatabaseIndices": {
           "_": "Create database indices",
           "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
@@ -3309,6 +3313,7 @@
             "tooltip": "Insert your log file snippets here."
           }
         },
+        "migrateJcrFiles": "Migrate files out of the JCR",
         "optimizeAddressImages": {
           "_": "Optimize address images",
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
@@ -3347,6 +3352,7 @@
           "checks": "Checks",
           "databaseActions": "Database actions",
           "development": "Development",
+          "jcr": "Document repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
@@ -3354,6 +3360,19 @@
             "caches": "Caches",
             "configuration": "Configuration"
           }
+        }
+      },
+      "jcr": {
+        "createJcrBackupZip": {
+          "info": "Writes a backup ZIP of all documents (without DataTransfer files) into the backup directory. The next release imports the documents from this ZIP into the database, so create a fresh one right before the update."
+        },
+        "migrateJcrFiles": {
+          "info": "Copies all files out of the JCR into the file store (documents into the database, DataTransfer files into the file system). The JCR keeps them, so switching back or a rollback to the former release is possible. Files already migrated are skipped, so it may run again. Each file is verified by size and checksum; the report is written to jcr-migration-report.txt in the ProjectForge home directory.",
+          "question": "Migrate the files out of the JCR now? With large data volumes this takes a while."
+        },
+        "store": {
+          "db": "Files are stored in the file store (projectforge.files.store=db): documents in the database, DataTransfer files in the file system. Files not yet migrated are still read from the JCR; the migration starts automatically on start-up until a run finished without errors.",
+          "jcr": "All files are stored in the JCR (projectforge.files.store=jcr). To switch, set projectforge.files.store=db in projectforge.properties and restart; the files are migrated then."
         }
       },
       "logViewer": {
@@ -3610,14 +3629,16 @@
     },
     "bookDays": {
       "hoursPerDay": "Hours per day",
-      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends, holidays and days already booked are skipped.",
+      "info": "Books a time sheet on every working day of the period, e.g. for a vacation. Weekends and holidays are skipped; on a day already booked, the time sheet is only booked if it does not collide with an existing one.",
       "preview": "Preview",
       "previewEmpty": "Please enter a period.",
       "status": {
         "book": "will be booked",
-        "booked": "already booked",
         "holiday": "Holiday",
+        "overlap": "overlaps {arg0}",
+        "overlapUnknown": "overlaps {arg0} – depends on the structure element",
         "partial": "pro rata",
+        "sharedOverlap": "allowed overlap with {arg0} (shared cost)",
         "weekend": "Weekend"
       },
       "submit": "Book ({arg0})",

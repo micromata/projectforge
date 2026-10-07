@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Projects: changing the cost 2 types of an already ended project in the mass update is an error instead of being silently skipped; the Excel export of the mass update shows the changed cost 2 types and lists failed entries with their reason. The edit form of an ended project shows its existing cost 2 units checked and ended.",
+  "de": "Projekte: Das Ändern der Kost2-Arten eines bereits beendeten Projekts in der Massenänderung ist ein Fehler, statt stillschweigend übersprungen zu werden; der Excel-Export der Massenänderung zeigt die geänderten Kost2-Arten und listet fehlgeschlagene Einträge mit ihrem Grund. Das Formular eines beendeten Projekts zeigt seine vorhandenen Kostenträger angehakt und beendet."
+}

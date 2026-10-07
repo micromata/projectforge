@@ -31,7 +31,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -255,9 +254,18 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     /**
      * Flushes the user settings to the database (independent of the expired mechanism). Should be used after the user's
      * logout. If the user data isn't modified, then nothing will be done.
+     *
+     * No check against the logged-in user of the thread: the logout of projectforge-next runs as public rest call
+     * (/rsPublic) without one, and the user id is taken from the user's own session. The check made all
+     * preferences modified since the last periodic flush get lost, because the caller clears them afterwards.
      */
     fun flushToDB(userId: Long) {
-        flushToDB(userId, true)
+        val user = persistenceService.find(PFUserDO::class.java, userId)
+        if (AccessChecker.isDemoUser(user)) {
+            // Do nothing for demo user.
+            return
+        }
+        flushToDB(userId, false)
     }
 
     /**
@@ -277,18 +285,6 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     }
 
     private fun flushToDB(userId: Long, checkAccess: Boolean) {
-        if (checkAccess) {
-            if (userId != loggedInUserId) {
-                log.error { "$title: User '$loggedInUserId' has no access to write user preferences of other user '$userId'." }
-                // No access.
-                return
-            }
-            val user = persistenceService.find(PFUserDO::class.java, userId)
-            if (AccessChecker.isDemoUser(user)) {
-                // Do nothing for demo user.
-                return
-            }
-        }
         persistenceService.runInNewTransaction {
             synchronized(allPreferences) {
                 allPreferences[userId]?.let { data ->

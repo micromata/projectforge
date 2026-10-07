@@ -40,6 +40,8 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.FileStoreMigrationService
+import org.projectforge.framework.jcr.JcrBackupZipJob
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
@@ -47,6 +49,7 @@ import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.database.DatabaseTester
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.jcr.RepoBackupService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
@@ -110,6 +113,12 @@ class SystemRest {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
+    @Autowired
+    private lateinit var repoBackupService: RepoBackupService
+
+    @Autowired
+    private lateinit var fileStoreMigrationService: FileStoreMigrationService
+
     /**
      * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
      * on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test contexts can
@@ -139,6 +148,8 @@ class SystemRest {
         val developmentMode: Boolean,
         /** The localized copy&paste maintenance-notice sample, with the current version filled in. */
         val alertMessageSample: String,
+        /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
+        val allFilesInFileStore: Boolean,
     )
 
     /** A plain result message, shown by the frontend as a success toast. */
@@ -148,8 +159,11 @@ class SystemRest {
 
     class ReindexRequest(var newestNEntries: Int? = null, var fromDate: LocalDate? = null)
 
-    /** The id of the started [ReindexJob], which the frontend polls (see JobsMonitorPageRest) for the progress. */
-    class ReindexResponse(val jobId: Int)
+    /**
+     * The id of the started job ([ReindexJob], [JcrBackupZipJob], [org.projectforge.framework.jcr.RepoMigrationJob]), which the frontend polls (see
+     * JobsMonitorPageRest) for the progress.
+     */
+    class JobResponse(val jobId: Int)
 
     @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
     @GetMapping
@@ -163,6 +177,7 @@ class SystemRest {
                 "system.admin.alertMessage.copyAndPaste.text",
                 ProjectForgeVersion.VERSION_NUMBER,
             ),
+            allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
         )
     }
 
@@ -290,7 +305,7 @@ class SystemRest {
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("reindex")
-    fun reindex(@RequestBody request: ReindexRequest): ReindexResponse {
+    fun reindex(@RequestBody request: ReindexRequest): JobResponse {
         checkWriteAccess()
         log.info { "Administration: re-index (newestNEntries=${request.newestNEntries}, fromDate=${request.fromDate})." }
         val fromDate = request.fromDate?.let { Date.from(it.atStartOfDay(ZoneId.systemDefault()).toInstant()) }
@@ -304,7 +319,31 @@ class SystemRest {
                 title = translate("system.admin.button.reindex"),
             )
         )
-        return ReindexResponse(job.id)
+        return JobResponse(job.id)
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // JCR replacement: backup ZIP of the JCR, migration of the files out of Oak (DataTransfer files and, with
+    // projectforge.files.store=db, all files).
+    // ------------------------------------------------------------------------------------------
+
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
+    @PostMapping("createJcrBackupZip")
+    fun createJcrBackupZip(): JobResponse {
+        checkWriteAccess()
+        log.info { "Administration: create JCR backup ZIP." }
+        val job = jobHandler.addJob(
+            JcrBackupZipJob(repoBackupService, title = translate("system.admin.button.createJcrBackupZip"))
+        )
+        return JobResponse(job.id)
+    }
+
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
+    @PostMapping("migrateJcrFiles")
+    fun migrateJcrFiles(): JobResponse {
+        checkWriteAccess()
+        log.info { "Administration: migrate files out of the JCR into the file store (all files=${fileStoreMigrationService.allFilesInFileStore})." }
+        return JobResponse(fileStoreMigrationService.startMigration().id)
     }
 
     // ------------------------------------------------------------------------------------------

@@ -13,6 +13,7 @@ import type { MagicFilter } from "@/lib/rs/types";
 import { useUpdateAccess } from "@/hooks/use-update-access";
 import { Button } from "@/components/ui/button";
 import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * The two exports Wicket's salary list offers in its content menu: one row per salary, and the
@@ -32,7 +33,7 @@ export function EmployeeSalaryListActions({ filter }: { filter: MagicFilter }) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/employeeSalary/import")}
+          onClick={() => navigateInGesture(router, "/employeeSalary/import")}
         >
           <HugeiconsIcon icon={FileImportIcon} />
           {t("import._")}

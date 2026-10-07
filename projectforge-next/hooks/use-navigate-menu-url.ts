@@ -3,7 +3,11 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
-import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning";
+import {
+  confirmLeaveUnsavedChanges,
+  hasUnsavedChanges,
+} from "@/hooks/use-unsaved-changes-warning";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * Navigates to a backend url (a menu url or a search hit's `viewUrl`), the way the quick access search does.
@@ -11,7 +15,8 @@ import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning"
  * The legacy React app and Wicket are served by Spring, not by this app: a client-side route would land on
  * Next's own 404, so `next/…` goes through the router while `react/…`/`wa/…` do a full page load (which
  * `beforeunload` guards on its own). A `router.push` is not a link and nothing else would stop it, so an
- * internal navigation asks the app's own unsaved-changes dialog first.
+ * internal navigation asks the app's own unsaved-changes dialog first. With nothing to lose it navigates at
+ * once, still within the click or key press, so that Safari keeps the entry for back (see navigateInGesture).
  *
  * Cross-cutting (used by the menu results, the menu search's live data hits and the search page), so it lives in
  * hooks/, not the search feature.
@@ -24,6 +29,11 @@ export function useNavigateMenuUrl() {
       if (target.kind === "external") {
         beforeNavigate?.();
         window.location.assign(toAbsoluteUrl(target));
+        return;
+      }
+      if (!hasUnsavedChanges()) {
+        beforeNavigate?.();
+        navigateInGesture(router, target.href);
         return;
       }
       void confirmLeaveUnsavedChanges().then((leave) => {

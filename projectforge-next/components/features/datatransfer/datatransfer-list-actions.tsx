@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon, UserIcon } from "@hugeicons/core-free-icons";
@@ -37,10 +37,10 @@ export function DataTransferListActions() {
       )}
       <HintTooltip text={t("plugins.datatransfer.personalBox.info")}>
         <Button asChild variant="ghost" size="sm" className="gap-1.5">
-          <Link href="/datatransfer/personal-box">
+          <GuardedLink href="/datatransfer/personal-box">
             <HugeiconsIcon icon={UserIcon} size={14} aria-hidden />
             {t("plugins.datatransfer.personalBox._")}
-          </Link>
+          </GuardedLink>
         </Button>
       </HintTooltip>
     </>

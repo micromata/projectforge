@@ -88,7 +88,7 @@ podman run -d \
   -e POSTGRES_USER=projectforge \
   -e POSTGRES_PASSWORD=$PGPASSWORD \
   -v projectforge-pgdata:/var/lib/postgresql/data \
-  docker.io/library/postgres:16
+  docker.io/library/postgres:17
 ----
 * Configure ProjectForge
 
@@ -114,8 +114,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != [pk];` +
 This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
-|Uninstall|`podman stop projectforge-postgres` \
-           `podman rm projectforge-postgres` \
+|Uninstall|`podman stop projectforge-postgres` &&
+           `podman rm projectforge-postgres` &&
            `podman volume rm projectforge-pgdata`
 |===
 
