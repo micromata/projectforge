@@ -46,6 +46,8 @@ export const DATA_TRANSFER_PAGE = definePage<
   // Where the entry sits in the main menu: Misc (DataTransferPlugin, MenuItemDefId.MISC).
   categoryKey: "menu.misc",
   titleKey: "plugins.datatransfer.title.list",
+  // The latest change first.
+  defaultSort: { id: "lastUpdate", desc: true },
   columns: [
     { name: "created", size: 130 },
     {
