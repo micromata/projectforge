@@ -51,18 +51,19 @@ class TimesheetDayBookingServiceTest : AbstractTestBase() {
     private lateinit var taskDao: TaskDao
 
     @Test
-    fun planSkipsWeekendsHolidaysAndBookedDaysAndBooksHalfDaysProRata() {
+    fun planSkipsWeekendsHolidaysAndOverlapsAndBooksHalfDaysProRata() {
         logon(TEST_FINANCE_USER)
         val task = initTestDB.addTask("bookDays-plan", "root")
         val user = initTestDB.addUser("bookDays-plan-user")
-        insertSheet(user, task, LocalDate.of(2026, 12, 22), 10, 11)
+        insertSheet(user, task, LocalDate.of(2026, 12, 22), 10, 11) // Overlaps 9:00–17:00.
+        insertSheet(user, task, LocalDate.of(2026, 12, 23), 7, 9) // Ends when the new one starts: no overlap.
 
         // Mon 21.12.2026 (half vacation day) until Fri 01.01.2027.
         val days = service.planDays(request(user, task, LocalDate.of(2026, 12, 21), LocalDate.of(2027, 1, 1), halfDayBegin = true))
 
         val expected = listOf(
             Status.PARTIAL to 240, // Half vacation day at the begin.
-            Status.BOOKED to 0,
+            Status.OVERLAP to 0,
             Status.BOOK to 480,
             Status.PARTIAL to 240, // Christmas Eve: a half working day.
             Status.HOLIDAY to 0,
@@ -76,7 +77,40 @@ class TimesheetDayBookingServiceTest : AbstractTestBase() {
         )
         Assertions.assertEquals(expected, days.map { it.status to it.minutes })
         Assertions.assertFalse(days[3].note.isNullOrBlank(), "The half working day is named.")
-        Assertions.assertEquals(1, sheetsOf(user).size, "A dry run books nothing.")
+        Assertions.assertTrue(days[1].note!!.contains("10:00"), "The overlapped time sheet is shown: ${days[1].note}")
+        Assertions.assertNull(days[2].sharedOverlap)
+        Assertions.assertEquals(2, sheetsOf(user).size, "A dry run books nothing.")
+
+        // Booked, the day with the earlier time sheet has two then.
+        service.book(request(user, task, LocalDate.of(2026, 12, 22), LocalDate.of(2026, 12, 23)))
+        val zoneId = ThreadLocalUserContext.zoneId
+        val perDay = sheetsOf(user).groupBy { PFDateTime.from(it.startTime!!).withZoneSameInstant(zoneId).localDate }
+        Assertions.assertEquals(1, perDay[LocalDate.of(2026, 12, 22)]?.size, "The overlapping day is skipped.")
+        Assertions.assertEquals(2, perDay[LocalDate.of(2026, 12, 23)]?.size)
+    }
+
+    @Test
+    fun overlapsFollowTheSharedCostRule() {
+        logon(TEST_FINANCE_USER)
+        // Released (shared cost element) without project: an overlap with it is allowed, see TimesheetOverlapRuleTest.
+        val released = initTestDB.addTask("bookDays-shared-released", "root")
+        released.allowTimeOverlap = true
+        taskDao.update(released, checkAccess = false)
+        val plain = initTestDB.addTask("bookDays-shared-plain", "root")
+        val user = initTestDB.addUser("bookDays-shared-user")
+        val day = LocalDate.of(2026, 11, 2)
+        insertSheet(user, released, day, 10, 11)
+        insertSheet(user, plain, day.plusDays(1), 10, 11)
+
+        val days = service.planDays(request(user, plain, day, day.plusDays(1)))
+        Assertions.assertEquals(listOf(Status.BOOK, Status.OVERLAP), days.map { it.status })
+        Assertions.assertTrue(days[0].sharedOverlap!!.contains("10:00"), "The allowed overlap is noted.")
+        Assertions.assertEquals(1, service.book(request(user, plain, day, day.plusDays(1))).count { it.booking })
+        Assertions.assertEquals(3, sheetsOf(user).size)
+
+        // Without a task, the rule can't be applied: every overlap is unknown and nothing would be booked.
+        val unknown = service.planDays(request(user, plain, day.plusDays(1), day.plusDays(1)).also { it.taskId = null })
+        Assertions.assertEquals(listOf(Status.OVERLAP_UNKNOWN to 0), unknown.map { it.status to it.minutes })
     }
 
     @Test
@@ -98,7 +132,7 @@ class TimesheetDayBookingServiceTest : AbstractTestBase() {
             Assertions.assertEquals(450L * 60_000, sheet.duration)
             Assertions.assertEquals(task.id, sheet.taskId)
         }
-        // Booked days are skipped from now on.
+        // The days overlap the booked time sheets now: all are skipped, nothing is left to book.
         assertThrows<UserException> {
             service.book(request(user, task, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 6)))
         }
