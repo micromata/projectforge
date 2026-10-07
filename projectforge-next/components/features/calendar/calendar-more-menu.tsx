@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -90,10 +90,10 @@ export function CalendarMoreMenu({
             text={t("plugins.teamcal.import.ics.tooltip")}
           >
             <DropdownMenuItem asChild>
-              <Link href={importUrl}>
+              <GuardedLink href={importUrl}>
                 <HugeiconsIcon icon={CalendarUpload01Icon} size={14} />
                 {t("plugins.teamcal.import.ics.title")}
-              </Link>
+              </GuardedLink>
             </DropdownMenuItem>
           </HintTooltip>
           <CalendarSubscriptionSubmenu onPick={setSubscription} />

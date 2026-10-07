@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MagicWand01Icon } from "@hugeicons/core-free-icons";
@@ -28,10 +28,10 @@ export function TaskWizardLink() {
   return (
     <HintTooltip text={t("task.wizard.intro")}>
       <Button asChild variant="outline" size="sm" className="gap-1.5">
-        <Link href={TASK_WIZARD_ROUTE}>
+        <GuardedLink href={TASK_WIZARD_ROUTE}>
           <HugeiconsIcon icon={MagicWand01Icon} size={14} aria-hidden />
           {t("task.wizard.pageTitle")}
-        </Link>
+        </GuardedLink>
       </Button>
     </HintTooltip>
   );

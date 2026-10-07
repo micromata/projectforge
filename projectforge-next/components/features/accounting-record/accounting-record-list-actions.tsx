@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { downloadListExcel } from "@/lib/rs/list-export";
 import type { MagicFilter } from "@/lib/rs/types";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * The toolbar of the accounting-record list: the Excel export of the filtered list, as the legacy Wicket
@@ -32,7 +33,7 @@ export function AccountingRecordListActions({
       <Button
         type="button"
         variant="outline"
-        onClick={() => router.push("/datev-import")}
+        onClick={() => navigateInGesture(router, "/datev-import")}
       >
         <HugeiconsIcon icon={FileImportIcon} />
         {t("import._")}

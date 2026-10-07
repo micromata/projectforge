@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -95,10 +95,10 @@ function StatisticsLink({
   return (
     <HintTooltip text={t("fibu.auftrag.statistics.open.tooltip")}>
       <Button asChild variant="ghost" size="sm" className="gap-1.5">
-        <Link href={orderStatisticsUrl(tab, true)}>
+        <GuardedLink href={orderStatisticsUrl(tab, true)}>
           <HugeiconsIcon icon={ChartBarLineIcon} size={14} aria-hidden />
           {label}
-        </Link>
+        </GuardedLink>
       </Button>
     </HintTooltip>
   );

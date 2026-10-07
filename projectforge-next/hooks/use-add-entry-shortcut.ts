@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 import { isTypingTarget } from "@/lib/typing-target";
 
 /**
@@ -65,7 +66,7 @@ export function useAddEntryShortcut(addHref?: string, isLegacy = false) {
     // The add page of a list whose form is still the legacy one belongs to another app and needs a
     // full page load, exactly as the button beside it does (see useEditTargets).
     if (isLegacy) window.location.href = addHref;
-    else router.push(addHref);
+    else navigateInGesture(router, addHref);
   }, [addHref, isLegacy, router]);
   useAddEntryKeyboardShortcut(navigate, { enabled: Boolean(addHref) });
 }

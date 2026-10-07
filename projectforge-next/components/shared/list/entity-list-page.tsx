@@ -52,6 +52,7 @@ import { ListResultInfo } from "./list-result-info";
 import { ListTruncationNotice } from "./list-truncation-notice";
 import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 export interface EntityListPageProps<
   Row extends ListRow,
@@ -433,7 +434,7 @@ function DeclaredList<
                 // A page may divert a row that is not an ordinary editable entry (a liquidity list's
                 // virtual series occurrence) to a route of its own; anything else opens the entry.
                 const to = page.onRowClick?.(row);
-                if (to) router.push(to);
+                if (to) navigateInGesture(router, to);
                 else targets.openEntry(row.id);
               }
             : undefined

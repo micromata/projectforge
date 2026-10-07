@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
+import { GestureLink } from "@/components/shared/guarded-link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -64,12 +64,12 @@ function PasswordReset() {
       <AuthCard title={tb("password.reset.title")}>
         <div className="grid gap-4">
           <FormAlert tone="success">{done}</FormAlert>
-          <Link
+          <GestureLink
             href="/login"
             className="text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             {t("backToLogin")}
-          </Link>
+          </GestureLink>
         </div>
       </AuthCard>
     );
@@ -80,12 +80,12 @@ function PasswordReset() {
       <AuthCard title={tb("password.reset.title")}>
         <div className="grid gap-4">
           <FormAlert tone="error">{tb("password.reset.error")}</FormAlert>
-          <Link
+          <GestureLink
             href="/password-forgotten"
             className="text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >
             {t("requestNewLink")}
-          </Link>
+          </GestureLink>
         </div>
       </AuthCard>
     );

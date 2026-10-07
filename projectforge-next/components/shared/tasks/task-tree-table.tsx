@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, type ReactNode } from "react";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
@@ -278,14 +278,14 @@ function AddSubtaskAction({ task }: { task: TaskNode }) {
           revealed only on hover, its box sets the row's height. A larger one would make every tree
           row taller than its text needs — the tree is meant to be dense (see Wicket's taskTree). */}
       <Button asChild variant="ghost" size="icon-xs" aria-label={label}>
-        <Link
+        <GuardedLink
           href={newTaskHref({
             parentTaskId: task.id,
             returnTo: TASK_TREE_ROUTE,
           })}
         >
           <HugeiconsIcon icon={PlusSignIcon} size={12} strokeWidth={2.5} />
-        </Link>
+        </GuardedLink>
       </Button>
     </HintTooltip>
   );

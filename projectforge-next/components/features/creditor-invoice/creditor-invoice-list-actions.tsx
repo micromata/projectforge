@@ -12,6 +12,7 @@ import {
 import type { MagicFilter } from "@/lib/rs/types";
 import { Button } from "@/components/ui/button";
 import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * The two exports of the incoming invoice list, as Wicket's list page offers them in its content menu: one
@@ -33,7 +34,7 @@ export function CreditorInvoiceListActions({
       <Button
         type="button"
         variant="outline"
-        onClick={() => router.push("/creditor-invoice-import")}
+        onClick={() => navigateInGesture(router, "/creditor-invoice-import")}
       >
         <HugeiconsIcon icon={FileImportIcon} />
         {t("import._")}
