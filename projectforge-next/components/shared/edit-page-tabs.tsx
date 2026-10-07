@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GestureLink } from "@/components/shared/guarded-link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +87,7 @@ export function EditPageTabs({
               {tab.label}
             </button>
           ) : (
-            <Link
+            <GestureLink
               key={tab.id}
               href={`${pathname}?${tabQuery(params, sideTab)}`}
               role="tab"
@@ -95,7 +95,7 @@ export function EditPageTabs({
               className={tabClass(selected)}
             >
               {tab.label}
-            </Link>
+            </GestureLink>
           );
         }
         return (

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 import { useListMeta } from "./use-list-meta";
 
 /** Where the add button leads and what a row click opens, for one list page. */
@@ -78,7 +79,8 @@ export function useEditTargets(
     return {
       ...access,
       addHref: `${route}/new${back}`,
-      openEntry: (id) => router.push(`${route}/${id}${back}`),
+      // Within the row click, so that Safari keeps the entry for back (see navigateInGesture).
+      openEntry: (id) => navigateInGesture(router, `${route}/${id}${back}`),
       legacy: false,
     };
   }

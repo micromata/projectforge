@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserGroupIcon } from "@hugeicons/core-free-icons";
@@ -26,10 +26,10 @@ export function CustomerListActions() {
 
   return (
     <Button asChild variant="outline" size="sm" className="gap-1.5">
-      <Link href="/customerGroups?returnTo=/customer">
+      <GuardedLink href="/customerGroups?returnTo=/customer">
         <HugeiconsIcon icon={UserGroupIcon} size={14} aria-hidden />
         {t("fibu.customerGroups.title")}
-      </Link>
+      </GuardedLink>
     </Button>
   );
 }

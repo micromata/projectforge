@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -42,12 +42,15 @@ export function StatusBar() {
         </a>
       </div>
       {systemData?.version ? (
-        <Link href="/changelog" className="shrink-0 truncate hover:underline">
+        <GuardedLink
+          href="/changelog"
+          className="shrink-0 truncate hover:underline"
+        >
           {t("version", {
             version: systemData.version,
             buildDate: systemData.buildDate,
           })}
-        </Link>
+        </GuardedLink>
       ) : null}
     </footer>
   );

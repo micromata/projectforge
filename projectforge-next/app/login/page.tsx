@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { GestureLink } from "@/components/shared/guarded-link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -196,12 +196,12 @@ function LoginForm() {
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? t("submitting") : tb("login._")}
         </Button>
-        <Link
+        <GestureLink
           href="/password-forgotten"
           className="text-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
           {tb("password.forgotten.link")}
-        </Link>
+        </GestureLink>
       </form>
     </AuthCard>
   );

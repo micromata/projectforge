@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HierarchyIcon, ListViewIcon } from "@hugeicons/core-free-icons";
@@ -26,14 +26,14 @@ export function TaskPerspectiveLink({ to }: { to: "tree" | "list" }) {
   const label = t(tree ? "task.tree.perspective" : "task.list.perspective");
   return (
     <Button asChild variant="ghost" size="sm" className="gap-1.5">
-      <Link href={tree ? TASK_TREE_ROUTE : TASK_ROUTE}>
+      <GuardedLink href={tree ? TASK_TREE_ROUTE : TASK_ROUTE}>
         <HugeiconsIcon
           icon={tree ? HierarchyIcon : ListViewIcon}
           size={14}
           aria-hidden
         />
         {label}
-      </Link>
+      </GuardedLink>
     </Button>
   );
 }

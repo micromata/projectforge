@@ -12,6 +12,7 @@ import { toast } from "@/lib/toast";
 import { RsError } from "@/lib/rs/client";
 import { sendFeedback } from "@/lib/rs/feedback";
 import type { FeedbackInitialData } from "./types";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 const MAX_DESCRIPTION_LENGTH = 4000;
 
@@ -72,7 +73,7 @@ export function FeedbackForm({ initial }: { initial: FeedbackInitialData }) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/")}
+            onClick={() => navigateInGesture(router, "/")}
           >
             {t("cancel")}
           </Button>

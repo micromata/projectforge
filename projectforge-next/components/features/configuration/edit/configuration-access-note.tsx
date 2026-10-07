@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { FormAlert } from "@/components/shared/form-alert";
 import { useEntityData } from "@/components/shared/form/form-context";
 import type { ConfigurationDetail } from "../types";
@@ -20,12 +20,12 @@ export function ConfigurationAccessNote() {
       <FormAlert tone="info">
         {t("administration.configuration.editPage.hint")}{" "}
         {/* next/link prepends the app's basePath (/next) itself — see menu-url.ts. */}
-        <Link
+        <GuardedLink
           href={`/${data.editPage}?returnTo=/configuration`}
           className="font-medium text-primary underline underline-offset-2"
         >
           {t("administration.configuration.editPage.link")}
-        </Link>
+        </GuardedLink>
       </FormAlert>
     );
   }

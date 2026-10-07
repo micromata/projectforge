@@ -15,6 +15,7 @@ import {
 import { TaskTreeActionBar } from "@/components/shared/tasks/task-tree-action-bar";
 import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
 import { useTaskTree } from "@/components/shared/tasks/use-task-tree";
+import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
  * The structure tree page (`/next/taskTree`), the migration of Wicket's `wa/taskTree`.
@@ -88,7 +89,10 @@ function TaskTreeBody() {
           // `returnTo`, so cancel, save and the breadcrumb of the edit page lead back here rather than
           // to the task list — the tree is where the user came from (see useEditReturn).
           onSelect={(task) =>
-            router.push(taskHref(task.id, { returnTo: TASK_TREE_ROUTE }))
+            navigateInGesture(
+              router,
+              taskHref(task.id, { returnTo: TASK_TREE_ROUTE })
+            )
           }
         />
       </div>

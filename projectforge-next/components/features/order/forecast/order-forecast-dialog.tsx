@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChartLineData01Icon } from "@hugeicons/core-free-icons";
@@ -37,12 +37,12 @@ export function OrderForecastDialog({
             <DialogHeader>
               <DialogTitle className="pr-6">
                 {t("fibu.auftrag.forecast._")} – {t("fibu.auftrag._")}{" "}
-                <Link
+                <GuardedLink
                   href={`/order/${order.id}?tab=forecast`}
                   className="hover:underline"
                 >
                   {order.label}
-                </Link>
+                </GuardedLink>
               </DialogTitle>
             </DialogHeader>
             <OrderForecastPanel id={order.id} savedOnlyHint={false} />
