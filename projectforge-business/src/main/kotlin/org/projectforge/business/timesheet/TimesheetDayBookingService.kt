@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
@@ -43,14 +44,17 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+import java.util.Date
 
 /**
  * Books one time sheet per working day of a period, e.g. a vacation, or the absence of a colleague booked by the
  * office (parental leave, illness).
  *
- * Weekends, holidays and days that already have a time sheet of the user are skipped; a half working day (24.12.,
- * 31.12.) and a half vacation day at either end are booked pro rata. All checks (access, protected periods, cost
- * unit, bookable task) stay with [TimesheetDao]: this service only computes the days.
+ * Weekends and holidays are skipped; a half working day (24.12., 31.12.) and a half vacation day at either end are
+ * booked pro rata. A day that has time sheets of the user already is booked as well, unless the new time sheet would
+ * collide with one of them the way [TimesheetDao.hasTimeOverlap] refuses it (an overlap released by a shared cost
+ * element is fine). All checks (access, protected periods, cost unit, bookable task) stay with [TimesheetDao]: this
+ * service only computes the days, so that the preview shows what the booking does.
  *
  * Days are days in the time zone of the logged-in user, as the calendar shows them.
  */
@@ -65,8 +69,14 @@ open class TimesheetDayBookingService {
         WEEKEND,
         HOLIDAY,
 
-        /** The user has a time sheet on this day already. */
-        BOOKED,
+        /** The time sheet of the day would collide with an existing one of the user: the day is skipped. */
+        OVERLAP,
+
+        /**
+         * The time sheet of the day would overlap an existing one of the user, and no task is chosen yet: whether the
+         * overlap is allowed (shared cost element) depends on it. Nothing is booked without a task anyway.
+         */
+        OVERLAP_UNKNOWN,
     }
 
     class Request(
@@ -88,9 +98,17 @@ open class TimesheetDayBookingService {
 
     /**
      * @param minutes The minutes booked on this day, 0 for a skipped one.
-     * @param note The title of the holiday, if the day is one.
+     * @param note The title of the holiday, if the day is one; the time of the existing time sheet for an overlap
+     * ([Status.OVERLAP], [Status.OVERLAP_UNKNOWN]), e.g. "10:00–11:00".
+     * @param sharedOverlap The time of an existing time sheet the booked one overlaps, as a shared cost element allows.
      */
-    class Day(val date: LocalDate, val status: Status, val minutes: Int, val note: String? = null) {
+    class Day(
+        val date: LocalDate,
+        val status: Status,
+        val minutes: Int,
+        val note: String? = null,
+        val sharedOverlap: String? = null,
+    ) {
         val booking: Boolean
             get() = status == Status.BOOK || status == Status.PARTIAL
     }
@@ -119,7 +137,7 @@ open class TimesheetDayBookingService {
     /**
      * The days of the request's period and what would happen on each, without booking anything. If a task is given,
      * the booking of the first day is checked as well (access, protected period, bookable task), so the preview
-     * fails the way the booking would.
+     * fails the way the booking would; overlaps are checked for every day (see [Status.OVERLAP]).
      *
      * @throws UserException if the request is invalid.
      */
@@ -159,7 +177,9 @@ open class TimesheetDayBookingService {
      */
     open fun firstBookableDay(userId: Long?, from: LocalDate): LocalDate {
         val until = from.plusDays(31)
-        val booked = bookedDays(checkUser(userId), from, until)
+        val booked = existingSheets(checkUser(userId), from, until).flatMap { sheet ->
+            listOfNotNull(sheet.startTime, sheet.stopTime).map { localDateOf(it) }
+        }.toSet()
         return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }
             .firstOrNull { Holidays.instance.isWorkingDay(it) && it !in booked } ?: from
     }
@@ -192,14 +212,12 @@ open class TimesheetDayBookingService {
         if (startTime.toSecondOfDay() / 60 + minutes >= 24 * 60) {
             throw UserException("timesheet.bookDays.error.nextDay")
         }
-        val booked = bookedDays(userId, from, until)
         val holidays = Holidays.instance
-        return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }.map { date ->
+        val days = generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }.map { date ->
             val day = PFDay.from(date)
             when {
                 day.isWeekend() -> Day(date, Status.WEEKEND, 0)
                 !holidays.isWorkingDay(date) -> Day(date, Status.HOLIDAY, 0, holidayTitle(day))
-                date in booked -> Day(date, Status.BOOKED, 0)
                 else -> {
                     var fraction = holidays.getWorkFraction(day) ?: BigDecimal.ONE
                     if ((request.halfDayBegin && date == from) || (request.halfDayEnd && date == until)) {
@@ -215,6 +233,64 @@ open class TimesheetDayBookingService {
                 }
             }
         }.toList()
+        return checkOverlaps(request, userId, days)
+    }
+
+    /**
+     * The booking days of [days] whose time sheet would collide with an existing one of the user are skipped
+     * ([Status.OVERLAP]), as [TimesheetDao.hasTimeOverlap] would refuse them; an allowed overlap (shared cost element)
+     * is noted. Without a task, every overlap is [Status.OVERLAP_UNKNOWN].
+     */
+    private fun checkOverlaps(request: Request, userId: Long, days: List<Day>): List<Day> {
+        val booking = days.filter { it.booking }
+        if (booking.isEmpty()) {
+            return days
+        }
+        val existing = existingSheets(userId, booking.first().date, booking.last().date)
+        if (existing.isEmpty()) {
+            return days
+        }
+        val candidate = TimesheetDO().also {
+            it.task = taskTree.getTaskById(request.taskId)
+            it.kost2 = request.kost2Id?.let { id -> kost2Dao.findOrLoad(id) }
+        }
+        return days.map { day ->
+            if (!day.booking) {
+                return@map day
+            }
+            val (start, stop) = intervalOf(day, request.startTime!!)
+            // Strictly overlapping, as hasTimeOverlap (one ending when the other starts is no collision).
+            val overlapping = existing.filter { it.startTime!! < stop.utilDate && it.stopTime!! > start.utilDate }
+            if (overlapping.isEmpty()) {
+                return@map day
+            }
+            if (candidate.task == null) {
+                return@map Day(day.date, Status.OVERLAP_UNKNOWN, 0, formatPeriod(overlapping.first(), day.date))
+            }
+            val collision = overlapping.firstOrNull { timesheetDao.isCollision(candidate, it) }
+            if (collision != null) {
+                Day(day.date, Status.OVERLAP, 0, formatPeriod(collision, day.date))
+            } else {
+                Day(day.date, day.status, day.minutes, day.note, formatPeriod(overlapping.first(), day.date))
+            }
+        }
+    }
+
+    /** Start and stop of the time sheet booked on the given day. */
+    private fun intervalOf(day: Day, startTime: LocalTime): Pair<PFDateTime, PFDateTime> {
+        val start = PFDateTime.from(LocalDateTime.of(day.date, startTime), ThreadLocalUserContext.zoneId)
+            .withPrecision(DatePrecision.MINUTE_5)
+        return Pair(start, start.plus(day.minutes.toLong(), ChronoUnit.MINUTES))
+    }
+
+    /** "10:00–11:00", with the date of a time that isn't on the given day (a time sheet over midnight). */
+    private fun formatPeriod(sheet: TimesheetDO, date: LocalDate): String {
+        fun format(time: Date): String {
+            val dateTime = PFDateTime.from(time).withZoneSameInstant(ThreadLocalUserContext.zoneId)
+            val timeOfDay = dateTime.format(DateFormatType.TIME_OF_DAY_MINUTES)
+            return if (dateTime.localDate == date) timeOfDay else "${dateTime.format(DateFormatType.DATE_WITHOUT_YEAR)} $timeOfDay"
+        }
+        return "${format(sheet.startTime!!)}–${format(sheet.stopTime!!)}"
     }
 
     private fun createTimesheets(request: Request, days: List<Day>): List<TimesheetDO> {
@@ -222,10 +298,8 @@ open class TimesheetDayBookingService {
         val task = taskTree.getTaskById(request.taskId)
             ?: throw UserException("timesheet.bookDays.error.taskRequired")
         val kost2 = request.kost2Id?.let { kost2Dao.findOrLoad(it) }
-        val zoneId = ThreadLocalUserContext.zoneId
         return days.filter { it.booking }.map { day ->
-            val start = PFDateTime.from(LocalDateTime.of(day.date, request.startTime), zoneId)
-                .withPrecision(DatePrecision.MINUTE_5)
+            val (start, stop) = intervalOf(day, request.startTime!!)
             TimesheetDO().also {
                 it.user = user
                 it.task = task
@@ -233,21 +307,27 @@ open class TimesheetDayBookingService {
                 it.location = request.location?.trim()?.ifEmpty { null }
                 it.description = request.description?.trim()?.ifEmpty { null }
                 it.startTime = start.utilDate
-                it.stopTime = start.plus(day.minutes.toLong(), ChronoUnit.MINUTES).utilDate
+                it.stopTime = stop.utilDate
             }
         }
     }
 
-    /** The days in the given period with a time sheet of the user: a time sheet over midnight counts for both. */
-    private fun bookedDays(userId: Long, from: LocalDate, until: LocalDate): Set<LocalDate> {
+    /**
+     * The time sheets of the user touching the given period; the day before is included for a time sheet over
+     * midnight. Time sheets without start or stop are ignored.
+     */
+    private fun existingSheets(userId: Long, from: LocalDate, until: LocalDate): List<TimesheetDO> {
         val zoneId = ThreadLocalUserContext.zoneId
         val filter = TimesheetFilter()
         filter.userId = userId
-        filter.startTime = PFDateTime.from(from, zoneId).utilDate
+        filter.startTime = PFDateTime.from(from.minusDays(1), zoneId).utilDate
         filter.stopTime = PFDateTime.from(until, zoneId).utilDate // Extended to the end of day by internalGetList.
-        return timesheetDao.internalGetList(filter, checkAccess = false).flatMap { sheet ->
-            listOfNotNull(sheet.startTime, sheet.stopTime).map { PFDateTime.from(it).withZoneSameInstant(zoneId).localDate }
-        }.toSet()
+        return timesheetDao.internalGetList(filter, checkAccess = false)
+            .filter { it.startTime != null && it.stopTime != null }
+    }
+
+    private fun localDateOf(time: Date): LocalDate {
+        return PFDateTime.from(time).withZoneSameInstant(ThreadLocalUserContext.zoneId).localDate
     }
 
     /**

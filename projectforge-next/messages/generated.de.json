@@ -3629,14 +3629,16 @@
     },
     "bookDays": {
       "hoursPerDay": "Stunden pro Tag",
-      "info": "Bucht an jedem Arbeitstag des Zeitraums einen Zeitbericht, z. B. für einen Urlaub. Wochenenden, Feiertage und bereits gebuchte Tage werden übersprungen.",
+      "info": "Bucht an jedem Arbeitstag des Zeitraums einen Zeitbericht, z. B. für einen Urlaub. Wochenenden und Feiertage werden übersprungen; an bereits gebuchten Tagen wird nur gebucht, wenn sich der Zeitbericht nicht unzulässig mit einem vorhandenen überschneidet.",
       "preview": "Vorschau",
       "previewEmpty": "Bitte einen Zeitraum angeben.",
       "status": {
         "book": "wird gebucht",
-        "booked": "bereits gebucht",
         "holiday": "Feiertag",
+        "overlap": "überschneidet sich mit {arg0}",
+        "overlapUnknown": "überschneidet sich mit {arg0} – abhängig vom Strukturelement",
         "partial": "anteilig",
+        "sharedOverlap": "erlaubte Überschneidung mit {arg0} (geteilte Kosten)",
         "weekend": "Wochenende"
       },
       "submit": "Buchen ({arg0})",
