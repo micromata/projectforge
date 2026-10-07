@@ -163,6 +163,44 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun aMissingReleaseEntryIsAddedOnTop() {
+    val mapper = ObjectMapper()
+    val today = LocalDate.of(2026, 10, 8)
+    val root = mapper.readTree(
+      """
+      {"news": [{"version": "8.2", "date": "2026-10-01", "title": "News", "text": "Text"}], "releases": [
+        {"id": "8-2-1", "version": "8.2.1", "date": "2026-09-01", "title": "Old", "tag": "8.2.1-RELEASE",
+         "sections": [{"type": "fixed", "items": ["bug"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val translation = mapper.readTree(
+      """
+      {"news": {"8.2": {"title": "Neu", "text": "Text"}}, "releases": {
+        "8-2-1": {"title": "Alt", "sections": [{"type": "fixed", "items": ["Fehler"]}]}}}
+      """.trimIndent()
+    )
+    val (added, addedTranslation) = GenerateChangelogMain.withRelease(root, translation, "8.2.2", true, today)
+    assertEquals(
+      """{"id":"8-2-2","version":"8.2.2","date":"2026-10-08","title":"ProjectForge 8.2.2 released","tag":"8.2.2-RELEASE","downloadLink":true}""",
+      added["releases"][0].toString()
+    )
+    assertEquals(listOf("8-2-2", "8-2-1"), addedTranslation["releases"].fieldNames().asSequence().toList())
+    assertEquals("ProjectForge 8.2.2 veröffentlicht", addedTranslation["releases"]["8-2-2"]["title"].asText())
+    // Ready for the release once the fragments are folded into it.
+    val fragments = listOf(fragment("20261008-a.json", """{"type": "fixed", "en": "fix", "de": "Korrektur"}"""))
+    val (folded, foldedTranslation) = GenerateChangelogMain.fold(added, addedTranslation, "8-2-2", fragments)
+    assertEquals(emptyList<String>(), GenerateChangelogMain.checkRelease(folded, foldedTranslation, "8.2.2", today))
+    // A mini release has no download link.
+    val mini = GenerateChangelogMain.withRelease(root, translation, "8.2.2", false, today).first["releases"][0]
+    assertEquals(false, mini["published"].asBoolean())
+    assertEquals(null, mini["downloadLink"])
+    // An existing entry is taken as it is, the sources themselves are unchanged.
+    assertEquals(root to translation, GenerateChangelogMain.withRelease(root, translation, "8.2.1", true, today))
+    assertEquals(1, root["releases"].size())
+  }
+
+  @Test
   fun releaseNotesAreGitHubMarkdown() {
     val root = ObjectMapper().readTree(
       """

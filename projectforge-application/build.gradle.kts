@@ -324,20 +324,33 @@ tasks.register<JavaExec>("developmentMainForRelease") {
     workingDir = rootDir
 }
 
-/** Used by bin/pfDev.sh release: checks the changelog for the release -PreleaseVersion=X.Y.Z, writes its release notes. */
+/**
+ * Used by bin/pfDev.sh release: checks the changelog for the release -PreleaseVersion=X.Y.Z, writes its release notes.
+ * With -PreleasePublished=true|false a missing entry of the release is assumed to be added (published or not).
+ */
 tasks.register<JavaExec>("checkReleaseChangelog") {
     group = "development"
     mainClass.set("org.projectforge.development.GenerateChangelogMain")
     classpath = sourceSets["test"].runtimeClasspath
     workingDir = rootDir
     args("--check-release", providers.gradleProperty("releaseVersion").getOrElse(""))
+    providers.gradleProperty("releasePublished").orNull?.let { args("--add-release", it) }
 }
 
-/** Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest). */
+/**
+ * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
+ * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
+ * release if missing (published or not) and moves changelog/unreleased/ into it.
+ */
 tasks.register<JavaExec>("foldChangelog") {
     group = "development"
     mainClass.set("org.projectforge.development.GenerateChangelogMain")
     classpath = sourceSets["test"].runtimeClasspath
     workingDir = rootDir
-    args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
+    val published = providers.gradleProperty("releasePublished").orNull
+    if (published != null) {
+        args("--fold", providers.gradleProperty("releaseVersion").getOrElse(""), "--add-release", published)
+    } else {
+        args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
+    }
 }

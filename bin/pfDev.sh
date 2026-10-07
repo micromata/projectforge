@@ -42,7 +42,9 @@ Commands:
   release <X.Y.Z> [--skip-tests]
                    Release X.Y.Z: checks changelog/changelog.json (the release on top,
                    tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
-                   only; X.Y.0 also needs a news X.Y), folds changelog/unreleased/ into it, sets the version,
+                   only; X.Y.0 also needs a news X.Y). A missing release entry is added
+                   (default titles, today, published or a mini release, asked first);
+                   folds changelog/unreleased/ into it, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
@@ -194,8 +196,22 @@ release() {
     echo "The branch is behind its upstream, pull first." >&2
     exit 1
   fi
+  # A missing release entry is added after the confirmation below (default titles, dated today), only the
+  # kind of release is asked here. An existing entry (e.g. with a title of its own) is taken as it is.
+  local published="" has_entry
+  has_entry="$(node -e '
+    const releases = require(process.argv[1]).releases;
+    console.log(releases.some((r) => r.version === process.argv[2]) ? "true" : "false");
+  ' "$ROOT/changelog/changelog.json" "$version")"
+  if [[ "$has_entry" == false ]]; then
+    if confirm "changelog.json has no entry of $version yet, it will be added. Publish it (GitHub release, jar, docker images)? Otherwise a mini release"; then
+      published=-PreleasePublished=true
+    else
+      published=-PreleasePublished=false
+    fi
+  fi
   # Fails with every problem of the changelog, before anything is changed.
-  "$GRADLEW" -p "$ROOT" :projectforge-application:checkReleaseChangelog -PreleaseVersion="$version"
+  "$GRADLEW" -p "$ROOT" :projectforge-application:checkReleaseChangelog -PreleaseVersion="$version" ${published:+"$published"}
   # Shown before the first question, so a release can't count backwards by mistake.
   local current latest
   current="$(sed -n 's/^version=//p' gradle.properties)"
@@ -209,8 +225,12 @@ release() {
   confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
   start="$(git rev-parse --short HEAD)"
   trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
-  # The entries of changelog/unreleased/ go into the release (checked folded already).
-  "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog --rerun
+  # The entries of changelog/unreleased/ go into the release (checked folded already), its entry is added if missing.
+  if [[ -n "$published" ]]; then
+    "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog --rerun -PreleaseVersion="$version" "$published"
+  else
+    "$GRADLEW" -p "$ROOT" :projectforge-application:foldChangelog --rerun
+  fi
   set_version "$version"
   "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
   git add -A
