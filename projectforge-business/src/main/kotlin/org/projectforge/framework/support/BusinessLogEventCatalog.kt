@@ -30,6 +30,7 @@ import org.projectforge.business.lanesandplanes.LanesAndPlanesLogEvents
 import org.projectforge.business.user.UserLogEvents
 import org.projectforge.common.logging.CommonLogEvents
 import org.projectforge.common.logging.LogEventRegistry
+import org.projectforge.framework.access.AccessLogEvents
 import org.projectforge.framework.integration.IntegrationLogEvents
 import org.projectforge.framework.persistence.jpa.PersistenceLogEvents
 import org.projectforge.mail.MailLogEvents
@@ -57,6 +58,7 @@ class BusinessLogEventCatalog {
             IntegrationLogEvents,
             LanesAndPlanesLogEvents,
             UserLogEvents,
+            AccessLogEvents,
             ThirdPartyLogEvents,
         )
     }

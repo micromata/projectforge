@@ -4,10 +4,9 @@ import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
-import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
+import { PersonSelect } from "@/components/shared/person-select";
 import { InvoicingQuotaSwitch } from "@/components/shared/invoicing-quota/invoicing-quota-switch";
 import { PeriodStepper } from "@/components/shared/period-stepper";
-import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatMonthName } from "@/lib/format";
 import { periodKindOf } from "@/lib/date-period";
@@ -37,7 +36,6 @@ export function ReportFilterRow({
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const currentUser = useCurrentUserRef();
   if (!report) return null;
 
   // The report's own available years, current year always among them so a fresh month is selectable.
@@ -50,15 +48,13 @@ export function ReportFilterRow({
       {report.maySelectOtherUsers && (
         <div className="flex flex-col gap-1">
           <Label htmlFor="report-user">{t("timesheet.user")}</Label>
-          <EntityAutocomplete
+          <PersonSelect
             id="report-user"
-            url="user/autosearch?search=:search"
             value={
               report.userId
                 ? { id: report.userId, displayName: report.userName }
                 : null
             }
-            selectMe={currentUser}
             required
             aria-label={t("timesheet.user")}
             onChange={(user) => onChange({ ...value, userId: user?.id })}

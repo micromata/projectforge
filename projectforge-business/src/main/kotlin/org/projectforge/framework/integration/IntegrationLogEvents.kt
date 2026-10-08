@@ -53,4 +53,18 @@ object IntegrationLogEvents {
         action = "See the log messages 'Unable to gather subscription calendar #...' for the cause. If the calendars " +
                 "are really gone, ask their owners to remove the subscriptions.",
     )
+
+    /**
+     * The sync runs on every refresh of the user group cache, so a failure while the IdP restarts is repeated soon.
+     */
+    @JvmField
+    val IDP_SYNC_FAILED = LogEvent(
+        code = "idp.sync.failed",
+        category = LogCategory.EXTERNAL,
+        threshold = 3,
+        explanation = "The sync of users and groups to the identity provider (IdP master mode) failed, e.g. with " +
+                "502/503 while the IdP restarts or with a closed connection pool while ProjectForge shuts down. " +
+                "Reported only from 3 failures per digest period on.",
+        action = "Check that the IdP is up and reachable and that its admin token is valid (projectforge.idp.*).",
+    )
 }

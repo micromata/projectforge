@@ -2206,7 +2206,6 @@
   {"i18nKey":"menu.calendar","bundleName":"I18nResources","translation":"Calendar","translationDE":"Kalender","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.changePassword","bundleName":"I18nResources","translation":"Change password","translationDE":"Passwort ändern","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId","org.projectforge.rest.MyAccountPageRest","org.projectforge.rest.UserPagesRest"],"usedInFiles":[]},
   {"i18nKey":"menu.changeWlanPassword","bundleName":"I18nResources","translation":"Change WLAN/Samba password","translationDE":"WLAN/Samba Passwort ändern","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId","org.projectforge.rest.MyAccountPageRest","org.projectforge.rest.UserPagesRest"],"usedInFiles":[]},
-  {"i18nKey":"menu.changelog","bundleName":"I18nResources","translation":"Changelog","translationDE":"Changelog","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.common","bundleName":"I18nResources","translation":"Common","translationDE":"Allgemein","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.configuration","bundleName":"I18nResources","translation":"Configuration","translationDE":"Konfiguration","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.contactList","bundleName":"I18nResources","translation":"Contacts","translationDE":"Kontakte","usedInClasses":[],"usedInFiles":[]},

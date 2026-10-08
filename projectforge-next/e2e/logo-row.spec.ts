@@ -49,10 +49,29 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     const column = tableColumn(page);
     // Room to scroll, and by more than the row's height: a column that overflows by less declines to
     // collapse on purpose (see nextCollapsed).
+    //
+    // On the first page if need be: the list brings the entry this account edited last into view (see
+    // useHighlightedRow), and a book a parallel spec has just created stands on the last page, which
+    // may hold only a few rows. Polled until it holds twice over, as that jump lands after the rows do.
     await waitForRows(page);
+    let roomBefore = false;
     await expect
-      .poll(() => column.evaluate((el) => el.scrollHeight - el.clientHeight))
-      .toBeGreaterThan(200);
+      .poll(
+        async () => {
+          const room =
+            (await column.evaluate((el) => el.scrollHeight - el.clientHeight)) >
+            200;
+          if (!room) {
+            const first = page.getByRole("button", { name: "1", exact: true });
+            if (await first.isVisible()) await first.click();
+          }
+          const held = room && roomBefore;
+          roomBefore = room;
+          return held;
+        },
+        { timeout: 30_000, intervals: [250] }
+      )
+      .toBe(true);
 
     // Put the column at the top first, and keep putting it there: coming back from an edit page the
     // list brings the entry the backend remembers into view (see useHighlightedRow), which lands after

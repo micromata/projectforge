@@ -124,18 +124,20 @@ object GenerateChangelogMain {
    * changelog is ready for that release (see [checkRelease]) and writes its GitHub release notes to
    * `build/release-notes-X.Y.Z.md`; it exits with 1 if the changelog isn't ready. With `--fold [id]` (used by
    * `bin/pfDev.sh changelog-fold`) it first moves the fragments of `changelog/unreleased/` into the release `id`,
-   * the newest one by default (see [fold]).
+   * the newest one by default (see [fold]). Both take `--add-release true|false` (used by `bin/pfDev.sh release`):
+   * a missing entry of the release is added first, published or not (see [withRelease]); `--fold` then folds into it.
    */
   @JvmStatic
   fun main(args: Array<String>) {
     val rootDir = resolveRootDir()
-    val checkIndex = args.indexOf("--check-release")
-    if (checkIndex >= 0) {
-      exitProcess(checkReleaseMain(rootDir, args.getOrNull(checkIndex + 1).orEmpty()))
+    fun option(name: String) =
+      args.indexOf(name).takeIf { it >= 0 }?.let { args.getOrNull(it + 1)?.takeIf { value -> !value.startsWith("--") }.orEmpty() }
+    val addRelease = option("--add-release")?.takeIf { it.isNotBlank() }?.toBooleanStrict()
+    option("--check-release")?.let { version ->
+      exitProcess(checkReleaseMain(rootDir, version, addRelease))
     }
-    val foldIndex = args.indexOf("--fold")
-    if (foldIndex >= 0) {
-      foldMain(rootDir, args.getOrNull(foldIndex + 1)?.takeIf { it.isNotBlank() && !it.startsWith("--") })
+    option("--fold")?.let { value ->
+      foldMain(rootDir, value.takeIf { it.isNotBlank() }, addRelease)
     }
     val files = generate(rootDir)
     files.forEach { (path, content) ->
@@ -159,13 +161,20 @@ object GenerateChangelogMain {
   internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
 
   /**
-   * The check of `bin/pfDev.sh release`, which folds `changelog/unreleased/` into the release only after its
-   * confirmation: so the release is checked (and its notes are written) as it will be, with the fragments folded
-   * into the newest release (if that isn't the one of [version], [checkRelease] says so).
+   * The check of `bin/pfDev.sh release`, which adds the release entry and folds `changelog/unreleased/` into it
+   * only after its confirmation: so the release is checked (and its notes are written) as it will be, with its
+   * entry added if [published] is given (see [withRelease]) and the fragments folded into the newest release (if
+   * that isn't the one of [version], [checkRelease] says so).
    */
-  private fun checkReleaseMain(rootDir: File, version: String): Int {
+  private fun checkReleaseMain(rootDir: File, version: String, published: Boolean?): Int {
     var root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
     var translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
+    if (published != null && RELEASE_VERSION_REGEX.matches(version)) {
+      withRelease(root, translation, version, published).let { (added, addedTranslation) ->
+        root = added
+        translation = addedTranslation
+      }
+    }
     val fragments = readFragments(rootDir)
     val releaseId = root["releases"]?.get(0)?.get("id")?.asText()
     if (fragments.isNotEmpty() && releaseId != null && translation["releases"]?.get(releaseId) != null) {
@@ -186,15 +195,34 @@ object GenerateChangelogMain {
     return 0
   }
 
-  private fun foldMain(rootDir: File, releaseId: String?) {
+  /**
+   * `--fold [releaseId]`, with `--add-release` the release [releaseId] = `X.Y.Z` (a version, not an id): its entry is
+   * added first if missing, [published] or not (see [withRelease]), and the fragments are folded into it.
+   */
+  private fun foldMain(rootDir: File, releaseId: String?, published: Boolean?) {
+    var root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
+    var translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
+    if (published != null) {
+      val version = requireNotNull(releaseId) { "--add-release needs the version of the release: --fold X.Y.Z." }
+      val (added, addedTranslation) = withRelease(root, translation, version, published)
+      if (added != root) {
+        File(rootDir, SOURCE).writeText(sourceJson(added), ENCODING)
+        File(rootDir, SOURCE_DE).writeText(sourceJson(addedTranslation), ENCODING)
+        println("Added the release entry ${releaseId(version)} to $SOURCE and $SOURCE_DE.")
+        root = added
+        translation = addedTranslation
+      }
+    }
     val files = fragmentFiles(rootDir)
     if (files.isEmpty()) {
       println("Nothing to fold, $FRAGMENTS_DIR has no entries.")
       return
     }
-    val root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
-    val translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
-    val id = releaseId ?: root["releases"][0]["id"].asText()
+    val id = if (published != null) {
+      root["releases"].first { it["version"]?.asText() == releaseId }["id"].asText()
+    } else {
+      releaseId ?: root["releases"][0]["id"].asText()
+    }
     val (folded, foldedTranslation) = fold(root, translation, id, readFragments(rootDir))
     val errors = validate(folded) + validateTranslation(folded, foldedTranslation)
     require(errors.isEmpty()) { "The folded changelog is invalid:\n${errors.joinToString("\n")}" }
@@ -209,6 +237,42 @@ object GenerateChangelogMain {
 
   /** The git tag of a release, `8.2.37-RELEASE` (the scheme of all tags since 7.0). */
   internal fun releaseTag(version: String) = "$version-RELEASE"
+
+  /** The id of the release entry of [version], `8-2-37` of `8.2.37`. */
+  internal fun releaseId(version: String) = version.replace('.', '-')
+
+  /**
+   * The source [root] and its [translation] with the entry of the release [version] `X.Y.Z` on top, if there is no
+   * entry of that version yet (unchanged otherwise, a misplaced entry is reported by [checkRelease]): dated [today],
+   * with the default titles and tagged, [published] with a download link or as a mini release (`"published": false`).
+   * Its sections come from the fragments (see [fold]).
+   */
+  internal fun withRelease(
+    root: JsonNode,
+    translation: JsonNode,
+    version: String,
+    published: Boolean,
+    today: LocalDate = LocalDate.now(),
+  ): Pair<JsonNode, JsonNode> {
+    require(RELEASE_VERSION_REGEX.matches(version)) { "'$version' is no release version, expected X.Y.Z (e.g. 8.2.37)." }
+    if (root["releases"].any { it["version"]?.asText() == version }) return root to translation
+    val id = releaseId(version)
+    val copy = root.deepCopy<JsonNode>()
+    val translationCopy = translation.deepCopy<ObjectNode>()
+    (copy["releases"] as ArrayNode).insertObject(0)
+      .put("id", id)
+      .put("version", version)
+      .put("date", today.toString())
+      .put("title", "ProjectForge $version released")
+      .put("tag", releaseTag(version))
+      .also { if (published) it.put("downloadLink", true) else it.put("published", false) }
+    // An object keeps the order of its fields: the new release on top, as in the source.
+    val translatedReleases = translationCopy.objectNode()
+    translatedReleases.putObject(id).put("title", "ProjectForge $version veröffentlicht")
+    translationCopy["releases"]?.let { translatedReleases.setAll<ObjectNode>(it as ObjectNode) }
+    translationCopy.set<ObjectNode>("releases", translatedReleases)
+    return copy to translationCopy
+  }
 
   /** The version a news is kept by: major.minor, `8.2` of `8.2.37`, `8.2.0-SNAPSHOT` or `8.2-SNAPSHOT`. */
   internal fun newsVersion(version: String): String =

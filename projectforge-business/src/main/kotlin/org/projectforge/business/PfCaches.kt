@@ -24,6 +24,7 @@
 package org.projectforge.business
 
 import jakarta.annotation.PostConstruct
+import org.hibernate.Hibernate
 import org.projectforge.business.address.AddressbookCache
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.*
@@ -262,10 +263,16 @@ class PfCaches {
     }
 
     fun getGroupIfNotInitialized(groupDO: GroupDO?): GroupDO? {
-        return userGroupCache.getGroupIfNotInitialized(groupDO)?.also { group ->
-            group.groupOwner = getUserIfNotInitialized(group.groupOwner)
+        val group = userGroupCache.getGroupIfNotInitialized(groupDO)?.let { group ->
+            // A group loaded in another (meanwhile closed) session counts as initialized, but its lazy assignedUsers
+            // can't be read anymore (e.g. a projekt of the ProjektCache refreshed within a request's transaction).
+            if (Hibernate.isInitialized(group.assignedUsers)) group else userGroupCache.getGroup(group.id) ?: group
+        } ?: return null
+        group.groupOwner = getUserIfNotInitialized(group.groupOwner)
+        if (Hibernate.isInitialized(group.assignedUsers)) {
             group.assignedUsers = group.assignedUsers?.mapNotNull { getUserIfNotInitialized(it) }?.toMutableSet()
         }
+        return group
     }
 
     fun getKonto(konto: Long?): KontoDO? {

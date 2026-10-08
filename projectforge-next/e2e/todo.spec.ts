@@ -21,6 +21,16 @@ import {
  */
 test.describe("todo", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
+    // The plugin may be deactivated in this instance: its REST endpoints are there all the same, but
+    // without its registered right every write fails ("Cannot find UserRightId: PLUGIN_TODO"). Only an
+    // activated plugin registers its menu entry.
+    const menu = await page.request.get("/rs/menu", {
+      headers: { "X-PF-Frontend": "next" },
+    });
+    test.skip(
+      !/next\/todo["?]/.test(await menu.text()),
+      "the todo plugin isn't activated in this instance"
+    );
     await page.request
       .get("/rs/todo/filter/reset", {
         headers: { "X-PF-Frontend": "next" },

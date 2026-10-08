@@ -17,7 +17,6 @@ import { BookDaysForm } from "./book-days-form";
 export interface BookDaysDialogProps {
   /** The user whose time sheets the calendar shows, else the logged-in user. */
   defaultUser: EntityRef | null;
-  currentUser: EntityRef | null;
   canChooseUser: boolean;
   /** First day of the period the calendar shows (ISO date); the period starts at its first free day. */
   viewStart: string;

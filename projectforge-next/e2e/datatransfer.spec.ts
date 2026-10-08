@@ -97,8 +97,16 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       const observe = page.getByLabel(
         t("plugins.datatransfer.userWantsToObserve._")
       );
+      // The box is checked at once, before the server has answered: a reload right away would abort
+      // the request still in flight.
+      const stored = page.waitForResponse(
+        (res) =>
+          res.url().includes(`/rs/datatransferfiles/observe/${area.id}`) &&
+          res.ok()
+      );
       await observe.click();
       await expect(observe).toBeChecked();
+      await stored;
       await page.reload();
       await expect(observe).toBeChecked();
       await observe.click();

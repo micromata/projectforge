@@ -562,8 +562,12 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         changedFields: List<String>,
     ) {
         val excel = MultiSelectionExcelExport.export(massUpdateContext, this)
-        val filename =
-            ReplaceUtils.encodeFilename("${translate(getTitleKey())}_${PFDateTime.now().format4Filenames()}.xlsx", true)
+        // The entity name tells the protocols of different entities apart in the data transfer box.
+        val entityName = translate("${pagesRest.i18nKeyPrefix}.heading")
+        val filename = ReplaceUtils.encodeFilename(
+            "${translate(getTitleKey())}_${entityName}_${PFDateTime.now().format4Filenames()}.xlsx",
+            true,
+        )
         downloadFileSupport.storeDownloadFile(request, filename, excel)
         val message = StringBuilder()
         message.appendLine(massUpdateContext.resultMessage)

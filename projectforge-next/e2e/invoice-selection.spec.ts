@@ -205,8 +205,9 @@ async function openList(page: Page, query = ""): Promise<void> {
   await goto(page, `${INVOICE_PAGE.route}${query}`);
   // Rows that are *there*, not the loading skeleton: it renders a row per placeholder, so waiting for
   // a `tr` would enter the selection mode over an empty table — the mode focuses the first row as it
-  // is switched on, and there would be none.
-  await expect(numberCells(page).first()).toBeVisible();
+  // is switched on, and there would be none. With the time a full run needs: while the parallel specs
+  // write orders and invoices, the invoice select waits for the caches they refresh (seconds, not ms).
+  await expect(numberCells(page).first()).toBeVisible({ timeout: 30_000 });
 }
 
 /**

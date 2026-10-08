@@ -181,8 +181,11 @@ class ProjectEntityRest
 
     /**
      * The activity columns, sorted in memory: both values come from caches ([TaskTree], [AuftragsCache]).
+     * And the number column: [ProjektDO.kost] is transient, but its fixed width digits ("5.123.04") sort
+     * as text.
      */
     override val computedSortProperties: Map<String, (ProjektDO) -> Comparable<*>?> = mapOf(
+        "kost" to ProjektDO::kost,
         "lastTimesheetDate" to ::lastTimesheetDate,
         "lastOrderDate" to ::lastOrderDate,
         "lastActivityDate" to ::lastActivityDate,

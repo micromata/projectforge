@@ -6,11 +6,9 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  EntityAutocomplete,
-  type EntityRef,
-} from "@/components/shared/entity-autocomplete";
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { PageShell } from "@/components/shared/page-shell";
+import { PersonSelect } from "@/components/shared/person-select";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SectionCard } from "@/components/shared/section-card";
 import { toast } from "@/lib/toast";
@@ -58,9 +56,8 @@ export function DataTransferPersonalBoxPage() {
             {t("plugins.datatransfer.personalBox.select")}
           </Label>
           <div className="flex items-center gap-2">
-            <EntityAutocomplete
+            <PersonSelect
               id="datatransfer-personal-box-user"
-              url="user/autosearch?search=:search"
               value={user}
               onChange={(value) => {
                 setPicked(value);

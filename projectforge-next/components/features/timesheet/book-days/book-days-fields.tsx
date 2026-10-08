@@ -6,10 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/shared/date-input";
-import {
-  EntityAutocomplete,
-  type EntityRef,
-} from "@/components/shared/entity-autocomplete";
+import { PersonSelect } from "@/components/shared/person-select";
 import { SuggestInput } from "@/components/shared/suggest-input";
 import { TimeInput } from "@/components/shared/time-input";
 import { fetchLocationSuggestions } from "@/lib/rs/timesheet";
@@ -47,14 +44,12 @@ export function BookDaysFields({
   onChange,
   vacations,
   onVacation,
-  currentUser,
   canChooseUser,
 }: {
   values: BookDaysValues;
   onChange: (patch: Partial<BookDaysValues>) => void;
   vacations: BookDaysVacations | undefined;
   onVacation: (vacation: BookDaysVacation) => void;
-  currentUser: EntityRef | null;
   /** Booking for others (Orga, HR, …) — the calendar filter's "other users" right. */
   canChooseUser: boolean;
 }) {
@@ -68,12 +63,10 @@ export function BookDaysFields({
         label={t("timesheet.user")}
         className="col-span-2"
       >
-        <EntityAutocomplete
+        <PersonSelect
           id={`${id}-user`}
-          url="user/autosearch?search=:search"
           value={values.user}
           onChange={(user) => onChange({ user, vacationId: null })}
-          selectMe={currentUser}
           required
           disabled={!canChooseUser}
         />

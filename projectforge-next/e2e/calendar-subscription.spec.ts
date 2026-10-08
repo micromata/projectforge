@@ -13,7 +13,9 @@ test.describe("calendar subscription links", { tag: "@lane-calendar" }, () => {
   }) => {
     const format = await userFormat(page);
     await goto(page, "/calendar");
-    await page.getByRole("button", { name: format.t("more") }).click();
+    await page
+      .getByRole("button", { name: format.t("more"), exact: true })
+      .click();
     await page
       .getByRole("menuitem", {
         name: label(format, "plugins.teamcal.subscription"),

@@ -91,6 +91,10 @@ class FileStoreTest {
         Assertions.assertEquals("renamed.txt", changed.fileName)
         Assertions.assertEquals("Description", changed.description)
         Assertions.assertEquals("fin", changed.lastUpdateByUser)
+        fileStore.getFileInfo(file.parentNodePath, file.relPath, file.fileId)!!.let { reread ->
+            Assertions.assertEquals("renamed.txt", reread.fileName, "change must be committed")
+            Assertions.assertEquals("Description", reread.description)
+        }
         Assertions.assertEquals(sha256(content), fileStore.checksum(file))
 
         Assertions.assertTrue(fileStore.deleteFile(file))
