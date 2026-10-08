@@ -25,11 +25,15 @@ package org.projectforge.jcr.store
 
 import org.hsqldb.jdbc.JDBCDataSource
 import java.io.File
+import java.sql.Connection
 import javax.sql.DataSource
 
 /**
  * In-memory HSQLDB with the schema pf_files for the tests of the file store. The schema is created by the Flyway
  * script of projectforge-business (Flyway doesn't run in projectforge-jcr).
+ *
+ * Its connections don't auto-commit, as the pooled ones of the application (`spring.datasource.hikari.auto-commit=false`):
+ * a write outside of a transaction would be lost there, and must be lost here too.
  */
 object FileStoreTestDataSource {
     val dataSource: DataSource by lazy {
@@ -43,6 +47,11 @@ object FileStoreTestDataSource {
                 .split(';').map { it.trim() }.filter { it.isNotEmpty() }
                 .forEach { sql -> conn.createStatement().use { it.execute(sql) } }
         }
-        ds
+        object : DataSource by ds {
+            override fun getConnection(): Connection = ds.connection.also { it.autoCommit = false }
+
+            override fun getConnection(username: String?, password: String?): Connection =
+                ds.getConnection(username, password).also { it.autoCommit = false }
+        }
     }
 }

@@ -112,8 +112,12 @@ internal class FileMetaDao(private val dataSource: DataSource) {
         }
     }
 
+    /**
+     * In a transaction of its own: the pooled connections don't auto-commit (`spring.datasource.hikari.auto-commit`),
+     * an update outside of a transaction is rolled back as the connection returns to the pool.
+     */
     fun updateInfo(meta: FileMeta) {
-        withConnection { conn ->
+        inTransaction { conn ->
             conn.prepareStatement(
                 "UPDATE $TABLE SET file_name=?, description=?, zip_mode=?, checksum=?, last_update=?, last_update_by=? WHERE pk=?"
             ).use { ps ->
