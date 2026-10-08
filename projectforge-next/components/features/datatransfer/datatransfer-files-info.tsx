@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { CopyableValue } from "@/components/shared/copyable-value";
 import { SectionCard } from "@/components/shared/section-card";
 import type { DataTransferView } from "@/lib/rs/datatransfer";
+import { DataTransferCapacityBar } from "./datatransfer-capacity-bar";
 import { DataTransferInfoItem as Item } from "./datatransfer-info-item";
 import { DataTransferObserveCheckbox } from "./datatransfer-observe-checkbox";
 
@@ -25,6 +26,7 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
   const internalLabel = t("plugins.datatransfer.internal.link");
   const externalLabel = t("plugins.datatransfer.external.link._");
   const passwordLabel = t("plugins.datatransfer.external.password._");
+  const capacityLabel = t("plugins.datatransfer.capacity._");
 
   return (
     <SectionCard>
@@ -86,8 +88,16 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
         >
           {area.capacity?.maxUploadSizeFormatted}
         </Item>
-        <Item label={t("plugins.datatransfer.capacity._")}>
-          {area.capacity?.capacityAsMessage}
+        <Item label={capacityLabel}>
+          {area.capacity?.capacityAsMessage && (
+            <span className="flex flex-col gap-1.5">
+              {area.capacity.capacityAsMessage}
+              <DataTransferCapacityBar
+                capacity={area.capacity}
+                label={capacityLabel}
+              />
+            </span>
+          )}
         </Item>
         {!personal && (
           <>

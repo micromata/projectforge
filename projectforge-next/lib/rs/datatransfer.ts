@@ -18,6 +18,10 @@ export type DataTransferRef = {
 
 /** org.projectforge.plugins.datatransfer.DataTransferAreaCapacity, as far as it is shown. */
 export interface DataTransferCapacity {
+  /** Bytes used by the area's files. */
+  used?: number | null;
+  /** Bytes the area may hold. */
+  capacity?: number | null;
   maxUploadSizeFormatted?: string | null;
   /** "1.2 MB/2 GB (0%)", translated by the backend. */
   capacityAsMessage?: string | null;
