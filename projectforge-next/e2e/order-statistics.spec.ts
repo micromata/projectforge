@@ -2,6 +2,7 @@ import { test, expect, goto, login } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import { resetFilter } from "./fixtures/filter-pill";
+import { listRows, waitForRows } from "./fixtures/list-table";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import type { MagicFilter } from "../lib/rs/types";
 import type { OrderStatisticsMeta } from "../lib/rs/order-statistics";
@@ -145,7 +146,8 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
       expect(await page.evaluate(() => window.scrollX)).toBe(0);
     }
     // Sorting on the header click, filtering in the header's popover; the sum row follows the filter.
-    const positions = page.locator("tbody tr");
+    // The rows of the result set: neither the skeletons nor the empty state's single row (see listRows).
+    const positions = await waitForRows(page);
     const total = await positions.count();
     await orderHeader.click();
     await expect(
@@ -155,6 +157,14 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     ).toBeVisible();
     await orderHeader
       .getByRole("button", { name: format.t("filter.title") })
+      .click();
+    // The popover opens in the selection mode only for a column of at most 20 distinct values
+    // (SELECTION_PREFERRED_MAX); a production-sized instance has more orders than that.
+    await page.getByRole("dialog").getByRole("combobox").first().click();
+    await page
+      .getByRole("option", {
+        name: new RegExp(`^${escape(format.t("filter.selection"))}`),
+      })
       .click();
     await page
       .getByRole("button", { name: format.t("filter.selectNone") })
@@ -178,8 +188,9 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
     const open = page.getByRole("button", {
       name: format.t("fibu.auftrag.statistics.tables.forecastDetails"),
     });
+    // A loaded table, a row or its empty state - a skeleton row would decide the skip too early.
     await expect(
-      open.first().or(page.locator("tbody tr").first())
+      open.or(listRows(page)).or(page.locator("tbody td[colspan]")).first()
     ).toBeVisible();
     test.skip(
       (await open.count()) === 0,
@@ -189,19 +200,17 @@ test.describe("order statistics", { tag: "@lane-order" }, () => {
 
     // The analysis of the whole order, the backend's HTML, in a dialog above the tables.
     const dialog = page.getByRole("dialog");
-    await expect(
-      dialog.getByRole("heading", {
-        name: new RegExp(`^${escape(format.t("fibu.auftrag.forecast._"))}`),
-      })
-    ).toBeVisible();
+    // The dialog's own title: the backend's HTML below brings headings starting alike.
+    await expect(dialog.locator('[data-slot="dialog-title"]')).toHaveText(
+      new RegExp(`^${escape(format.t("fibu.auftrag.forecast._"))}`)
+    );
     await expect(dialog.locator(".order-forecast")).toBeVisible({
       timeout: 60_000,
     });
     // The order number in the title opens the order at its Forecast tab.
-    await expect(dialog.getByRole("link")).toHaveAttribute(
-      "href",
-      /\/order\/\d+\?tab=forecast$/
-    );
+    await expect(
+      dialog.locator('[data-slot="dialog-title"]').getByRole("link")
+    ).toHaveAttribute("href", /\/order\/\d+\?tab=forecast$/);
     // Closed again, the tables are where they were.
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();

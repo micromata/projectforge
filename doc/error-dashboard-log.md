@@ -13,6 +13,25 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-08 (export 14:33, all statuses, running version 9.0.3)
+
+9.0.3 went live ~2026-10-07 23:00 UTC (first `ical.subscriptions.systemicFailure` at 23:12, the old
+`TeamEventExternalSubscriptionCache:305` last at 23:00). None of the problems fixed in `04fd7072b` or in the
+analysis below occurred again after that deploy, no REGRESSION.
+
+### Fixed (develop, after 9.0.3)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `DBQueryBuilderByCriteria:125` "Can't add order for property 'ProjektDO.kost'" (5×, 2 users) | The number column of the next project list sorts by the transient `kost`; the query went out unsorted. | `ProjectEntityRest.computedSortProperties` sorts by `kost` in memory (fixed-width digits, sorts as text). | |
+| `AccessCheckerImpl:229` "access.violation.userNotMemberOf: PF_Admin" (1×) | A denied group check (e.g. an admin page) was logged as unclassified ERROR before the `AccessException` is thrown. | WARN with `access.userNotMemberOf` (SECURITY, threshold 10). | If it turns up below the threshold often, a page or link sends normal users to an admin function. |
+| `DBFullTextResultIterator:188` `persistence.fulltextQueryInvalid` (1×, a search term with an unclosed `"`) | A term with invalid query syntax gives no result; from the user's point of view expected, not a problem of the installation. | Logged as plain INFO without event, so no longer collected; `persistence.fulltextQueryInvalid` removed. No repair or escaping of the term (would guess the user's intent). | |
+| `IdpMasterLoginHandler:157` "IdP master sync failed" (502/503 while authentik started, "Connection pool shut down" on shutdown; resolved/ignored) | IdP unavailable, logged as unclassified ERROR. | `idp.sync.failed` (EXTERNAL, threshold 3). | |
+
+### Open
+
+- **7 of 10 calendar subscriptions failing**: unchanged, see below.
+
 ## 2026-10-08 (export 2026-10-07 22:44, 18 problems OPEN, last 7 days, running version 9.0.2)
 
 Delta to the analysis of 2026-10-07. `04fd7072b` is not deployed yet, so these still occur:
