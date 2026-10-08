@@ -1,5 +1,5 @@
 {
   "type": "added",
-  "en": "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses).",
-  "de": "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten)."
+  "en": "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses), also shown as a column in the list and in the Excel export.",
+  "de": "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten), auch als Spalte in der Liste und im Excel-Export."
 }

@@ -143,7 +143,7 @@ class EmployeePagesRest :
             this,
             userAccess = userAccess,
         )
-            // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Wochenstunden	Bemerkung
+            // Name	Vorname	Status	Personalnummer	Kost1	Kreditorenkonto	Position	Team	Eintrittsdatum	Austrittsdatum	Wochenstunden	Bemerkung
             .add(
                 lc,
                 "user.firstname",
@@ -151,6 +151,7 @@ class EmployeePagesRest :
                 "status",
                 "staffNumber",
                 "kost1",
+                "konto",
                 "position",
                 "abteilung",
                 "eintrittsDatum",
@@ -227,6 +228,7 @@ class EmployeePagesRest :
             sheet.registerColumn(translate("fibu.employee.status"), "status").withSize(15)
             ExcelUtils.registerColumn(sheet, EmployeeDO::staffNumber, 15)
             sheet.registerColumn(translate("fibu.kost1"), "kost1").withSize(15)
+            sheet.registerColumn(translate("fibu.employee.konto"), "konto").withSize(30)
             ExcelUtils.registerColumn(sheet, EmployeeDO::position, 20)
             ExcelUtils.registerColumn(sheet, EmployeeDO::abteilung, 20)
             ExcelUtils.registerColumn(sheet, EmployeeDO::eintrittsDatum)
@@ -256,6 +258,8 @@ class EmployeePagesRest :
                 employeeDO.staffNumber?.let { row.getCell("staffNumber")?.setCellValue(it) }
                 kostCache.getKost1(employeeDO.kost1?.id)?.formattedNumber
                     ?.let { row.getCell("kost1")?.setCellValue(it) }
+                kontoCache.getKontoIfNotInitialized(employeeDO.konto)?.displayName
+                    ?.let { row.getCell("konto")?.setCellValue(it) }
                 employeeDO.position?.let { row.getCell("position")?.setCellValue(it) }
                 employeeDO.abteilung?.let { row.getCell("abteilung")?.setCellValue(it) }
                 employeeDO.eintrittsDatum?.let { row.getCell("eintrittsDatum")?.setCellValue(it) }
