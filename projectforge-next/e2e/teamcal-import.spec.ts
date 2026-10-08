@@ -91,7 +91,9 @@ test.describe("team calendar ics import", { tag: "@lane-calendar" }, () => {
 
       // The way a user gets there: the calendar's more menu.
       await goto(page, "/calendar");
-      await page.getByRole("button", { name: format.t("more") }).click();
+      await page
+        .getByRole("button", { name: format.t("more"), exact: true })
+        .click();
       await page
         .getByRole("menuitem", {
           name: format.t("plugins.teamcal.import.ics.title"),

@@ -151,15 +151,20 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
     const before = await storedProject(page.request, project.id);
     const candidate = before.kost2Arts?.find((art) => art.active);
     test.skip(candidate == null, "The project has no active cost 2 unit.");
-    const toggleAndSave = async () => {
+    const toggleAndSave = async (checked: boolean) => {
       await goto(page, `/project/${project.id}`);
       await expect(nameField(page, format)).toHaveValue(project.name, {
         timeout: 30_000,
       });
-      await page
+      const box = page
         .locator(`[data-kost2-art="${candidate!.id}"]`)
-        .getByRole("checkbox")
-        .click();
+        .getByRole("checkbox");
+      // The form still shifts while its last fields settle, so a click can land beside the box: the
+      // target state is set, and set again until it holds.
+      await expect(async () => {
+        await box.setChecked(checked, { timeout: 2_000 });
+        await expect(box).toBeChecked({ checked, timeout: 1_000 });
+      }).toPass({ timeout: 15_000 });
       await page
         .getByRole("button", { name: format.t("save"), exact: true })
         .click();
@@ -172,11 +177,11 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
     };
 
     // Unchecked: the cost 2 unit is kept, but non-active (ProjectEntityRest.onAfterSaveOrUpdate).
-    const deactivated = await toggleAndSave();
+    const deactivated = await toggleAndSave(false);
     expect(deactivated?.existsAlready).toBe(true);
     expect(deactivated?.active).toBe(false);
     // Checked again: the same cost 2 unit is active again.
-    const reactivated = await toggleAndSave();
+    const reactivated = await toggleAndSave(true);
     expect(reactivated?.existsAlready).toBe(true);
     expect(reactivated?.active).toBe(true);
   });
