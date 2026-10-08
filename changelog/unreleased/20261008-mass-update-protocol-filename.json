@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Mass update: the file name of the Excel protocol now contains the entity name (e.g. invoices).",
+  "de": "Massenänderung: Der Dateiname des Excel-Protokolls enthält jetzt den Namen der Entität (z. B. Debitorenrechnungen)."
+}
