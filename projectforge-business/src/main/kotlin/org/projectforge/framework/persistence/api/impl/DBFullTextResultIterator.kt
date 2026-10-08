@@ -29,12 +29,10 @@ import jakarta.persistence.EntityManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.util.common.SearchException
-import org.projectforge.common.logging.warn
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
-import org.projectforge.framework.persistence.jpa.PersistenceLogEvents
 
 
 private val log = KotlinLogging.logger {}
@@ -125,8 +123,9 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         } catch (ex: Exception) {
             val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
             if (ex is SearchException && ex.message?.startsWith(QUERY_PARSE_ERROR) == true) {
-                // The user's search term isn't valid query syntax: no bug.
-                log.warn(PersistenceLogEvents.FULLTEXT_QUERY_INVALID) { errorMsg }
+                // The user's search term isn't valid query syntax (e.g. an unclosed '"' or a trailing '/'): no bug
+                // and no problem of the installation, the user just gets no result. Not collected by the dashboard.
+                log.info { errorMsg }
             } else {
                 log.error(errorMsg)
             }

@@ -33,6 +33,8 @@ import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.user.UserDao
+import org.projectforge.common.logging.error
+import org.projectforge.framework.integration.IntegrationLogEvents
 import org.projectforge.framework.integration.SingleRunExecutor
 import org.projectforge.framework.integration.SyncCounts
 import org.projectforge.framework.integration.SyncStats
@@ -154,7 +156,7 @@ open class IdpMasterLoginHandler : LoginHandler {
                     ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
                 }
             } catch (ex: Exception) {
-                log.error(ex) { "IdP master sync failed: ${ex.message}" }
+                log.error(IntegrationLogEvents.IDP_SYNC_FAILED, ex) { "IdP master sync failed: ${ex.message}" }
             }
         }
     }

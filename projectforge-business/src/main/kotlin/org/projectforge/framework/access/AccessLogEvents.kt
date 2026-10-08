@@ -21,18 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa
+package org.projectforge.framework.access
 
 import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEvent
 
-object PersistenceLogEvents {
+object AccessLogEvents {
     @JvmField
-    val TRANSACTION_ROLLBACK = LogEvent(
-        code = "persistence.transactionRollback",
-        category = LogCategory.BUG,
-        explanation = "A transaction was rolled back because of an unexpected exception; nothing of it was saved. " +
-                "The exception is rethrown, so a request shows the user an error.",
-        action = "Analyze the stack trace. Constraint violations or lock timeouts may also point to inconsistent data or a database problem.",
+    val USER_NOT_MEMBER_OF = LogEvent(
+        code = "access.userNotMemberOf",
+        category = LogCategory.SECURITY,
+        threshold = 10,
+        explanation = "A user was denied a function reserved for a group (e.g. an admin page): mostly a bookmark or " +
+                "a link of a former admin. Reported only from 10 denials per digest period on.",
+        action = "Check the security log for the users and the requested pages: an outdated link or somebody probing?",
     )
 }
