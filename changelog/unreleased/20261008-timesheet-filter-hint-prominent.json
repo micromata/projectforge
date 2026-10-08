@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Time sheet list: the hint that the filter needs a date or structure element is now shown highlighted above the list instead of easily overlooked below it.",
+  "de": "Zeitberichtsliste: Der Hinweis, dass der Filter ein Datum oder Strukturelement braucht, erscheint jetzt hervorgehoben über der Liste statt leicht übersehbar darunter."
+}

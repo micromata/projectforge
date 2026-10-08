@@ -85,6 +85,8 @@ interface UseMagicFilterQueryResult<O> {
    * result the backend sent none for.
    */
   resultInfo?: string;
+  /** The backend's warning about the result (`ResultSet.resultWarning`), shown in the list toolbar. */
+  resultWarning?: string;
   /**
    * Aggregates the backend computed over the whole result set, untouched — the sums and counters of the
    * order book (see `ResultSet.statistics` in lib/rs/types.ts). Undefined for an entity that sends none.
@@ -242,6 +244,7 @@ export function useMagicFilterQuery<O>({
     rowCount: query.data?.totalSize ?? rows.length,
     truncated: query.data?.resultSetTruncated ?? false,
     resultInfo: query.data?.resultInfo,
+    resultWarning: query.data?.resultWarning,
     statistics: query.data?.statistics,
     highlightRowId: query.data?.highlightRowId,
     filter,

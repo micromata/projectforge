@@ -353,8 +353,8 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
             totalSizeExact = resultSet.totalSizeExact,
         )
         if (needsMoreFilter(magicFilter)) {
-            // Why the list is empty (see needsMoreFilter), under the table of both clients.
-            myResultSet.addResultInfo(translate("timesheet.error.filter.needMore"))
+            // Why the list is empty (see needsMoreFilter), shown prominently above the table.
+            myResultSet.resultWarning = translate("timesheet.error.filter.needMore")
         }
         if (resultSet.offset == null) {
             // Non-paged POST list (the legacy React list and the exports): the result set is the whole result,

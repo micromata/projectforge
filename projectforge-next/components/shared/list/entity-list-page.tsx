@@ -50,6 +50,7 @@ import { ListSelectionSection } from "./list-selection-section";
 import { ListToolbar } from "./list-toolbar";
 import { ListResultInfo } from "./list-result-info";
 import { ListTruncationNotice } from "./list-truncation-notice";
+import { ListNotice } from "./list-notice";
 import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
@@ -358,11 +359,19 @@ function DeclaredList<
           }
           // The result hit the backend's row cap, so it is incomplete — a prominent red warning
           // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
-          // that was reached (see useMagicFilterQuery.truncated).
+          // that was reached (see useMagicFilterQuery.truncated). Beside it the backend's warning about
+          // the result (a time sheet filter too vague to list anything), in the same place.
           notice={
-            list.truncated ? (
-              <ListTruncationNotice count={list.rowCount} />
-            ) : undefined
+            (list.truncated || list.resultWarning) && (
+              <>
+                {list.truncated && (
+                  <ListTruncationNotice count={list.rowCount} />
+                )}
+                {list.resultWarning && (
+                  <ListNotice tone="warning">{list.resultWarning}</ListNotice>
+                )}
+              </>
+            )
           }
           columnPanel={
             <DataTableColumnPanel

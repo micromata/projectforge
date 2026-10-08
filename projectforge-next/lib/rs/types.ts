@@ -123,6 +123,11 @@ export interface ResultSet<O> {
   paginationPageSize?: number;
   resultInfo?: string;
   /**
+   * A translated warning about the result the user must not overlook — the time sheet list's "too few
+   * filter values" (see `ResultSet.resultWarning`). Shown in the list toolbar, not under the table.
+   */
+  resultWarning?: string;
+  /**
    * Aggregates over the whole result set, in the shape the entity's rest class defines
    * (`OrderEntityRest.OrderStatistics` for the order book) — see `ResultSet.statistics` there.
    *

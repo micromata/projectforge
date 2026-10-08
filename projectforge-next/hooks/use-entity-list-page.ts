@@ -342,6 +342,11 @@ export function useEntityListPage<Row extends ListRow>({
      */
     resultInfo: query.resultInfo,
     /**
+     * The backend's warning about the result (`ResultSet.resultWarning`) — e.g. a time sheet filter too
+     * vague to list anything. Drives the toolbar's warning notice. Undefined when there is none.
+     */
+    resultWarning: query.resultWarning,
+    /**
      * The MagicFilter exactly as the list call sends it — what a list-level action has to post to act on
      * the same rows the table shows (see PageDef.listActions and the order book's exports).
      */
