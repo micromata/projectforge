@@ -84,7 +84,6 @@ class MenuRest {
     val userNameItem = MenuItem("username", ThreadLocalUserContext.loggedInUser!!.getFullname(), key = "MY_MENU")
     myAccountMenu.add(userNameItem)
     userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
-    userNameItem.add(MenuItem(MenuItemDefId.CHANGELOG))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
     userNameItem.add(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter }))

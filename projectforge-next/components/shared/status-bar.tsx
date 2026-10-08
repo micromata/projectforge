@@ -9,8 +9,9 @@ const WEBSITE_URL = "https://www.projectforge.org";
 
 /**
  * The status strip pinned to the bottom of every authenticated page, mirroring Wicket's footer:
- * copyright and company on the left, version and build date on the right. The version leads to the
- * changelog page (`/next/changelog`; the router prepends the base path, see app/(authenticated)/changelog).
+ * copyright and company on the left, "Changelogs | version, build date" on the right. That whole
+ * group is a single link to the changelog page (`/next/changelog`; the router prepends the base
+ * path, see app/(authenticated)/changelog).
  *
  * Version and build date come from `userStatus.systemData` (via {@link useAuth}), not from the
  * public `/rsPublic/systemStatus` — the latter masks both "for security reasons" (see
@@ -44,12 +45,16 @@ export function StatusBar() {
       {systemData?.version ? (
         <GuardedLink
           href="/changelog"
-          className="shrink-0 truncate hover:underline"
+          className="flex shrink-0 items-center gap-1.5 truncate hover:underline"
         >
-          {t("version", {
-            version: systemData.version,
-            buildDate: systemData.buildDate,
-          })}
+          <span>{t("changelog")}</span>
+          <span aria-hidden>|</span>
+          <span className="truncate">
+            {t("version", {
+              version: systemData.version,
+              buildDate: systemData.buildDate,
+            })}
+          </span>
         </GuardedLink>
       ) : null}
     </footer>

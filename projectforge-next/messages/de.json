@@ -105,6 +105,7 @@
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",
     "company": "www.projectforge.org",
+    "changelog": "Changelogs",
     "version": "Version {version}, {buildDate}"
   },
   "select": {
