@@ -31,7 +31,6 @@ const BOOKING_STATUS = { BOOK: true, PARTIAL: true };
 /** The dialog's inputs, its preview and its buttons, starting from the server's defaults. */
 export function BookDaysForm({
   defaultUser,
-  currentUser,
   canChooseUser,
   initial,
   onBooked,
@@ -132,7 +131,6 @@ export function BookDaysForm({
             onChange={onChange}
             vacations={vacations.data}
             onVacation={applyVacation}
-            currentUser={currentUser}
             canChooseUser={canChooseUser}
           />
         </div>

@@ -17,8 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
-import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
-import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
+import { PersonSelect } from "@/components/shared/person-select";
 import {
   CALENDAR_GRID_SIZES,
   type CalendarInit,
@@ -47,7 +46,6 @@ export function CalendarSettingsDialog({
 }: CalendarSettingsDialogProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  const currentUser = useCurrentUserRef();
   const filter = init.filter;
   const otherEnabled = filter?.otherTimesheetUsersEnabled ?? false;
   const timesheetUser = init.timesheetUser;
@@ -103,8 +101,7 @@ export function CalendarSettingsDialog({
                 <Label className="text-sm">
                   {t("calendar.option.timesheets")}
                 </Label>
-                <EntityAutocomplete
-                  url="user/autosearch?search=:search"
+                <PersonSelect
                   value={
                     showsOwn && timesheetUser?.id != null
                       ? {
@@ -116,7 +113,6 @@ export function CalendarSettingsDialog({
                   onChange={(user) =>
                     mutations.changeTimesheetUser(user?.id, user)
                   }
-                  selectMe={currentUser}
                   aria-label={t("calendar.option.timesheets")}
                 />
               </div>

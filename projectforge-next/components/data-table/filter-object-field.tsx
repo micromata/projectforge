@@ -5,7 +5,7 @@ import {
   EntityAutocomplete,
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
-import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
+import { useSelectMeRef } from "@/hooks/use-current-user-ref";
 import type { FilterElement } from "@/lib/rs/types";
 import { TextField, type FilterInputProps } from "./filter-field-inputs";
 import { FilterTaskField } from "./filter-task-field";
@@ -35,11 +35,10 @@ export function FilterObjectField({
    */
   autoOpen?: boolean;
 }) {
-  // Only a user filter offers the „select me" smiley: it picks the logged-in user with one click, as
-  // the form's [EntityAutocompleteField] does for a user field. A filter on an employee, project or
-  // customer takes a different entity's id, for which the current user reference means nothing.
-  const me = useCurrentUserRef();
-  const selectMe = element.autoCompletion?.type === "USER" ? me : null;
+  // Only a user or employee filter offers the „select me" smiley: it picks the logged-in user (or their
+  // employee) with one click, as the form's [EntityAutocompleteField] does. A filter on a project or
+  // customer takes a different entity's id, for which the current user means nothing.
+  const selectMe = useSelectMeRef(element.autoCompletion?.type?.toLowerCase());
 
   // A task filter (AutoCompletion.Type.TASK) picks from the structure tree, not a flat combobox — a
   // task title only means something in its place in the structure (see [FilterTaskField]).

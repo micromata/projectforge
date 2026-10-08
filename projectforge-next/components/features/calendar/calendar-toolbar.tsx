@@ -58,7 +58,6 @@ export function CalendarToolbar({
     <div className="flex items-center gap-1">
       <BookDaysButton
         defaultUser={shownUser ?? currentUser}
-        currentUser={currentUser}
         canChooseUser={canChooseUser}
         getViewStart={getViewStart}
         onBooked={onBooked}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
+import { useSelectMeRef } from "@/hooks/use-current-user-ref";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import {
@@ -57,8 +57,7 @@ export function EntityMultiAutocompleteField({
   const ids = useFieldIds();
   const { required } = useFieldMetadata(name, metadataLess);
   // As in [EntityAutocompleteField]: picking oneself only means something where people are asked for.
-  const me = useCurrentUserRef();
-  const selectMe = entity === "user" ? me : null;
+  const selectMe = useSelectMeRef(entity);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

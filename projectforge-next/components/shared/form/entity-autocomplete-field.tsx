@@ -4,7 +4,7 @@ import {
   EntityAutocomplete,
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
-import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
+import { useSelectMeRef } from "@/hooks/use-current-user-ref";
 import {
   FieldShell,
   useFieldIds,
@@ -67,10 +67,9 @@ export function EntityAutocompleteField({
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const { required } = useFieldMetadata(name, metadataLess);
-  // Only where a person is asked for: a field picking oneself is what the legacy UserSelect offers as
-  // its „select me" smiley, and it means nothing for a project or a cost unit.
-  const me = useCurrentUserRef();
-  const selectMe = entity === "user" ? me : null;
+  // Only where a person (user or employee) is asked for: a field picking oneself is what the legacy
+  // UserSelect offers as its „select me" smiley, and it means nothing for a project or a cost unit.
+  const selectMe = useSelectMeRef(entity);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
