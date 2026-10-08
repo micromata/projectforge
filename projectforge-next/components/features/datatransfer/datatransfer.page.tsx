@@ -6,6 +6,7 @@ import {
   DataTransferAdminsField,
   DataTransferObserversField,
 } from "./datatransfer-access-fields";
+import { DataTransferCapacityBar } from "./datatransfer-capacity-bar";
 import { DataTransferExternalAccess } from "./datatransfer-external-access";
 import { DataTransferListActions } from "./datatransfer-list-actions";
 import {
@@ -66,6 +67,22 @@ export const DATA_TRANSFER_PAGE = definePage<
       sortable: false,
       size: 100,
       align: "right",
+    },
+    {
+      // How full the area is, as a bar; the numbers ("11.7 MB/20 GB (0%)") on hover.
+      id: "capacity",
+      labelKey: "plugins.datatransfer.capacity._",
+      accessor: (row) => row.capacity?.capacityAsMessage ?? "",
+      sortable: false,
+      filterKind: null,
+      size: 110,
+      tooltip: (row) => row.capacity?.capacityAsMessage ?? undefined,
+      cell: (ctx) => (
+        <DataTransferCapacityBar
+          capacity={ctx.row.original.capacity}
+          label={ctx.row.original.capacity?.capacityAsMessage ?? ""}
+        />
+      ),
     },
     {
       id: "capacity.maxUploadSizeFormatted",
