@@ -98,7 +98,7 @@ abstract class AbstractEntityRest<
 @JvmOverloads
 constructor(
     private val baseDaoClazz: Class<B>,
-    protected val i18nKeyPrefix: String,
+    val i18nKeyPrefix: String,
     val cloneSupport: CloneSupport = CloneSupport.NONE,
 ) {
     enum class CloneSupport {
