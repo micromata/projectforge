@@ -106,6 +106,9 @@ object GenerateNextI18nMessagesMain {
     "operation.",
     // Background jobs the frontend watches (components/shared/jobs/): the status names of a JobInfo.
     "jobs.",
+    // The toolbar of the rich text editor (components/shared/rich-text-toolbar.tsx), labelled by the name of
+    // the mark or colour each button applies.
+    "richTextEditor.",
     // The labels of the three history filter fields, which the backend sends with the layout
     // (LayoutListFilterUtils.createNamedSearchFilterContainer translates them server-side). The frontend
     // shows what it is given and never names the key, so no scan can find it — but the e2e tests have to

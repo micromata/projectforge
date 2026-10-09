@@ -54,6 +54,11 @@ class ForecastChartData(
     val plan: List<BigDecimal>?,
     /** The date of the order book snapshot actually used as plan (the closest one to the requested date). */
     val planningDate: LocalDate?,
+    /**
+     * The date of the order book snapshot the forecast is calculated from (the closest one to the requested date),
+     * or null for the current order book.
+     */
+    val snapshotDate: LocalDate? = null,
 ) {
     /**
      * Per month the max of IST and the remaining forecast ('Gesamt' of sheet 'Umsatz kumuliert'), the base of the
@@ -113,8 +118,14 @@ internal class ForecastChartTotals {
      * @param startDate The first month of the forecast.
      * @param visibleProjectIds The project ids of the forecast sheet rows (the visibleID column).
      * @param planningDate The planning date used, or null if no plan was calculated.
+     * @param snapshotDate The snapshot date used, or null for the current order book.
      */
-    fun build(startDate: PFDay, visibleProjectIds: Set<Long>, planningDate: LocalDate?): ForecastChartData {
+    fun build(
+        startDate: PFDay,
+        visibleProjectIds: Set<Long>,
+        planningDate: LocalDate?,
+        snapshotDate: LocalDate? = null,
+    ): ForecastChartData {
         fun sumVisible(map: Map<Long?, Array<BigDecimal>>): Array<BigDecimal> {
             val result = newMonths()
             map.filterKeys { it != null && it in visibleProjectIds }.values.forEach { values ->
@@ -135,6 +146,7 @@ internal class ForecastChartTotals {
             prevPrevYear = sumVisible(invoicesByProject[InvoiceKind.PREV_PREV_YEAR]!!).toList(),
             plan = plan,
             planningDate = planningDate,
+            snapshotDate = snapshotDate,
         )
     }
 

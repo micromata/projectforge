@@ -187,6 +187,10 @@
           "defaultVAT": {
             "_": "Standardsteuersatz (in %)",
             "description": "Wird für die Vorbelegung in Formularen verwendet (z. B. Rechnungseingabe)."
+          },
+          "forecast": {
+            "_": "Forecast",
+            "description": "Einstellungen des Forecasts (Statistiken): der Hinweis zum Plandatum, der in dessen Tooltip angezeigt wird."
           }
         },
         "hr": {
@@ -505,6 +509,11 @@
   "clone": "Klonen",
   "close": "Schließen",
   "collapse": "Zuklappen",
+  "color": {
+    "error": {
+      "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    }
+  },
   "columns": {
     "_": "Spalten",
     "dragToSort": "Ziehen zum Sortieren",
@@ -825,11 +834,23 @@
           "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
+          "snapshotDate": {
+            "_": "Snapshot-Datum",
+            "tooltip": "Optional: Der Forecast wird mit dem Stand des Auftragsbuchs dieses Tages (bzw. des nächstgelegenen Snapshots) berechnet, Rechnungen nur bis zum Vortag. Leer lassen für den aktuellen Stand."
+          },
+          "snapshotDateUsed": "Stand des Auftragsbuch-Snapshots vom {arg0}",
           "startDate": {
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
           "total": "Forecast"
+        },
+        "config": {
+          "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+          "planningDateHint": {
+            "_": "Hinweis zum Plandatum",
+            "tooltip": "Wird im Tooltip des Plandatums der Forecast-Statistiken unter der Erklärung angezeigt, z. B. welches Plandatum für welches Jahr zu wählen ist."
+          }
         },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
@@ -3046,6 +3067,26 @@
   "reset": "Rücksetzen",
   "rest": "Rest",
   "resubmissionOnDate": "Wiedervorlage",
+  "richTextEditor": {
+    "bold": "Fett",
+    "bulletList": "Aufzählung",
+    "color": {
+      "_": "Textfarbe",
+      "blue": "Blau",
+      "default": "Standardfarbe",
+      "green": "Grün",
+      "red": "Rot"
+    },
+    "italic": "Kursiv",
+    "link": {
+      "_": "Link",
+      "prompt": "Link-Adresse (leer, um den Link zu entfernen):"
+    },
+    "orderedList": "Nummerierte Liste",
+    "toolbar": "Formatierung",
+    "underline": "Unterstrichen",
+    "variable": "Platzhalter einfügen"
+  },
   "save": "Speichern",
   "scripting": {
     "script": {

@@ -1,0 +1,104 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Color, TextStyle } from "@tiptap/extension-text-style";
+import { Placeholder } from "@tiptap/extensions";
+import {
+  RichTextToolbar,
+  type RichTextVariable,
+} from "@/components/shared/rich-text-toolbar";
+import { cn } from "@/lib/utils";
+
+export type { RichTextVariable };
+
+/** What TipTap writes for an empty document; stored as an empty string instead. */
+const EMPTY_DOCUMENT = "<p></p>";
+
+/**
+ * A small rich text editor (TipTap): paragraphs, bold, italic, underline, lists, links and a few text
+ * colours. The value is HTML; render it with [RichText], which sanitizes it. No headings, code or
+ * tables: it is for short notes (a tooltip hint, the body of a mail), not for documents.
+ *
+ * [variables], if given, adds a menu inserting `{{key}}` at the cursor.
+ */
+export function RichTextEditor({
+  id,
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  variables,
+  invalid,
+  className,
+}: {
+  id?: string;
+  value: string | null;
+  /** The HTML of the text, an empty string for an empty one. */
+  onChange: (html: string) => void;
+  onBlur?: () => void;
+  placeholder?: string;
+  variables?: RichTextVariable[];
+  invalid?: boolean;
+  className?: string;
+}) {
+  // The last value written by the editor itself: a value coming back unchanged must not reset the
+  // content (and the cursor); any other one (a reset form, a loaded entity) replaces it.
+  const lastEmitted = useRef(value ?? "");
+  // The editor keeps the callbacks of its creation; these refs hand it the current ones.
+  const onChangeRef = useRef(onChange);
+  const onBlurRef = useRef(onBlur);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    onBlurRef.current = onBlur;
+  });
+  const editor = useEditor({
+    // Static export: the editor is created in the browser only, never prerendered.
+    immediatelyRender: false,
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+        code: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
+        link: { openOnClick: false, autolink: true },
+      }),
+      TextStyle,
+      Color,
+      Placeholder.configure({ placeholder: placeholder ?? "" }),
+    ],
+    content: value ?? "",
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      lastEmitted.current = html === EMPTY_DOCUMENT ? "" : html;
+      onChangeRef.current(lastEmitted.current);
+    },
+    onBlur: () => onBlurRef.current?.(),
+    editorProps: {
+      attributes: {
+        ...(id ? { id } : {}),
+        class: "rich-text-editor min-h-24 px-3 py-2 text-sm focus:outline-none",
+      },
+    },
+  });
+  useEffect(() => {
+    if (!editor || (value ?? "") === lastEmitted.current) return;
+    lastEmitted.current = value ?? "";
+    editor.commands.setContent(value ?? "", { emitUpdate: false });
+  }, [value, editor]);
+
+  return (
+    <div
+      className={cn(
+        "rounded-md border border-input bg-transparent shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
+        invalid && "border-destructive",
+        className
+      )}
+    >
+      <RichTextToolbar editor={editor} variables={variables} />
+      <EditorContent editor={editor} />
+    </div>
+  );
+}

@@ -1,0 +1,15 @@
+{
+  "type": "added",
+  "en": "Statistics, forecast",
+  "de": "Statistiken, Forecast",
+  "items": [
+    {
+      "en": "New field snapshot date: the forecast is calculated from the order book as it was on that day.",
+      "de": "Neues Feld Snapshot-Datum: Der Forecast wird mit dem Stand des Auftragsbuchs dieses Tages berechnet."
+    },
+    {
+      "en": "The tooltip of the planning date shows a hint maintained by finance in the new configuration parameter \"Forecast\" (formatted text with a small editor).",
+      "de": "Der Tooltip des Plandatums zeigt einen Hinweis, den die Finanzbuchhaltung im neuen Konfigurationsparameter „Forecast“ pflegt (formatierter Text mit kleinem Editor)."
+    }
+  ]
+}

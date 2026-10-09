@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.fibu.ForecastConfig
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -86,6 +87,7 @@ class OrderStatisticsRest {
       favorite = filter.id?.let { favorites.get(it) }?.let { OrderStatisticsFilterService.statisticsFilter(it) },
       filterFavorites = favorites.idTitleList,
       contributionMargin = runCatching { contributionMarginService.hasAccess() }.getOrDefault(false),
+      planningDateHint = ForecastConfig.get().planningDateHint?.takeIf { it.isNotBlank() },
     )
   }
 
@@ -164,6 +166,11 @@ class OrderStatisticsRest {
     val filterFavorites: List<Favorites.FavoriteIdTitle>,
     /** Whether the user may see the contribution margin ([ContributionMarginService.hasAccess]). */
     val contributionMargin: Boolean,
+    /**
+     * The hint of finance and controlling on the planning date of the forecast as rich text (HTML), see
+     * [ForecastConfig.planningDateHint], or null if none is configured.
+     */
+    val planningDateHint: String? = null,
   )
 
   class FavoritesResponse(

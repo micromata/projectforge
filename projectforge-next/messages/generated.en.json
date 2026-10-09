@@ -187,6 +187,10 @@
           "defaultVAT": {
             "_": "Default VAT (in %)",
             "description": "Will be used for pre-filling forms (e.g. for editing invoices)."
+          },
+          "forecast": {
+            "_": "Forecast",
+            "description": "Settings of the forecast (order statistics): the hint on the planning date shown in its tooltip."
           }
         },
         "hr": {
@@ -505,6 +509,11 @@
   "clone": "Clone",
   "close": "Close",
   "collapse": "Collapse",
+  "color": {
+    "error": {
+      "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    }
+  },
   "columns": {
     "_": "Columns",
     "dragToSort": "Drag to sort",
@@ -825,11 +834,23 @@
           "planningDateUsed": "Plan of order book snapshot {arg0}",
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
+          "snapshotDate": {
+            "_": "Snapshot date",
+            "tooltip": "Optional: the forecast is calculated from the order book as it was on this day (the closest available snapshot), invoices only up to the day before. Leave empty for the current order book."
+          },
+          "snapshotDateUsed": "Order book snapshot {arg0}",
           "startDate": {
             "_": "First month of the forecast",
             "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
           },
           "total": "Forecast"
+        },
+        "config": {
+          "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+          "planningDateHint": {
+            "_": "Hint on the planning date",
+            "tooltip": "Shown below the explanation in the tooltip of the planning date of the forecast statistics, e.g. which planning date to choose for which year."
+          }
         },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
@@ -3046,6 +3067,26 @@
   "reset": "Reset",
   "rest": "Rest",
   "resubmissionOnDate": "Resubmission on",
+  "richTextEditor": {
+    "bold": "Bold",
+    "bulletList": "Bulleted list",
+    "color": {
+      "_": "Text colour",
+      "blue": "Blue",
+      "default": "Default colour",
+      "green": "Green",
+      "red": "Red"
+    },
+    "italic": "Italic",
+    "link": {
+      "_": "Link",
+      "prompt": "Link address (empty to remove the link):"
+    },
+    "orderedList": "Numbered list",
+    "toolbar": "Formatting",
+    "underline": "Underline",
+    "variable": "Insert placeholder"
+  },
   "save": "Save",
   "scripting": {
     "script": {
