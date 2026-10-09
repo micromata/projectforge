@@ -122,7 +122,7 @@ function LogViewerContent({
 }: LogViewerProps & { title: string; initial: LogViewerData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
-  // A link may start with a search of its own, e.g. the problem dashboard's one for a problem (`?search=`).
+  // A link may start with a search of its own, e.g. the system dashboard's one for a problem (`?search=`).
   // With its level as `?threshold=`, so that a stored higher threshold doesn't hide the problem's entries.
   const params = useSearchParams();
   const linkedSearch = params.get("search");

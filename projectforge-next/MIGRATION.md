@@ -449,13 +449,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
   (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
   Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
-- **Systemstatistik** – `next/systemStatistics` (Menü `SYSTEM_STATISTICS`, für alle sichtbar).
+- **System-Dashboard** – `next/systemDashboard` (vormals `next/problemDashboard`, Menü `ADMIN_ERRORS`):
+  Tabs Übersicht und Probleme (nur Admins) sowie Systemstatistik (`?tab=statistics`; Nicht-Admins
+  sehen nur diesen Tab). Der eigene Menüeintrag `SYSTEM_STATISTICS` samt
+  `projectforge.menu.visibility.systemStatistics` ist entfernt.
   Layoutfreier Endpunkt `SystemStatisticsRest` (`/rs/systemStatistics/sections`,
   `…/section/{id}`): ein Abschnitt pro `SystemsStatisticsBuilderInterface` (`id`, `adminOnly`),
   parallel geladen, damit schnelle Abschnitte nicht auf GC/Plattenbelegung warten. Einträge können
   ein `gauge` (used/max) tragen → `FillLevelBar` (`components/shared/`). Nicht-Admins bekommen nur
   den Datenbank-Abschnitt mit Whitelist-Einträgen. `SystemStatisticPageRest` entfernt,
-  `react/systemStatistics/**` leitet `OrphanedLinkFilter` um.
+  `react/systemStatistics/**`, `next/systemStatistics` und `next/problemDashboard` leitet
+  `OrphanedLinkFilter` um.
 - **Kalender-Beiwerk (ICS)** – die letzten Kalenderfunktionen, die nur Wicket hatte:
   **ICS-Import** `next/teamCalImport?teamCalId=` (`TeamEventImportRest` über das gemeinsame
   `ImportFeature` mit Diff-Vorschau; Abgleich per UID im Zielkalender, Ziel vor und nach dem Upload

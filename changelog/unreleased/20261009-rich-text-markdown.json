@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Rich text: texts written in markdown (e.g. older tooltips and notes) are shown formatted instead of with their raw markup, and the editor takes them over directly; they are stored in the rich text format on the next save. Markdown pasted as plain text is converted as well. The editor now also offers headings (levels 1 to 4) and tables.",
+  "de": "Rich-Text: In Markdown geschriebene Texte (z. B. ältere Tooltips und Hinweise) werden formatiert statt mit ihren Steuerzeichen angezeigt und vom Editor direkt übernommen; beim nächsten Speichern werden sie im Rich-Text-Format abgelegt. Als reiner Text eingefügtes Markdown wird ebenfalls umgewandelt. Der Editor bietet jetzt auch Überschriften (Ebene 1 bis 4) und Tabellen."
+}

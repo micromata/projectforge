@@ -2339,7 +2339,6 @@
     "reporting": "Reporting",
     "sendSms": "Send SMS",
     "system": "System",
-    "systemStatistics": "System statistics",
     "taskTree": "Structure tree",
     "timesheetList": "Time sheets"
   },
@@ -3077,12 +3076,28 @@
       "green": "Green",
       "red": "Red"
     },
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "heading4": "Heading 4",
     "italic": "Italic",
     "link": {
       "_": "Link",
       "prompt": "Link address (empty to remove the link):"
     },
     "orderedList": "Numbered list",
+    "paragraph": "Normal text",
+    "table": {
+      "_": "Table",
+      "addColumnAfter": "Insert column to the right",
+      "addRowAfter": "Insert row below",
+      "deleteColumn": "Delete column",
+      "deleteRow": "Delete row",
+      "deleteTable": "Delete table",
+      "insert": "Insert table",
+      "toggleHeaderRow": "Header row on/off"
+    },
+    "textStyle": "Paragraph style",
     "toolbar": "Formatting",
     "underline": "Underline",
     "variable": "Insert placeholder"
@@ -3310,7 +3325,6 @@
           "problems": "Problems"
         },
         "threshold": "Threshold (per hour)",
-        "title": "Problem dashboard",
         "totalCount": "Total",
         "trend": "Trend (7 days)"
       },
@@ -3446,6 +3460,9 @@
       },
       "title": "Administration"
     },
+    "dashboard": {
+      "title": "System dashboard"
+    },
     "developmentSystem": "Development system",
     "pluginAdmin": {
       "button": {
@@ -3461,6 +3478,9 @@
       "title": "System statistics"
     },
     "testSystem": "Test system"
+  },
+  "table": {
+    "showing": "Showing"
   },
   "task": {
     "_": "Structure element",

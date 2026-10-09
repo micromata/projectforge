@@ -969,6 +969,49 @@ span.row-blue {
 .rich-text-editor a {
   text-decoration: underline;
 }
+/* Headings and tables of a rich text, rendered (RichText) and in the editor alike: Tailwind's preflight
+   resets the headings to body text, and a table needs its grid. */
+:is(.rich-text, .rich-text-editor) :is(h1, h2, h3, h4) {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.75rem 0 0.25rem;
+}
+:is(.rich-text, .rich-text-editor) > :is(h1, h2, h3, h4):first-child {
+  margin-top: 0;
+}
+:is(.rich-text, .rich-text-editor) h1 {
+  font-size: 1.25rem;
+}
+:is(.rich-text, .rich-text-editor) h2 {
+  font-size: 1.125rem;
+}
+:is(.rich-text, .rich-text-editor) h3 {
+  font-size: 1rem;
+}
+:is(.rich-text, .rich-text-editor) h4 {
+  font-size: 0.875rem;
+}
+:is(.rich-text, .rich-text-editor) table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+:is(.rich-text, .rich-text-editor) :is(th, td) {
+  border: 1px solid var(--border);
+  padding: 0.125rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+:is(.rich-text, .rich-text-editor) th {
+  background: var(--muted);
+  font-weight: 600;
+}
+:is(.rich-text, .rich-text-editor) :is(th, td) p {
+  margin: 0;
+}
+/* The cells the editor's selection spans (TipTap marks them). */
+.rich-text-editor .selectedCell {
+  background: var(--accent);
+}
 .rich-text-editor p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   color: var(--muted-foreground);

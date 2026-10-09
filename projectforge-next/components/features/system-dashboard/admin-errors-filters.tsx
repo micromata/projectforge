@@ -23,7 +23,7 @@ const ALL_CATEGORIES = "ALL";
 const DAYS = [1, 7, 30, 0];
 
 /**
- * Status, category and period of the problem dashboard's list - the server's filter (the search is the table's). A
+ * Status, category and period of the system dashboard's list - the server's filter (the search is the table's). A
  * subsystem chosen by its tile ([subsystemTitle]) and the scope of a key figure show as removable chips.
  */
 export function AdminErrorsFilters({

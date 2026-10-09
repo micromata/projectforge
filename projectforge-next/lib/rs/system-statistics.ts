@@ -8,7 +8,7 @@ import { request } from "./client";
 import type {
   SystemStatisticsSection,
   SystemStatisticsSectionData,
-} from "@/components/features/system-statistics/types";
+} from "@/components/features/system-dashboard/system-statistics-types";
 
 export function fetchSystemStatisticsSections(
   signal?: AbortSignal

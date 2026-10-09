@@ -90,7 +90,7 @@ class OrphanedLinkFilter : Filter {
         } else if (uri.endsWith("/react/systemStatistics") || uri.contains("/react/systemStatistics/")) {
             // Old dynamic React page of the system statistics, migrated to projectforge-next. The React page was
             // removed, so there is no "classic version" escape hatch.
-            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}systemStatistics")
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$SYSTEM_STATISTICS_ROUTE")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {
@@ -131,7 +131,7 @@ class OrphanedLinkFilter : Filter {
 
     /**
      * The pages of projectforge-next that moved to another route ([RENAMED_NEXT_PAGES]), e.g. bookmarked or
-     * linked by an error digest mail (`next/adminErrors?id=42`). The query (the problem's id, the tab) means the
+     * linked by an error digest mail (`next/problemDashboard?id=42`). The query (the problem's id, the tab) means the
      * same on the new route and is carried over. The precise segment match keeps this from catching sibling
      * pages and the payloads (`.txt`) of the client router.
      *
@@ -146,7 +146,9 @@ class OrphanedLinkFilter : Filter {
             val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
             uri.endsWith(path) || uri.contains("$path/")
         }?.value ?: return false
-        redirect(response, uri, "/${Constants.NEXT_APP_PATH}$newRoute${wicketQuery(request)}")
+        // A new route with a query of its own (a tab) takes the request's query behind it.
+        val query = wicketQuery(request).let { if (it.isNotEmpty() && newRoute.contains('?')) "&${it.drop(1)}" else it }
+        redirect(response, uri, "/${Constants.NEXT_APP_PATH}$newRoute$query")
         return true
     }
 
@@ -401,8 +403,13 @@ class OrphanedLinkFilter : Filter {
         /** Former route -> current route of renamed next pages (without `next/`), see [redirectRenamedNextPage]. */
         private val RENAMED_NEXT_PAGES = mapOf(
             "orderStatistics" to "finance/statistics",
-            "adminErrors" to "problemDashboard",
+            "adminErrors" to "systemDashboard",
+            "problemDashboard" to "systemDashboard",
+            "systemStatistics" to SYSTEM_STATISTICS_ROUTE,
         )
+
+        /** The system statistics, a tab of the system dashboard. */
+        private const val SYSTEM_STATISTICS_ROUTE = "systemDashboard?tab=statistics"
 
         /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
         private val GONE_REACT_CATEGORIES = listOf("project", "task")

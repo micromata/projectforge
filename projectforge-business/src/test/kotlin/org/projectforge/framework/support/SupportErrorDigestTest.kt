@@ -325,7 +325,7 @@ class SupportErrorDigestTest {
             totalCount = 17, daily30 = List(30) { 0 },
         )
         val export = LogAnalysisExport.ofDigest(
-            snapshot, 0L, 3_600_000L, "https://pf.example.org", "https://pf.example.org/next/problemDashboard",
+            snapshot, 0L, 3_600_000L, "https://pf.example.org", "https://pf.example.org/next/systemDashboard",
             mapOf(42L to stored),
         )
         Assertions.assertEquals(LogAnalysisExport.SOURCE_DIGEST, export.source)
@@ -334,7 +334,7 @@ class SupportErrorDigestTest {
         Assertions.assertEquals(17L, data.totalCount, "Completed by the database.")
         Assertions.assertEquals(2, data.periodCount)
         Assertions.assertEquals(DigestNovelty.REGRESSION, data.novelty)
-        Assertions.assertEquals("https://pf.example.org/next/problemDashboard?id=42", data.dashboardUrl)
+        Assertions.assertEquals("https://pf.example.org/next/systemDashboard?id=42", data.dashboardUrl)
         Assertions.assertEquals("at x.Y(Y.kt:1)", data.samples!!.first().stackTrace)
         val request = export.problems.single { it.code != DATA_EVENT.code }
         Assertions.assertNull(request.id, "Not in the database.")

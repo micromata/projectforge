@@ -97,10 +97,17 @@ class OrphanedLinkFilterTest {
             "/next/finance/statistics?tab=forecast",
             redirectOf("/next/orderStatistics", mapOf("tab" to "forecast")),
         )
-        Assertions.assertEquals("/next/problemDashboard", redirectOf("/next/adminErrors/"))
-        Assertions.assertEquals("/next/problemDashboard?id=42", redirectOf("/next/adminErrors", mapOf("id" to "42")))
+        Assertions.assertEquals("/next/systemDashboard", redirectOf("/next/adminErrors/"))
+        Assertions.assertEquals("/next/systemDashboard?id=42", redirectOf("/next/adminErrors", mapOf("id" to "42")))
         Assertions.assertNull(redirectOf("/next/finance/statistics"))
-        Assertions.assertNull(redirectOf("/next/problemDashboard"))
+        Assertions.assertEquals("/next/systemDashboard", redirectOf("/next/problemDashboard"))
+        Assertions.assertEquals("/next/systemDashboard?id=42", redirectOf("/next/problemDashboard", mapOf("id" to "42")))
+        Assertions.assertEquals("/next/systemDashboard?tab=statistics", redirectOf("/next/systemStatistics"))
+        Assertions.assertEquals(
+            "/next/systemDashboard?tab=statistics&x=1",
+            redirectOf("/next/systemStatistics", mapOf("x" to "1")),
+        )
+        Assertions.assertNull(redirectOf("/next/systemDashboard"))
         Assertions.assertNull(redirectOf("/next/orderStatisticsXyz"))
         Assertions.assertNull(redirectOf("/next/adminErrors.txt"))
         Assertions.assertNull(redirectOf("/rs/adminErrors/list"))
@@ -231,12 +238,13 @@ class OrphanedLinkFilterTest {
     }
 
     /**
-     * The dynamic React page of the system statistics is gone, its links land on the next page.
+     * The dynamic React page of the system statistics is gone, its links land on the statistics tab of the next
+     * system dashboard.
      */
     @Test
     fun `the old react system statistics page is redirected to next`() {
-        Assertions.assertEquals("/next/systemStatistics", redirectOf("/react/systemStatistics/dynamic"))
-        Assertions.assertEquals("/next/systemStatistics", redirectOf("/react/systemStatistics"))
+        Assertions.assertEquals("/next/systemDashboard?tab=statistics", redirectOf("/react/systemStatistics/dynamic"))
+        Assertions.assertEquals("/next/systemDashboard?tab=statistics", redirectOf("/react/systemStatistics"))
     }
 
     /**

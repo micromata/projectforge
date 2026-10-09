@@ -1,65 +1,53 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   FillLevelBar,
   fillLevelPercent,
 } from "@/components/shared/fill-level-bar";
-import { PageShell } from "@/components/shared/page-shell";
-import { PageTitleRow } from "@/components/shared/page-title-row";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabsContent } from "@/components/ui/tabs";
 import {
   fetchSystemStatisticsSection,
   fetchSystemStatisticsSections,
 } from "@/lib/rs/system-statistics";
-import type { SystemStatisticsEntry } from "./types";
+import type { SystemStatisticsEntry } from "./system-statistics-types";
 
-const QUERY_KEY = "systemStatistics";
+export const SYSTEM_STATISTICS_QUERY_KEY = "systemStatistics";
 
 /**
- * The system statistics page ("/next/systemStatistics"), successor of the dynamic React page. Every
- * section (one per statistics builder of the backend) is fetched on its own, so each card appears as
- * soon as its data is there instead of the page waiting for the slowest one (gc, disk usage). Visible
- * for all users; the backend gives non-admins only the key figures of the database.
+ * The statistics tab of the system dashboard (`?tab=statistics`), successor of the dynamic React page. Every
+ * section (one per statistics builder of the backend) is fetched on its own, so each card appears as soon as its
+ * data is there instead of the tab waiting for the slowest one (gc, disk usage). Visible for all users; the backend
+ * gives non-admins only the key figures of the database.
  */
-export function SystemStatisticsPage() {
+export function SystemStatisticsTab() {
+  return (
+    <TabsContent value="statistics">
+      <StatisticsSections />
+    </TabsContent>
+  );
+}
+
+/** Mounted with the open tab only, so the statistics are fetched once it is shown. */
+function StatisticsSections() {
   const t = useTranslations();
-  const queryClient = useQueryClient();
   const sections = useQuery({
-    queryKey: [QUERY_KEY, "sections"],
+    queryKey: [SYSTEM_STATISTICS_QUERY_KEY, "sections"],
     queryFn: ({ signal }) => fetchSystemStatisticsSections(signal),
   });
-
   return (
-    <PageShell>
-      <PageTitleRow
-        category={t("menu.systemStatistics")}
-        title={t("system.statistics.title")}
-      >
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={!sections.data}
-          onClick={() =>
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
-          }
-        >
-          {t("refresh")}
-        </Button>
-      </PageTitleRow>
-      <div className="grid items-start gap-4 px-4 pb-8 pt-2 xl:grid-cols-2">
-        {sections.isPending && <SectionSkeleton />}
-        {sections.isError && (
-          <p className="text-sm text-destructive">{t("errorpage.title")}</p>
-        )}
-        {sections.data?.map((section) => (
-          <StatisticsSection key={section.id} id={section.id} />
-        ))}
-      </div>
-    </PageShell>
+    <div className="gap-4 pb-4 pt-2 lg:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid">
+      {sections.isPending && <SectionSkeleton />}
+      {sections.isError && (
+        <p className="text-sm text-destructive">{t("errorpage.title")}</p>
+      )}
+      {sections.data?.map((section) => (
+        <StatisticsSection key={section.id} id={section.id} />
+      ))}
+    </div>
   );
 }
 
@@ -67,7 +55,7 @@ export function SystemStatisticsPage() {
 function StatisticsSection({ id }: { id: string }) {
   const t = useTranslations();
   const query = useQuery({
-    queryKey: [QUERY_KEY, "section", id],
+    queryKey: [SYSTEM_STATISTICS_QUERY_KEY, "section", id],
     queryFn: ({ signal }) => fetchSystemStatisticsSection(id, signal),
   });
   if (query.isPending) return <SectionSkeleton />;
@@ -89,8 +77,9 @@ function StatisticsSection({ id }: { id: string }) {
   // A section without entries (e.g. no sync running yet) shows nothing.
   return [...groups.entries()].map(([group, entries]) => (
     <Card key={group}>
-      <CardHeader>
-        <CardTitle>{group}</CardTitle>
+      {/* Set off from the figures, so the groups are told apart at a glance in the floating columns. */}
+      <CardHeader className="border-b">
+        <CardTitle className="text-primary">{group}</CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(10rem,1fr)_2fr]">
@@ -131,7 +120,7 @@ function StatisticsRow({ entry }: { entry: SystemStatisticsEntry }) {
 function SectionSkeleton() {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b">
         <Skeleton className="h-4 w-32" />
       </CardHeader>
       <CardContent className="flex flex-col gap-2">

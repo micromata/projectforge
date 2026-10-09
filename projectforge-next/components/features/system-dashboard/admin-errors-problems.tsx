@@ -11,7 +11,7 @@ import type {
 import { AdminErrorsFilters } from "./admin-errors-filters";
 import { AdminErrorsTable } from "./admin-errors-table";
 
-/** The problems tab of the problem dashboard: the server's filter and the table of the problems. */
+/** The problems tab of the system dashboard: the server's filter and the table of the problems. */
 export function AdminErrorsProblems({
   data,
   isFetching,

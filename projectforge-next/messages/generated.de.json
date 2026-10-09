@@ -2339,7 +2339,6 @@
     "reporting": "Reporting",
     "sendSms": "SMS senden",
     "system": "System",
-    "systemStatistics": "Systemstatistik",
     "taskTree": "Strukturbaum",
     "timesheetList": "Zeitberichte"
   },
@@ -3077,12 +3076,28 @@
       "green": "Grün",
       "red": "Rot"
     },
+    "heading1": "Überschrift 1",
+    "heading2": "Überschrift 2",
+    "heading3": "Überschrift 3",
+    "heading4": "Überschrift 4",
     "italic": "Kursiv",
     "link": {
       "_": "Link",
       "prompt": "Link-Adresse (leer, um den Link zu entfernen):"
     },
     "orderedList": "Nummerierte Liste",
+    "paragraph": "Normaler Text",
+    "table": {
+      "_": "Tabelle",
+      "addColumnAfter": "Spalte rechts einfügen",
+      "addRowAfter": "Zeile darunter einfügen",
+      "deleteColumn": "Spalte löschen",
+      "deleteRow": "Zeile löschen",
+      "deleteTable": "Tabelle löschen",
+      "insert": "Tabelle einfügen",
+      "toggleHeaderRow": "Kopfzeile ein/aus"
+    },
+    "textStyle": "Absatzformat",
     "toolbar": "Formatierung",
     "underline": "Unterstrichen",
     "variable": "Platzhalter einfügen"
@@ -3310,7 +3325,6 @@
           "problems": "Probleme"
         },
         "threshold": "Schwelle (pro Stunde)",
-        "title": "Problem-Dashboard",
         "totalCount": "Gesamt",
         "trend": "Verlauf (7 Tage)"
       },
@@ -3446,6 +3460,9 @@
       },
       "title": "Administration"
     },
+    "dashboard": {
+      "title": "System-Dashboard"
+    },
     "developmentSystem": "Development-System",
     "pluginAdmin": {
       "button": {
@@ -3461,6 +3478,9 @@
       "title": "Systemstatistiken"
     },
     "testSystem": "Testsystem"
+  },
+  "table": {
+    "showing": "Anzeige"
   },
   "task": {
     "_": "Strukturelement",

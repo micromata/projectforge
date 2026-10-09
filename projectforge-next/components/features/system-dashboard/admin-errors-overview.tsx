@@ -10,7 +10,7 @@ import { AdminErrorsSummary } from "./admin-errors-summary";
 import { AdminSubsystemTiles } from "./admin-subsystem-tiles";
 
 /**
- * The overview tab of the problem dashboard: the key figures of all problems and a tile per active subsystem or
+ * The overview tab of the system dashboard: the key figures of all problems and a tile per active subsystem or
  * interface. A click on a key figure or a tile shows its problems ([onOpenSummary], [onOpenSubsystem]).
  */
 export function AdminErrorsOverview({

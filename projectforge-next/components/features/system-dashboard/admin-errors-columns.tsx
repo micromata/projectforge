@@ -23,7 +23,7 @@ type T = ReturnType<typeof useTranslations>;
 type Column = ColumnDef<LogGroupEntry, unknown>;
 
 /**
- * The columns of the problem dashboard: when and how often a problem occurred (with its trend), what it is (code,
+ * The columns of the system dashboard: when and how often a problem occurred (with its trend), what it is (code,
  * sample message, location) and its status. Sorted and filtered in the browser: the list holds all matching
  * problems. Status, level and category are filtered by their translated texts, as shown.
  */
