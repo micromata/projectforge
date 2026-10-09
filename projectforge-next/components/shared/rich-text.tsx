@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import DOMPurify from "dompurify";
+import { micromark } from "micromark";
 import { cn } from "@/lib/utils";
 
 /** The markup [RichTextEditor] produces; everything else is removed. */
@@ -57,12 +58,24 @@ export function sanitizeRichText(html: string): string {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
 }
 
+const HTML_TAG = /<[a-z][\s\S]*>/i;
+
+/**
+ * A text written before it was rich text, in Markdown, as the HTML of [RichTextEditor]; a value that
+ * already carries markup is returned as it is. Raw HTML in the Markdown is escaped, and whatever the
+ * editor doesn't know (headings, code) is dropped by it or by [sanitizeRichText] — the text survives.
+ */
+export function markdownToRichText(text: string): string {
+  if (!text || HTML_TAG.test(text)) return text;
+  return micromark(text).trim();
+}
+
 /**
  * The text of a rich text without its markup, the blocks (paragraphs, list items, line breaks) joined
  * by a space: for a one-line preview (a list cell). Empty where there is no DOM (prerendering).
  */
 export function richTextToPlainText(html: string): string {
-  if (!/<[a-z][\s\S]*>/i.test(html)) return html;
+  if (!HTML_TAG.test(html)) return html;
   if (typeof DOMParser === "undefined") return "";
   // A parsed document runs no scripts and loads nothing, so it needs no sanitizing for its text.
   const spaced = html.replace(/<\/(p|li)>|<br\s*\/?>/gi, (tag) => `${tag} `);
@@ -74,19 +87,25 @@ export function richTextToPlainText(html: string): string {
 /**
  * A rich text of [RichTextEditor] (HTML from the database), rendered sanitized: only the markup the
  * editor writes survives (paragraphs, emphasis, lists, links, text colour), no scripts, no event
- * handlers. A value without any tag (written before it was rich text) is shown as plain text.
+ * handlers. A value without any tag (written before it was rich text) is shown as plain text, or —
+ * with `markdown`, for a field that used to be Markdown — rendered as Markdown.
  */
 export function RichText({
   html,
   className,
+  markdown = false,
 }: {
   html: string;
   className?: string;
+  markdown?: boolean;
 }) {
-  const isHtml = /<[a-z][\s\S]*>/i.test(html);
+  const isHtml = markdown || HTML_TAG.test(html);
   const sanitized = useMemo(
-    () => (isHtml ? sanitizeRichText(html) : ""),
-    [html, isHtml]
+    () =>
+      isHtml
+        ? sanitizeRichText(markdown ? markdownToRichText(html) : html)
+        : "",
+    [html, isHtml, markdown]
   );
   const classes = cn(
     "space-y-1.5 [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-4",

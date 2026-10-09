@@ -112,6 +112,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
+        } else if (redirectScriptExecutePage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a React script execution page was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
@@ -238,6 +240,37 @@ class OrphanedLinkFilter : Filter {
             val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
                 ?: request.getParameter("id")?.toLongOrNull()
             if (id != null) "$listUrl/$id" else listUrl
+        }
+        redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The React script execution pages, migrated to projectforge-next: react/scriptExecute/dynamic/<id> (a
+     * stored script, without an id the ad-hoc editor, `?example=<n>` with an example script) and
+     * react/myScriptExecute/dynamic/<id>. The lists and the form are covered by [redirectMigratedPage] - which
+     * must come after this, because react/script is a prefix of these urls. The pages are gone, so there is
+     * no escape hatch. Id and example are interpolated into the Location header, so only numbers are
+     * accepted; the React app took the id as path segment or as parameter.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectScriptExecutePage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val (page, category) = SCRIPT_EXECUTE_PAGES.entries
+            .find { (page, _) -> uri.contains("/react/$page/") || uri.endsWith("/react/$page") }
+            ?.toPair() ?: return false
+        val listUrl = NextMigration.listUrl(category)
+        val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
+            ?: request.getParameter("id")?.toLongOrNull()
+        val target = when {
+            id != null -> "$listUrl/$id"
+            category == "script" ->
+                "$listUrl/execute" + (request.getParameter("example")?.toIntOrNull()?.let { "?example=$it" } ?: "")
+            else -> listUrl
         }
         redirect(response, uri, "/$target")
         return true
@@ -406,6 +439,9 @@ class OrphanedLinkFilter : Filter {
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =
             listOf("datatransferfiles", "datatransferaudit", "datatransferpersonalfiles")
+
+        /** The React script execution pages and their category, see [redirectScriptExecutePage]. */
+        private val SCRIPT_EXECUTE_PAGES = mapOf("scriptExecute" to "script", "myScriptExecute" to "myscript")
 
         /**
          * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)

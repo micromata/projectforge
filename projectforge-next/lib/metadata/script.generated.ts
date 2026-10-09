@@ -29,7 +29,6 @@ export const SCRIPT_METADATA = {
       i18nKey: "description",
       required: false,
       maxLength: 4000,
-      tooltipI18nKey: "scripting.script.description.tooltip",
     },
     executableByGroupIds: {
       dataType: "STRING",

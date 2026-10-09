@@ -96,6 +96,17 @@ export function declaredCell(
         </span>
       );
     default:
-      return <span className={className}>{mark(String(value))}</span>;
+      return <span className={className}>{mark(cellText(value))}</span>;
   }
+}
+
+/**
+ * The text of a plain cell. A reference (user, group, task, customer …) arrives as its DTO, which the
+ * backend gives a `displayName` — `String()` of it would read "[object Object]".
+ */
+function cellText(value: unknown): string {
+  if (typeof value === "object" && value !== null && "displayName" in value) {
+    return String((value as { displayName?: unknown }).displayName ?? "");
+  }
+  return String(value);
 }

@@ -21,58 +21,50 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+
 package org.projectforge.rest.scripting
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.scripting.AbstractScriptDao
 import org.projectforge.business.scripting.MyScriptDao
-import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.dto.Script
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import jakarta.annotation.PostConstruct
-import jakarta.servlet.http.HttpServletRequest
 
-private val log = KotlinLogging.logger {}
-
+/**
+ * The execution of the scripts by all users the script configuration allows to (see [MyScriptDao]). Stored
+ * scripts only: the user sees only their name, description and parameters, never their code.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/myScriptExecute")
-class MyScriptExecutePageRest : AbstractScriptExecutePageRest() {
-  @Autowired
-  private lateinit var myScriptDao: MyScriptDao
+class MyScriptExecuteRest : AbstractScriptExecuteRest() {
+    /** The execution form: the script and the file of the user's last execution. */
+    class ExecuteForm(
+        val script: Script,
+        val download: DownloadFileSupport.Download?,
+    )
 
-  @Autowired
-  override lateinit var pagesRest: MyScriptPagesRest
+    @Autowired
+    private lateinit var myScriptDao: MyScriptDao
 
-  override val accessCheckOnExecute: Boolean = false
+    @Autowired
+    override lateinit var entityRest: MyScriptEntityRest
 
-  @GetMapping("dynamic")
-  fun getForm(
-    request: HttpServletRequest,
-    @RequestParam("id") idString: String?,
-  ): FormLayoutData {
-    var scriptDO: ScriptDO? = null
-    val origScript = Script()
-    val id = idString?.toLongOrNull() ?: throw IllegalArgumentException("Script not found.")
-    scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
-    origScript.copyFrom(scriptDO) // Don't export all fields to the user
-    val script = Script()
-    script.id = origScript.id
-    script.name = origScript.name
-    script.description = origScript.description
-    script.copyParametersFrom(origScript)
-    script.type = origScript.type
-    val variables = mutableMapOf<String, Any>()
-    val layout = getLayout(request, script, variables, scriptDO)
-    return FormLayoutData(script, layout, createServerData(request), variables)
-  }
+    override val scriptDao: AbstractScriptDao
+        get() = myScriptDao
 
-  @PostConstruct
-  private fun postConstruct() {
-    this.scriptDao = myScriptDao
-  }
+    @AccessChecked("DAO: find of MyScriptDao (executableByUserIds/executableByGroupIds)")
+    @GetMapping("load")
+    fun load(request: HttpServletRequest, @RequestParam("id") id: Long): ExecuteForm {
+        val scriptDO = myScriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
+        val script = createUserView(scriptDO)
+        prefillFromRecentCall(script, scriptDO)
+        return ExecuteForm(script, getDownload(request))
+    }
 }
