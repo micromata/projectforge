@@ -77,6 +77,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   FIBU_CONTRIBUTION_MARGIN("fibu.contributionMargin", ConfigurationType.JSON), //
   /**
+   * The settings of the forecast as JSON object (e.g. the hint on the planning date of the forecast statistics),
+   * see {@code ForecastConfig}.
+   */
+  FIBU_FORECAST("fibu.forecast", ConfigurationType.JSON), //
+  /**
    * Cost configured configuration param.
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
@@ -206,6 +211,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case TIMESHEET_NOTE_SAVINGS_BY_AI:
       case TIMESHEET_TAGS:
       case CUSTOMER_GROUPS:
+      case FIBU_FORECAST:
         return ConfigurationEditors.FINANCE;
       default:
         return ConfigurationEditors.ADMIN;

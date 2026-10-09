@@ -1081,6 +1081,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return ForecastChartSettings(
       startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate,
       planningDate = stored?.planningDate,
+      snapshotDate = stored?.snapshotDate,
       distributeUnusedBudget = stored?.distributeUnusedBudget
         ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
     )
@@ -1126,6 +1127,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       settings.startDate,
       settings.planningDate,
       settings.distributeUnusedBudget,
+      settings.snapshotDate,
     )
     return orderStatisticsCache.get(key) {
       forecastExport.statistics(
@@ -1134,6 +1136,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         unfiltered = isUnfiltered(magicFilter),
         planningDate = settings.planningDate,
         distributeUnusedBudget = settings.distributeUnusedBudget,
+        snapshotDate = settings.snapshotDate,
       )
     }
   }
@@ -1144,6 +1147,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     startDate: LocalDate?,
     planningDate: LocalDate? = null,
     distributeUnusedBudget: Boolean? = null,
+    snapshotDate: LocalDate? = null,
   ): OrderStatisticsCache.Key {
     return OrderStatisticsCache.Key(
       userId = ThreadLocalUserContext.loggedInUserId,
@@ -1153,6 +1157,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       startDate = startDate,
       planningDate = planningDate,
       distributeUnusedBudget = distributeUnusedBudget,
+      snapshotDate = snapshotDate,
     )
   }
 
@@ -1185,6 +1190,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * Only the conservative one shows lost budget warnings, the optimistic one distributes the unused budget.
      */
     var distributeUnusedBudget: Boolean? = null,
+    /**
+     * The date of the order book snapshot to calculate the forecast from (the closest one is used), or null for the
+     * current order book.
+     */
+    var snapshotDate: LocalDate? = null,
   )
 
   class ForecastChartRequest(
@@ -1192,12 +1202,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var startDate: LocalDate? = null,
     var planningDate: LocalDate? = null,
     var distributeUnusedBudget: Boolean? = null,
+    var snapshotDate: LocalDate? = null,
   ) {
     /** The parameters of this request, the defaults filled in. */
     fun settings() = ForecastChartSettings(
       startDate = startDate ?: PFDay.now().beginOfYear.localDate,
       planningDate = planningDate,
       distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+      snapshotDate = snapshotDate,
     )
   }
 

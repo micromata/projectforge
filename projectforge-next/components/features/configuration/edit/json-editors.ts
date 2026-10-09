@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import { CONTRIBUTION_MARGIN_PARAM } from "../contribution-margin-config";
 import { ContributionMarginConfigEditor } from "./contribution-margin-config-editor";
+import { FORECAST_PARAM } from "../forecast-config";
+import { ForecastConfigEditor } from "./forecast-config-editor";
 
 /** What the editor of a JSON parameter gets; it binds to the form value `stringValue` itself. */
 export interface JsonEditorProps {
@@ -15,4 +17,5 @@ export interface JsonEditorProps {
  */
 export const JSON_EDITORS: Record<string, ComponentType<JsonEditorProps>> = {
   [CONTRIBUTION_MARGIN_PARAM]: ContributionMarginConfigEditor,
+  [FORECAST_PARAM]: ForecastConfigEditor,
 };

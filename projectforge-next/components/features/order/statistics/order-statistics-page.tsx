@@ -98,7 +98,10 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
           )}
         </TabsList>
         <TabsContent value="forecast" className="min-h-0 overflow-auto">
-          <OrderForecastChartsView filter={state.filter} />
+          <OrderForecastChartsView
+            filter={state.filter}
+            planningDateHint={meta.planningDateHint}
+          />
         </TabsContent>
         {meta.contributionMargin && (
           <TabsContent

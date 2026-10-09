@@ -21,6 +21,11 @@ export interface OrderStatisticsMeta {
   filterFavorites: FavoriteIdTitle[];
   /** Whether the user may see the contribution margin. */
   contributionMargin: boolean;
+  /**
+   * The hint of finance and controlling on the planning date as rich text (HTML), configured in the
+   * parameter `fibu.forecast`; absent if none is configured.
+   */
+  planningDateHint?: string | null;
 }
 
 /** Answer of every `filter/*` endpoint: the current filter and the favorites after the change. */

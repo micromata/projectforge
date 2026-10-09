@@ -24,6 +24,7 @@ import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
 import { StatisticsDateField } from "../statistics/statistics-date-field";
 import { ForecastTables } from "./forecast-tables";
 import { ForecastVariantField } from "./forecast-variant-field";
+import { PlanningDateTooltip } from "./planning-date-tooltip";
 
 /** React Query key of the user's remembered chart parameters (see fetchForecastChartSettings). */
 const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
@@ -38,7 +39,14 @@ const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
  * request, as it stores dates and scenario. Those parameters are remembered by the backend, so the
  * settings are loaded first.
  */
-export function OrderForecastChartsView({ filter }: { filter: MagicFilter }) {
+export function OrderForecastChartsView({
+  filter,
+  planningDateHint,
+}: {
+  filter: MagicFilter;
+  /** The configured hint on the planning date (rich text), see `OrderStatisticsMeta.planningDateHint`. */
+  planningDateHint?: string | null;
+}) {
   const settings = useQuery({
     queryKey: FORECAST_CHART_SETTINGS_KEY,
     queryFn: ({ signal }) => fetchForecastChartSettings(signal),
@@ -59,20 +67,28 @@ export function OrderForecastChartsView({ filter }: { filter: MagicFilter }) {
       </div>
     );
   }
-  return <OrderForecastCharts filter={filter} settings={settings.data} />;
+  return (
+    <OrderForecastCharts
+      filter={filter}
+      settings={settings.data}
+      planningDateHint={planningDateHint}
+    />
+  );
 }
 
 /**
- * The controls (start date, optional planning date, budget scenario) over the two charts and the tables
+ * The controls (start date, optional planning and snapshot date, budget scenario) over the two charts and the tables
  * behind them. Every change re-posts the request after a short debounce; the backend persists the
  * parameters with it, so there is no "apply" button.
  */
 function OrderForecastCharts({
   filter,
   settings,
+  planningDateHint,
 }: {
   filter: MagicFilter;
   settings: ForecastChartSettings;
+  planningDateHint?: string | null;
 }) {
   const t = useTranslations("fibu.auftrag.forecast.chart");
   const tc = useTranslations();
@@ -83,6 +99,9 @@ function OrderForecastCharts({
   const [planningDate, setPlanningDate] = useState<string | null>(
     settings.planningDate ?? null
   );
+  const [snapshotDate, setSnapshotDate] = useState<string | null>(
+    settings.snapshotDate ?? null
+  );
   const [distributeUnusedBudget, setDistributeUnusedBudget] = useState(
     settings.distributeUnusedBudget
   );
@@ -91,8 +110,9 @@ function OrderForecastCharts({
       startDate: startDate || null,
       planningDate: planningDate || null,
       distributeUnusedBudget,
+      snapshotDate: snapshotDate || null,
     }),
-    [startDate, planningDate, distributeUnusedBudget]
+    [startDate, planningDate, distributeUnusedBudget, snapshotDate]
   );
   const debouncedParams = useDebouncedValue(params);
   const queryClient = useQueryClient();
@@ -131,8 +151,23 @@ function OrderForecastCharts({
           id="forecastPlanningDate"
           label={t("planningDate._")}
           tooltip={t("planningDate.tooltip")}
+          tooltipContent={
+            planningDateHint ? (
+              <PlanningDateTooltip
+                text={t("planningDate.tooltip")}
+                hint={planningDateHint}
+              />
+            ) : undefined
+          }
           value={planningDate}
           onChange={setPlanningDate}
+        />
+        <StatisticsDateField
+          id="forecastSnapshotDate"
+          label={t("snapshotDate._")}
+          tooltip={t("snapshotDate.tooltip")}
+          value={snapshotDate}
+          onChange={setSnapshotDate}
         />
         <ForecastVariantField
           value={distributeUnusedBudget}
@@ -146,6 +181,13 @@ function OrderForecastCharts({
             <Spinner className="h-4 w-4 border-2" />
             {tc("loading")}
           </div>
+        )}
+        {!recalculating && query.data?.snapshotDate && (
+          <p className="text-sm text-muted-foreground">
+            {t("snapshotDateUsed", {
+              arg0: formatDate(query.data.snapshotDate, ctx),
+            })}
+          </p>
         )}
         {!recalculating && query.data?.plan && query.data.planningDate && (
           <p className="text-sm text-muted-foreground">

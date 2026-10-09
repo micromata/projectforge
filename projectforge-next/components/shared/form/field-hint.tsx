@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
@@ -17,10 +18,19 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
  * `openOnTap` turns the hover tooltip into a tap-to-open popover on a phone — an explanation only the
  * mouse can read is no explanation there.
  */
-export function FieldHint({ hint, label }: { hint: string; label: string }) {
+export function FieldHint({
+  hint,
+  content,
+  label,
+}: {
+  hint: string;
+  /** A structured explanation replacing [hint], e.g. [hint] followed by a configured note. */
+  content?: ReactNode;
+  label: string;
+}) {
   const t = useTranslations("form");
   return (
-    <HintTooltip text={hint} openOnTap>
+    <HintTooltip text={hint} content={content} openOnTap>
       <button
         type="button"
         // `-m-1 p-1`: a target big enough to hit without making the label line taller or wider.
