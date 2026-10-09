@@ -1,0 +1,20 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      <!--Header without the address-->
+      <% if (pf.isVariableGiven("logoUrl")) { %>
+      <a href="<%= pf.getString(baseUrl) %>" target="_blank" rel="noreferrer">
+        <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
+      </a> <% } %>
+      <h1 class="title"><%= pf.getString(title) %></h1>
+      <!-- The text of the notification rule (sanitized rich text, see NotificationTemplate). -->
+      <%= body %>
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>

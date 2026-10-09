@@ -559,6 +559,23 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     /**
+     * The start times of the time sheets of all users (deleted ones ignored) starting within [from] (inclusive) and
+     * [to] (exclusive), by user id. One `SELECT` of two columns, no row hydration and no access check: for jobs
+     * evaluating the bookings of all employees (e.g. the notification rule for missing time sheets).
+     */
+    open fun getStartTimesByUser(from: Date, to: Date): Map<Long, List<Date>> {
+        val sql = "SELECT t.user.id AS userId, t.startTime AS startTime FROM TimesheetDO t" +
+                " WHERE t.deleted = false AND t.startTime >= :from AND t.startTime < :to"
+        val result = mutableMapOf<Long, MutableList<Date>>()
+        persistenceService.executeQuery(sql, Tuple::class.java, Pair("from", from), Pair("to", to)).forEach { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@forEach
+            val startTime = tuple.get("startTime") as Date? ?: return@forEach
+            result.getOrPut(userId) { mutableListOf() }.add(startTime)
+        }
+        return result
+    }
+
+    /**
      * The ids of the given user's time sheets (deleted ones ignored) that collide in time with another of the user's
      * time sheets — the forbidden overlaps [hasTimeOverlap] refuses on save; an overlap released by a shared cost
      * element doesn't count. Sheets saved before that check existed (or imported) may still collide, this finds them:

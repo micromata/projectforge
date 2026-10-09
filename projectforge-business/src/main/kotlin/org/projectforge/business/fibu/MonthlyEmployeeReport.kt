@@ -35,11 +35,11 @@ import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
 import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetOverlapUtils
+import org.projectforge.business.timesheet.UnbookedDaysCalculator
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
 import org.projectforge.common.extensions.formatFractionAsPercent
 import org.projectforge.common.extensions.isZeroOrNull
-import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.calendar.MonthHolder
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.YearMonth
 import java.util.*
 
 /**
@@ -353,16 +354,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         }
         val monthHolder = MonthHolder(this.fromDateTime)
         this.numberOfWorkingDays = monthHolder.numberOfWorkingDays
-        val holidays = Holidays.instance
-        for (week in monthHolder.weeks) {
-            for (day in week.days) {
-                if (day.month == fromDateTime.month && holidays.isWorkingDay(day)
-                    && !bookedDays.contains(day.dayOfMonth)
-                ) {
-                    unbookedDays.add(day.dayOfMonth)
-                }
-            }
-        }
+        // The same days as the notifications about missing time sheets show: vacation days don't count as unbooked.
+        val vacationDays = WicketSupport.get(UnbookedDaysCalculator::class.java)?.vacationDays(employee, yearMonth).orEmpty()
+        unbookedDays.addAll(UnbookedDaysCalculator.unbookedDays(yearMonth, bookedDays, vacationDays))
         if (calculateVacationStats) {
             val vacationService = WicketSupport.get(VacationService::class.java)
             if (vacationService != null && this.employee != null && employee!!.user != null) {
@@ -398,23 +392,10 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         /**
          * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
          */
-        get() {
-            val buf = StringBuilder()
-            var first = true
-            for (dayOfMonth in unbookedDays) {
-                if (first) {
-                    first = false
-                } else {
-                    buf.append(", ")
-                }
-                buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-                    .append(StringHelper.format2DigitNumber(month)).append(".")
-            }
-            if (first) {
-                return null
-            }
-            return buf.toString()
-        }
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays)
+
+    private val yearMonth: YearMonth
+        get() = YearMonth.of(fromDateTime.year, fromDateTime.monthValue)
 
     val year: Int
         get() = fromDateTime.year

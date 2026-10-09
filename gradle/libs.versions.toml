@@ -52,6 +52,7 @@ org-hsqldb-hsqldb = "2.7.4"
 org-jetbrains-kotlin = "2.3.21"
 org-jetbrains-kotlinx-coroutines-core = "1.10.2"
 org-jfree-jfreechart = "1.5.6"
+org-jsoup = "1.23.1"
 org-junit = "6.0.3" # Jupiter and Platform share one version since JUnit 6.
 org-mnode-ical4j-ical4j = "4.4.0"
 org-mock-server-mockserver-netty-no-dependencies = "5.15.0"
@@ -167,6 +168,7 @@ org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", v
 org-jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "org-jetbrains-kotlinx-coroutines-core" }
 org-jetbrains-kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "org-jetbrains-kotlinx-coroutines-core" }
 org-jfree-jfreechart = { module = "org.jfree:jfreechart", version.ref = "org-jfree-jfreechart" }
+org-jsoup = { module = "org.jsoup:jsoup", version.ref = "org-jsoup" }
 org-mnode-ical4j-ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "org-mnode-ical4j-ical4j" }
 org-mustangproject-library = { module = "org.mustangproject:library", version.ref = "org-mustangproject" }
 org-postgresql = { module = "org.postgresql:postgresql", version.ref = "org-postgresql" }

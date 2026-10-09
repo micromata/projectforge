@@ -77,6 +77,7 @@ dependencies {
     api(libs.com.thoughtworks.xstream)
     api(libs.org.apache.groovy.all)
     api(libs.org.jfree.jfreechart)
+    api(libs.org.jsoup) // HtmlSanitizer (rich text of mails)
     api(libs.net.sf.mpxj) {
         // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
         exclude(group = "org.xerial", module = "sqlite-jdbc")
