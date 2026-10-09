@@ -98,6 +98,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
+    // Next only: the rules of the notification system (NotificationRuleEntityRest).
+    NOTIFICATION_RULE_LIST("menu.notificationRules", getListUrl("notificationRule")), //
     // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.

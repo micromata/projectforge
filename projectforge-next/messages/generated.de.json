@@ -376,7 +376,16 @@
   "calendar": {
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
-    "day": "Tag",
+    "day": {
+      "_": "Tag",
+      "friday": "Freitag",
+      "monday": "Montag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag",
+      "thursday": "Donnerstag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch"
+    },
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
@@ -2366,6 +2375,172 @@
   "nickname": "Rufname",
   "no": "Nein",
   "nothingFound": "Nichts gefunden.",
+  "notification": {
+    "acknowledge": "Bestätigen",
+    "acknowledgedAt": "Bestätigt",
+    "action": {
+      "preview": "Vorschau",
+      "testToMe": "Test an mich",
+      "trigger": "Jetzt auslösen",
+      "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
+    },
+    "center": "Benachrichtigungen",
+    "centerEmpty": "Keine offenen Benachrichtigungen.",
+    "channels": {
+      "IN_APP": "In der App",
+      "MAIL": "E-Mail",
+      "SMS": "SMS (noch nicht unterstützt)"
+    },
+    "created": "Erstellt",
+    "delivery": {
+      "addStep": "Schritt hinzufügen",
+      "channel": "Kanal",
+      "delay": "Nach",
+      "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
+      "onlyIfUnacknowledged": "Nur wenn unbestätigt",
+      "removeStep": "Schritt entfernen",
+      "unit": {
+        "days": "Tagen",
+        "hours": "Stunden",
+        "minutes": "Minuten"
+      }
+    },
+    "deliverySteps": "Zustellung",
+    "display": "Anzeige",
+    "displays": {
+      "BANNER": "Banner bis erledigt",
+      "TOAST": "Toast (einmal angezeigt)",
+      "TOAST_CONFIRM": "Toast mit Bestätigung"
+    },
+    "doneAt": "Erledigt",
+    "error": {
+      "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
+    },
+    "log": "Versendete Benachrichtigungen",
+    "logEmpty": "Noch keine Benachrichtigungen versendet.",
+    "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
+    "markDone": "Als erledigt markieren",
+    "open": "Öffnen",
+    "params": {
+      "daysBeforeExpiry": "Tage vor dem Verfall",
+      "referredMonth": {
+        "_": "Monat",
+        "CURRENT": "Aktueller Monat",
+        "PREVIOUS": "Vormonat"
+      },
+      "vacationExpiry": {
+        "_": "Verfallende Urlaubstage",
+        "CARRY_OVER": "Resturlaub aus dem Vorjahr",
+        "YEAR_END": "Resttage zum Jahresende"
+      }
+    },
+    "preview": {
+      "alreadyNotified": "davon {arg0} für diesen Zeitraum bereits benachrichtigt",
+      "none": "Heute ist niemand zu benachrichtigen.",
+      "period": "Zeitraum",
+      "recipients": "{arg0} Empfänger",
+      "sample": "Beispiel mit den eigenen Werten"
+    },
+    "recipient": "Empfänger",
+    "recipients": {
+      "allEmployees": "Alle Mitarbeitenden",
+      "employeeStatus": "Mitarbeitende mit Status",
+      "excludedEmployeeStatus": "Ausgenommen Mitarbeitende mit Status",
+      "groups": "Gruppen",
+      "onlyAffected": "Nur Betroffene",
+      "onlyAffectedInfo": "Nur die von der Regel betroffenen Empfänger, z. B. mit fehlenden Zeitberichten. Ohne angegebene Empfänger: alle Betroffenen.",
+      "users": "Benutzer"
+    },
+    "resolvedAt": "Beendet",
+    "rule": {
+      "active": "Aktiv",
+      "delivery": "Zustellung",
+      "editableByGroups": "Bearbeitbar von Gruppen",
+      "editableByGroupsInfo": "Leer: von allen Admins und Mitgliedern der Finanzgruppe. Admins können die Regel immer bearbeiten.",
+      "error": {
+        "day": "Der Tag muss zwischen 0 und 15 (Arbeitstage vor Monatsende) bzw. 1 und 31 (Tag im Monat) liegen.",
+        "dayOfWeek": "Ein Wochentag ist erforderlich.",
+        "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
+        "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich."
+      },
+      "lastRun": "Letzter Lauf",
+      "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "menuBadge": "Zähler im Menü",
+      "name": "Name",
+      "newTitle": "Neue Benachrichtigungsregel",
+      "params": "Einstellungen",
+      "recipients": "Empfänger",
+      "ruleType": "Auslöser",
+      "schedule": "Zeitplan",
+      "sections": {
+        "access": "Bearbeitung",
+        "general": "Regel",
+        "message": "Nachricht"
+      },
+      "title": "Benachrichtigungsregeln"
+    },
+    "ruleName": "Regel",
+    "ruleTypes": {
+      "MANUAL": "Manuell (ohne Bedingung)",
+      "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "VACATION_LEFT": "Verfallender Resturlaub"
+    },
+    "schedule": {
+      "day": "Tag",
+      "dayOfWeek": "Wochentag",
+      "info": "Die Regeln werden einmal täglich am Morgen geprüft.",
+      "mode": {
+        "DAILY": "Jeden Arbeitstag",
+        "DAY_OF_MONTH": "Tag im Monat",
+        "NONE": "Nur manuell",
+        "WEEKLY": "Wöchentlich",
+        "WORKING_DAYS_BEFORE_MONTH_END": "Arbeitstage vor Monatsende"
+      },
+      "workingDaysInfo": "0 ist der letzte Arbeitstag des Monats."
+    },
+    "severities": {
+      "IMPORTANT": "Wichtig",
+      "INFO": "Hinweis",
+      "URGENT": "Dringend"
+    },
+    "severity": "Dringlichkeit",
+    "status": "Status",
+    "statuses": {
+      "ACKNOWLEDGED": "Bestätigt",
+      "DONE": "Erledigt",
+      "EXPIRED": "Abgelaufen",
+      "OPEN": "Offen",
+      "RESOLVED": "Aufgelöst"
+    },
+    "stepState": {
+      "failed": "Fehlgeschlagen",
+      "pending": "Ausstehend",
+      "retry": "Wiederholung {arg0}",
+      "sent": "Gesendet",
+      "skipped": "Übersprungen"
+    },
+    "subject": "Betreff",
+    "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
+    "testDelivered": "Test gesendet: {arg0}",
+    "testFailed": "Nicht gesendet: {arg0}",
+    "text": "Text",
+    "triggerErrors": "{arg0} Fehler: {arg1}",
+    "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
+    "variable": {
+      "daysLeft": "Verbleibende Urlaubstage",
+      "expiryDate": "Verfallsdatum",
+      "firstName": "Vorname",
+      "fullName": "Vollständiger Name",
+      "lastName": "Nachname",
+      "month": "Monat",
+      "monthlyReportLink": "Link zum Monatsbericht",
+      "timesheetLink": "Link zu den Zeitberichten",
+      "unbookedDays": "Tage ohne Zeitberichte",
+      "unbookedDaysCount": "Anzahl der Tage ohne Zeitberichte",
+      "vacationLink": "Link zum Urlaub"
+    }
+  },
   "operation": {
     "deleted": "gelöscht",
     "inserted": "angelegt",

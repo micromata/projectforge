@@ -38,6 +38,8 @@ export function useAuth() {
     isAdmin: !!query.data?.adminUser,
     /** JIRA config for client-side issue linking, null where JIRA is not configured (see JiraConfig). */
     jira: query.data?.jira ?? null,
+    /** The summary of the notifications visible in the app, null before the status is loaded. */
+    notifications: query.data?.notifications ?? null,
     error: query.error,
     refetch: query.refetch,
   };

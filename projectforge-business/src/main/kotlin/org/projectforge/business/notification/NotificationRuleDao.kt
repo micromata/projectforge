@@ -73,6 +73,11 @@ open class NotificationRuleDao : BaseDao<NotificationRuleDO>(NotificationRuleDO:
         return userGroupCache.isUserMemberOfAdminGroup(user.id) || userGroupCache.isUserMemberOfFinanceGroup(user.id)
     }
 
+    /** The last run is maintained by the rule job only ([updateLastRun]), never by an edit (maybe stale). */
+    override fun onUpdate(obj: NotificationRuleDO, dbObj: NotificationRuleDO) {
+        obj.lastRun = dbObj.lastRun
+    }
+
     /** Is the user an admin or a finance member allowed by [NotificationRuleDO.editableByGroupIds]? */
     open fun isEditor(user: PFUserDO, rule: NotificationRuleDO?): Boolean {
         if (userGroupCache.isUserMemberOfAdminGroup(user.id)) {

@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.business.login.Login
+import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
@@ -50,6 +51,7 @@ import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
@@ -84,6 +86,9 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var notificationDao: NotificationDao
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
@@ -601,6 +606,13 @@ open class MenuCreator {
         adminMenu
             .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
             .add(MenuItemDef(MenuItemDefId.ADMIN_ERRORS, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            // The rules of the notification system (NotificationRuleDao: admins and finance).
+            .add(
+                MenuItemDef(
+                    MenuItemDefId.NOTIFICATION_RULE_LIST,
+                    requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP),
+                )
+            )
             .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
             // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
             .add(
@@ -641,14 +653,21 @@ open class MenuCreator {
     fun build(menuCreatorContext: MenuCreatorContext): Menu {
         initialize()
         val menu = Menu()
+        // The pending notifications of the user, counted at the menu items of their rules (NotificationRuleDO.menuBadge).
+        val notificationCounts = menuCreatorContext.user.id?.let { notificationDao.countByMenuBadge(it) }.orEmpty()
         menuItemDefHolder.menuItems.forEach { menuItemDef ->
-            menu.add(build(null, menuItemDef, menuCreatorContext))
+            menu.add(build(null, menuItemDef, menuCreatorContext, notificationCounts))
         }
         menu.postProcess()
         return menu
     }
 
-    private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
+    private fun build(
+        parent: MenuItem?,
+        menuItemDef: MenuItemDef,
+        menuCreatorContext: MenuCreatorContext,
+        notificationCounts: Map<String, Int>,
+    ): MenuItem? {
         if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
             // Not visible for the user (groups customized in projectforge.properties).
             return null
@@ -656,10 +675,14 @@ open class MenuCreator {
         if (!checkAccess(menuCreatorContext, menuItemDef))
             return null // No access
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
+        notificationCounts[menuItemDef.id]?.takeIf { it > 0 }?.let { count ->
+            val badge = menuItem.badge ?: MenuBadge(0, style = "danger").also { menuItem.badge = it }
+            badge.counter = (badge.counter ?: 0) + count
+        }
 
         parent?.add(menuItem)
         menuItemDef.children?.forEach { childMenuItemDef ->
-            build(menuItem, childMenuItemDef, menuCreatorContext)
+            build(menuItem, childMenuItemDef, menuCreatorContext, notificationCounts)
         }
         return menuItem
     }

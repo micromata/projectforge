@@ -376,7 +376,16 @@
   "calendar": {
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
-    "day": "day",
+    "day": {
+      "_": "day",
+      "friday": "Friday",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
+    },
     "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
@@ -2366,6 +2375,172 @@
   "nickname": "Nickname",
   "no": "No",
   "nothingFound": "Nothing found.",
+  "notification": {
+    "acknowledge": "Confirm",
+    "acknowledgedAt": "Confirmed",
+    "action": {
+      "preview": "Preview",
+      "testToMe": "Send test to me",
+      "trigger": "Trigger now",
+      "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
+    },
+    "center": "Notifications",
+    "centerEmpty": "No open notifications.",
+    "channels": {
+      "IN_APP": "In the app",
+      "MAIL": "E-mail",
+      "SMS": "SMS (not yet supported)"
+    },
+    "created": "Created",
+    "delivery": {
+      "addStep": "Add step",
+      "channel": "Channel",
+      "delay": "After",
+      "info": "The steps are delivered after the given time since the notification was created. A step \"only if not confirmed\" is skipped once the recipient has confirmed the notification or its cause is resolved.",
+      "onlyIfUnacknowledged": "Only if not confirmed",
+      "removeStep": "Remove step",
+      "unit": {
+        "days": "days",
+        "hours": "hours",
+        "minutes": "minutes"
+      }
+    },
+    "deliverySteps": "Delivery",
+    "display": "Display",
+    "displays": {
+      "BANNER": "Banner until done",
+      "TOAST": "Toast (shown once)",
+      "TOAST_CONFIRM": "Toast to be confirmed"
+    },
+    "doneAt": "Done",
+    "error": {
+      "manualDoneNotAllowed": "This notification is finished automatically as soon as its cause is resolved."
+    },
+    "log": "Sent notifications",
+    "logEmpty": "No notifications sent yet.",
+    "logEmptyFilter": "No notifications match the filter.",
+    "markDone": "Mark as done",
+    "open": "Open",
+    "params": {
+      "daysBeforeExpiry": "Days before expiry",
+      "referredMonth": {
+        "_": "Month",
+        "CURRENT": "Current month",
+        "PREVIOUS": "Previous month"
+      },
+      "vacationExpiry": {
+        "_": "Expiring vacation days",
+        "CARRY_OVER": "Days carried over from the previous year",
+        "YEAR_END": "Days left at the end of the year"
+      }
+    },
+    "preview": {
+      "alreadyNotified": "{arg0} of them already notified for this period",
+      "none": "Nobody to notify today.",
+      "period": "Period",
+      "recipients": "{arg0} recipient(s)",
+      "sample": "Sample for you"
+    },
+    "recipient": "Recipient",
+    "recipients": {
+      "allEmployees": "All employees",
+      "employeeStatus": "Employees with status",
+      "excludedEmployeeStatus": "Except employees with status",
+      "groups": "Groups",
+      "onlyAffected": "Only those concerned",
+      "onlyAffectedInfo": "Only the recipients concerned by the rule, e.g. with missing time sheets. Without any recipients given: everybody concerned.",
+      "users": "Users"
+    },
+    "resolvedAt": "Finished",
+    "rule": {
+      "active": "Active",
+      "delivery": "Delivery",
+      "editableByGroups": "Editable by groups",
+      "editableByGroupsInfo": "Empty: by all admins and members of the finance group. Admins may always edit the rule.",
+      "error": {
+        "day": "The day must be between 0 and 15 (working days before the end of the month) or 1 and 31 (day of the month).",
+        "dayOfWeek": "A weekday is required.",
+        "daysBeforeExpiry": "The number of days must not be negative.",
+        "delay": "The time of a delivery step must not be negative.",
+        "noDeliveryStep": "At least one delivery step is required."
+      },
+      "lastRun": "Last run",
+      "manualDone": "The recipient may mark it as done",
+      "menuBadge": "Counter in the menu",
+      "name": "Name",
+      "newTitle": "New notification rule",
+      "params": "Settings",
+      "recipients": "Recipients",
+      "ruleType": "Trigger",
+      "schedule": "Schedule",
+      "sections": {
+        "access": "Editing",
+        "general": "Rule",
+        "message": "Message"
+      },
+      "title": "Notification rules"
+    },
+    "ruleName": "Rule",
+    "ruleTypes": {
+      "MANUAL": "Manual (no condition)",
+      "TIMESHEETS_MISSING": "Missing time sheets",
+      "VACATION_LEFT": "Expiring vacation days"
+    },
+    "schedule": {
+      "day": "Day",
+      "dayOfWeek": "Weekday",
+      "info": "The rules are checked once a day in the morning.",
+      "mode": {
+        "DAILY": "Every working day",
+        "DAY_OF_MONTH": "Day of the month",
+        "NONE": "Manual only",
+        "WEEKLY": "Weekly",
+        "WORKING_DAYS_BEFORE_MONTH_END": "Working days before the end of the month"
+      },
+      "workingDaysInfo": "0 is the last working day of the month."
+    },
+    "severities": {
+      "IMPORTANT": "Important",
+      "INFO": "Info",
+      "URGENT": "Urgent"
+    },
+    "severity": "Severity",
+    "status": "Status",
+    "statuses": {
+      "ACKNOWLEDGED": "Confirmed",
+      "DONE": "Done",
+      "EXPIRED": "Expired",
+      "OPEN": "Open",
+      "RESOLVED": "Resolved"
+    },
+    "stepState": {
+      "failed": "Failed",
+      "pending": "Pending",
+      "retry": "Retry {arg0}",
+      "sent": "Sent",
+      "skipped": "Skipped"
+    },
+    "subject": "Subject",
+    "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
+    "testDelivered": "Test sent: {arg0}",
+    "testFailed": "Not sent: {arg0}",
+    "text": "Text",
+    "triggerErrors": "{arg0} error(s): {arg1}",
+    "triggerResult": "{arg0} notification(s) created for {arg1} recipient(s).",
+    "variable": {
+      "daysLeft": "Vacation days left",
+      "expiryDate": "Expiry date",
+      "firstName": "First name",
+      "fullName": "Full name",
+      "lastName": "Last name",
+      "month": "Month",
+      "monthlyReportLink": "Link to the monthly report",
+      "timesheetLink": "Link to the time sheets",
+      "unbookedDays": "Days without time sheets",
+      "unbookedDaysCount": "Number of days without time sheets",
+      "vacationLink": "Link to the vacation"
+    }
+  },
   "operation": {
     "deleted": "deleted",
     "inserted": "inserted",

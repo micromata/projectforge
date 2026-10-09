@@ -26,6 +26,7 @@ package org.projectforge.business.notification
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.fibu.EmployeeStatus
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.calendar.Holidays
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -33,7 +34,7 @@ import java.time.YearMonth
 import java.util.Date
 
 /** The rule types, each evaluated by its [NotificationRuleHandler]. */
-enum class NotificationRuleType {
+enum class NotificationRuleType : I18nEnum {
     /** Working days without time sheets in a month (e.g. reminders at the month end). */
     TIMESHEETS_MISSING,
 
@@ -41,17 +42,23 @@ enum class NotificationRuleType {
     VACATION_LEFT,
 
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
-    MANUAL,
+    MANUAL;
+
+    override val i18nKey: String
+        get() = "notification.ruleTypes.$name"
 }
 
-enum class NotificationSeverity {
+enum class NotificationSeverity : I18nEnum {
     INFO,
     IMPORTANT,
-    URGENT,
+    URGENT;
+
+    override val i18nKey: String
+        get() = "notification.severities.$name"
 }
 
 /** How a notification is shown in the app. */
-enum class NotificationDisplay {
+enum class NotificationDisplay : I18nEnum {
     /** Shown once as a toast, acknowledged by being shown. */
     TOAST,
 
@@ -59,10 +66,13 @@ enum class NotificationDisplay {
     TOAST_CONFIRM,
 
     /** A banner staying until done: resolved by the rule or marked as done by the user (if allowed). */
-    BANNER,
+    BANNER;
+
+    override val i18nKey: String
+        get() = "notification.displays.$name"
 }
 
-enum class NotificationStatus {
+enum class NotificationStatus : I18nEnum {
     OPEN,
 
     /** Confirmed (read) by the recipient: no escalation steps any more. A banner stays until done. */
@@ -81,18 +91,24 @@ enum class NotificationStatus {
     val isPending: Boolean
         get() = this == OPEN || this == ACKNOWLEDGED
 
+    override val i18nKey: String
+        get() = "notification.statuses.$name"
+
     companion object {
         val PENDING = listOf(OPEN, ACKNOWLEDGED)
     }
 }
 
-enum class NotificationChannel {
+enum class NotificationChannel : I18nEnum {
     /** Visible in the app (toast, banner, menu badge) from the delivery of this step on. */
     IN_APP,
     MAIL,
 
     /** Not yet supported (phase 2): such steps are skipped. */
-    SMS,
+    SMS;
+
+    override val i18nKey: String
+        get() = "notification.channels.$name"
 }
 
 /** When the rule is evaluated: once per day at most, on the days given by the [mode]. */

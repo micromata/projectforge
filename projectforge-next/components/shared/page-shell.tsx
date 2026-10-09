@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { LogoRow } from "@/components/shared/logo-row";
+import { NotificationBanners } from "@/components/shared/notifications/notification-banners";
 import { StatusBar } from "@/components/shared/status-bar";
 import { SystemAlertBanner } from "@/components/shared/system-alert-banner";
 import { TopNavigation } from "@/components/shared/top-navigation";
@@ -49,6 +50,7 @@ export function PageShell({ children }: PageShellProps) {
       {/* Here and not in the authenticated layout: the announcement belongs under the navigation of
           every page, as in Wicket, and this shell is what every page of this app is built from. */}
       <SystemAlertBanner />
+      <NotificationBanners />
       <main
         className="flex min-h-0 flex-1 flex-col overflow-auto"
         onScroll={collapse.onScroll}

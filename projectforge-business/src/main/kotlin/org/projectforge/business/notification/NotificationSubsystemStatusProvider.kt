@@ -62,7 +62,7 @@ class NotificationSubsystemStatusProvider : SubsystemStatusProvider {
         val now = Date()
         val syncs = listOfNotNull(notificationService.ruleJobStats.toSync(), notificationService.deliveryJobStats.toSync())
         val detail = translateMsg(
-            "system.admin.adminErrors.subsystem.notification.detail",
+            "notification.subsystemDetail",
             notificationRuleDao.selectActive().size,
             notificationDao.countPending(),
             notificationDao.countDueDeliveries(now),

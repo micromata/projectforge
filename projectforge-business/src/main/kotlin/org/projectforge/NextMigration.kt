@@ -387,6 +387,14 @@ object NextMigration {
             // OrphanedLinkFilter keeps redirecting bookmarked Wicket links.
             offerLegacyLink = false,
         ),
+        // The rules of the notification system, new in next (NotificationRuleEntityRest, no layout): there is no
+        // legacy page.
+        "notificationRule" to NextPage(
+            route = "notificationRule",
+            editRoute = "notificationRule/$ID_PLACEHOLDER",
+            newEntryRoute = "notificationRule/new",
+            legacyApp = null,
+        ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
         // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back
