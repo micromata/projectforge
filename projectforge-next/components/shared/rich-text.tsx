@@ -131,7 +131,8 @@ export function RichText({
   return (
     <div
       className={cn(
-        "rich-text space-y-1.5 [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-4",
+        // font-normal: the body is font-medium, against which bold text would hardly stand out.
+        "rich-text space-y-1.5 font-normal [&_a]:underline [&_li]:ml-1 [&_ol]:list-decimal [&_ol]:space-y-0.5 [&_ol]:pl-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:space-y-0.5 [&_ul]:pl-4",
         className
       )}
       dangerouslySetInnerHTML={{ __html: sanitized }}

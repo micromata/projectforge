@@ -49,7 +49,7 @@ export function ScriptExecuteBody({
       {script.description && (
         <RichText
           html={script.description}
-          className="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-normal"
+          className="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm"
         />
       )}
       {script.id == null ? (
