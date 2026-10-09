@@ -2536,6 +2536,7 @@
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
     "testDelivered": "Test sent: {arg0}",
     "testFailed": "Not sent: {arg0}",
+    "testMissingText": "Subject and text are required for a test.",
     "text": "Text",
     "triggerErrors": "{arg0} error(s): {arg1}",
     "triggerResult": "{arg0} notification(s) created for {arg1} recipient(s).",

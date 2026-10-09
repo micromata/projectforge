@@ -2536,6 +2536,7 @@
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
     "testDelivered": "Test gesendet: {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
+    "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
     "text": "Text",
     "triggerErrors": "{arg0} Fehler: {arg1}",
     "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",

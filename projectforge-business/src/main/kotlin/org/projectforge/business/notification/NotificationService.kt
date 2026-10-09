@@ -206,12 +206,16 @@ class NotificationService {
      * delivery cascade at once (regardless of the delays). The in-app notification has no rule (it's no rule run).
      */
     fun sendTestToMe(rule: NotificationRuleDO, user: PFUserDO): TestResult {
+        require(!rule.subject.isNullOrBlank() && !rule.text?.replace(TAG_REGEX, "").isNullOrBlank()) {
+            "Subject and text are required for a test."
+        }
         val today = today()
         val handler = handler(rule)
         val evaluation = handler.evaluate(rule, today)
         val now = Date()
         val notification = build(rule, user, variablesOf(rule, handler, evaluation, today, user), evaluation, now)
         notification.ruleId = null
+        notification.manualDone = true // No rule resolves or expires a test notification: the recipient removes it.
         notification.dedupKey = "test:${user.id}:${now.time}"
         notification.periodKey = null
         val delivered = mutableListOf<NotificationChannel>()
@@ -372,6 +376,8 @@ class NotificationService {
             "firstName" to (user.firstname ?: ""),
             "lastName" to (user.lastname ?: ""),
             "fullName" to user.getFullname(),
+            // The first name, if the user has no nickname, so "Hi {{nickname}}," always works.
+            "nickname" to (user.nickname?.takeIf { it.isNotBlank() } ?: user.firstname ?: ""),
         )
         return common + (evaluation?.affected?.get(user.id) ?: handler.variables(rule, today, user))
     }
@@ -393,7 +399,7 @@ class NotificationService {
             it.menuBadge = rule.menuBadge?.takeIf { badge -> badge.isNotBlank() }
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)
-            it.link = evaluation?.link
+            it.link = evaluation?.linkFor(user)
             it.periodKey = evaluation?.periodKey
             it.status = NotificationStatus.OPEN
             it.created = now
@@ -412,7 +418,10 @@ class NotificationService {
         const val DELIVERY_JOB_TYPE = "notification-delivery"
 
         /** The variables of all rule types. */
-        val COMMON_VARIABLES = listOf("firstName", "lastName", "fullName")
+        val COMMON_VARIABLES = listOf("firstName", "lastName", "fullName", "nickname")
+
+        /** HTML tags, removed to check whether a rich text is empty (e.g. `<p></p>`). */
+        private val TAG_REGEX = Regex("<[^>]*>")
 
         fun dedupKey(rule: NotificationRuleDO, user: PFUserDO, periodKey: String): String =
             "${rule.id}:${user.id}:$periodKey"

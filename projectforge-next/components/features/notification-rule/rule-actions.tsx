@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -25,6 +25,7 @@ const reportError = (error: unknown) =>
 export function RuleActions({ id }: { id: number | null }) {
   const t = useTranslations("notification");
   const form = useEntityEditForm();
+  const queryClient = useQueryClient();
   const [preview, setPreview] = useState<NotificationPreview | null>(null);
   const [confirmTrigger, setConfirmTrigger] = useState(false);
   const values = () => form.state.values as object;
@@ -37,6 +38,8 @@ export function RuleActions({ id }: { id: number | null }) {
   const testMutation = useMutation({
     mutationFn: () => testNotificationRuleToMe(values()),
     onSuccess: (result) => {
+      // Shows the in-app test notification at once, not on the next status reload.
+      void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
       if (result.delivered.length > 0) {
         const channels = result.delivered.map((c) => t(`channels.${c}`));
         toast.success(t("testDelivered", { arg0: channels.join(", ") }));
@@ -88,7 +91,18 @@ export function RuleActions({ id }: { id: number | null }) {
         variant="outline"
         size="sm"
         disabled={testMutation.isPending}
-        onClick={() => testMutation.mutate()}
+        onClick={() => {
+          const { subject, text } = form.state.values as {
+            subject?: string | null;
+            text?: string | null;
+          };
+          // Without them the test notification would show nothing but its link.
+          if (!subject?.trim() || !text?.replace(/<[^>]*>/g, "").trim()) {
+            toast.error(t("testMissingText"));
+            return;
+          }
+          testMutation.mutate();
+        }}
       >
         {t("action.testToMe")}
       </Button>

@@ -231,10 +231,10 @@ class NotificationDao {
         return notification
     }
 
-    /** The recipient marks the notification as done, if allowed by its rule ([NotificationDO.manualDone]). */
+    /** The recipient marks the notification as done, if allowed ([NotificationDO.isManualDoneAllowed]). */
     fun done(id: Long, user: PFUserDO): NotificationDO? {
         val notification = findOwn(id, user) ?: return null
-        if (!notification.manualDone) {
+        if (!notification.isManualDoneAllowed) {
             throw AccessException(user, "notification.error.manualDoneNotAllowed")
         }
         if (!notification.status.isPending) {

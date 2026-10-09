@@ -13,9 +13,8 @@ import {
 } from "@/components/ui/menubar";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { cn } from "@/lib/utils";
-import { NotificationActions } from "./notification-actions";
-import { NotificationBody } from "./notification-body";
-import { bySeverity, SEVERITY_CLASSES } from "./severity";
+import { NotificationCard } from "./notification-card";
+import { bySeverity } from "./severity";
 import { useMyNotifications } from "./use-my-notifications";
 
 /**
@@ -42,7 +41,10 @@ export function NotificationBell() {
           variant="corner"
         />
       </MenubarTrigger>
-      <MenubarContent align="end" className="w-80 max-w-[calc(100vw-1rem)]">
+      <MenubarContent
+        align="end"
+        className="w-[28rem] max-w-[calc(100vw-1rem)]"
+      >
         <MenubarLabel>{t("center")}</MenubarLabel>
         <MenubarSeparator />
         {notifications.length === 0 ? (
@@ -52,24 +54,10 @@ export function NotificationBell() {
         ) : (
           <div className="max-h-[70vh] space-y-1 overflow-y-auto">
             {notifications.map((notification) => (
-              <div
+              <NotificationCard
                 key={notification.id}
-                className={cn(
-                  "space-y-2 rounded-sm border-l-4 px-2 py-1.5",
-                  SEVERITY_CLASSES[notification.severity],
-                  // The urgent colour is too loud for a list; its border marks it.
-                  notification.severity === "URGENT" &&
-                    "bg-transparent text-foreground"
-                )}
-              >
-                {notification.title && (
-                  <div className="text-sm font-medium">
-                    {notification.title}
-                  </div>
-                )}
-                <NotificationBody notification={notification} />
-                <NotificationActions notification={notification} />
-              </div>
+                notification={notification}
+              />
             ))}
           </div>
         )}

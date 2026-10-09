@@ -85,4 +85,4 @@ CREATE INDEX idx_t_notification_rule
 -- Rollback (no other table refers to these):
 -- DROP TABLE T_NOTIFICATION;
 -- DROP TABLE T_NOTIFICATION_RULE;
--- DELETE FROM t_flyway_schema_version WHERE version = '9.0.4';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.0.1';

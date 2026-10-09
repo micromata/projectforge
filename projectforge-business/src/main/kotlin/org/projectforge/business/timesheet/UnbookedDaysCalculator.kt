@@ -28,6 +28,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.calendar.Holidays
@@ -52,6 +53,9 @@ open class UnbookedDaysCalculator {
   private lateinit var timesheetDao: TimesheetDao
 
   @Autowired
+  private lateinit var vacationDao: VacationDao
+
+  @Autowired
   private lateinit var vacationService: VacationService
 
   /** The days of month of the approved vacations (special ones included) of the given employee. */
@@ -73,6 +77,12 @@ open class UnbookedDaysCalculator {
     val from = Date.from(month.atDay(1).minusDays(1).atStartOfDay(ZoneId.of("UTC")).toInstant())
     val to = Date.from(month.atEndOfMonth().plusDays(2).atStartOfDay(ZoneId.of("UTC")).toInstant())
     val startTimesByUser = timesheetDao.getStartTimesByUser(from, to)
+    // One query for the vacations of all employees, not one per employee:
+    val vacationsByEmployee = if (employees.size == 1) {
+      null // A single employee (e.g. the preview of a rule for one user): their own vacations suffice.
+    } else {
+      vacationDao.getVacationsOfAllEmployeesForPeriod(month.atDay(1), month.atEndOfMonth()).groupBy { it.employee?.id }
+    }
     val result = mutableMapOf<Long, List<Int>>()
     employees.forEach { employee ->
       val employeeId = employee.id ?: return@forEach
@@ -83,7 +93,9 @@ open class UnbookedDaysCalculator {
         .filter { YearMonth.from(it) == month }
         .map { it.dayOfMonth }
         .toSet()
-      result[employeeId] = unbookedDays(month, bookedDays, vacationDays(employee, month))
+      val vacationDays = vacationsByEmployee?.let { vacationDays(month, it[employeeId].orEmpty()) }
+        ?: vacationDays(employee, month)
+      result[employeeId] = unbookedDays(month, bookedDays, vacationDays)
     }
     return result
   }

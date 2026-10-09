@@ -38,14 +38,25 @@ interface NotificationRuleHandler {
         val periodKey: String,
         /** The users concerned by id, with the values of the variables. */
         val affected: Map<Long, Map<String, String>>,
-        /** The link of the notifications, e.g. to the monthly report (path of the app). */
+        /**
+         * The link of the notifications, e.g. to the monthly report (path of the app). [USER_ID] is replaced by the
+         * id of each recipient, e.g. for the own monthly report.
+         */
         val link: String? = null,
         /**
          * False, if the rule has no condition ([NotificationRuleType.MANUAL]): all recipients are notified, regardless
          * of [NotificationRecipients.onlyAffected].
          */
         val restrictsRecipients: Boolean = true,
-    )
+    ) {
+        /** The link for the given recipient. */
+        fun linkFor(user: PFUserDO): String? = link?.replace(USER_ID, "${user.id}")
+
+        companion object {
+            /** Placeholder in [link] for the id of the recipient. */
+            const val USER_ID = "{userId}"
+        }
+    }
 
     val ruleType: NotificationRuleType
 

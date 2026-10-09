@@ -94,7 +94,7 @@ class NotificationRest {
             severity = notification.severity,
             display = notification.display,
             status = notification.status,
-            manualDone = notification.manualDone,
+            manualDone = notification.isManualDoneAllowed,
             title = notification.title,
             body = notification.body,
             link = notification.link,

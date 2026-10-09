@@ -73,7 +73,9 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
                 affected[user.id!!] = variables(user, month, days)
             }
         }
-        return NotificationRuleHandler.Evaluation(month.toString(), affected, MONTHLY_REPORT_PATH)
+        return NotificationRuleHandler.Evaluation(
+            month.toString(), affected, monthlyReportPath(month, NotificationRuleHandler.Evaluation.USER_ID)
+        )
     }
 
     override fun variables(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Map<String, String> {
@@ -118,13 +120,20 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
             "unbookedDays" to (UnbookedDaysCalculator.format(month, days) ?: "–"),
             "unbookedDaysCount" to days.size.toString(),
             "timesheetLink" to notificationLinks.absolute(TIMESHEET_PATH),
-            "monthlyReportLink" to notificationLinks.absolute(MONTHLY_REPORT_PATH),
+            "monthlyReportLink" to notificationLinks.absolute(monthlyReportPath(month, "${user.id}")),
         )
     }
 
     companion object {
         const val TIMESHEET_PATH = "/timesheet"
         const val MONTHLY_REPORT_PATH = "/monthlyEmployeeReport"
+
+        /**
+         * The monthly report of the given month and user (the recipient): without the user, the report would show the
+         * one last looked at, maybe another one.
+         */
+        internal fun monthlyReportPath(month: YearMonth, userId: String) =
+            "$MONTHLY_REPORT_PATH?userId=$userId&year=${month.year}&month=${month.monthValue}"
 
         /** The days of the month up to [until] (all of them, if the month is over). */
         internal fun cut(days: List<Int>, month: YearMonth, until: LocalDate): List<Int> {

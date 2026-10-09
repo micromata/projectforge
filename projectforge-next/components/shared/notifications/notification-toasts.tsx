@@ -2,14 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/lib/toast";
-import { NotificationBody } from "./notification-body";
+import { useNotificationStore } from "@/store/notification-store";
+import { NotificationCard } from "./notification-card";
 import {
   useMyNotifications,
   useNotificationActions,
 } from "./use-my-notifications";
+
+/** How old the status may be on a page change before it's reloaded. */
+const STATUS_MAX_AGE_MS = 10 * 1000;
 
 function toastId(id: number): string {
   return `notification-${id}`;
@@ -24,11 +28,22 @@ function toastId(id: number): string {
  * summary changes, as rules may count their notifications on a menu entry.
  */
 export function NotificationToasts() {
-  const t = useTranslations("notification");
   const notifications = useMyNotifications();
   const { acknowledge } = useNotificationActions();
   const { notifications: summary } = useAuth();
   const queryClient = useQueryClient();
+  const { closedIds, closeNotification } = useNotificationStore();
+  const pathname = usePathname();
+
+  // A notification created meanwhile has to show up while moving through the app, not only after a
+  // reload: a page change reloads the status (the summary), if it's older than a few seconds.
+  useEffect(() => {
+    const updatedAt =
+      queryClient.getQueryState(["userStatus"])?.dataUpdatedAt ?? 0;
+    if (Date.now() - updatedAt > STATUS_MAX_AGE_MS) {
+      void queryClient.invalidateQueries({ queryKey: ["userStatus"] });
+    }
+  }, [pathname, queryClient]);
   /** Toasts already raised in this tab: a refetch must not raise them again. */
   const shown = useRef(new Set<number>());
   /** The standing toasts to be confirmed: closed here once confirmed elsewhere (the bell, another tab). */
@@ -50,30 +65,43 @@ export function NotificationToasts() {
       standing.current.delete(id);
     }
     for (const notification of notifications) {
-      const { id, display, title } = notification;
-      if (display === "BANNER" || shown.current.has(id)) continue;
+      const { id, display } = notification;
+      if (
+        display === "BANNER" ||
+        shown.current.has(id) ||
+        closedIds.includes(id)
+      )
+        continue;
       shown.current.add(id);
-      const description = (
-        <NotificationBody
-          notification={notification}
-          onOpen={() => toast.dismiss(toastId(id))}
-        />
+      // Rendered by NotificationCard as in the bell, not as sonner's own toast (white, with the
+      // action beside the text, which squeezed a longer text into a narrow column).
+      // The tint of the severity is translucent: an opaque popover behind it, as in the bell.
+      const card = () => (
+        <div className="w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+          <NotificationCard
+            notification={notification}
+            withActions={display === "TOAST_CONFIRM"}
+            onOpen={() => toast.dismiss(toastId(id))}
+            onClose={() => {
+              toast.dismiss(toastId(id));
+              closeNotification(id);
+            }}
+          />
+        </div>
       );
       if (display === "TOAST") {
-        toast(title ?? "", { id: toastId(id), description });
+        toast.custom(card, { id: toastId(id) });
         acknowledge(id);
       } else {
         standing.current.add(id);
-        toast(title ?? "", {
+        toast.custom(card, {
           id: toastId(id),
-          description,
           duration: Infinity,
           dismissible: false,
-          action: { label: t("acknowledge"), onClick: () => acknowledge(id) },
         });
       }
     }
-  }, [notifications, acknowledge, t]);
+  }, [notifications, acknowledge, closedIds, closeNotification]);
 
   return null;
 }

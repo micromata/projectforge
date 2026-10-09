@@ -190,6 +190,15 @@ open class NotificationDO {
         get() = inAppSince != null && (status == NotificationStatus.OPEN
                 || status == NotificationStatus.ACKNOWLEDGED && display == NotificationDisplay.BANNER)
 
+    /**
+     * May the recipient mark it as done: if allowed by the rule, or always for a test notification (without rule),
+     * which no rule run resolves or expires.
+     */
+    @get:Transient
+    @get:JsonIgnore
+    open val isManualDoneAllowed: Boolean
+        get() = manualDone || ruleId == null
+
     companion object {
         internal const val FIND_BY_DEDUP_KEY = "NotificationDO_FindByDedupKey"
         internal const val FIND_PENDING_BY_RECIPIENT = "NotificationDO_FindPendingByRecipient"
