@@ -5,12 +5,6 @@ import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/data-table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Spinner } from "@/components/shared/spinner";
 import {
   fetchDataTransferAudit,
@@ -23,16 +17,10 @@ type Column = ColumnDef<DataTransferAuditEntry, unknown>;
  * The activities of an area over the last 30 days (`DataTransferAuditRest`): what was uploaded, changed
  * and deleted, and — a table of its own, as in the legacy modal — who downloaded what.
  *
- * Read when opened, not with the file view: the activities are looked at rarely, and they grow with
- * every download.
+ * A tab of the area's page (see DataTransferAreaPage), mounted only while open: read when opened, not
+ * with the file view, since the activities are looked at rarely and they grow with every download.
  */
-export function DataTransferAuditDialog({
-  id,
-  onClose,
-}: {
-  id: number;
-  onClose: () => void;
-}) {
+export function DataTransferAuditTab({ id }: { id: number }) {
   const t = useTranslations();
   const query = useQuery({
     queryKey: ["datatransfer", "audit", id],
@@ -78,35 +66,23 @@ export function DataTransferAuditDialog({
   }, [t]);
   const audit = query.data;
 
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>
-            {t("plugins.datatransfer.audit._")}
-            {audit?.areaName ? `: ${audit.areaName}` : ""}
-          </DialogTitle>
-        </DialogHeader>
-        {query.isLoading ? (
-          <div className="flex justify-center py-4">
-            <Spinner className="h-5 w-5 border-2" />
-          </div>
-        ) : (
-          <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
-            <AuditTable
-              title={t("plugins.datatransfer.audit.events")}
-              columns={columns.events}
-              rows={audit?.events ?? []}
-            />
-            <AuditTable
-              title={t("plugins.datatransfer.audit.downloadEvents")}
-              columns={columns.downloads}
-              rows={audit?.downloadEvents ?? []}
-            />
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+  return query.isLoading ? (
+    <div className="flex justify-center py-4">
+      <Spinner className="h-5 w-5 border-2" />
+    </div>
+  ) : (
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <AuditTable
+        title={t("plugins.datatransfer.audit.events")}
+        columns={columns.events}
+        rows={audit?.events ?? []}
+      />
+      <AuditTable
+        title={t("plugins.datatransfer.audit.downloadEvents")}
+        columns={columns.downloads}
+        rows={audit?.downloadEvents ?? []}
+      />
+    </div>
   );
 }
 

@@ -2519,7 +2519,6 @@
       "audit": {
         "_": "Activities",
         "action": "Action",
-        "display": "Display activities",
         "downloadEvents": "Download events of the last 30 days",
         "downloadedBy": "Downloaded by",
         "events": "Events of the last 30 days"

@@ -2519,7 +2519,6 @@
       "audit": {
         "_": "Aktivitätsprotokoll",
         "action": "Aktion",
-        "display": "Aktivitätsprotokoll",
         "downloadEvents": "Download-Ereignisse der letzten 30 Tage",
         "downloadedBy": "Heruntergeladen von",
         "events": "Ereignisse der letzten 30 Tage"
