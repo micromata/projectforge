@@ -18,7 +18,10 @@ const STATUS_KEYS: Record<DayPlanStatus, string> = {
 };
 
 /** Statuses whose text takes the note (the time of the overlapped time sheet) as argument. */
-const WITH_TIME: ReadonlySet<DayPlanStatus> = new Set(["OVERLAP", "OVERLAP_UNKNOWN"]);
+const WITH_TIME: ReadonlySet<DayPlanStatus> = new Set([
+  "OVERLAP",
+  "OVERLAP_UNKNOWN",
+]);
 
 /**
  * Day by day, what the booking would do: booked (in full or in part) or skipped, and why — the
@@ -80,7 +83,8 @@ export function BookDaysPreview({
                   "flex items-center gap-3 border-b px-3 py-1 last:border-b-0",
                   skipped && "text-muted-foreground",
                   day.status === "OVERLAP" && "text-destructive",
-                  day.status === "OVERLAP_UNKNOWN" && "text-amber-700 dark:text-amber-500"
+                  day.status === "OVERLAP_UNKNOWN" &&
+                    "text-amber-700 dark:text-amber-500"
                 )}
               >
                 <span className="w-8 shrink-0">
