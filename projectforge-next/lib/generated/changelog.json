@@ -54,6 +54,9 @@
       "type" : "changed",
       "items" : [ "Data transfer: the activity log of an area is a tab of its own (after Info) instead of a dialog." ]
     }, {
+      "type" : "changed",
+      "items" : [ "Scripts: the script list, the script form, \"My scripts\" and the execution pages are part of the new interface, with a code editor with syntax highlighting. The descriptions of a script and of its parameters are rich text (existing Markdown is converted on the next save). A stored script now always runs as stored; only the parameter values are taken from the form. Code executed directly (without a stored script) now runs as Kotlin instead of Groovy." ]
+    }, {
       "type" : "fixed",
       "items" : [ "Attachments: a changed file name or description was not saved.", "Project list: sorting by the number column had no effect.", "Personal box and employee fields: the \"select me\" button for picking oneself was missing.", "Time sheet list: the hint that the filter needs a date or structure element is now shown highlighted above the list instead of easily overlooked below it.", "Outgoing invoices: cancelled invoices and their cancellations now count as paid. They no longer appear under the filter 'unpaid' and are no longer included in the sums above the list (gross, net, open).", "Problem dashboard: a mail that couldn't be sent is now reported once as a mail problem, no longer a second time as an unexpected error of the function that sent it." ]
     } ]

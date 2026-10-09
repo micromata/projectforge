@@ -97,7 +97,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Column(name = "executable_by_user_ids", length = 10000)
     open var executableByUserIds: String? = null
 
-    @PropertyInfo(i18nKey = "description", tooltip = "scripting.script.description.tooltip")
+    @PropertyInfo(i18nKey = "description")
     @FullTextField
     @get:Column(length = DESCRIPTION_MAX_LENGTH)
     open var description: String? = null

@@ -135,7 +135,7 @@ export function RichTextToolbar({
         </ToolbarToggle>
       ))}
       <ToolbarToggle
-        label={t("link")}
+        label={t("link._")}
         pressed={active?.link}
         onPressedChange={editLink}
       >

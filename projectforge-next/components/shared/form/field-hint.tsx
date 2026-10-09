@@ -23,14 +23,24 @@ export function FieldHint({
   content,
   label,
 }: {
-  hint: string;
+  /**
+   * A text (markdown), or a node of its own shape — rendered as it is, in the wide tooltip, which leaves
+   * the node to limit its line length.
+   */
+  hint: ReactNode;
   /** A structured explanation replacing [hint], e.g. [hint] followed by a configured note. */
   content?: ReactNode;
   label: string;
 }) {
   const t = useTranslations("form");
+  const text = typeof hint === "string" ? hint : undefined;
   return (
-    <HintTooltip text={hint} content={content} openOnTap>
+    <HintTooltip
+      text={text}
+      content={content ?? (text === undefined ? hint : undefined)}
+      wide={!content && text === undefined}
+      openOnTap
+    >
       <button
         type="button"
         // `-m-1 p-1`: a target big enough to hit without making the label line taller or wider.

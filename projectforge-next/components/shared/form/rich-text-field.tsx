@@ -13,13 +13,14 @@ import { useFieldErrors } from "./use-field-errors";
 export interface RichTextFieldProps extends BaseFieldProps {
   /** Shown but not editable — a value this user may read and not change. */
   disabled?: boolean;
+  placeholder?: string;
   /** The entity has no metadata for this field (see TextAreaField). */
   metadataLess?: boolean;
 }
 
 /**
  * A form field holding rich text (the HTML of [RichTextEditor]), the counterpart of TextAreaField for a
- * value rendered with [RichText].
+ * value rendered with [RichText]. An emptied editor is null unless the field is required.
  */
 export function RichTextField({
   name,
@@ -27,6 +28,7 @@ export function RichTextField({
   hint,
   className,
   disabled,
+  placeholder,
   metadataLess,
 }: RichTextFieldProps) {
   const form = useEntityEditForm();
@@ -55,6 +57,7 @@ export function RichTextField({
               id={ids.controlId}
               value={field.state.value as string | null}
               disabled={disabled}
+              placeholder={placeholder}
               invalid={invalid}
               // Same null-vs-"" rule as TextAreaField.
               onChange={(html) =>

@@ -16,8 +16,11 @@ export interface BaseFieldProps {
   /** Name of the form value, which is also the key of its entry in the entity's metadata. */
   name: string;
   label: string;
-  /** Explains the field; shown behind an ⓘ next to the label, see [FieldHint]. */
-  hint?: string;
+  /**
+   * Explains the field; shown behind an ⓘ next to the label, see [FieldHint]. Usually a translated text
+   * (markdown); a node for an explanation of its own shape, e.g. a [RichText] from the database.
+   */
+  hint?: ReactNode;
   className?: string;
 }
 
@@ -71,7 +74,7 @@ export function FieldShell({
   required?: boolean;
   /** Shown but not fillable — suppresses the asterisk, see below. */
   readOnly?: boolean;
-  hint?: string;
+  hint?: ReactNode;
   /**
    * What the value *is*, under the box — "Posix account" below a group's GID number
    * (`UIInput.additionalLabel` of the server laid out form, see LdapGidField).

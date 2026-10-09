@@ -523,6 +523,19 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Der Login läuft ohne Frontend-Änderung: der verweigerte RSC-Abruf von `/next/login` fällt auf einen
   vollen Seitenaufruf zurück, den `GatewayPageController` bedient. Unverändert in React bleibt der
   öffentliche externe Zugang (`/react/public/datatransfer`, `restPublic`).
+- **Scripte** (`script`, `myscript`; vorher React-UILayout) – layoutfrei: Liste + Formular der
+  Administration (`ScriptEntityRest`, `/rs/script`, Klonen, Beispiele, Backup-/Effektiv-Download),
+  „Meine Scripte" als reine Liste (`MyScriptEntityRest`, `foreignEdit`) und die Ausführung
+  (`ScriptExecuteRest` / `MyScriptExecuteRest`, `load`/`execute`/`refresh`/`download`). Routen: ein
+  Zeilenklick führt wie in React zur Ausführung (`script/{id}`, `myscript/{id}`), das Formular ist
+  `script/{id}/edit`, neu `script/new`, Ad-hoc-Code `script/execute?example=n`. Nach dem Speichern geht es
+  zur Ausführung, bei Includes zur Liste. Code-Editor: CodeMirror 6 (`components/shared/code-editor/`,
+  lazy geladen, Kotlin/Groovy). Das Log wird während der Ausführung gepollt (`refresh`), statt per SSE.
+  **Sicherheitsfix:** `MyScriptExecutePageRest.execute` führte ein Script ohne Id so aus, wie es gepostet
+  wurde (samt `executableByUsers`) – beliebiger Code für jeden Benutzer. Jetzt nimmt nur
+  `ScriptExecuteRest` (`allowAdHoc`) Code ohne Id an; ein gespeichertes Script läuft immer wie gespeichert,
+  vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg (`offerLegacyLink = false`);
+  `react/scriptExecute/dynamic/{id}` und `react/myScriptExecute/dynamic/{id}` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

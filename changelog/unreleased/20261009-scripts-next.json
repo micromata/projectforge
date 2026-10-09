@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Scripts: the script list, the script form, \"My scripts\" and the execution pages are part of the new interface, with a code editor with syntax highlighting. The descriptions of a script and of its parameters are rich text (existing Markdown is converted on the next save). A stored script now always runs as stored; only the parameter values are taken from the form. Code executed directly (without a stored script) now runs as Kotlin instead of Groovy.",
+  "de": "Scripte: Die Scriptliste, das Scriptformular, „Meine Scripte“ und die Ausführungsseiten sind Teil der neuen Oberfläche, mit einem Code-Editor mit Syntaxhervorhebung. Die Beschreibungen eines Scripts und seiner Parameter sind Rich-Text (bestehendes Markdown wird beim nächsten Speichern umgewandelt). Ein gespeichertes Script läuft jetzt immer so, wie es gespeichert ist; aus dem Formular werden nur die Parameterwerte übernommen. Direkt ausgeführter Code (ohne gespeichertes Script) läuft jetzt als Kotlin statt als Groovy."
+}

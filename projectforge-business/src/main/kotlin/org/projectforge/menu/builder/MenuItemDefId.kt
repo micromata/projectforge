@@ -97,7 +97,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.REACT_APP_PATH}customizeMenu"), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
-    MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
+    MY_SCRIPT_LIST("menu.myScriptList", getListUrl("myscript")), //
     // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.
@@ -114,7 +114,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "next/reportObjectives"), //
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
-    SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
+    SCRIPT_LIST("menu.scriptList", getListUrl("script")), //
     // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
     // /wa/search is still redirected to next by OrphanedLinkFilter.
     SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //

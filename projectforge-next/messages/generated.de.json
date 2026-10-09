@@ -636,6 +636,7 @@
   "errorpage": {
     "title": "Ein Fehler ist aufgetreten."
   },
+  "execute": "Ausführen",
   "expand": "Aufklappen",
   "export": "Export",
   "exportAsPdf": "Pdf-Export",
@@ -2344,7 +2345,8 @@
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
-    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
+    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}",
+    "title": "Meldung"
   },
   "modificationTime": "Änderungszeitraum",
   "modified": "geändert",
@@ -3104,15 +3106,30 @@
   },
   "save": "Speichern",
   "scripting": {
+    "download": {
+      "filename": {
+        "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
+        "info": "Downloaddatei der letzten Scriptausführung."
+      }
+    },
+    "myScript": {
+      "list": "Meine Scripte"
+    },
     "script": {
-      "description": {
-        "tooltip": "Markdown-Format wird unterstützt."
+      "_": "Script",
+      "availableVariables": "Verfügbare Variablen",
+      "code": "Code",
+      "downloadBackups": "Download Backups",
+      "downloadEffectiveScript": {
+        "_": "Download Effektivscript",
+        "info": "Das Effektivscript ist das Script mit aufgelösten Include-Dateien etc., welches so von der Scripting-Engine so ausgeführt wird."
       },
       "editForm": {
         "file": {
           "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
       },
+      "examples": "Beispiele",
       "executableByGroups": {
         "_": "Berechtigte Gruppen",
         "info": "Angehörige dieser Gruppen dürfen dieses Script ausführen (nicht einsehen oder ändern)."
@@ -3121,6 +3138,7 @@
         "_": "Berechtigte Benutzer:innen",
         "info": "Diese dürfen dieses Script ausführen (nicht einsehen oder ändern)."
       },
+      "execute": "Script ausführen",
       "executeAsUser": {
         "_": "Als andere:r User:in ausführen",
         "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
@@ -3139,7 +3157,13 @@
         "timePeriod": "Zeitraum",
         "user": "Benutzer:in"
       },
+      "parameters": "Parameter",
+      "result": "Ergebnis",
       "type": "Typ"
+    },
+    "title": {
+      "add": "Neues Script",
+      "list": "Scripte"
     }
   },
   "search": {
@@ -3667,6 +3691,7 @@
     "workpackageCode": "Arbeitspaket-Code"
   },
   "text": "Text",
+  "time": "Uhrzeit",
   "timeNotation": {
     "_": "Uhrzeitformat",
     "12": "12 Stunden",

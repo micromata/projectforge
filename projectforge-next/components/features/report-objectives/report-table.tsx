@@ -92,7 +92,7 @@ export function ReportTable({
           </h2>
           {report.path.length > 0 && (
             <nav
-              aria-label={t("fibu.kost.reporting")}
+              aria-label={t("fibu.kost.reporting._")}
               className="flex flex-wrap items-center gap-1 text-xs"
             >
               {report.path.map((entry) => (
