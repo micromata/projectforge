@@ -61,12 +61,12 @@ class LogAggregationStatisticsBuilder : SystemsStatisticsBuilderInterface {
             log.warn { "Can't get the key figures of the log aggregation: ${ex.message}" }
             return
         }
-        stats.add("errorsProblems24h", GROUP, "'problems (24h)", summary.problems24h)
-        stats.add("errors24h", GROUP, "'occurrences (24h)", summary.occurrences24h)
-        stats.add("errorsNew24h", GROUP, "'new problems (24h)", summary.newProblems24h)
-        stats.add("errorsRegressions", GROUP, "'regressions", summary.regressions)
-        stats.add("errorsExternal24h", GROUP, "'external systems failing (24h)", summary.externalProblems24h)
-        stats.add("errorsOpen", GROUP, "'open problems", summary.open)
+        stats.add("errorsProblems24h", GROUP, "'problems (24h)", summary.problems24h.total)
+        stats.add("errors24h", GROUP, "'occurrences (24h)", summary.occurrences24h.total)
+        stats.add("errorsNew24h", GROUP, "'new problems (24h)", summary.newProblems24h.total)
+        stats.add("errorsRegressions", GROUP, "'regressions", summary.regressions.total)
+        stats.add("errorsExternal24h", GROUP, "'external systems failing (24h)", summary.externalProblems24h.total)
+        stats.add("errorsOpen", GROUP, "'open problems", summary.open.total)
     }
 
     companion object {

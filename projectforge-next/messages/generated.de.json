@@ -3186,6 +3186,11 @@
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
         "firstSeen": "Zuerst aufgetreten",
+        "handled": {
+          "ignored": "{arg0} ignoriert",
+          "muted": "{arg0} stummgeschaltet",
+          "resolved": "{arg0} erledigt"
+        },
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",

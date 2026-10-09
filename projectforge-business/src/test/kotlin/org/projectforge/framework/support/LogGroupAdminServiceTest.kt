@@ -68,12 +68,12 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         Assertions.assertEquals(LogCategory.EXTERNAL.defaultNotify, entry.notify, "Not registered: the category's rule.")
         Assertions.assertEquals(28, entry.trend.size)
         Assertions.assertEquals(4, entry.trend.sum())
-        Assertions.assertTrue(list.summary.externalProblems24h >= 1)
+        Assertions.assertTrue(list.summary.externalProblems24h.active >= 1)
         list.summary.let {
             // Other tests may have written problems too.
-            Assertions.assertTrue(it.problems24h >= 1)
+            Assertions.assertTrue(it.problems24h.active >= 1)
             Assertions.assertTrue(it.topOccurrences24h >= 3)
-            Assertions.assertTrue(it.occurrences24h >= it.topOccurrences24h)
+            Assertions.assertTrue(it.occurrences24h.active >= it.topOccurrences24h)
         }
         Assertions.assertEquals(
             2, logGroupAdminService.list(LogGroupFilter(search = "test.admin.", days = 0), now).total,
@@ -98,7 +98,14 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
             1, logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.ACKNOWLEDGE), now),
         )
         Assertions.assertEquals(LogGroupStatus.ACKNOWLEDGED, stateOf(external).status, "The digest sees it at once.")
+        val before = logGroupAdminService.list(LogGroupFilter(), now).summary
         logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.MUTE, muteDays = 7), now)
+        logGroupAdminService.list(LogGroupFilter(), now).summary.let {
+            Assertions.assertEquals(before.problems24h.active - 1, it.problems24h.active, "A muted problem isn't active.")
+            Assertions.assertEquals(before.problems24h.muted + 1, it.problems24h.muted)
+            Assertions.assertEquals(before.occurrences24h.muted + 3, it.occurrences24h.muted)
+            Assertions.assertEquals(before.externalProblems24h.muted + 1, it.externalProblems24h.muted)
+        }
         logGroupAdminService.update(
             LogGroupUpdate(listOf(entry.id), LogGroupAction.SET_NOTIFY, notify = LogNotify.IMMEDIATE), now,
         )
@@ -109,6 +116,11 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
             Assertions.assertEquals(LogGroupStatus.ACKNOWLEDGED, it.status)
         }
         logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.RESOLVE), now)
+        logGroupAdminService.list(LogGroupFilter(), now).summary.let {
+            Assertions.assertEquals(before.problems24h.muted, it.problems24h.muted)
+            Assertions.assertEquals(before.problems24h.resolved + 1, it.problems24h.resolved)
+            Assertions.assertEquals(before.problems24h.total, it.problems24h.total)
+        }
         Assertions.assertTrue(
             logGroupAdminService.list(LogGroupFilter(search = external.code), now).entries.isEmpty(),
             "Resolved problems aren't open.",
@@ -139,6 +151,36 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
         logAggregationService.add(occurrence(old, now))
         Assertions.assertEquals(listOf(old.code), codes(LogGroupScope.REGRESSION), "Resolved and occurred again.")
         Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "A regression isn't new.")
+    }
+
+    @Test
+    fun `counts split by handling`() {
+        val now = 1_000 * Constants.MILLIS_PER_DAY
+        val row = { id: Long, status: LogGroupStatus, mutedUntil: Long? ->
+            LogGroupRow(
+                id, "test.$id", LogCategory.BUG, LogLevel.ERROR, null, null, null, Date(now), Date(now), 1, status,
+                mutedUntil?.let { Date(it) }, null, null,
+            )
+        }
+        val rows = listOf(
+            row(1, LogGroupStatus.NEW, null),
+            row(2, LogGroupStatus.ACKNOWLEDGED, now - 1),
+            row(3, LogGroupStatus.NEW, now + 1),
+            row(4, LogGroupStatus.IGNORED, now + 1),
+            row(5, LogGroupStatus.RESOLVED, null),
+        )
+        Assertions.assertEquals(
+            listOf(LogGroupHandling.ACTIVE, LogGroupHandling.ACTIVE, LogGroupHandling.MUTED, LogGroupHandling.IGNORED, LogGroupHandling.RESOLVED),
+            rows.map { LogGroupAdminService.handlingOf(it, now) },
+            "An expired mute is active, ignored wins over muted.",
+        )
+        LogGroupAdminService.countsOf(rows, now) { it.id.toInt() * 10 }.let {
+            Assertions.assertEquals(30, it.active)
+            Assertions.assertEquals(30, it.muted)
+            Assertions.assertEquals(40, it.ignored)
+            Assertions.assertEquals(50, it.resolved)
+            Assertions.assertEquals(150, it.total)
+        }
     }
 
     @Test
@@ -241,9 +283,10 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
             tile()!!.let {
                 Assertions.assertEquals(SubsystemState.OK, it.state, "Only warnings within 24 hours, the error is older.")
                 Assertions.assertEquals("host", it.detail)
-                Assertions.assertEquals(2, it.occurrences24h)
+                Assertions.assertEquals(2, it.occurrences24h.active)
+                Assertions.assertEquals(2, it.occurrences24h.total)
                 Assertions.assertEquals(1, it.newProblems24h)
-                Assertions.assertEquals(3, it.open)
+                Assertions.assertEquals(3, it.open.active)
                 Assertions.assertEquals(28, it.trend.size)
                 Assertions.assertEquals(4, it.trend.sum())
             }
@@ -253,13 +296,23 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
             Assertions.assertEquals(SubsystemState.DEGRADED, tile()!!.state, "An open error within 24 hours.")
             val errorId = logGroupAdminService.list(LogGroupFilter(search = error.code), now).entries.single().id
             logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.MUTE, muteDays = 1), now)
-            Assertions.assertEquals(SubsystemState.OK, tile()!!.state, "A muted error doesn't degrade.")
+            tile()!!.let {
+                Assertions.assertEquals(SubsystemState.OK, it.state, "A muted error doesn't degrade.")
+                Assertions.assertEquals(2, it.occurrences24h.active, "A muted problem isn't active.")
+                Assertions.assertEquals(1, it.occurrences24h.muted)
+                Assertions.assertEquals(3, it.open.active)
+                Assertions.assertEquals(1, it.open.muted)
+                Assertions.assertEquals(4, it.trend.sum(), "Of the active problems only.")
+            }
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.UNMUTE), now)
             logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.ACKNOWLEDGE), now)
-            Assertions.assertEquals(3, tile()!!.occurrences24h, "An acknowledged problem is open.")
+            Assertions.assertEquals(3, tile()!!.occurrences24h.active, "An acknowledged problem is open.")
             logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.RESOLVE), now)
             tile()!!.let {
-                Assertions.assertEquals(2, it.occurrences24h, "Only the open problems, as the list shows on a click.")
-                Assertions.assertEquals(3, it.open)
+                Assertions.assertEquals(2, it.occurrences24h.active, "A resolved problem isn't active.")
+                Assertions.assertEquals(1, it.occurrences24h.resolved)
+                Assertions.assertEquals(3, it.open.active)
+                Assertions.assertEquals(0, it.open.resolved, "Resolved problems aren't open.")
                 Assertions.assertEquals(4, it.trend.sum())
             }
             TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.DOWN)

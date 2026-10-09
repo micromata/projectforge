@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Problem dashboard: the key figures and the subsystem tiles now count only the problems that still need a look. Resolved, ignored and muted problems are shown separately below each figure, so handling a problem changes the tiles at once.",
+  "de": "Problem-Dashboard: Die Kennzahlen und die Kacheln der Subsysteme zählen jetzt nur noch die Probleme, die noch angesehen werden müssen. Erledigte, ignorierte und stummgeschaltete Probleme stehen getrennt unter der jeweiligen Zahl, sodass sich die Kacheln sofort ändern, wenn ein Problem bearbeitet wird."
+}

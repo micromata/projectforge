@@ -37,6 +37,18 @@
     "releaseId" : "7-0"
   } ],
   "releases" : [ {
+    "id" : "unreleased",
+    "version" : "9.0.3",
+    "date" : "2026-10-09",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Data transfer: the used capacity of an area is shown as a colored fill-level bar, in the list and in the file view.", "Mass update: the file name of the Excel protocol now contains the entity name (e.g. invoices).", "Problem dashboard: the key figures and the subsystem tiles now count only the problems that still need a look. Resolved, ignored and muted problems are shown separately below each figure, so handling a problem changes the tiles at once." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Attachments: a changed file name or description was not saved.", "Project list: sorting by the number column had no effect.", "Personal box and employee fields: the \"select me\" button for picking oneself was missing.", "Time sheet list: the hint that the filter needs a date or structure element is now shown highlighted above the list instead of easily overlooked below it." ]
+    } ]
+  }, {
     "id" : "9-0-3",
     "version" : "9.0.3",
     "date" : "2026-10-08",

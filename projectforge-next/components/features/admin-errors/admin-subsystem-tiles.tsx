@@ -6,8 +6,13 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { StatusPill, type StatusTone } from "@/components/shared/status-pill";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber, formatTimestampMinutes } from "@/lib/format";
-import type { SubsystemEntry, SubsystemState } from "@/lib/rs/admin-errors";
+import type {
+  LogGroupCounts,
+  SubsystemEntry,
+  SubsystemState,
+} from "@/lib/rs/admin-errors";
 import { cn } from "@/lib/utils";
+import { AdminHandledCounts } from "./admin-handled-counts";
 
 const STATE_TONES: Record<SubsystemState, StatusTone> = {
   OK: "success",
@@ -25,7 +30,8 @@ const STATE_KEYS: Record<SubsystemState, string> = {
 
 /**
  * One tile per active subsystem or interface (LDAP, IdP, gateway, Sipgate, ...): its state, the statistics of its
- * problems and their trend. A click shows its problems ([onOpen]).
+ * active problems (the resolved, ignored and muted ones listed below) and their trend. A click shows its problems
+ * ([onOpen]).
  */
 export function AdminSubsystemTiles({
   subsystems,
@@ -65,17 +71,18 @@ function SubsystemTile({
   const t = useTranslations();
   const ctx = useFormatContext();
   const lastRun = Math.max(0, ...subsystem.syncs.map((s) => s.lastRun ?? 0));
-  const figure = (label: string, value: number, alert: boolean) => (
+  const figure = (label: string, counts: LogGroupCounts, alert: boolean) => (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
       <div
         className={cn(
           "text-xl font-semibold tabular-nums",
-          alert && value > 0 && "text-destructive"
+          alert && counts.active > 0 && "text-destructive"
         )}
       >
-        {formatNumber(value, ctx, 0)}
+        {formatNumber(counts.active, ctx, 0)}
       </div>
+      <AdminHandledCounts counts={counts} />
     </div>
   );
   return (

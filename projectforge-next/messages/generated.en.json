@@ -3186,6 +3186,11 @@
         "exceptionClass": "Exception",
         "explanation": "Explanation",
         "firstSeen": "First seen",
+        "handled": {
+          "ignored": "{arg0} ignored",
+          "muted": "{arg0} muted",
+          "resolved": "{arg0} resolved"
+        },
         "hourly": "Last 7 days (per hour)",
         "kpi": {
           "external": "External systems failing (24 h)",
