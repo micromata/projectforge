@@ -87,6 +87,10 @@ class OrphanedLinkFilter : Filter {
             // so there is no "classic version" escape hatch. The precise segment match keeps this from catching
             // sibling pages like /wa/adminLogViewer.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
+        } else if (uri.endsWith("/react/systemStatistics") || uri.contains("/react/systemStatistics/")) {
+            // Old dynamic React page of the system statistics, migrated to projectforge-next. The React page was
+            // removed, so there is no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$SYSTEM_STATISTICS_ROUTE")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {
@@ -112,6 +116,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
+        } else if (redirectScriptExecutePage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a React script execution page was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
@@ -127,7 +133,7 @@ class OrphanedLinkFilter : Filter {
 
     /**
      * The pages of projectforge-next that moved to another route ([RENAMED_NEXT_PAGES]), e.g. bookmarked or
-     * linked by an error digest mail (`next/adminErrors?id=42`). The query (the problem's id, the tab) means the
+     * linked by an error digest mail (`next/problemDashboard?id=42`). The query (the problem's id, the tab) means the
      * same on the new route and is carried over. The precise segment match keeps this from catching sibling
      * pages and the payloads (`.txt`) of the client router.
      *
@@ -142,7 +148,9 @@ class OrphanedLinkFilter : Filter {
             val path = "/${Constants.NEXT_APP_PATH}$oldRoute"
             uri.endsWith(path) || uri.contains("$path/")
         }?.value ?: return false
-        redirect(response, uri, "/${Constants.NEXT_APP_PATH}$newRoute${wicketQuery(request)}")
+        // A new route with a query of its own (a tab) takes the request's query behind it.
+        val query = wicketQuery(request).let { if (it.isNotEmpty() && newRoute.contains('?')) "&${it.drop(1)}" else it }
+        redirect(response, uri, "/${Constants.NEXT_APP_PATH}$newRoute$query")
         return true
     }
 
@@ -238,6 +246,37 @@ class OrphanedLinkFilter : Filter {
             val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
                 ?: request.getParameter("id")?.toLongOrNull()
             if (id != null) "$listUrl/$id" else listUrl
+        }
+        redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The React script execution pages, migrated to projectforge-next: react/scriptExecute/dynamic/<id> (a
+     * stored script, without an id the ad-hoc editor, `?example=<n>` with an example script) and
+     * react/myScriptExecute/dynamic/<id>. The lists and the form are covered by [redirectMigratedPage] - which
+     * must come after this, because react/script is a prefix of these urls. The pages are gone, so there is
+     * no escape hatch. Id and example are interpolated into the Location header, so only numbers are
+     * accepted; the React app took the id as path segment or as parameter.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectScriptExecutePage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val (page, category) = SCRIPT_EXECUTE_PAGES.entries
+            .find { (page, _) -> uri.contains("/react/$page/") || uri.endsWith("/react/$page") }
+            ?.toPair() ?: return false
+        val listUrl = NextMigration.listUrl(category)
+        val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
+            ?: request.getParameter("id")?.toLongOrNull()
+        val target = when {
+            id != null -> "$listUrl/$id"
+            category == "script" ->
+                "$listUrl/execute" + (request.getParameter("example")?.toIntOrNull()?.let { "?example=$it" } ?: "")
+            else -> listUrl
         }
         redirect(response, uri, "/$target")
         return true
@@ -397,8 +436,13 @@ class OrphanedLinkFilter : Filter {
         /** Former route -> current route of renamed next pages (without `next/`), see [redirectRenamedNextPage]. */
         private val RENAMED_NEXT_PAGES = mapOf(
             "orderStatistics" to "finance/statistics",
-            "adminErrors" to "problemDashboard",
+            "adminErrors" to "systemDashboard",
+            "problemDashboard" to "systemDashboard",
+            "systemStatistics" to SYSTEM_STATISTICS_ROUTE,
         )
+
+        /** The system statistics, a tab of the system dashboard. */
+        private const val SYSTEM_STATISTICS_ROUTE = "systemDashboard?tab=statistics"
 
         /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
         private val GONE_REACT_CATEGORIES = listOf("project", "task")
@@ -406,6 +450,9 @@ class OrphanedLinkFilter : Filter {
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =
             listOf("datatransferfiles", "datatransferaudit", "datatransferpersonalfiles")
+
+        /** The React script execution pages and their category, see [redirectScriptExecutePage]. */
+        private val SCRIPT_EXECUTE_PAGES = mapOf("scriptExecute" to "script", "myScriptExecute" to "myscript")
 
         /**
          * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)

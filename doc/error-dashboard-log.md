@@ -13,6 +13,14 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-09 (single problem from the dashboard detail, running version 9.0.4-SNAPSHOT)
+
+### Fixed (claude-dev1)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `support.loggedError` at `DataTransferNotificationMailService:106`, exception `InternalErrorException[i18nKey=mail.error.exception]`, message only the key, no stack trace (1×, background job, no user) | A failed mail was reported twice: `SendMail.sendIt` logs it as `mail.sendFailed` (EXTERNAL, with cause) and throws `InternalErrorException("mail.error.exception")` without the cause; the caller logged that again with a plain `log.error(ex)`, so it became an unclassified BUG for the developers. Same pattern in `BirthdayButlerService`, `JobHandler`, `SessionUserMismatchHandler`, `PollMailService`, `My2FAHttpService`. | `SendMail` throws `MailSendException` (an `InternalErrorException` with the same key, keeps the cause, `LogEventAware`): a caller's `log.error(ex)` is classified as `mail.sendFailed.caller` (EXTERNAL, notify NONE, counted only). The cause stays at `mail.sendFailed`. | Ignore the old `support.loggedError` group after the deploy. A `support.loggedError` with `mail.error.exception` again means a caller wraps the exception without the cause chain. |
+
 ## 2026-10-08 (export 14:33, all statuses, running version 9.0.3)
 
 9.0.3 went live ~2026-10-07 23:00 UTC (first `ical.subscriptions.systemicFailure` at 23:12, the old

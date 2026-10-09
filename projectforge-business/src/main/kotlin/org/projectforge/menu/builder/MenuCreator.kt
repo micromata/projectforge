@@ -613,7 +613,6 @@ open class MenuCreator {
                     requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP),
                 )
             )
-            .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
             // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
             .add(
                 MenuItemDef(

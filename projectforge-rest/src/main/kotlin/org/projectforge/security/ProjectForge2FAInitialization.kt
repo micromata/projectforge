@@ -39,10 +39,10 @@ import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.HRViewRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
-import org.projectforge.rest.scripting.MyScriptExecutePageRest
-import org.projectforge.rest.scripting.MyScriptPagesRest
-import org.projectforge.rest.scripting.ScriptExecutePageRest
-import org.projectforge.rest.scripting.ScriptPagesRest
+import org.projectforge.rest.scripting.MyScriptEntityRest
+import org.projectforge.rest.scripting.MyScriptExecuteRest
+import org.projectforge.rest.scripting.ScriptEntityRest
+import org.projectforge.rest.scripting.ScriptExecuteRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import jakarta.annotation.PostConstruct
@@ -163,10 +163,10 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.SCRIPT,
-      ScriptPagesRest::class.java,
-      MyScriptPagesRest::class.java,
-      MyScriptExecutePageRest::class.java,
-      ScriptExecutePageRest::class.java,
+      ScriptEntityRest::class.java,
+      MyScriptEntityRest::class.java,
+      MyScriptExecuteRest::class.java,
+      ScriptExecuteRest::class.java,
     )
     registerShortCutClasses(
       My2FAShortCut.MY_ACCOUNT,

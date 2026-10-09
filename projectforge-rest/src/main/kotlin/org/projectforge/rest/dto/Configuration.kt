@@ -88,6 +88,10 @@ class Configuration(
      * opens it directly. `ConfigurationEntityRest` clears it for users who aren't the parameter's editors.
      */
     var editPage: String? = null,
+    /**
+     * The value is rich text (HTML of the rich text editor), see [ConfigurationParam.isRichText].
+     */
+    var richText: Boolean? = null,
     override var writeAccess: Boolean? = null,
     override var deleteAccess: Boolean? = null,
 ) : BaseDTO<ConfigurationDO>(), EntityAccessSupport {
@@ -102,7 +106,9 @@ class Configuration(
         // booleanValue is a computed getter on the DO (proxying stringValue) and is only meaningful for a
         // BOOLEAN parameter; fill it here since it, too, has no backing field to copy reflectively.
         booleanValue = if (src.configurationType == ConfigurationType.BOOLEAN) src.booleanValue else null
-        editPage = src.parameter?.let { ConfigurationParam.ofKey(it) }?.editPage
+        val param = src.parameter?.let { ConfigurationParam.ofKey(it) }
+        editPage = param?.editPage
+        richText = param?.isRichText == true
     }
 
     /**

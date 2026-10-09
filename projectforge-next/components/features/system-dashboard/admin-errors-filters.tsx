@@ -1,0 +1,163 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
+import { Label } from "@/components/ui/label";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import type {
+  LogCategory,
+  LogGroupFilter,
+  LogGroupStatusFilter,
+} from "@/lib/rs/admin-errors";
+import {
+  CATEGORIES,
+  CATEGORY_KEYS,
+  SCOPE_KEYS,
+  STATUS_FILTER_KEYS,
+} from "./admin-errors-labels";
+
+const ALL_CATEGORIES = "ALL";
+
+const DAYS = [1, 7, 30, 0];
+
+/**
+ * Status, category and period of the system dashboard's list - the server's filter (the search is the table's). A
+ * subsystem chosen by its tile ([subsystemTitle]) and the scope of a key figure show as removable chips.
+ */
+export function AdminErrorsFilters({
+  filter,
+  subsystemTitle,
+  onChange,
+  onRemoveSubsystem,
+  onRemoveScope,
+}: {
+  filter: LogGroupFilter;
+  subsystemTitle: string | null;
+  onChange: (filter: LogGroupFilter) => void;
+  onRemoveSubsystem: () => void;
+  onRemoveScope: () => void;
+}) {
+  const t = useTranslations();
+  const days = (value: number) =>
+    value === 0
+      ? t("system.admin.adminErrors.days.all")
+      : value === 1
+        ? t("system.admin.adminErrors.days.1")
+        : t("system.admin.adminErrors.days.n", { arg0: value });
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-center gap-2">
+        <Label htmlFor="admin-errors-status">{t("status")}</Label>
+        <Select
+          value={filter.status}
+          onValueChange={(status) =>
+            onChange({ ...filter, status: status as LogGroupStatusFilter })
+          }
+        >
+          <SelectTrigger id="admin-errors-status" className="h-9 w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(STATUS_FILTER_KEYS) as LogGroupStatusFilter[]).map(
+              (status) => (
+                <SelectItem key={status} value={status}>
+                  {t(STATUS_FILTER_KEYS[status])}
+                </SelectItem>
+              )
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2">
+        <Label htmlFor="admin-errors-category">
+          {t("system.admin.adminErrors.category._")}
+        </Label>
+        <Select
+          value={filter.category ?? ALL_CATEGORIES}
+          onValueChange={(category) =>
+            onChange({
+              ...filter,
+              category:
+                category === ALL_CATEGORIES ? null : (category as LogCategory),
+            })
+          }
+        >
+          <SelectTrigger id="admin-errors-category" className="h-9 w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_CATEGORIES}>
+              {t("system.admin.adminErrors.category.all")}
+            </SelectItem>
+            {CATEGORIES.map((category) => (
+              <SelectItem key={category} value={category}>
+                {t(CATEGORY_KEYS[category])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2">
+        <Label htmlFor="admin-errors-days">
+          {t("system.admin.adminErrors.days._")}
+        </Label>
+        <Select
+          value={String(filter.days ?? 0)}
+          onValueChange={(value) =>
+            onChange({ ...filter, days: Number(value) })
+          }
+        >
+          <SelectTrigger id="admin-errors-days" className="h-9 w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DAYS.map((value) => (
+              <SelectItem key={value} value={String(value)}>
+                {days(value)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {subsystemTitle && (
+        <FilterChip
+          label={t("system.admin.adminErrors.subsystems.filter", {
+            arg0: subsystemTitle,
+          })}
+          onRemove={onRemoveSubsystem}
+        />
+      )}
+      {filter.scope && (
+        <FilterChip
+          label={t(SCOPE_KEYS[filter.scope])}
+          onRemove={onRemoveScope}
+        />
+      )}
+    </div>
+  );
+}
+
+function FilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-sm">
+      {label}
+      <button
+        type="button"
+        className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
+        aria-label={t("system.admin.adminErrors.subsystems.removeFilter")}
+        onClick={onRemove}
+      >
+        <HugeiconsIcon icon={Cancel01Icon} size={12} />
+      </button>
+    </span>
+  );
+}

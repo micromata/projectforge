@@ -32,7 +32,6 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.scripting.GroovyEngine
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
-import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -166,7 +165,7 @@ open class SendMail {
    *         for `async = true` a failure of the sending itself can only be found in the log — nobody waits
    *         for the future. Pass `async = false` where the outcome has to be reported to the user.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures, for `async = false` only.
+   * @throws MailSendException due to technical failures, for `async = false` only.
    */
   @JvmOverloads
   fun send(
@@ -259,7 +258,7 @@ open class SendMail {
     } catch (ex: Exception) {
       sendStats.recordFailure(start, ex)
       log.error(MailLogEvents.SEND_FAILED, ex) { "While creating and sending message: $composedMessage" }
-      throw InternalErrorException("mail.error.exception")
+      throw MailSendException(ex)
     }
     sendStats.recordSuccess(start)
     log.info { "E-Mail successfully sent: $composedMessage" }

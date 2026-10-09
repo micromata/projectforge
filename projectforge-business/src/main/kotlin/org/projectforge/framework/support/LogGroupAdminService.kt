@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.support
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.configuration.DomainService
@@ -80,9 +81,9 @@ class LogGroupFilter(
 
 /**
  * A tile of the dashboard: the state of an active subsystem and the statistics of its problems.
- * @param occurrences24h Occurrences of its open problems within the last 24 hours, the sum of the list's column.
- * @param open Its problems with status NEW or ACKNOWLEDGED (the list's status filter OPEN).
- * @param trend As [LogGroupEntry.trend], summed over its open problems.
+ * @param occurrences24h Occurrences of its problems within the last 24 hours, split by their handling.
+ * @param open Its problems with status NEW or ACKNOWLEDGED (the list's status filter OPEN): active or muted.
+ * @param trend As [LogGroupEntry.trend], summed over its active problems.
  */
 class SubsystemEntry(
     val id: String,
@@ -90,9 +91,9 @@ class SubsystemEntry(
     val detail: String?,
     val state: SubsystemState,
     val syncs: List<SubsystemSync>,
-    val occurrences24h: Int,
+    val occurrences24h: LogGroupCounts,
     val newProblems24h: Int,
-    val open: Int,
+    val open: LogGroupCounts,
     val trend: IntArray,
 )
 
@@ -124,22 +125,38 @@ class LogGroupEntry(
     val trend: IntArray,
 )
 
-/** The key figures of all problems, whatever the filter. */
+/**
+ * Problems or their occurrences, split by what was done about them: [active] ones are open (NEW or ACKNOWLEDGED)
+ * and not muted, so they still need a look; the others are handled.
+ */
+class LogGroupCounts(val active: Int = 0, val muted: Int = 0, val ignored: Int = 0, val resolved: Int = 0) {
+    @get:JsonIgnore
+    val total: Int
+        get() = active + muted + ignored + resolved
+}
+
+/** What was done about a problem, see [LogGroupCounts]. */
+internal enum class LogGroupHandling { ACTIVE, MUTED, IGNORED, RESOLVED }
+
+/**
+ * The key figures of all problems, whatever the filter, each split by the handling of its problems: resolving,
+ * ignoring or muting a problem moves it out of the active figure.
+ */
 class LogGroupSummary(
     /** Problems with occurrences within the last 24 hours, the lead figure (a single problem may occur 100,000 times). */
-    val problems24h: Int,
+    val problems24h: LogGroupCounts,
     /** Occurrences of all problems within the last 24 hours. */
-    val occurrences24h: Int,
-    /** Occurrences of the most frequent problem within the last 24 hours, its share of [occurrences24h]. */
+    val occurrences24h: LogGroupCounts,
+    /** Occurrences of the most frequent active problem within the last 24 hours, its share of the active [occurrences24h]. */
     val topOccurrences24h: Int,
     /** Problems first seen within the last 24 hours. */
-    val newProblems24h: Int,
+    val newProblems24h: LogGroupCounts,
     /** Resolved problems that occurred again and are new again. */
-    val regressions: Int,
+    val regressions: LogGroupCounts,
     /** External systems (category EXTERNAL) with problems within the last 24 hours. */
-    val externalProblems24h: Int,
+    val externalProblems24h: LogGroupCounts,
     /** Problems with status NEW. */
-    val open: Int,
+    val open: LogGroupCounts,
 )
 
 /**
@@ -205,7 +222,7 @@ class LogGroupUpdate(
 )
 
 /**
- * The admin dashboard of the log aggregation (`next/problemDashboard`): lists the problems ([LogGroupDO]) with their
+ * The admin dashboard of the log aggregation (`next/systemDashboard`): lists the problems ([LogGroupDO]) with their
  * trends ([LogBucketDO]) and changes their status. No access checks here, see `AdminErrorsRest`.
  */
 @Service
@@ -232,14 +249,19 @@ class LogGroupAdminService {
         val occurrencesByGroup24h = buckets.filter { it.bucketStart.time >= since24h }
             .groupBy { it.groupId }.mapValues { (_, groupBuckets) -> groupBuckets.sumOf { it.occurrences } }
             .filterValues { it > 0 }
+        val recentRows = rows.filter { occurrencesByGroup24h.containsKey(it.id) }
         val summary = LogGroupSummary(
-            problems24h = occurrencesByGroup24h.size,
-            occurrences24h = occurrencesByGroup24h.values.sum(),
-            topOccurrences24h = occurrencesByGroup24h.values.maxOrNull() ?: 0,
-            newProblems24h = rows.count { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY },
-            regressions = rows.count { isRegression(it) },
-            externalProblems24h = rows.count { it.category == LogCategory.EXTERNAL && it.lastSeen.time >= now - Constants.MILLIS_PER_DAY },
-            open = rows.count { it.status == LogGroupStatus.NEW },
+            problems24h = countsOf(recentRows, now),
+            occurrences24h = countsOf(recentRows, now) { occurrencesByGroup24h[it.id] ?: 0 },
+            topOccurrences24h = recentRows.filter { handlingOf(it, now) == LogGroupHandling.ACTIVE }
+                .maxOfOrNull { occurrencesByGroup24h[it.id] ?: 0 } ?: 0,
+            newProblems24h = countsOf(rows.filter { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY }, now),
+            regressions = countsOf(rows.filter { isRegression(it) }, now),
+            externalProblems24h = countsOf(
+                rows.filter { it.category == LogCategory.EXTERNAL && it.lastSeen.time >= now - Constants.MILLIS_PER_DAY },
+                now,
+            ),
+            open = countsOf(rows.filter { it.status == LogGroupStatus.NEW }, now),
         )
         val subsystem = subsystemMatchOf(filter)
         val matching = rows.filter { matches(it, filter, now, subsystem) }
@@ -279,8 +301,12 @@ class LogGroupAdminService {
         return active.map { (provider, status) ->
             val own = rows.filter { provider.problems.matches(it.code, it.location, it.message) }
             val open = own.filter { LogGroupStatusFilter.OPEN.statuses!!.contains(it.status) }
-            // Of the open problems only: what a click on the tile shows (the list with status OPEN).
-            val openBuckets = open.flatMap { bucketsByGroup[it.id].orEmpty() }
+            val occurrences24h = own.associate { row ->
+                row.id to bucketsByGroup[row.id].orEmpty().filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences }
+            }
+            // Of the active problems only, as the tile's lead figure.
+            val activeBuckets = own.filter { handlingOf(it, now) == LogGroupHandling.ACTIVE }
+                .flatMap { bucketsByGroup[it.id].orEmpty() }
             val recentErrors = open.any {
                 it.level <= LogLevel.ERROR && // FATAL or ERROR
                         it.lastSeen.time >= now - Constants.MILLIS_PER_DAY &&
@@ -292,10 +318,10 @@ class LogGroupAdminService {
                 detail = status.detail,
                 state = if (recentErrors) maxOf(status.state, SubsystemState.DEGRADED) else status.state,
                 syncs = status.syncs,
-                occurrences24h = openBuckets.filter { it.bucketStart.time >= since24h }.sumOf { it.occurrences },
+                occurrences24h = countsOf(own, now) { occurrences24h[it.id] ?: 0 },
                 newProblems24h = own.count { it.firstSeen.time >= now - Constants.MILLIS_PER_DAY },
-                open = open.size,
-                trend = bins(openBuckets, trendStart, TREND_BIN_HOURS, TREND_DAYS * 24 / TREND_BIN_HOURS),
+                open = countsOf(open, now),
+                trend = bins(activeBuckets, trendStart, TREND_BIN_HOURS, TREND_DAYS * 24 / TREND_BIN_HOURS),
             )
         }.sortedBy { it.title.lowercase() }
     }
@@ -520,10 +546,30 @@ class LogGroupAdminService {
         const val MAX_MUTE_DAYS = 365
 
         /** The problem dashboard of projectforge-next, a problem is linked as `?id=<id>`. */
-        const val DASHBOARD_PATH = "next/problemDashboard"
+        const val DASHBOARD_PATH = "next/systemDashboard"
         private const val MAX_IN_IDS = 1000
 
         internal fun isRegression(row: LogGroupRow) = row.status == LogGroupStatus.NEW && row.reopenedAt != null
+
+        /** Ignored and resolved by their status, open ones are muted while [LogGroupRow.mutedUntil] lies ahead. */
+        internal fun handlingOf(row: LogGroupRow, now: Long) = when {
+            row.status == LogGroupStatus.IGNORED -> LogGroupHandling.IGNORED
+            row.status == LogGroupStatus.RESOLVED -> LogGroupHandling.RESOLVED
+            (row.mutedUntil?.time ?: 0) > now -> LogGroupHandling.MUTED
+            else -> LogGroupHandling.ACTIVE
+        }
+
+        /** The [rows] split by their handling, each counted with its [weight] (1: the number of problems). */
+        internal fun countsOf(rows: List<LogGroupRow>, now: Long, weight: (LogGroupRow) -> Int = { 1 }): LogGroupCounts {
+            val sums = IntArray(LogGroupHandling.entries.size)
+            rows.forEach { sums[handlingOf(it, now).ordinal] += weight(it) }
+            return LogGroupCounts(
+                active = sums[LogGroupHandling.ACTIVE.ordinal],
+                muted = sums[LogGroupHandling.MUTED.ordinal],
+                ignored = sums[LogGroupHandling.IGNORED.ordinal],
+                resolved = sums[LogGroupHandling.RESOLVED.ordinal],
+            )
+        }
 
         /** The occurrences of the buckets in [count] bins of [binHours] hours from [start] on; older or newer ones are skipped. */
         internal fun bins(buckets: List<LogBucketRow>, start: Long, binHours: Int, count: Int): IntArray {

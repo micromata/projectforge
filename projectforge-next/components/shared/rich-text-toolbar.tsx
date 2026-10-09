@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
@@ -14,14 +13,15 @@ import {
   VariableIcon,
 } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Toggle } from "@/components/ui/toggle";
+  HeadingMenu,
+  TableMenu,
+} from "@/components/shared/rich-text-block-menus";
+import {
+  ToolbarMenu,
+  ToolbarToggle,
+} from "@/components/shared/rich-text-toolbar-controls";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 /**
@@ -99,6 +99,8 @@ export function RichTextToolbar({
       orderedList: editor?.isActive("orderedList") ?? false,
       link: editor?.isActive("link") ?? false,
       color: !!editor?.getAttributes("textStyle").color,
+      heading: editor?.isActive("heading") ?? false,
+      table: editor?.isActive("table") ?? false,
     }),
   });
 
@@ -121,6 +123,7 @@ export function RichTextToolbar({
       role="toolbar"
       aria-label={t("toolbar")}
     >
+      <HeadingMenu editor={editor} pressed={active?.heading} />
       {MARKS.map(({ mark, icon, toggle }) => (
         <ToolbarToggle
           key={mark}
@@ -162,6 +165,7 @@ export function RichTextToolbar({
           {t("color.default")}
         </DropdownMenuItem>
       </ToolbarMenu>
+      <TableMenu editor={editor} inTable={active?.table} />
       {variables && variables.length > 0 && (
         <ToolbarMenu label={t("variable")} icon={VariableIcon}>
           {variables.map((variable) => (
@@ -181,57 +185,5 @@ export function RichTextToolbar({
         </ToolbarMenu>
       )}
     </div>
-  );
-}
-
-function ToolbarToggle({
-  label,
-  pressed,
-  onPressedChange,
-  children,
-}: {
-  label: string;
-  pressed: boolean | undefined;
-  onPressedChange: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <HintTooltip title={label}>
-      <Toggle
-        size="sm"
-        aria-label={label}
-        pressed={pressed ?? false}
-        onPressedChange={onPressedChange}
-        // Keeps the editor's selection: a click on the toolbar must not blur it first.
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        {children}
-      </Toggle>
-    </HintTooltip>
-  );
-}
-
-function ToolbarMenu({
-  label,
-  icon,
-  pressed,
-  children,
-}: {
-  label: string;
-  icon: IconSvgElement;
-  pressed?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <DropdownMenu>
-      <HintTooltip title={label}>
-        <DropdownMenuTrigger asChild>
-          <Toggle size="sm" aria-label={label} pressed={pressed ?? false}>
-            <HugeiconsIcon icon={icon} />
-          </Toggle>
-        </DropdownMenuTrigger>
-      </HintTooltip>
-      <DropdownMenuContent align="start">{children}</DropdownMenuContent>
-    </DropdownMenu>
   );
 }

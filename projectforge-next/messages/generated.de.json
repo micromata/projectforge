@@ -231,7 +231,7 @@
         "timesheet": {
           "noteSavingsByAI": {
             "_": "Hinweis KI-Einsparungen",
-            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (Markdown wird unterstützt, nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
           }
         },
         "timesheetTags": {
@@ -645,6 +645,7 @@
   "errorpage": {
     "title": "Ein Fehler ist aufgetreten."
   },
+  "execute": "Ausführen",
   "expand": "Aufklappen",
   "export": "Export",
   "exportAsPdf": "Pdf-Export",
@@ -1244,6 +1245,11 @@
         "_": "Reporting",
         "clearStorage": "Leeren",
         "createReport": "Report erstellen",
+        "error": {
+          "invalidXml": "Das XML konnte nicht als Report-Objectives gelesen werden (siehe Formatbeschreibung unten und Log-Dateien).",
+          "noXml": "Bitte das XML der Report-Objectives einfügen.",
+          "periodRequired": "Bitte den ersten Monat des Zeitraums wählen."
+        },
         "file": "Report-Objectives-Datei",
         "help": {
           "attributes": "**Attribute:** `id` benennt den Report (als Spaltenkopf und im Pfad), `title` beschreibt ihn. Ohne `suppressOther=\"true\"` werden die Buchungssätze eines Reports, die zu keinem seiner Kinder passen, als zusätzliche Spalte `<id> - Sonstige` ausgewiesen; ohne `suppressDuplicates=\"true\"` die Buchungssätze, die zu mehreren Kindern passen, als Spalte `<id> - Dubletten`. Beide Spalten helfen zu prüfen, ob die Kinder vollständig und überschneidungsfrei sind.",
@@ -1717,6 +1723,11 @@
   },
   "file": {
     "_": "Datei",
+    "panel": {
+      "deleteExistingFile": {
+        "heading": "Datei wirklich löschen?"
+      }
+    },
     "upload": {
       "audit": {
         "action": {
@@ -2353,7 +2364,8 @@
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
-    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
+    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}",
+    "title": "Meldung"
   },
   "modificationTime": "Änderungszeitraum",
   "modified": "geändert",
@@ -2694,7 +2706,6 @@
       "audit": {
         "_": "Aktivitätsprotokoll",
         "action": "Aktion",
-        "display": "Aktivitätsprotokoll",
         "downloadEvents": "Download-Ereignisse der letzten 30 Tage",
         "downloadedBy": "Heruntergeladen von",
         "events": "Ereignisse der letzten 30 Tage"
@@ -3252,27 +3263,61 @@
       "green": "Grün",
       "red": "Rot"
     },
+    "heading1": "Überschrift 1",
+    "heading2": "Überschrift 2",
+    "heading3": "Überschrift 3",
+    "heading4": "Überschrift 4",
     "italic": "Kursiv",
     "link": {
       "_": "Link",
       "prompt": "Link-Adresse (leer, um den Link zu entfernen):"
     },
     "orderedList": "Nummerierte Liste",
+    "paragraph": "Normaler Text",
+    "table": {
+      "_": "Tabelle",
+      "addColumnAfter": "Spalte rechts einfügen",
+      "addRowAfter": "Zeile darunter einfügen",
+      "deleteColumn": "Spalte löschen",
+      "deleteRow": "Zeile löschen",
+      "deleteTable": "Tabelle löschen",
+      "insert": "Tabelle einfügen",
+      "toggleHeaderRow": "Kopfzeile ein/aus"
+    },
+    "textStyle": "Absatzformat",
     "toolbar": "Formatierung",
     "underline": "Unterstrichen",
     "variable": "Platzhalter einfügen"
   },
   "save": "Speichern",
   "scripting": {
+    "download": {
+      "filename": {
+        "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
+        "info": "Downloaddatei der letzten Scriptausführung."
+      }
+    },
+    "myScript": {
+      "list": "Meine Scripte"
+    },
     "script": {
-      "description": {
-        "tooltip": "Markdown-Format wird unterstützt."
+      "_": "Script",
+      "availableVariables": "Verfügbare Variablen",
+      "code": "Code",
+      "downloadBackups": "Download Backups",
+      "downloadEffectiveScript": {
+        "_": "Download Effektivscript",
+        "info": "Das Effektivscript ist das Script mit aufgelösten Include-Dateien etc., welches so von der Scripting-Engine so ausgeführt wird."
       },
       "editForm": {
         "file": {
           "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
       },
+      "error": {
+        "notFound": "Script not found."
+      },
+      "examples": "Beispiele",
       "executableByGroups": {
         "_": "Berechtigte Gruppen",
         "info": "Angehörige dieser Gruppen dürfen dieses Script ausführen (nicht einsehen oder ändern)."
@@ -3281,12 +3326,22 @@
         "_": "Berechtigte Benutzer:innen",
         "info": "Diese dürfen dieses Script ausführen (nicht einsehen oder ändern)."
       },
+      "execute": "Script ausführen",
       "executeAsUser": {
         "_": "Als andere:r User:in ausführen",
         "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
       },
+      "execution": {
+        "log": {
+          "filePreparedForDownload": "Die Datei ''{arg0}'' ist für den Download vorbereitet und für bis zu {arg1} Minuten zum Download hier verfügbar.",
+          "preparing": "Die Skriptausführung wird vorbereitet...",
+          "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
+          "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
+        }
+      },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
         "_": "Parametertyp",
@@ -3299,7 +3354,13 @@
         "timePeriod": "Zeitraum",
         "user": "Benutzer:in"
       },
+      "parameters": "Parameter",
+      "result": "Ergebnis",
       "type": "Typ"
+    },
+    "title": {
+      "add": "Neues Script",
+      "list": "Scripte"
     }
   },
   "search": {
@@ -3402,6 +3463,11 @@
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
         "firstSeen": "Zuerst aufgetreten",
+        "handled": {
+          "ignored": "{arg0} ignoriert",
+          "muted": "{arg0} stummgeschaltet",
+          "resolved": "{arg0} erledigt"
+        },
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
@@ -3480,7 +3546,6 @@
           "problems": "Probleme"
         },
         "threshold": "Schwelle (pro Stunde)",
-        "title": "Problem-Dashboard",
         "totalCount": "Gesamt",
         "trend": "Verlauf (7 Tage)"
       },
@@ -3616,6 +3681,9 @@
       },
       "title": "Administration"
     },
+    "dashboard": {
+      "title": "System-Dashboard"
+    },
     "developmentSystem": "Development-System",
     "pluginAdmin": {
       "button": {
@@ -3627,7 +3695,13 @@
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
     },
+    "statistics": {
+      "title": "Systemstatistiken"
+    },
     "testSystem": "Testsystem"
+  },
+  "table": {
+    "showing": "Anzeige"
   },
   "task": {
     "_": "Strukturelement",
@@ -3814,6 +3888,7 @@
     "workpackageCode": "Arbeitspaket-Code"
   },
   "text": "Text",
+  "time": "Uhrzeit",
   "timeNotation": {
     "_": "Uhrzeitformat",
     "12": "12 Stunden",

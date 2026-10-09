@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { BooleanCell } from "@/components/data-table/cells/boolean-cell";
 import { HighlightedText } from "@/components/shared/highlighted-text";
+import { richTextToPlainText } from "@/components/shared/rich-text";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber, formatPercentageDecimal } from "@/lib/format";
 import { CONTRIBUTION_MARGIN_PARAM } from "../contribution-margin-config";
@@ -63,7 +64,23 @@ export function ConfigurationValueCell({
           <HighlightedText text={row.stringValue ?? ""} query={highlight} />
         </span>
       );
-    // STRING, TEXT, TIME_ZONE and the unused CALENDAR/TASK all carry their value as text.
+    case "TEXT":
+      if (row.richText) {
+        return (
+          <span className="line-clamp-2">
+            <HighlightedText
+              text={richTextToPlainText(row.stringValue ?? "")}
+              query={highlight}
+            />
+          </span>
+        );
+      }
+      return (
+        <span>
+          <HighlightedText text={row.stringValue ?? ""} query={highlight} />
+        </span>
+      );
+    // STRING, TIME_ZONE and the unused CALENDAR/TASK all carry their value as text.
     default:
       return (
         <span>

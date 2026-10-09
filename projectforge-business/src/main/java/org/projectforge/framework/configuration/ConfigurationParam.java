@@ -35,7 +35,7 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   SYSTEM_ADMIN_E_MAIL("systemAdministratorEMail", ConfigurationType.STRING), //
   /**
-   * Message of the day configuration param.
+   * Message of the day, shown on the login page (rich text, see {@link #isRichText()}).
    */
   MESSAGE_OF_THE_DAY("messageOfTheDay", ConfigurationType.TEXT), //
 
@@ -82,7 +82,7 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   FIBU_FORECAST("fibu.forecast", ConfigurationType.JSON), //
   /**
-   * Cost configured configuration param.
+   * Note on the time sheet edit page regarding the savings by AI (rich text, see {@link #isRichText()}).
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
   /**
@@ -226,6 +226,15 @@ public enum ConfigurationParam implements IConfigurationParam
   public String getEditPage()
   {
     return this == CUSTOMER_GROUPS ? "customerGroups" : null;
+  }
+
+  /**
+   * @return True for a TEXT parameter edited and stored as rich text (the HTML of the next app's rich text editor),
+   * rendered sanitized where it is shown.
+   */
+  public boolean isRichText()
+  {
+    return this == TIMESHEET_NOTE_SAVINGS_BY_AI || this == MESSAGE_OF_THE_DAY;
   }
 
   /**

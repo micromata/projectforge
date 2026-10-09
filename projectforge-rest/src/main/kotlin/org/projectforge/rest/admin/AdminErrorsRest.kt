@@ -55,7 +55,7 @@ import java.time.format.DateTimeFormatter
 private val log = KotlinLogging.logger {}
 
 /**
- * The error dashboard of projectforge-next (`next/problemDashboard`): the problems of the log aggregation with their
+ * The error dashboard of projectforge-next (`next/systemDashboard`): the problems of the log aggregation with their
  * trends, and their status (acknowledge, ignore, mute, resolve). Admin group only, 2FA-gated as ADMIN
  * (`ProjectForge2FAInitialization`).
  */

@@ -157,6 +157,28 @@ class NextMigrationTest {
     }
 
     /**
+     * The scripts: the row click leads to the execution (`script/:id`, `myscript/:id`), the form of a script
+     * is a sub route of it, the user's own script list has none. The React pages are gone, so there is no
+     * way back, but a bookmarked React link of the lists or the form is still redirected onto next.
+     */
+    @Test
+    fun `the script pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/script", NextMigration.listUrl("script"))
+        Assertions.assertEquals("next/script/:id/edit", NextMigration.standardEditPage("script"))
+        Assertions.assertEquals("next/script/new", NextMigration.newEntryUrl("script"))
+        Assertions.assertEquals("next/myscript", NextMigration.listUrl("myscript"))
+        Assertions.assertEquals("next/myscript/:id", NextMigration.standardEditPage("myscript"))
+        for (category in listOf("script", "myscript")) {
+            Assertions.assertNull(NextMigration.legacyListUrl(category), category)
+            Assertions.assertNull(NextMigration.legacyEditPage(category), category)
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
+            val link = NextMigration.orphanedLinks().single { it.category == category }
+            Assertions.assertEquals("react/$category", link.legacyListPath)
+            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+        }
+    }
+
+    /**
      * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
      * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
      */

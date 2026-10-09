@@ -56,6 +56,11 @@ export interface ConfigurationDetail {
    * Only sent to the parameter's editors; anyone else could not open it.
    */
   editPage?: string | null;
+  /**
+   * A TEXT parameter whose value is rich text (the HTML of RichTextEditor), edited with that editor
+   * instead of a textarea (ConfigurationParam.isRichText).
+   */
+  richText?: boolean;
   /** False where the user may only look (EntityAccessSupport, see lib/rs/entity-access.ts). */
   writeAccess?: boolean;
   /** `boolean` (not `| null`): NON_NULL omits it for a row that isn't deleted, so it matches ListRow. */

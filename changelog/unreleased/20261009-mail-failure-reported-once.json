@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Problem dashboard: a mail that couldn't be sent is now reported once as a mail problem, no longer a second time as an unexpected error of the function that sent it.",
+  "de": "Problem-Dashboard: Eine nicht versendbare Mail wird jetzt einmal als Problem des Mailversands gemeldet und nicht mehr zusätzlich als unerwarteter Fehler der Funktion, die sie verschickt hat."
+}

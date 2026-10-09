@@ -22,6 +22,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AuthCard } from "@/components/shared/auth-card";
 import { FormAlert } from "@/components/shared/form-alert";
+import {
+  RICH_TEXT_MUTED_CLASSES,
+  RichText,
+} from "@/components/shared/rich-text";
 import { TwoFactorForm } from "@/components/shared/two-factor-form";
 
 export default function LoginPage() {
@@ -158,7 +162,11 @@ function LoginForm() {
   return (
     <AuthCard title={tb("login.title")}>
       <form onSubmit={handleLogin} className="grid gap-4">
-        {motd && <FormAlert tone="info">{motd}</FormAlert>}
+        {motd && (
+          <FormAlert tone="info">
+            <RichText html={motd} className={RICH_TEXT_MUTED_CLASSES} />
+          </FormAlert>
+        )}
         {error && <FormAlert tone="error">{error}</FormAlert>}
         <div className="grid gap-2">
           <Label htmlFor="username">{tb("username")}</Label>

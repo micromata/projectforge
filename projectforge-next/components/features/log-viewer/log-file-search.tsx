@@ -20,7 +20,7 @@ import { LogFileFormatWarning } from "./log-file-format-warning";
 import { logViewerColumns } from "./log-viewer-columns";
 
 /**
- * The occurrences of a problem of the problem dashboard in the log files of its last days
+ * The occurrences of a problem of the system dashboard in the log files of its last days
  * (`/next/adminLogViewer?problem=<id>`), also of those before the server's start, which the log viewer
  * doesn't have any more. Searched once on opening (the backend reads the files on every request), with a
  * warning naming the format to configure if the files aren't fully readable. Admin group only.
@@ -50,10 +50,7 @@ export function LogFileSearch({ problemId }: { problemId: number }) {
 
   return (
     <PageShell>
-      <PageTitleRow
-        category={t("system.admin.adminErrors.title")}
-        title={title}
-      >
+      <PageTitleRow category={t("system.dashboard.title")} title={title}>
         <Button
           size="sm"
           variant="outline"
