@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "System statistics: the page is now part of the new interface and shows each section as soon as its figures are collected instead of waiting for all of them. Memory, disks, the database connection pool and the database server connections are shown as fill-level bars, and new figures were added: pool configuration and maximum size, database version and size, CPU load, processors, physical memory, operating system, non-heap memory, garbage collection and thread counts.",
+  "de": "Systemstatistik: Die Seite ist jetzt Teil der neuen Oberfläche und zeigt jeden Abschnitt, sobald seine Werte gesammelt sind, statt auf alle zu warten. Speicher, Laufwerke, der Connection-Pool der Datenbank und die Verbindungen zum Datenbankserver werden als Füllstandsbalken angezeigt. Neu hinzugekommen sind Konfiguration und maximale Größe des Pools, Version und Größe der Datenbank, CPU-Last, Prozessoren, physischer Speicher, Betriebssystem, Non-Heap-Speicher, Garbage Collection und Thread-Zahlen."
+}

@@ -27,6 +27,18 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 
 interface SystemsStatisticsBuilderInterface {
+  /**
+   * Identifies the builder, the frontend loads the statistics section by section (one per builder).
+   */
+  val id: String
+    get() = javaClass.simpleName
+
+  /**
+   * Sections of admin only builders are not offered to other users at all.
+   */
+  val adminOnly: Boolean
+    get() = true
+
   fun addStatisticsEntries(stats: SystemStatisticsData)
 
   fun format(number: Number, scale: Int? = null): String {

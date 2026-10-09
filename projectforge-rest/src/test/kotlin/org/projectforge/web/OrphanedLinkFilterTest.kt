@@ -231,6 +231,15 @@ class OrphanedLinkFilterTest {
     }
 
     /**
+     * The dynamic React page of the system statistics is gone, its links land on the next page.
+     */
+    @Test
+    fun `the old react system statistics page is redirected to next`() {
+        Assertions.assertEquals("/next/systemStatistics", redirectOf("/react/systemStatistics/dynamic"))
+        Assertions.assertEquals("/next/systemStatistics", redirectOf("/react/systemStatistics"))
+    }
+
+    /**
      * The Wicket user preference pages are gone without a replacement, so their links land on the next start page.
      */
     @Test

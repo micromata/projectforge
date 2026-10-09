@@ -2339,6 +2339,7 @@
     "reporting": "Reporting",
     "sendSms": "SMS senden",
     "system": "System",
+    "systemStatistics": "Systemstatistik",
     "taskTree": "Strukturbaum",
     "timesheetList": "Zeitberichte"
   },
@@ -3455,6 +3456,9 @@
       "ensureActiveHint": "Über projectforge.properties (ensure-active) aktiviert und kann hier nicht deaktiviert werden.",
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
+    },
+    "statistics": {
+      "title": "Systemstatistiken"
     },
     "testSystem": "Testsystem"
   },

@@ -28,20 +28,32 @@ import java.lang.management.MemoryType
 
 class MemoryStatisticsBuilder : SystemsStatisticsBuilderInterface {
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
-    val memoryStats = mutableMapOf<String, MemoryStatistics>()
     // Second: run GC and measure memory consumption before getting database statistics.
     System.gc()
-    ManagementFactory.getMemoryPoolMXBeans().filter { it.type == MemoryType.HEAP }.forEach { mpBean ->
+    val runtime = Runtime.getRuntime()
+    stats.add(
+      "heap", "memory", "'Heap (total)",
+      MemoryStatistics(max = runtime.maxMemory(), used = runtime.totalMemory() - runtime.freeMemory(), committed = runtime.totalMemory(), init = 0)
+    )
+    ManagementFactory.getMemoryPoolMXBeans().sortedBy { it.type }.forEach { mpBean ->
       val usageBean = mpBean.usage
-      memoryStats[mpBean.name] = MemoryStatistics(
+      val memoryStats = MemoryStatistics(
         max = usageBean.max,
         used = usageBean.used,
         committed = usageBean.committed,
         init = usageBean.init
       )
+      if (mpBean.type == MemoryType.HEAP) {
+        stats.add(mpBean.name, "memory", "'${mpBean.name}", memoryStats)
+      } else {
+        stats.add(mpBean.name, "memory (non-heap)", "'${mpBean.name}", memoryStats)
+      }
     }
-    memoryStats.forEach { (key, value) ->
-      stats.add("$key", "memory", "'$key", value)
+    ManagementFactory.getGarbageCollectorMXBeans().forEach { gcBean ->
+      stats.add(
+        "gc-${gcBean.name}", "garbage collection", "'${gcBean.name}",
+        "runs=${format(gcBean.collectionCount)}, time=${format(gcBean.collectionTime)} ms"
+      )
     }
   }
 }

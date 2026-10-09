@@ -87,6 +87,10 @@ class OrphanedLinkFilter : Filter {
             // so there is no "classic version" escape hatch. The precise segment match keeps this from catching
             // sibling pages like /wa/adminLogViewer.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
+        } else if (uri.endsWith("/react/systemStatistics") || uri.contains("/react/systemStatistics/")) {
+            // Old dynamic React page of the system statistics, migrated to projectforge-next. The React page was
+            // removed, so there is no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}systemStatistics")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

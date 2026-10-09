@@ -203,7 +203,6 @@ org.projectforge.rest.sipgate.SipgatePageRest#downloadConfiguration
 org.projectforge.rest.sipgate.SipgatePageRest#getForm
 org.projectforge.rest.sipgate.SipgatePageRest#resetContacts
 org.projectforge.rest.sipgate.SipgatePageRest#synchronize
-org.projectforge.rest.SystemStatisticPageRest#getForm
 org.projectforge.rest.task.TaskFavoritesRest#select
 org.projectforge.rest.task.TaskServicesRest#getTaskInfo
 org.projectforge.rest.task.TaskServicesRest#getTree

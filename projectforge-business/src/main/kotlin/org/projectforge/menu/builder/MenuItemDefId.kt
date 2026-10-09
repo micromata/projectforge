@@ -129,7 +129,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //
     SYSTEM("menu.system", "next/system"), //
-    SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));
+    SYSTEM_STATISTICS("menu.systemStatistics", "next/systemStatistics");
 
     /**
      * @return name().

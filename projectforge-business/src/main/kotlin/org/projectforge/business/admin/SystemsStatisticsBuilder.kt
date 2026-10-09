@@ -36,6 +36,14 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
+  init {
+    // The cpu loads are measured since the previous call, the very first call answers 0.
+    (ManagementFactory.getOperatingSystemMXBean() as? com.sun.management.OperatingSystemMXBean)?.let {
+      it.cpuLoad
+      it.processCpuLoad
+    }
+  }
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     // First: Get the system load average (don't measure gc run ;-)
     val osBean = ManagementFactory.getOperatingSystemMXBean()
@@ -57,7 +65,25 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "${ProjectForgeVersion.SCM}=${ProjectForgeVersion.SCM_ID}"
     )
     stats.add("systemLoadAverage", "system", "'System load average", format(systemLoadAverage))
-    stats.add("activeThreads", "system", "'Number of active threads", format(numberOfActiveThreads))
+    val processors = osBean.availableProcessors
+    stats.add("availableProcessors", "system", "'Available processors", format(processors))
+    (osBean as? com.sun.management.OperatingSystemMXBean)?.let { sunBean ->
+      stats.add("cpuLoad", "system", "'CPU load (system/process)", "${percent(sunBean.cpuLoad)} / ${percent(sunBean.processCpuLoad)}")
+      val total = sunBean.totalMemorySize
+      if (total > 0) {
+        val free = sunBean.freeMemorySize
+        stats.add(
+          "physicalMemory", "system", "'Physical memory",
+          // No gauge: the os counts its file cache as used, so the memory always looks full.
+          "total=[${formatBytes(total)}], free=[${formatBytes(free)}]",
+        )
+      }
+    }
+    val threadBean = ManagementFactory.getThreadMXBean()
+    stats.add(
+      "activeThreads", "system", "'Number of active threads",
+      "${format(threadBean.threadCount)} (peak=${format(threadBean.peakThreadCount)}, daemon=${format(threadBean.daemonThreadCount)})"
+    )
     stats.add(
       "processStartTime", "system", "'Process start time",
       "${processStartTime.isoString} (UTC), ${TimeAgo.getMessage(processStartTime.utilDate)}"
@@ -71,5 +97,14 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "java", "system", "'Java version",
       "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}"
     )
+    stats.add("os", "system", "'Operating system", "${osBean.name} ${osBean.version} (${osBean.arch})")
+    stats.add("timeZone", "system", "'Default time zone and locale", "${TimeZone.getDefault().id}, ${Locale.getDefault()}")
+  }
+
+  /**
+   * @param load 0..1 or negative, if not available.
+   */
+  private fun percent(load: Double): String {
+    return if (load < 0) "--" else "${format(BigDecimal(load * 100).setScale(0, RoundingMode.HALF_UP))}%"
   }
 }
