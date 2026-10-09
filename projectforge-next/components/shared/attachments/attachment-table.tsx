@@ -235,7 +235,9 @@ function NameCell({
             fileId: attachment.fileId,
           })}
           aria-label={`${t("download._")}: ${attachment.name}`}
-          className="font-medium hover:underline"
+          // min-w-0: a flex item doesn't shrink below its content, so a name without spaces
+          // (Foo_Bar_Baz.pdf) would run into the next columns instead of wrapping (break-words of the cell).
+          className="min-w-0 font-medium hover:underline"
           // A download, not the row's own click (which opens the details).
           onClick={(event) => event.stopPropagation()}
         >
