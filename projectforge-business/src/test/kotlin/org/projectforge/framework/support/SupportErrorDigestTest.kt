@@ -38,6 +38,8 @@ import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogNotify
 import org.projectforge.common.logging.LoggingEventData
 import org.projectforge.framework.integration.SyncStats
+import org.projectforge.mail.MailLogEvents
+import org.projectforge.mail.MailSendException
 import org.slf4j.event.KeyValuePair
 import org.slf4j.LoggerFactory
 import java.net.ConnectException
@@ -116,6 +118,14 @@ class SupportErrorDigestTest {
         val user = ErrorOccurrenceFactory.fromLogEvent(event(Level.ERROR, "x", RuntimeException(UserException("some.key"))))!!
         Assertions.assertSame(CommonLogEvents.USER_ERROR, user.event)
         Assertions.assertEquals(LogNotify.NONE, user.event.notify)
+        // A failed mail logged again by the caller: already reported by SendMail, not an unclassified error, even
+        // with the text of an unreachable system.
+        val mail = ErrorOccurrenceFactory.fromLogEvent(
+            event(Level.ERROR, "mail.error.exception", MailSendException(ConnectException("Connection refused")))
+        )!!
+        Assertions.assertSame(MailLogEvents.SEND_FAILED_REPORTED, mail.event)
+        Assertions.assertEquals(LogNotify.NONE, mail.event.notify)
+        Assertions.assertEquals("java.net.ConnectException", mail.exceptionClass, "The cause is kept.")
     }
 
     @Test
