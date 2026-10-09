@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Outgoing invoices: cancelled invoices and their cancellations now count as paid. They no longer appear under the filter 'unpaid' and are no longer included in the sums above the list (gross, net, open).",
+  "de": "Debitorenrechnungen: Stornierte Rechnungen und ihre Stornorechnungen gelten jetzt als bezahlt. Sie erscheinen nicht mehr unter dem Filter „unbezahlt“ und werden nicht mehr in die Summen über der Liste (brutto, netto, offen) eingerechnet."
+}
