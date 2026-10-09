@@ -27,6 +27,7 @@ package org.projectforge.business.notification
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.common.logging.error
+import org.projectforge.common.logging.warn
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -45,7 +46,8 @@ private val log = KotlinLogging.logger {}
  * - the rule job evaluates the due rules ([NotificationSchedule], each at most once per day), creates one
  *   [NotificationDO] per recipient and period (dedup key) and checks the pending ones for resolution;
  * - the delivery job delivers the due steps of the delivery cascades (e.g. a mail, if not confirmed in the app
- *   within two days).
+ *   within two days). A failed step is retried ([NotificationDeliveryState.RETRY_DELAYS_MINUTES]); a crash between
+ *   sending and storing the state may deliver a step twice (at least once).
  * Both jobs record their runs for the problem dashboard ([NotificationSubsystemStatusProvider]).
  */
 @Service
@@ -329,10 +331,15 @@ class NotificationService {
                     step.error = reason
                 }
             } catch (ex: Exception) {
-                log.error(NotificationLogEvents.DELIVERY_FAILED, ex) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed: ${ex.message}" }
-                step.error = ex.message ?: ex.javaClass.simpleName
+                val error = ex.message ?: ex.javaClass.simpleName
+                val attempt = step.attempts + 1
+                if (step.recordFailure(error, now)) {
+                    log.warn(NotificationLogEvents.DELIVERY_FAILED, ex) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed (attempt $attempt of ${NotificationDeliveryState.MAX_ATTEMPTS}), retry at ${step.dueAt}: $error" }
+                } else {
+                    log.error(NotificationLogEvents.DELIVERY_FAILED, ex) { "Notification #${notification.id}: ${step.channel} to user #${recipient.id} failed finally after $attempt attempts: $error" }
+                }
                 ++errors
-                lastError = step.error
+                lastError = error
             }
         }
         notification.writeDeliveryState(state)

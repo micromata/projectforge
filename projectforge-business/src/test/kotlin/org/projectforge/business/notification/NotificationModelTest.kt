@@ -119,6 +119,28 @@ class NotificationModelTest {
     }
 
     @Test
+    fun retryTest() {
+        val created = Date(1_000_000L)
+        val delivery = NotificationDelivery(listOf(NotificationDeliveryStep(NotificationChannel.MAIL, 0)))
+        val state = NotificationDeliveryState.of(delivery, created)
+        val step = state.steps[0]
+        var now = created
+        NotificationDeliveryState.RETRY_DELAYS_MINUTES.forEachIndexed { index, delay ->
+            assertTrue(step.recordFailure("SMTP down", now))
+            assertEquals(index + 1, step.attempts)
+            assertFalse(step.isProcessed)
+            assertEquals(Date(now.time + delay * 60_000L), state.nextDueAt())
+            now = state.nextDueAt()!!
+        }
+        assertFalse(step.recordFailure("SMTP still down", now), "No retry after the last attempt.")
+        assertEquals(NotificationDeliveryState.MAX_ATTEMPTS, step.attempts)
+        assertTrue(step.failed)
+        assertTrue(step.isProcessed)
+        assertEquals("SMTP still down", step.error)
+        assertNull(state.nextDueAt())
+    }
+
+    @Test
     fun variablesTest() {
         val variables = mapOf("firstName" to "<Kai>", "month" to "Oktober 2026")
         assertEquals(

@@ -265,12 +265,33 @@ class NotificationDeliveryState(
         var channel: NotificationChannel = NotificationChannel.IN_APP,
         var dueAt: Date? = null,
         var sentAt: Date? = null,
+        /** Not delivered for a reason (e.g. no mail address, or confirmed in the meantime), see [error]. */
         var skipped: Boolean = false,
+        /** The skip reason or the error of the last failed attempt. */
         var error: String? = null,
+        /** The number of failed attempts; [dueAt] is the time of the next retry. */
+        var attempts: Int = 0,
+        /** All attempts failed ([MAX_ATTEMPTS]), no further retry. */
+        var failed: Boolean = false,
     ) {
         @get:JsonIgnore
         val isProcessed: Boolean
-            get() = sentAt != null || skipped || error != null
+            get() = sentAt != null || skipped || failed
+
+        /**
+         * Records a failed attempt: a retry is scheduled after [RETRY_DELAYS_MINUTES], [failed] after the last one.
+         * @return true, if a retry is scheduled.
+         */
+        fun recordFailure(error: String, now: Date): Boolean {
+            this.error = error
+            val delay = RETRY_DELAYS_MINUTES.getOrNull(attempts++)
+            if (delay == null) {
+                failed = true
+                return false
+            }
+            dueAt = Date(now.time + delay * 60_000L)
+            return true
+        }
     }
 
     /** The due time of the next unprocessed step, null if all steps are processed. */
@@ -278,6 +299,12 @@ class NotificationDeliveryState(
     fun nextDueAt(): Date? = steps.filter { !it.isProcessed }.mapNotNull { it.dueAt }.minOrNull()
 
     companion object {
+        /** The delays of the retries of a failed step (e.g. mail server not reachable), minutes. */
+        val RETRY_DELAYS_MINUTES = listOf(15, 60, 240)
+
+        /** The first attempt and the retries. */
+        val MAX_ATTEMPTS = 1 + RETRY_DELAYS_MINUTES.size
+
         fun of(delivery: NotificationDelivery, created: Date): NotificationDeliveryState {
             return NotificationDeliveryState(delivery.steps.mapIndexed { index, step ->
                 StepState(
