@@ -231,7 +231,7 @@
         "timesheet": {
           "noteSavingsByAI": {
             "_": "Note regarding AI savings",
-            "description": "Note in the time reports regarding AI savings (markdown is supported, only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+            "description": "Note in the time reports regarding AI savings (only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
           }
         },
         "timesheetTags": {

@@ -231,7 +231,7 @@
         "timesheet": {
           "noteSavingsByAI": {
             "_": "Hinweis KI-Einsparungen",
-            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (Markdown wird unterstützt, nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
           }
         },
         "timesheetTags": {

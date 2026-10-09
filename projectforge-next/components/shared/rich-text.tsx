@@ -58,6 +58,23 @@ export function sanitizeRichText(html: string): string {
 }
 
 /**
+ * Whether a stored text is HTML written by [RichTextEditor]: its documents always open with a paragraph
+ * or a list. False for a text from before it was rich text (plain text or markdown), which a caller may
+ * then render the way it was rendered before.
+ */
+export function isRichTextHtml(text: string): boolean {
+  return /^\s*<(p|ul|ol)[\s>]/i.test(text);
+}
+
+/**
+ * The body text of a rich text muted, so bold text (full foreground colour) stands out against it in
+ * light and dark mode — the weight alone hardly does. Bold text inside a coloured span keeps that
+ * colour (the more specific `span[style]` rule). For the alert and note boxes and the editor itself.
+ */
+export const RICH_TEXT_MUTED_CLASSES =
+  "text-muted-foreground [&_b]:text-foreground [&_strong]:text-foreground [&_span[style]_b]:text-inherit [&_span[style]_strong]:text-inherit";
+
+/**
  * The text of a rich text without its markup, the blocks (paragraphs, list items, line breaks) joined
  * by a space: for a one-line preview (a list cell). Empty where there is no DOM (prerendering).
  */

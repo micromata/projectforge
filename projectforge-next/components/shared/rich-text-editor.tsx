@@ -9,6 +9,7 @@ import {
   RichTextToolbar,
   type RichTextVariable,
 } from "@/components/shared/rich-text-toolbar";
+import { RICH_TEXT_MUTED_CLASSES } from "@/components/shared/rich-text";
 import { cn } from "@/lib/utils";
 
 export type { RichTextVariable };
@@ -21,7 +22,8 @@ const EMPTY_DOCUMENT = "<p></p>";
  * colours. The value is HTML; render it with [RichText], which sanitizes it. No headings, code or
  * tables: it is for short notes (a tooltip hint, the body of a mail), not for documents.
  *
- * [variables], if given, adds a menu inserting `{{key}}` at the cursor.
+ * [variables], if given, adds a menu inserting `{{key}}` at the cursor. [disabled] shows the text
+ * without toolbar and read-only: a contenteditable is not disabled by a surrounding `<fieldset disabled>`.
  */
 export function RichTextEditor({
   id,
@@ -31,6 +33,7 @@ export function RichTextEditor({
   placeholder,
   variables,
   invalid,
+  disabled,
   className,
 }: {
   id?: string;
@@ -41,6 +44,7 @@ export function RichTextEditor({
   placeholder?: string;
   variables?: RichTextVariable[];
   invalid?: boolean;
+  disabled?: boolean;
   className?: string;
 }) {
   // The last value written by the editor itself: a value coming back unchanged must not reset the
@@ -70,6 +74,7 @@ export function RichTextEditor({
       Placeholder.configure({ placeholder: placeholder ?? "" }),
     ],
     content: value ?? "",
+    editable: !disabled,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       lastEmitted.current = html === EMPTY_DOCUMENT ? "" : html;
@@ -79,7 +84,10 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         ...(id ? { id } : {}),
-        class: "rich-text-editor min-h-24 px-3 py-2 text-sm focus:outline-none",
+        class: cn(
+          "rich-text-editor min-h-24 px-3 py-2 text-sm focus:outline-none",
+          RICH_TEXT_MUTED_CLASSES
+        ),
       },
     },
   });
@@ -88,16 +96,20 @@ export function RichTextEditor({
     lastEmitted.current = value ?? "";
     editor.commands.setContent(value ?? "", { emitUpdate: false });
   }, [value, editor]);
+  useEffect(() => {
+    editor?.setEditable(!disabled, false);
+  }, [disabled, editor]);
 
   return (
     <div
       className={cn(
         "rounded-md border border-input bg-transparent shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         invalid && "border-destructive",
+        disabled && "opacity-50",
         className
       )}
     >
-      <RichTextToolbar editor={editor} variables={variables} />
+      {!disabled && <RichTextToolbar editor={editor} variables={variables} />}
       <EditorContent editor={editor} />
     </div>
   );
