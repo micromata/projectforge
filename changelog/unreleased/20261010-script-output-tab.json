@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Scripts: the output of an execution (result, log) is shown in its own tab, which opens after the run. A file to download is shown prominently at the top of both the output and the execution tab.",
+  "de": "Scripte: Die Ausgabe einer Ausführung (Ergebnis, Protokoll) erscheint in einem eigenen Reiter, der nach der Ausführung geöffnet wird. Eine Datei zum Download wird gut sichtbar oben im Ausgabe- und im Ausführungs-Reiter angezeigt."
+}

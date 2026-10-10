@@ -28,6 +28,7 @@ import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminErrorsRest
 import org.projectforge.rest.admin.AdminLogViewerRest
+import org.projectforge.rest.admin.AdminSchedulerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.importer.DatevAccountImportRest
@@ -78,6 +79,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       AdminErrorsRest::class.java,
+      AdminSchedulerRest::class.java,
       GroupAccessEntityRest::class.java,
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,

@@ -24,9 +24,13 @@
 package org.projectforge.business.jobs
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.logging.error
 import org.projectforge.business.user.StayLoggedInTokenDao
-import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -48,26 +52,43 @@ class CronNightlyJob {
     @Autowired
     private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::execute)
+    }
+
     //@Scheduled(cron = "0 30 2 * * *")
-    @Scheduled(cron = "\${projectforge.cron.nightly}")
+    @Scheduled(cron = CRON)
     fun execute() {
-        val started = System.currentTimeMillis()
-        log.info { "Nightly job started." }
-        Thread {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            // Housekeeping only: the expiry itself is enforced on every check
+            // (StayLoggedInTokenDao.getValidToken), so a job that doesn't run can't extend a token's life.
             try {
-                // Housekeeping only: the expiry itself is enforced on every check
-                // (StayLoggedInTokenDao.getValidToken), so a job that doesn't run can't extend a token's life.
-                try {
-                    stayLoggedInTokenDao.purgeExpired()
-                } catch (ex: Throwable) {
-                    log.error(JobLogEvents.NIGHTLY_TOKEN_PURGE_FAILED, ex) { "While purging expired stay-logged-in tokens: " + ex.message }
-                }
+                stayLoggedInTokenDao.purgeExpired()
+            } catch (ex: Throwable) {
+                log.error(JobLogEvents.NIGHTLY_TOKEN_PURGE_FAILED, ex) { "While purging expired stay-logged-in tokens: " + ex.message }
+                run.fail("Purging expired stay-logged-in tokens failed: ${ex.message}", ex)
+            }
+            try {
                 hibernateSearchReindexer.execute()
             } catch (ex: Throwable) {
                 log.error(JobLogEvents.NIGHTLY_REINDEX_FAILED, ex) { "While executing hibernate search re-index job: " + ex.message }
-            } finally {
-                log.info { "Nightly job job finished after ${(System.currentTimeMillis() - started).formatMillis()}." }
+                run.fail("Re-indexing failed: ${ex.message}", ex)
             }
-        }.start()
+        }
+    }
+
+    companion object {
+        private const val CRON = "\${projectforge.cron.nightly}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "cron.nightly", SchedulerJobArea.MAINTENANCE, CronNightlyJob::class.java, "execute",
+            SchedulerSchedule.Cron(CRON),
+            // The full re-index of the search index takes minutes, so the default minimum (60 s) would mark every run.
+            slowThresholdMillis = 15 * 60_000L,
+        )
     }
 }

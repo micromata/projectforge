@@ -3,4 +3,14 @@ layout: changelog
 title: Changelog
 permalink: /changelog-posts/
 ---
+:page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+[.changelog-latest]
+--
+Latest release: **ProjectForge 9.0.3** (2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE])
+
+++++
+{% include latest-binaries.html tags="9.0.3-RELEASE 9.0.3,9.0.2-RELEASE 9.0.2,9.0.1-RELEASE 9.0.1,9.0.0-RELEASE 9.0.0,8.1-RELEASE 8.1,8.0-RELEASE 8.0,7.5-RELEASE 7.5,7.4-RELEASE 7.4,7.3-RELEASE 7.3,release/7.2-RELEASE 7.2,7.1.2-RELEASE 7.1.2,7.1.1-RELEASE 7.1.1,7.1.0-RELEASE 7.1.0,7.0.0-RELEASE 7.0.0,6.22.0-RELEASE 6.22.0" %}
+++++
+--

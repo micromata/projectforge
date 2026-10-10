@@ -12,13 +12,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTabParam } from "@/hooks/use-tab-param";
 import { AdminErrorDetailDialog } from "./admin-error-detail-dialog";
 import { ProblemTabContents } from "./problem-tab-contents";
+import { SCHEDULER_QUERY_KEY } from "./scheduler-job-detail-dialog";
+import { SchedulerTab } from "./scheduler-tab";
 import {
   SYSTEM_STATISTICS_QUERY_KEY,
   SystemStatisticsTab,
 } from "./system-statistics-tab";
 import { useProblemDashboard } from "./use-problem-dashboard";
 
-const ADMIN_TABS = ["overview", "problems", "statistics"];
+const ADMIN_TABS = ["overview", "problems", "scheduler", "statistics"];
 
 /** Everybody may see the system statistics (non-admins only the key figures of the database). */
 const USER_TABS = ["statistics"];
@@ -29,7 +31,8 @@ const USER_TABS = ["statistics"];
  * the state of the active subsystems, a key figure or a subsystem's tile shows its problems in the problems tab. A
  * problem's detail explains it and changes its status (acknowledge, resolve, ignore, mute), which also decides what
  * the error digest reports. The digest links each problem as `?id=<id>`, which opens its detail. The statistics tab
- * (`?tab=statistics`, the only one for other users) shows the system statistics.
+ * (`?tab=statistics`, the only one for other users) shows the system statistics, the scheduler tab
+ * (`?tab=scheduler`) the scheduled jobs with their runs.
  */
 export function SystemDashboard() {
   const t = useTranslations();
@@ -45,6 +48,8 @@ export function SystemDashboard() {
     allowed
   );
   const statistics = tab === "statistics";
+  // Tabs with data of their own: their refresh doesn't wait for the problems.
+  const ownData = statistics || tab === "scheduler";
   const data = problems.list.data;
 
   return (
@@ -53,18 +58,22 @@ export function SystemDashboard() {
         <Button
           size="sm"
           variant="outline"
-          disabled={!statistics && (!data || problems.list.isFetching)}
+          disabled={!ownData && (!data || problems.list.isFetching)}
           onClick={() =>
             queryClient.invalidateQueries({
               queryKey: [
-                statistics ? SYSTEM_STATISTICS_QUERY_KEY : "adminErrors",
+                statistics
+                  ? SYSTEM_STATISTICS_QUERY_KEY
+                  : tab === "scheduler"
+                    ? SCHEDULER_QUERY_KEY
+                    : "adminErrors",
               ],
             })
           }
         >
           {t("refresh")}
         </Button>
-        {!statistics && (
+        {!ownData && (
           <ExportButton
             variant="outline"
             label={t("system.admin.adminErrors.downloadJson._")}
@@ -89,6 +98,9 @@ export function SystemDashboard() {
               <TabsTrigger value="problems">
                 {t("system.admin.adminErrors.tab.problems")}
               </TabsTrigger>
+              <TabsTrigger value="scheduler">
+                {t("system.scheduler.tab")}
+              </TabsTrigger>
             </>
           )}
           <TabsTrigger value="statistics">
@@ -96,6 +108,7 @@ export function SystemDashboard() {
           </TabsTrigger>
         </TabsList>
         {isAdmin && <ProblemTabContents problems={problems} setTab={setTab} />}
+        {isAdmin && <SchedulerTab />}
         <SystemStatisticsTab />
       </Tabs>
       {isAdmin && (

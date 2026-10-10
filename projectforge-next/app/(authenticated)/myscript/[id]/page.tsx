@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MyScriptPageClient } from "./page-client";
 
 // Static export emits a single placeholder route; Spring forwards /next/** deep links
@@ -7,5 +8,10 @@ export function generateStaticParams() {
 }
 
 export default function MyScriptPage() {
-  return <MyScriptPageClient />;
+  // The boundary is required: the client reads `?from=` via `useSearchParams` under the static export.
+  return (
+    <Suspense>
+      <MyScriptPageClient />
+    </Suspense>
+  );
 }

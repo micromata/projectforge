@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "System dashboard: new tab \"Scheduler\"",
+  "de": "Systemdashboard: neuer Tab „Scheduler“",
+  "items": [
+    {
+      "en": "Lists every scheduled job with area, description, schedule, last and next run, duration and status; sortable, with the columns stored per user like every list; overdue and failed jobs stand out, also as a tile in the overview.",
+      "de": "Listet alle geplanten Jobs mit Bereich, Beschreibung, Zeitplan, letztem und nächstem Lauf, Dauer und Status, sortierbar und mit pro Benutzer gespeicherten Spalten wie jede Liste; überfällige und fehlgeschlagene Jobs fallen auf, auch als Kachel in der Übersicht."
+    },
+    {
+      "en": "The runs are stored per day (failed and slow runs one by one) and merged into months after 90 days.",
+      "de": "Die Läufe werden pro Tag gespeichert (fehlgeschlagene und langsame Läufe einzeln) und nach 90 Tagen zu Monaten zusammengefasst."
+    },
+    {
+      "en": "A job can be started at once; a run is skipped while the previous one is still running.",
+      "de": "Ein Job kann sofort gestartet werden; ein Lauf wird übersprungen, solange der vorherige noch läuft."
+    }
+  ]
+}

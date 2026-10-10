@@ -1,0 +1,470 @@
+---
+title: "ProjectForge 7"
+date: 2022-10-21
+sort_key: "2022-10-21 0009"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+[discrete.changelog-release]
+=== ProjectForge 7.0: new frontend and data transfer
+
+[.changelog-source]
+__2021-04-07, tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__ +++{% include release-pills.html tag="7.0.0-RELEASE" docker="7.0.0" %}+++
+
+- **Major release:** new React frontend
+- **Data transfer tool** for sharing files, also with externals
+- **Docker images** and setup wizard for easy installation
+- New plugin: **skill matrix**
+
+.Overview
+[%collapsible]
+====
+- **New frontend** built with React, with full REST support for most functions, e.g. for other clients such as a smartphone app.
+- **Data transfer tool:** sharing files with other users and external customers.
+- **Skill matrix:** new plugin for sharing knowledge.
+- **Installation:** Docker images and a setup wizard.
+- **Technology:** over 20% of the code is now developed with Kotlin.
+====
+
+.All changes
+[%collapsible]
+====
+Major release with a new React frontend, the data transfer tool and Docker support.
+
+**Major Release:** This version contains a lot of cool stuff: new front-end, data transfer tool, docker support.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- New front-end
+- Data transfer tool for sharing files with other user's and external customers
+- New plugin: skill matrix for sharing knowledge.
+- Tons of new functionalities and improvements.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Available as Docker images for fastest installation ever.
+- Setup wizard for easy setup.
+- New front-end works with React.
+- Over 20% of the code is now developed with Kotlin.
+- Full Rest support for most functionality for other clients (such as a smartphone app).
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.5 released
+
+[.changelog-source]
+__2022-10-21, tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5-RELEASE]__ +++{% include release-pills.html tag="7.5-RELEASE" docker="7.5" %}+++
+
+- **Main calendar** refactored
+- **Vacations:** multiple substitutions and conflicts
+- **User and group administration** in the new version
+- Fix: Yubikey in Chrome, Edge and other browsers
+
+.Overview
+[%collapsible]
+====
+- **Calendar:** main calendar refactored (colors, functionalities, more customizable).
+- **Vacations:** multiple substitutions supported, conflicts are shown.
+- **Data transfer:** notifications improved.
+- **History** of changes improved; 2FA requests preserve input fields.
+- **Administration:** user and group administration in the new version.
+- **Security:** issues from the last security pen test implemented.
+- **Fixes:** menu customization in the classic version, Yubikey support in Chrome, Edge etc.
+- **Technology:** Java 15, new Spring, React/Router and Wicket versions; users and passwords in separate db tables.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- The main calendar refactored (colors, functionalities, more customizable etc.)
+- Datatransfer-Plugin: Notification improved
+- **Vacations**
+  * support now multiple substitutions.
+  * Shows now conflicts
+- History of changes improved.
+- 2FA-requests preserve now input fields.
+- lots of minor improvements.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Menu customization in classical version.
+- Yubikey now also supported in other browsers: Chrome, Edge etc.
+- several bugs fixed.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- User/group administration in new version.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Some issues from last security pen test implemented.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- New versions: Java 15, Spring, React/Router, Wicket
+- Separation of db table user and passwords.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.4: two-factor authentication
+
+[.changelog-source]
+__2022-05-19, tag https://github.com/micromata/projectforge/tree/7.4-RELEASE[7.4-RELEASE]__ +++{% include release-pills.html tag="7.4-RELEASE" docker="7.4" %}+++
+
+- **Two-factor authentication** fully supported (SMS, mail, app, FIDO2)
+- **Password reset** for users with a configured second factor
+- **Data transfer:** multi upload with progress bars
+- **Mass update** and selection of invoices
+
+.Overview
+[%collapsible]
+====
+- Multi upload with progress bars in data transfer areas.
+- Password reset for users with a configured second factor.
+====
+
+.All changes
+[%collapsible]
+====
+Two-factor authentication (SMS, mail, authenticator app, WebAuthn/FIDO2) is now fully supported.
+
+2FA (SMS, Authenticator, Fido2) now fully supported. Multi-upload with progress bars for data-transfer-areas.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- 2FA (use SMS, mail, Authenticator app or Webauthn/Fido2 as 2nd factor for much more security.)
+- Password reset for users implemented (it's only usable for users with configured 2FA / mail isn't supported for password reset due to security reasons).
+- Scripts may be executed by users/groups without special rights (sudo functionality is supported). You may configure reports e. g. for project managers including financial data.
+- mass update and selection of invoices for e. g. bank transfers etc.
+- **Datatransfer:**
+  * Multiple upload with progress bars implemented. Very nice.
+  * Multi selection of files for deletion and download.
+  * Audit on areas added (for seeing what happened)
+  * E-mail notifications improved: files being deleted and audit log on areas.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CSRF-Handling: if session token was changed, the user is able to simply reload the page for continuing.
+- mass update functionality refactored and improved.
+- pagination for result lists of new UI introduced.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Password reset for users: Admins may enter cell numbers of users to enable password for users without any configured 2FA.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- **2FA is now fully supported. You may configure:**
+  * 2FA after login (expires after x days after if stay-logged-in is used)
+  * 2FA expiry time (from 1 minute to 90 days) for special usage (e. g. user administration, password changing, financial stuff etc.)
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.3 released
+
+[.changelog-source]
+__2022-03-09, tag https://github.com/micromata/projectforge/tree/7.3-RELEASE[7.3-RELEASE]__ +++{% include release-pills.html tag="7.3-RELEASE" docker="7.3" %}+++
+
+- **Data transfer and Merlin:** serial documents into personal boxes
+- **Scripting:** examples, includes, new editor for Groovy and Kotlin
+- **2FA** introduced
+
+.Overview
+[%collapsible]
+====
+- **Data transfer and Merlin:** serial PDFs/Word documents are generated automatically and sent to the personal boxes of users/employees.
+- **Scripting:** example scripts, include support and a new source editor for Groovy and Kotlin.
+- **Security:** two-factor authentication (2FA) introduced.
+- **Privacy:** data protection improvements.
+- **Administration:** the SSH public key is also visible for non-admins.
+- Several minor bug fixes.
+====
+
+.All changes
+[%collapsible]
+====
+Data transfer combined with Merlin, scripting improved, 2FA introduced.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Combination of DataTransfer and Merlin: Serial PDFs/Words may be automatically generated and sent to the personal boxes of the users/employees.
+- Scripting: example-scripts, include supported, new source editor supporting Groovy and Kotlin.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Scripting functionalities improved.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Data protections improvements.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Ssh public key is also visible for non-admins.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- 2FA introduced (will be improved soon).
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.2 released
+
+[.changelog-source]
+__2021-08-16, tag https://github.com/micromata/projectforge/tree/release/7.2-RELEASE[release/7.2-RELEASE]__ +++{% include release-pills.html tag="release/7.2-RELEASE" docker="7.2" %}+++
+
+- **Word templating (Merlin)** with serial execution
+- **Log viewer** for admins and users
+- **Data transfer:** encryption
+- **Privacy:** deletion of personal data incl. history
+- Fix: search for deleted entries and in history
+
+.Overview
+[%collapsible]
+====
+- **Merlin:** Word templating for letters, contracts etc. with variables and if-else expressions; serial execution delivers Word/PDF files to personal boxes; gender for users added for personalized letters.
+- **Log viewer** for admins and for users to track their own activity (mass updates, Merlin, DATEV imports).
+- **Data transfer:** encryption added.
+- **SEPA export:** special characters unsupported by banking software are replaced or removed.
+- **Privacy:** deletion of addresses, employee and vacation data etc. including history entries (EU privacy rules).
+- **Administration:** no restart after first installation; temporary directories are deleted on shutdown.
+- **Security:** passwords handled as char[] instead of String.
+- **Fixes:** search for deleted entries and search in history entries.
+====
+
+.All changes
+[%collapsible]
+====
+Word templating (Merlin), log viewer, encryption in data transfer, privacy features.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Word-Templating (Merlin): Word templating for letters, information, contracts etc. with serial execution including variables, if-else-expressions etc. inside docx (like Velocity-Scripting-engine). All users/emloyees may receive letters/contracts etc. (as Word and/or PDF-files) in their personal boxes via serial execution. Example template files included for a quick start.
+- Log viewer added (for admins as well as for users for tracking own activity for mass updates of time-sheets, usage of Merlin or Datev-imports)
+- Gender for users added: Used by Merlin (word templating) for creation of personalized letters, contracts etc.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- DataTransfer-Plugin: encryption added
+- Exporting SEPA-cash transfers improved: special characters unsupported by banking software will be replaced/removed.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Features for deleting data such as addresses, employee, vacataion data etc. implemented due to privacy restrictions in the EU. The deletion includes also history entries.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+- Search for deleted entries (addresses etc.) fixed.
+- Search in history entries (keywords, users) fixed.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- No restart after first installation required anymore.
+- During Shutdown some temporarily created directories (tomcat.* and projectforge-application*) will be deleted automatically.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- using char[] instead of String for passwords.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.1.2 released
+
+[.changelog-source]
+__2021-05-25, tag https://github.com/micromata/projectforge/tree/7.1.2-RELEASE[7.1.2-RELEASE]__ +++{% include release-pills.html tag="7.1.2-RELEASE" docker="7.1.2" %}+++
+
+- **Security fixes** from a penetration test
+- **Data transfer:** zip download, more options for externals
+- Binaries on **Docker Hub**
+
+.Overview
+[%collapsible]
+====
+- **Security:** fixes from a penetration test.
+- **Data transfer:** download of an area in one zip, more options for external users.
+- Several minor improvements (order book etc.) and bug fixes.
+- **Docker:** binaries available on https://hub.docker.com/r/micromata/projectforge[Docker Hub].
+====
+
+.All changes
+[%collapsible]
+====
+Security issues of pentests, DataTransfer improved.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- The DataTransfer tool is improved: download area in one zip, more options for external users
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Security fixes from a penetration test.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several minor bugfixes
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Several minor improvements (order book etc.)
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- You can download the binaries from https://hub.docker.com/r/micromata/projectforge[Docker hub]
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.1.1 released
+
+[.changelog-source]
+__2021-05-04, tag https://github.com/micromata/projectforge/tree/7.1.1-RELEASE[7.1.1-RELEASE]__ +++{% include release-pills.html tag="7.1.1-RELEASE" docker="7.1.1" %}+++
+
+- **Data transfer:** personal box for every user
+- **Docker** improved
+- JavaScript libraries updated
+
+.Overview
+[%collapsible]
+====
+- **Data transfer:** personal box of every user for fast one-to-one exchange of large files.
+- **Docker** improved.
+- **Technology:** update of all JavaScript libraries (React etc.).
+====
+
+.All changes
+[%collapsible]
+====
+DataTransfer supports now personal boxes for one to one exchange of files. Docker improved. Minor fixes and improvements.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Data transfer: Personal box of every user for fast exchange of large files one to one.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Docker improved.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Update of all JavaScript libs (React etc.)
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 7.1 released
+
+[.changelog-source]
+__2021-04-12, tag https://github.com/micromata/projectforge/tree/7.1.0-RELEASE[7.1.0-RELEASE]__ +++{% include release-pills.html tag="7.1.0-RELEASE" docker="7.1.0" %}+++
+
+- **Java 13+** supported, nearly all libraries updated
+- **Data transfer:** file checksums and nightly sanity job
+- **CardDAV:** cell phone numbers
+- Multi tenancy removed
+
+.Overview
+[%collapsible]
+====
+- **Data transfer:** checksums for all files and a nightly sanity job.
+- **CardDAV** support improved (cell phone numbers).
+- **Test systems:** no more unique constraint violations with test data on new test systems.
+- **Technology:** support of Java 13+, major updates of nearly all libraries, multi tenancy removed.
+====
+
+.All changes
+[%collapsible]
+====
+Improvements, support of Java 1.13+.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- checksums for all files in data transfer as well as nightly run of sanity job.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CardDAV support improved (cell phone numbers)
+- Test data in test systems: no more unique constraint violations anymore on new test systems.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Support of Java 13+.
+- Major updates of nearly all libraries.
+- Multi tenancy removed.
+
+++++
+{% include download-link.html %}
+++++
+====

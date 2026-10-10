@@ -14,6 +14,9 @@ import {
   useProblemDashboard,
 } from "./use-problem-dashboard";
 
+/** `SchedulerSubsystemStatusProvider.id`. */
+const SCHEDULER_SUBSYSTEM = "scheduler";
+
 /** The overview and the problems tab of the system dashboard, admin group only. */
 export function ProblemTabContents({
   problems,
@@ -73,10 +76,13 @@ export function ProblemTabContents({
             });
           }}
           onOpenSubsystem={(it) =>
-            setTab("problems", {
-              [SUBSYSTEM_PARAM]: it.id,
-              [SCOPE_PARAM]: null,
-            })
+            // The scheduler's tile shows its jobs rather than its problems: a failed job is no log problem.
+            it.id === SCHEDULER_SUBSYSTEM
+              ? setTab("scheduler")
+              : setTab("problems", {
+                  [SUBSYSTEM_PARAM]: it.id,
+                  [SCOPE_PARAM]: null,
+                })
           }
         />
       </TabsContent>

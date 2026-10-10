@@ -16,7 +16,7 @@ import type { MagicFilter } from "./types";
  * The filtered entries of a list as an Excel file, saved under the name the backend gave it.
  *
  * A 404 means the filter matched nothing; the callers say so instead of reporting an error (see
- * `ExcelExportButton` and `useExportDownload`).
+ * `ExcelExportMenu` and `useExportDownload`).
  */
 export function downloadListExcel(
   entity: string,

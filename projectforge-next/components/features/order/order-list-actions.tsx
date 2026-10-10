@@ -5,10 +5,15 @@ import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ChartBarLineIcon, Download04Icon } from "@hugeicons/core-free-icons";
+import { ChartBarLineIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import {
+  ExcelExportMenuItem,
+  ExportMenu,
+  ExportMenuItem,
+} from "@/components/shared/export-menu";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { useListMeta } from "@/hooks/use-list-meta";
 import { downloadOrderExcel } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -20,8 +25,8 @@ import {
 } from "./statistics/order-statistics-url";
 
 /**
- * The two exports of the order book, as Wicket's list page offers them in its content menu: the list
- * itself as Excel, and the forecast.
+ * The two exports of the order book in its export menu, as Wicket's list page offers them in its content
+ * menu: the list itself as Excel, and the forecast.
  *
  * Both act on the filter the list is showing, which is why they live in its toolbar and are handed that
  * filter (see PageDef.listActions). The forecast asks for its start month first — see
@@ -36,6 +41,7 @@ import {
 export function OrderListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
   const [forecastOpen, setForecastOpen] = useState(false);
+  const excel = useExportDownload(() => downloadOrderExcel(filter));
   const contributionMargin =
     useListMeta(ORDER_ENTITY).data?.variables?.contributionMargin === true;
 
@@ -49,19 +55,6 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
 
   return (
     <>
-      <ExcelExportButton download={() => downloadOrderExcel(filter)} />
-      <HintTooltip text={t("fibu.auftrag.forecastExport.tooltip")}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => setForecastOpen(true)}
-        >
-          <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-          {t("fibu.auftrag.forecastExportAsXls._")}
-        </Button>
-      </HintTooltip>
       <StatisticsLink
         tab="forecast"
         label={t("fibu.auftrag.statistics.forecast")}
@@ -72,6 +65,14 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
           label={t("fibu.auftrag.contributionMargin._")}
         />
       )}
+      <ExportMenu isPending={excel.isPending}>
+        <ExcelExportMenuItem onSelect={() => excel.mutate()} />
+        <ExportMenuItem
+          label={t("fibu.auftrag.forecastExportAsXls._")}
+          description={t("fibu.auftrag.forecastExport.tooltip")}
+          onSelect={() => setForecastOpen(true)}
+        />
+      </ExportMenu>
       {forecastOpen && (
         <ForecastExportDialog
           filter={filter}

@@ -57,6 +57,9 @@ class ScriptExecution {
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
 
+    @Autowired
+    private lateinit var scriptPageTargets: ScriptPageTargets
+
     internal val downloadFileSupport = DownloadFileSupport(EXPIRING_SESSION_ATTRIBUTE, DOWNLOAD_EXPIRY_MINUTES)
 
     /**
@@ -195,6 +198,8 @@ class ScriptExecution {
                 ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
         }
         additionalVariables["scriptUser"] = ScriptUser()
+        // Always bound, so a script using it also runs (with an empty context) if not started from a page:
+        additionalVariables[SCRIPT_VAR_NAME_PAGE_CONTEXT] = scriptPageTargets.createContext(script.pageTarget)
         var myImports: List<String>? = null
         scriptDO.executeAsUser?.let { executeAsUser ->
             additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
@@ -341,6 +346,7 @@ class ScriptExecution {
 
         private val SCRIPT_VAR_NAME_EXECUTE_USER = "executeAsUser"
         private val SCRIPT_VAR_NAME_FILES = "files"
+        private val SCRIPT_VAR_NAME_PAGE_CONTEXT = "pageContext"
 
         private val DOWNLOAD_EXPIRY_MINUTES = 5
 

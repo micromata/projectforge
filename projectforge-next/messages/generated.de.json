@@ -488,14 +488,16 @@
   },
   "cancel": "Abbrechen",
   "changelog": {
+    "allChanges": "Alle Änderungen",
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
-    "news": "Neuigkeiten",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
+    "overview": "Überblick",
     "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
     "snapshot": "Snapshot-Stand",
+    "snapshots": "Entwicklungs-Snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {
@@ -2548,6 +2550,7 @@
       "lastName": "Nachname",
       "month": "Monat",
       "monthlyReportLink": "Link zum Monatsbericht",
+      "nickname": "Spitzname (sonst Vorname)",
       "timesheetLink": "Link zu den Zeitberichten",
       "unbookedDays": "Tage ohne Zeitberichte",
       "unbookedDaysCount": "Anzahl der Tage ohne Zeitberichte",
@@ -3294,6 +3297,7 @@
   "scripting": {
     "download": {
       "filename": {
+        "_": "Ergebnisdatei",
         "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
         "info": "Downloaddatei der letzten Scriptausführung."
       }
@@ -3304,6 +3308,14 @@
     "script": {
       "_": "Script",
       "availableVariables": "Verfügbare Variablen",
+      "buttonLabel": {
+        "_": "Button-Beschriftung",
+        "info": "Die Beschriftung des Buttons auf den gewählten Seiten. Ohne Angabe der Name des Scripts."
+      },
+      "buttonTooltip": {
+        "_": "Button-Tooltip",
+        "info": "Der Tooltip des Buttons auf den gewählten Seiten. Ohne Angabe die Beschreibung des Scripts."
+      },
       "code": "Code",
       "downloadBackups": "Download Backups",
       "downloadEffectiveScript": {
@@ -3338,10 +3350,17 @@
           "preparing": "Die Skriptausführung wird vorbereitet...",
           "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
           "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
-        }
+        },
+        "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "output": "Ausgabe",
+      "pageButtons": "Seiten-Buttons",
+      "pageTargets": {
+        "_": "Seiten",
+        "info": "Diese Seiten zeigen oben rechts einen Button für dieses Script, für alle, die es ausführen dürfen. Das Script erhält den aktuellen Filter der Seite als Variable `pageContext`, z. B. `pageContext.list()` für die angezeigten Einträge."
+      },
       "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
@@ -3455,11 +3474,11 @@
           "all": "Alle",
           "n": "Letzte {arg0} Tage"
         },
-        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Probleme werden nicht gezählt.",
+        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Störungen werden nicht gezählt.",
         "distinctUsers24h": "Benutzer (24 h)",
         "downloadJson": {
           "_": "Als JSON herunterladen",
-          "tooltip": "Alle Probleme des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
+          "tooltip": "Alle Störungen des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
         },
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
@@ -3472,12 +3491,12 @@
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
-          "newProblems": "Neue Probleme (24 h)",
+          "newProblems": "Neue Störungen (24 h)",
           "occurrences": "Fehler (24 h)",
           "open": "Noch unbearbeitet",
-          "problems": "Probleme (24 h)",
+          "problems": "Störungen (24 h)",
           "problemsOccurrences": "{arg0} Fehler",
-          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus dem häufigsten Problem",
+          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus der häufigsten Störung",
           "regressions": "Regressionen"
         },
         "lastNotified": "Zuletzt gemeldet",
@@ -3491,16 +3510,19 @@
           "none": "Keine Vorkommen in den Logdateien gefunden.",
           "source": "Fundstelle",
           "title": "Logdateien: {arg0}",
-          "tooltip": "Durchsucht die Logdateien der letzten Tage des Problems (höchstens 7) nach seinen Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
+          "tooltip": "Durchsucht die Logdateien der letzten Tage der Störung (höchstens 7) nach ihren Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
           "truncated": "Die Suche wurde an ihrer Grenze beendet, es kann ältere Vorkommen geben."
         },
         "logViewer": {
           "tooltip": "Nur die letzten Meldungen seit dem Serverstart, aus dem Speicher."
         },
+        "massUpdate": {
+          "done": "{arg0} Störung(en) geändert."
+        },
         "message": "Meldung",
-        "more": "Nur die ersten {arg0} von {arg1} Problemen werden angezeigt.",
+        "more": "Nur die ersten {arg0} von {arg1} Störungen werden angezeigt.",
         "mutedUntil": "Stummgeschaltet bis {arg0}",
-        "none": "Keine Probleme.",
+        "none": "Keine Störungen.",
         "notRegistered": "Kein bekanntes Ereignis: keine Erklärung vorhanden.",
         "notify": {
           "_": "Benachrichtigung",
@@ -3540,11 +3562,11 @@
           "lastRun": "Letzter Lauf",
           "none": "Kein Teilsystem und keine Schnittstelle aktiv.",
           "removeFilter": "Filter entfernen",
-          "tooltip": "Ein Klick zeigt die Probleme des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
+          "tooltip": "Ein Klick zeigt die Störungen des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
         },
         "tab": {
           "overview": "Übersicht",
-          "problems": "Probleme"
+          "problems": "Störungen"
         },
         "threshold": "Schwelle (pro Stunde)",
         "totalCount": "Gesamt",
@@ -3695,6 +3717,70 @@
       "ensureActiveHint": "Über projectforge.properties (ensure-active) aktiviert und kann hier nicht deaktiviert werden.",
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
+    },
+    "scheduler": {
+      "column": {
+        "area": "Bereich",
+        "avgDuration7d": "Ø Dauer (7 Tage)",
+        "duration": "Dauer",
+        "errors7d": "Fehler (7 Tage)",
+        "job": "Job",
+        "lastRun": "Letzter Lauf",
+        "maxDuration7d": "Max. Dauer (7 Tage)",
+        "nextRun": "Nächster Lauf",
+        "runs7d": "Läufe (7 Tage)",
+        "schedule": "Zeitplan",
+        "skipped7d": "Übersprungen (7 Tage)",
+        "slow7d": "Langsam (7 Tage)"
+      },
+      "detail": {
+        "daily": "Läufe pro Tag (letzte {arg0} Tage)",
+        "inactiveReason": "Grund für inaktiv",
+        "info": "Fehler / Hinweise",
+        "lastError": "Letzter Fehler",
+        "manual": "Manuell",
+        "monthly": "Läufe pro Monat (ältere Tage)",
+        "noRuns": "Keine Läufe.",
+        "recentRuns": "Letzte Läufe seit dem Start",
+        "slow": "Langsam",
+        "start": "Start",
+        "storedRuns": "Gespeicherte fehlgeschlagene und langsame Läufe"
+      },
+      "hint": {
+        "notListed": "Alle Jobs des Schedulers mit ihren Läufen. Jobs abgeschalteter Funktionen (z. B. Gateway) sind nicht aufgeführt.",
+        "readySince": "Gestartet am {arg0}."
+      },
+      "overdueSince": "Fällig seit {arg0}",
+      "runNow": {
+        "_": "Jetzt starten",
+        "inactive": "Der Job ist inaktiv und wurde nicht gestartet.",
+        "notAllowed": "Nicht möglich: Der Job ist inaktiv oder läuft noch.",
+        "question": "„{arg0}“ jetzt starten? Der Job läuft so, als hätte ihn der Scheduler gestartet.",
+        "running": "Der Job läuft noch und wurde nicht erneut gestartet.",
+        "started": "Der Job wurde gestartet."
+      },
+      "runStatus": {
+        "error": "Fehler",
+        "skipped": "Übersprungen",
+        "success": "Erfolgreich"
+      },
+      "runningSince": "Läuft seit {arg0}",
+      "schedule": {
+        "disabled": "Abgeschaltet",
+        "every": "Alle {arg0}",
+        "invalid": "Ungültiger Zeitplan"
+      },
+      "status": {
+        "disabled": "Abgeschaltet",
+        "failed": "Fehlgeschlagen",
+        "inactive": "Inaktiv",
+        "ok": "OK",
+        "overdue": "Überfällig",
+        "pending": "Noch nicht gelaufen",
+        "running": "Läuft",
+        "skipped": "Übersprungen"
+      },
+      "tab": "Scheduler"
     },
     "statistics": {
       "title": "Systemstatistiken"

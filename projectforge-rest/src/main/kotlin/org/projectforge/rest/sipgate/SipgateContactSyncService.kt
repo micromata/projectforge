@@ -30,6 +30,10 @@ import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.integration.SyncCounts
@@ -185,12 +189,29 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     private val batchSyncDelayMillis = 5000L // Wait 5 seconds after last update in batch
     private val singleSyncDelayMillis = 10000L // Wait 10 seconds for isolated single updates
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     @PostConstruct
     private fun postConstruct() {
         addressDao.register(this)
+        schedulerJobRunner.register(SCHEDULER_JOB, ::scheduler) {
+            when {
+                !configuration.isConfigured() -> "Sipgate isn't configured."
+                !configuration.cronActive -> "projectforge.sipgate.cron.sync.active=false"
+                else -> null
+            }
+        }
     }
 
     companion object {
+        private const val CRON = "\${projectforge.sipgate.cron.sync}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "sipgate.contactSync", SchedulerJobArea.INTEGRATION, SipgateContactSyncService::class.java, "scheduler",
+            SchedulerSchedule.Cron(CRON),
+        )
+
         internal var countryPrefixForTestcases: String? = null
 
         /**
@@ -542,18 +563,17 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     }
 
 
-    @Scheduled(cron = "\${projectforge.sipgate.cron.sync}")
+    /** Inactive (not run) if Sipgate isn't configured or projectforge.sipgate.cron.sync.active=false. */
+    @Scheduled(cron = CRON)
     fun scheduler() {
-        if (!configuration.isConfigured()) {
-            return // Without any logging.
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            try {
+                sync()
+            } catch (ex: Exception) {
+                // Already logged by sync().
+                run.fail("Sipgate sync failed: ${ex.message}", ex)
+            }
         }
-        if (!configuration.cronActive) {
-            log.info { "Scheduler is inactive: projectforge.sipgate.cron.sync.active=false" }
-            return
-        }
-        Thread {
-            sync()
-        }.start()
     }
 
     /**

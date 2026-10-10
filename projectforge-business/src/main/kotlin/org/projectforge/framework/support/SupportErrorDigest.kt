@@ -37,6 +37,10 @@ import org.projectforge.common.logging.LogEventListener
 import org.projectforge.common.logging.LogNotify
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.common.logging.LoggingEventData
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -106,6 +110,10 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     @Autowired(required = false)
     internal var logAggregation: LogAggregationService? = null
 
+    /** Optional as well. */
+    @Autowired(required = false)
+    internal var schedulerJobRunner: SchedulerJobRunner? = null
+
     /** Optional as well: completes the analysis attachment by the problems' data in the database. */
     @Autowired(required = false)
     internal var logGroupAdminService: LogGroupAdminService? = null
@@ -152,6 +160,9 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     @PostConstruct
     internal fun init() {
         shutdownService.registerListener(this)
+        schedulerJobRunner?.register(SCHEDULER_JOB, ::sendIfDue) {
+            if (active) null else "No support mail address or no mail configured (or interval=0)."
+        }
         interval = parseInterval(intervalProperty)
         if (interval.isZero) {
             log.info { "Support error digest disabled (projectforge.support.errorDigest.interval=0)." }
@@ -237,6 +248,11 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
 
     @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
     fun sendIfDue() {
+        val runner = schedulerJobRunner ?: return sendIfDueNow()
+        runner.run(SCHEDULER_JOB) { sendIfDueNow() }
+    }
+
+    private fun sendIfDueNow() {
         val elapsed = System.currentTimeMillis() - periodStart
         if (active && (elapsed >= interval.toMillis() || immediatePending && elapsed >= IMMEDIATE_MIN_GAP_MILLIS)) {
             send()
@@ -355,6 +371,11 @@ class SupportErrorDigest : LogEventListener, ShutdownListener {
     )
 
     companion object {
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "support.errorDigest", SchedulerJobArea.SYSTEM, SupportErrorDigest::class.java, "sendIfDue",
+            SchedulerSchedule.FixedDelay(Constants.MILLIS_PER_MINUTE, Constants.MILLIS_PER_MINUTE),
+        )
+
         private val FILENAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm")
 
         /** The problem dashboard, linked by the digest. */
