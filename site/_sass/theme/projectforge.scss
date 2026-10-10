@@ -116,6 +116,24 @@ table td a {
 
 // A release of the changelog: heading, source line, summary (always shown), then the collapsible levels
 // "Overview" and "All changes" ([%collapsible] in AsciiDoc → <details>), the snapshots of a major collapsed.
+// The latest release, on top of the changelog page: the first release of a major page is its opening one.
+.changelog-latest {
+  background: $alert-primary-background;
+  color: $alert-primary-color;
+  font-size: 1.125rem;
+  margin-bottom: 24px;
+  padding: 15px 20px;
+}
+
+.changelog-latest p {
+  margin: 0;
+}
+
+.changelog-latest .changelog-binaries {
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
 .changelog-release {
   margin-top: 40px;
   margin-bottom: 4px;

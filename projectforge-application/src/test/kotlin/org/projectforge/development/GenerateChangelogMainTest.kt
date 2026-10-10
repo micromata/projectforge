@@ -585,6 +585,34 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun theChangelogPageStartsWithTheLatestRelease() {
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+        {"id": "s", "version": "9.1-SNAPSHOT", "date": "2026-10-09", "title": "Snapshot", "fromCommit": "aaaaaaa",
+         "toCommit": "bbbbbbb", "sections": [{"type": "added", "items": ["early"]}]},
+        {"id": "r1", "version": "9.0.3", "date": "2026-10-08", "title": "Update", "tag": "9.0.3-RELEASE",
+         "sections": [{"type": "fixed", "items": ["bug"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val latest = root["releases"].firstOrNull { it["tag"] != null }
+    fun note(page: String) = page.substringAfter("[.changelog-latest]\n", "").substringBefore("\n--\n", "")
+    assertEquals(
+      """
+      --
+      Latest release: **ProjectForge 9.0.3** (2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE])
+
+      ++++
+      {% include latest-binaries.html tag="9.0.3-RELEASE" %}
+      ++++
+      """.trimIndent(),
+      note(GenerateChangelogMain.postsPage(latest))
+    )
+    assertEquals("", note(GenerateChangelogMain.postsPage(null)))
+  }
+
+  @Test
   fun sourcesAreWrittenInTheirOwnFormat() {
     val rootDir = GenerateChangelogMain.resolveRootDir()
     listOf(GenerateChangelogMain.SOURCE, GenerateChangelogMain.SOURCE_DE).forEach { path ->

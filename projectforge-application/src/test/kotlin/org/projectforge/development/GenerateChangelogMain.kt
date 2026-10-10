@@ -416,12 +416,13 @@ object GenerateChangelogMain {
       withUnreleased(root, translation, readFragments(rootDir), readReleaseSummary(rootDir))
     val result = linkedMapOf<String, String>()
     val releases = root["releases"].toList()
+    val latest = releases.firstOrNull { it["tag"] != null }
     // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
     groups(root).forEach { group ->
       val rank = releases.size - releases.indexOf(group.newest)
       result["$CHANGELOGS_DIR/${groupFileName(group)}"] = groupToAdoc(group, rank)
     }
-    result[POSTS_PAGE] = postsPage()
+    result[POSTS_PAGE] = postsPage(latest)
     result[NEXT_FILE] = nextJson(nextRoot)
     result[NEXT_FILE_DE] = nextJson(translate(nextRoot, nextTranslation))
     return result
@@ -1069,15 +1070,33 @@ object GenerateChangelogMain {
     lines.drop(1).forEach { sb.appendLine("  * ${inlineToAdoc(it.removePrefix("- "))}") }
   }
 
-  /** The page itself only has the front matter, the layout lists the majors of the collection. */
-  internal fun postsPage(): String {
+  /**
+   * The page itself has the front matter and the [latest] tagged release (a major page starts with the opening
+   * release of the major, which otherwise looks like the current version) with its binaries: they come later with
+   * `pfDev.sh publish`, so `site/_includes/latest-binaries.html` asks GitHub for them. The layout lists the majors of
+   * the collection below.
+   */
+  internal fun postsPage(latest: JsonNode?): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("layout: changelog")
     sb.appendLine("title: Changelog")
     sb.appendLine("permalink: /changelog-posts/")
     sb.appendLine("---")
+    sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")
+    latest?.let {
+      val tag = it["tag"].asText()
+      sb.appendLine()
+      sb.appendLine("[.changelog-latest]")
+      sb.appendLine("--")
+      sb.appendLine("Latest release: **ProjectForge ${it["version"].asText()}** (${it["date"].asText()}, tag $REPO_URL/tree/$tag[$tag])")
+      sb.appendLine()
+      sb.appendLine("++++")
+      sb.appendLine("{% include latest-binaries.html tag=\"$tag\" %}")
+      sb.appendLine("++++")
+      sb.appendLine("--")
+    }
     return sb.toString()
   }
 
