@@ -1236,6 +1236,11 @@
         "_": "Reporting",
         "clearStorage": "Leeren",
         "createReport": "Report erstellen",
+        "error": {
+          "invalidXml": "Das XML konnte nicht als Report-Objectives gelesen werden (siehe Formatbeschreibung unten und Log-Dateien).",
+          "noXml": "Bitte das XML der Report-Objectives einfügen.",
+          "periodRequired": "Bitte den ersten Monat des Zeitraums wählen."
+        },
         "file": "Report-Objectives-Datei",
         "help": {
           "attributes": "**Attribute:** `id` benennt den Report (als Spaltenkopf und im Pfad), `title` beschreibt ihn. Ohne `suppressOther=\"true\"` werden die Buchungssätze eines Reports, die zu keinem seiner Kinder passen, als zusätzliche Spalte `<id> - Sonstige` ausgewiesen; ohne `suppressDuplicates=\"true\"` die Buchungssätze, die zu mehreren Kindern passen, als Spalte `<id> - Dubletten`. Beide Spalten helfen zu prüfen, ob die Kinder vollständig und überschneidungsfrei sind.",
@@ -1709,6 +1714,11 @@
   },
   "file": {
     "_": "Datei",
+    "panel": {
+      "deleteExistingFile": {
+        "heading": "Datei wirklich löschen?"
+      }
+    },
     "upload": {
       "audit": {
         "action": {
@@ -3129,6 +3139,9 @@
           "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
       },
+      "error": {
+        "notFound": "Script not found."
+      },
       "examples": "Beispiele",
       "executableByGroups": {
         "_": "Berechtigte Gruppen",
@@ -3143,8 +3156,17 @@
         "_": "Als andere:r User:in ausführen",
         "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
       },
+      "execution": {
+        "log": {
+          "filePreparedForDownload": "Die Datei ''{arg0}'' ist für den Download vorbereitet und für bis zu {arg1} Minuten zum Download hier verfügbar.",
+          "preparing": "Die Skriptausführung wird vorbereitet...",
+          "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
+          "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
+        }
+      },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
         "_": "Parametertyp",
@@ -3257,11 +3279,11 @@
           "all": "Alle",
           "n": "Letzte {arg0} Tage"
         },
-        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Probleme werden nicht gezählt.",
+        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Störungen werden nicht gezählt.",
         "distinctUsers24h": "Benutzer (24 h)",
         "downloadJson": {
           "_": "Als JSON herunterladen",
-          "tooltip": "Alle Probleme des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
+          "tooltip": "Alle Störungen des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
         },
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
@@ -3274,12 +3296,12 @@
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
-          "newProblems": "Neue Probleme (24 h)",
+          "newProblems": "Neue Störungen (24 h)",
           "occurrences": "Fehler (24 h)",
           "open": "Noch unbearbeitet",
-          "problems": "Probleme (24 h)",
+          "problems": "Störungen (24 h)",
           "problemsOccurrences": "{arg0} Fehler",
-          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus dem häufigsten Problem",
+          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus der häufigsten Störung",
           "regressions": "Regressionen"
         },
         "lastNotified": "Zuletzt gemeldet",
@@ -3293,16 +3315,19 @@
           "none": "Keine Vorkommen in den Logdateien gefunden.",
           "source": "Fundstelle",
           "title": "Logdateien: {arg0}",
-          "tooltip": "Durchsucht die Logdateien der letzten Tage des Problems (höchstens 7) nach seinen Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
+          "tooltip": "Durchsucht die Logdateien der letzten Tage der Störung (höchstens 7) nach ihren Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
           "truncated": "Die Suche wurde an ihrer Grenze beendet, es kann ältere Vorkommen geben."
         },
         "logViewer": {
           "tooltip": "Nur die letzten Meldungen seit dem Serverstart, aus dem Speicher."
         },
+        "massUpdate": {
+          "done": "{arg0} Störung(en) geändert."
+        },
         "message": "Meldung",
-        "more": "Nur die ersten {arg0} von {arg1} Problemen werden angezeigt.",
+        "more": "Nur die ersten {arg0} von {arg1} Störungen werden angezeigt.",
         "mutedUntil": "Stummgeschaltet bis {arg0}",
-        "none": "Keine Probleme.",
+        "none": "Keine Störungen.",
         "notRegistered": "Kein bekanntes Ereignis: keine Erklärung vorhanden.",
         "notify": {
           "_": "Benachrichtigung",
@@ -3342,11 +3367,11 @@
           "lastRun": "Letzter Lauf",
           "none": "Kein Teilsystem und keine Schnittstelle aktiv.",
           "removeFilter": "Filter entfernen",
-          "tooltip": "Ein Klick zeigt die Probleme des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
+          "tooltip": "Ein Klick zeigt die Störungen des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
         },
         "tab": {
           "overview": "Übersicht",
-          "problems": "Probleme"
+          "problems": "Störungen"
         },
         "threshold": "Schwelle (pro Stunde)",
         "totalCount": "Gesamt",
