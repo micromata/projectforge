@@ -74,6 +74,35 @@ test.describe("scripts", { tag: "@lane-script" }, () => {
     });
   });
 
+  test("the code editor indents with Tab and offers its commands as buttons", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/script/execute");
+
+    const editor = page.locator(".cm-content");
+    await expect(editor).toBeVisible();
+    await editor.click();
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.keyboard.insertText("val a = 1");
+    await page.keyboard.press("Home");
+    await page.keyboard.press("Tab");
+    await expect(page.locator(".cm-line").first()).toHaveText(/^\s+val a = 1$/);
+
+    const toolbar = page.getByRole("toolbar");
+    await toolbar.getByRole("button", { name: t("codeEditor.search") }).click();
+    await expect(page.locator(".cm-search")).toBeVisible();
+
+    await toolbar
+      .getByRole("button", { name: t("codeEditor.shortcuts") })
+      .click();
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByText(t("codeEditor.indent"), { exact: true })
+    ).toBeVisible();
+  });
+
   test.describe("without the finance rights", () => {
     test.skip(
       !hasRole("normalo-user"),
