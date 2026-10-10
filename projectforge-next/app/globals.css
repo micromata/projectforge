@@ -366,8 +366,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /*
+   * Medium weight for readability on the light background. Light text on a dark background looks
+   * heavier by itself — and macOS browsers render it bolder still without grayscale smoothing — so the
+   * dark theme steps back to the normal weight and smooths the glyphs.
+   */
   body {
-    @apply bg-background text-foreground font-medium;
+    @apply bg-background text-foreground font-medium dark:font-normal dark:antialiased;
   }
   html {
     @apply font-sans;

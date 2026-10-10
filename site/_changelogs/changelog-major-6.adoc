@@ -10,7 +10,7 @@ sort_key: "2018-07-17 0001"
 === ProjectForge 6.22.0 released
 
 [.changelog-source]
-__2018-07-17, tag https://github.com/micromata/projectforge/tree/6.22.0-RELEASE[6.22.0-RELEASE]__
+__2018-07-17, tag https://github.com/micromata/projectforge/tree/6.22.0-RELEASE[6.22.0-RELEASE]__ +++{% include release-pills.html tag="6.22.0-RELEASE" docker="6.22.0" %}+++
 
 - **Spring Boot 2.0**
 - Launcher dropped, command-line starter only

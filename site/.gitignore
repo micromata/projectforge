@@ -5,3 +5,4 @@ _site
 vendor
 .DS_Store
 Gemfile.lock
+_data/binaries.json

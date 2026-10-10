@@ -10,7 +10,7 @@ sort_key: "2025-09-01 0011"
 === ProjectForge 8.0: new persistence layer
 
 [.changelog-source]
-__2024-12-23, tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__
+__2024-12-23, tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__ +++{% include release-pills.html tag="8.0-RELEASE" docker="8.0" %}+++
 
 - **Persistence layer** completely refactored (Spring Data JPA)
 - **Own CardDAV server** for contact synchronization
@@ -64,7 +64,7 @@ Major release with a completely refactored persistence layer and current major v
 === ProjectForge 8.1: stability and memory fixes
 
 [.changelog-source]
-__2025-09-01, tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE]__
+__2025-09-01, tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE]__ +++{% include release-pills.html tag="8.1-RELEASE" docker="8.1" %}+++
 
 - **Update strongly recommended:** stability and memory fixes
 - Fix: major memory leak in data transfer

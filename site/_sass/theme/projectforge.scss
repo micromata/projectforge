@@ -145,6 +145,37 @@ table td a {
   margin-bottom: 8px;
 }
 
+// The status pills of a release in its source line (site/_includes/release-pills.html).
+.changelog-pill {
+  background: #e5e5e5;
+  border-radius: 10px;
+  color: #555;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-style: normal;
+  line-height: 1.6;
+  margin-left: 6px;
+  padding: 0 8px;
+  vertical-align: 1px;
+}
+
+a.changelog-pill:hover {
+  color: #333;
+  text-decoration: none;
+}
+
+.changelog-pill-jar,
+a.changelog-pill-jar:hover {
+  background: #3aaa55;
+  color: #fff;
+}
+
+.changelog-pill-docker,
+a.changelog-pill-docker:hover {
+  background: #1d63ed;
+  color: #fff;
+}
+
 .article-content details {
   margin: 8px 0;
 }
