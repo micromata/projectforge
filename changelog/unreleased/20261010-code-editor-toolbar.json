@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Code editor (scripts): a toolbar with undo, redo, search and replace and comment out, each naming its keyboard shortcut in the tooltip, and an info button listing all shortcuts. The search panel is shown at the top and in the user's language.",
+  "de": "Code-Editor (Scripte): Eine Leiste mit Rückgängig, Wiederholen, Suchen und Ersetzen und Auskommentieren, deren Tooltips das jeweilige Tastaturkürzel nennen, sowie ein Info-Button mit allen Tastaturkürzeln. Die Suche erscheint oben und in der Sprache des Benutzers."
+}
