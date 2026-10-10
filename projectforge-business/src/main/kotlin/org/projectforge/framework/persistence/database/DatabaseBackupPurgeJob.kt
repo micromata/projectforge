@@ -23,14 +23,17 @@
 
 package org.projectforge.framework.persistence.database
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.BackupFilesPurging
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.io.File
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Purges data base backup files by using [BackupFilesPurging] if backup dir is configured in projectforge.properties.
@@ -51,30 +54,45 @@ class DatabaseBackupPurgeJob {
     @Value("\${projectforge.cron.purgeBackupKeepWeeklyBackups}")
     private val dbBackupKeepWeeklyBackups: Long? = null
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::execute) {
+            // If wanted, that all daily backups will be removed after 30 days but the monthly backups will be kept,
+            // configure projectforge.cron.purgeBackupDir in projectforge.properties.
+            if (dbBackupDir.isNullOrBlank()) "projectforge.cron.purgeBackupDir isn't configured." else null
+        }
+    }
+
     // projectforge.cron.dbBackupCleanup=0 40 0 * * *
-    @Scheduled(cron = "\${projectforge.cron.purgeBackup}")
+    @Scheduled(cron = CRON)
     fun execute() {
-        if (dbBackupDir.isNullOrBlank()) {
-            log.info { "No backup dir will be cleaned up, because the backup dir isn't configured. If you want the feature, that all daily backups will be removed after 30 days but the monthly backups will be kept, please configure projectforge.cron.dbBackupCleanup in projectforge.properties." }
-            return
-        }
-        val backupDir = File(dbBackupDir)
-        if (!backupDir.isDirectory) {
-            log.error { "Configured backup dir '$dbBackupDir' isn't a directory. Can't clean up old backups from this directory." }
-            return
-        }
-        Thread {
-            log.info { "Starting job for cleaning daily backup files older than 30 days, but monthly backups will be kept." }
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            val backupDir = File(dbBackupDir!!)
+            if (!backupDir.isDirectory) {
+                // Logged by the scheduler as failed job.
+                run.fail("Configured backup dir '$dbBackupDir' isn't a directory. Can't clean up old backups from this directory.")
+                return@runAsync
+            }
             parsePrefixes(dbBackupFilesPrefix).forEach { prefix ->
                 BackupFilesPurging.purgeDirectory(backupDir,
                     filePrefix = prefix,
                     keepDailyBackups = dbBackupKeepDailyBackups ?: 8,
                     keepWeeklyBackups = dbBackupKeepWeeklyBackups ?: 4)
             }
-        }.start()
+        }
     }
 
     companion object {
+        private const val CRON = "\${projectforge.cron.purgeBackup}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "backup.purgeDatabaseBackups", SchedulerJobArea.BACKUP, DatabaseBackupPurgeJob::class.java, "execute",
+            SchedulerSchedule.Cron(CRON),
+        )
+
         /**
          * @return The comma-separated prefixes, or a list containing null (all files containing a date), if not given.
          */

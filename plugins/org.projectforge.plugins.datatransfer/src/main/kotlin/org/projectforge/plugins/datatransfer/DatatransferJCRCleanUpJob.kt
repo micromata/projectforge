@@ -24,7 +24,12 @@
 package org.projectforge.plugins.datatransfer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.FormatterUtils
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.RepoService
@@ -53,17 +58,25 @@ class DataTransferJCRCleanUpJob {
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::cron) {
+            if (pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) null else "Plugin data transfer not activated."
+        }
+    }
+
+    // Every hour, starting 10 minutes after starting.
+    @Scheduled(fixedDelay = DELAY_MILLIS, initialDelay = INITIAL_DELAY_MILLIS)
+    fun cron() {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { execute() }
+    }
+
     /**
      * @return number of deleted files (for test cases).
      */
-    // Every hour, starting 10 minutes after starting.
-    @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 600 * 1000)
-    fun cron() {
-        Thread {
-            execute()
-        }.start()
-    }
-
     fun execute(): Int {
         if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
             log.info { "Plugin data transfer not activated. Don't need clean-up job." }
@@ -149,5 +162,13 @@ class DataTransferJCRCleanUpJob {
         internal const val MILLIS_PER_DAY = 1000L * 60 * 60 * 24
 
         internal const val SYSTEM_USER = "ProjectForge system"
+
+        private const val DELAY_MILLIS = 3600 * 1000L
+        private const val INITIAL_DELAY_MILLIS = 600 * 1000L
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "datatransfer.cleanUp", SchedulerJobArea.FILES, DataTransferJCRCleanUpJob::class.java, "cron",
+            SchedulerSchedule.FixedDelay(DELAY_MILLIS, INITIAL_DELAY_MILLIS),
+        )
     }
 }

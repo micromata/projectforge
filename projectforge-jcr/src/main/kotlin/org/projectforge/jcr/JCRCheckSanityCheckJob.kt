@@ -24,11 +24,15 @@
 package org.projectforge.jcr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.FormatterUtils
 import org.projectforge.common.ZipUtils
 import org.projectforge.common.extensions.format
 import org.projectforge.common.extensions.formatBytes
-import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.jobs.AbstractJob
 import org.projectforge.jobs.JobExecutionContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,6 +52,15 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
     @Autowired
     internal lateinit var repoService: RepoService
 
+    /** Not set in tests without Spring. */
+    @Autowired(required = false)
+    internal var schedulerJobRunner: SchedulerJobRunner? = null
+
+    @PostConstruct
+    internal fun postConstruct() {
+        schedulerJobRunner?.register(SCHEDULER_JOB, ::cron)
+    }
+
     class CheckResult(
         val errors: List<String>,
         val warnings: List<String>,
@@ -57,30 +70,24 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
 
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     // Disabled by default (projectforge.jcr.cron.sanityCheck=-), CronSanityCheckJob runs this job nightly.
-    @Scheduled(cron = "\${projectforge.jcr.cron.sanityCheck}")
+    @Scheduled(cron = CRON)
     open fun cron() {
-        val started = System.currentTimeMillis()
-        log.info { "JCR sanity check job started." }
         val job = this
-        Thread {
-            try {
-                val jobContext = JobExecutionContext(job)
-                executeJob(jobContext)
-                val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
-                val numberOfVisitedFiles = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_FILES)
-                val msgPart1 =
-                    "JCR sanity check job finished after ${(System.currentTimeMillis() - started).formatMillis()}"
-                val msgPart2 =
-                    "${numberOfVisitedFiles.format()} files and ${numberOfVisitedNodes.format()} nodes checked: errors=${jobContext.errors.size}, warnings=${jobContext.warnings.size}."
-                if (jobContext.status == JobExecutionContext.Status.ERRORS) {
-                    log.error { "$msgPart1 with errors. $msgPart2" }
-                } else {
-                    log.info { "$msgPart1. $msgPart2" }
-                }
-            } catch (ex: Throwable) {
-                log.error(ex) { "While executing hibernate search re-index job: " + ex.message }
+        // Duration and exceptions are logged by the scheduler.
+        schedulerJobRunner?.runAsync(SCHEDULER_JOB) { run ->
+            val jobContext = JobExecutionContext(job)
+            executeJob(jobContext)
+            val numberOfVisitedNodes = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_NODES)
+            val numberOfVisitedFiles = jobContext.getAttributeAsInt(NUMBER_OF_VISITED_FILES)
+            val msg =
+                "${numberOfVisitedFiles.format()} files and ${numberOfVisitedNodes.format()} nodes checked: errors=${jobContext.errors.size}, warnings=${jobContext.warnings.size}."
+            if (jobContext.status == JobExecutionContext.Status.ERRORS) {
+                log.error { "JCR sanity check job finished with errors. $msg" }
+                run.fail("JCR sanity check found errors. $msg")
+            } else {
+                log.info { "JCR sanity check job finished. $msg" }
             }
-        }.start()
+        }
     }
 
     override fun executeJob() {
@@ -216,5 +223,11 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
         const val NUMBER_OF_VISITED_NODES = "numberOfVisitedNodes"
         const val NUMBER_OF_VISITED_FILES = "numberOfVisitedFiles"
 
+        private const val CRON = "\${projectforge.jcr.cron.sanityCheck}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "jcr.sanityCheck", SchedulerJobArea.FILES, JCRCheckSanityCheckJob::class.java, "cron",
+            SchedulerSchedule.Cron(CRON),
+        )
     }
 }

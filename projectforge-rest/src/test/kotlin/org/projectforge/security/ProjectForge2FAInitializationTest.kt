@@ -63,6 +63,7 @@ class ProjectForge2FAInitializationTest {
 
     // The error dashboard (next/systemDashboard), as a whole:
     Assertions.assertTrue(my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN)?.contains("/rs/adminErrors;") == true)
+    Assertions.assertTrue(my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN)?.contains("/rs/adminScheduler;") == true)
 
     // logoutAllDevices is a self service call of /rs/user (a path otherwise registered for ADMIN):
     Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;/rs/user/logoutAllDevices;", my2FARequestHandler.getShortCutResolved(

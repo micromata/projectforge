@@ -23,10 +23,16 @@
 
 package org.projectforge.rest.poll
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerRun
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.poll.excel.ExcelExport
@@ -58,19 +64,25 @@ class PollCronJobs {
     @Autowired
     private lateinit var userService: UserService
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     private val log: Logger = LoggerFactory.getLogger(PollCronJobs::class.java)
 
-    /**
-     * Cron job for daily stuff
-     */
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::dailyCronJobs)
+    }
 
-    @Scheduled(cron = "0 5 6 * * *") //Immer um 00:05
+    /**
+     * Cron job for daily stuff: daily at 06:05 (UTC).
+     */
+    @Scheduled(cron = CRON)
     fun dailyCronJobs() {
-        log.info("Start daily cron jobs")
-        Thread {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
             cronDeletePolls()
-            cronEndPolls()
-        }.start()
+            cronEndPolls(run)
+        }
     }
 
     private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
@@ -95,7 +107,7 @@ class PollCronJobs {
     /**
      * Method to end polls after deadline
      */
-    private fun cronEndPolls() {
+    private fun cronEndPolls(run: SchedulerRun) {
         val pollDOs = pollDao.selectAllNotDeleted(checkAccess = false)
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
@@ -123,6 +135,7 @@ class PollCronJobs {
                         pollDao.insertOrUpdate(pollDO, checkAccess = false)
                     } catch (e: Exception) {
                         log.error(e.message, e)
+                        run.fail("Finishing poll ${pollDO.id} failed: ${e.message}", e)
                     }
                 }
             }
@@ -174,5 +187,14 @@ class PollCronJobs {
             }
             pollDao.markAsDeleted(poll, checkAccess = false)
         }
+    }
+
+    companion object {
+        private const val CRON = "0 5 6 * * *"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "poll.daily", SchedulerJobArea.BUSINESS, PollCronJobs::class.java, "dailyCronJobs",
+            SchedulerSchedule.Cron(CRON),
+        )
     }
 }

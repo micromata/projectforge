@@ -3523,6 +3523,70 @@
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
     },
+    "scheduler": {
+      "column": {
+        "area": "Bereich",
+        "avgDuration7d": "Ø Dauer (7 Tage)",
+        "duration": "Dauer",
+        "errors7d": "Fehler (7 Tage)",
+        "job": "Job",
+        "lastRun": "Letzter Lauf",
+        "maxDuration7d": "Max. Dauer (7 Tage)",
+        "nextRun": "Nächster Lauf",
+        "runs7d": "Läufe (7 Tage)",
+        "schedule": "Zeitplan",
+        "skipped7d": "Übersprungen (7 Tage)",
+        "slow7d": "Langsam (7 Tage)"
+      },
+      "detail": {
+        "daily": "Läufe pro Tag (letzte {arg0} Tage)",
+        "inactiveReason": "Grund für inaktiv",
+        "info": "Fehler / Hinweise",
+        "lastError": "Letzter Fehler",
+        "manual": "Manuell",
+        "monthly": "Läufe pro Monat (ältere Tage)",
+        "noRuns": "Keine Läufe.",
+        "recentRuns": "Letzte Läufe seit dem Start",
+        "slow": "Langsam",
+        "start": "Start",
+        "storedRuns": "Gespeicherte fehlgeschlagene und langsame Läufe"
+      },
+      "hint": {
+        "notListed": "Alle Jobs des Schedulers mit ihren Läufen. Jobs abgeschalteter Funktionen (z. B. Gateway) sind nicht aufgeführt.",
+        "readySince": "Gestartet am {arg0}."
+      },
+      "overdueSince": "Fällig seit {arg0}",
+      "runNow": {
+        "_": "Jetzt starten",
+        "inactive": "Der Job ist inaktiv und wurde nicht gestartet.",
+        "notAllowed": "Nicht möglich: Der Job ist inaktiv oder läuft noch.",
+        "question": "„{arg0}“ jetzt starten? Der Job läuft so, als hätte ihn der Scheduler gestartet.",
+        "running": "Der Job läuft noch und wurde nicht erneut gestartet.",
+        "started": "Der Job wurde gestartet."
+      },
+      "runStatus": {
+        "error": "Fehler",
+        "skipped": "Übersprungen",
+        "success": "Erfolgreich"
+      },
+      "runningSince": "Läuft seit {arg0}",
+      "schedule": {
+        "disabled": "Abgeschaltet",
+        "every": "Alle {arg0}",
+        "invalid": "Ungültiger Zeitplan"
+      },
+      "status": {
+        "disabled": "Abgeschaltet",
+        "failed": "Fehlgeschlagen",
+        "inactive": "Inaktiv",
+        "ok": "OK",
+        "overdue": "Überfällig",
+        "pending": "Noch nicht gelaufen",
+        "running": "Läuft",
+        "skipped": "Übersprungen"
+      },
+      "tab": "Scheduler"
+    },
     "statistics": {
       "title": "Systemstatistiken"
     },

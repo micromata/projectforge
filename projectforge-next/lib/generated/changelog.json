@@ -46,6 +46,9 @@
       "items" : [ {
         "title" : "Statistics, forecast",
         "items" : [ "New field snapshot date: the forecast is calculated from the order book as it was on that day.", "The tooltip of the planning date shows a hint maintained by finance in the new configuration parameter \"Forecast\" (formatted text with a small editor)." ]
+      }, {
+        "title" : "System dashboard: new tab \"Scheduler\"",
+        "items" : [ "Lists every scheduled job with area, description, schedule, last and next run, duration and status; overdue and failed jobs stand out, also as a tile in the overview.", "The runs are stored per day (failed and slow runs one by one) and merged into months after 90 days.", "A job can be started at once; a run is skipped while the previous one is still running." ]
       } ]
     }, {
       "type" : "improved",

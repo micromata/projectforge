@@ -61,7 +61,7 @@ export function AdminErrorFacts({ detail }: { detail: LogGroupDetail }) {
   );
 }
 
-function Fact({
+export function Fact({
   label,
   mono,
   children,

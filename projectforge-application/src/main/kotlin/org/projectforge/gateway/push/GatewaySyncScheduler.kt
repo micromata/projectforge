@@ -23,54 +23,67 @@
 
 package org.projectforge.gateway.push
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.SystemStatus
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-
-private val log = KotlinLogging.logger {}
 
 @Component
 @ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
 class GatewaySyncScheduler(
     private val pushService: GatewaySyncPushService,
     private val systemStatus: SystemStatus,
+    private val schedulerJobRunner: SchedulerJobRunner,
 ) {
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(DELTA_JOB, ::scheduledSync, ::inactiveReason)
+        schedulerJobRunner.register(FULL_JOB, ::scheduledFullSync, ::inactiveReason)
+    }
+
     /**
      * Delta sync: only changed addresses and calendars (users and groups are always pushed completely).
      */
-    @Scheduled(
-        fixedDelayString = "\${projectforge.gateway.push.syncIntervalMs:900000}",
-        initialDelayString = "\${projectforge.gateway.push.initialDelayMs:120000}",
-    )
+    @Scheduled(fixedDelayString = SYNC_INTERVAL, initialDelayString = INITIAL_DELAY)
     fun scheduledSync() {
-        if (!ready()) return
-        log.info { "Starting scheduled gateway sync..." }
-        pushService.pushAll()
+        schedulerJobRunner.run(DELTA_JOB) { pushService.pushAll() }
     }
 
     /**
      * Nightly full sync: pushes everything, the gateway removes data deleted on the main instance.
      */
-    @Scheduled(cron = "\${projectforge.gateway.push.fullSyncCron:0 0 3 * * *}")
+    @Scheduled(cron = FULL_SYNC_CRON)
     fun scheduledFullSync() {
-        if (!ready()) return
-        log.info { "Starting scheduled full gateway sync..." }
-        pushService.pushAll(fullSync = true)
+        schedulerJobRunner.run(FULL_JOB) { pushService.pushAll(fullSync = true) }
     }
 
     /**
      * Without an initial delay a fixed-delay job runs as soon as the scheduler starts, i.e. before
      * [org.springframework.boot.context.event.ApplicationReadyEvent] — before plugins and WicketSupport are
      * registered (NPE in the access checks). A long start-up (production database) can outlast the initial
-     * delay, hence the check as well.
+     * delay, hence the check as well (the job is inactive then, the run isn't counted).
      */
-    private fun ready(): Boolean {
-        if (!systemStatus.upAndRunning) {
-            log.info { "Gateway sync skipped: ProjectForge is not up and running yet." }
-            return false
-        }
-        return true
+    private fun inactiveReason(): String? =
+        if (systemStatus.upAndRunning) null else "ProjectForge is not up and running yet."
+
+    companion object {
+        private const val SYNC_INTERVAL = "\${projectforge.gateway.push.syncIntervalMs:900000}"
+        private const val INITIAL_DELAY = "\${projectforge.gateway.push.initialDelayMs:120000}"
+        private const val FULL_SYNC_CRON = "\${projectforge.gateway.push.fullSyncCron:0 0 3 * * *}"
+
+        val DELTA_JOB = SchedulerJobDefinition(
+            "gateway.pushDelta", SchedulerJobArea.INTEGRATION, GatewaySyncScheduler::class.java, "scheduledSync",
+            SchedulerSchedule.FixedDelay(SYNC_INTERVAL, INITIAL_DELAY),
+        )
+
+        val FULL_JOB = SchedulerJobDefinition(
+            "gateway.pushFull", SchedulerJobArea.INTEGRATION, GatewaySyncScheduler::class.java, "scheduledFullSync",
+            SchedulerSchedule.Cron(FULL_SYNC_CRON),
+        )
     }
 }

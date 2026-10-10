@@ -26,8 +26,11 @@ package org.projectforge.business.jobs
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.task.TaskDao
-import org.projectforge.common.extensions.formatMillis
 import org.projectforge.common.html.Html
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.time.DateHelper
@@ -64,46 +67,44 @@ class CronSanityCheckJob {
     @Autowired
     private lateinit var taskDao: TaskDao
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     @PostConstruct
     private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::cron)
         registerJob(SystemSanityCheckJob(taskDao))
         registerJob(jcrCheckSanityJob) // JCRCheckSanityJob is a plugin job, and it is registered here, because CronSanityCheckJob is not known by JCR.
     }
 
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
-    @Scheduled(cron = "\${projectforge.cron.sanityChecks}")
+    @Scheduled(cron = CRON)
     fun cron() {
-        log.info { "Cronjob for executing sanity checks started..." }
-
-        Thread {
-            val start = System.currentTimeMillis()
-            try {
-                val contextList = execute()
-                if (contextList.status == JobExecutionContext.Status.ERRORS) {
-                    val recipients = Configuration.instance.getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)
-                    if (!recipients.isNullOrBlank()) {
-                        val msg = Mail()
-                        msg.addTo(recipients)
-                        msg.setProjectForgeSubject("Errors occurred on sanity check job.")
-                        val intro = Html.Alert(Html.Alert.Type.DANGER).also {
-                            it.add(
-                                Html.P(
-                                    "Please refer the attached log file for more information or simply\n"
-                                            + "re-run system check on page Administration -> System -> check system integrity."
-                                )
-                            ).add(Html.BR())
-                                .add(Html.P("Your ProjectForge system"))
-                        }
-                        msg.content = contextList.getReportAsHtml(showAllMessages = false, intro)
-                        msg.contentType = Mail.CONTENTTYPE_HTML
-                        val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsHtml().toByteArray()))
-                        sendMail.send(msg, null, attachments)
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            val contextList = execute()
+            if (contextList.status == JobExecutionContext.Status.ERRORS) {
+                run.fail("Sanity checks found errors (see the mail to the administrators or the system integrity page).")
+                val recipients = Configuration.instance.getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)
+                if (!recipients.isNullOrBlank()) {
+                    val msg = Mail()
+                    msg.addTo(recipients)
+                    msg.setProjectForgeSubject("Errors occurred on sanity check job.")
+                    val intro = Html.Alert(Html.Alert.Type.DANGER).also {
+                        it.add(
+                            Html.P(
+                                "Please refer the attached log file for more information or simply\n"
+                                        + "re-run system check on page Administration -> System -> check system integrity."
+                            )
+                        ).add(Html.BR())
+                            .add(Html.P("Your ProjectForge system"))
                     }
+                    msg.content = contextList.getReportAsHtml(showAllMessages = false, intro)
+                    msg.contentType = Mail.CONTENTTYPE_HTML
+                    val attachments = listOf(MailAttachment(FILENAME, contextList.getReportAsHtml().toByteArray()))
+                    sendMail.send(msg, null, attachments)
                 }
-            } finally {
-                log.info { "Cronjob for executing sanity checks finished after ${(System.currentTimeMillis() - start).formatMillis()}" }
             }
-        }.start()
+        }
     }
 
     fun execute(): JobListExecutionContext {
@@ -127,6 +128,13 @@ class CronSanityCheckJob {
     }
 
     companion object {
+        private const val CRON = "\${projectforge.cron.sanityChecks}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "cron.sanityChecks", SchedulerJobArea.MAINTENANCE, CronSanityCheckJob::class.java, "cron",
+            SchedulerSchedule.Cron(CRON),
+        )
+
         @JvmStatic
         val FILENAME: String
             get() {

@@ -3523,6 +3523,70 @@
       "restartRequired": "Please note: (de)activation of plugins will take effect only after restart!",
       "title": "Plugins"
     },
+    "scheduler": {
+      "column": {
+        "area": "Area",
+        "avgDuration7d": "Ø duration (7 days)",
+        "duration": "Duration",
+        "errors7d": "Errors (7 days)",
+        "job": "Job",
+        "lastRun": "Last run",
+        "maxDuration7d": "Max. duration (7 days)",
+        "nextRun": "Next run",
+        "runs7d": "Runs (7 days)",
+        "schedule": "Schedule",
+        "skipped7d": "Skipped (7 days)",
+        "slow7d": "Slow (7 days)"
+      },
+      "detail": {
+        "daily": "Runs per day (last {arg0} days)",
+        "inactiveReason": "Why inactive",
+        "info": "Error / notes",
+        "lastError": "Last error",
+        "manual": "Manual",
+        "monthly": "Runs per month (older days)",
+        "noRuns": "No runs.",
+        "recentRuns": "Last runs since the start",
+        "slow": "Slow",
+        "start": "Start",
+        "storedRuns": "Stored failed and slow runs"
+      },
+      "hint": {
+        "notListed": "All jobs of the scheduler with their runs. Jobs of switched off features (e.g. gateway) are not listed.",
+        "readySince": "Up since {arg0}."
+      },
+      "overdueSince": "Due since {arg0}",
+      "runNow": {
+        "_": "Run now",
+        "inactive": "The job is inactive and wasn't started.",
+        "notAllowed": "Not possible: the job is inactive or still running.",
+        "question": "Start \"{arg0}\" now? It runs as if started by the scheduler.",
+        "running": "The job is still running and wasn't started once more.",
+        "started": "The job was started."
+      },
+      "runStatus": {
+        "error": "Error",
+        "skipped": "Skipped",
+        "success": "Successful"
+      },
+      "runningSince": "Running since {arg0}",
+      "schedule": {
+        "disabled": "Switched off",
+        "every": "Every {arg0}",
+        "invalid": "Invalid schedule"
+      },
+      "status": {
+        "disabled": "Switched off",
+        "failed": "Failed",
+        "inactive": "Inactive",
+        "ok": "OK",
+        "overdue": "Overdue",
+        "pending": "Not run yet",
+        "running": "Running",
+        "skipped": "Skipped"
+      },
+      "tab": "Scheduler"
+    },
     "statistics": {
       "title": "System statistics"
     },
