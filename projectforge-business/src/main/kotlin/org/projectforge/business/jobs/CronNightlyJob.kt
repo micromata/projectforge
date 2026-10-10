@@ -87,6 +87,8 @@ class CronNightlyJob {
         val SCHEDULER_JOB = SchedulerJobDefinition(
             "cron.nightly", SchedulerJobArea.MAINTENANCE, CronNightlyJob::class.java, "execute",
             SchedulerSchedule.Cron(CRON),
+            // The full re-index of the search index takes minutes, so the default minimum (60 s) would mark every run.
+            slowThresholdMillis = 15 * 60_000L,
         )
     }
 }

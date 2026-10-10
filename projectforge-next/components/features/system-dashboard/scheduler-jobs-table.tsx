@@ -6,7 +6,12 @@ import { useTranslations } from "next-intl";
 import {
   DataTable,
   DataTableColumnHeader,
+  DataTableColumnPanel,
+  useColumnStatePersistence,
   useDataTable,
+  useStoredColumnState,
+  useTableState,
+  type ColumnState,
   type FilterKind,
 } from "@/components/data-table";
 import { HighlightedText } from "@/components/shared/highlighted-text";
@@ -29,20 +34,34 @@ import {
 type T = ReturnType<typeof useTranslations>;
 type Column = ColumnDef<SchedulerJobEntry, unknown>;
 
-/**
- * The scheduled jobs: what they do, when they ran and run next, how long they took and how often they failed in
- * the last 7 days. Sorted by area at first; searchable over the texts, sortable and filterable per column. A click
- * opens the job's detail ([onOpen]).
- */
-export function SchedulerJobsTable({
-  jobs,
-  isFetching,
-  onOpen,
-}: {
+/** The user prefs of the table (`AdminSchedulerRest.columnStates` / `setColumnStates`). */
+const GRID = "adminScheduler";
+
+interface Props {
   jobs: SchedulerJobEntry[];
   isFetching: boolean;
   onOpen: (job: SchedulerJobEntry) => void;
-}) {
+}
+
+/**
+ * The scheduled jobs: what they do, when they ran and run next, how long they took and how often they failed in
+ * the last 7 days. Sorted by area at first; searchable over the texts, sortable and filterable per column, its
+ * columns reorderable, pinnable and hideable, stored in the user's prefs. Rendered once the stored state has
+ * arrived (or failed), so the columns don't jump from the default layout to the user's one. A click opens the
+ * job's detail ([onOpen]).
+ */
+export function SchedulerJobsTable(props: Props) {
+  const stored = useStoredColumnState(GRID);
+  if (stored.isPending) return null;
+  return <LoadedTable {...props} storedState={stored.data ?? {}} />;
+}
+
+function LoadedTable({
+  jobs,
+  isFetching,
+  onOpen,
+  storedState,
+}: Props & { storedState: ColumnState }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const [search, setSearch] = useState("");
@@ -62,21 +81,51 @@ export function SchedulerJobsTable({
       ].some((text) => text?.toLowerCase().includes(term))
     );
   }, [jobs, search, t]);
+  const state = useTableState({ restoredState: storedState });
   const table = useDataTable<SchedulerJobEntry>({
     columns,
     data: searched,
+    sorting: state.sorting,
+    onSortingChange: state.setSorting,
+    columnFilters: state.columnFilters,
+    onColumnFiltersChange: state.setColumnFilters,
+    columnVisibility: state.columnVisibility,
+    onColumnVisibilityChange: state.setColumnVisibility,
+    columnPinning: state.columnPinning,
+    onColumnPinningChange: state.setColumnPinning,
+    columnSizing: state.columnSizing,
+    onColumnSizingChange: state.setColumnSizing,
+    columnOrder: state.columnOrder,
+    onColumnOrderChange: state.setColumnOrder,
     enableColumnFilters: true,
     enableColumnResizing: true,
     manualPagination: true,
     getRowId: (row) => row.id,
     highlight: search,
   });
+  useColumnStatePersistence(GRID, {
+    sorting: state.sorting,
+    columnVisibility: state.columnVisibility,
+    columnPinning: state.columnPinning,
+    columnSizing: state.columnSizing,
+    columnOrder: state.columnOrder,
+  });
+  // Back to the columns as declared; the persistence then stores the empty state.
+  const resetColumns = () => {
+    state.setSorting([]);
+    state.setColumnVisibility({});
+    state.setColumnPinning({});
+    state.setColumnSizing({});
+    state.setColumnOrder([]);
+    state.setColumnFilters([]);
+  };
   return (
     <>
       <div className="flex items-center gap-2 pb-2">
         <div className="relative w-full max-w-md">
           <SearchInput value={search} onChange={setSearch} />
         </div>
+        <DataTableColumnPanel table={table} onReset={resetColumns} />
       </div>
       <DataTable<SchedulerJobEntry>
         table={table}

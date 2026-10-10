@@ -4,8 +4,8 @@
   "de": "Systemdashboard: neuer Tab „Scheduler“",
   "items": [
     {
-      "en": "Lists every scheduled job with area, description, schedule, last and next run, duration and status; overdue and failed jobs stand out, also as a tile in the overview.",
-      "de": "Listet alle geplanten Jobs mit Bereich, Beschreibung, Zeitplan, letztem und nächstem Lauf, Dauer und Status; überfällige und fehlgeschlagene Jobs fallen auf, auch als Kachel in der Übersicht."
+      "en": "Lists every scheduled job with area, description, schedule, last and next run, duration and status; sortable, with the columns stored per user like every list; overdue and failed jobs stand out, also as a tile in the overview.",
+      "de": "Listet alle geplanten Jobs mit Bereich, Beschreibung, Zeitplan, letztem und nächstem Lauf, Dauer und Status, sortierbar und mit pro Benutzer gespeicherten Spalten wie jede Liste; überfällige und fehlgeschlagene Jobs fallen auf, auch als Kachel in der Übersicht."
     },
     {
       "en": "The runs are stored per day (failed and slow runs one by one) and merged into months after 90 days.",
