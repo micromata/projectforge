@@ -180,6 +180,7 @@ export function attachmentColumns(
           enableSorting: false,
           enableColumnFilter: false,
           enableResizing: false,
+          enableHiding: false,
           header: () => null,
           cell: ({ row }) => <SelectCell attachment={row.original} />,
         },

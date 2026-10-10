@@ -25,19 +25,24 @@ package org.projectforge.plugins.datatransfer.rest
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.aggrid.AGGridSupport
+import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -69,6 +74,9 @@ class DataTransferFilesRest {
     )
 
     class ObserveRequest(var observe: Boolean? = null)
+
+    @Autowired
+    private lateinit var agGridSupport: AGGridSupport
 
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
@@ -169,6 +177,24 @@ class DataTransferFilesRest {
         return getView(id)
     }
 
+    /**
+     * Stores the column state of the files table (order, width, visibility, pinning, sorting) in the user's
+     * prefs — one for all areas, as the columns are the same everywhere.
+     */
+    @AccessChecked("Own user prefs only")
+    @PostMapping(RestPaths.SET_COLUMN_STATES)
+    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(GRID_CATEGORY, request)
+        return "OK"
+    }
+
+    /** The user's stored column state of the files table, or an empty one if there is none yet. */
+    @AccessChecked("Own user prefs only")
+    @GetMapping(RestPaths.COLUMN_STATES)
+    fun getColumnStates(): GridState {
+        return agGridSupport.getGridState(GRID_CATEGORY) ?: GridState()
+    }
+
     private fun isLoggedInUserObserver(
         dto: DataTransferArea,
         user: PFUserDO = ThreadLocalUserContext.loggedInUser!!
@@ -203,5 +229,9 @@ class DataTransferFilesRest {
         }
         dto.userWantsToObserve = isLoggedInUserObserver(dto)
         return Pair(dbObj, dto)
+    }
+
+    companion object {
+        private const val GRID_CATEGORY = "datatransferFiles"
     }
 }
