@@ -113,8 +113,12 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await expect(observe).not.toBeChecked();
 
       await tab(page, t("plugins.datatransfer.audit._")).click();
+      // Exact: the download events below have their own heading that contains this one.
       await expect(
-        page.getByText(t("plugins.datatransfer.audit.events"))
+        page.getByRole("heading", {
+          name: t("plugins.datatransfer.audit.events"),
+          exact: true,
+        })
       ).toBeVisible();
       await expect(page.getByText(name).first()).toBeVisible();
 

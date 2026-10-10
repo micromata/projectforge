@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
@@ -61,45 +62,45 @@ public class TaskNode implements IdObject<Long>, Serializable {
    */
   private static final Logger log = LoggerFactory.getLogger(TaskNode.class);
 
+  /*
+   * The tree is read by many requests at once while TaskTree changes single nodes (insert, move, booked time sheets,
+   * order positions). Therefore every field written after construction is volatile, so a reader sees the latest
+   * value and never one cached by its own thread, and values belonging together are replaced as one immutable
+   * object (see TimesheetStats).
+   */
+
   /**
    * Reference to the parent task node with the parentTaskID.
    */
-  TaskNode parent = null;
+  volatile TaskNode parent = null;
 
-  ProjektDO projekt;
-
-  /**
-   * Total duration of all time sheets of this task (excluding the child tasks) in seconds.
-   */
-  long totalDuration = 0;
+  volatile ProjektDO projekt;
 
   /**
-   * Earliest start time of all time sheets of this task (excluding the child tasks) or null if none exist.
+   * Time sheet statistics of this task (excluding the child tasks). Null means outdated: it is read again from the
+   * data base on next access (see TaskTree.resetTotalDuration).
    */
-  java.util.Date earliestTimesheetStartDate;
-
-  /**
-   * Latest stop time of all time sheets of this task (excluding the child tasks) or null if none exist.
-   */
-  java.util.Date latestTimesheetStopDate;
+  private volatile TimesheetStats timesheetStats = TimesheetStats.NONE;
 
   /**
    * Sum of all ordered person days excluding descendant nodes. Ordered person days are defined by the sum of all
    * assigned order position's person days. Used and set by task tree.
    */
-  BigDecimal orderedPersonDays;
+  volatile BigDecimal orderedPersonDays;
 
   /**
-   * References to all child nodes in an ArrayList from element typ TaskNode.
+   * References to all child nodes. Copy-on-write: the sums, dates and consumption walk the children recursively
+   * while an insert or move adds or removes a child, which would otherwise throw a
+   * ConcurrentModificationException in the readers. Created eagerly, so two threads can't each create their own.
    */
-  List<TaskNode> children = null;
+  final List<TaskNode> children = new CopyOnWriteArrayList<>();
 
   /**
    * The data of this TaskNode.
    */
-  TaskDO task = null;
+  volatile TaskDO task = null;
 
-  boolean bookableForTimesheets;
+  volatile boolean bookableForTimesheets;
 
   /**
    * For every group with access to this node the permissions will be stored here.
@@ -145,10 +146,8 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   public Long getParentId() {
-    if (parent == null) {
-      return null;
-    }
-    return parent.getId();
+    final TaskNode parent = this.parent;
+    return parent != null ? parent.getId() : null;
   }
 
   /**
@@ -248,13 +247,11 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   private void getDescendantIds(final List<Long> descendants) {
-    if (this.children != null) {
-      for (final TaskNode node : this.children) {
-        if (!descendants.contains(node.getId())) {
-          // Paranoia setting for cyclic references.
-          descendants.add(node.getId());
-          node.getDescendantIds(descendants);
-        }
+    for (final TaskNode node : this.children) {
+      if (!descendants.contains(node.getId())) {
+        // Paranoia setting for cyclic references.
+        descendants.add(node.getId());
+        node.getDescendantIds(descendants);
       }
     }
   }
@@ -284,12 +281,9 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   /**
-   * Returns all children of this task in an ArrayList with elements from type TaskNode.
+   * Returns all children of this task (copy-on-write, safe to iterate while the tree changes).
    */
   public List<TaskNode> getChildren() {
-    if (this.children == null) {
-      this.children = new ArrayList<>();
-    }
     return this.children;
   }
 
@@ -305,16 +299,13 @@ public class TaskNode implements IdObject<Long>, Serializable {
    * Has this task any children?
    */
   public boolean hasChildren() {
-    return this.children != null && !this.children.isEmpty() ? true : false;
+    return !this.children.isEmpty();
   }
 
   /**
    * Checks if the given node is a child / descendant of this node.
    */
   public boolean isParentOf(final TaskNode node) {
-    if (this.children == null) {
-      return false;
-    }
     for (final TaskNode child : this.children) {
       if (child.equals(node)) {
         return true;
@@ -383,9 +374,6 @@ public class TaskNode implements IdObject<Long>, Serializable {
         log.error("Oups, cyclic reference detection: taskId = " + getId() + ", parentTaskId = " + parent.getId());
         return;
       }
-      if (this.children == null) {
-        this.children = new ArrayList<>();
-      }
       this.children.add(child);
     }
   }
@@ -396,8 +384,6 @@ public class TaskNode implements IdObject<Long>, Serializable {
   void removeChild(final TaskNode child) {
     if (child == null) {
       log.error("Oups, child is null, can't remove it from parent.");
-    } else if (this.children == null) {
-      log.error("Oups, this node has no children to remove.");
     } else if (!this.children.contains(child)) {
       log.error("Oups, this node doesn't contain given child.");
     } else {
@@ -493,21 +479,52 @@ public class TaskNode implements IdObject<Long>, Serializable {
   }
 
   /**
+   * Time sheet statistics of a single task node (excluding the child tasks), replaced as a whole so that a reader never
+   * sees the duration of one read beside the dates of another.
+   *
+   * @param duration          Total duration of all time sheets in seconds.
+   * @param earliestStartDate Earliest start time of all time sheets or null if none exist.
+   * @param latestStopDate    Latest stop time of all time sheets or null if none exist.
+   */
+  record TimesheetStats(long duration, java.util.Date earliestStartDate, java.util.Date latestStopDate)
+          implements Serializable {
+    static final TimesheetStats NONE = new TimesheetStats(0, null, null);
+  }
+
+  void setTimesheetStats(final long duration, final java.util.Date earliestStartDate,
+                         final java.util.Date latestStopDate) {
+    this.timesheetStats = new TimesheetStats(duration, earliestStartDate, latestStopDate);
+  }
+
+  /**
+   * Marks the time sheet statistics as outdated, they will be read again from the data base on next access.
+   */
+  void resetTimesheetStats() {
+    this.timesheetStats = null;
+  }
+
+  private TimesheetStats getTimesheetStats(final TaskTree taskTree) {
+    TimesheetStats stats = this.timesheetStats;
+    if (stats == null) {
+      taskTree.readTotalDuration(this.getId());
+      stats = this.timesheetStats;
+    }
+    // Still null if this node was replaced by a refresh of the tree meanwhile.
+    return stats != null ? stats : TimesheetStats.NONE;
+  }
+
+  /**
    * Gets the total duration of all time sheets in seconds.
    *
    * @param recursive If true, then the durations of all time sheets of the sub tasks will be added.
    * @return duration in seconds
    */
   public long getDuration(final TaskTree taskTree, final boolean recursive) {
-    if (totalDuration < 0) {
-      taskTree.readTotalDuration(this.getId());
-    }
-    if (!recursive || children == null) {
-      return totalDuration;
-    }
-    long duration = totalDuration;
-    for (final TaskNode child : children) {
-      duration += child.getDuration(taskTree, true);
+    long duration = getTimesheetStats(taskTree).duration();
+    if (recursive) {
+      for (final TaskNode child : children) {
+        duration += child.getDuration(taskTree, true);
+      }
     }
     return duration;
   }
@@ -519,11 +536,8 @@ public class TaskNode implements IdObject<Long>, Serializable {
    * @return The earliest start time or null if no time sheet exists.
    */
   public java.util.Date getEarliestTimesheetStartDate(final TaskTree taskTree, final boolean recursive) {
-    if (totalDuration < 0) {
-      taskTree.readTotalDuration(this.getId());
-    }
-    java.util.Date result = earliestTimesheetStartDate;
-    if (recursive && children != null) {
+    java.util.Date result = getTimesheetStats(taskTree).earliestStartDate();
+    if (recursive) {
       for (final TaskNode child : children) {
         final java.util.Date childDate = child.getEarliestTimesheetStartDate(taskTree, true);
         if (childDate != null && (result == null || childDate.before(result))) {
@@ -541,11 +555,8 @@ public class TaskNode implements IdObject<Long>, Serializable {
    * @return The latest stop time or null if no time sheet exists.
    */
   public java.util.Date getLatestTimesheetStopDate(final TaskTree taskTree, final boolean recursive) {
-    if (totalDuration < 0) {
-      taskTree.readTotalDuration(this.getId());
-    }
-    java.util.Date result = latestTimesheetStopDate;
-    if (recursive && children != null) {
+    java.util.Date result = getTimesheetStats(taskTree).latestStopDate();
+    if (recursive) {
       for (final TaskNode child : children) {
         final java.util.Date childDate = child.getLatestTimesheetStopDate(taskTree, true);
         if (childDate != null && (result == null || childDate.after(result))) {
@@ -591,10 +602,8 @@ public class TaskNode implements IdObject<Long>, Serializable {
   Element addXMLElement(final Element parent) {
     final Element el = parent.addElement("task").addAttribute("id", String.valueOf(this.getId()))
             .addAttribute("name", this.task.getTitle());
-    if (this.children != null) {
-      for (final TaskNode node : this.children) {
-        node.addXMLElement(el);
-      }
+    for (final TaskNode node : this.children) {
+      node.addXMLElement(el);
     }
     return el;
   }

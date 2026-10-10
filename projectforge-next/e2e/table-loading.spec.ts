@@ -22,6 +22,14 @@ const ROW = "tbody tr[data-row-id]";
  */
 const HOLD_MS = 2500;
 
+/**
+ * How long the overlay may take to go once the answer is let through. Generous on purpose: the hold
+ * is what is under test, not the speed of what follows — and the vacation list answers with every
+ * entry at once (paged in the browser, over 10,000 rows on the test system), which a dev server under
+ * the load of the parallel lanes takes seconds to parse and render.
+ */
+const SETTLE_MS = HOLD_MS + 15_000;
+
 /** Delays every POST to the entity's endpoints, so the wait is long enough to be seen. */
 async function holdBackPosts(page: Page, entity: string): Promise<void> {
   await page.route(`**/rs/${entity}/**`, async (route) => {
@@ -60,7 +68,7 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     });
     await expectVisibleOverlay(overlay);
     // And gone again once the rows are the answer.
-    await expect(overlay).toHaveCount(0, { timeout: 2 * HOLD_MS });
+    await expect(overlay).toHaveCount(0, { timeout: SETTLE_MS });
   });
 
   test("a server-laid-out list page shows it while its search action runs", async ({
@@ -83,7 +91,7 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
       hasText: format.t("loading"),
     });
     await expectVisibleOverlay(overlay);
-    await expect(overlay).toHaveCount(0, { timeout: 2 * HOLD_MS });
+    await expect(overlay).toHaveCount(0, { timeout: SETTLE_MS });
   });
 
   test("shows it over the skeleton of a first load, not only over rows", async ({
@@ -104,7 +112,7 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     });
     await expectVisibleOverlay(overlay);
     await expect(page.locator(ROW).first()).toBeVisible({
-      timeout: 2 * HOLD_MS,
+      timeout: SETTLE_MS,
     });
     await expect(overlay).toHaveCount(0);
   });
