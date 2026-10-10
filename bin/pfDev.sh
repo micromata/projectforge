@@ -42,7 +42,8 @@ Commands:
   release <X.Y.Z> [--skip-tests]
                    Release X.Y.Z: checks changelog/changelog.json (the release on top,
                    tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
-                   only; X.Y.0 also needs a news X.Y). A missing release entry is added
+                   only; its summary and overview, en+de, are in the release entry or in
+                   changelog/unreleased/release.json). A missing release entry is added
                    (default titles, today, published or a mini release, asked first);
                    folds changelog/unreleased/ into it, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
