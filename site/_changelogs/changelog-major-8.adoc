@@ -1,16 +1,94 @@
 ---
-title: "ProjectForge 8.1 released"
+title: "ProjectForge 8"
 date: 2025-09-01
-sort_key: "2025-09-01 0011 0"
+sort_key: "2025-09-01 0011"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
+[discrete.changelog-release]
+=== ProjectForge 8.0: new persistence layer
+
+[.changelog-source]
+__2024-12-23, tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__
+
+- **Persistence layer** completely refactored (Spring Data JPA)
+- **Own CardDAV server** for contact synchronization
+- **Docker images** for arm64 and amd64
+- Java 17, Spring 6, Hibernate 6, jakarta namespace
+
+.Overview
+[%collapsible]
+====
+- Own CardDAV server for contact synchronization.
+- Docker images for arm64 and amd64.
+- Java 17, Spring 6, Hibernate 6, jakarta namespace.
+====
+
+.All changes
+[%collapsible]
+====
+Major release with a completely refactored persistence layer and current major versions of all libraries.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Own CardDav-Implementation for synchronization of contacts (tested with Apple contacts (macOS/iOS), Thunderbird).
+- Sipgate interface implemented for synchronization of address.
+- Calendar view improved.
+- Excel-Export of vacations for all employees, teams and colleagues.
+- Birthdaybutler for monthly birthday list.
+- Export of timesheets as xlsx.
+- Attachments to books added.
+- lots of minor improvements.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- several bugs fixed.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Docker container available for arm64 as well as for amd64 (Linux and macOS X).
+- Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.
+- technical debt reduced.
+- New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.1: stability and memory fixes
+
+[.changelog-source]
+__2025-09-01, tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE]__
+
+- **Update strongly recommended:** stability and memory fixes
+- Fix: major memory leak in data transfer
+- Fix: frequent page errors caused by Wicket memory issues
+- **AI time savings** in time sheets with reporting
+- **Personal menu** customizable via drag and drop
+- **Forecast and order book** with planning data and forecast export
+
+.Overview
+[%collapsible]
+====
+- AI time savings in time sheets with reporting.
+- Customizable personal menu via drag and drop.
+- Forecast and order book: snapshots, planning data and filterable forecast export.
+====
+
+.All changes
+[%collapsible]
+====
+[red]##**Update strongly recommended for all users.**## This release fixes a major memory leak in the data transfer module and frequent page errors caused by Wicket memory issues.
+
 [red]##**Update strongly recommended for all users**## - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).
 
 **Stability proven** - This release has been running stable for many weeks without interruption in two heavily used installations.
-
-__Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE].__
 
 ++++
 {% include tag.html tag="improved" %}
@@ -103,3 +181,4 @@ __Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE].__
 ++++
 {% include download-link.html %}
 ++++
+====

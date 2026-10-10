@@ -15,6 +15,7 @@ import {
   useStoredColumnState,
   type ColumnState,
 } from "@/components/data-table";
+import { ScriptPageButtons } from "@/components/features/script/script-page-buttons";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
@@ -347,7 +348,15 @@ function DeclaredList<
               />
             )
           }
-          actions={ListActions && <ListActions filter={list.filter} />}
+          actions={
+            <>
+              {ListActions && <ListActions filter={list.filter} />}
+              {/* Not on a transient jump: the scripts get the stored filter, which isn't this one. */}
+              {!transient && (
+                <ScriptPageButtons target={`list:${page.entity}`} />
+              )}
+            </>
+          }
           gearMenu={
             <ListGearMenu
               entity={page.entity}

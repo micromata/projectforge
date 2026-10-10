@@ -479,14 +479,16 @@
   },
   "cancel": "Abbrechen",
   "changelog": {
+    "allChanges": "Alle Änderungen",
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
-    "news": "Neuigkeiten",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
+    "overview": "Überblick",
     "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
     "snapshot": "Snapshot-Stand",
+    "snapshots": "Entwicklungs-Snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {
@@ -3118,6 +3120,7 @@
   "scripting": {
     "download": {
       "filename": {
+        "_": "Ergebnisdatei",
         "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
         "info": "Downloaddatei der letzten Scriptausführung."
       }
@@ -3128,6 +3131,14 @@
     "script": {
       "_": "Script",
       "availableVariables": "Verfügbare Variablen",
+      "buttonLabel": {
+        "_": "Button-Beschriftung",
+        "info": "Die Beschriftung des Buttons auf den gewählten Seiten. Ohne Angabe der Name des Scripts."
+      },
+      "buttonTooltip": {
+        "_": "Button-Tooltip",
+        "info": "Der Tooltip des Buttons auf den gewählten Seiten. Ohne Angabe die Beschreibung des Scripts."
+      },
       "code": "Code",
       "downloadBackups": "Download Backups",
       "downloadEffectiveScript": {
@@ -3162,10 +3173,17 @@
           "preparing": "Die Skriptausführung wird vorbereitet...",
           "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
           "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
-        }
+        },
+        "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
       },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "output": "Ausgabe",
+      "pageButtons": "Seiten-Buttons",
+      "pageTargets": {
+        "_": "Seiten",
+        "info": "Diese Seiten zeigen oben rechts einen Button für dieses Script, für alle, die es ausführen dürfen. Das Script erhält den aktuellen Filter der Seite als Variable `pageContext`, z. B. `pageContext.list()` für die angezeigten Einträge."
+      },
       "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {

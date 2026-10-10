@@ -44,11 +44,20 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/myScriptExecute")
 class MyScriptExecuteRest : AbstractScriptExecuteRest() {
-    /** The execution form: the script and the file of the user's last execution. */
+    /**
+     * The execution form: the script, the file of the user's last execution, the outcome of the user's
+     * last execution of this script and the page the script was started from by its button, if any (whose
+     * context the script gets, see [ScriptPageContext]).
+     */
     class ExecuteForm(
         val script: Script,
         val download: DownloadFileSupport.Download?,
+        val origin: ScriptPageTargets.PageTarget? = null,
+        val lastExecution: ExecutionResult? = null,
     )
+
+    @Autowired
+    private lateinit var scriptPageTargets: ScriptPageTargets
 
     @Autowired
     private lateinit var myScriptDao: MyScriptDao
@@ -61,10 +70,16 @@ class MyScriptExecuteRest : AbstractScriptExecuteRest() {
 
     @AccessChecked("DAO: find of MyScriptDao (executableByUserIds/executableByGroupIds)")
     @GetMapping("load")
-    fun load(request: HttpServletRequest, @RequestParam("id") id: Long): ExecuteForm {
+    fun load(
+        request: HttpServletRequest,
+        @RequestParam("id") id: Long,
+        @RequestParam("from", required = false) from: String?,
+    ): ExecuteForm {
         val scriptDO = myScriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
         val script = createUserView(scriptDO)
         prefillFromRecentCall(script, scriptDO)
-        return ExecuteForm(script, getDownload(request))
+        // Only a page the script is configured for: the url is user input.
+        val origin = from?.takeIf { scriptDO.pageTargetList.contains(it) }?.let { scriptPageTargets.getPageTarget(it) }
+        return ExecuteForm(script, getDownload(request), origin, getLastExecution(request, id))
     }
 }

@@ -114,12 +114,53 @@ table td a {
   color: #d0021b;
 }
 
-// A news of the changelog (news: true in the front matter), shown above the releases of its version.
-.changelog-news .article-content {
-  border-left: 4px solid #1e87f0;
+// A release of the changelog: heading, source line, summary (always shown), then the collapsible levels
+// "Overview" and "All changes" ([%collapsible] in AsciiDoc → <details>), the snapshots of a major collapsed.
+// The latest release, on top of the changelog page: the first release of a major page is its opening one.
+.changelog-latest {
+  background: $alert-primary-background;
+  color: $alert-primary-color;
+  font-size: 1.125rem;
+  margin-bottom: 24px;
+  padding: 15px 20px;
+}
+
+.changelog-latest p {
+  margin: 0;
+}
+
+.changelog-latest .changelog-binaries {
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.changelog-release {
+  margin-top: 40px;
+  margin-bottom: 4px;
+}
+
+.changelog-source {
+  color: #999;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+
+.article-content details {
+  margin: 8px 0;
+}
+
+.article-content details > summary {
+  color: #1e87f0;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.article-content details > .content {
+  border-left: 3px solid #e5e5e5;
+  margin-top: 8px;
   padding-left: 16px;
 }
 
-.changelog-news-label {
-  margin-bottom: 8px;
+.article-content details.changelog-snapshots {
+  margin-top: 40px;
 }

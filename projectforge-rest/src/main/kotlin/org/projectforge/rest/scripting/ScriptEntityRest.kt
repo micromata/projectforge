@@ -70,6 +70,9 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
     @Autowired
     private lateinit var scriptExecution: ScriptExecution
 
+    @Autowired
+    private lateinit var scriptPageTargets: ScriptPageTargets
+
     @PostConstruct
     private fun postConstruct() {
         /**
@@ -86,6 +89,7 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
 
     override fun transformForDB(dto: Script): ScriptDO {
         val scriptDO = ScriptDO()
+        dto.pageTargetIds = scriptPageTargets.sanitize(dto.pageTargetIds)
         dto.copyTo(scriptDO)
         scriptDO.scriptAsString = dto.script
         if (dto.id != null) {
@@ -129,6 +133,16 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
     @GetMapping("examples")
     fun getExamples(): List<Example> {
         return ExampleScripts.exampleFiles.mapIndexed { index, example -> Example(index, example.title) }
+    }
+
+    /**
+     * The pages a script can show its button on, for the edit form (see [ScriptDO.pageTargets]).
+     */
+    @AccessChecked("DAO: select access of ScriptDao (FINANCE/CONTROLLING group); no data: page titles only")
+    @GetMapping("pageTargets")
+    fun getPageTargets(): List<ScriptPageTargets.PageTarget> {
+        baseDao.hasLoggedInUserSelectAccess(true)
+        return scriptPageTargets.getAll()
     }
 
     @AccessChecked("DAO: find of ScriptDao (FINANCE/CONTROLLING group)")

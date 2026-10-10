@@ -20,20 +20,27 @@ export interface ChangelogRelease {
   fromCommit?: string;
   toCommit?: string;
   intro?: string[];
+  /** Level 1: a few keywords and the important fixes, always shown. */
+  summary?: string[];
+  /** Level 2: about one line per topic, unfolded on request. */
+  overview?: string[];
+  /** Level 3 (with the intro): all changes, unfolded on request. */
   sections: ChangelogSection[];
 }
 
-export interface ChangelogNews {
-  version: string;
-  date: string;
-  title: string;
-  text: string;
-  highlights?: string[];
-  /** The release the news is shown above: the newest of its version, set by the generator. */
-  releaseId: string;
+/**
+ * A major version, grouped by the generator: the release opening it (none before the first one), its updates and
+ * the snapshots of develop leading up to it, both newest first.
+ */
+export interface ChangelogGroup {
+  major: string;
+  head?: ChangelogRelease;
+  updates: ChangelogRelease[];
+  snapshots: ChangelogRelease[];
 }
 
 export interface Changelog {
-  news: ChangelogNews[];
-  releases: ChangelogRelease[];
+  /** The entries of changelog/unreleased/, not released yet. */
+  unreleased?: ChangelogRelease;
+  groups: ChangelogGroup[];
 }

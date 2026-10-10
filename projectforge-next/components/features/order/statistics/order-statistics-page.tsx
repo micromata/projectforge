@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import { ScriptPageButtons } from "@/components/features/script/script-page-buttons";
+import { TAB_PARAM } from "@/components/shared/edit-page-tabs";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Spinner } from "@/components/shared/spinner";
@@ -53,7 +55,19 @@ export function OrderStatisticsPage() {
       <PageTitleRow
         category={t("menu.projectmanagement")}
         title={t("menu.fibu.orderStatistics")}
-      />
+      >
+        {meta.data && (
+          // The open tab as useTabParam resolves it in OrderStatistics below.
+          <ScriptPageButtons
+            target={`orderStatistics:${
+              meta.data.contributionMargin &&
+              params.get(TAB_PARAM) === "contributionMargin"
+                ? "contributionMargin"
+                : "forecast"
+            }`}
+          />
+        )}
+      </PageTitleRow>
       {meta.isError ? (
         <p className="p-4 text-sm text-destructive">
           {t("access.exception.noAccess")}

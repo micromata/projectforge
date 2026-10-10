@@ -39,6 +39,9 @@ export function toFormValues(script: ScriptDetail): ScriptValues {
     executableByGroups: script.executableByGroups ?? [],
     executableByUsers: script.executableByUsers ?? [],
     executeAsUser: script.executeAsUser ?? null,
+    pageTargetIds: script.pageTargetIds ?? [],
+    buttonLabel: script.buttonLabel ?? null,
+    buttonTooltip: script.buttonTooltip ?? null,
     created: script.created ?? null,
   };
 }

@@ -45,7 +45,7 @@ test.describe("scripts", { tag: "@lane-script" }, () => {
     }
   });
 
-  test("executes ad-hoc code and shows its result", async ({
+  test("executes ad-hoc code and shows its result in the output tab", async ({
     loggedInPage: page,
   }) => {
     // Compiling a Kotlin script takes a while, the first one of a server's life the longest.
@@ -57,9 +57,17 @@ test.describe("scripts", { tag: "@lane-script" }, () => {
     await expect(editor).toBeVisible();
     await editor.click();
     await page.keyboard.press("ControlOrMeta+A");
-    await page.keyboard.insertText(`"${MARKER} " + (6 * 7)`);
+    // Running for a while, so the output tab is seen opened at the start of the run, not at its end.
+    await page.keyboard.insertText(
+      `Thread.sleep(3000)\n"${MARKER} " + (6 * 7)`
+    );
     await page.getByRole("button", { name: t("execute"), exact: true }).click();
 
+    // The output has a tab of its own, which the page switches to as soon as the run starts.
+    await expect(
+      page.getByRole("tab", { name: t("scripting.script.output") })
+    ).toHaveAttribute("aria-selected", "true", { timeout: 2_000 });
+    await expect(page.getByText(`${MARKER} 42`)).toHaveCount(0);
     // First: the log may repeat the result.
     await expect(page.getByText(`${MARKER} 42`).first()).toBeVisible({
       timeout: 100_000,

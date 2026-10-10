@@ -1,12 +1,11 @@
 import type {
   ChangelogItem,
-  ChangelogNews,
   ChangelogRelease,
   ChangelogSection,
 } from "./types";
 
 /**
- * The full text search of the changelog page, over everything a release or news holds — collapsed or
+ * The full text search of the changelog page, over everything a release holds — collapsed or
  * not. The search string is split into words, and a text matches if it contains all of them, case
  * insensitive. Markup of the texts (`**`, `{red}`, link targets) is searched as it is; it never gets in
  * the way of a word.
@@ -40,7 +39,8 @@ function filterItem(
  * The release reduced to its matching items, or null if nothing in it matches. An item matches if the
  * words are found in it together with what it stands under: the release (title, version, date, intro,
  * tag, commits), the section type and the group title — so "fixed ldap" finds the LDAP fixes, and a
- * match of the release alone keeps all its items.
+ * match of the release alone keeps all its items. So does a match in its summary or overview, which are
+ * short and always kept whole.
  */
 export function filterRelease(
   release: ChangelogRelease,
@@ -56,6 +56,13 @@ export function filterRelease(
     release.toCommit,
     ...(release.intro ?? []),
   ];
+  if (
+    matches(
+      [...context, ...(release.summary ?? []), ...(release.overview ?? [])],
+      terms
+    )
+  )
+    return release;
   const sections = release.sections
     .map((section): ChangelogSection | null => {
       const items = section.items
@@ -64,23 +71,5 @@ export function filterRelease(
       return items.length > 0 ? { ...section, items } : null;
     })
     .filter((section): section is ChangelogSection => section !== null);
-  return sections.length > 0 || matches(context, terms)
-    ? { ...release, sections }
-    : null;
-}
-
-export function newsMatches(news: ChangelogNews, terms: string[]): boolean {
-  return (
-    terms.length === 0 ||
-    matches(
-      [
-        news.title,
-        news.version,
-        news.date,
-        news.text,
-        ...(news.highlights ?? []),
-      ],
-      terms
-    )
-  );
+  return sections.length > 0 ? { ...release, sections } : null;
 }

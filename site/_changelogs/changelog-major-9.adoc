@@ -1,0 +1,1180 @@
+---
+title: "ProjectForge 9"
+date: 2026-10-08
+sort_key: "2026-10-08 0032"
+---
+:page-liquid:
+// Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+[discrete.changelog-release]
+=== ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date
+
+[.changelog-source]
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__
+
+- **New frontend projectforge-next:** all pages migrated, Wicket removed
+- **Problem dashboard** and error digest mails for operations
+- **Charts and key figures:** order statistics, contribution margins, forecast
+- **E-invoicing** (XRechnung, ZUGFeRD) and **identity provider** integration
+- **Robust interfaces** to external systems
+- Up-to-date stack: Spring Boot 4.1, Hibernate 7.4, Next.js 16
+
+.Overview
+[%collapsible]
+====
+- **New frontend projectforge-next:** all pages migrated, including calendar, time sheets, order book, invoices, structure tree, access rights, monthly report, liquidity planning and administration. The classic Wicket module has been removed.
+- **Problem dashboard:** log events are classified and aggregated into problems with a persistent status, with links into the log viewer, a JSON export for an AI-assisted analysis and prioritized error digest mails instead of one mail per error.
+- **Charts and key figures:** order statistics with budget scenario, contribution margins, forecast, invoicing and net sum charts with a year-earlier comparison, invoicing quota and error figures in the system statistics.
+- **Robust interfaces:** timeouts, connection pools, bounded sync threads and sync statistics for LDAP, identity provider, iCal, SMS, Sipgate and the gateway; an unreachable system fails fast instead of blocking, failing calendar subscriptions are retried with a growing interval.
+- **E-invoicing:** XRechnung and ZUGFeRD export of outgoing invoices, PEPPOL validation, cancellation invoices and an e-invoice checker.
+- **Identity provider:** synchronization of users, groups and passwords with Authentik or Keycloak (module projectforge-idp).
+- **Finance:** recurring liquidity entries, DATEV import of incoming invoices, salary import, currency conversion with online exchange rates.
+- **Technology:** Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11, Kotlin 2.3, Next.js 16, React 19, TanStack Table.
+====
+
+.All changes
+[%collapsible]
+====
+ProjectForge 9.0 is a major update. The classic Wicket user interface was replaced by **projectforge-next**, a new frontend built with Next.js and React, and all libraries were brought up to date. It also brings a problem dashboard for operations, many new charts with key figures, robust interfaces to external systems, e-invoicing and an identity provider integration. The development builds leading up to it are listed in the changelog as 8.2 snapshots.
+
+[red]##**Major update**## - The classic Wicket user interface is gone: all pages run in **projectforge-next**, the only login is `+/next/login+`. This release sums up all 8.2 snapshot builds.
+
+**Before updating** - Back up the database; its schema is migrated automatically at the first start.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **projectforge-next**
+  * New frontend built with Next.js and React, with light and dark theme, compact top navigation and a quick access search for the menu.
+  * Tables with column filters, pinning, reordering, saved layouts and filter favorites; multi selection and mass update for many entities.
+  * Login with two-factor authentication and password reset under `+/next/login+`; __stay logged in__ with one token per device.
+- **E-invoicing**
+  * XRechnung export and ZUGFeRD PDF with embedded XML, PEPPOL validation, invoice attachments embedded in the export.
+  * Cancellation invoices and an e-invoice checker for ZUGFeRD/XRechnung files.
+- Identity provider integration (module projectforge-idp): users, groups and passwords synchronized with Authentik or Keycloak, including WLAN password hashes.
+- **Problem dashboard**
+  * Log events are classified at the call site and aggregated in the database into problems with a persistent status.
+  * Dashboard with tiles per subsystem, links into the log viewer, search of a problem's occurrences in the log files and an export as JSON for an AI-assisted analysis.
+  * Prioritized error digest mails per audience instead of one mail per error; early digest for new security and data problems.
+- **Charts and key figures**
+  * Order statistics with its own filter, charts, data tables, budget scenario and warnings about lost budgets.
+  * Contribution margins in the order book, forecast charts, net sum charts of outgoing invoices and invoice statistics with a year-earlier comparison.
+  * Invoicing quota as a chart and in __My statistics__; error figures in the system statistics.
+- Recurring series in the liquidity planning.
+- Address import and export as vCard and from free text, with a diff view and a warning about duplicates.
+- Incoming invoices imported from DATEV, with currency and exchange rates looked up online.
+- Gateway for external data transfer with delta sync, CardDAV favorites and a public heartbeat.
+- ICS import of team events with a diff preview.
+- Changelog with news, search and highlighting under `+/next/changelog+`, also in German.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- All pages migrated to projectforge-next, among them calendar, time sheets, order book, outgoing and incoming invoices, structure tree, access rights, monthly report, liquidity planning, DATEV and salary import, HR planning, Gantt charts and administration; links and bookmarks of the classic pages lead to the new ones.
+- Configurable customer groups and business units as filters for time sheets, invoices, projects and orders.
+- Structure element picker with recently used entries and favorites; JIRA issue links in lists and forms.
+- Server-side paging of order and invoice lists; deleted entries can be restored.
+- **Robust interfaces**
+  * Timeouts and shared connection pools for LDAP, identity provider, iCal, SMS, Sipgate and the gateway, configurable per interface.
+  * An unreachable or too slow system fails fast with one warning instead of blocking; sync runs use bounded threads instead of a new thread per trigger.
+  * Failing calendar subscriptions are retried with a growing interval and deactivated after 90 days.
+  * Sync statistics with timing and counts per run, shown in the system statistics.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Order book and invoices no longer freeze when two caches refresh at once.
+- Many N+1 query floods removed; large ID lists stay under the database's bind parameter limit.
+- Subscribed calendars, the MS Project export of Gantt charts, the Word-to-PDF conversion and the LDAP sync repaired.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- CSRF protection and complete field validation for the REST calls; access checks for all REST endpoints, enforced by an architecture test.
+- Security review of the filter chain: trusted proxies, client IP detection, throttling, safe redirect URLs.
+- 2FA required for sensitive pages; deleted groups never grant access rights.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- Module projectforge-wicket with all classic pages, Wicket-only i18n keys and libraries no longer used.
+- AG Grid (replaced by TanStack Table), react-scripts (replaced by Vite) and JAXB.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Legacy XML user preferences are migrated to the JSON store.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11.
+- Kotlin 2.3, JUnit 6, Gradle 9.8, Next.js 16, React 19, TanStack Table, Vite and Vitest.
+- Versions are numbered X.Y.Z and built by a release script, the version is set in one place.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 9.0.3 released
+
+[.changelog-source]
+__2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__
+
+- **New file store** in the database replacing the JCR
+- Calendar: book several days also on already booked days
+- Fixes from the **problem dashboard**
+- Fix: user settings saved again on logout
+
+.Overview
+[%collapsible]
+====
+- **File store:** with `+projectforge.files.store=db+` all files are stored in the database, data transfer files in the file system; existing installations stay on the JCR until switched.
+- **JCR migration:** after switching, files are copied in the background and verified by size and checksum, with a report; switching back or a rollback stays possible. The system page shows the active store and starts backup ZIP and migration.
+- **Backups:** the admin guide describes a main dump and a separate dump of the files; the backup purge handles several prefixes.
+- **Calendar:** booking several days also books days that already have time sheets, as long as nothing collides; the preview shows each overlap.
+- **Data transfer:** areas sorted by last modification, latest first.
+- **Problem dashboard fixes:** structure tree and list filters without a session, field error for a time sheet without a task, invoices found by order number, fewer needless error log entries.
+- **Projects:** changing cost 2 types of an ended project in the mass update is reported as an error, with the reason in the Excel export.
+- **Fixes:** user settings saved again on logout, Safari browser back, tall company logos on legacy pages, wider mail layout, e-invoice checker error message, rare internal error when opening an order.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **File store**
+  * New file store replacing the JCR (Apache Oak): with `+projectforge.files.store=db+` all files are stored in the database (schema `+pf_files+`), data transfer files in the file system (directory `+datatransfer+` of the home directory). Existing installations stay on the JCR until switched to `+db+` (see the admin guide).
+  * After switching to `+db+`, all files of the JCR are copied in the background and verified by size and checksum, with a report in `+jcr-migration-report.txt+` in the home directory; the JCR keeps them, so switching back or a rollback to the former release is possible. The migration continues on the next start if it was interrupted.
+  * System page: the card "Document repository (JCR)" shows the active store and starts the JCR backup ZIP and the migration.
+  * Backups: the admin guide describes two dumps, the main dump without the schema `+pf_files+` and a separate dump of the files; the backup purge accepts several comma-separated prefixes and purges each backup series on its own.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed.
+- Data transfer: the list of areas is sorted by the last modification, latest first, by default.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- **Problems from the problem dashboard**
+  * Structure tree and list filters no longer fail without a session.
+  * A time sheet without a task shows a field error instead of a server error.
+  * The vacation list is sortable by the mode column.
+  * Invoices are found by the number of their order.
+  * No more needless error log entries for unsaved orders, invalid search syntax (now a warning) and a systemic failure of calendar subscriptions (logged at most once a day).
+- Legacy pages: a tall company logo is limited in height and no longer covers parts of the application.
+- Mails: wider layout; field names in the change history no longer wrap letter by letter.
+- Projects: changing the cost 2 types of an already ended project in the mass update is an error instead of being silently skipped; the Excel export of the mass update shows the changed cost 2 types and lists failed entries with their reason. The edit form of an ended project shows its existing cost 2 units checked and ended.
+- Safari: browser back from an entry returns to the list again instead of skipping it and landing on an earlier page.
+- Changed user settings (e.g. list filters and column layouts) are saved again on logout instead of being lost.
+- E-invoice checker: an e-invoice whose amount due doesn't match its lines is shown with this error instead of "no e-invoice data found".
+- Orders: opening an order could rarely fail with an internal error.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 9.0.2 released
+
+[.changelog-source]
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9.0.2-RELEASE]__
+
+- Calendar: **book several days** at once
+- Orders: **further contact persons** instead of fixed roles
+- Chart pages with **rearrangeable tiles**
+- Faster forecast and contribution margin
+- Project list: last activity columns
+
+.Overview
+[%collapsible]
+====
+- **Calendar:** book several days at once, e.g. a vacation or an absence for a colleague; weekends, holidays and booked days are skipped, half working days booked pro rata.
+- **Orders:** one contact person plus any number of further contact persons instead of project manager, head of business and key account manager; they get the same access and the change mail.
+- **Charts:** chart pages show charts as tiles that can be reordered, resized and hidden, stored per user.
+- **Statistics:** forecast and contribution margin calculated much faster; forecast analysis of an order opens in a dialog from the forecast tables.
+- **Project list:** sortable columns for the last time sheet, last order date and last activity to spot ended projects.
+- **Problem dashboard:** a click on a key figure shows the problems it counts; the mail tile shows the outcome of the last mail; failing calendar subscriptions are reported in the error digest.
+- **Lists:** the search box gets the focus on page load; statistics and problem dashboard moved to new URLs with redirects.
+- **Fixes:** a cloned time sheet keeps its user, search terms highlighted in cells with JIRA links, no stale frontend files in the release jar.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.
+- Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.
+- Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.
+- Calendar: book several days at once, e.g. a vacation or an absence booked on behalf of a colleague; weekends, holidays and already booked days are skipped, half working days are booked pro rata, templates, recent time sheets and the booked user's vacations can be taken over (vacation task and cost unit configurable via projectforge.timesheet.vacation.taskId/kost2).
+- Statistics: a pill behind the order number in the forecast tables opens the forecast analysis of the order in a dialog, without leaving the table.
+- Lists: the search box gets the focus on page load (not on touch devices).
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before.
+- Statistics: forecast and contribution margin are calculated much faster; the contribution margin is cached per project.
+- Contribution margin configuration: a cost unit assigned twice is marked as an error.
+- Cost units: the cost type is shown only for customer cost units (4.x and 5.x) in the list and export, as in the monthly report.
+- Problem dashboard: the mail tile shows the outcome of the last mail sent (unknown, OK, send failed or mail server unreachable).
+- Failing calendar subscriptions no longer send a separate mail to the administrator and the feedback address; the error digest reports them.
+- The statistics page moves to /next/finance/statistics and the problem dashboard to /next/problemDashboard; old links are redirected.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- A cloned time sheet (e.g. dragged in the calendar) keeps its user if the logged-in user may book for them.
+- Search terms are highlighted in list cells with JIRA links, too (order title and reference, task, time sheet, HR planning).
+- The release jar no longer carries stale frontend files of earlier builds.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete.changelog-release]
+=== ProjectForge 9.0.1 released
+
+[.changelog-source]
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__
+
+- **Problem dashboard:** problems as lead key figure
+- Project status in the mass update
+- Fix: gateway ICS push delivers all calendars
+- Fix: nightly search re-index with inactive plugins
+
+.Overview
+[%collapsible]
+====
+- **Problem dashboard and error digest:** problems instead of occurrences as lead key figure, numbers with thousands separators; subsystem tiles count only open problems.
+- **Projects:** the status can be changed in the mass update.
+- **Gateway:** the ICS push delivers all calendars of a user again and generates each team calendar only once per run.
+- **Fixes:** nightly search re-index no longer fails on tables of inactive plugins, long values no longer break mail tables, no needless error log entries when saving orders.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.
+- The status of projects can be changed in the mass update.
+- The gateway's ICS push generates each team calendar only once per run.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- The gateway's ICS push delivered only the first calendar of each user.
+- A subsystem tile of the problem dashboard counts only open problems, like the list behind it.
+- Long file names and values no longer push tables beyond the mail card.
+- The nightly re-index of the search no longer fails on tables of non-active plugins.
+- No more needless error log entries when saving orders.
+====
+
+.Development snapshots (17)
+[%collapsible.changelog-snapshots]
+======
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-10-05)
+
+[.changelog-source]
+__2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/203115800[develop@203115800], https://github.com/micromata/projectforge/compare/e944881b0..203115800[changes since e944881b0]__
+
+- **Wicket removed:** last pages migrated to projectforge-next
+- **Problem dashboard** with prioritized error digest mails
+- **Order statistics** page with budget scenario
+- Robust interfaces: timeouts, connection pools, sync statistics
+- Spring Boot 4.1, Hibernate 7.4, Kotlin 2.3
+
+.Overview
+[%collapsible]
+====
+- **Wicket removed:** DATEV import, log viewer, HR planning, Gantt charts, calendars, to-dos and more migrated to projectforge-next; the module projectforge-wicket was deleted.
+- **Problem dashboard:** log events classified and aggregated into problems with a persistent status, JSON export for an AI-assisted analysis, prioritized error digest mails instead of one mail per error.
+- **Statistics:** order statistics page with filter, charts, budget scenario and lost-budget warnings; invoicing quota in __My statistics__; contribution margin tab in the order book.
+- **Filters:** configurable customer groups and business units as filters for time sheets, invoices, projects and orders.
+- **Gateway:** delta sync with nightly full sync, CardDAV favorites and a public heartbeat.
+- **Calendar:** ICS import of team events with a diff preview; failing subscriptions are retried less often and deactivated after 90 days.
+- **Interfaces:** timeouts, connection pools and sync statistics for LDAP, identity provider, iCal, SMS and Sipgate.
+- **Fixes:** subscribed calendar parsing, MS Project export of Gantt charts, Kotlin scripts in the fat jar, password reset button and mail details.
+- **Security and technology:** access checks for all new REST endpoints enforced by an architecture test; Spring Boot 4.1, Spring 7, Hibernate 7.4, Tomcat 11, Kotlin 2.3, Gradle 9.8.
+====
+
+.All changes
+[%collapsible]
+====
+The classic Wicket user interface is gone: the last pages were migrated to projectforge-next and the module projectforge-wicket was deleted.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Problem dashboard**
+  * Log events are classified at the call site and aggregated in the database with a persistent problem status.
+  * Dashboard of all problems, with links into the log viewer and an export as JSON for an AI-assisted analysis.
+  * Prioritized error digest mails per audience (HTML, new design) instead of one mail per error; early digest for new security and data problems.
+  * Error figures in the system statistics.
+- Order statistics page with its own filter, favorites, charts, data tables, budget scenario and warnings about lost budgets.
+- Invoicing quota as a tab in __My statistics__.
+- Gateway: delta sync with a nightly full sync including deletions and CardDAV favorites, public heartbeat, data transfer UI after OAuth2 login.
+- Kost2: shared cost flag, overriding the structure element (also in the mass update).
+- ICS import of team events with a diff preview; download of a team event as ics file; shared subscription dialog for time sheets, holidays and weeks of year.
+- Run several development instances side by side (`+bin/pfDev.sh+` slots).
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * DATEV import with view log button, readable import log and account/cost unit tooltips.
+  * Log viewer, HR planning, HR view, Gantt charts, report objectives, to-dos, IHK plugin and the internal data transfer UI (area page as tabs, files as a sortable table).
+  * Calendar and team calendar pages, cost 1/2 Excel export; the remaining gaps against the Wicket pages were closed before their removal.
+- Configurable customer groups and business units; time sheets, invoices, projects and orders can be filtered by business unit, customer and project (checklist filters).
+- Order book: contribution margin tab including the year before last.
+- Mass update for to-dos and for the payment type of salaries.
+- Calendar subscriptions that keep failing are retried less often and deactivated after 90 days.
+- Timeouts, connection pools and sync statistics for LDAP, identity provider, iCal, SMS and Sipgate clients.
+- The browser window is named after the page; the open tab of list and report pages is kept in the URL.
+- Shift+click selects a range in attachment lists.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Subscribed calendars: DTSTAMP no longer breaks parsing; events without DTEND derive their end from DURATION; one event per holiday and week in the feeds.
+- MS Project export of Gantt charts repaired (mpxj upgraded).
+- Kotlin script classes are resolved in the fat jar again.
+- Password reset button, birthday mail locale and inline logo in mails.
+- The JCR sanity check runs only once per night.
+- Expected client and authentication failures are logged below error level.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Access checks for all new REST endpoints, enforced by an architecture test.
+- npm security advisories in next and webapp patched.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- Module projectforge-wicket including all Wicket pages, about 90 Wicket-only i18n keys and libraries no longer used.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Spring Boot 4.1, Spring 7, Hibernate 7.4, Hibernate Search 8.4, Tomcat 11 (via Spring Boot 3.5 as intermediate step).
+- Kotlin 2.3, JUnit 6, Gradle 9.8, kotlin-logging 7.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-10-02)
+
+[.changelog-source]
+__2026-10-02, snapshot build https://github.com/micromata/projectforge/commit/e944881b0[develop@e944881b0], https://github.com/micromata/projectforge/compare/1cc142d51..e944881b0[changes since 1cc142d51]__
+
+- Accounts, address campaigns, licenses and customers migrated
+- **Invoices:** cancellation, Word template choice, LibreOffice PDF
+- Fix: no bookings on ended or deleted projects
+- Fix: Word-to-PDF conversion works again
+
+.Overview
+[%collapsible]
+====
+- **Migrated to projectforge-next:** accounts, address campaigns, license management and customers (Wicket pages removed); customer and free-text customer merged into one field.
+- **Invoices:** a cancellation sets the original invoice to __cancelled__; Word template choice for the ZUGFeRD export, PDF rendered with LibreOffice; empty e-invoice fields filled from the account.
+- **Order and invoice forms:** customer column, highlighted head, tinted position headers, sibling cost units in the cost assignment pickers.
+- **Usability:** labels and values can be copied; change history shows user and group lists as a diff by name; liquidity planning highlights negative balances.
+- **Fixes:** no time sheets on ended or deleted projects, cost assignment index of invoices kept, positions sorted by number, forecast charts match the list, Word-to-PDF works again.
+- **Security:** 2FA required for migrated system and plugin pages and the liquidity series split.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * Accounts, address campaigns and license management (Wicket pages removed).
+  * Customers: Wicket pages removed; customer and free-text customer merged into one field.
+- **Invoices**
+  * Cancellation sets the original invoice to __cancelled__; explained on the button and in the form, with a warning not to change the amounts.
+  * Choice of the Word template for the ZUGFeRD export; the invoice PDF is rendered with LibreOffice and the installed fonts.
+  * Empty e-invoice fields are filled from the account; cancellation invoices are supported by the Word template.
+  * Charts show which list filter they applied; state filters are left out of the year comparison.
+- Order and invoice forms: customer column, highlighted head, tinted position headers, sibling cost units in the cost assignment pickers.
+- Labels, select values, pickers and section titles can be copied.
+- Monthly report: the cost type is only shown for customer cost units.
+- Change history shows user and group lists by name as removed/added diff.
+- Liquidity planning: negative balances highlighted, credit/debit bars in green/red.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Time sheets can no longer be booked on structure elements of an ended or deleted project.
+- Saving an invoice no longer shifts the index of its cost assignments.
+- Positions of orders, invoices and incoming invoices are sorted by number.
+- Order forecast charts and Excel select exactly the orders of the list.
+- Word-to-PDF conversion works again (OpenPDF dropped).
+
+++++
+{% include tag.html tag="security" %}
+++++
+- 2FA required for the migrated system and plugin pages and the liquidity series split.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-09-30)
+
+[.changelog-source]
+__2026-09-30, snapshot build https://github.com/micromata/projectforge/commit/1cc142d51[develop@1cc142d51], https://github.com/micromata/projectforge/compare/81c69f854..1cc142d51[changes since 81c69f854]__
+
+- Many more pages migrated to projectforge-next
+- **Liquidity planning:** recurring series
+- **Order book:** net sum calculator, forecast charts, over-invoicing flags
+- Fix: N+1 query floods and cache self-deadlocks
+
+.Overview
+[%collapsible]
+====
+- **Migrated to projectforge-next:** monthly employee report, customers, projects, cost 2 units and types, accounting records, salaries, access rights with matrix view, system and plugin administration, liquidity planning.
+- **Liquidity planning:** recurring series with a scope choice when editing, tri-state paid status and mass update.
+- **Order book and invoices:** net sum calculator per position, forecast and net sum charts, invoicing quota, __to be invoiced__ limited to this month, over-invoiced orders flagged, cancellation of e-invoices, clone an order as a draft.
+- **Usability:** structure element picker with recent entries and favorites, compact top navigation with counter badges, deleted references struck through, mass update for cost 1 and cost 2.
+- **Fixes:** N+1 query floods, cache self-deadlocks in write transactions, issued invoices shown in the order immediately, planned and cancelled invoices no longer count as invoiced.
+- **Security:** deleted groups never grant access rights; 2FA for the migrated access rights and cost 2 forms.
+- **Removed:** classic Wicket pages for search, order book, outgoing invoices, monthly report and plugin administration.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * Monthly employee report with month pager, week drill-downs and compact statistics; normal users can view their own report.
+  * Customers, projects, cost 2 units, cost 2 types, accounting records, employee salaries and the salary import.
+  * Group/structure element access rights with matrix view, analysis filter for likely erroneous entries, mass update and bulk delete/restore.
+  * System administration, plugin administration, system configuration, first-run setup, send SMS, direct call, personal statistics and feedback.
+  * The liquidity planning plugin.
+- **Liquidity planning**
+  * Recurring series with virtual and materialized occurrences and a deliberate scope choice when editing a series.
+  * Tri-state paid status, automatic paid flag and mass update including delete/restore.
+- **Order book and invoices**
+  * Fold-out net sum calculator per order position, persisted with its breakdown.
+  * Forecast charts tab in the order book, net sum charts for outgoing invoices, invoicing quota chart.
+  * __To be invoiced__ only counts what is due this month; filter split into this month and following months.
+  * Over-invoiced orders are flagged red; shortfalls of orders marked as fully invoiced are shown.
+  * Cancellation of outgoing e-invoices; cancelled invoices are struck through in the list.
+  * Clone an order into a fresh editable draft.
+- Structure element picker with recently selected structure elements and structure element favorites.
+- Creditor invoices: bank details are filled in from the creditor.
+- Mass update for cost 1 and cost 2.
+- Compact top navigation with counter badges; search moved into the main menu.
+- Deleted or deactivated referenced objects are struck through in list cells.
+- Temporary page size of 10,000 rows for all lists.
+- The link to the classic version is labelled __Old version__ and warns on pages that will be removed.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Several N+1 query floods (structure element favorites, access list, customer list, skill matrix, forecast, salary export, order filters).
+- Self-deadlocks of the project/customer caches inside write transactions.
+- An issued invoice is shown in its order immediately, not only after the next cache refresh.
+- Planned and cancelled invoices no longer count as invoiced for order positions.
+- Change history shows time-of-day values in the user's time zone.
+- Cost assignments of incoming invoices are exported again.
+- Expand/collapse of the classic structure tree restored.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Deleted groups never grant access rights.
+- 2FA required for the migrated access rights, cost 2 and cost 2 type forms.
+
+++++
+{% include tag.html tag="removed" %}
+++++
+- Classic Wicket pages for search, order book, outgoing invoices, monthly report and plugin administration.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Legacy XML user preferences are migrated to the JSON store.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-09-13)
+
+[.changelog-source]
+__2026-09-13, snapshot build https://github.com/micromata/projectforge/commit/81c69f854[develop@81c69f854], https://github.com/micromata/projectforge/compare/0633fde56..81c69f854[changes since 0633fde56]__
+
+- **Global search** migrated to projectforge-next
+- **Mass update** for incoming invoices and time sheets
+- Time sheet and structure tree filters by Kost2
+- Fix: time sheet favorites slot collision
+
+.Overview
+[%collapsible]
+====
+- **Search:** global full-text search migrated to projectforge-next, results as collapsible tiles.
+- **Mass update:** for incoming invoices and time sheets, with live selection statistics and a server-side list of changes before writing.
+- **Time sheets and structure tree:** Kost2 and Kost2 type filters, PDF export options, structure tree filter by Kost2 number with wildcards.
+- **Structure elements:** __max hours has priority__ switch; an explicit child status overrides an inherited one.
+- **Further improvements:** SEPA transfer download for creditor invoices, weekly hours in the employee list, gross working time in the calendar, tooltips on touch devices, start page redirects to the new calendar.
+- **Fixes:** time sheet favorites slot collision, exact Kost2 in the monthly report drill-down, deleted invoice positions excluded from sums, correct column sorting.
+- **Technology:** faster history value search with pg_trgm indexes, batch fetching for mass reindexing.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Global full-text search migrated to projectforge-next, results as collapsible tiles.
+- **Mass update in projectforge-next**
+  * For incoming invoices and time sheets (structure element, Kost2, tag), with live selection statistics.
+  * Changes are listed server-side before they are written; text actions picked from a dropdown.
+- Time sheet list: Kost2 filter with autocomplete, Kost2 type filter, PDF export options dialog with per-entry duration.
+- Structure tree can be filtered by Kost2 number (wildcards supported).
+- Structure elements: __max hours has priority__ switch overriding ordered person days; explicit status of a child structure element overrides an inherited one.
+- Creditor invoices: SEPA bank transfer download.
+- Employee list: weekly hours column and filtered Excel export.
+- Calendar day/week statistics show the gross working time.
+- Tooltips reachable on iOS and other touch devices; list tables adapt to narrow viewports.
+- Start page redirects to the new calendar, including bookmarked links.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Time sheet favorites: collision of filter and template slots resolved.
+- Monthly report Kost2 drill-down uses the exact Kost2.
+- Deleted invoice positions are excluded from cached list sums.
+- Kost1/Kost2 and user columns sort correctly everywhere.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- History value search accelerated with pg_trgm indexes; unused Lucene index of history attributes removed.
+- Batch fetching of lazy associations during mass reindexing.
+- npm audit vulnerabilities resolved in next and webapp.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-09-01)
+
+[.changelog-source]
+__2026-09-01, snapshot build https://github.com/micromata/projectforge/commit/0633fde56[develop@0633fde56], https://github.com/micromata/projectforge/compare/e8819bffc..0633fde56[changes since e8819bffc]__
+
+- Invoices, structure tree, calendar and time sheets migrated
+- Multi selection, mass update and period filters in lists
+- **Light/dark theme** and JIRA issue links
+- Fix: order book and invoices no longer freeze
+
+.Overview
+[%collapsible]
+====
+- **Migrated to projectforge-next:** outgoing and creditor invoices, structure tree and wizard, groups, calendar with team events, time sheet list and form.
+- **Lists and forms:** multi selection with mass update for invoices, period filters with paging arrows, server-side paging of order and invoice lists, restore of deleted entries.
+- **Usability:** light/dark theme toggle, JIRA issue links in lists and forms, recently used menu entries and quick access search for the menu.
+- **Time sheets:** overlapping time sheets allowed for shared cost elements.
+- **Invoices:** invoice statistics with a year-earlier comparison.
+- **Fixes:** order book and invoices no longer freeze on concurrent cache refreshes, many N+1 query floods removed, large ID lists batched, project managers can save orders again, invoiced amounts survive a restart.
+- **Security and Docker:** safe redirect URLs, 2FA again when saving orders and cost centres; Docker container buildable and startable again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- **Migrated to projectforge-next**
+  * Outgoing invoices with clone, Word and e-invoice export, cost assignments and attachments; creditor invoices with CSV import.
+  * Structure tree (tree and list perspective, keyboard navigation), structure element edit page and structure wizard.
+  * Groups, including member mail addresses and LDAP information.
+  * Calendar with toolbar, favorites, settings, drag and drop, jump to date; team events with reminders, recurrence and series modification.
+  * Time sheet list and edit form with recent entries, templates, location suggestions, consumption bar and PDF/Excel export.
+- **Lists and forms**
+  * Multi selection with an explicit selection mode, mass update for invoices.
+  * Period filters (month, term, year to date) with paging arrows; date pickers reaching beyond the current year.
+  * Server-side paging of order and invoice lists; generic sorting by computed columns.
+  * Deleted entries can be restored; links of moved pages lead to the new pages.
+- JIRA issue links in structure element, structure tree, order and time sheet lists and forms.
+- Light/dark theme toggle, logos adapted to dark mode.
+- Overlapping time sheets allowed for shared cost elements.
+- Recently used menu entries, shared by all frontends; quick access search for the menu.
+- Invoice statistics with a year-earlier comparison.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Order book and invoices no longer freeze when two caches refresh at once (cross-lock deadlock); invoice cache no longer refreshes inside a write transaction.
+- Many N+1 query floods (order list, invoice lists, data transfer audit job, vacation events, employees, books, groups).
+- Large ID lists are batched to stay under the database's bind parameter limit.
+- Project managers can save orders in the new frontend again.
+- Customer name search finds words inside the name.
+- Invoiced amounts survive a restart.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Redirect URLs can no longer smuggle in a foreign host.
+- Saving orders and cost centres asks for a second factor again.
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- Docker container is buildable and startable again; step by step guide for a test instance.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-08-16)
+
+[.changelog-source]
+__2026-08-16, snapshot build https://github.com/micromata/projectforge/commit/e8819bffc[develop@e8819bffc], https://github.com/micromata/projectforge/compare/0095d878f..e8819bffc[changes since 0095d878f]__
+
+- First snapshot with **projectforge-next** under `+/next+`
+- New login with 2FA under `+/next/login+`
+- Order book, books and Kost1 in the new frontend
+- Security: CSRF protection, stay-logged-in tokens per device
+
+.Overview
+[%collapsible]
+====
+- **projectforge-next:** the new frontend runs side by side with the existing one under `+/next+`; every migrated page links back to its classic counterpart.
+- **Login:** login, two-factor authentication and password reset; `+/next/login+` is the only login of the application.
+- **Tables:** column reordering and pinning, persisted layouts, filter panel, filter pills and saved filter favorites.
+- **Migrated pages:** books, Kost1 and the order book with positions, payment schedule, statistics and exports; attachments and change history as a tab.
+- **Forecast and orders:** configurable distribution of unused budget, run-rate extrapolation, probability of occurrence shown.
+- **Further additions:** reindexing as a cancellable job, clone button for Merlin templates, response compression.
+- **Fixes:** regressions after the TanStack migration, invoiced order sums no longer 0, identity provider ID kept on user edit, history value search, order notification mails.
+- **Security:** stay logged in with one token per device, filter chain review, CSRF protection and full field validation for REST writes.
+====
+
+.All changes
+[%collapsible]
+====
+First snapshot with **projectforge-next**, the new frontend that runs side by side with the existing one under `+/next+`.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **projectforge-next**
+  * Login, two-factor authentication and password reset; `+/next/login+` is the only login of the application.
+  * Tables with column reordering, pinning, persisted layouts, filter panel, removable filter pills and saved filter favorites.
+  * Pages declared from the backend's entity metadata; field rules generated from the entities instead of being repeated.
+  * Books, Kost1 and the order book (list, edit page with positions and payment schedule, statistics, Excel and forecast exports).
+  * Attachments with upload progress, multi selection, ZIP download; change history as its own tab.
+  * Every migrated page keeps a link back to its classic counterpart.
+- Reindexing as a cancellable job with progress indicator.
+- Clone button for Merlin templates.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Forecast: configurable distribution of unused budget, run-rate extrapolation for call-off and fixed-rate orders.
+- Order: probability of occurrence shown; positions marked red only when really due for invoicing.
+- Numeric columns right-aligned, time sheet periods sorted chronologically.
+- Response compression enabled.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- File transfer, row selection and structure tree regressions after the TanStack migration.
+- Identity provider ID no longer cleared on user edit.
+- LDAP move/rename of legacy cn-based entries.
+- Invoiced sums of orders no longer 0 after concurrent cache refreshes.
+- Login redirect no longer overwrites the return URL.
+- Search for a value in the change history works again.
+- Order notification mails no longer break saving the order.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Stay logged in: one token per device, throttling, cookie only after 2FA, purge job.
+- Security review of the filter chain: trusted proxies, client IP detection, throttling of public key endpoints, unbiased tokens.
+- CSRF protection for the REST calls of the new frontend; REST writes validate all fields including string lengths.
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- The Spring profile is no longer lost via the generated environment.sh.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-08-02)
+
+[.changelog-source]
+__2026-08-02, snapshot build https://github.com/micromata/projectforge/commit/0095d878f[develop@0095d878f], https://github.com/micromata/projectforge/compare/f8aab28cd..0095d878f[changes since f8aab28cd]__
+
+- Tables moved from AG Grid to **TanStack**
+- Forecast export compares with the year before last
+- Fix: corrupt downloads of large files
+- Fix: LDAP sync no longer blocks
+
+.Overview
+[%collapsible]
+====
+- **Tables:** moved to TanStack React Table, with typed column filters, date range filters, keyboard multi selection, column reordering and pinning.
+- **Forecast and structure elements:** forecast export compares with the year before last; structure element titles up to 100 characters.
+- **Fixes:** attachments of outgoing invoices, corrupt downloads of large files, forecast month count, LDAP sync with externally moved entries, Merlin PDF fonts, CardDAV PUT requests on newer macOS.
+- **Admin and security:** action to reset the identity provider password sync of all users; high-severity npm vulnerabilities fixed.
+====
+
+.All changes
+[%collapsible]
+====
+The table framework moved from AG Grid to TanStack React Table.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Tables (TanStack): typed column filters with active-filter badge, date range filters, keyboard multi selection, column reordering, left pinning and row click actions.
+- Forecast export: comparison with the year before last.
+- Structure elements: title length increased from 40 to 100 characters.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Outgoing invoices: attachments on the edit page and attachment column in the list; attachment counter updated after PDF upload/deletion.
+- Corrupt downloads of large files.
+- Forecast: number of months for invoicing in the following month.
+- LDAP sync no longer blocks on entries moved externally.
+- Merlin PDF conversion handles Identity-H encoding for unregistered fonts.
+- CardDAV: PUT requests bypassed the filter on newer macOS versions.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Action for resetting the identity provider password synchronization of all users.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- High-severity npm vulnerabilities in projectforge-webapp fixed.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-06-30)
+
+[.changelog-source]
+__2026-06-30, snapshot build https://github.com/micromata/projectforge/commit/f8aab28cd[develop@f8aab28cd], https://github.com/micromata/projectforge/compare/8f568604c..f8aab28cd[changes since 8f568604c]__
+
+- Personal menu customization reworked
+- Fixes: plugin menu entries, multi-file uploads, invoice export
+- npm security updates
+
+.Overview
+[%collapsible]
+====
+- **Menu:** customizing the personal menu reworked.
+- **Fixes:** WLAN password hash migration covers all users, plugin menu entries survive a configuration reload, uploads with many files, company name in the invoice export taken from the account.
+- **Security:** npm vulnerabilities in projectforge-webapp fixed.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Customizing the personal menu reworked.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- WLAN password hash migration includes users without a recorded password change.
+- Plugin menu entries no longer vanish after reloading the configuration.
+- Multipart uploads with many files (Tomcat maxPartCount configured).
+- Invoice export takes the company name from the invoice's account.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- npm vulnerabilities in projectforge-webapp fixed; esbuild, Vite, vitest and others updated.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-05-31)
+
+[.changelog-source]
+__2026-05-31, snapshot build https://github.com/micromata/projectforge/commit/8f568604c[develop@8f568604c], https://github.com/micromata/projectforge/compare/c7b37dd27..8f568604c[changes since c7b37dd27]__
+
+- **E-invoicing:** XRechnung and ZUGFeRD export
+- E-invoice checker for ZUGFeRD/XRechnung files
+- Frontend build moved to Vite
+
+.Overview
+[%collapsible]
+====
+- **E-invoicing:** XRechnung export and ZUGFeRD PDF with embedded XML, e-invoice fields in a validated dialog, attachments embedded, e-invoice fields moved to the account.
+- **E-invoice checker:** displays and validates ZUGFeRD and XRechnung files.
+- **Invoices, orders and forecast:** autocompletion of the customer text; forecast template with status column and remaining budget spread over the remaining months.
+- **Fixes:** NPE when cloning outgoing invoices, SEPA XML namespaces.
+- **Technology:** frontend build moved from react-scripts to Vite, tests from Jest to Vitest.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **E-invoicing (XRechnung / ZUGFeRD)**
+  * XRechnung export of outgoing invoices and ZUGFeRD PDF export with embedded XML.
+  * E-invoice fields in a dialog with validation; PEPPOL validation warnings resolved.
+  * Invoice attachments embedded in the e-invoice export; uploaded invoice PDF as alternative to the DOCX conversion.
+  * E-invoice checker for displaying and validating ZUGFeRD/XRechnung files.
+  * E-invoice fields moved from the customer to the account, plus contact person and bank account name.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Autocompletion of the customer text in invoices and orders.
+- Forecast template: status column; remaining budget distributed over the remaining months.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- NPE when cloning outgoing invoices.
+- SEPA XML namespace handling with Spring Boot 3.4.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Frontend build migrated from react-scripts to Vite, tests from Jest to Vitest.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-04-30)
+
+[.changelog-source]
+__2026-04-30, snapshot build https://github.com/micromata/projectforge/commit/c7b37dd27[develop@c7b37dd27], https://github.com/micromata/projectforge/compare/aa37d14c1..c7b37dd27[changes since aa37d14c1]__
+
+- **Authentik** support (module projectforge-idp)
+- React 19 and Spring Boot 3.4.13
+- Fix: LDAP uid rename crash
+
+.Overview
+[%collapsible]
+====
+- **Identity provider:** module projectforge-keycloak refactored to projectforge-idp with Authentik support; WLAN password hashes migrated from LDAP to Authentik.
+- **Fixes:** LDAP uid rename crash, autocompletion dropdowns and recurrence editor after the React 19 migration.
+- **Technology:** React 19 with all frontend dependencies, Spring Boot 3.4.13.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Authentik support: module projectforge-keycloak refactored to projectforge-idp; WLAN password hashes migrated from LDAP to Authentik.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- LDAP uid rename crash.
+- Autocompletion dropdowns and the recurrence editor after the React 19 migration.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- React 18 → 19 with all frontend dependencies.
+- Spring Boot 3.4.13 (Spring Framework 6.2.15); Jackson/npm dependency conflicts resolved.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-03-31)
+
+[.changelog-source]
+__2026-03-31, snapshot build https://github.com/micromata/projectforge/commit/aa37d14c1[develop@aa37d14c1], https://github.com/micromata/projectforge/compare/13abcce44..aa37d14c1[changes since 13abcce44]__
+
+- **Keycloak integration** (module projectforge-keycloak)
+- Script access to order book snapshots and employee data
+- Fixes: Keycloak sync, forecast export, calendar
+
+.Overview
+[%collapsible]
+====
+- **Keycloak:** new module with a login handler for a stepwise introduction, bidirectional attribute and group mappings, WLAN password sync on password change.
+- **Scripting:** access to order book snapshots and to employee data including monthly reports.
+- **Fixes:** Keycloak sync issues, forecast export, calendar navigation, Wicket session user mismatch forces a new login, structure tree concurrency.
+- **Security:** system statistics show reduced information for non-admins.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Keycloak integration**
+  * New module projectforge-keycloak, with a login handler for a stepwise introduction.
+  * Bidirectional, configurable attribute mappings; group attributes synchronized in both directions.
+  * WLAN password (NT hash) synchronized on password change; locale in BCP 47 format.
+- **Scripting**
+  * Script access to order book snapshots (also as uncompressed JSON).
+  * Script access to employee data including monthly reports.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Keycloak sync: false positive updates, membership sync, invalid characters in names, missing mail addresses.
+- Forecast export: NPE and snapshot data.
+- Calendar navigation and layout.
+- Wicket session: a user mismatch is detected, logged and forces a new login; breadcrumbs create fresh page instances.
+- Concurrency and defensive checks in the structure tree hierarchy.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- System statistics show reduced information for non-admins.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2026-01-31)
+
+[.changelog-source]
+__2026-01-31, snapshot build https://github.com/micromata/projectforge/commit/13abcce44[develop@13abcce44], https://github.com/micromata/projectforge/compare/0d84c2c74..13abcce44[changes since 0d84c2c74]__
+
+- Encrypted and flat export ZIP archives
+- New example scripts
+- Kost2 inherits its status from the project
+
+.Overview
+[%collapsible]
+====
+- **Exports:** ZIP archives with a flat structure and ZIP encryption, also for scripts.
+- **Scripts:** new examples for a yearly time sheet export and an SQL dump export.
+- **Kost2:** accounting records support Kost2 as string; Kost2 inherits its status virtually from the project.
+- **Technology:** AG Grid 34, Wicket 10.8, Podman instead of Docker for the test database.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Export zip archives support a flat structure and zip encryption (also for scripts).
+- New example scripts: yearly time sheet export, SQL dump export.
+- Accounting records support Kost2 as string.
+- Kost2 inherits its status virtually from the project.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- AG Grid 34, Wicket 10.8.
+- Podman instead of Docker for the test database.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2025-11-30)
+
+[.changelog-source]
+__2025-11-30, snapshot build https://github.com/micromata/projectforge/commit/0d84c2c74[develop@0d84c2c74], https://github.com/micromata/projectforge/compare/fec48a9e1..0d84c2c74[changes since fec48a9e1]__
+
+- Address import: delete, restore and forced delete
+- Fix: endless LDAP synchronization
+
+.Overview
+[%collapsible]
+====
+- **Addresses:** the address import handles deletion, restoring and forced deletion; the Excel export of address campaigns only for authorized users.
+- **Fix:** endless LDAP synchronization caused by empty strings.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Address import handles deletion, restoring and forced deletion.
+- Address campaigns: Excel export button only for authorized users.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Endless LDAP synchronization (empty strings normalized to null).
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2025-11-02)
+
+[.changelog-source]
+__2025-11-02, snapshot build https://github.com/micromata/projectforge/commit/fec48a9e1[develop@fec48a9e1], https://github.com/micromata/projectforge/compare/5094a1586..fec48a9e1[changes since 5094a1586]__
+
+- **vCard import/export** and free-text address import
+- Column settings saved automatically
+- Fixes: spinner after 2FA, LDAP and Sipgate sync
+
+.Overview
+[%collapsible]
+====
+- **Addresses:** vCard 3.0/4.0 import and export with contact images, free-text import, import reconciler with diff view, duplicate warning.
+- **Tables:** column settings saved automatically with a reset to server defaults; auto scrolling.
+- **Fixes:** endless spinner after two-factor authentication, LDAP sync detected all users as modified, Sipgate sync.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Address import/export**
+  * vCard import and export (vCard 3.0 and 4.0) including contact images, iOS compatible.
+  * Free-text import: addresses pasted as unstructured text are parsed (names, titles, salutations, addresses, phone numbers).
+  * Import reconciler for several vCards in one file, with a diff view of business, private and postal addresses.
+  * Warning about duplicates when creating new addresses; export of a single address as vCard.
+- Column settings (filter, sorting, order, widths) are saved automatically, with a reset to the server defaults.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Tables: auto scrolling.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Endless spinner after a successful two-factor authentication.
+- LDAP sync detected all users as modified.
+- Sipgate sync.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2025-10-21)
+
+[.changelog-source]
+__2025-10-21, snapshot build https://github.com/micromata/projectforge/commit/5094a1586[develop@5094a1586], https://github.com/micromata/projectforge/compare/348568c54..5094a1586[changes since 348568c54]__
+
+- Address list on the new table
+- Table improvements: pinned columns, resizing, multi-line cells
+- **Address campaigns** redesigned
+
+.Overview
+[%collapsible]
+====
+- **Addresses:** address list on the new table with multi selection.
+- **Tables:** pinned columns, configurable resizing, reset of column settings, multi-line cells, pagination info on top.
+- **Address campaigns:** edit addresses in a dialog from the campaign list, invalid addresses highlighted, filter for own entries.
+- **Fixes and technology:** wildcard parameter of the like filter, various table fixes; JAXB removed.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Address list migrated to the new table with multi selection.
+- Tables: pinned columns, configurable resizing, reset of the user's column settings, multi-line cells, pagination info on top.
+- Address campaigns redesigned: edit addresses from the campaign list in a dialog, invalid addresses highlighted, filter for own entries.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- QueryFilter.like ignored the auto wildcard parameter.
+- Various table fixes.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- JAXB removed (SEPA XML generator migrated); MarkdownBuilder escapes its input.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2025-10-05)
+
+[.changelog-source]
+__2025-10-05, snapshot build https://github.com/micromata/projectforge/commit/348568c54[develop@348568c54], https://github.com/micromata/projectforge/compare/f8e0e8f67..348568c54[changes since f8e0e8f67]__
+
+- **DATEV import** of incoming invoices
+- Currencies with online exchange rates
+- Survey plugin improved
+
+.Overview
+[%collapsible]
+====
+- **Incoming invoices:** import from DATEV, with a currency.
+- **Currency conversion:** exchange rates with valid-from date; the matching rate is looked up online and proposed.
+- **Survey plugin:** better reminder mails, missing answers fixed.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Incoming invoices can be imported from DATEV and carry a currency.
+- Currency conversion: exchange rates with valid-from date; the matching rate is looked up online and proposed.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Survey plugin: reminder mails improved, missing answers fixed.
+====
+
+[discrete.changelog-release]
+=== ProjectForge 8.2 snapshot (2025-09-09)
+
+[.changelog-source]
+__2025-09-09, snapshot build https://github.com/micromata/projectforge/commit/f8e0e8f67[develop@f8e0e8f67], https://github.com/micromata/projectforge/compare/d3d8850e1..f8e0e8f67[changes since d3d8850e1]__
+
+- Search for ticket keys works again
+- Fix: missing search fields in classic lists
+
+.Overview
+[%collapsible]
+====
+- **Search:** ticket keys (e.g. `+ABC-1234+`) found in time sheets and structure elements again; cost search improved.
+- **Fix:** classic list views show all search fields again, e.g. the Kost2 number in time sheets.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Search for ticket keys (e.g. `+ABC-1234+`) in time sheets and structure elements works again.
+- Cost search improved.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Classic list views showed not all search fields (e.g. Kost2 number in time sheets).
+====
+======

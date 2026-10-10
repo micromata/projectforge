@@ -36,6 +36,21 @@ import org.springframework.stereotype.Service
 @Service
 open class MyScriptDao : AbstractScriptDao() {
   /**
+   * The executable scripts the logged-in user may execute with a button on the page of [pageTarget] (see
+   * [ScriptDO.pageTargets]).
+   */
+  open fun selectByPageTarget(pageTarget: String): List<ScriptDO> {
+    return persistenceService.executeQuery(
+      "from ScriptDO where deleted = false and pageTargets like :pageTarget order by name",
+      ScriptDO::class.java,
+      Pair("pageTarget", "%$pageTarget%"),
+    ).filter { script ->
+      script.type != ScriptDO.ScriptType.INCLUDE && script.pageTargetList.contains(pageTarget) &&
+          hasLoggedInUserSelectAccess(script, false)
+    }
+  }
+
+  /**
    * User must be member of group controlling or finance.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao.hasDeleteAccess
