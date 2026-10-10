@@ -45,13 +45,15 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/myScriptExecute")
 class MyScriptExecuteRest : AbstractScriptExecuteRest() {
     /**
-     * The execution form: the script, the file of the user's last execution and the page the script was
-     * started from by its button, if any (whose context the script gets, see [ScriptPageContext]).
+     * The execution form: the script, the file of the user's last execution, the outcome of the user's
+     * last execution of this script and the page the script was started from by its button, if any (whose
+     * context the script gets, see [ScriptPageContext]).
      */
     class ExecuteForm(
         val script: Script,
         val download: DownloadFileSupport.Download?,
         val origin: ScriptPageTargets.PageTarget? = null,
+        val lastExecution: ExecutionResult? = null,
     )
 
     @Autowired
@@ -78,6 +80,6 @@ class MyScriptExecuteRest : AbstractScriptExecuteRest() {
         prefillFromRecentCall(script, scriptDO)
         // Only a page the script is configured for: the url is user input.
         val origin = from?.takeIf { scriptDO.pageTargetList.contains(it) }?.let { scriptPageTargets.getPageTarget(it) }
-        return ExecuteForm(script, getDownload(request), origin)
+        return ExecuteForm(script, getDownload(request), origin, getLastExecution(request, id))
     }
 }

@@ -88,6 +88,17 @@ class ScriptPageButtonsTest : AbstractTestBase() {
     }
 
     @Test
+    fun `every page target has a translated title`() {
+        logon(TEST_FINANCE_USER)
+        val untranslated = scriptPageTargets.getAll().filter { target ->
+            // A missing key is returned as it is; the category is the fallback of a list without one.
+            target.title.contains("???") || Regex("""^[a-z]+(\.[a-zA-Z_]+)+$""").matches(target.title) ||
+                    target.id == "list:${target.title}"
+        }
+        assertEquals(emptyList<String>(), untranslated.map { "${it.id}: ${it.title}" })
+    }
+
+    @Test
     fun `the context of an unknown target is empty`() {
         logon(TEST_FINANCE_USER)
         listOf(null, "list:unknown", "bogus").forEach { target ->

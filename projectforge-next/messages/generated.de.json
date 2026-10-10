@@ -3118,6 +3118,7 @@
   "scripting": {
     "download": {
       "filename": {
+        "_": "Ergebnisdatei",
         "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
         "info": "Downloaddatei der letzten Scriptausführung."
       }
@@ -3175,6 +3176,7 @@
       },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "output": "Ausgabe",
       "pageButtons": "Seiten-Buttons",
       "pageTargets": {
         "_": "Seiten",

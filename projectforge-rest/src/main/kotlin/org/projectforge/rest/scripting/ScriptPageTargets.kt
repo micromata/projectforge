@@ -27,9 +27,11 @@ package org.projectforge.rest.scripting
 import org.projectforge.NextMigration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.fibu.OrderEntityRest
 import org.projectforge.rest.fibu.OrderStatisticsFilterService
+import org.springframework.aop.support.AopUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
@@ -58,15 +60,33 @@ class ScriptPageTargets {
     @Autowired
     private lateinit var orderStatisticsFilterService: OrderStatisticsFilterService
 
+    @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
+
     /**
      * The list rests of the projectforge-next list pages by category. Looked up on first use and not injected:
      * the script rests are list rests themselves, injecting them all would be a circular dependency.
      */
-    private val listRests: Map<String, AbstractEntityRest<*, *, *>> by lazy {
+    private val allListRests: Map<String, AbstractEntityRest<*, *, *>> by lazy {
         applicationContext.getBeansOfType(AbstractEntityRest::class.java).values
             .filter { NextMigration.isMigrated(it.category) }
             .associateBy { it.category }
     }
+
+    /**
+     * [allListRests] without those of the plugins not activated: their pages aren't usable, and their i18n bundles
+     * aren't even loaded. A rest belongs to a plugin, if it's located in the plugin's package or a sub package.
+     */
+    private val listRests: Map<String, AbstractEntityRest<*, *, *>>
+        get() {
+            val inactivePluginPackages = pluginAdminService.availablePlugins
+                .filter { !pluginAdminService.isActive(it.javaClass) }
+                .map { it.javaClass.packageName }
+            return allListRests.filterValues { rest ->
+                val restPackage = AopUtils.getTargetClass(rest).packageName
+                inactivePluginPackages.none { restPackage == it || restPackage.startsWith("$it.") }
+            }
+        }
 
     private val orderEntityRest: OrderEntityRest by lazy { applicationContext.getBean(OrderEntityRest::class.java) }
 
@@ -80,13 +100,24 @@ class ScriptPageTargets {
     fun getPageTarget(id: String?): PageTarget? {
         listCategory(id)?.let { category ->
             val rest = listRests[category] ?: return null
-            return PageTarget(id!!, translate("${rest.i18nKeyPrefix}.list"), "/${NextMigration.routeOrCategory(category)}")
+            return PageTarget(id!!, listTitle(rest), "/${NextMigration.routeOrCategory(category)}")
         }
         statisticsTab(id)?.let { tab ->
             val tabTitle = translate(if (tab == TAB_FORECAST) "fibu.auftrag.statistics.forecast" else "fibu.auftrag.contributionMargin._")
             return PageTarget(id!!, "${translate("menu.fibu.orderStatistics")}: $tabTitle", "/finance/statistics?tab=$tab")
         }
         return null
+    }
+
+    /**
+     * The title of the list page: mostly `<i18nKeyPrefix>.list` (e.g. `fibu.auftrag.list`), but some rests have a
+     * prefix without the `title` part their list key has (`administration.configuration.title.list`). The
+     * category, if neither is translated (a missing key is returned as it is).
+     */
+    private fun listTitle(rest: AbstractEntityRest<*, *, *>): String {
+        return listOf("${rest.i18nKeyPrefix}.list", "${rest.i18nKeyPrefix}.title.list")
+            .firstNotNullOfOrNull { key -> translate(key).takeIf { it != key } }
+            ?: rest.category
     }
 
     /** Only the known page targets of [ids], without duplicates. */

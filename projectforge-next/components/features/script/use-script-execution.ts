@@ -22,19 +22,22 @@ const LOG_POLL_MS = 2000;
  * execution itself and its log.
  *
  * The log is polled while the script runs and fetched once more when it has finished, so its last lines
- * arrive too. Before the first execution there is none to show: the backend only keeps the user's
- * running or last one.
+ * arrive too. The backend keeps the user's running or last one for a few minutes, with its outcome, so a
+ * user coming back sees them again.
  *
  * @param id The stored script, or null for ad-hoc code (administration only).
  * @param example The example the ad-hoc editor starts with.
  * @param from The page target the script was started from by its button (see ScriptPageButtons): the
  *   script gets the current filter of that page.
+ * @param onExecute Called when an execution starts (the page shows its output then, the log polled
+ *   while it runs).
  */
 export function useScriptExecution(
   endpoint: ScriptExecuteEndpoint,
   id: number | null,
   example: number | null,
-  from: string | null = null
+  from: string | null = null,
+  onExecute?: () => void
 ) {
   const queryClient = useQueryClient();
   const queryKey = scriptExecuteQueryKey(endpoint, id, example, from);
@@ -53,13 +56,14 @@ export function useScriptExecution(
       executeScript(endpoint, { ...script, pageTarget: from }),
     onError: (error) =>
       toast.error(error instanceof RsError ? error.message : String(error)),
+    onMutate: () => onExecute?.(),
     onSettled: () => queryClient.invalidateQueries({ queryKey: logKey }),
   });
 
   const log = useQuery({
     queryKey: logKey,
     queryFn: ({ signal }) => fetchScriptLog(endpoint, id, signal),
-    enabled: !execution.isIdle,
+    enabled: !execution.isIdle || !!load.data?.lastExecution,
     refetchInterval: execution.isPending ? LOG_POLL_MS : false,
   });
 
@@ -79,6 +83,10 @@ export function useScriptExecution(
     load,
     execution,
     log,
+    /** The outcome of this execution, or before one the user's last one of this script. */
+    result: execution.isIdle
+      ? (load.data?.lastExecution ?? undefined)
+      : execution.data,
     /** The file of this execution, or else of the user's last one. */
     download: execution.data?.download ?? load.data?.download ?? null,
   };

@@ -52,13 +52,15 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/scriptExecute")
 class ScriptExecuteRest : AbstractScriptExecuteRest() {
     /**
-     * The execution form: the script, the file of the user's last execution and the log viewer of the
-     * scripting loggers (a subscription of the user's own).
+     * The execution form: the script, the file of the user's last execution, the outcome of the user's
+     * last execution of this script and the log viewer of the scripting loggers (a subscription of the
+     * user's own).
      */
     class ExecuteForm(
         val script: Script,
         val download: DownloadFileSupport.Download?,
         val logViewerUrl: String,
+        val lastExecution: ExecutionResult? = null,
     )
 
     @Autowired
@@ -104,7 +106,12 @@ class ScriptExecuteRest : AbstractScriptExecuteRest() {
                 script.script = ExampleScripts.loadScript(example)
             }
         }
-        return ExecuteForm(script, getDownload(request), LogViewerRest.viewerUrl(ensureUserLogSubscription().id))
+        return ExecuteForm(
+            script,
+            getDownload(request),
+            LogViewerRest.viewerUrl(ensureUserLogSubscription().id),
+            getLastExecution(request, id),
+        )
     }
 
     /**

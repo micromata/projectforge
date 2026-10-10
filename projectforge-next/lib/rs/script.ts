@@ -146,6 +146,11 @@ export interface ScriptPageButton {
 export interface ScriptExecuteForm {
   script: Script;
   download?: ScriptDownload | null;
+  /**
+   * The outcome of the user's last execution of this script, kept by the backend as long as its file (a few
+   * minutes), without the file (that is `download`).
+   */
+  lastExecution?: ScriptExecutionResult | null;
   /** The page the script was started from by its button, whose current filter the script gets. */
   origin?: ScriptPageTarget | null;
   /** The log viewer of the scripting loggers (administration only). */

@@ -3,22 +3,18 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlayIcon } from "@hugeicons/core-free-icons";
-import { FormActionBar } from "@/components/shared/form-action-bar";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { MarkdownText } from "@/components/shared/markdown-text";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Spinner } from "@/components/shared/spinner";
-import { Button } from "@/components/ui/button";
-import {
-  useSubmitShortcut,
-  useSubmitShortcutHint,
-} from "@/hooks/use-submit-shortcut";
+import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
+import { TAB_PARAM } from "@/components/shared/edit-page-tabs";
+import { useTabParam } from "@/hooks/use-tab-param";
+import { updateSearchParams } from "@/lib/search-params";
 import type { ScriptExecuteEndpoint } from "@/lib/rs/script";
-import { ScriptExecuteBody } from "./script-execute-body";
+import { ScriptExecuteActions } from "./script-execute-actions";
+import { ScriptExecuteBody, scriptExecuteTabs } from "./script-execute-body";
 import { ScriptExecuteHeaderActions } from "./script-execute-header-actions";
 import { SCRIPT_EXECUTE_METADATA } from "./script-execute-metadata";
 import { useScriptExecution } from "./use-script-execution";
@@ -46,13 +42,27 @@ export function ScriptExecuteView({
   const t = useTranslations();
   const router = useRouter();
   const admin = endpoint === "scriptExecute";
-  const { form, load, execution, log, download } = useScriptExecution(
+  const { form, load, execution, log, result, download } = useScriptExecution(
     endpoint,
     id,
     example,
-    from
+    from,
+    // Once started, a run's output is what the user wants to see. What setTab does, which isn't declared
+    // yet: the tabs offered depend on this hook's state.
+    () => updateSearchParams({ [TAB_PARAM]: "output" }, "push")
   );
   const script = load.data?.script;
+  // A running execution too: its log is polled into the output tab.
+  const hasOutput =
+    !execution.isIdle ||
+    !!result ||
+    !!download?.filenameAndSize ||
+    !!log.data?.length;
+  const [tab, setTab] = useTabParam(
+    "execute",
+    // Unknown while loading, so a deep link to a tab isn't lost (see useTabParam).
+    script ? scriptExecuteTabs(script, hasOutput) : undefined
+  );
   // Only what the backend confirmed: a page the script is configured for.
   const origin = load.data?.origin;
   const context = useMemo(
@@ -61,7 +71,6 @@ export function ScriptExecuteView({
   );
   const submit = () => void form.handleSubmit();
   const onKeyDown = useSubmitShortcut(submit, !!script && !execution.isPending);
-  const shortcutHint = useSubmitShortcutHint();
 
   return (
     <PageShell>
@@ -102,7 +111,10 @@ export function ScriptExecuteView({
                 <ScriptExecuteBody
                   endpoint={endpoint}
                   script={script}
-                  result={execution.data}
+                  tab={tab}
+                  onTabChange={setTab}
+                  hasOutput={hasOutput}
+                  result={result}
                   download={download}
                   log={log.data}
                   logFetching={log.isFetching}
@@ -110,29 +122,12 @@ export function ScriptExecuteView({
               </>
             )}
           </div>
-          <FormActionBar className="mx-auto max-w-5xl">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(origin?.route ?? backRoute)}
-            >
-              {t("back")}
-            </Button>
-            <HintTooltip {...shortcutHint}>
-              <Button
-                type="button"
-                disabled={!script || execution.isPending}
-                onClick={submit}
-              >
-                {execution.isPending ? (
-                  <Spinner className="h-3.5 w-3.5 border-2" />
-                ) : (
-                  <HugeiconsIcon icon={PlayIcon} size={14} aria-hidden />
-                )}
-                {t("execute")}
-              </Button>
-            </HintTooltip>
-          </FormActionBar>
+          <ScriptExecuteActions
+            onBack={() => router.push(origin?.route ?? backRoute)}
+            onExecute={submit}
+            disabled={!script || execution.isPending}
+            running={execution.isPending}
+          />
         </div>
       </EntityEditFormProvider>
     </PageShell>
