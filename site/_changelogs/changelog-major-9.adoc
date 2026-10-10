@@ -10,7 +10,7 @@ sort_key: "2026-10-08 0032"
 === ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date
 
 [.changelog-source]
-__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__ +++{% include release-pills.html tag="9.0.0-RELEASE" docker="9.0.0" %}+++
 
 - **New frontend projectforge-next:** all pages migrated, Wicket removed
 - **Problem dashboard** and error digest mails for operations
@@ -121,7 +121,7 @@ ProjectForge 9.0 is a major update. The classic Wicket user interface was replac
 === ProjectForge 9.0.3 released
 
 [.changelog-source]
-__2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__
+__2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__ +++{% include release-pills.html tag="9.0.3-RELEASE" docker="9.0.3" %}+++
 
 - **New file store** in the database replacing the JCR
 - Calendar: book several days also on already booked days
@@ -186,7 +186,7 @@ __2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9
 === ProjectForge 9.0.2 released
 
 [.changelog-source]
-__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9.0.2-RELEASE]__
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9.0.2-RELEASE]__ +++{% include release-pills.html tag="9.0.2-RELEASE" docker="9.0.2" %}+++
 
 - Calendar: **book several days** at once
 - Orders: **further contact persons** instead of fixed roles
@@ -248,7 +248,7 @@ __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9
 === ProjectForge 9.0.1 released
 
 [.changelog-source]
-__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__ +++{% include release-pills.html tag="9.0.1-RELEASE" docker="9.0.1" mini=true %}+++
 
 - **Problem dashboard:** problems as lead key figure
 - Project status in the mass update
@@ -293,7 +293,7 @@ __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9
 === ProjectForge 8.2 snapshot (2026-10-05)
 
 [.changelog-source]
-__2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/203115800[develop@203115800], https://github.com/micromata/projectforge/compare/e944881b0..203115800[changes since e944881b0]__
+__2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/203115800[develop@203115800], https://github.com/micromata/projectforge/compare/e944881b0..203115800[changes since e944881b0]__ +++{% include release-pills.html %}+++
 
 - **Wicket removed:** last pages migrated to projectforge-next
 - **Problem dashboard** with prioritized error digest mails
@@ -382,7 +382,7 @@ The classic Wicket user interface is gone: the last pages were migrated to proje
 === ProjectForge 8.2 snapshot (2026-10-02)
 
 [.changelog-source]
-__2026-10-02, snapshot build https://github.com/micromata/projectforge/commit/e944881b0[develop@e944881b0], https://github.com/micromata/projectforge/compare/1cc142d51..e944881b0[changes since 1cc142d51]__
+__2026-10-02, snapshot build https://github.com/micromata/projectforge/commit/e944881b0[develop@e944881b0], https://github.com/micromata/projectforge/compare/1cc142d51..e944881b0[changes since 1cc142d51]__ +++{% include release-pills.html %}+++
 
 - Accounts, address campaigns, licenses and customers migrated
 - **Invoices:** cancellation, Word template choice, LibreOffice PDF
@@ -440,7 +440,7 @@ __2026-10-02, snapshot build https://github.com/micromata/projectforge/commit/e9
 === ProjectForge 8.2 snapshot (2026-09-30)
 
 [.changelog-source]
-__2026-09-30, snapshot build https://github.com/micromata/projectforge/commit/1cc142d51[develop@1cc142d51], https://github.com/micromata/projectforge/compare/81c69f854..1cc142d51[changes since 81c69f854]__
+__2026-09-30, snapshot build https://github.com/micromata/projectforge/commit/1cc142d51[develop@1cc142d51], https://github.com/micromata/projectforge/compare/81c69f854..1cc142d51[changes since 81c69f854]__ +++{% include release-pills.html %}+++
 
 - Many more pages migrated to projectforge-next
 - **Liquidity planning:** recurring series
@@ -522,7 +522,7 @@ __2026-09-30, snapshot build https://github.com/micromata/projectforge/commit/1c
 === ProjectForge 8.2 snapshot (2026-09-13)
 
 [.changelog-source]
-__2026-09-13, snapshot build https://github.com/micromata/projectforge/commit/81c69f854[develop@81c69f854], https://github.com/micromata/projectforge/compare/0633fde56..81c69f854[changes since 0633fde56]__
+__2026-09-13, snapshot build https://github.com/micromata/projectforge/commit/81c69f854[develop@81c69f854], https://github.com/micromata/projectforge/compare/0633fde56..81c69f854[changes since 0633fde56]__ +++{% include release-pills.html %}+++
 
 - **Global search** migrated to projectforge-next
 - **Mass update** for incoming invoices and time sheets
@@ -581,7 +581,7 @@ __2026-09-13, snapshot build https://github.com/micromata/projectforge/commit/81
 === ProjectForge 8.2 snapshot (2026-09-01)
 
 [.changelog-source]
-__2026-09-01, snapshot build https://github.com/micromata/projectforge/commit/0633fde56[develop@0633fde56], https://github.com/micromata/projectforge/compare/e8819bffc..0633fde56[changes since e8819bffc]__
+__2026-09-01, snapshot build https://github.com/micromata/projectforge/commit/0633fde56[develop@0633fde56], https://github.com/micromata/projectforge/compare/e8819bffc..0633fde56[changes since e8819bffc]__ +++{% include release-pills.html %}+++
 
 - Invoices, structure tree, calendar and time sheets migrated
 - Multi selection, mass update and period filters in lists
@@ -650,7 +650,7 @@ __2026-09-01, snapshot build https://github.com/micromata/projectforge/commit/06
 === ProjectForge 8.2 snapshot (2026-08-16)
 
 [.changelog-source]
-__2026-08-16, snapshot build https://github.com/micromata/projectforge/commit/e8819bffc[develop@e8819bffc], https://github.com/micromata/projectforge/compare/0095d878f..e8819bffc[changes since 0095d878f]__
+__2026-08-16, snapshot build https://github.com/micromata/projectforge/commit/e8819bffc[develop@e8819bffc], https://github.com/micromata/projectforge/compare/0095d878f..e8819bffc[changes since 0095d878f]__ +++{% include release-pills.html %}+++
 
 - First snapshot with **projectforge-next** under `+/next+`
 - New login with 2FA under `+/next/login+`
@@ -724,7 +724,7 @@ First snapshot with **projectforge-next**, the new frontend that runs side by si
 === ProjectForge 8.2 snapshot (2026-08-02)
 
 [.changelog-source]
-__2026-08-02, snapshot build https://github.com/micromata/projectforge/commit/0095d878f[develop@0095d878f], https://github.com/micromata/projectforge/compare/f8aab28cd..0095d878f[changes since f8aab28cd]__
+__2026-08-02, snapshot build https://github.com/micromata/projectforge/commit/0095d878f[develop@0095d878f], https://github.com/micromata/projectforge/compare/f8aab28cd..0095d878f[changes since f8aab28cd]__ +++{% include release-pills.html %}+++
 
 - Tables moved from AG Grid to **TanStack**
 - Forecast export compares with the year before last
@@ -777,7 +777,7 @@ The table framework moved from AG Grid to TanStack React Table.
 === ProjectForge 8.2 snapshot (2026-06-30)
 
 [.changelog-source]
-__2026-06-30, snapshot build https://github.com/micromata/projectforge/commit/f8aab28cd[develop@f8aab28cd], https://github.com/micromata/projectforge/compare/8f568604c..f8aab28cd[changes since 8f568604c]__
+__2026-06-30, snapshot build https://github.com/micromata/projectforge/commit/f8aab28cd[develop@f8aab28cd], https://github.com/micromata/projectforge/compare/8f568604c..f8aab28cd[changes since 8f568604c]__ +++{% include release-pills.html %}+++
 
 - Personal menu customization reworked
 - Fixes: plugin menu entries, multi-file uploads, invoice export
@@ -818,7 +818,7 @@ __2026-06-30, snapshot build https://github.com/micromata/projectforge/commit/f8
 === ProjectForge 8.2 snapshot (2026-05-31)
 
 [.changelog-source]
-__2026-05-31, snapshot build https://github.com/micromata/projectforge/commit/8f568604c[develop@8f568604c], https://github.com/micromata/projectforge/compare/c7b37dd27..8f568604c[changes since c7b37dd27]__
+__2026-05-31, snapshot build https://github.com/micromata/projectforge/commit/8f568604c[develop@8f568604c], https://github.com/micromata/projectforge/compare/c7b37dd27..8f568604c[changes since c7b37dd27]__ +++{% include release-pills.html %}+++
 
 - **E-invoicing:** XRechnung and ZUGFeRD export
 - E-invoice checker for ZUGFeRD/XRechnung files
@@ -870,7 +870,7 @@ __2026-05-31, snapshot build https://github.com/micromata/projectforge/commit/8f
 === ProjectForge 8.2 snapshot (2026-04-30)
 
 [.changelog-source]
-__2026-04-30, snapshot build https://github.com/micromata/projectforge/commit/c7b37dd27[develop@c7b37dd27], https://github.com/micromata/projectforge/compare/aa37d14c1..c7b37dd27[changes since aa37d14c1]__
+__2026-04-30, snapshot build https://github.com/micromata/projectforge/commit/c7b37dd27[develop@c7b37dd27], https://github.com/micromata/projectforge/compare/aa37d14c1..c7b37dd27[changes since aa37d14c1]__ +++{% include release-pills.html %}+++
 
 - **Authentik** support (module projectforge-idp)
 - React 19 and Spring Boot 3.4.13
@@ -910,7 +910,7 @@ __2026-04-30, snapshot build https://github.com/micromata/projectforge/commit/c7
 === ProjectForge 8.2 snapshot (2026-03-31)
 
 [.changelog-source]
-__2026-03-31, snapshot build https://github.com/micromata/projectforge/commit/aa37d14c1[develop@aa37d14c1], https://github.com/micromata/projectforge/compare/13abcce44..aa37d14c1[changes since 13abcce44]__
+__2026-03-31, snapshot build https://github.com/micromata/projectforge/commit/aa37d14c1[develop@aa37d14c1], https://github.com/micromata/projectforge/compare/13abcce44..aa37d14c1[changes since 13abcce44]__ +++{% include release-pills.html %}+++
 
 - **Keycloak integration** (module projectforge-keycloak)
 - Script access to order book snapshots and employee data
@@ -959,7 +959,7 @@ __2026-03-31, snapshot build https://github.com/micromata/projectforge/commit/aa
 === ProjectForge 8.2 snapshot (2026-01-31)
 
 [.changelog-source]
-__2026-01-31, snapshot build https://github.com/micromata/projectforge/commit/13abcce44[develop@13abcce44], https://github.com/micromata/projectforge/compare/0d84c2c74..13abcce44[changes since 0d84c2c74]__
+__2026-01-31, snapshot build https://github.com/micromata/projectforge/commit/13abcce44[develop@13abcce44], https://github.com/micromata/projectforge/compare/0d84c2c74..13abcce44[changes since 0d84c2c74]__ +++{% include release-pills.html %}+++
 
 - Encrypted and flat export ZIP archives
 - New example scripts
@@ -997,7 +997,7 @@ __2026-01-31, snapshot build https://github.com/micromata/projectforge/commit/13
 === ProjectForge 8.2 snapshot (2025-11-30)
 
 [.changelog-source]
-__2025-11-30, snapshot build https://github.com/micromata/projectforge/commit/0d84c2c74[develop@0d84c2c74], https://github.com/micromata/projectforge/compare/fec48a9e1..0d84c2c74[changes since fec48a9e1]__
+__2025-11-30, snapshot build https://github.com/micromata/projectforge/commit/0d84c2c74[develop@0d84c2c74], https://github.com/micromata/projectforge/compare/fec48a9e1..0d84c2c74[changes since fec48a9e1]__ +++{% include release-pills.html %}+++
 
 - Address import: delete, restore and forced delete
 - Fix: endless LDAP synchronization
@@ -1029,7 +1029,7 @@ __2025-11-30, snapshot build https://github.com/micromata/projectforge/commit/0d
 === ProjectForge 8.2 snapshot (2025-11-02)
 
 [.changelog-source]
-__2025-11-02, snapshot build https://github.com/micromata/projectforge/commit/fec48a9e1[develop@fec48a9e1], https://github.com/micromata/projectforge/compare/5094a1586..fec48a9e1[changes since 5094a1586]__
+__2025-11-02, snapshot build https://github.com/micromata/projectforge/commit/fec48a9e1[develop@fec48a9e1], https://github.com/micromata/projectforge/compare/5094a1586..fec48a9e1[changes since 5094a1586]__ +++{% include release-pills.html %}+++
 
 - **vCard import/export** and free-text address import
 - Column settings saved automatically
@@ -1074,7 +1074,7 @@ __2025-11-02, snapshot build https://github.com/micromata/projectforge/commit/fe
 === ProjectForge 8.2 snapshot (2025-10-21)
 
 [.changelog-source]
-__2025-10-21, snapshot build https://github.com/micromata/projectforge/commit/5094a1586[develop@5094a1586], https://github.com/micromata/projectforge/compare/348568c54..5094a1586[changes since 348568c54]__
+__2025-10-21, snapshot build https://github.com/micromata/projectforge/commit/5094a1586[develop@5094a1586], https://github.com/micromata/projectforge/compare/348568c54..5094a1586[changes since 348568c54]__ +++{% include release-pills.html %}+++
 
 - Address list on the new table
 - Table improvements: pinned columns, resizing, multi-line cells
@@ -1116,7 +1116,7 @@ __2025-10-21, snapshot build https://github.com/micromata/projectforge/commit/50
 === ProjectForge 8.2 snapshot (2025-10-05)
 
 [.changelog-source]
-__2025-10-05, snapshot build https://github.com/micromata/projectforge/commit/348568c54[develop@348568c54], https://github.com/micromata/projectforge/compare/f8e0e8f67..348568c54[changes since f8e0e8f67]__
+__2025-10-05, snapshot build https://github.com/micromata/projectforge/commit/348568c54[develop@348568c54], https://github.com/micromata/projectforge/compare/f8e0e8f67..348568c54[changes since f8e0e8f67]__ +++{% include release-pills.html %}+++
 
 - **DATEV import** of incoming invoices
 - Currencies with online exchange rates
@@ -1150,7 +1150,7 @@ __2025-10-05, snapshot build https://github.com/micromata/projectforge/commit/34
 === ProjectForge 8.2 snapshot (2025-09-09)
 
 [.changelog-source]
-__2025-09-09, snapshot build https://github.com/micromata/projectforge/commit/f8e0e8f67[develop@f8e0e8f67], https://github.com/micromata/projectforge/compare/d3d8850e1..f8e0e8f67[changes since d3d8850e1]__
+__2025-09-09, snapshot build https://github.com/micromata/projectforge/commit/f8e0e8f67[develop@f8e0e8f67], https://github.com/micromata/projectforge/compare/d3d8850e1..f8e0e8f67[changes since d3d8850e1]__ +++{% include release-pills.html %}+++
 
 - Search for ticket keys works again
 - Fix: missing search fields in classic lists

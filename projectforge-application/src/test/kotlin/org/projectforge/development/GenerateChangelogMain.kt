@@ -375,6 +375,19 @@ object GenerateChangelogMain {
     return sb.toString()
   }
 
+  /**
+   * The status pills of [release] (`site/_includes/release-pills.html`): source code or, for a mini release, source
+   * only, the jar and docker image if published by then, or snapshot.
+   */
+  private fun pills(release: JsonNode): String {
+    val tag = release["tag"]?.asText() ?: return "{% include release-pills.html %}"
+    val mini = if (isPublished(release)) "" else " mini=true"
+    return "{% include release-pills.html tag=\"$tag\" docker=\"${dockerTag(tag)}\"$mini %}"
+  }
+
+  /** The docker image tag of a release: `9.0.0` of `9.0.0-RELEASE`, `7.2` of `release/7.2-RELEASE`. */
+  internal fun dockerTag(tag: String): String = tag.removePrefix("release/").removeSuffix("-RELEASE")
+
   /** A list item, its `- ` continuation lines as its sub list. */
   private fun appendMarkdownItem(sb: StringBuilder, text: String) {
     val lines = textToMarkdown(text).split('\n')
@@ -416,13 +429,12 @@ object GenerateChangelogMain {
       withUnreleased(root, translation, readFragments(rootDir), readReleaseSummary(rootDir))
     val result = linkedMapOf<String, String>()
     val releases = root["releases"].toList()
-    val latest = releases.firstOrNull { it["tag"] != null }
     // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
     groups(root).forEach { group ->
       val rank = releases.size - releases.indexOf(group.newest)
       result["$CHANGELOGS_DIR/${groupFileName(group)}"] = groupToAdoc(group, rank)
     }
-    result[POSTS_PAGE] = postsPage(latest)
+    result[POSTS_PAGE] = postsPage(releases.filter { it["tag"] != null })
     result[NEXT_FILE] = nextJson(nextRoot)
     result[NEXT_FILE_DE] = nextJson(translate(nextRoot, nextTranslation))
     return result
@@ -1019,7 +1031,7 @@ object GenerateChangelogMain {
       else -> null
     }
     sb.appendLine("[.changelog-source]")
-    sb.appendLine("__${listOfNotNull(release["date"].asText(), source).joinToString(", ")}__")
+    sb.appendLine("__${listOfNotNull(release["date"].asText(), source).joinToString(", ")}__ +++${pills(release)}+++")
     release["summary"]?.let { summary ->
       sb.appendLine()
       summary.forEach { sb.appendLine("- ${inlineToAdoc(it.asText())}") }
@@ -1071,12 +1083,12 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The page itself has the front matter and the [latest] tagged release (a major page starts with the opening
-   * release of the major, which otherwise looks like the current version) with its binaries: they come later with
-   * `pfDev.sh publish`, so `site/_includes/latest-binaries.html` asks GitHub for them. The layout lists the majors of
-   * the collection below.
+   * The page itself has the front matter and the latest of the [tagged] releases (newest first; a major page starts
+   * with the opening release of the major, which otherwise looks like the current version) with the latest binaries:
+   * they come later with `pfDev.sh publish`, so `site/_includes/latest-binaries.html` looks them up in the data
+   * fetched on each build of the website. The layout lists the majors of the collection below.
    */
-  internal fun postsPage(latest: JsonNode?): String {
+  internal fun postsPage(tagged: List<JsonNode>): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("layout: changelog")
@@ -1085,7 +1097,7 @@ object GenerateChangelogMain {
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")
-    latest?.let {
+    tagged.firstOrNull()?.let {
       val tag = it["tag"].asText()
       sb.appendLine()
       sb.appendLine("[.changelog-latest]")
@@ -1093,7 +1105,8 @@ object GenerateChangelogMain {
       sb.appendLine("Latest release: **ProjectForge ${it["version"].asText()}** (${it["date"].asText()}, tag $REPO_URL/tree/$tag[$tag])")
       sb.appendLine()
       sb.appendLine("++++")
-      sb.appendLine("{% include latest-binaries.html tag=\"$tag\" %}")
+      val tags = tagged.joinToString(",") { release -> release["tag"].asText().let { "$it ${dockerTag(it)}" } }
+      sb.appendLine("{% include latest-binaries.html tags=\"$tags\" %}")
       sb.appendLine("++++")
       sb.appendLine("--")
     }

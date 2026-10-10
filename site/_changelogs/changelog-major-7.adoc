@@ -10,7 +10,7 @@ sort_key: "2022-10-21 0009"
 === ProjectForge 7.0: new frontend and data transfer
 
 [.changelog-source]
-__2021-04-07, tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__
+__2021-04-07, tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__ +++{% include release-pills.html tag="7.0.0-RELEASE" docker="7.0.0" %}+++
 
 - **Major release:** new React frontend
 - **Data transfer tool** for sharing files, also with externals
@@ -60,7 +60,7 @@ Major release with a new React frontend, the data transfer tool and Docker suppo
 === ProjectForge 7.5 released
 
 [.changelog-source]
-__2022-10-21, tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5-RELEASE]__
+__2022-10-21, tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5-RELEASE]__ +++{% include release-pills.html tag="7.5-RELEASE" docker="7.5" %}+++
 
 - **Main calendar** refactored
 - **Vacations:** multiple substitutions and conflicts
@@ -128,7 +128,7 @@ __2022-10-21, tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5
 === ProjectForge 7.4: two-factor authentication
 
 [.changelog-source]
-__2022-05-19, tag https://github.com/micromata/projectforge/tree/7.4-RELEASE[7.4-RELEASE]__
+__2022-05-19, tag https://github.com/micromata/projectforge/tree/7.4-RELEASE[7.4-RELEASE]__ +++{% include release-pills.html tag="7.4-RELEASE" docker="7.4" %}+++
 
 - **Two-factor authentication** fully supported (SMS, mail, app, FIDO2)
 - **Password reset** for users with a configured second factor
@@ -195,7 +195,7 @@ Two-factor authentication (SMS, mail, authenticator app, WebAuthn/FIDO2) is now 
 === ProjectForge 7.3 released
 
 [.changelog-source]
-__2022-03-09, tag https://github.com/micromata/projectforge/tree/7.3-RELEASE[7.3-RELEASE]__
+__2022-03-09, tag https://github.com/micromata/projectforge/tree/7.3-RELEASE[7.3-RELEASE]__ +++{% include release-pills.html tag="7.3-RELEASE" docker="7.3" %}+++
 
 - **Data transfer and Merlin:** serial documents into personal boxes
 - **Scripting:** examples, includes, new editor for Groovy and Kotlin
@@ -257,7 +257,7 @@ Data transfer combined with Merlin, scripting improved, 2FA introduced.
 === ProjectForge 7.2 released
 
 [.changelog-source]
-__2021-08-16, tag https://github.com/micromata/projectforge/tree/release/7.2-RELEASE[release/7.2-RELEASE]__
+__2021-08-16, tag https://github.com/micromata/projectforge/tree/release/7.2-RELEASE[release/7.2-RELEASE]__ +++{% include release-pills.html tag="release/7.2-RELEASE" docker="7.2" %}+++
 
 - **Word templating (Merlin)** with serial execution
 - **Log viewer** for admins and users
@@ -328,7 +328,7 @@ Word templating (Merlin), log viewer, encryption in data transfer, privacy featu
 === ProjectForge 7.1.2 released
 
 [.changelog-source]
-__2021-05-25, tag https://github.com/micromata/projectforge/tree/7.1.2-RELEASE[7.1.2-RELEASE]__
+__2021-05-25, tag https://github.com/micromata/projectforge/tree/7.1.2-RELEASE[7.1.2-RELEASE]__ +++{% include release-pills.html tag="7.1.2-RELEASE" docker="7.1.2" %}+++
 
 - **Security fixes** from a penetration test
 - **Data transfer:** zip download, more options for externals
@@ -382,7 +382,7 @@ Security issues of pentests, DataTransfer improved.
 === ProjectForge 7.1.1 released
 
 [.changelog-source]
-__2021-05-04, tag https://github.com/micromata/projectforge/tree/7.1.1-RELEASE[7.1.1-RELEASE]__
+__2021-05-04, tag https://github.com/micromata/projectforge/tree/7.1.1-RELEASE[7.1.1-RELEASE]__ +++{% include release-pills.html tag="7.1.1-RELEASE" docker="7.1.1" %}+++
 
 - **Data transfer:** personal box for every user
 - **Docker** improved
@@ -425,7 +425,7 @@ DataTransfer supports now personal boxes for one to one exchange of files. Docke
 === ProjectForge 7.1 released
 
 [.changelog-source]
-__2021-04-12, tag https://github.com/micromata/projectforge/tree/7.1.0-RELEASE[7.1.0-RELEASE]__
+__2021-04-12, tag https://github.com/micromata/projectforge/tree/7.1.0-RELEASE[7.1.0-RELEASE]__ +++{% include release-pills.html tag="7.1.0-RELEASE" docker="7.1.0" %}+++
 
 - **Java 13+** supported, nearly all libraries updated
 - **Data transfer:** file checksums and nightly sanity job

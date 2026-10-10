@@ -491,7 +491,7 @@ class GenerateChangelogMainTest {
     val root = ObjectMapper().readTree(
       """
       {"releases": [
-        {"id": "r1", "version": "9.0.1", "date": "2026-10-07", "title": "Update", "tag": "9.0.1-RELEASE",
+        {"id": "r1", "version": "9.0.1", "date": "2026-10-07", "title": "Update", "tag": "9.0.1-RELEASE", "published": false,
          "summary": ["**Key**"], "overview": ["Topic"], "sections": [{"type": "fixed", "items": ["bug"]}]},
         {"id": "r0", "version": "9.0.0", "date": "2026-10-06", "title": "Major", "tag": "9.0.0-RELEASE", "downloadLink": true,
          "intro": ["Intro."], "summary": ["Major key"], "sections": [{"type": "added", "items": ["feature"]}]},
@@ -515,7 +515,7 @@ class GenerateChangelogMainTest {
       === Major
 
       [.changelog-source]
-      __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__
+      __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__ +++{% include release-pills.html tag="9.0.0-RELEASE" docker="9.0.0" %}+++
 
       - Major key
 
@@ -538,7 +538,7 @@ class GenerateChangelogMainTest {
       === Update
 
       [.changelog-source]
-      __2026-10-07, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__
+      __2026-10-07, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__ +++{% include release-pills.html tag="9.0.1-RELEASE" docker="9.0.1" mini=true %}+++
 
       - **Key**
 
@@ -566,7 +566,7 @@ class GenerateChangelogMainTest {
       === Snapshot
 
       [.changelog-source]
-      __2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[changes since aaaaaaa]__
+      __2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[changes since aaaaaaa]__ +++{% include release-pills.html %}+++
 
       .All changes
       [%collapsible]
@@ -592,11 +592,13 @@ class GenerateChangelogMainTest {
         {"id": "s", "version": "9.1-SNAPSHOT", "date": "2026-10-09", "title": "Snapshot", "fromCommit": "aaaaaaa",
          "toCommit": "bbbbbbb", "sections": [{"type": "added", "items": ["early"]}]},
         {"id": "r1", "version": "9.0.3", "date": "2026-10-08", "title": "Update", "tag": "9.0.3-RELEASE",
+         "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "r0", "version": "7.2", "date": "2022-01-01", "title": "Old", "tag": "release/7.2-RELEASE",
          "sections": [{"type": "fixed", "items": ["bug"]}]}
       ]}
       """.trimIndent()
     )
-    val latest = root["releases"].firstOrNull { it["tag"] != null }
+    val tagged = root["releases"].filter { it["tag"] != null }
     fun note(page: String) = page.substringAfter("[.changelog-latest]\n", "").substringBefore("\n--\n", "")
     assertEquals(
       """
@@ -604,12 +606,12 @@ class GenerateChangelogMainTest {
       Latest release: **ProjectForge 9.0.3** (2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE])
 
       ++++
-      {% include latest-binaries.html tag="9.0.3-RELEASE" %}
+      {% include latest-binaries.html tags="9.0.3-RELEASE 9.0.3,release/7.2-RELEASE 7.2" %}
       ++++
       """.trimIndent(),
-      note(GenerateChangelogMain.postsPage(latest))
+      note(GenerateChangelogMain.postsPage(tagged))
     )
-    assertEquals("", note(GenerateChangelogMain.postsPage(null)))
+    assertEquals("", note(GenerateChangelogMain.postsPage(emptyList())))
   }
 
   @Test
