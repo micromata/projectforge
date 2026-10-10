@@ -30,6 +30,7 @@ export interface ListToolbarProps {
   /**
    * Actions of the list itself — the exports of the order book (see PageDef.listActions). Between the
    * legacy link and the gear menu: they act on the page, but on all of it rather than on its settings.
+   * The [ExportMenu] comes last among them, so it is always the gear menu's neighbour.
    */
   actions?: ReactNode;
   /**
