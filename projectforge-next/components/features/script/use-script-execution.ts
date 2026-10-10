@@ -27,17 +27,21 @@ const LOG_POLL_MS = 2000;
  *
  * @param id The stored script, or null for ad-hoc code (administration only).
  * @param example The example the ad-hoc editor starts with.
+ * @param from The page target the script was started from by its button (see ScriptPageButtons): the
+ *   script gets the current filter of that page.
  */
 export function useScriptExecution(
   endpoint: ScriptExecuteEndpoint,
   id: number | null,
-  example: number | null
+  example: number | null,
+  from: string | null = null
 ) {
   const queryClient = useQueryClient();
-  const queryKey = scriptExecuteQueryKey(endpoint, id, example);
+  const queryKey = scriptExecuteQueryKey(endpoint, id, example, from);
   const load = useQuery({
     queryKey,
-    queryFn: ({ signal }) => loadScriptExecution(endpoint, id, example, signal),
+    queryFn: ({ signal }) =>
+      loadScriptExecution(endpoint, id, example, from, signal),
     // Refetched, the form would be reset onto the stored values and lose what the user entered.
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -45,7 +49,8 @@ export function useScriptExecution(
   const logKey = [...queryKey, "log"] as const;
 
   const execution = useMutation({
-    mutationFn: (script: Script) => executeScript(endpoint, script),
+    mutationFn: (script: Script) =>
+      executeScript(endpoint, { ...script, pageTarget: from }),
     onError: (error) =>
       toast.error(error instanceof RsError ? error.message : String(error)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: logKey }),

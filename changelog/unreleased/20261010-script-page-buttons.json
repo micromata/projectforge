@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Scripts: a script can be shown as a button with a tooltip in the top right corner of selected pages, e.g. the order book or other lists, and the forecast or contribution margin tab of the order statistics. The button opens the script's execution page, and the script gets the current filter of that page as variable pageContext (e.g. pageContext.list() for the shown entries).",
+  "de": "Scripte: Ein Script kann als Button mit Tooltip oben rechts auf ausgewählten Seiten erscheinen, z. B. im Auftragsbuch oder in anderen Listen sowie in den Reitern Forecast und Deckungsbeitrag der Auftragsstatistik. Der Button öffnet die Ausführungsseite des Scripts, und das Script erhält den aktuellen Filter der Seite als Variable pageContext (z. B. pageContext.list() für die angezeigten Einträge)."
+}

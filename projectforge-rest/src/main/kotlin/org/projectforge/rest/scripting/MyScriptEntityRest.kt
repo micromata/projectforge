@@ -34,9 +34,12 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Script
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -52,6 +55,9 @@ class MyScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, MyScriptDao>(
     baseDaoClazz = MyScriptDao::class.java,
     i18nKeyPrefix = "scripting.myScript"
 ) {
+    /** A button of a script on a page, see [ScriptDO.pageTargets]. */
+    class PageButton(val id: Long, val label: String, val tooltip: String?)
+
     @Autowired
     private lateinit var scriptEntityRest: ScriptEntityRest
 
@@ -82,6 +88,22 @@ class MyScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, MyScriptDao>(
      */
     override fun transformFromDB(obj: ScriptDO, editMode: Boolean): Script {
         return AbstractScriptExecuteRest.createUserView(obj)
+    }
+
+    /**
+     * The buttons of the scripts the logged-in user may execute on the page of [target], e.g. `list:order`
+     * (see [ScriptPageTargets]). Mostly none.
+     */
+    @AccessChecked("DAO: MyScriptDao.selectByPageTarget checks select access (executableByUserIds/executableByGroupIds) per script")
+    @GetMapping("pageButtons")
+    fun getPageButtons(@RequestParam("target") target: String): List<PageButton> {
+        return baseDao.selectByPageTarget(target).map { script ->
+            PageButton(
+                id = script.id!!, // Not null: a stored script.
+                label = script.buttonLabel?.takeIf { it.isNotBlank() } ?: script.name ?: "???",
+                tooltip = script.buttonTooltip?.takeIf { it.isNotBlank() } ?: script.description?.takeIf { it.isNotBlank() },
+            )
+        }
     }
 
     /**

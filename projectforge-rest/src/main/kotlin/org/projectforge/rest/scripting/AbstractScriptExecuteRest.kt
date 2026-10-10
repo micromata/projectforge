@@ -198,6 +198,8 @@ abstract class AbstractScriptExecuteRest {
         mergeValues(script.parameter4, posted.parameter4)
         mergeValues(script.parameter5, posted.parameter5)
         mergeValues(script.parameter6, posted.parameter6)
+        // Only a page the script is configured for (see ScriptDO.pageTargets):
+        script.pageTarget = posted.pageTarget?.takeIf { scriptDO.pageTargetList.contains(it) }
         return script
     }
 

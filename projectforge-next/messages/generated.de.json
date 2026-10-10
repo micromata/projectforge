@@ -1236,6 +1236,11 @@
         "_": "Reporting",
         "clearStorage": "Leeren",
         "createReport": "Report erstellen",
+        "error": {
+          "invalidXml": "Das XML konnte nicht als Report-Objectives gelesen werden (siehe Formatbeschreibung unten und Log-Dateien).",
+          "noXml": "Bitte das XML der Report-Objectives einfügen.",
+          "periodRequired": "Bitte den ersten Monat des Zeitraums wählen."
+        },
         "file": "Report-Objectives-Datei",
         "help": {
           "attributes": "**Attribute:** `id` benennt den Report (als Spaltenkopf und im Pfad), `title` beschreibt ihn. Ohne `suppressOther=\"true\"` werden die Buchungssätze eines Reports, die zu keinem seiner Kinder passen, als zusätzliche Spalte `<id> - Sonstige` ausgewiesen; ohne `suppressDuplicates=\"true\"` die Buchungssätze, die zu mehreren Kindern passen, als Spalte `<id> - Dubletten`. Beide Spalten helfen zu prüfen, ob die Kinder vollständig und überschneidungsfrei sind.",
@@ -1709,6 +1714,11 @@
   },
   "file": {
     "_": "Datei",
+    "panel": {
+      "deleteExistingFile": {
+        "heading": "Datei wirklich löschen?"
+      }
+    },
     "upload": {
       "audit": {
         "action": {
@@ -3118,6 +3128,14 @@
     "script": {
       "_": "Script",
       "availableVariables": "Verfügbare Variablen",
+      "buttonLabel": {
+        "_": "Button-Beschriftung",
+        "info": "Die Beschriftung des Buttons auf den gewählten Seiten. Ohne Angabe der Name des Scripts."
+      },
+      "buttonTooltip": {
+        "_": "Button-Tooltip",
+        "info": "Der Tooltip des Buttons auf den gewählten Seiten. Ohne Angabe die Beschreibung des Scripts."
+      },
       "code": "Code",
       "downloadBackups": "Download Backups",
       "downloadEffectiveScript": {
@@ -3128,6 +3146,9 @@
         "file": {
           "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
+      },
+      "error": {
+        "notFound": "Script not found."
       },
       "examples": "Beispiele",
       "executableByGroups": {
@@ -3143,8 +3164,23 @@
         "_": "Als andere:r User:in ausführen",
         "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
       },
+      "execution": {
+        "log": {
+          "filePreparedForDownload": "Die Datei ''{arg0}'' ist für den Download vorbereitet und für bis zu {arg1} Minuten zum Download hier verfügbar.",
+          "preparing": "Die Skriptausführung wird vorbereitet...",
+          "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
+          "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
+        },
+        "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
+      },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "pageButtons": "Seiten-Buttons",
+      "pageTargets": {
+        "_": "Seiten",
+        "info": "Diese Seiten zeigen oben rechts einen Button für dieses Script, für alle, die es ausführen dürfen. Das Script erhält den aktuellen Filter der Seite als Variable `pageContext`, z. B. `pageContext.list()` für die angezeigten Einträge."
+      },
+      "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
         "_": "Parametertyp",

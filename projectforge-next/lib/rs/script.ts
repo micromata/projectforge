@@ -85,6 +85,12 @@ export type Script = {
   /** The mail addresses of everybody allowed to execute the script (execution page of the admin). */
   executableByEmails?: string | null;
   executeAsUser?: ScriptRef | null;
+  /** The pages showing a button for the script, see `ScriptPageTargets` (administration only). */
+  pageTargetIds?: string[] | null;
+  buttonLabel?: string | null;
+  buttonTooltip?: string | null;
+  /** Posted on execution only: the page the script was started from by its button. */
+  pageTarget?: string | null;
   parameterNames?: string | null;
   /** The names of the embedded scripts. */
   includes?: string | null;
@@ -118,10 +124,30 @@ export interface ScriptExecutionResult {
   download?: ScriptDownload | null;
 }
 
+/**
+ * `ScriptPageTargets.PageTarget`: a page a script can show its button on, e.g. `list:order` (the order
+ * book) or `orderStatistics:forecast`.
+ */
+export interface ScriptPageTarget {
+  id: string;
+  title: string;
+  /** The route of the page in this app, e.g. `/order`. */
+  route: string;
+}
+
+/** `MyScriptEntityRest.PageButton`: the button of a script on a page. */
+export interface ScriptPageButton {
+  id: number;
+  label: string;
+  tooltip?: string | null;
+}
+
 /** The answer of `load`: the script to execute and the file of the user's last execution. */
 export interface ScriptExecuteForm {
   script: Script;
   download?: ScriptDownload | null;
+  /** The page the script was started from by its button, whose current filter the script gets. */
+  origin?: ScriptPageTarget | null;
   /** The log viewer of the scripting loggers (administration only). */
   logViewerUrl?: string | null;
 }
@@ -145,24 +171,27 @@ export function fetchScriptExamples(
 export function scriptExecuteQueryKey(
   endpoint: ScriptExecuteEndpoint,
   id: number | null,
-  example: number | null
+  example: number | null,
+  from: string | null
 ) {
-  return ["script", "execute", endpoint, id, example] as const;
+  return ["script", "execute", endpoint, id, example, from] as const;
 }
 
 /**
  * The execution form. `id` null is ad-hoc code (administration only), optionally starting with the
- * example of the given index.
+ * example of the given index. `from` is the page target the script was started from by its button.
  */
 export function loadScriptExecution(
   endpoint: ScriptExecuteEndpoint,
   id: number | null,
   example: number | null,
+  from: string | null,
   signal?: AbortSignal
 ): Promise<ScriptExecuteForm> {
   const params = new URLSearchParams();
   if (id != null) params.set("id", String(id));
   if (example != null) params.set("example", String(example));
+  if (from != null) params.set("from", from);
   return request<ScriptExecuteForm>(
     `/rs/${endpoint}/load?${params}`,
     { method: "GET" },
@@ -213,4 +242,31 @@ export function downloadScriptBackups(id: number): Promise<void> {
 /** The code as executed: the script with its includes resolved. */
 export function downloadEffectiveScript(id: number): Promise<void> {
   return downloadFile(`/rs/script/downloadEffectiveScript/${id}`);
+}
+
+/** The pages a script can show its button on, for the edit form. */
+export function fetchScriptPageTargets(
+  signal?: AbortSignal
+): Promise<ScriptPageTarget[]> {
+  return request<ScriptPageTarget[]>(
+    "/rs/script/pageTargets",
+    { method: "GET" },
+    signal
+  );
+}
+
+export function scriptPageButtonsQueryKey(target: string) {
+  return ["script", "pageButtons", target] as const;
+}
+
+/** The buttons of the scripts the user may execute on the page of `target`, mostly none. */
+export function fetchScriptPageButtons(
+  target: string,
+  signal?: AbortSignal
+): Promise<ScriptPageButton[]> {
+  return request<ScriptPageButton[]>(
+    `/rs/myscript/pageButtons?target=${encodeURIComponent(target)}`,
+    { method: "GET" },
+    signal
+  );
 }

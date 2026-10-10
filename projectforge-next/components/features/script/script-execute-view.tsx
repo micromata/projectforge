@@ -8,6 +8,7 @@ import { PlayIcon } from "@hugeicons/core-free-icons";
 import { FormActionBar } from "@/components/shared/form-action-bar";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { MarkdownText } from "@/components/shared/markdown-text";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Spinner } from "@/components/shared/spinner";
@@ -26,17 +27,20 @@ import { useScriptExecution } from "./use-script-execution";
  * Executes a script: a stored one with the parameter values entered here, or — in the administration,
  * `id` null — code typed or taken from an example.
  *
- * @param backRoute The list "Back" returns to.
+ * @param from The page target the script was started from by its button (see ScriptPageButtons).
+ * @param backRoute The list "Back" returns to, unless started from a page: then back to that one.
  */
 export function ScriptExecuteView({
   endpoint,
   id,
   example = null,
+  from = null,
   backRoute,
 }: {
   endpoint: ScriptExecuteEndpoint;
   id: number | null;
   example?: number | null;
+  from?: string | null;
   backRoute: string;
 }) {
   const t = useTranslations();
@@ -45,9 +49,12 @@ export function ScriptExecuteView({
   const { form, load, execution, log, download } = useScriptExecution(
     endpoint,
     id,
-    example
+    example,
+    from
   );
   const script = load.data?.script;
+  // Only what the backend confirmed: a page the script is configured for.
+  const origin = load.data?.origin;
   const context = useMemo(
     () => ({ form, metadata: SCRIPT_EXECUTE_METADATA, data: script }),
     [form, script]
@@ -83,21 +90,31 @@ export function ScriptExecuteView({
                 <Spinner />
               </div>
             ) : (
-              <ScriptExecuteBody
-                endpoint={endpoint}
-                script={script}
-                result={execution.data}
-                download={download}
-                log={log.data}
-                logFetching={log.isFetching}
-              />
+              <>
+                {origin && (
+                  <MarkdownText
+                    className="mx-auto max-w-5xl px-4 pt-3 text-sm text-muted-foreground"
+                    text={t("scripting.script.execution.pageContext", {
+                      arg0: origin.title,
+                    })}
+                  />
+                )}
+                <ScriptExecuteBody
+                  endpoint={endpoint}
+                  script={script}
+                  result={execution.data}
+                  download={download}
+                  log={log.data}
+                  logFetching={log.isFetching}
+                />
+              </>
             )}
           </div>
           <FormActionBar className="mx-auto max-w-5xl">
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(backRoute)}
+              onClick={() => router.push(origin?.route ?? backRoute)}
             >
               {t("back")}
             </Button>
