@@ -42,6 +42,10 @@ export const scriptSchema = z.object({
   executableByGroups: z.array(ref),
   executableByUsers: z.array(ref),
   executeAsUser: m.entityField("executeAsUser"),
+  // No metadata: the DTO's list of ScriptDO.pageTargets (a csv column).
+  pageTargetIds: z.array(z.string()),
+  buttonLabel: m.nullableString("buttonLabel"),
+  buttonTooltip: m.nullableString("buttonTooltip"),
   created: z.string().nullable(),
 });
 

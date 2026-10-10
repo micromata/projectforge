@@ -63,6 +63,15 @@ class Script(
    */
   var executableByEmails: String? = null,
   var executeAsUser: User? = null,
+  /** The pages showing a button for this script, see [ScriptDO.pageTargets]. */
+  var pageTargetIds: List<String>? = null,
+  var buttonLabel: String? = null,
+  var buttonTooltip: String? = null,
+  /**
+   * Only posted on execution: the page target the script was started from (see [ScriptDO.pageTargets]), whose
+   * context the script gets as variable `pageContext`.
+   */
+  var pageTarget: String? = null,
   override var attachmentsCounter: Int? = null,
   override var attachmentsSize: Long? = null,
   override var attachments: List<Attachment>? = null,
@@ -86,6 +95,7 @@ class Script(
     parameter6 = Param.from(list[5])
     executableByGroups = Group.toGroupList(src.executableByGroupIds)
     executableByUsers = User.toUserList(src.executableByUserIds)
+    pageTargetIds = src.pageTargetList
     parameterNames = parameters.filter { !it.parameterName.isNullOrBlank() }.joinToString { it.parameterName ?: "" }
   }
 
@@ -105,6 +115,7 @@ class Script(
     dest.setParameterList(list.map { it?.asScriptParameter() })
     dest.executableByGroupIds = Group.toLongList(executableByGroups)
     dest.executableByUserIds = User.toLongList(executableByUsers)
+    dest.pageTargets = pageTargetIds?.filter { it.isNotBlank() }?.joinToString(",")?.takeIf { it.isNotEmpty() }
   }
 
   fun updateParameter(index: Int, parameter: ScriptParameter) {
