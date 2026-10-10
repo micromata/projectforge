@@ -479,14 +479,16 @@
   },
   "cancel": "Cancel",
   "changelog": {
+    "allChanges": "All changes",
     "collapseAll": "Collapse all",
     "compare": "Changes",
     "expandAll": "Expand all",
-    "news": "News",
     "nextMatch": "Next match (Enter)",
     "noMatches": "Nothing in the changelog matches the search.",
+    "overview": "Overview",
     "previousMatch": "Previous match (Shift+Enter)",
     "snapshot": "Snapshot build",
+    "snapshots": "Development snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {

@@ -479,14 +479,16 @@
   },
   "cancel": "Abbrechen",
   "changelog": {
+    "allChanges": "Alle Änderungen",
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
-    "news": "Neuigkeiten",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
+    "overview": "Überblick",
     "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
     "snapshot": "Snapshot-Stand",
+    "snapshots": "Entwicklungs-Snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {

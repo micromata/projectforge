@@ -23,6 +23,7 @@
 
 package org.projectforge.development
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -86,8 +87,9 @@ class GenerateChangelogMainTest {
   fun invalidReleasesAreReported() {
     val root = ObjectMapper().readTree(
       """
-      {"news": [{"version": "9", "date": "2026-01-01", "title": "N", "text": "x"}], "releases": [
+      {"news": [], "releases": [
         {"id": "b", "version": "2", "date": "2026-01-01", "title": "B", "fromCommit": "aaaaaaa", "toCommit": "bbbbbbb",
+         "summary": ["one\ntwo"], "overview": [],
          "sections": [{"type": "improved", "items": ["x"]}]},
         {"id": "b", "version": "1", "date": "2026-02-01", "title": "A", "fromCommit": "0000000", "toCommit": "ccccccc",
          "sections": [{"type": "unknown", "items": ["x"]}]}
@@ -99,45 +101,54 @@ class GenerateChangelogMainTest {
     assertTrue(errors.any { it.contains("duplicate id") }, errors.toString())
     assertTrue(errors.any { it.contains("sorted by date") }, errors.toString())
     assertTrue(errors.any { it.contains("unknown type") }, errors.toString())
-    assertTrue(errors.any { it.contains("no release with version 9") }, errors.toString())
+    assertTrue(errors.any { it.contains("'news' is not supported") }, errors.toString())
+    assertTrue(errors.any { it.contains("summary[0]: line breaks are not supported") }, errors.toString())
+    assertTrue(errors.any { it.contains("overview: must be a non-empty array") }, errors.toString())
   }
 
   @Test
-  fun newsIsShownAboveTheNewestReleaseOfItsVersion() {
+  fun releasesAreGroupedByMajorVersion() {
     val root = ObjectMapper().readTree(
       """
-      {"news": [{"version": "8.2"}, {"version": "8.1"}], "releases": [
-        {"id": "s2", "version": "8.2-SNAPSHOT"}, {"id": "s1", "version": "8.2-SNAPSHOT"},
-        {"id": "r81", "version": "8.1"}, {"id": "r811", "version": "8.1.1"}
+      {"releases": [
+        {"id": "s3", "version": "9.1-SNAPSHOT", "date": "2026-10-09"},
+        {"id": "r902", "version": "9.0.2", "date": "2026-10-08", "tag": "9.0.2-RELEASE"},
+        {"id": "r901", "version": "9.0.1", "date": "2026-10-07", "tag": "9.0.1-RELEASE"},
+        {"id": "r900", "version": "9.0.0", "date": "2026-10-06", "tag": "9.0.0-RELEASE"},
+        {"id": "s2", "version": "8.2-SNAPSHOT", "date": "2026-10-05"},
+        {"id": "s1", "version": "8.2-SNAPSHOT", "date": "2026-10-04"},
+        {"id": "r81", "version": "8.1", "date": "2025-09-01", "tag": "8.1-RELEASE"},
+        {"id": "r80", "version": "8.0", "date": "2024-12-23", "tag": "8.0-RELEASE"},
+        {"id": "r622", "version": "6.22.0", "date": "2018-07-17", "tag": "6.22.0-RELEASE"}
       ]}
       """.trimIndent()
     )
-    assertEquals(listOf("s2", "r81"), GenerateChangelogMain.newsAnchors(root))
+    val groups = GenerateChangelogMain.groups(root)
+    fun ids(releases: List<JsonNode>) = releases.map { it["id"].asText() }
+    assertEquals(listOf("9", "8", "6"), groups.map { it.major })
+    // The 8.2 snapshots lead up to 9.0.0, a snapshot ahead of the latest release stays with its own major.
+    assertEquals("r900", groups[0].head!!["id"].asText())
+    assertEquals(listOf("r902", "r901"), ids(groups[0].updates))
+    assertEquals(listOf("s3", "s2", "s1"), ids(groups[0].snapshots))
+    assertEquals("s3", groups[0].newest["id"].asText())
+    assertEquals("r80", groups[1].head!!["id"].asText())
+    assertEquals(listOf("r81"), ids(groups[1].updates))
+    // Without a release X.0, the oldest release of the major opens it.
+    assertEquals("r622", groups[2].head!!["id"].asText())
+    assertEquals("8", GenerateChangelogMain.majorOf("8.2-SNAPSHOT"))
   }
 
   @Test
-  fun newsIsShownAboveTheReleaseOpeningItsVersion() {
-    val root = ObjectMapper().readTree(
-      """
-      {"news": [{"version": "8.2"}], "releases": [
-        {"id": "s", "version": "8.2.38-SNAPSHOT"}, {"id": "r37", "version": "8.2.37"}, {"id": "r0", "version": "8.2.0"}
-      ]}
-      """.trimIndent()
-    )
-    assertEquals(listOf("r0"), GenerateChangelogMain.newsAnchors(root))
-    assertEquals("8.2", GenerateChangelogMain.newsVersion("8.2.37"))
-    assertEquals("8.2", GenerateChangelogMain.newsVersion("8.2-SNAPSHOT"))
-  }
-
-  @Test
-  fun releaseNeedsItsEntryAndANewsForAMajorOrMinorVersion() {
+  fun releaseNeedsItsEntryWithSummaryAndOverview() {
     val mapper = ObjectMapper()
     val today = LocalDate.of(2026, 10, 6)
-    fun check(version: String, releaseVersion: String = version, tag: String = "$releaseVersion-RELEASE", news: String = "8.2"): List<String> {
+    fun check(version: String, releaseVersion: String = version, tag: String = "$releaseVersion-RELEASE", levels: Boolean = true): List<String> {
+      val levelsJson = if (levels) "\"summary\": [\"Key\"], \"overview\": [\"Topic\"]," else ""
+      val levelsDe = if (levels) "\"summary\": [\"Stichwort\"], \"overview\": [\"Thema\"]," else ""
       val root = mapper.readTree(
         """
-        {"news": [{"version": "$news", "date": "2026-10-01", "title": "News", "text": "Text"}], "releases": [
-          {"id": "r", "version": "$releaseVersion", "date": "2026-10-06", "title": "Release", "tag": "$tag",
+        {"releases": [
+          {"id": "r", "version": "$releaseVersion", "date": "2026-10-06", "title": "Release", "tag": "$tag", $levelsJson
            "sections": [{"type": "fixed", "items": ["bug"]}]},
           {"id": "old", "version": "8.2.1", "date": "2026-09-01", "title": "Old", "tag": "8.2.1-RELEASE",
            "sections": [{"type": "fixed", "items": ["bug"]}]}
@@ -146,16 +157,16 @@ class GenerateChangelogMainTest {
       )
       val translation = mapper.readTree(
         """
-        {"news": {"$news": {"title": "Neu", "text": "Text"}}, "releases": {
-          "r": {"title": "Release", "sections": [{"type": "fixed", "items": ["Fehler"]}]},
+        {"releases": {
+          "r": {"title": "Release", $levelsDe "sections": [{"type": "fixed", "items": ["Fehler"]}]},
           "old": {"title": "Alt", "sections": [{"type": "fixed", "items": ["Fehler"]}]}}}
         """.trimIndent()
       )
       return GenerateChangelogMain.checkRelease(root, translation, version, today)
     }
     assertEquals(emptyList<String>(), check("8.2.37"))
-    assertEquals(emptyList<String>(), check("8.2.0"))
-    assertTrue(check("8.3.0").any { it.contains("needs a news with version \"8.3\"") })
+    assertEquals(emptyList<String>(), check("8.3.0"))
+    assertTrue(check("8.2.37", levels = false).single().contains("'summary' and 'overview' are missing"))
     assertTrue(check("8.2.38", releaseVersion = "8.2.37").any { it.contains("newest release must be the one of version 8.2.38") })
     assertTrue(check("8.2.37", tag = "8.2.37").any { it.contains("'tag' must be '8.2.37-RELEASE'") })
     assertTrue(check("8.2.1").any { it.contains("released already") })
@@ -168,7 +179,7 @@ class GenerateChangelogMainTest {
     val today = LocalDate.of(2026, 10, 8)
     val root = mapper.readTree(
       """
-      {"news": [{"version": "8.2", "date": "2026-10-01", "title": "News", "text": "Text"}], "releases": [
+      {"releases": [
         {"id": "8-2-1", "version": "8.2.1", "date": "2026-09-01", "title": "Old", "tag": "8.2.1-RELEASE",
          "sections": [{"type": "fixed", "items": ["bug"]}]}
       ]}
@@ -176,7 +187,7 @@ class GenerateChangelogMainTest {
     )
     val translation = mapper.readTree(
       """
-      {"news": {"8.2": {"title": "Neu", "text": "Text"}}, "releases": {
+      {"releases": {
         "8-2-1": {"title": "Alt", "sections": [{"type": "fixed", "items": ["Fehler"]}]}}}
       """.trimIndent()
     )
@@ -187,10 +198,23 @@ class GenerateChangelogMainTest {
     )
     assertEquals(listOf("8-2-2", "8-2-1"), addedTranslation["releases"].fieldNames().asSequence().toList())
     assertEquals("ProjectForge 8.2.2 veröffentlicht", addedTranslation["releases"]["8-2-2"]["title"].asText())
-    // Ready for the release once the fragments are folded into it.
+    // Ready for the release once the fragments and the release summary are folded into it.
     val fragments = listOf(fragment("20261008-a.json", """{"type": "fixed", "en": "fix", "de": "Korrektur"}"""))
-    val (folded, foldedTranslation) = GenerateChangelogMain.fold(added, addedTranslation, "8-2-2", fragments)
+    val (unsummarized, unsummarizedTranslation) = GenerateChangelogMain.fold(added, addedTranslation, "8-2-2", fragments)
+    assertTrue(GenerateChangelogMain.checkRelease(unsummarized, unsummarizedTranslation, "8.2.2", today).single().contains("release.json"))
+    val summary = releaseSummary(
+      """{"summary": {"en": ["Fix"], "de": ["Korrektur"]}, "overview": {"en": ["A fix."], "de": ["Eine Korrektur."]},
+          "title": {"en": "ProjectForge 8.2.2: a fix", "de": "ProjectForge 8.2.2: eine Korrektur"}}"""
+    )
+    val (folded, foldedTranslation) = GenerateChangelogMain.fold(added, addedTranslation, "8-2-2", fragments, summary)
     assertEquals(emptyList<String>(), GenerateChangelogMain.checkRelease(folded, foldedTranslation, "8.2.2", today))
+    assertEquals("ProjectForge 8.2.2: a fix", folded["releases"][0]["title"].asText())
+    // The fields keep the order of the sources.
+    assertEquals(
+      listOf("id", "version", "date", "title", "tag", "downloadLink", "summary", "overview", "sections"),
+      folded["releases"][0].fieldNames().asSequence().toList()
+    )
+    assertEquals(listOf("title", "summary", "overview", "sections"), foldedTranslation["releases"]["8-2-2"].fieldNames().asSequence().toList())
     // A mini release has no download link.
     val mini = GenerateChangelogMain.withRelease(root, translation, "8.2.2", false, today).first["releases"][0]
     assertEquals(false, mini["published"].asBoolean())
@@ -204,10 +228,8 @@ class GenerateChangelogMainTest {
   fun releaseNotesAreGitHubMarkdown() {
     val root = ObjectMapper().readTree(
       """
-      {"news": [{"version": "8.3", "date": "2026-10-01", "title": "News title", "text": "News text.",
-                 "highlights": ["**One**"]}],
-       "releases": [{"id": "r", "version": "8.3.0", "date": "2026-10-06", "title": "Release",
-         "intro": ["{red}**Update recommended.**{/red} Intro."],
+      {"releases": [{"id": "r", "version": "8.3.0", "date": "2026-10-06", "title": "Release",
+         "intro": ["{red}**Update recommended.**{/red} Intro."], "summary": ["**Key**"], "overview": ["Topic\n- detail"],
          "sections": [{"type": "fixed", "items": ["bug\n- detail", {"title": "Group", "items": ["a"]}]}]}]}
       """.trimIndent()
     )
@@ -215,13 +237,17 @@ class GenerateChangelogMainTest {
       """
       # ProjectForge 8.3.0
 
+      - **Key**
+
       **⚠️ Update recommended.** Intro.
 
-      ## News title
+      ## Overview
 
-      News text.
+      - Topic
+        - detail
 
-      - **One**
+      <details>
+      <summary>All changes</summary>
 
       ## Fixed
 
@@ -230,25 +256,23 @@ class GenerateChangelogMainTest {
       - **Group**
         - a
 
+      </details>
+
       """.trimIndent(),
       GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.0")
     )
-    // A build lists its own changes only.
-    (root["releases"][0] as ObjectNode).put("version", "8.3.1")
-    assertTrue(!GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.1").contains("News title"))
   }
 
   @Test
   fun releaseNotesIncludeTheUnpublishedReleasesSinceTheLastPublishedOne() {
     val root = ObjectMapper().readTree(
       """
-      {"news": [{"version": "8.3", "date": "2026-10-01", "title": "News title", "text": "News text."}],
-       "releases": [
-         {"id": "r3", "version": "8.3.3", "tag": "8.3.3-RELEASE",
+      {"releases": [
+         {"id": "r3", "version": "8.3.3", "tag": "8.3.3-RELEASE", "summary": ["Summary 3"],
           "sections": [{"type": "fixed", "items": ["fix 3"]}]},
          {"id": "s", "version": "8.3.3-SNAPSHOT", "sections": [{"type": "added", "items": ["snapshot"]}]},
          {"id": "r2", "version": "8.3.2", "tag": "8.3.2-RELEASE", "published": false,
-          "intro": ["Intro 2."], "sections": [{"type": "added", "items": ["feature 2"]}, {"type": "fixed", "items": ["fix 2"]}]},
+          "intro": ["Intro 2."], "summary": ["Summary 2"], "overview": ["Topic 2"], "sections": [{"type": "added", "items": ["feature 2"]}, {"type": "fixed", "items": ["fix 2"]}]},
          {"id": "r1", "version": "8.3.1", "tag": "8.3.1-RELEASE", "published": false,
           "sections": [{"type": "fixed", "items": ["fix 1"]}]},
          {"id": "r0", "version": "8.3.0", "tag": "8.3.0-RELEASE",
@@ -261,7 +285,17 @@ class GenerateChangelogMainTest {
 
       Also includes the changes of 8.3.2 and 8.3.1, released without downloads.
 
+      - Summary 3
+      - Summary 2
+
       Intro 2.
+
+      ## Overview
+
+      - Topic 2
+
+      <details>
+      <summary>All changes</summary>
 
       ## Fixed
 
@@ -272,6 +306,8 @@ class GenerateChangelogMainTest {
       ## Added
 
       - feature 2
+
+      </details>
 
       """.trimIndent(),
       GenerateChangelogMain.releaseNotesMarkdown(root, "8.3.3")
@@ -284,7 +320,7 @@ class GenerateChangelogMainTest {
   fun onlyATaggedReleaseWithoutDownloadLinkCanBeUnpublished() {
     val root = ObjectMapper().readTree(
       """
-      {"news": [], "releases": [
+      {"releases": [
         {"id": "a", "version": "1.0.2", "date": "2026-01-03", "title": "A", "tag": "1.0.2-RELEASE", "published": "no",
          "sections": [{"type": "fixed", "items": ["bug"]}]},
         {"id": "b", "version": "1.0.1", "date": "2026-01-02", "title": "B", "tag": "1.0.1-RELEASE", "published": false,
@@ -305,35 +341,35 @@ class GenerateChangelogMainTest {
     val mapper = ObjectMapper()
     val root = mapper.readTree(
       """
-      {"news": [{"version": "1", "date": "2026-01-01", "title": "News", "text": "Text", "highlights": ["one"]}],
-       "releases": [{"id": "r1", "version": "1", "date": "2026-01-01", "title": "Release", "tag": "1-RELEASE",
-         "sections": [{"type": "fixed", "items": ["bug\n- detail", {"title": "Group", "items": ["a", "b"]}]}]}]}
+      {"releases": [{"id": "r1", "version": "1", "date": "2026-01-01", "title": "Release", "tag": "1-RELEASE",
+         "summary": ["one"], "overview": ["one\n- two"], "sections": [{"type": "fixed", "items": ["bug\n- detail", {"title": "Group", "items": ["a", "b"]}]}]}]}
       """.trimIndent()
     )
     val translation = mapper.readTree(
       """
-      {"news": {"1": {"title": "Neuigkeit", "text": "Text", "highlights": ["eins"]}},
-       "releases": {"r1": {"title": "Release", "sections": [{"type": "fixed",
+      {"releases": {"r1": {"title": "Freigabe", "summary": ["eins"], "overview": ["eins\n- zwei"], "sections": [{"type": "fixed",
          "items": ["Fehler\n- Detail", {"title": "Gruppe", "items": ["a", "b"]}]}]}}}
       """.trimIndent()
     )
     assertEquals(emptyList<String>(), GenerateChangelogMain.validateTranslation(root, translation))
     val translated = GenerateChangelogMain.translate(root, translation)
-    assertEquals("Neuigkeit", translated["news"][0]["title"].asText())
-    assertEquals("2026-01-01", translated["news"][0]["date"].asText())
+    assertEquals("Freigabe", translated["releases"][0]["title"].asText())
+    assertEquals("eins", translated["releases"][0]["summary"][0].asText())
+    assertEquals("2026-01-01", translated["releases"][0]["date"].asText())
     assertEquals("Gruppe", translated["releases"][0]["sections"][0]["items"][1]["title"].asText())
     assertEquals("1-RELEASE", translated["releases"][0]["tag"].asText())
 
     val broken = mapper.readTree(
       """
       {"news": {"2": {"title": "X", "text": "X"}},
-       "releases": {"r1": {"title": "Release", "version": "9", "sections": [{"type": "added",
+       "releases": {"r1": {"title": "Release", "version": "9", "summary": ["eins", "zwei"], "sections": [{"type": "added",
          "items": ["Fehler", "Gruppe"]}]}}}
       """.trimIndent()
     )
     val errors = GenerateChangelogMain.validateTranslation(root, broken)
-    assertTrue(errors.any { it.contains("no news of this version") }, errors.toString())
-    assertTrue(errors.any { it.contains("news 1: the translation is missing") }, errors.toString())
+    assertTrue(errors.any { it.contains("'news' is not supported") }, errors.toString())
+    assertTrue(errors.any { it.contains("summary: must be an array of 1 entries") }, errors.toString())
+    assertTrue(errors.any { it.contains("overview: must be an array of 1 entries") }, errors.toString())
     assertTrue(errors.any { it.contains("'version' can't be translated") }, errors.toString())
     assertTrue(errors.any { it.contains("the type must be 'fixed'") }, errors.toString())
     assertTrue(errors.any { it.contains("number of sub list lines") }, errors.toString())
@@ -379,14 +415,14 @@ class GenerateChangelogMainTest {
     val mapper = ObjectMapper()
     val root = mapper.readTree(
       """
-      {"news": [], "releases": [{"id": "s", "version": "1.0.1-SNAPSHOT", "date": "2026-10-01", "title": "S",
+      {"releases": [{"id": "s", "version": "1.0.1-SNAPSHOT", "date": "2026-10-01", "title": "S",
         "fromCommit": "aaaaaaa", "toCommit": "bbbbbbb",
         "sections": [{"type": "added", "items": ["old"]}, {"type": "fixed", "items": ["bug"]}]}]}
       """.trimIndent()
     )
     val translation = mapper.readTree(
       """
-      {"news": {}, "releases": {"s": {"title": "S",
+      {"releases": {"s": {"title": "S",
         "sections": [{"type": "added", "items": ["alt"]}, {"type": "fixed", "items": ["Fehler"]}]}}}
       """.trimIndent()
     )
@@ -429,6 +465,123 @@ class GenerateChangelogMainTest {
       GenerateChangelogMain.translate(next, nextTranslation)["releases"][0]["sections"][0]["items"][0].asText()
     )
     assertEquals(root to translation, GenerateChangelogMain.withUnreleased(root, translation, emptyList()))
+    // The summary of the next release alone is shown, too.
+    val summary = releaseSummary("""{"summary": {"en": ["Key"], "de": ["Stichwort"]}, "overview": {"en": ["T"], "de": ["T"]}}""")
+    val (summarized, summarizedTranslation) = GenerateChangelogMain.withUnreleased(root, translation, emptyList(), summary)
+    assertEquals("Key", summarized["releases"][0]["summary"][0].asText())
+    assertEquals("Stichwort", summarizedTranslation["releases"][GenerateChangelogMain.UNRELEASED_ID]["summary"][0].asText())
+  }
+
+  @Test
+  fun releaseSummaryHoldsTheLevelsOfTheNextRelease() {
+    fun errors(content: String) = mutableListOf<String>().also { GenerateChangelogMain.parseReleaseSummary(content, it) }
+    assertEquals(
+      emptyList<String>(),
+      errors("""{"summary": {"en": ["a"], "de": ["b"]}, "overview": {"en": ["a\n- s"], "de": ["b\n- t"]}, "intro": {"en": ["x"], "de": ["y"]}}""")
+    )
+    assertTrue(errors("""{"summary": {"en": ["a"], "de": ["b"]}}""").single().contains("'overview' is missing"))
+    assertTrue(errors("""{"summary": {"en": ["a"], "de": ["b", "c"]}, "overview": {"en": ["a"], "de": ["b"]}}""").single().contains("same number"))
+    assertTrue(errors("""{"summary": {"en": ["a\nb"], "de": ["b"]}, "overview": {"en": ["a"], "de": ["b"]}}""").single().contains("line breaks"))
+    assertTrue(errors("""{"summary": {"en": ["a"]}, "overview": {"en": ["a"], "de": ["b"]}}""").single().contains("must be {\"en\", \"de\"}"))
+    assertTrue(errors("""{"summary": {"en": ["a"], "de": ["b"]}, "overview": {"en": ["a"], "de": ["b"]}, "tag": 1}""").single().contains("unknown field 'tag'"))
+  }
+
+  @Test
+  fun aMajorIsOnePageOfTheWebsiteWithCollapsibleLevels() {
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+        {"id": "r1", "version": "9.0.1", "date": "2026-10-07", "title": "Update", "tag": "9.0.1-RELEASE",
+         "summary": ["**Key**"], "overview": ["Topic"], "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "r0", "version": "9.0.0", "date": "2026-10-06", "title": "Major", "tag": "9.0.0-RELEASE", "downloadLink": true,
+         "intro": ["Intro."], "summary": ["Major key"], "sections": [{"type": "added", "items": ["feature"]}]},
+        {"id": "s", "version": "8.2-SNAPSHOT", "date": "2026-10-05", "title": "Snapshot", "fromCommit": "aaaaaaa",
+         "toCommit": "bbbbbbb", "sections": [{"type": "added", "items": ["early"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val adoc = GenerateChangelogMain.groupToAdoc(GenerateChangelogMain.groups(root).single(), 3)
+    assertEquals(
+      """
+      ---
+      title: "ProjectForge 9"
+      date: 2026-10-07
+      sort_key: "2026-10-07 0003"
+      ---
+      :page-liquid:
+      // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
+
+      [discrete.changelog-release]
+      === Major
+
+      [.changelog-source]
+      __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__
+
+      - Major key
+
+      .All changes
+      [%collapsible]
+      ====
+      Intro.
+
+      ++++
+      {% include tag.html tag="added" %}
+      ++++
+      - feature
+
+      ++++
+      {% include download-link.html %}
+      ++++
+      ====
+
+      [discrete.changelog-release]
+      === Update
+
+      [.changelog-source]
+      __2026-10-07, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__
+
+      - **Key**
+
+      .Overview
+      [%collapsible]
+      ====
+      - Topic
+      ====
+
+      .All changes
+      [%collapsible]
+      ====
+
+      ++++
+      {% include tag.html tag="fixed" %}
+      ++++
+      - bug
+      ====
+
+      .Development snapshots (1)
+      [%collapsible.changelog-snapshots]
+      ======
+
+      [discrete.changelog-release]
+      === Snapshot
+
+      [.changelog-source]
+      __2026-10-05, snapshot build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[changes since aaaaaaa]__
+
+      .All changes
+      [%collapsible]
+      ====
+
+      ++++
+      {% include tag.html tag="added" %}
+      ++++
+      - early
+      ====
+      ======
+
+      """.trimIndent(),
+      adoc
+    )
   }
 
   @Test
@@ -438,6 +591,11 @@ class GenerateChangelogMainTest {
       val text = File(rootDir, path).readText(StandardCharsets.UTF_8)
       assertEquals(text, GenerateChangelogMain.sourceJson(ObjectMapper().readTree(text)), path)
     }
+  }
+
+  private fun releaseSummary(content: String): GenerateChangelogMain.ReleaseSummary {
+    val errors = mutableListOf<String>()
+    return GenerateChangelogMain.parseReleaseSummary(content, errors).also { assertEquals(emptyList<String>(), errors) }!!
   }
 
   private fun fragment(name: String, content: String): GenerateChangelogMain.Fragment {
