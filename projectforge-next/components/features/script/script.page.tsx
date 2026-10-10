@@ -13,6 +13,7 @@ import { ScriptCodeField } from "./script-code-field";
 import { ScriptDescriptionField } from "./script-description-field";
 import { ScriptFilenameField } from "./script-filename-field";
 import { ScriptListActions } from "./script-list-actions";
+import { ScriptPageTargetsField } from "./script-page-targets-field";
 import { ScriptParametersField } from "./script-parameters-field";
 import { SCRIPT_ROUTE, scriptExecuteRoute } from "./script-routes";
 import {
@@ -101,7 +102,11 @@ export const SCRIPT_PAGE = definePage<
   edit: {
     schema: scriptSchema,
     fieldNames: SCRIPT_FIELDS,
-    arrayFieldNames: ["executableByGroups", "executableByUsers"],
+    arrayFieldNames: [
+      "executableByGroups",
+      "executableByUsers",
+      "pageTargetIds",
+    ],
     defaultValues: emptyScriptValues,
     toFormValues,
     title: (script) => script.name ?? "",
@@ -145,6 +150,17 @@ export const SCRIPT_PAGE = definePage<
           { custom: ScriptExecutableByGroupsField, span: 2 },
           { custom: ScriptExecutableByUsersField, span: 2 },
           { name: "executeAsUser", span: 2 },
+        ],
+      },
+      {
+        // A button on other pages leading to the execution, for whoever may execute the script.
+        id: "pageButtons",
+        titleKey: "scripting.script.pageButtons",
+        visible: ({ data }) => !isInclude(data),
+        fields: [
+          { custom: ScriptPageTargetsField, span: 4 },
+          { name: "buttonLabel", span: 2 },
+          { name: "buttonTooltip", span: 2 },
         ],
       },
       {

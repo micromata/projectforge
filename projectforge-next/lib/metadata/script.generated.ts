@@ -14,6 +14,20 @@ export const SCRIPT_METADATA = {
       required: false,
       maxLength: 10000,
     },
+    buttonLabel: {
+      dataType: "STRING",
+      i18nKey: "scripting.script.buttonLabel",
+      required: false,
+      maxLength: 100,
+      tooltipI18nKey: "scripting.script.buttonLabel.info",
+    },
+    buttonTooltip: {
+      dataType: "STRING",
+      i18nKey: "scripting.script.buttonTooltip",
+      required: false,
+      maxLength: 1000,
+      tooltipI18nKey: "scripting.script.buttonTooltip.info",
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",
@@ -72,6 +86,13 @@ export const SCRIPT_METADATA = {
       i18nKey: "scripting.script.name",
       required: true,
       maxLength: 255,
+    },
+    pageTargets: {
+      dataType: "STRING",
+      i18nKey: "scripting.script.pageTargets",
+      required: false,
+      maxLength: 1000,
+      tooltipI18nKey: "scripting.script.pageTargets.info",
     },
     parameter1Description: {
       dataType: "STRING",

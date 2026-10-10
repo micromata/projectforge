@@ -101,6 +101,19 @@ abstract class AbstractScriptExecuteRest {
         }
     }
 
+    /**
+     * The outcome of the user's last execution of the script (null: ad-hoc code), kept in the session as
+     * long as its log and its file, so the page shows them again when the user comes back. Without the file:
+     * that is [getDownload]'s, the user's last of all scripts.
+     */
+    protected fun getLastExecution(request: HttpServletRequest, scriptId: Long?): ExecutionResult? {
+        return ExpiringSessionAttributes.getAttribute(
+            request.getSession(false),
+            getResultSessionAttr(scriptId),
+            ExecutionResult::class.java,
+        )
+    }
+
     /** The file of the user's last execution, still available for download. */
     protected fun getDownload(request: HttpServletRequest): DownloadFileSupport.Download? {
         return scriptExecution.getDownloadFile(request)?.let { DownloadFileSupport.Download(it) }
@@ -114,7 +127,7 @@ abstract class AbstractScriptExecuteRest {
         val scriptLogger = ScriptLogger()
         val session = request.getSession(false)
         // Store the scriptLogger in user's session to show the log entries in the UI.
-        ExpiringSessionAttributes.setAttribute(session, getSessionAttr(script.id), scriptLogger, 5)
+        ExpiringSessionAttributes.setAttribute(session, getSessionAttr(script.id), scriptLogger, SESSION_EXPIRY_MINUTES)
         val result = scriptExecution.execute(request, script, parameters, scriptDao, entityRest, scriptLogger)
         val output = StringBuilder()
         if (result.exception == null && result.result is Exception) {
@@ -141,9 +154,18 @@ abstract class AbstractScriptExecuteRest {
                 output.appendLine(translate("scripting.script.execution.log.successfullyCompleted"))
             }
         }
+        val hasErrors = result.exception != null || result.scriptLogger.hasErrors
+        // Kept as long as the file (counted from now), the log renewed for the same time:
+        ExpiringSessionAttributes.setAttribute(session, getSessionAttr(script.id), scriptLogger, SESSION_EXPIRY_MINUTES)
+        ExpiringSessionAttributes.setAttribute(
+            session,
+            getResultSessionAttr(script.id),
+            ExecutionResult(output.toString(), hasErrors),
+            SESSION_EXPIRY_MINUTES,
+        )
         return ExecutionResult(
             result = output.toString(),
-            hasErrors = result.exception != null || result.scriptLogger.hasErrors,
+            hasErrors = hasErrors,
             // Only the file of this execution, not one left over from an earlier one:
             download = if (result.downloadAvailable != null) getDownload(request) else null,
         )
@@ -198,6 +220,8 @@ abstract class AbstractScriptExecuteRest {
         mergeValues(script.parameter4, posted.parameter4)
         mergeValues(script.parameter5, posted.parameter5)
         mergeValues(script.parameter6, posted.parameter6)
+        // Only a page the script is configured for (see ScriptDO.pageTargets):
+        script.pageTarget = posted.pageTarget?.takeIf { scriptDO.pageTargetList.contains(it) }
         return script
     }
 
@@ -231,8 +255,15 @@ abstract class AbstractScriptExecuteRest {
             return script
         }
 
+        /** How long the log and the result of an execution are kept in the session, as its file is. */
+        private const val SESSION_EXPIRY_MINUTES = 5
+
         private fun getSessionAttr(scriptId: Long?): String {
             return "${AbstractScriptExecuteRest::class.simpleName}:$scriptId"
+        }
+
+        private fun getResultSessionAttr(scriptId: Long?): String {
+            return "${getSessionAttr(scriptId)}:result"
         }
     }
 }

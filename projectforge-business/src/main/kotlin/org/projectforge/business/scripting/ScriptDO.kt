@@ -224,6 +224,32 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
     @get:Column(length = DESCRIPTION_MAX_LENGTH)
     open var parameter6Description: String? = null
 
+    /**
+     * The pages showing a button for executing this script in their top right corner, as CSV of page target
+     * ids, e.g. `list:order` (a list page by its entity) or `orderStatistics:forecast` (a tab of the order
+     * statistics). The script gets the current filter of the page it is started from as variable
+     * `pageContext`.
+     */
+    @PropertyInfo(i18nKey = "scripting.script.pageTargets", tooltip = "scripting.script.pageTargets.info")
+    @get:Column(name = "page_targets", length = PAGE_TARGETS_MAX_LENGTH)
+    open var pageTargets: String? = null
+
+    /** The label of the button on the [pageTargets], the script's name if not given. */
+    @PropertyInfo(i18nKey = "scripting.script.buttonLabel", tooltip = "scripting.script.buttonLabel.info")
+    @get:Column(name = "button_label", length = BUTTON_LABEL_MAX_LENGTH)
+    open var buttonLabel: String? = null
+
+    /** The tooltip of the button on the [pageTargets], the script's description if not given. */
+    @PropertyInfo(i18nKey = "scripting.script.buttonTooltip", tooltip = "scripting.script.buttonTooltip.info")
+    @get:Column(name = "button_tooltip", length = BUTTON_TOOLTIP_MAX_LENGTH)
+    open var buttonTooltip: String? = null
+
+    /** The [pageTargets] as list. */
+    @get:Transient
+    @get:JsonIgnore
+    open val pageTargetList: List<String>
+        get() = pageTargets?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
     open var scriptAsString: String?
         @Transient
         get() = convert(script)
@@ -427,6 +453,12 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
         const val PARAMETER_NAME_MAX_LENGTH = 100
 
         const val DESCRIPTION_MAX_LENGTH = 4000
+
+        const val PAGE_TARGETS_MAX_LENGTH = 1000
+
+        const val BUTTON_LABEL_MAX_LENGTH = 100
+
+        const val BUTTON_TOOLTIP_MAX_LENGTH = 1000
 
         @JsonIgnore
         private val log = org.slf4j.LoggerFactory.getLogger(ScriptDO::class.java)

@@ -46,35 +46,36 @@ import kotlin.system.exitProcess
  * source of truth (English, it is published). The app also shows it in German, translated in
  * `changelog/changelog.de.json` (see [validateTranslation]); the website is English only.
  *
- * The source has three levels of abstraction: `news` (a few highlights per version), `releases`
- * (one entry per tagged release or per snapshot milestone of develop, sections typed like
- * `site/_data/tags.yml`) and — outside the file — the commits, referenced only by the commit range
- * of a snapshot.
+ * Every release has three levels of detail, shown by both targets: its `summary` (a few keywords and the important
+ * fixes, always shown), its `overview` (about one line per topic, unfolded on request) and all its changes (`intro`
+ * and `sections`, typed like `site/_data/tags.yml`, unfolded on request). The commits are referenced only by the
+ * commit range of a snapshot.
+ *
+ * The releases are grouped by their major version (see [groups]): the release opening it (9.0.0), its updates
+ * (9.0.1, 9.0.2, …) and the snapshots of develop leading up to it.
  *
  * All texts use a small markdown subset that both targets can render (see [validateText]):
  * `**bold**`, `*italic*`, `` `code` ``, `[text](url)`, `- ` list lines, paragraphs via a blank line and
  * `{red}text{/red}` for red text.
  *
  * Output:
- * 1. `site/_changelogs/changelog-<yyyymmdd>--<id>.adoc`, one per release, and
- *    `changelog-<yyyymmdd>--news-<version>.adoc`, one per news (the directory is owned by this generator,
- *    other files there are removed),
+ * 1. `site/_changelogs/changelog-major-<major>.adoc`, one per major version, the levels as collapsible blocks
+ *    (`<details>` in HTML, no script needed; the directory is owned by this generator, other files there are
+ *    removed),
  * 2. `site/changelog-posts.adoc`, the changelog page of the website listing them,
  * 3. `projectforge-next/lib/generated/changelog.json` and `changelog.de.json` (the German version) for the
- *    page `/next/changelog`.
+ *    page `/next/changelog`, already grouped.
  *
  * A tagged release with `"published": false` is a mini release: `bin/pfDev.sh publish` only pushes its tag, without
  * a GitHub release, jar or docker images. Its changes are part of the release notes of the next published
  * release (see [releaseNotesMarkdown]).
  *
- * Both targets show a news directly above the release opening its version (see [newsAnchors]): 9.0 above the
- * 9.0.0 release (below the builds 9.0.1, 9.0.2), 8.2 above the latest 8.2 snapshot (no 8.2 release yet) and so on.
- *
  * New changes are collected in `changelog/unreleased/`, one file per change with its English and German
  * text (see [parseFragment]), so that branches working on the same release don't touch the same lines.
  * `/next/changelog` shows them on top as a release "Not yet released" (see [withUnreleased]), the website
- * doesn't. `bin/pfDev.sh release` moves them into the release in `changelog.json` and `changelog.de.json`
- * (`--fold`, see [fold]).
+ * doesn't. The summary and overview of the next release (and optionally its title and intro) are written in
+ * `changelog/unreleased/release.json` (see [parseReleaseSummary]). `bin/pfDev.sh release` moves all of it into the
+ * release in `changelog.json` and `changelog.de.json` (`--fold`, see [fold]).
  *
  * The generated files are never edited by hand — [GenerateChangelogMainTest] fails if they differ from
  * what [generate] produces.
@@ -103,8 +104,17 @@ object GenerateChangelogMain {
   )
 
   /** The fields a translation may replace, everything else (version, date, commits, types) is the source's. */
-  private val TRANSLATED_NEWS_FIELDS = setOf("title", "text", "highlights")
-  private val TRANSLATED_RELEASE_FIELDS = setOf("title", "intro", "sections")
+  private val TRANSLATED_RELEASE_FIELDS = setOf("title", "intro", "summary", "overview", "sections")
+
+  /** The order of the fields of a release, as written to the sources (other fields follow). */
+  private val RELEASE_FIELD_ORDER = listOf(
+    "id", "version", "date", "title", "tag", "downloadLink", "published", "fromCommit", "toCommit",
+    "intro", "summary", "overview", "sections",
+  )
+
+  /** The file of `changelog/unreleased/` with the summary and overview of the next release. */
+  internal const val RELEASE_SUMMARY_FILE = "release.json"
+  private val RELEASE_SUMMARY_FIELDS = setOf("title", "intro", "summary", "overview")
 
   private val FRAGMENT_FIELDS = setOf("type", "en", "de", "items")
   private val FRAGMENT_NAME_REGEX = Regex("""(\d{8})-[a-z0-9]+(-[a-z0-9]+)*\.json""")
@@ -176,9 +186,10 @@ object GenerateChangelogMain {
       }
     }
     val fragments = readFragments(rootDir)
+    val summary = readReleaseSummary(rootDir)
     val releaseId = root["releases"]?.get(0)?.get("id")?.asText()
-    if (fragments.isNotEmpty() && releaseId != null && translation["releases"]?.get(releaseId) != null) {
-      fold(root, translation, releaseId, fragments).let { (folded, foldedTranslation) ->
+    if ((fragments.isNotEmpty() || summary != null) && releaseId != null && translation["releases"]?.get(releaseId) != null) {
+      fold(root, translation, releaseId, fragments, summary).let { (folded, foldedTranslation) ->
         root = folded
         translation = foldedTranslation
       }
@@ -213,7 +224,7 @@ object GenerateChangelogMain {
         translation = addedTranslation
       }
     }
-    val files = fragmentFiles(rootDir)
+    val files = fragmentFiles(rootDir) + listOfNotNull(releaseSummaryFile(rootDir).takeIf { it.isFile })
     if (files.isEmpty()) {
       println("Nothing to fold, $FRAGMENTS_DIR has no entries.")
       return
@@ -223,7 +234,7 @@ object GenerateChangelogMain {
     } else {
       releaseId ?: root["releases"][0]["id"].asText()
     }
-    val (folded, foldedTranslation) = fold(root, translation, id, readFragments(rootDir))
+    val (folded, foldedTranslation) = fold(root, translation, id, readFragments(rootDir), readReleaseSummary(rootDir))
     val errors = validate(folded) + validateTranslation(folded, foldedTranslation)
     require(errors.isEmpty()) { "The folded changelog is invalid:\n${errors.joinToString("\n")}" }
     File(rootDir, SOURCE).writeText(sourceJson(folded), ENCODING)
@@ -274,15 +285,10 @@ object GenerateChangelogMain {
     return copy to translationCopy
   }
 
-  /** The version a news is kept by: major.minor, `8.2` of `8.2.37`, `8.2.0-SNAPSHOT` or `8.2-SNAPSHOT`. */
-  internal fun newsVersion(version: String): String =
-    version.substringBefore('-').split('.').take(2).joinToString(".")
-
   /**
    * Checks that the changelog [root] (and its [translation]) is ready for the release [version] `X.Y.Z`: valid,
    * its release is the newest entry of `releases`, tagged `X.Y.Z-RELEASE`, not dated in the future and not
-   * released before. Major and minor releases (`X.Y.0`) open a line and need its news (version `X.Y`), a build
-   * (`X.Y.Z`, Z > 0) is listed above the news of its line.
+   * released before. It needs its `summary` and `overview` (written in `changelog/unreleased/release.json`).
    */
   internal fun checkRelease(
     root: JsonNode,
@@ -290,8 +296,7 @@ object GenerateChangelogMain {
     version: String,
     today: LocalDate = LocalDate.now(),
   ): List<String> {
-    val match = RELEASE_VERSION_REGEX.matchEntire(version)
-      ?: return listOf("'$version' is no release version, expected X.Y.Z (e.g. 8.2.37).")
+    if (!RELEASE_VERSION_REGEX.matches(version)) return listOf("'$version' is no release version, expected X.Y.Z (e.g. 8.2.37).")
     val errors = validate(root).toMutableList()
     if (errors.isNotEmpty()) return errors
     errors += validateTranslation(root, translation)
@@ -307,17 +312,16 @@ object GenerateChangelogMain {
     releases.drop(1).filter { it["version"]?.asText() == version || it["tag"]?.asText() == tag }.forEach {
       errors.add("releases (${it["id"]?.asText()}): version $version is released already.")
     }
-    val line = newsVersion(version)
-    if (match.groupValues[3] == "0" && root["news"].none { it["version"]?.asText() == line }) {
-      errors.add("news: the release $version opens the version $line and needs a news with version \"$line\".")
+    if (release["summary"] == null || release["overview"] == null) {
+      errors.add("$where: 'summary' and 'overview' are missing, write them in $FRAGMENTS_DIR/$RELEASE_SUMMARY_FILE.")
     }
     return errors
   }
 
   /**
-   * The GitHub release notes of the release [version] (Markdown, English): the intros, the news of a major or
-   * minor release (`X.Y.0`) and the sections, merged by type, of the release and of the unpublished releases
-   * since the last published one (see [aggregatedReleases]), newest first.
+   * The GitHub release notes of the release [version] (Markdown, English): the summaries, intros and overviews and,
+   * folded, all changes (the sections, merged by type) of the release and of the unpublished releases since the last
+   * published one (see [aggregatedReleases]), newest first.
    */
   internal fun releaseNotesMarkdown(root: JsonNode, version: String): String {
     val releases = aggregatedReleases(root, version)
@@ -329,43 +333,53 @@ object GenerateChangelogMain {
       val list = if (versions.size == 1) versions[0] else "${versions.dropLast(1).joinToString(", ")} and ${versions.last()}"
       sb.appendLine("Also includes the changes of $list, released without downloads.")
     }
+    fun bullets(field: String) {
+      val texts = releases.flatMap { it[field]?.toList().orEmpty() }
+      if (texts.isEmpty()) return
+      sb.appendLine()
+      texts.forEach { appendMarkdownItem(sb, it.asText()) }
+    }
+    bullets("summary")
     releases.flatMap { it["intro"]?.toList().orEmpty() }.forEach {
       sb.appendLine()
       sb.appendLine(textToMarkdown(it.asText()))
     }
-    releases.map { it["version"].asText() }.filter { it.endsWith(".0") }.forEach { releaseVersion ->
-      root["news"].firstOrNull { it["version"]?.asText() == newsVersion(releaseVersion) }?.let { news ->
-        sb.appendLine()
-        sb.appendLine("## ${news["title"].asText()}")
-        sb.appendLine()
-        sb.appendLine(textToMarkdown(news["text"].asText()))
-        news["highlights"]?.takeIf { !it.isEmpty }?.let { highlights ->
-          sb.appendLine()
-          highlights.forEach { sb.appendLine("- ${textToMarkdown(it.asText())}") }
-        }
-      }
+    if (releases.any { it["overview"] != null }) {
+      sb.appendLine()
+      sb.appendLine("## Overview")
+      bullets("overview")
     }
     // The order of the types is the one of their first appearance, items of newer releases first.
     val sections = linkedMapOf<String, MutableList<JsonNode>>()
     releases.forEach { release ->
       release["sections"].forEach { sections.getOrPut(it["type"].asText()) { mutableListOf() }.addAll(it["items"]) }
     }
+    sb.appendLine()
+    sb.appendLine("<details>")
+    sb.appendLine("<summary>All changes</summary>")
     sections.forEach { (type, items) ->
       sb.appendLine()
       sb.appendLine("## ${type.replaceFirstChar { it.uppercase() }}")
       sb.appendLine()
       items.forEach { item ->
         if (item.isTextual) {
-          val lines = textToMarkdown(item.asText()).split('\n')
-          sb.appendLine("- ${lines.first()}")
-          lines.drop(1).forEach { sb.appendLine("  $it") }
+          appendMarkdownItem(sb, item.asText())
         } else {
           sb.appendLine("- **${item["title"].asText()}**")
           item["items"].forEach { sb.appendLine("  - ${textToMarkdown(it.asText())}") }
         }
       }
     }
+    sb.appendLine()
+    sb.appendLine("</details>")
     return sb.toString()
+  }
+
+  /** A list item, its `- ` continuation lines as its sub list. */
+  private fun appendMarkdownItem(sb: StringBuilder, text: String) {
+    val lines = textToMarkdown(text).split('\n')
+    sb.appendLine("- ${lines.first()}")
+    lines.drop(1).forEach { sb.appendLine("  $it") }
   }
 
   /**
@@ -398,20 +412,17 @@ object GenerateChangelogMain {
     val translation = ObjectMapper().readTree(File(rootDir, SOURCE_DE).readText(ENCODING))
     val translationErrors = validateTranslation(root, translation)
     require(translationErrors.isEmpty()) { "$SOURCE_DE is invalid:\n${translationErrors.joinToString("\n")}" }
-    val (nextRoot, nextTranslation) = withUnreleased(root, translation, readFragments(rootDir))
+    val (nextRoot, nextTranslation) =
+      withUnreleased(root, translation, readFragments(rootDir), readReleaseSummary(rootDir))
     val result = linkedMapOf<String, String>()
-    val anchors = newsAnchors(root)
     val releases = root["releases"].toList()
-    // Releases are sorted newest first, the rank keeps their order on the website for releases of the same date.
-    fun rank(release: JsonNode) = releases.size - releases.indexOf(release)
-    releases.forEach { release ->
-      result["$CHANGELOGS_DIR/${adocFileName(release)}"] = releaseToAdoc(release, rank(release))
+    val latest = releases.firstOrNull { it["tag"] != null }
+    // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
+    groups(root).forEach { group ->
+      val rank = releases.size - releases.indexOf(group.newest)
+      result["$CHANGELOGS_DIR/${groupFileName(group)}"] = groupToAdoc(group, rank)
     }
-    root["news"].forEachIndexed { index, news ->
-      val anchor = releases.first { it["id"].asText() == anchors[index] }
-      result["$CHANGELOGS_DIR/${newsFileName(news)}"] = newsToAdoc(news, anchor, rank(anchor))
-    }
-    result[POSTS_PAGE] = postsPage()
+    result[POSTS_PAGE] = postsPage(latest)
     result[NEXT_FILE] = nextJson(nextRoot)
     result[NEXT_FILE_DE] = nextJson(translate(nextRoot, nextTranslation))
     return result
@@ -423,10 +434,73 @@ object GenerateChangelogMain {
    */
   internal class Fragment(val name: String, val date: LocalDate, val type: String, val en: JsonNode, val de: JsonNode)
 
-  /** The fragment files, sorted by name, so by date. Other files (README.md) are ignored. */
+  /** The fragment files, sorted by name, so by date. Other files (README.md, [RELEASE_SUMMARY_FILE]) are ignored. */
   internal fun fragmentFiles(rootDir: File): List<File> =
-    File(rootDir, FRAGMENTS_DIR).listFiles()?.filter { it.isFile && it.name.endsWith(".json") }?.sortedBy { it.name }
+    File(rootDir, FRAGMENTS_DIR).listFiles()
+      ?.filter { it.isFile && it.name.endsWith(".json") && it.name != RELEASE_SUMMARY_FILE }?.sortedBy { it.name }
       ?: emptyList()
+
+  internal fun releaseSummaryFile(rootDir: File) = File(rootDir, "$FRAGMENTS_DIR/$RELEASE_SUMMARY_FILE")
+
+  /** The fields of `changelog/unreleased/release.json` for the next release, [en] for the source, [de] for its translation. */
+  internal class ReleaseSummary(val en: ObjectNode, val de: ObjectNode)
+
+  /** The summary of the next release if written, throws [IllegalArgumentException] listing every problem found. */
+  internal fun readReleaseSummary(rootDir: File): ReleaseSummary? {
+    val file = releaseSummaryFile(rootDir).takeIf { it.isFile } ?: return null
+    val errors = mutableListOf<String>()
+    val summary = parseReleaseSummary(file.readText(ENCODING), errors)
+    require(errors.isEmpty()) { "$FRAGMENTS_DIR/$RELEASE_SUMMARY_FILE is invalid:\n${errors.joinToString("\n")}" }
+    return summary
+  }
+
+  /**
+   * Parses `changelog/unreleased/release.json`, the levels of the next release written before it is released:
+   * `{"summary": {"en": ["…"], "de": ["…"]}, "overview": {"en": ["…"], "de": ["…"]}}`, optionally with
+   * `"title": {"en": "…", "de": "…"}` and `"intro": {"en": ["…"], "de": ["…"]}`. Null if invalid, the problems are
+   * added to [errors].
+   */
+  internal fun parseReleaseSummary(content: String, errors: MutableList<String>): ReleaseSummary? {
+    val where = "$FRAGMENTS_DIR/$RELEASE_SUMMARY_FILE"
+    val errorCount = errors.size
+    val node = try {
+      ObjectMapper().readTree(content)
+    } catch (ex: JsonProcessingException) {
+      errors.add("$where: invalid JSON, ${ex.originalMessage}")
+      return null
+    }
+    if (node == null || !node.isObject) {
+      errors.add("$where: must be an object.")
+      return null
+    }
+    node.fieldNames().asSequence().filter { it !in RELEASE_SUMMARY_FIELDS }.forEach {
+      errors.add("$where: unknown field '$it', expected $RELEASE_SUMMARY_FIELDS.")
+    }
+    listOf("summary", "overview").filter { node[it] == null }.forEach { errors.add("$where: '$it' is missing.") }
+    val mapper = ObjectMapper()
+    val en = mapper.createObjectNode()
+    val de = mapper.createObjectNode()
+    RELEASE_SUMMARY_FIELDS.forEach { field ->
+      val value = node[field] ?: return@forEach
+      val fieldWhere = "$where.$field"
+      if (!value.isObject || value.fieldNames().asSequence().toSet() != setOf("en", "de")) {
+        errors.add("$fieldWhere: must be {\"en\", \"de\"}.")
+        return@forEach
+      }
+      if (field == "title") {
+        listOf("en", "de").forEach { language -> requireText(value, language, fieldWhere, errors)?.let { validateTitle(it, "$fieldWhere.$language", errors) } }
+      } else {
+        listOf("en", "de").forEach { language ->
+          validateTexts(value[language], "$fieldWhere.$language", errors, inline = field == "summary", item = field == "overview")
+        }
+        if (value["en"].size() != value["de"].size()) errors.add("$fieldWhere: 'en' and 'de' must have the same number of entries.")
+      }
+      en.set<JsonNode>(field, value["en"])
+      de.set<JsonNode>(field, value["de"])
+    }
+    if (errors.size > errorCount) return null
+    return ReleaseSummary(en, de)
+  }
 
   /** All fragments, throws [IllegalArgumentException] listing every problem found. */
   internal fun readFragments(rootDir: File): List<Fragment> {
@@ -518,13 +592,15 @@ object GenerateChangelogMain {
   /**
    * The source [root] and its [translation] with the [fragments] added to the release [releaseId], in the order
    * given: to the section of their type, a missing section is inserted in the order of [TYPES]. The German item
-   * gets the same position as the English one, so the translation keeps the structure of the source.
+   * gets the same position as the English one, so the translation keeps the structure of the source. The fields of
+   * the [summary] replace those of the release.
    */
   internal fun fold(
     root: JsonNode,
     translation: JsonNode,
     releaseId: String,
     fragments: List<Fragment>,
+    summary: ReleaseSummary? = null,
   ): Pair<JsonNode, JsonNode> {
     val folded = root.deepCopy<JsonNode>()
     val foldedTranslation = translation.deepCopy<JsonNode>()
@@ -536,7 +612,21 @@ object GenerateChangelogMain {
       addItem(release, fragment.type, fragment.en)
       addItem(translatedRelease, fragment.type, fragment.de)
     }
+    summary?.let {
+      release.setAll<JsonNode>(it.en.deepCopy())
+      translatedRelease.setAll<JsonNode>(it.de.deepCopy())
+    }
+    orderFields(release)
+    orderFields(translatedRelease)
     return folded to foldedTranslation
+  }
+
+  /** Sorts the fields of [release] (of the source or of the translation) by [RELEASE_FIELD_ORDER]. */
+  private fun orderFields(release: ObjectNode) {
+    val fields = release.fields().asSequence().map { it.key to it.value }.toList()
+    release.removeAll()
+    fields.sortedBy { (name, _) -> RELEASE_FIELD_ORDER.indexOf(name).takeIf { it >= 0 } ?: RELEASE_FIELD_ORDER.size }
+      .forEach { (name, value) -> release.set<JsonNode>(name, value) }
   }
 
   private fun addItem(release: ObjectNode, type: String, item: JsonNode) {
@@ -551,19 +641,25 @@ object GenerateChangelogMain {
 
   /**
    * The source [root] and its [translation] with the not yet folded [fragments] as the newest release
-   * [UNRELEASED_ID], dated by the newest fragment. Unchanged without fragments.
+   * [UNRELEASED_ID] (with the [summary] of the next release), dated by the newest fragment. Unchanged without both.
    */
-  internal fun withUnreleased(root: JsonNode, translation: JsonNode, fragments: List<Fragment>): Pair<JsonNode, JsonNode> {
-    if (fragments.isEmpty()) return root to translation
+  internal fun withUnreleased(
+    root: JsonNode,
+    translation: JsonNode,
+    fragments: List<Fragment>,
+    summary: ReleaseSummary? = null,
+  ): Pair<JsonNode, JsonNode> {
+    if (fragments.isEmpty() && summary == null) return root to translation
     val copy = root.deepCopy<JsonNode>()
     val translationCopy = translation.deepCopy<JsonNode>()
     (copy["releases"] as ArrayNode).insertObject(0)
       .put("id", UNRELEASED_ID)
       .put("version", copy["releases"][1]["version"].asText())
-      .put("date", fragments.maxOf { it.date }.toString())
+      .put("date", (fragments.maxOfOrNull { it.date } ?: LocalDate.now()).toString())
       .put("title", UNRELEASED_TITLE)
+      .putArray("sections")
     (translationCopy["releases"] as ObjectNode).putObject(UNRELEASED_ID).put("title", UNRELEASED_TITLE_DE)
-    return fold(copy, translationCopy, UNRELEASED_ID, fragments)
+    return fold(copy, translationCopy, UNRELEASED_ID, fragments, summary)
   }
 
   /** The sources as they are written by hand: two spaces, `"key": value`, one array element per line. */
@@ -585,47 +681,48 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The id of the release each news is shown above, by index of the news: the release opening the line of the
-   * news (`8.2.0` or `8.2`), so the later builds of the line are listed above the news. Without such a release
-   * (only snapshots so far) the newest release whose major.minor version (see [newsVersion], `8.2` of `8.2.37`
-   * or `8.2-SNAPSHOT`) is the version of the news. Null if there is none.
+   * A major version: its [head], the release opening it (X.0.0 or X.0, else its oldest tagged release; null if there
+   * is no tagged release yet), its other tagged releases ([updates], newest first) and the snapshots of develop
+   * leading up to it ([snapshots], newest first).
    */
-  internal fun newsAnchors(root: JsonNode): List<String?> =
-    root["news"].map { news ->
-      val version = news["version"]?.asText()?.let { newsVersion(it) }
-      val line = root["releases"].filter { release ->
-        release["version"]?.asText()?.let { newsVersion(it) } == version
-      }
-      val opening = line.firstOrNull { release ->
-        release["version"].asText().let { it == version || it == "$version.0" }
-      }
-      (opening ?: line.firstOrNull())?.get("id")?.asText()
+  internal class Group(val major: String, val head: JsonNode?, val updates: List<JsonNode>, val snapshots: List<JsonNode>) {
+    /** The newest release of the major, the source is sorted newest first. */
+    val newest: JsonNode get() = (updates + listOfNotNull(head) + snapshots).maxBy { it["date"].asText() }
+  }
+
+  /** The major version of [version]: `9` of `9.0.3` or `8.2-SNAPSHOT`. */
+  internal fun majorOf(version: String): String = version.substringBefore('-').substringBefore('.')
+
+  /**
+   * The releases grouped by major version, newest first. A tagged release belongs to the major of its version, a
+   * snapshot to the major of the release it leads up to: the next newer tagged one (the 8.2 snapshots to 9.0.0),
+   * without one (develop ahead of the latest release) to the major of its own version.
+   */
+  internal fun groups(root: JsonNode): List<Group> {
+    val releases = root["releases"].toList()
+    return releases.withIndex().groupBy({ (index, release) ->
+      val target = if (release["tag"] != null) release else releases.take(index).lastOrNull { it["tag"] != null }
+      majorOf((target ?: release)["version"].asText())
+    }, { it.value }).map { (major, members) ->
+      val (tagged, snapshots) = members.partition { it["tag"] != null }
+      val head = tagged.firstOrNull { isOpening(it) } ?: tagged.lastOrNull()
+      Group(major, head, tagged.filter { it !== head }, snapshots)
     }
+  }
+
+  /** Whether [release] opens its major version: `9.0.0` or `7.0`. */
+  private fun isOpening(release: JsonNode): Boolean =
+    release["version"].asText().substringBefore('-').split('.').drop(1).all { it == "0" }
 
   internal fun validate(root: JsonNode): List<String> {
     val errors = mutableListOf<String>()
-    val news = root["news"]
     val releases = root["releases"]
-    if (news == null || !news.isArray) errors.add("'news' must be an array.")
-    if (releases == null || !releases.isArray || releases.isEmpty) errors.add("'releases' must be a non-empty array.")
-    if (errors.isNotEmpty()) return errors
-    news.forEachIndexed { index, entry ->
-      val where = "news[$index]"
-      requireText(entry, "version", where, errors)
-      requireDate(entry, where, errors)
-      requireText(entry, "title", where, errors)?.let { validateTitle(it, "$where.title", errors) }
-      requireText(entry, "text", where, errors)?.let { validateText(it, "$where.text", errors) }
-      entry["highlights"]?.forEachIndexed { i, highlight ->
-        validateText(highlight.asText(), "$where.highlights[$i]", errors, inline = true)
-      }
+    root.fieldNames().asSequence().filter { it != "releases" }.forEach {
+      errors.add("'$it' is not supported, only 'releases' (the summary and overview of a release are its 'summary' and 'overview').")
     }
-    newsAnchors(root).forEachIndexed { index, anchor ->
-      if (anchor == null) {
-        errors.add("news[$index]: no release with version ${news[index]["version"]?.asText()}, the news is shown above it.")
-      }
-    }
-    newsAnchors(root).filterNotNull().groupBy { it }.filter { it.value.size > 1 }.keys.forEach {
-      errors.add("news: more than one news for the release $it.")
+    if (releases == null || !releases.isArray || releases.isEmpty) {
+      errors.add("'releases' must be a non-empty array.")
+      return errors
     }
     val ids = mutableSetOf<String>()
     var previousDate: LocalDate? = null
@@ -667,6 +764,8 @@ object GenerateChangelogMain {
         errors.add("$where: 'fromCommit' $from must be the 'toCommit' $older of the next older release.")
       }
       release["intro"]?.forEachIndexed { i, text -> validateText(text.asText(), "$where.intro[$i]", errors) }
+      release["summary"]?.let { validateTexts(it, "$where.summary", errors, inline = true) }
+      release["overview"]?.let { validateTexts(it, "$where.overview", errors, item = true) }
       val sections = release["sections"]
       if (sections == null || !sections.isArray || sections.isEmpty) {
         errors.add("$where: 'sections' must be a non-empty array.")
@@ -703,40 +802,24 @@ object GenerateChangelogMain {
 
   /**
    * Checks the German [translation] against the (valid) source [root]. The translation holds the texts only,
-   * by the version of a news and the id of a release: `{"news": {"8.2": {title, text, highlights}},
-   * "releases": {"8-1": {title, intro, sections}}}`. Every news and release must be translated, with the
+   * by the id of a release: `{"releases": {"8-1": {title, intro, summary, overview, sections}}}`. Every release must
+   * be translated, with the
    * structure of the source: the same sections (in order and type), the same number of items, a group
    * for a group and the same number of sub list lines in an item. The texts follow the rules of the source.
    */
   internal fun validateTranslation(root: JsonNode, translation: JsonNode): List<String> {
     val errors = mutableListOf<String>()
-    val news = translation["news"]
     val releases = translation["releases"]
-    if (news == null || !news.isObject) errors.add("'news' must be an object, the news by version.")
-    if (releases == null || !releases.isObject) errors.add("'releases' must be an object, the releases by id.")
-    if (errors.isNotEmpty()) return errors
-    val sourceNews = root["news"].associateBy { it["version"].asText() }
-    val sourceReleases = root["releases"].associateBy { it["id"].asText() }
-    news.fieldNames().asSequence().filter { it !in sourceNews }.forEach {
-      errors.add("news $it: there is no news of this version in $SOURCE.")
+    translation.fieldNames().asSequence().filter { it != "releases" }.forEach {
+      errors.add("'$it' is not supported, only 'releases'.")
     }
+    if (releases == null || !releases.isObject) {
+      errors.add("'releases' must be an object, the releases by id.")
+      return errors
+    }
+    val sourceReleases = root["releases"].associateBy { it["id"].asText() }
     releases.fieldNames().asSequence().filter { it !in sourceReleases }.forEach {
       errors.add("releases $it: there is no release with this id in $SOURCE.")
-    }
-    sourceNews.forEach { (version, original) ->
-      val where = "news $version"
-      val entry = news[version]
-      if (entry == null) {
-        errors.add("$where: the translation is missing.")
-        return@forEach
-      }
-      validateFields(entry, TRANSLATED_NEWS_FIELDS, where, errors)
-      requireText(entry, "title", where, errors)?.let { validateTitle(it, "$where.title", errors) }
-      requireText(entry, "text", where, errors)?.let { validateText(it, "$where.text", errors) }
-      requireSameSize(original["highlights"], entry["highlights"], "$where.highlights", errors)
-      entry["highlights"]?.forEachIndexed { i, highlight ->
-        validateText(highlight.asText(), "$where.highlights[$i]", errors, inline = true)
-      }
     }
     sourceReleases.forEach { (id, original) ->
       val where = "releases $id"
@@ -749,6 +832,12 @@ object GenerateChangelogMain {
       requireText(release, "title", where, errors)?.let { validateTitle(it, "$where.title", errors) }
       requireSameSize(original["intro"], release["intro"], "$where.intro", errors)
       release["intro"]?.forEachIndexed { i, text -> validateText(text.asText(), "$where.intro[$i]", errors) }
+      if (requireSameSize(original["summary"], release["summary"], "$where.summary", errors)) {
+        release["summary"]?.let { validateTexts(it, "$where.summary", errors, inline = true) }
+      }
+      if (requireSameSize(original["overview"], release["overview"], "$where.overview", errors)) {
+        release["overview"]?.let { validateTexts(it, "$where.overview", errors, item = true) }
+      }
       val sections = release["sections"]
       if (!requireSameSize(original["sections"], sections, "$where.sections", errors)) return@forEach
       original["sections"].forEachIndexed { s, originalSection ->
@@ -790,7 +879,6 @@ object GenerateChangelogMain {
   /** The source [root] with the texts of the (valid) [translation] in place of its own. */
   internal fun translate(root: JsonNode, translation: JsonNode): JsonNode {
     val copy = root.deepCopy<JsonNode>()
-    copy["news"].forEach { (it as ObjectNode).setAll<JsonNode>(translation["news"][it["version"].asText()] as ObjectNode) }
     copy["releases"].forEach {
       (it as ObjectNode).setAll<JsonNode>(translation["releases"][it["id"].asText()] as ObjectNode)
     }
@@ -811,6 +899,21 @@ object GenerateChangelogMain {
       return false
     }
     return true
+  }
+
+  /** [texts] must be a non-empty array of texts, each checked by [validateText]. */
+  private fun validateTexts(
+    texts: JsonNode?,
+    where: String,
+    errors: MutableList<String>,
+    inline: Boolean = false,
+    item: Boolean = false,
+  ) {
+    if (texts == null || !texts.isArray || texts.isEmpty || texts.any { !it.isTextual }) {
+      errors.add("$where: must be a non-empty array of strings.")
+      return
+    }
+    texts.forEachIndexed { i, text -> validateText(text.asText(), "$where[$i]", errors, inline = inline, item = item) }
   }
 
   /** Titles are plain text: the app renders them in headings and buttons, where no markup belongs. */
@@ -864,64 +967,78 @@ object GenerateChangelogMain {
     }
   }
 
-  internal fun adocFileName(release: JsonNode): String =
-    "changelog-${release["date"].asText().replace("-", "")}--${release["id"].asText()}.adoc"
-
-  internal fun newsFileName(news: JsonNode): String =
-    "changelog-${news["date"].asText().replace("-", "")}--news-${news["version"].asText().replace(".", "-")}.adoc"
+  internal fun groupFileName(group: Group): String = "changelog-major-${group.major}.adoc"
 
   /**
-   * Sort key of the website's layout (`site/_layouts/changelog.html`, sorted descending): the date of the
-   * release, its [rank] (the position in the source, counted from the oldest) for releases of the same date and a
-   * news ranking above the release it belongs to.
+   * Sort key of the website's layout (`site/_layouts/changelog.html`, sorted descending): the date of the newest
+   * release of the major and its [rank] (the position in the source, counted from the oldest) for majors whose
+   * newest releases share a date.
    */
-  private fun sortKey(release: JsonNode, rank: Int, news: Boolean): String =
-    "\"${release["date"].asText()} ${"%04d".format(rank)} ${if (news) 1 else 0}\""
+  private fun sortKey(newest: JsonNode, rank: Int): String = "\"${newest["date"].asText()} ${"%04d".format(rank)}\""
 
-  internal fun newsToAdoc(news: JsonNode, anchor: JsonNode, rank: Int): String {
+  /**
+   * The page of a major version: its opening release, its updates and, folded, its snapshots, each release with its
+   * summary shown and its overview and all of its changes as collapsible blocks (see [releaseToAdoc]).
+   */
+  internal fun groupToAdoc(group: Group, rank: Int): String {
     val sb = StringBuilder()
     sb.appendLine("---")
-    sb.appendLine("title: ${yamlString(news["title"].asText())}")
-    sb.appendLine("date: ${news["date"].asText()}")
-    sb.appendLine("sort_key: ${sortKey(anchor, rank, true)}")
-    sb.appendLine("news: true")
+    sb.appendLine("title: ${yamlString("ProjectForge ${group.major}")}")
+    sb.appendLine("date: ${group.newest["date"].asText()}")
+    sb.appendLine("sort_key: ${sortKey(group.newest, rank)}")
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")
-    sb.appendLine()
-    sb.appendLine(blockToAdoc(news["text"].asText()))
-    news["highlights"]?.takeIf { !it.isEmpty }?.let { highlights ->
+    (listOfNotNull(group.head) + group.updates).forEach { releaseToAdoc(it, sb, "====") }
+    if (group.snapshots.isNotEmpty()) {
       sb.appendLine()
-      highlights.forEach { sb.appendLine("- ${inlineToAdoc(it.asText())}") }
+      sb.appendLine(".Development snapshots (${group.snapshots.size})")
+      sb.appendLine("[%collapsible.changelog-snapshots]")
+      sb.appendLine("======")
+      group.snapshots.forEach { releaseToAdoc(it, sb, "====") }
+      sb.appendLine("======")
     }
     return sb.toString()
   }
 
-  internal fun releaseToAdoc(release: JsonNode, rank: Int): String {
-    val sb = StringBuilder()
-    sb.appendLine("---")
-    sb.appendLine("title: ${yamlString(release["title"].asText())}")
-    sb.appendLine("date: ${release["date"].asText()}")
-    sb.appendLine("sort_key: ${sortKey(release, rank, false)}")
-    sb.appendLine("---")
-    sb.appendLine(":page-liquid:")
-    sb.appendLine("// $GENERATED_NOTE")
-    release["intro"]?.forEach {
-      sb.appendLine()
-      sb.appendLine(blockToAdoc(it.asText()))
-    }
+  /**
+   * A release: its title, date and tag (or commit range), its summary and, as collapsible blocks delimited by
+   * [delimiter], its overview and all changes (intro, sections, download link).
+   */
+  internal fun releaseToAdoc(release: JsonNode, sb: StringBuilder, delimiter: String) {
+    sb.appendLine()
+    sb.appendLine("[discrete.changelog-release]")
+    sb.appendLine("=== ${release["title"].asText()}")
+    sb.appendLine()
     val tag = release["tag"]?.asText()
     val from = release["fromCommit"]?.asText()
     val to = release["toCommit"]?.asText()
-    if (tag == null && from != null && to != null) {
+    val source = when {
+      tag != null -> "tag $REPO_URL/tree/$tag[$tag]"
+      from != null && to != null -> "snapshot build $REPO_URL/commit/$to[develop@$to], $REPO_URL/compare/$from..$to[changes since $from]"
+      else -> null
+    }
+    sb.appendLine("[.changelog-source]")
+    sb.appendLine("__${listOfNotNull(release["date"].asText(), source).joinToString(", ")}__")
+    release["summary"]?.let { summary ->
       sb.appendLine()
-      sb.appendLine(
-        "__Snapshot build $REPO_URL/commit/$to[develop@$to], " +
-            "$REPO_URL/compare/$from..$to[changes since $from].__"
-      )
-    } else if (tag != null) {
+      summary.forEach { sb.appendLine("- ${inlineToAdoc(it.asText())}") }
+    }
+    release["overview"]?.let { overview ->
       sb.appendLine()
-      sb.appendLine("__Tag $REPO_URL/tree/$tag[$tag].__")
+      sb.appendLine(".Overview")
+      sb.appendLine("[%collapsible]")
+      sb.appendLine(delimiter)
+      overview.forEach { appendAdocItem(sb, it.asText()) }
+      sb.appendLine(delimiter)
+    }
+    sb.appendLine()
+    sb.appendLine(".All changes")
+    sb.appendLine("[%collapsible]")
+    sb.appendLine(delimiter)
+    release["intro"]?.forEachIndexed { index, intro ->
+      if (index > 0) sb.appendLine()
+      sb.appendLine(blockToAdoc(intro.asText()))
     }
     release["sections"].forEach { section ->
       sb.appendLine()
@@ -930,9 +1047,7 @@ object GenerateChangelogMain {
       sb.appendLine("++++")
       section["items"].forEach { item ->
         if (item.isTextual) {
-          val lines = item.asText().split('\n')
-          sb.appendLine("- ${inlineToAdoc(lines.first())}")
-          lines.drop(1).forEach { sb.appendLine("  * ${inlineToAdoc(it.removePrefix("- "))}") }
+          appendAdocItem(sb, item.asText())
         } else {
           sb.appendLine("- ${groupTitleToAdoc(item["title"].asText())}")
           item["items"].forEach { sb.appendLine("  * ${inlineToAdoc(it.asText())}") }
@@ -945,32 +1060,66 @@ object GenerateChangelogMain {
       sb.appendLine("{% include download-link.html %}")
       sb.appendLine("++++")
     }
-    return sb.toString()
+    sb.appendLine(delimiter)
   }
 
-  /** The page itself only has the front matter, the layout lists the releases and news of the collection. */
-  internal fun postsPage(): String {
+  /** A list item, its `- ` continuation lines as its sub list. */
+  private fun appendAdocItem(sb: StringBuilder, text: String) {
+    val lines = text.split('\n')
+    sb.appendLine("- ${inlineToAdoc(lines.first())}")
+    lines.drop(1).forEach { sb.appendLine("  * ${inlineToAdoc(it.removePrefix("- "))}") }
+  }
+
+  /**
+   * The page itself has the front matter and the [latest] tagged release (a major page starts with the opening
+   * release of the major, which otherwise looks like the current version) with its binaries: they come later with
+   * `pfDev.sh publish`, so `site/_includes/latest-binaries.html` asks GitHub for them. The layout lists the majors of
+   * the collection below.
+   */
+  internal fun postsPage(latest: JsonNode?): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("layout: changelog")
     sb.appendLine("title: Changelog")
     sb.appendLine("permalink: /changelog-posts/")
     sb.appendLine("---")
+    sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")
+    latest?.let {
+      val tag = it["tag"].asText()
+      sb.appendLine()
+      sb.appendLine("[.changelog-latest]")
+      sb.appendLine("--")
+      sb.appendLine("Latest release: **ProjectForge ${it["version"].asText()}** (${it["date"].asText()}, tag $REPO_URL/tree/$tag[$tag])")
+      sb.appendLine()
+      sb.appendLine("++++")
+      sb.appendLine("{% include latest-binaries.html tag=\"$tag\" %}")
+      sb.appendLine("++++")
+      sb.appendLine("--")
+    }
     return sb.toString()
   }
 
   /**
-   * The source as the next page reads it, reformatted, with a note that it is generated. Each news carries
-   * the `releaseId` it is shown above.
+   * The source as the next page reads it, grouped by major version (see [groups]), with a note that it is generated:
+   * `{"unreleased": release, "groups": [{"major", "head", "updates", "snapshots"}]}`, `unreleased` (see
+   * [withUnreleased]) only if there are entries in `changelog/unreleased/`.
    */
   internal fun nextJson(root: JsonNode): String {
     val mapper = ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-    val copy = (root.deepCopy<JsonNode>() as ObjectNode)
-    val anchors = newsAnchors(root)
-    copy["news"].forEachIndexed { index, news -> (news as ObjectNode).put("releaseId", anchors[index]) }
     val result = mapper.createObjectNode().put("_generated", GENERATED_NOTE)
-    result.setAll<JsonNode>(copy)
+    val copy = root.deepCopy<JsonNode>() as ObjectNode
+    val releases = copy["releases"] as ArrayNode
+    if (releases[0]["id"]?.asText() == UNRELEASED_ID) result.set<JsonNode>("unreleased", releases.remove(0))
+    val groups = result.putArray("groups")
+    groups(copy).forEach { group ->
+      groups.addObject().also { node ->
+        node.put("major", group.major)
+        group.head?.let { node.set<JsonNode>("head", it) }
+        node.putArray("updates").addAll(group.updates)
+        node.putArray("snapshots").addAll(group.snapshots)
+      }
+    }
     return mapper.writeValueAsString(result).replace("\r\n", "\n") + "\n"
   }
 

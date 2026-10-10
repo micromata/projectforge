@@ -11,3 +11,13 @@ export const scriptExecuteRoute = (route: string, id: number) =>
 
 /** The form of a stored script (administration only). */
 export const scriptEditRoute = (id: number) => `${SCRIPT_ROUTE}/${id}/edit`;
+
+/** The search parameter of the execution page naming the page the script was started from. */
+export const SCRIPT_FROM_PARAM = "from";
+
+/**
+ * The execution of a script started by its button on the page of `target` (see ScriptPageButtons), whose
+ * current filter the script gets.
+ */
+export const scriptPageButtonRoute = (id: number, target: string) =>
+  `${MY_SCRIPT_ROUTE}/${id}?${SCRIPT_FROM_PARAM}=${encodeURIComponent(target)}`;

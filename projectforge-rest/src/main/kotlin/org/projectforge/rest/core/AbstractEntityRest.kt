@@ -865,6 +865,15 @@ constructor(
     }
 
     /**
+     * The rows of the list for [filter] as the non-paged `POST list` returns them (access checked and sorted,
+     * no multi selection). Used by scripts started from the list page (see `ScriptPageContext`).
+     */
+    fun getFilteredList(filter: MagicFilter): List<O> {
+        fixMagicFilterFromClient(filter)
+        return filterList(getObjectList(this, baseDao, filter), filter)
+    }
+
+    /**
      * Is this list page currently in multi selection mode?
      */
     fun isMultiSelectionMode(request: HttpServletRequest, magicFilter: MagicFilter): Boolean {
