@@ -27,6 +27,8 @@ export interface ListToolbarProps {
   addIsLegacy?: boolean;
   /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
   legacyUrl?: string;
+  /** The list belongs to an unfinished feature, see PageDef.experimental. */
+  experimental?: boolean;
   /**
    * Actions of the list itself — the exports of the order book (see PageDef.listActions). Between the
    * legacy link and the gear menu: they act on the page, but on all of it rather than on its settings.
@@ -62,6 +64,7 @@ export function ListToolbar({
   addHref,
   addIsLegacy,
   legacyUrl,
+  experimental,
   actions,
   selectionToggle,
   columnPanel,
@@ -71,7 +74,12 @@ export function ListToolbar({
 }: ListToolbarProps) {
   return (
     <div className="border-b bg-background">
-      <PageTitleRow title={title} category={category} legacyUrl={legacyUrl}>
+      <PageTitleRow
+        title={title}
+        category={category}
+        legacyUrl={legacyUrl}
+        experimental={experimental}
+      >
         {selectionToggle}
         {actions}
         {/* Divider only with a menu beside it *and* something to separate it from: it parts the

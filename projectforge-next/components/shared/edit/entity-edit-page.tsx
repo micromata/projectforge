@@ -92,6 +92,7 @@ export function EntityEditPage<
               crossLinks={regions.crossLinks}
               legacyUrl={regions.legacyUrl}
               deleted={regions.deleted}
+              experimental={page.experimental}
             />
           }
           tabs={regions.tabs}

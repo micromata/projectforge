@@ -48,6 +48,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
   categoryKey: "menu.administration",
   titleKey: "notification.rule.title",
   defaultSort: { id: "name" },
+  experimental: true,
   listActions: NotificationRuleListActions,
   columns: [
     { name: "name", size: 260 },

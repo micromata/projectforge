@@ -692,6 +692,7 @@
   },
   "execute": "Execute",
   "expand": "Expand",
+  "experimental": "Experimental",
   "export": "Export",
   "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",

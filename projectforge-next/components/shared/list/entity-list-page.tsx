@@ -339,6 +339,7 @@ function DeclaredList<
           addIsLegacy={targets.legacy}
           // The button, unless this entity has demoted the way back into the gear menu below.
           legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
+          experimental={page.experimental}
           selectionToggle={
             page.massUpdate &&
             updateAccess !== false && (
