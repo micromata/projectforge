@@ -32,6 +32,7 @@ import org.projectforge.common.logging.LogCategory
 import org.projectforge.common.logging.LogEventRegistry
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.common.logging.LogNotify
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.integration.SubsystemProblemMatch
 import org.projectforge.framework.integration.SubsystemState
@@ -114,6 +115,8 @@ class LogGroupEntry(
     val message: String?,
     val firstSeen: Long,
     val lastSeen: Long,
+    /** The last occurrence as "5 minutes ago" in the user's locale. */
+    val lastSeenTimeAgo: String?,
     val totalCount: Long,
     val count24h: Int,
     val status: LogGroupStatus,
@@ -521,6 +524,7 @@ class LogGroupAdminService {
             message = row.message,
             firstSeen = row.firstSeen.time,
             lastSeen = row.lastSeen.time,
+            lastSeenTimeAgo = TimeAgo.getMessage(row.lastSeen),
             totalCount = row.totalCount,
             count24h = count24h,
             status = row.status,

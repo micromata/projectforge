@@ -519,6 +519,49 @@
   "charactersLeft": "characters left.",
   "clone": "Clone",
   "close": "Close",
+  "codeEditor": {
+    "addCursor": "Add a cursor",
+    "copyLine": "Copy line up / down",
+    "deleteLine": "Delete line",
+    "indent": "Indent",
+    "key": {
+      "click": "click",
+      "ctrl": "Ctrl",
+      "drag": "drag",
+      "shift": "Shift",
+      "then": "then"
+    },
+    "leave": "Leave the editor with the keyboard",
+    "moveLine": "Move line up / down",
+    "nextMatch": "Next match",
+    "phrase": {
+      "all": "all",
+      "byWord": "by word",
+      "close": "close",
+      "currentMatch": "current match",
+      "find": "Find",
+      "matchCase": "match case",
+      "next": "next",
+      "onLine": "on line",
+      "previous": "previous",
+      "regexp": "regexp",
+      "replace": "Replace",
+      "replaceAll": "replace all",
+      "replaceOne": "replace",
+      "replacedMatches": "replaced $ matches",
+      "replacedOnLine": "replaced match on line $"
+    },
+    "previousMatch": "Previous match",
+    "rectangularSelection": "Rectangular selection",
+    "redo": "Redo",
+    "search": "Search and replace",
+    "selectAllOccurrences": "Select all occurrences",
+    "selectNextOccurrence": "Also select the next occurrence",
+    "shortcuts": "Keyboard shortcuts",
+    "toggleComment": "Comment out / in",
+    "undo": "Undo",
+    "unindent": "Unindent"
+  },
   "collapse": "Collapse",
   "color": {
     "error": {
@@ -3623,10 +3666,6 @@
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
           "tooltip": "Shrinks oversized address images if necessary and rebuilds all preview images."
         },
-        "refreshCaches": {
-          "_": "Refresh all caches",
-          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
-        },
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
@@ -3661,7 +3700,6 @@
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "caches": "Caches",
             "configuration": "Configuration"
           }
         }
@@ -3703,6 +3741,38 @@
         "note": "(Based on the time of last modification of the entries.)"
       },
       "title": "Administration"
+    },
+    "caches": {
+      "column": {
+        "cache": "Cache",
+        "duration": "Duration",
+        "expireTime": "Expires after",
+        "failures": "Failed",
+        "lastError": "Last error",
+        "lastRefresh": "Last refresh",
+        "refreshes": "Refreshes"
+      },
+      "refresh": {
+        "_": "Refresh",
+        "started": "The refresh of the cache has been started.",
+        "tooltip": "Reloads the cache in the background."
+      },
+      "refreshAll": {
+        "_": "Refresh all caches",
+        "running": "A refresh of all caches is still running.",
+        "started": "The refresh of all caches has been started.",
+        "tooltip": "Reloads all caches one after the other in the background."
+      },
+      "runningSince": "Refreshing since {arg0}",
+      "state": {
+        "expired": "Expired",
+        "failed": "Failed",
+        "notFilled": "Not yet used",
+        "ok": "OK",
+        "refreshing": "Refreshing",
+        "stuck": "Stuck"
+      },
+      "tab": "Caches"
     },
     "dashboard": {
       "title": "System dashboard"

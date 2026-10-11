@@ -24,16 +24,24 @@
 package org.projectforge.rest.admin
 
 import org.projectforge.common.logging.LogLevel
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.support.logfile.LogFileRecord
 import org.projectforge.framework.support.logfile.LogFileSearchResult
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.Date
 
 /** A record of the log file in the shape of [LogViewerEvent], so the frontend shows it with the same columns. */
 class LogFileEvent(val id: Int, record: LogFileRecord) {
     /** UTC, as the admin log viewer. */
     val timestamp: String = TIMESTAMP_FORMAT.format(Instant.ofEpochMilli(record.timestampMillis))
+
+    /** For sorting. */
+    val timestampMillis = record.timestampMillis
+
+    /** The timestamp as "5 minutes ago" in the user's locale. */
+    val timeAgo: String = TimeAgo.getMessage(Date(record.timestampMillis))
     val level: LogLevel = record.level
     val message = record.message
     val stackTrace = record.stackTrace

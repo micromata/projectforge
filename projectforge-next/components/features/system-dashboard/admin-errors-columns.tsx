@@ -59,11 +59,22 @@ export function adminErrorsColumns(t: T, ctx: FormatContext): Column[] {
       size: 150,
       enableColumnFilter: false,
       meta: { label: t("system.admin.adminErrors.lastSeen") },
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap tabular-nums">
-          {formatTimestampMinutes(row.original.lastSeen, ctx)}
-        </span>
-      ),
+      // "5 minutes ago" above the date and time, as the scheduler's last run; sorted by the timestamp (accessorFn).
+      cell: ({ row }) => {
+        const { lastSeen, lastSeenTimeAgo } = row.original;
+        return (
+          <div className="flex flex-col leading-tight">
+            <span className="whitespace-nowrap">
+              {lastSeenTimeAgo || formatTimestampMinutes(lastSeen, ctx)}
+            </span>
+            {lastSeenTimeAgo && (
+              <span className="text-muted-foreground whitespace-nowrap text-xs tabular-nums">
+                {formatTimestampMinutes(lastSeen, ctx)}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "status",

@@ -127,7 +127,10 @@ function LevelToggle({
   );
 }
 
-/** Where the release lives in git: its tag, or for a snapshot the end commit and the compare view. */
+/**
+ * Where the release lives in git: its tag (and the SHA-256 of its jar, if published), or for a snapshot the end
+ * commit and the compare view.
+ */
 function ReleaseSource({ release }: { release: ChangelogRelease }) {
   const t = useTranslations();
   const linkClass = "font-mono hover:underline";
@@ -143,6 +146,12 @@ function ReleaseSource({ release }: { release: ChangelogRelease }) {
         >
           {release.tag}
         </a>
+        {release.sha256 && (
+          <span className="block break-all">
+            SHA-256 projectforge-application-{release.version}.jar:{" "}
+            <span className="font-mono">{release.sha256}</span>
+          </span>
+        )}
       </p>
     );
   }

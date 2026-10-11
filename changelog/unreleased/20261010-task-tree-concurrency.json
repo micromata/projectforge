@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Task list and task tree: no more sporadic internal errors while another user creates or moves a task at the same time.",
+  "de": "Strukturelementliste und Strukturbaum: keine sporadischen internen Fehler mehr, wenn gleichzeitig ein Strukturelement angelegt oder verschoben wird."
+}

@@ -145,6 +145,15 @@ table td a {
   margin-bottom: 8px;
 }
 
+// The SHA-256 of the jar of a release, below its source line.
+.changelog-checksum {
+  color: #999;
+  font-size: 0.75rem;
+  margin-top: -6px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
 // The status pills of a release in its source line (site/_includes/release-pills.html).
 .changelog-pill {
   background: #e5e5e5;

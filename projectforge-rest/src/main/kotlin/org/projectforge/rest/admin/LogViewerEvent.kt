@@ -26,7 +26,9 @@ package org.projectforge.rest.admin
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.logging.LoggingEventData
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.time.PFDateTime
+import java.util.Date
 
 /**
  * @param userLocalTime If true, the timestamp of the log event will be displayed in user's time zone (for user view). If false (default), UTC is used.
@@ -40,6 +42,12 @@ class LogViewerEvent(event: LoggingEventData, userFriendlyTime: Boolean = false)
   } else {
     event.isoTimestamp
   }
+
+  /** For sorting. */
+  val timestampMillis = event.timestampMillis
+
+  /** The timestamp as "5 minutes ago" in the user's locale. */
+  val timeAgo = TimeAgo.getMessage(Date(event.timestampMillis))
 
   @PropertyInfo(i18nKey = "system.admin.logViewer.level")
   val level = event.level

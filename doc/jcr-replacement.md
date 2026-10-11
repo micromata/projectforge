@@ -14,7 +14,7 @@ gegenüber einer einfachen Tabelle.
 - Es läuft und ist abgedeckt: Sanity-Check, Backup/Restore-CLIs, Tests. Ablösen kostet etwa 1,5–2 Wochen
   und birgt ein Migrationsrisiko bei Produktivdaten.
 - Der Update-Schmerz ist bisher überschaubar. Oak bringt seine eigene shaded Guava mit, und in
-  `buildSrc` ist **keine** Version wegen Oak gepinnt (die Jackson-Pins kommen von ez-vcard, groovy-yaml
+  `buildSrc` ist **keine** Version wegen Oak gepinnt (die Jackson-Pins kommen von ez-vcard
   und flyway). Das Abhängigkeitsproblem ist also eher latent als akut.
 - Es gibt eine Alternative ohne Komplettumbau: auf `RDBStorage` umstellen, also Oak auf PostgreSQL.
   - Diese Variante ist aber als "UNDER CONSTRUCTION" markiert, hat keine Migration und behält Oak samt

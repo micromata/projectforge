@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
@@ -334,6 +335,44 @@ class GenerateChangelogMainTest {
     assertTrue(errors.any { it.contains("(a): 'published' must be true or false") }, errors.toString())
     assertTrue(errors.any { it.contains("(b): an unpublished release has no download link") }, errors.toString())
     assertTrue(errors.any { it.contains("(c): only a tagged release can be unpublished") }, errors.toString())
+  }
+
+  @Test
+  fun onlyAPublishedReleaseHasAJarChecksum() {
+    val sha256 = "0123456789abcdef".repeat(4)
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+        {"id": "a", "version": "1.0.3", "date": "2026-01-04", "title": "A", "tag": "1.0.3-RELEASE", "sha256": "ABC",
+         "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "b", "version": "1.0.2", "date": "2026-01-03", "title": "B", "tag": "1.0.2-RELEASE", "published": false,
+         "sha256": "$sha256", "sections": [{"type": "fixed", "items": ["bug"]}]},
+        {"id": "c", "version": "1.0.1", "date": "2026-01-02", "title": "C", "tag": "1.0.1-RELEASE", "downloadLink": true,
+         "sections": [{"type": "fixed", "items": ["bug"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val errors = GenerateChangelogMain.validate(root)
+    assertTrue(errors.any { it.contains("(a): 'sha256' must be the SHA-256 checksum") }, errors.toString())
+    assertTrue(errors.any { it.contains("(b): only a published release has a jar checksum") }, errors.toString())
+    assertEquals(2, errors.size, errors.toString())
+
+    val added = GenerateChangelogMain.withSha256(root, "1.0.1", sha256)
+    assertEquals(listOf("id", "version", "date", "title", "tag", "downloadLink", "sha256", "sections"),
+      added["releases"][2].fieldNames().asSequence().toList())
+    assertTrue(assertThrows<IllegalArgumentException> { GenerateChangelogMain.withSha256(root, "1.0.2", sha256) }
+      .message!!.contains("isn't published"))
+    assertTrue(assertThrows<IllegalArgumentException> { GenerateChangelogMain.withSha256(root, "1.0.1", "x") }
+      .message!!.contains("no SHA-256"))
+
+    val adoc = StringBuilder().also { GenerateChangelogMain.releaseToAdoc(added["releases"][2], it, "====") }.toString()
+    assertTrue(adoc.contains("[.changelog-checksum]\nSHA-256 of projectforge-application-1.0.1.jar: `+$sha256+`"), adoc)
+  }
+
+  @Test
+  fun theChecksumOfAFileIsItsSha256() {
+    val file = File.createTempFile("changelog", ".jar").apply { deleteOnExit(); writeText("abc") }
+    assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", GenerateChangelogMain.sha256(file))
   }
 
   @Test

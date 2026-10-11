@@ -240,8 +240,35 @@ function schedulerColumns(t: T, ctx: FormatContext): Column[] {
       size: 140,
       enableColumnFilter: false,
       meta: { label: label.lastRun },
-      cell: ({ row }) =>
-        time(row.original.lastRun, row.original.lastStatus === "ERROR"),
+      // "5 minutes ago" above the date and time (marked if before the restart, as it then doesn't count for
+      // overdue jobs); sorted by the timestamp (accessorFn).
+      cell: ({ row }) => {
+        const { lastRun, lastRunTimeAgo, lastRunBeforeStart, lastStatus } =
+          row.original;
+        if (!lastRun) return null;
+        return (
+          <div className="flex flex-col leading-tight">
+            <span
+              className={cn(
+                "whitespace-nowrap",
+                lastStatus === "ERROR" && "text-destructive"
+              )}
+            >
+              {lastRunTimeAgo || formatTimestampMinutes(lastRun, ctx)}
+            </span>
+            {lastRunTimeAgo && (
+              <span className="text-muted-foreground whitespace-nowrap text-xs tabular-nums">
+                {formatTimestampMinutes(lastRun, ctx)}
+              </span>
+            )}
+            {lastRunBeforeStart && (
+              <span className="text-muted-foreground whitespace-nowrap text-xs">
+                {lastRunBeforeStart}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "lastDuration",

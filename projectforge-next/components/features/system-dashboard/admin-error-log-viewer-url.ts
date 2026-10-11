@@ -16,7 +16,7 @@ export function logViewerUrl(detail: LogGroupDetail): string | null {
 
 /** The problem's occurrences in the log files of its last days, also before the server's start (LogFileSearch). */
 export function logFileSearchUrl(detail: LogGroupDetail): string {
-  return `next/adminLogViewer?problem=${detail.entry.id}`;
+  return `next/adminLogViewer?incident=${detail.entry.id}`;
 }
 
 /**

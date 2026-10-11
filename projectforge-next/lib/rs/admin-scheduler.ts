@@ -48,6 +48,10 @@ export interface SchedulerJobEntry {
   inactiveReason?: string | null;
   runningSince?: number | null;
   lastRun?: number | null;
+  /** The last run as "5 minutes ago", in the user's locale. */
+  lastRunTimeAgo?: string | null;
+  /** Set (translated) if the last run was before the start of the system. */
+  lastRunBeforeStart?: string | null;
   lastDurationMs?: number | null;
   lastStatus?: SchedulerRunStatus | null;
   lastError?: string | null;

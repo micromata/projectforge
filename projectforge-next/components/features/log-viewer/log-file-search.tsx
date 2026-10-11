@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -17,11 +17,11 @@ import {
   type LogFileEvent,
 } from "@/lib/rs/admin-errors";
 import { LogFileFormatWarning } from "./log-file-format-warning";
-import { logViewerColumns } from "./log-viewer-columns";
+import { LOG_VIEWER_SORTING, logViewerColumns } from "./log-viewer-columns";
 
 /**
  * The occurrences of a problem of the system dashboard in the log files of its last days
- * (`/next/adminLogViewer?problem=<id>`), also of those before the server's start, which the log viewer
+ * (`/next/adminLogViewer?incident=<id>`), also of those before the server's start, which the log viewer
  * doesn't have any more. Searched once on opening (the backend reads the files on every request), with a
  * warning naming the format to configure if the files aren't fully readable. Admin group only.
  */
@@ -40,6 +40,7 @@ export function LogFileSearch({ problemId }: { problemId: number }) {
     staleTime: Infinity,
   });
   const columns = useMemo(() => logFileColumns(t), [t]);
+  const [sorting, setSorting] = useState(LOG_VIEWER_SORTING);
 
   const entry = detail.data?.entry;
   const title = t("system.admin.adminErrors.logFile.title", {
@@ -96,6 +97,8 @@ export function LogFileSearch({ problemId }: { problemId: number }) {
             isFetching={search.isFetching}
             enableColumnFilters={false}
             manualSorting={false}
+            sorting={sorting}
+            onSortingChange={setSorting}
             showPagination={false}
             dense
             getRowId={(row) => String(row.id)}

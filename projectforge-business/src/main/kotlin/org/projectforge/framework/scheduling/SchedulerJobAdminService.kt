@@ -25,11 +25,13 @@ package org.projectforge.framework.scheduling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.scheduling.SchedulerTrigger
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -73,6 +75,10 @@ class SchedulerJobEntry(
     val inactiveReason: String?,
     val runningSince: Long?,
     val lastRun: Long?,
+    /** The last run as "5 minutes ago" in the user's locale. */
+    val lastRunTimeAgo: String? = null,
+    /** Set (translated) if the last run was before the start of the system, so it doesn't count for overdue jobs. */
+    val lastRunBeforeStart: String? = null,
     val lastDurationMs: Long?,
     val lastStatus: SchedulerRunStatus?,
     val lastError: String?,
@@ -218,6 +224,9 @@ class SchedulerJobAdminService(
             inactiveReason = if (schedule is ResolvedSchedule.Disabled) null else inactiveReason,
             runningSince = snapshot.runningSince.takeIf { snapshot.running },
             lastRun = snapshot.lastStart,
+            lastRunTimeAgo = snapshot.lastStart?.let { TimeAgo.getMessage(Date(it)) },
+            lastRunBeforeStart = snapshot.lastStart?.takeIf { start -> registry.readySince.let { it != null && start < it } }
+                ?.let { translate("system.scheduler.hint.beforeRestart") },
             lastDurationMs = snapshot.lastDurationMs,
             lastStatus = snapshot.lastStatus,
             lastError = snapshot.lastError,

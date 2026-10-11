@@ -519,6 +519,49 @@
   "charactersLeft": "Zeichen übrig.",
   "clone": "Klonen",
   "close": "Schließen",
+  "codeEditor": {
+    "addCursor": "Weiteren Cursor setzen",
+    "copyLine": "Zeile nach oben / unten kopieren",
+    "deleteLine": "Zeile löschen",
+    "indent": "Einrücken",
+    "key": {
+      "click": "Klick",
+      "ctrl": "Strg",
+      "drag": "Ziehen",
+      "shift": "Umschalt",
+      "then": "dann"
+    },
+    "leave": "Editor per Tastatur verlassen",
+    "moveLine": "Zeile nach oben / unten verschieben",
+    "nextMatch": "Nächster Treffer",
+    "phrase": {
+      "all": "alle",
+      "byWord": "ganzes Wort",
+      "close": "schließen",
+      "currentMatch": "aktueller Treffer",
+      "find": "Suchen",
+      "matchCase": "Groß-/Kleinschreibung",
+      "next": "nächster",
+      "onLine": "in Zeile",
+      "previous": "vorheriger",
+      "regexp": "regulärer Ausdruck",
+      "replace": "Ersetzen durch",
+      "replaceAll": "alle ersetzen",
+      "replaceOne": "ersetzen",
+      "replacedMatches": "$ Treffer ersetzt",
+      "replacedOnLine": "Treffer in Zeile $ ersetzt"
+    },
+    "previousMatch": "Vorheriger Treffer",
+    "rectangularSelection": "Rechteckauswahl",
+    "redo": "Wiederholen",
+    "search": "Suchen und Ersetzen",
+    "selectAllOccurrences": "Alle Vorkommen auswählen",
+    "selectNextOccurrence": "Nächstes Vorkommen zusätzlich auswählen",
+    "shortcuts": "Tastaturkürzel",
+    "toggleComment": "Aus- / einkommentieren",
+    "undo": "Rückgängig",
+    "unindent": "Ausrücken"
+  },
   "collapse": "Zuklappen",
   "color": {
     "error": {
@@ -3623,10 +3666,6 @@
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
           "tooltip": "Verkleinert bei Bedarf zu große Adressbilder und erzeugt alle Vorschaubilder neu."
         },
-        "refreshCaches": {
-          "_": "Refresh all caches",
-          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
-        },
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
@@ -3661,7 +3700,6 @@
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "caches": "Caches",
             "configuration": "Configuration"
           }
         }
@@ -3703,6 +3741,38 @@
         "note": "(Based on the time of last modification of the entries.)"
       },
       "title": "Administration"
+    },
+    "caches": {
+      "column": {
+        "cache": "Cache",
+        "duration": "Dauer",
+        "expireTime": "Verfällt nach",
+        "failures": "Fehlgeschlagen",
+        "lastError": "Letzter Fehler",
+        "lastRefresh": "Zuletzt aktualisiert",
+        "refreshes": "Aktualisierungen"
+      },
+      "refresh": {
+        "_": "Aktualisieren",
+        "started": "Die Aktualisierung des Caches wurde gestartet.",
+        "tooltip": "Lädt den Cache im Hintergrund neu."
+      },
+      "refreshAll": {
+        "_": "Alle Caches aktualisieren",
+        "running": "Eine Aktualisierung aller Caches läuft noch.",
+        "started": "Die Aktualisierung aller Caches wurde gestartet.",
+        "tooltip": "Lädt alle Caches nacheinander im Hintergrund neu."
+      },
+      "runningSince": "Wird aktualisiert seit {arg0}",
+      "state": {
+        "expired": "Abgelaufen",
+        "failed": "Fehlgeschlagen",
+        "notFilled": "Noch nicht benutzt",
+        "ok": "OK",
+        "refreshing": "Wird aktualisiert",
+        "stuck": "Hängt"
+      },
+      "tab": "Caches"
     },
     "dashboard": {
       "title": "System-Dashboard"
