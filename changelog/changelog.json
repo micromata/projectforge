@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.0.4 released",
       "tag": "9.0.4-RELEASE",
       "downloadLink": true,
+      "sha256": "47595cb45f18b15f3830463a2177ddfc7d2ccfc3b74f4339c289e50e16cd6d78",
       "summary": [
         "**Notifications** (experimental) in the app and by mail",
         "**System dashboard** with statistics, scheduler and caches",

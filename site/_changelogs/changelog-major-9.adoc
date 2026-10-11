@@ -126,6 +126,9 @@ ProjectForge 9.0 is a major update. The classic Wicket user interface was replac
 [.changelog-source]
 __2026-10-11, tag https://github.com/micromata/projectforge/tree/9.0.4-RELEASE[9.0.4-RELEASE]__ +++{% include release-pills.html tag="9.0.4-RELEASE" docker="9.0.4" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.4.jar: `+47595cb45f18b15f3830463a2177ddfc7d2ccfc3b74f4339c289e50e16cd6d78+`
+
 - **Notifications** (experimental) in the app and by mail
 - **System dashboard** with statistics, scheduler and caches
 - **Scripts** in the new interface, also as buttons on selected pages
