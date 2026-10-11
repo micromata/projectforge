@@ -34,6 +34,9 @@
         "title" : "Zeitberichte: keine überlappenden Buchungen mehr auf derselben Kost2",
         "items" : [ "Zwei Zeitberichte einer Person auf derselben Kost2 (oder, ohne Kost2, auf demselben Strukturelement) dürfen sich zeitlich nicht mehr überlappen, auch nicht bei geteilten Kosten. Bisher ließ sich z. B. ein Urlaub doppelt für dieselbe Zeit buchen, wenn die Kost2 zu keinem Projekt gehörte.", "Neuer Konfigurationsparameter „Überlappungsgruppen für Zeitberichte“: Gruppen von Kost2-Nummernpräfixen (z. B. „6“ für alle Kost2 6.*), deren Zeitberichte sich nie überlappen; bei geteilten Kosten gilt eine Gruppe wie ein Projekt. Sichtbar für Finanzen und Controlling, änderbar nur für Mitglieder beider Gruppen.", "Bestehende überlappende Buchungen zeigt der Filter „Nur kollidierte“ der Zeitberichtsliste." ]
       } ]
+    }, {
+      "type" : "security",
+      "items" : [ "npm-Sicherheitslücken in projectforge-next und projectforge-webapp behoben: @modelcontextprotocol/sdk, proxy-addr, sharp und source-map-js aktualisiert." ]
     } ]
   },
   "groups" : [ {

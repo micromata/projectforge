@@ -34,6 +34,9 @@
         "title" : "Time sheets: no more overlapping bookings on the same cost unit",
         "items" : [ "Two time sheets of a user on the same cost 2 (or, without cost 2, on the same structure element) may no longer overlap in time, even if a shared cost element is involved. Before, e.g. a vacation could be booked twice for the same time if the cost 2 had no project.", "New configuration parameter \"Time sheet overlap groups\": groups of cost 2 number prefixes (e.g. \"6\" for all cost 2 units 6.*) whose time sheets never overlap; for shared costs, a group counts like one project. Visible to finance and controlling, changed only by members of both groups.", "Existing overlapping bookings are shown by the filter \"Only collisions\" of the time sheet list." ]
       } ]
+    }, {
+      "type" : "security",
+      "items" : [ "npm vulnerabilities in projectforge-next and projectforge-webapp fixed: @modelcontextprotocol/sdk, proxy-addr, sharp and source-map-js updated." ]
     } ]
   },
   "groups" : [ {
