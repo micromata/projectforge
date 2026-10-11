@@ -48,8 +48,9 @@ Commands:
                    folds changelog/unreleased/ into it, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
-  publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
-                   from the changelog, jar attached); asks before each step. The docker
+  publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
+                   generated from the changelog, the jar attached if wanted, e.g. not for
+                   minor releases); asks before each step. The docker
                    images follow with docker/push-release.sh (see its --help), the
                    upload of the jar to SourceForge by hand (rsync command printed at
                    the end, then set as default download, i.e. latest). A release
@@ -288,28 +289,33 @@ publish() {
     echo "Pushed $tag. Its changes are part of the release notes of the next published release."
     return
   fi
-  for file in "$notes" "$jar"; do
-    if [[ ! -f "$file" ]]; then
-      echo "$file is missing, it's built by pfDev.sh release $version." >&2
-      exit 1
-    fi
-  done
-  # The jar must be the one of the release, its checksum is in the changelog since pfDev.sh release.
-  local sha256 expected notes_with_sha
-  sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+  if [[ ! -f "$notes" ]]; then
+    echo "$notes is missing, it's written by pfDev.sh release $version." >&2
+    exit 1
+  fi
+  # The checksum is in the changelog since pfDev.sh release. A local jar must be the one of the release.
+  local sha256="" expected notes_with_sha
   expected="$(node -e '
     const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
     console.log(release?.sha256 ?? "");
   ' "$ROOT/changelog/changelog.json" "$version")"
-  if [[ -z "$expected" ]]; then
-    echo "Note: the changelog has no SHA-256 of $version yet, add \"sha256\": \"$sha256\" to its entry."
-  elif [[ "$sha256" != "$expected" ]]; then
-    echo "The SHA-256 $sha256 of $jar isn't the one of the changelog ($expected), it was rebuilt after the release." >&2
-    exit 1
+  if [[ -f "$jar" ]]; then
+    sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+    if [[ -z "$expected" ]]; then
+      echo "Note: the changelog has no SHA-256 of $version yet, add \"sha256\": \"$sha256\" to its entry."
+    elif [[ "$sha256" != "$expected" ]]; then
+      echo "The SHA-256 $sha256 of $jar isn't the one of the changelog ($expected), it was rebuilt after the release." >&2
+      exit 1
+    fi
+  else
+    echo "Note: $jar is missing (built by pfDev.sh release $version), it can't be attached to the GitHub release."
+    sha256="$expected"
   fi
-  notes_with_sha="$ROOT/build/release-notes-$version-sha256.md"
-  { cat "$notes"; echo; echo "SHA-256 of $(basename "$jar"): \`$sha256\`"; } >"$notes_with_sha"
-  notes="$notes_with_sha"
+  if [[ -n "$sha256" ]]; then
+    notes_with_sha="$ROOT/build/release-notes-$version-sha256.md"
+    { cat "$notes"; echo; echo "SHA-256 of $(basename "$jar"): \`$sha256\`"; } >"$notes_with_sha"
+    notes="$notes_with_sha"
+  fi
   echo "----- $notes -----"
   cat "$notes"
   echo "-----"
@@ -320,8 +326,20 @@ publish() {
     echo "The tag $tag isn't on origin." >&2
     exit 1
   fi
-  confirm "Create the GitHub release $tag with $(basename "$jar")?" || exit 1
-  gh release create "$tag" "$jar" --title "ProjectForge $version" --notes-file "$notes" --latest
+  if gh release view "$tag" >/dev/null 2>&1; then
+    echo "The GitHub release $tag exists already."
+  elif confirm "Create the GitHub release $tag (notes from the changelog)?"; then
+    # Jars of minor releases may stay off GitHub (space), SourceForge has them. Without a jar, the release has no
+    # Jar (GitHub) pill on the website.
+    local assets=()
+    if [[ -f "$jar" ]] && confirm "Attach $(basename "$jar") to the GitHub release?"; then
+      assets=("$jar")
+    fi
+    # Only the newest release is the latest one, e.g. not 9.0.2 published after 9.0.3.
+    local latest=--latest=false
+    [[ "$(git tag -l '[0-9]*-RELEASE' --sort=-v:refname | head -1)" == "$tag" ]] && latest=--latest
+    gh release create "$tag" ${assets[@]+"${assets[@]}"} --title "ProjectForge $version" --notes-file "$notes" "$latest"
+  fi
   echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
   # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).
   echo "SourceForge: upload with: rsync -e ssh --progress $jar <user>@frs.sourceforge.net:/home/frs/project/pforge/ProjectForge/$version/"
