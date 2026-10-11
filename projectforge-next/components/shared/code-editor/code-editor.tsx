@@ -15,6 +15,11 @@ export interface CodeEditorProps {
   readOnly?: boolean;
   /** CSS height the editor starts with; it grows with its content. */
   minHeight?: string;
+  /**
+   * As tall as the column the editor scrolls in, rather than growing with the code: the code scrolls
+   * inside, the toolbar stays in view. `minHeight` is its least height then.
+   */
+  fill?: boolean;
   /** Accessible name, where no label points at the editor. */
   ariaLabel?: string;
 }

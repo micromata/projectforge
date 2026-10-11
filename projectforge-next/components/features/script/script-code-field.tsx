@@ -7,7 +7,8 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { cn } from "@/lib/utils";
 
 /**
- * The code of the script, highlighted in the language of its type. The variables it has at hand are the
+ * The code of the script, highlighted in the language of its type, as tall as the form's column: the
+ * code scrolls in the editor, its toolbar stays in view. The variables it has at hand are the
  * next section (ScriptAvailableVariablesField), its downloads sit beside the form's heading
  * (ScriptCodeDownloads).
  */
@@ -23,6 +24,8 @@ export function ScriptCodeField({ className }: { className?: string }) {
         label={t("scripting.script._")}
         language={type === "GROOVY" ? "groovy" : "kotlin"}
         minHeight="24rem"
+        fill
+        hideLabel
         metadataLess
       />
     </div>
