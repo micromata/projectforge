@@ -24,6 +24,7 @@
 package org.projectforge.rest.poll
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.business.utils.HtmlHelper
@@ -39,6 +40,9 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class PollMailService {
+
+    @Autowired
+    private lateinit var domainService: DomainService
 
     @Autowired
     private lateinit var sendMail: SendMail
@@ -120,6 +124,9 @@ class PollMailService {
         User.restoreEmails(userList)
         return userList!!.mapNotNull { it.email }
     }
+
+    /** The absolute link to the response page of the given poll, on the domain of this installation. */
+    fun pollLink(pollId: Long?): String = domainService.getDomain("react/pollResponse/dynamic/?pollId=$pollId")
 
     companion object {
         /** A text of the poll (title, description, a user's name) as part of the HTML of a mail. */

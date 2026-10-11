@@ -151,7 +151,8 @@ class PollCronJobs {
                 val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
 
                 if (mailToFiltered.isNotEmpty()) {
-                    val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                    // Only those who haven't responded yet are reminded.
+                    val mailTo = mailToFiltered
                     val mailFrom = pollDO.owner?.email.toString()
                     val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                     val mailContent = translateMsg(
@@ -159,7 +160,7 @@ class PollCronJobs {
                         PollMailService.html(pollDO.title),
                         PollMailService.html(pollDO.owner?.displayName),
                         pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                        pollDO.id.toString(),
+                        pollMailService.pollLink(pollDO.id),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
                     log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")

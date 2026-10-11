@@ -530,7 +530,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         "poll.mail.created.content",
                         PollMailService.html(obj.title),
                         PollMailService.html(owner?.displayName),
-                        obj.id.toString(),
+                        pollMailService.pollLink(obj.id),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
 
@@ -542,7 +542,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         content,
                         PollMailService.html(obj.title),
                         PollMailService.html(owner?.displayName),
-                        "<p><a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\">Link</a></p>",
+                        "<p><a href=\"${pollMailService.pollLink(obj.id)}\">Link</a></p>",
                         PollMailService.html(obj.description),
                         obj.deadline
                     )
@@ -555,7 +555,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         "poll.mail.created.content",
                         PollMailService.html(obj.title),
                         PollMailService.html(owner?.displayName),
-                        "https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}",
+                        pollMailService.pollLink(obj.id),
                         PollMailService.html(obj.description),
                         obj.deadline
                     )
@@ -569,7 +569,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         content,
                         PollMailService.html(obj.title),
                         PollMailService.html(owner?.displayName),
-                        "<p>Hier kommst du direkt <a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
+                        "<p>Hier kommst du direkt <a href=\"${pollMailService.pollLink(obj.id)}\"> zur Umfrage</a></p>",
                         PollMailService.html(obj.description),
                         obj.deadline
                     )
