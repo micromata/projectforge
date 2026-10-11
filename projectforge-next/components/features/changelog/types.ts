@@ -17,6 +17,8 @@ export interface ChangelogRelease {
   title: string;
   /** Git tag of a release; a snapshot has the commit range instead. */
   tag?: string;
+  /** SHA-256 of the jar of a published release (`projectforge-application-<version>.jar`). */
+  sha256?: string;
   fromCommit?: string;
   toCommit?: string;
   intro?: string[];

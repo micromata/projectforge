@@ -50,6 +50,7 @@ export interface FieldMetaState {
 export function FieldShell({
   name,
   label,
+  hideLabel,
   required,
   readOnly,
   hint,
@@ -71,6 +72,11 @@ export function FieldShell({
    */
   name?: string;
   label: string;
+  /**
+   * The label is read by screen readers only, where the section's heading already names the field (the
+   * code of a script under the heading "Code").
+   */
+  hideLabel?: boolean;
   required?: boolean;
   /** Shown but not fillable — suppresses the asterisk, see below. */
   readOnly?: boolean;
@@ -101,7 +107,9 @@ export function FieldShell({
           its control, which would open the field instead of the explanation. */}
       {/* `items-start`, so the ⓘ stays on the first line of a label that wrapped rather than centring
           itself against two lines of it. */}
-      <div className="flex min-w-0 items-start gap-1">
+      <div
+        className={cn("flex min-w-0 items-start gap-1", hideLabel && "sr-only")}
+      >
         {/* The label and its required marker share an inline box so the asterisk keeps hugging the
             label while the ⓘ stays a `gap-1` apart. The marker sits *outside* the <label> on purpose:
             inside it, it would join the control's accessible name ("Rechnungsdatum *"), which a screen

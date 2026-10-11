@@ -30,6 +30,8 @@ import kotlinx.coroutines.launch
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -133,6 +135,39 @@ abstract class AbstractCache {
     private val everFilled: Boolean
         get() = refreshedInvalidation != -1L
 
+    // Statistics of the refreshes, for the system dashboard (see [status]).
+
+    @Transient
+    @Volatile
+    private var lastRefreshDurationMs: Long? = null
+
+    @Transient
+    @Volatile
+    private var lastRefreshEndMillis: Long? = null
+
+    @Transient
+    @Volatile
+    private var lastSuccessMillis: Long? = null
+
+    /** Message of the exception of the last refresh, or null if it succeeded. */
+    @Transient
+    @Volatile
+    private var lastRefreshError: String? = null
+
+    @Transient
+    private val refreshCount = AtomicLong(0)
+
+    @Transient
+    private val failureCount = AtomicLong(0)
+
+    init {
+        // Every cache, Spring bean or not (Configuration, private caches of a service), is shown in the system
+        // dashboard and watched by the CacheWatchdogScheduler.
+        synchronized(allInstances) {
+            allInstances.add(this)
+        }
+    }
+
     protected constructor()
 
     /**
@@ -171,6 +206,47 @@ abstract class AbstractCache {
     fun forceReload() {
         setExpired()
         performRefresh()
+    }
+
+    /**
+     * Sets the cache to expired and refreshes it in the background: for an admin's manual refresh, which must not
+     * keep the request waiting for a long or stuck refresh.
+     */
+    fun forceReloadAsync() {
+        setExpired()
+        refreshScope.launch {
+            performRefresh()
+        }
+    }
+
+    /**
+     * Runs the stuck-refresh detection of [checkStuckRefresh] without accessing the cache: for the
+     * CacheWatchdogScheduler, so a stuck refresh of a cache nobody reads is detected, too.
+     */
+    fun checkStuck() {
+        checkStuckRefresh()
+    }
+
+    /** A snapshot of the state of this cache, for the system dashboard. */
+    fun status(): CacheStatus {
+        val runningSince = refreshStartMillis.takeIf { isRefreshInProgress && it >= 0 }
+        return CacheStatus(
+            name = this::class.simpleName ?: this::class.java.name,
+            qualifiedName = this::class.java.name,
+            refreshInProgress = runningSince != null,
+            refreshRunningSince = runningSince,
+            stuck = runningSince != null && System.currentTimeMillis() - runningSince > maxRefreshDurationMs,
+            expired = isExpired,
+            everFilled = everFilled,
+            expireTimeMs = expireTime,
+            lastRefreshStart = timeOfLastRefresh.takeIf { it >= 0 },
+            lastRefreshEnd = lastRefreshEndMillis,
+            lastRefreshDurationMs = lastRefreshDurationMs,
+            lastSuccess = lastSuccessMillis,
+            lastRefreshError = lastRefreshError,
+            refreshCount = refreshCount.get(),
+            failureCount = failureCount.get(),
+        )
     }
 
     fun register(listener: CacheListener) {
@@ -405,10 +481,18 @@ abstract class AbstractCache {
                     // cache heals itself without a restart.
                     this.refreshedInvalidation = invalidation
                     this.isExpired = false
+                    lastSuccessMillis = System.currentTimeMillis()
+                    lastRefreshError = null
                 } catch (ex: Throwable) {
+                    failureCount.incrementAndGet()
+                    lastRefreshError = ex.message ?: ex::class.java.name
                     log.error(ex) { ex.message }
                 }
             } finally {
+                val end = System.currentTimeMillis()
+                lastRefreshEndMillis = end
+                lastRefreshDurationMs = end - refreshStartMillis
+                refreshCount.incrementAndGet()
                 isRefreshInProgress = false
                 refreshingThread = null
                 refreshStartMillis = -1
@@ -485,6 +569,13 @@ abstract class AbstractCache {
 
     companion object {
         private val refreshScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        /** All instances, weakly referenced: a discarded cache (e.g. of a test) is not shown forever. */
+        private val allInstances: MutableSet<AbstractCache> = Collections.newSetFromMap(WeakHashMap())
+
+        /** All caches of this JVM, see [allInstances]. */
+        @JvmStatic
+        fun allCaches(): List<AbstractCache> = synchronized(allInstances) { allInstances.toList() }
 
         /**
          * How many cache refreshes the current thread is nested in (across all [AbstractCache] instances). Greater

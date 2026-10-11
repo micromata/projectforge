@@ -43,7 +43,7 @@ private val log = KotlinLogging.logger {}
  * after its lock timeout rather than blocking). The result then depends on that interleaving: sometimes the invoiced
  * amounts and the assigned invoices are there, sometimes not, until the caches are refreshed by hand.
  *
- * Doing the first fill here, in the same order [org.projectforge.business.system.SystemService.refreshCaches] uses
+ * Doing the first fill here, in the same order [org.projectforge.framework.cache.CacheAdminService.refreshAll] uses
  * and on one thread, removes that race: `RechnungCache` is complete before `AuftragsCache` reads it, which is complete
  * before `AuftragsRechnungCache` links the two. The upstream caches (kost, projekt, kunde) `AuftragsCache` needs are
  * pulled in by its own refresh on this same thread. [AuftragsRechnungCache] additionally heals itself should a later

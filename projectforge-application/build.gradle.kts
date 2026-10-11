@@ -334,6 +334,18 @@ tasks.register<JavaExec>("checkReleaseChangelog") {
 }
 
 /**
+ * Used by bin/pfDev.sh release: adds the SHA-256 of the built jar of the release -PreleaseVersion=X.Y.Z to its entry
+ * of changelog/changelog.json and regenerates the changelog.
+ */
+tasks.register<JavaExec>("releaseSha256Changelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--sha256", providers.gradleProperty("releaseVersion").getOrElse(""))
+}
+
+/**
  * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
  * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
  * release if missing (published or not) and moves changelog/unreleased/ into it.

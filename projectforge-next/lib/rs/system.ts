@@ -29,7 +29,6 @@ function postMessage(action: string): Promise<SystemMessageResponse> {
   });
 }
 
-export const refreshCaches = () => postMessage("refreshCaches");
 export const rereadConfiguration = () => postMessage("rereadConfiguration");
 export const createMissingIndices = () => postMessage("createMissingIndices");
 export const resetIdpPasswordSync = () => postMessage("resetIdpPasswordSync");

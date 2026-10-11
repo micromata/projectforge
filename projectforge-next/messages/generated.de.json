@@ -3489,10 +3489,6 @@
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
           "tooltip": "Verkleinert bei Bedarf zu große Adressbilder und erzeugt alle Vorschaubilder neu."
         },
-        "refreshCaches": {
-          "_": "Refresh all caches",
-          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
-        },
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
@@ -3527,7 +3523,6 @@
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "caches": "Caches",
             "configuration": "Configuration"
           }
         }
@@ -3569,6 +3564,38 @@
         "note": "(Based on the time of last modification of the entries.)"
       },
       "title": "Administration"
+    },
+    "caches": {
+      "column": {
+        "cache": "Cache",
+        "duration": "Dauer",
+        "expireTime": "Verfällt nach",
+        "failures": "Fehlgeschlagen",
+        "lastError": "Letzter Fehler",
+        "lastRefresh": "Zuletzt aktualisiert",
+        "refreshes": "Aktualisierungen"
+      },
+      "refresh": {
+        "_": "Aktualisieren",
+        "started": "Die Aktualisierung des Caches wurde gestartet.",
+        "tooltip": "Lädt den Cache im Hintergrund neu."
+      },
+      "refreshAll": {
+        "_": "Alle Caches aktualisieren",
+        "running": "Eine Aktualisierung aller Caches läuft noch.",
+        "started": "Die Aktualisierung aller Caches wurde gestartet.",
+        "tooltip": "Lädt alle Caches nacheinander im Hintergrund neu."
+      },
+      "runningSince": "Wird aktualisiert seit {arg0}",
+      "state": {
+        "expired": "Abgelaufen",
+        "failed": "Fehlgeschlagen",
+        "notFilled": "Noch nicht benutzt",
+        "ok": "OK",
+        "refreshing": "Wird aktualisiert",
+        "stuck": "Hängt"
+      },
+      "tab": "Caches"
     },
     "dashboard": {
       "title": "System-Dashboard"

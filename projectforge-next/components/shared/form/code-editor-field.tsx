@@ -16,6 +16,10 @@ import { useFieldErrors } from "./use-field-errors";
 export interface CodeEditorFieldProps extends BaseFieldProps {
   language?: CodeEditorProps["language"];
   minHeight?: string;
+  /** See [CodeEditorProps.fill]. */
+  fill?: boolean;
+  /** See [FieldShell]'s `hideLabel`. */
+  hideLabel?: boolean;
   /** Shown but not editable (see DeclaredField.readOnly). */
   disabled?: boolean;
   /** The entity has no metadata for this field (see [useFieldMetadata]). */
@@ -30,6 +34,8 @@ export function CodeEditorField({
   className,
   language,
   minHeight,
+  fill,
+  hideLabel,
   disabled,
   metadataLess,
 }: CodeEditorFieldProps) {
@@ -46,6 +52,7 @@ export function CodeEditorField({
           <FieldShell
             name={name}
             label={label}
+            hideLabel={hideLabel}
             required={required}
             readOnly={disabled}
             hint={hint}
@@ -64,6 +71,7 @@ export function CodeEditorField({
               onBlur={field.handleBlur}
               language={language}
               minHeight={minHeight}
+              fill={fill}
               readOnly={disabled}
             />
           </FieldShell>

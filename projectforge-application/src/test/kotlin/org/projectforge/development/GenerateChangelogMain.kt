@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.TextNode
 import org.projectforge.framework.utils.SourcesUtils
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -69,6 +70,10 @@ import kotlin.system.exitProcess
  * A tagged release with `"published": false` is a mini release: `bin/pfDev.sh publish` only pushes its tag, without
  * a GitHub release, jar or docker images. Its changes are part of the release notes of the next published
  * release (see [releaseNotesMarkdown]).
+ *
+ * A published release has the SHA-256 checksum of its jar (`"sha256"`), shown by both targets. The jar contains the
+ * generated changelog, so its checksum can't be part of the release commit: `bin/pfDev.sh release` adds it with the
+ * commit of the next development version (`--sha256`, see [withSha256]).
  *
  * New changes are collected in `changelog/unreleased/`, one file per change with its English and German
  * text (see [parseFragment]), so that branches working on the same release don't touch the same lines.
@@ -108,7 +113,7 @@ object GenerateChangelogMain {
 
   /** The order of the fields of a release, as written to the sources (other fields follow). */
   private val RELEASE_FIELD_ORDER = listOf(
-    "id", "version", "date", "title", "tag", "downloadLink", "published", "fromCommit", "toCommit",
+    "id", "version", "date", "title", "tag", "downloadLink", "published", "sha256", "fromCommit", "toCommit",
     "intro", "summary", "overview", "sections",
   )
 
@@ -120,6 +125,7 @@ object GenerateChangelogMain {
   private val FRAGMENT_NAME_REGEX = Regex("""(\d{8})-[a-z0-9]+(-[a-z0-9]+)*\.json""")
   private val ID_REGEX = Regex("""[a-z0-9]+(-[a-z0-9]+)*""")
   private val COMMIT_REGEX = Regex("""[0-9a-f]{7,40}""")
+  private val SHA256_REGEX = Regex("""[0-9a-f]{64}""")
   private val RELEASE_VERSION_REGEX = Regex("""(\d+)\.(\d+)\.(\d+)""")
   private val HTML_REGEX = Regex("""<\s*[a-zA-Z/!]""")
   private val MARKER_REGEX = Regex("""\{/?([a-zA-Z]+)}""")
@@ -136,6 +142,8 @@ object GenerateChangelogMain {
    * `bin/pfDev.sh changelog-fold`) it first moves the fragments of `changelog/unreleased/` into the release `id`,
    * the newest one by default (see [fold]). Both take `--add-release true|false` (used by `bin/pfDev.sh release`):
    * a missing entry of the release is added first, published or not (see [withRelease]); `--fold` then folds into it.
+   * With `--sha256 X.Y.Z` (used by `bin/pfDev.sh release`) it first adds the checksum of the built jar of the release
+   * (see [withSha256]).
    */
   @JvmStatic
   fun main(args: Array<String>) {
@@ -148,6 +156,9 @@ object GenerateChangelogMain {
     }
     option("--fold")?.let { value ->
       foldMain(rootDir, value.takeIf { it.isNotBlank() }, addRelease)
+    }
+    option("--sha256")?.let { version ->
+      sha256Main(rootDir, version)
     }
     val files = generate(rootDir)
     files.forEach { (path, content) ->
@@ -241,6 +252,46 @@ object GenerateChangelogMain {
     File(rootDir, SOURCE_DE).writeText(sourceJson(foldedTranslation), ENCODING)
     files.forEach { it.delete() }
     println("Folded ${files.size} entries of $FRAGMENTS_DIR into the release $id of $SOURCE and $SOURCE_DE.")
+  }
+
+  /** `--sha256 X.Y.Z`: the checksum of the built jar of the release [version] into its entry of the source. */
+  private fun sha256Main(rootDir: File, version: String) {
+    val jar = File(rootDir, "projectforge-application/build/libs/${jarName(version)}")
+    require(jar.isFile) { "${jar.path} is missing, it's built by pfDev.sh release $version." }
+    val root = ObjectMapper().readTree(File(rootDir, SOURCE).readText(ENCODING))
+    val sha256 = sha256(jar)
+    File(rootDir, SOURCE).writeText(sourceJson(withSha256(root, version, sha256)), ENCODING)
+    println("Added the SHA-256 $sha256 of ${jar.name} to $SOURCE.")
+  }
+
+  /** The jar of the release [version], as attached to the GitHub release and uploaded to SourceForge. */
+  internal fun jarName(version: String) = "projectforge-application-$version.jar"
+
+  /** The SHA-256 checksum of [file], lower case hex (as `shasum -a 256` prints it). */
+  internal fun sha256(file: File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().use { input ->
+      val buffer = ByteArray(1 shl 16)
+      while (true) {
+        val read = input.read(buffer)
+        if (read < 0) break
+        digest.update(buffer, 0, read)
+      }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+  }
+
+  /** The source [root] with [sha256] as checksum of the jar of the (published) release [version]. */
+  internal fun withSha256(root: JsonNode, version: String, sha256: String): JsonNode {
+    require(SHA256_REGEX.matches(sha256)) { "'$sha256' is no SHA-256 checksum." }
+    val copy = root.deepCopy<JsonNode>()
+    val release = requireNotNull(copy["releases"].firstOrNull { it["version"]?.asText() == version } as? ObjectNode) {
+      "No release of version $version."
+    }
+    require(release["tag"] != null && isPublished(release)) { "The release $version isn't published, it has no jar." }
+    release.put("sha256", sha256)
+    orderFields(release)
+    return copy
   }
 
   /** The GitHub release notes of [version], written by the check mode of [main] (a build artifact). */
@@ -377,7 +428,7 @@ object GenerateChangelogMain {
 
   /**
    * The status pills of [release] (`site/_includes/release-pills.html`): source code or, for a mini release, source
-   * only, the jar and docker image if published by then, or snapshot.
+   * only, the jars (GitHub, SourceForge) and docker image if published by then, or snapshot.
    */
   private fun pills(release: JsonNode): String {
     val tag = release["tag"]?.asText() ?: return "{% include release-pills.html %}"
@@ -762,6 +813,13 @@ object GenerateChangelogMain {
           release["downloadLink"]?.asBoolean() == true -> errors.add("$where: an unpublished release has no download link.")
         }
       }
+      release["sha256"]?.let { sha256 ->
+        when {
+          !sha256.isTextual || !SHA256_REGEX.matches(sha256.asText()) ->
+            errors.add("$where: 'sha256' must be the SHA-256 checksum of the jar, 64 lower case hex digits.")
+          release["tag"] == null || !isPublished(release) -> errors.add("$where: only a published release has a jar checksum.")
+        }
+      }
       val from = release["fromCommit"]?.asText()
       val to = release["toCommit"]?.asText()
       if (release["tag"] == null && (from == null || to == null)) {
@@ -1032,6 +1090,11 @@ object GenerateChangelogMain {
     }
     sb.appendLine("[.changelog-source]")
     sb.appendLine("__${listOfNotNull(release["date"].asText(), source).joinToString(", ")}__ +++${pills(release)}+++")
+    release["sha256"]?.let { sha256 ->
+      sb.appendLine()
+      sb.appendLine("[.changelog-checksum]")
+      sb.appendLine("SHA-256 of ${jarName(release["version"].asText())}: `+${sha256.asText()}+`")
+    }
     release["summary"]?.let { summary ->
       sb.appendLine()
       summary.forEach { sb.appendLine("- ${inlineToAdoc(it.asText())}") }

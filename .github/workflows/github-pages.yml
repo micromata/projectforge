@@ -6,8 +6,9 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/**'
-  # The release pills of the changelog show the jar and docker images of a release once they exist (see
-  # site/fetch-binaries.sh): a new GitHub release, docker/push-release.sh (workflow_dispatch) and, as fallback, daily.
+  # The release pills of the changelog show the jars (GitHub, SourceForge) and docker images of a release once they
+  # exist (see site/fetch-binaries.sh): a new GitHub release, docker/push-release.sh (workflow_dispatch) and, as
+  # fallback and for the upload to SourceForge by hand, daily.
   release:
     types: [published]
   workflow_dispatch:
