@@ -12,7 +12,6 @@ import {
   downloadExportConfiguration,
   downloadExportSchema,
   downloadOptimizeAddressImages,
-  refreshCaches,
   rereadConfiguration,
   resetIdpPasswordSync,
   testDatabase,
@@ -71,17 +70,6 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
   }
 
   const groups: ActionGroup[] = [
-    {
-      titleKey: "system.admin.group.title.systemChecksAndFunctionality.caches",
-      actions: [
-        {
-          key: "refreshCaches",
-          labelKey: "system.admin.button.refreshCaches._",
-          tooltipKey: "system.admin.button.refreshCaches.tooltip",
-          run: refreshCaches,
-        },
-      ],
-    },
     {
       titleKey:
         "system.admin.group.title.systemChecksAndFunctionality.configuration",

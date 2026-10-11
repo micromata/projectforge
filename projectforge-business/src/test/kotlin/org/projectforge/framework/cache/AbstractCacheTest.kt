@@ -433,6 +433,71 @@ class AbstractCacheTest {
         Assertions.assertEquals(1, cache.maxConcurrentRefreshes.get())
     }
 
+    @Test
+    @Timeout(30)
+    fun `status reports successful and failed refreshes`() {
+        val cache = TestCache()
+        Assertions.assertTrue(AbstractCache.allCaches().contains(cache), "Every cache registers itself.")
+        cache.status().let {
+            Assertions.assertEquals("TestCache", it.name)
+            Assertions.assertFalse(it.everFilled)
+            Assertions.assertNull(it.lastRefreshStart)
+            Assertions.assertEquals(0, it.refreshCount)
+        }
+        cache.accessData()
+        cache.status().let {
+            Assertions.assertTrue(it.everFilled)
+            Assertions.assertFalse(it.expired)
+            Assertions.assertNotNull(it.lastRefreshStart)
+            Assertions.assertNotNull(it.lastSuccess)
+            Assertions.assertNotNull(it.lastRefreshDurationMs)
+            Assertions.assertNull(it.lastRefreshError)
+            Assertions.assertEquals(1, it.refreshCount)
+            Assertions.assertEquals(CacheState.OK, CacheAdminService.stateOf(it))
+        }
+        cache.throwExceptionOnRefresh = true
+        cache.forceReload()
+        cache.status().let {
+            Assertions.assertEquals("Exception for test purposes.", it.lastRefreshError)
+            Assertions.assertTrue(it.expired, "A failed refresh leaves the cache expired.")
+            Assertions.assertEquals(2, it.refreshCount)
+            Assertions.assertEquals(1, it.failureCount)
+            Assertions.assertEquals(CacheState.FAILED, CacheAdminService.stateOf(it))
+        }
+        cache.throwExceptionOnRefresh = false
+        cache.forceReload()
+        Assertions.assertNull(cache.status().lastRefreshError, "A successful refresh clears the error.")
+    }
+
+    @Test
+    @Timeout(30)
+    fun `the watchdog interrupts a stuck refresh without accessing the cache`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        cache.maxRefreshDurationMsOverride = 200
+        cache.refreshDurationMs = 60_000 // The next refresh blocks, simulating a wedged JDBC call.
+        cache.forceReloadAsync()
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        Assertions.assertEquals(CacheState.REFRESHING, CacheAdminService.stateOf(cache.status()))
+        Thread.sleep(400) // Let the refresh exceed maxRefreshDurationMs.
+        cache.status().let {
+            Assertions.assertTrue(it.stuck)
+            Assertions.assertNotNull(it.refreshRunningSince)
+            Assertions.assertEquals(CacheState.STUCK, CacheAdminService.stateOf(it))
+        }
+        cache.checkStuck()
+        while (cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        cache.status().let {
+            Assertions.assertFalse(it.stuck)
+            Assertions.assertTrue(it.expired, "The interrupted refresh left the cache expired, it heals on next access.")
+            Assertions.assertEquals(1, it.failureCount)
+        }
+    }
+
     private fun awaitRefreshCount(cache: TestCache, expected: Int) {
         val timeout = System.currentTimeMillis() + 20_000
         while (cache.refreshCount.get() < expected && System.currentTimeMillis() < timeout) {
