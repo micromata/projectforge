@@ -9,8 +9,10 @@ plugins {
 // This module contributes only build artifacts; it has no Kotlin/Java sources.
 
 node {
-    version.set("23.1.0")
-    npmVersion.set("10.9.0")
+    // Same npm major as for local development: an older npm rewrites package-lock.json (e.g. drops the libc
+    // fields) on every install. npm 12 needs Node ^22.22.2 || ^24.15.0 || >=26.
+    version.set("26.11.1")
+    npmVersion.set("12.2.0")
     download.set(true)
     workDir.set(layout.projectDirectory.dir("node/nodejs"))
     npmWorkDir.set(layout.projectDirectory.dir("node/npm"))
