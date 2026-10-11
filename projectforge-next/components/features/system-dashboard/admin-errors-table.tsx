@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -24,6 +24,8 @@ import { useProblemSelection } from "./use-problem-selection";
 
 /** The user prefs of the table (`AdminErrorsRest.columnStates` / `setColumnStates`). */
 const GRID = "adminErrors";
+/** The latest problems first, unless the user sorted otherwise. */
+const DEFAULT_SORTING: SortingState = [{ id: "lastSeen", desc: true }];
 
 interface Props {
   entries: LogGroupEntry[];
@@ -70,7 +72,10 @@ function LoadedTable({
     () => searchAdminErrors(entries, search, t),
     [entries, search, t]
   );
-  const state = useTableState({ restoredState: storedState });
+  const state = useTableState({
+    initialSorting: DEFAULT_SORTING,
+    restoredState: storedState,
+  });
   const table = useDataTable<LogGroupEntry>({
     columns,
     data: searched,
@@ -111,7 +116,7 @@ function LoadedTable({
   });
   // Back to the columns as declared; the persistence then stores the empty state.
   const resetColumns = () => {
-    state.setSorting([]);
+    state.setSorting(DEFAULT_SORTING);
     state.setColumnVisibility({});
     state.setColumnPinning({});
     state.setColumnSizing({});

@@ -24,6 +24,10 @@ export interface LogViewFilter {
 export interface LogViewerEvent {
   id: number;
   timestamp: string;
+  /** For sorting. */
+  timestampMillis: number;
+  /** The timestamp as "5 minutes ago", in the user's locale. */
+  timeAgo?: string | null;
   level: LogLevel;
   message?: string | null;
   stackTrace?: string | null;
