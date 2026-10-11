@@ -35,7 +35,7 @@ import {
   LOG_THRESHOLDS,
   logLevelRowClass,
 } from "@/components/shared/log-level";
-import { logViewerColumns } from "./log-viewer-columns";
+import { LOG_VIEWER_SORTING, logViewerColumns } from "./log-viewer-columns";
 
 /** Often enough to follow a running import, rare enough not to flood the server. */
 const AUTO_REFRESH_MS = 5000;
@@ -171,6 +171,7 @@ function LogViewerContent({
   });
 
   const columns = useMemo(() => logViewerColumns(t, admin), [t, admin]);
+  const [sorting, setSorting] = useState(LOG_VIEWER_SORTING);
 
   return (
     <>
@@ -245,6 +246,8 @@ function LogViewerContent({
           isFetching={entries.isFetching}
           enableColumnFilters={false}
           manualSorting={false}
+          sorting={sorting}
+          onSortingChange={setSorting}
           showPagination={false}
           dense
           getRowId={(row) => String(row.id)}

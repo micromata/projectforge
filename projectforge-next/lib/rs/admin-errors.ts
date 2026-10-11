@@ -74,6 +74,8 @@ export interface LogGroupEntry {
   message?: string | null;
   firstSeen: number;
   lastSeen: number;
+  /** The last occurrence as "5 minutes ago", in the user's locale. */
+  lastSeenTimeAgo?: string | null;
   totalCount: number;
   count24h: number;
   status: LogGroupStatus;
