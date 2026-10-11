@@ -144,8 +144,11 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * bypassing this method.
      *
      * SELECT and UPDATE depend on who maintains the parameter ([ConfigurationParam.getEditors]):
-     * - An admin sees every parameter, but changes only the [ConfigurationEditors.ADMIN] ones.
+     * - An admin sees every parameter except the [ConfigurationEditors.CONTROLLING] ones, but changes only the
+     *   [ConfigurationEditors.ADMIN] ones.
      * - A member of PF_Finance or PF_Controlling sees and changes only the [ConfigurationEditors.FINANCE] ones.
+     * - A member of PF_Finance or PF_Controlling sees the [ConfigurationEditors.CONTROLLING] ones, but only a member
+     *   of both groups changes them.
      * - A parameter with a page of its own ([ConfigurationParam.getEditPage]) is never updated through this
      *   check: that page validates its structured value and saves it itself, after checking the editors.
      *
@@ -159,8 +162,12 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     ): Boolean {
         val allowed = when (operationType) {
             OperationType.INSERT, OperationType.DELETE, OperationType.UNDELETE -> false
-            OperationType.SELECT -> accessChecker.isUserMemberOfAdminGroup(user) ||
-                    (isFinanceUser(user) && (obj == null || paramOf(obj)?.editors == ConfigurationEditors.FINANCE))
+            OperationType.SELECT -> {
+                val editors = paramOf(obj)?.editors
+                (accessChecker.isUserMemberOfAdminGroup(user) && editors != ConfigurationEditors.CONTROLLING) ||
+                        (isFinanceUser(user) && (obj == null || editors == ConfigurationEditors.FINANCE ||
+                                editors == ConfigurationEditors.CONTROLLING))
+            }
 
             OperationType.UPDATE -> {
                 val param = paramOf(oldObj ?: obj)
@@ -181,6 +188,9 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         return when (param.editors) {
             ConfigurationEditors.ADMIN -> accessChecker.isUserMemberOfAdminGroup(user)
             ConfigurationEditors.FINANCE -> isFinanceUser(user)
+            ConfigurationEditors.CONTROLLING ->
+                accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) &&
+                        accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)
         }
     }
 

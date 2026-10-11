@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Mails: names, titles, file names and texts entered by users are no longer taken over as HTML (e.g. in the mails of polls, data transfer areas, vacations and to-dos); only simple formatting and links remain in the mail text of a poll.",
+  "de": "Mails: Von Nutzern eingegebene Namen, Titel, Dateinamen und Texte werden nicht mehr als HTML übernommen (z.B. in den Mails von Umfragen, Datentransferbereichen, Urlauben und ToDos); im Mail-Text einer Umfrage bleiben nur einfache Formatierungen und Links erhalten."
+}

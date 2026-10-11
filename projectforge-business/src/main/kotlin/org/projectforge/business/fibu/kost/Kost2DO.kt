@@ -165,7 +165,9 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * Marks this cost unit as a shared cost element (or explicitly not): time sheets booked on it may overlap in time
      * with time sheets of other projects. Null means "as the structure element": the time sheet's task decides
      * ([org.projectforge.business.task.TaskDO.allowTimeOverlap], inherited). If set (true or false), this value takes
-     * precedence over the task's one. Overlapping time sheets within the same project remain forbidden in any case.
+     * precedence over the task's one. Overlapping time sheets on the same cost unit or within the same project or
+     * overlap group ([org.projectforge.framework.configuration.ConfigurationParam.TIMESHEET_OVERLAP_GROUPS]) remain
+     * forbidden in any case.
      * See [org.projectforge.business.timesheet.TimesheetDao.hasTimeOverlap].
      */
     @PropertyInfo(i18nKey = "fibu.kost2.sharedCost", tooltip = "fibu.kost2.sharedCost.tooltip")

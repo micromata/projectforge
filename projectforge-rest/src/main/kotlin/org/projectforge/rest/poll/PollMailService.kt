@@ -24,8 +24,11 @@
 package org.projectforge.rest.poll
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.business.utils.HtmlHelper
+import org.projectforge.framework.utils.HtmlSanitizer
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
@@ -37,6 +40,9 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class PollMailService {
+
+    @Autowired
+    private lateinit var domainService: DomainService
 
     @Autowired
     private lateinit var sendMail: SendMail
@@ -56,7 +62,9 @@ class PollMailService {
                 val mail = Mail()
                 mail.subject = subject
                 mail.contentType = Mail.CONTENTTYPE_HTML
-                mail.content = content
+                // The content is HTML put together from texts of the poll's owner (the custom mail text, the title,
+                // ...): only the tags of the rich text pass, no scripts, images, forms or styles.
+                mail.content = HtmlSanitizer.sanitize(content)
                 mail.from = from
                 to.forEach { mail.addTo(it) }
                 sendMail.send(mail, attachments = mailAttachments)
@@ -115,5 +123,13 @@ class PollMailService {
 
         User.restoreEmails(userList)
         return userList!!.mapNotNull { it.email }
+    }
+
+    /** The absolute link to the response page of the given poll, on the domain of this installation. */
+    fun pollLink(pollId: Long?): String = domainService.getDomain("react/pollResponse/dynamic/?pollId=$pollId")
+
+    companion object {
+        /** A text of the poll (title, description, a user's name) as part of the HTML of a mail. */
+        fun html(value: Any?): String = HtmlHelper.escapeHtml(value?.toString() ?: "", true)
     }
 }

@@ -3,4 +3,4 @@
     <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
 </a> <% } %>
 <h1 class="title"><%= pf.getString(title) %></h1>
-<p><%= pf.getMessage("mail.template.opening", recipient.fullname) %></p>
+<p><%= pf.getMessage("mail.template.opening", pf.getString(recipient.fullname)) %></p>

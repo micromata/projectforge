@@ -296,7 +296,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(customer: KundeDO?): String {
     return if (customer == null) {
       ""
-    } else OldKostFormatter.formatKunde(customer)
+    } else html(OldKostFormatter.formatKunde(customer))
   }
 
   /**
@@ -308,7 +308,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(project: ProjektDO?): String {
     return if (project == null) {
       ""
-    } else OldKostFormatter.formatProjekt(project)
+    } else html(OldKostFormatter.formatProjekt(project))
   }
 
   /**
@@ -318,7 +318,7 @@ class GroovyEngine @JvmOverloads constructor(
    * @see PFUserDO.getFullname
    */
   fun getString(user: PFUserDO?): String {
-    return user?.getFullname() ?: ""
+    return html(user?.getFullname())
   }
 
   fun getString(value: Number?): String {
@@ -328,7 +328,13 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(task: TaskDO?): String {
     return if (task == null) {
       ""
-    } else TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN) ?: ""
+    } else html(TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN))
+  }
+
+  /** A name or title entered by a user, escaped like [getString]: names of customers, users, tasks may contain `<`, `&`. */
+  private fun html(value: String?): String {
+    value ?: return ""
+    return if (htmlFormat) HtmlHelper.formatText(value, true) else value
   }
 
   fun getCurrency(value: BigDecimal?): String {

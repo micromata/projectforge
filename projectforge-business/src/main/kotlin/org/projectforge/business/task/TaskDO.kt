@@ -243,7 +243,8 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      *
      * Normally two time sheets of the same user must not overlap in time. If this flag is set, time sheets booked on
      * this task (or a descendant) may overlap in time with time sheets of other tasks, as long as they don't belong to
-     * the same project (no double booking inside a project).
+     * the same project or overlap group and aren't booked on the same cost unit (no double booking, see
+     * [org.projectforge.business.timesheet.TimesheetDao.hasTimeOverlap]).
      *
      * The purpose is cost sharing between projects/customers: a working time that benefits two projects/customers is
      * booked on both (overlapping) and counted proportionally in attendance reports (e. g. 1h + overlapping 1h => 0.5h
