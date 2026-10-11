@@ -182,7 +182,7 @@ class AuftragsCacheTest : AbstractTestBase() {
         auftragsRechnungCache.setExpired()
         assertInvoicedSums(order, netSum = 500, invoicedSum = 300)
 
-        // Both invalidated (as done by SystemService.refreshCaches), no refresh yet:
+        // Both invalidated (as done by a refresh of all caches), no refresh yet:
         auftragsRechnungCache.setExpired()
         auftragsCache.setExpired()
         assertInvoicedSums(order, netSum = 500, invoicedSum = 300)

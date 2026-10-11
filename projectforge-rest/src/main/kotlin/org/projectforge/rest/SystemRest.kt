@@ -204,17 +204,8 @@ class SystemRest {
     }
 
     // ------------------------------------------------------------------------------------------
-    // Caches / configuration.
+    // Configuration.
     // ------------------------------------------------------------------------------------------
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @PostMapping("refreshCaches")
-    fun refreshCaches(): MessageResponse {
-        checkWriteAccess()
-        log.info { "Administration: refresh all caches." }
-        val refreshedCaches = systemService.refreshCaches()
-        return MessageResponse(translateMsg("administration.refreshCachesDone", refreshedCaches))
-    }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("rereadConfiguration")

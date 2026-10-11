@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useTabParam } from "@/hooks/use-tab-param";
 import { AdminErrorDetailDialog } from "./admin-error-detail-dialog";
+import { CACHES_QUERY_KEY, CachesTab } from "./caches-tab";
 import { ProblemTabContents } from "./problem-tab-contents";
 import { SCHEDULER_QUERY_KEY } from "./scheduler-job-detail-dialog";
 import { SchedulerTab } from "./scheduler-tab";
@@ -20,7 +21,13 @@ import {
 } from "./system-statistics-tab";
 import { useProblemDashboard } from "./use-problem-dashboard";
 
-const ADMIN_TABS = ["overview", "problems", "scheduler", "statistics"];
+const ADMIN_TABS = [
+  "overview",
+  "problems",
+  "scheduler",
+  "caches",
+  "statistics",
+];
 
 /** Everybody may see the system statistics (non-admins only the key figures of the database). */
 const USER_TABS = ["statistics"];
@@ -32,7 +39,8 @@ const USER_TABS = ["statistics"];
  * problem's detail explains it and changes its status (acknowledge, resolve, ignore, mute), which also decides what
  * the error digest reports. The digest links each problem as `?id=<id>`, which opens its detail. The statistics tab
  * (`?tab=statistics`, the only one for other users) shows the system statistics, the scheduler tab
- * (`?tab=scheduler`) the scheduled jobs with their runs.
+ * (`?tab=scheduler`) the scheduled jobs with their runs, the caches tab (`?tab=caches`) the caches with their
+ * refreshes.
  */
 export function SystemDashboard() {
   const t = useTranslations();
@@ -49,7 +57,7 @@ export function SystemDashboard() {
   );
   const statistics = tab === "statistics";
   // Tabs with data of their own: their refresh doesn't wait for the problems.
-  const ownData = statistics || tab === "scheduler";
+  const ownData = statistics || tab === "scheduler" || tab === "caches";
   const data = problems.list.data;
 
   return (
@@ -66,7 +74,9 @@ export function SystemDashboard() {
                   ? SYSTEM_STATISTICS_QUERY_KEY
                   : tab === "scheduler"
                     ? SCHEDULER_QUERY_KEY
-                    : "adminErrors",
+                    : tab === "caches"
+                      ? CACHES_QUERY_KEY
+                      : "adminErrors",
               ],
             })
           }
@@ -101,6 +111,7 @@ export function SystemDashboard() {
               <TabsTrigger value="scheduler">
                 {t("system.scheduler.tab")}
               </TabsTrigger>
+              <TabsTrigger value="caches">{t("system.caches.tab")}</TabsTrigger>
             </>
           )}
           <TabsTrigger value="statistics">
@@ -109,6 +120,7 @@ export function SystemDashboard() {
         </TabsList>
         {isAdmin && <ProblemTabContents problems={problems} setTab={setTab} />}
         {isAdmin && <SchedulerTab />}
+        {isAdmin && <CachesTab />}
         <SystemStatisticsTab />
       </Tabs>
       {isAdmin && (

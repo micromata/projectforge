@@ -17,6 +17,9 @@ import {
 /** `SchedulerSubsystemStatusProvider.id`. */
 const SCHEDULER_SUBSYSTEM = "scheduler";
 
+/** `CacheSubsystemStatusProvider.id`. */
+const CACHES_SUBSYSTEM = "caches";
+
 /** The overview and the problems tab of the system dashboard, admin group only. */
 export function ProblemTabContents({
   problems,
@@ -76,13 +79,16 @@ export function ProblemTabContents({
             });
           }}
           onOpenSubsystem={(it) =>
-            // The scheduler's tile shows its jobs rather than its problems: a failed job is no log problem.
+            // The tiles of the scheduler and the caches show their jobs and caches rather than their problems: a
+            // failed job or refresh is no log problem.
             it.id === SCHEDULER_SUBSYSTEM
               ? setTab("scheduler")
-              : setTab("problems", {
-                  [SUBSYSTEM_PARAM]: it.id,
-                  [SCOPE_PARAM]: null,
-                })
+              : it.id === CACHES_SUBSYSTEM
+                ? setTab("caches")
+                : setTab("problems", {
+                    [SUBSYSTEM_PARAM]: it.id,
+                    [SCOPE_PARAM]: null,
+                  })
           }
         />
       </TabsContent>

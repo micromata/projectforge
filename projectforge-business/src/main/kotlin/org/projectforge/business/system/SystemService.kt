@@ -25,15 +25,7 @@ package org.projectforge.business.system
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
-import org.projectforge.business.address.BirthdayCache.Companion.instance
-import org.projectforge.business.fibu.AuftragsCache
-import org.projectforge.business.fibu.AuftragsRechnungCache
-import org.projectforge.business.fibu.KontoCache
-import org.projectforge.business.fibu.RechnungCache
-import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.jobs.CronSanityCheckJob
-import org.projectforge.business.task.TaskTree
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.common.html.Html
 import org.projectforge.common.html.HtmlDocument
@@ -63,34 +55,10 @@ class SystemService {
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var auftragsCache: AuftragsCache
-
-    @Autowired
-    private lateinit var auftragsRechnungCache: AuftragsRechnungCache
-
-    @Autowired
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
 
     @Autowired
     private lateinit var dataTransferBridge: DataTransferBridge
-
-    @Autowired
-    private lateinit var kontoCache: KontoCache
-
-    @Autowired
-    private lateinit var kostCache: KostCache
-
-    @Autowired
-    private lateinit var rechnungCache: RechnungCache
-
-    @Autowired
-    private lateinit var userGroupCache: UserGroupCache
-
-    @Autowired
-    private lateinit var systemInfoCache: SystemInfoCache
-
-    @Autowired
-    private lateinit var taskTree: TaskTree
 
     /**
      * Re-reads the configuration ([Configuration] and the config.xml): forces a reload of the [Configuration] cache
@@ -186,23 +154,5 @@ class SystemService {
     private fun internalCheckSystemIntegrity(): String {
         val context = cronSanityCheckJob.execute()
         return context.getReportAsHtml()
-    }
-
-    /**
-     * Refreshes the caches: TaskTree, userGroupCache and kost2.
-     *
-     * @return the name of the refreshed caches.
-     */
-    fun refreshCaches(): String {
-        userGroupCache.forceReload()
-        taskTree.forceReload()
-        kontoCache.forceReload()
-        kostCache.forceReload()
-        rechnungCache.forceReload()
-        auftragsCache.forceReload()
-        auftragsRechnungCache.forceReload()
-        systemInfoCache.forceReload()
-        instance.forceReload()
-        return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, AuftragsRechnungCache, SystemInfoCache, BirthdayCache"
     }
 }
