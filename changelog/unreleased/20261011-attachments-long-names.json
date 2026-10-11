@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Attachments: long file names without spaces are wrapped in the attachment table instead of widening it.",
-  "de": "Anhänge: Lange Dateinamen ohne Leerzeichen werden in der Anhangtabelle umbrochen, statt sie zu verbreitern."
-}

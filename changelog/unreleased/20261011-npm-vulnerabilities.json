@@ -1,5 +1,0 @@
-{
-  "type": "security",
-  "en": "npm vulnerabilities in projectforge-next and projectforge-webapp fixed: @modelcontextprotocol/sdk, proxy-addr, sharp and source-map-js updated.",
-  "de": "npm-Sicherheitslücken in projectforge-next und projectforge-webapp behoben: @modelcontextprotocol/sdk, proxy-addr, sharp und source-map-js aktualisiert."
-}
