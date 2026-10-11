@@ -20,7 +20,7 @@ tasks.withType<KotlinCompile> {
 // JUnit to its own version, which would mix the platform engine of the BOM with the launcher of our
 // version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
 extra["junit-jupiter.version"] = libs.versions.org.junit.get()
-// Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, sql, ...) with
+// Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, templates, ...) with
 // the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
 extra["groovy.version"] = libs.versions.org.apache.groovy.get()
 
@@ -45,7 +45,6 @@ val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
 val springSecurityVersion = libs.versions.org.springframework.security.get()
 val springDataVersion = libs.versions.org.springframework.data.get()
-val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
 val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
@@ -93,8 +92,6 @@ dependencies {
     }
 
     // Force the following dependencies to avoid downgrades:
-    implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
-    implementation("org.apache.groovy:groovy-ant:$apacheGroovyVersion")
     implementation("org.apache.tomcat:tomcat-annotations-api:$apacheTomcatVersion")
     implementation("org.apache.httpcomponents.core5:httpcore5:${libs.versions.org.apache.httpcomponents.core5.get()}")
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:${libs.versions.org.apache.httpcomponents.core5.get()}")
@@ -187,7 +184,6 @@ dependencies {
     implementation(libs.org.apache.commons.collections4)
     implementation(libs.org.apache.commons.lang3)
     implementation(libs.org.apache.commons.text)
-    implementation(libs.org.apache.groovy.all)
     implementation(libs.org.apache.httpcomponents.client5.httpclient5)
     implementation(libs.org.apache.jackrabbit.oak.jcr)
     implementation(libs.org.apache.jackrabbit.oak.segment.tar)

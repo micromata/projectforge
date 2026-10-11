@@ -128,7 +128,12 @@ net-sf-mpxj = { module = "net.sf.mpxj:mpxj", version.ref = "net-sf-mpxj" }
 org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
 org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-lang3" }
 org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }
-org-apache-groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "org-apache-groovy" }
+org-apache-groovy-core = { module = "org.apache.groovy:groovy", version.ref = "org-apache-groovy" }
+org-apache-groovy-datetime = { module = "org.apache.groovy:groovy-datetime", version.ref = "org-apache-groovy" }
+org-apache-groovy-dateutil = { module = "org.apache.groovy:groovy-dateutil", version.ref = "org-apache-groovy" }
+org-apache-groovy-json = { module = "org.apache.groovy:groovy-json", version.ref = "org-apache-groovy" }
+org-apache-groovy-templates = { module = "org.apache.groovy:groovy-templates", version.ref = "org-apache-groovy" }
+org-apache-groovy-xml = { module = "org.apache.groovy:groovy-xml", version.ref = "org-apache-groovy" }
 org-apache-httpcomponents-client5-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "org-apache-httpcomponents-client5-httpclient5" }
 org-apache-jackrabbit-oak-jcr = { module = "org.apache.jackrabbit:oak-jcr", version.ref = "org-apache-jackrabbit-oak" }
 org-apache-jackrabbit-oak-segment-tar = { module = "org.apache.jackrabbit:oak-segment-tar", version.ref = "org-apache-jackrabbit-oak" }
@@ -198,3 +203,15 @@ org-springframework-spring-web = { module = "org.springframework:spring-web", ve
 org-springframework-spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "org-springframework-spring" }
 org-yaml-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "org-yaml-snakeyaml" }
 se-sawano-java-alphanumeric-comparator = { module = "se.sawano.java:alphanumeric-comparator", version.ref = "se-sawano-java-alphanumeric-comparator" }
+
+[bundles]
+# Groovy core plus the modules used by our templates and by Groovy user scripts (no groovy-all: ant, sql,
+# swing, console, groovysh, test, ... are not needed at runtime).
+org-apache-groovy = [
+    "org-apache-groovy-core",
+    "org-apache-groovy-datetime",
+    "org-apache-groovy-dateutil",
+    "org-apache-groovy-json",
+    "org-apache-groovy-templates",
+    "org-apache-groovy-xml",
+]

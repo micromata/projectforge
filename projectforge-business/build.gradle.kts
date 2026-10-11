@@ -75,7 +75,7 @@ dependencies {
     api(libs.org.mnode.ical4j.ical4j)
     api(libs.com.googlecode.ez.vcard)
     api(libs.com.thoughtworks.xstream)
-    api(libs.org.apache.groovy.all)
+    api(libs.bundles.org.apache.groovy)
     api(libs.org.jfree.jfreechart)
     api(libs.net.sf.mpxj) {
         // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
