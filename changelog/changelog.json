@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.0.3 released",
       "tag": "9.0.3-RELEASE",
       "downloadLink": true,
+      "sha256": "fbe9999a9a8b919e8c421c6d275da44a408a26c2ed609e5564ea099efc18a2a0",
       "summary": [
         "**New file store** in the database replacing the JCR",
         "Calendar: book several days also on already booked days",
@@ -174,6 +175,7 @@
       "title": "ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date",
       "tag": "9.0.0-RELEASE",
       "downloadLink": true,
+      "sha256": "1289b10a87ef77d5f25ea6e363d809fe894d661a60b8ccca7733450362dce5cb",
       "intro": [
         "ProjectForge 9.0 is a major update. The classic Wicket user interface was replaced by **projectforge-next**, a new frontend built with Next.js and React, and all libraries were brought up to date. It also brings a problem dashboard for operations, many new charts with key figures, robust interfaces to external systems, e-invoicing and an identity provider integration. The development builds leading up to it are listed in the changelog as 8.2 snapshots.",
         "{red}**Major update**{/red} - The classic Wicket user interface is gone: all pages run in **projectforge-next**, the only login is `/next/login`. This release sums up all 8.2 snapshot builds.",
@@ -1266,6 +1268,7 @@
       "title": "ProjectForge 8.1: stability and memory fixes",
       "tag": "8.1-RELEASE",
       "downloadLink": true,
+      "sha256": "0001c9e3ad13cc8828a9ec43f28871a9229a83854024dee290242490bc2bb781",
       "intro": [
         "{red}**Update strongly recommended for all users.**{/red} This release fixes a major memory leak in the data transfer module and frequent page errors caused by Wicket memory issues.",
         "{red}**Update strongly recommended for all users**{/red} - This release fixes a major memory leak in the data transfer module and resolves frequent page errors in web pages (Wicket memory issues).",

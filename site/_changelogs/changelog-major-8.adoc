@@ -66,6 +66,9 @@ Major release with a completely refactored persistence layer and current major v
 [.changelog-source]
 __2025-09-01, tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE]__ +++{% include release-pills.html tag="8.1-RELEASE" docker="8.1" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-8.1.jar: `+0001c9e3ad13cc8828a9ec43f28871a9229a83854024dee290242490bc2bb781+`
+
 - **Update strongly recommended:** stability and memory fixes
 - Fix: major memory leak in data transfer
 - Fix: frequent page errors caused by Wicket memory issues

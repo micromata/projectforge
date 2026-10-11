@@ -21,7 +21,7 @@ An auto-update mechanism for the data-base on start-up of the web app is include
 |Type | Link | Size | Description
 
 | Windows / MacOS X / Other
-|https://sourceforge.net/projects/pforge/files/ProjectForge/[ProjectForge-application-X.X.X.jar,window=_blank]
+|https://sourceforge.net/projects/pforge/files/latest/download[projectforge-application-X.X.X.jar,window=_blank] (latest release on SourceForge, all versions: https://sourceforge.net/projects/pforge/files/ProjectForge/[SourceForge,window=_blank], https://github.com/micromata/projectforge/releases[GitHub,window=_blank])
 |130MB
 |Executable java archive
 

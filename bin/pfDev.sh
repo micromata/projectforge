@@ -50,9 +50,11 @@ Commands:
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and creates its GitHub release (notes generated
                    from the changelog, jar attached); asks before each step. The docker
-                   images follow with docker/push-release.sh (see its --help). A release
+                   images follow with docker/push-release.sh (see its --help), the
+                   upload of the jar to SourceForge by hand (rsync command printed at
+                   the end, then set as default download, i.e. latest). A release
                    with "published": false in the changelog is only pushed (mini release,
-                   no GitHub release, jar or docker images); its changes go into the
+                   no GitHub release, jars or docker images); its changes go into the
                    notes of the next published release
   help             Show this help
 
@@ -241,7 +243,14 @@ release() {
   if $skip_tests; then "$GRADLEW" -p "$ROOT" clean build -x test; else "$GRADLEW" -p "$ROOT" clean build; fi
   git tag -a "$tag" -m "ProjectForge $version"
   set_version "$next"
-  git commit -q -m "chore: next development version $next" -- gradle.properties
+  # The jar contains the changelog, so the checksum of a published release's jar follows after the tag.
+  local changelog_files=()
+  if [[ "$(release_published "$version")" == true ]]; then
+    "$GRADLEW" -p "$ROOT" :projectforge-application:releaseSha256Changelog --rerun -PreleaseVersion="$version"
+    changelog_files=(changelog/changelog.json site/_changelogs projectforge-next/lib/generated/changelog.json
+      projectforge-next/lib/generated/changelog.de.json)
+  fi
+  git commit -q -m "chore: next development version $next" -- gradle.properties ${changelog_files[@]+"${changelog_files[@]}"}
   trap - ERR
   # Files touched by the build itself (e.g. an npm lock file) are not part of the release.
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -249,6 +258,14 @@ release() {
     git status --short
   fi
   echo "Released $version (tag $tag), now on $next. Nothing is pushed yet: pfDev.sh publish $version"
+}
+
+# Whether the release <version> of changelog.json is published (GitHub release, jar, docker images): true or false.
+release_published() {
+  node -e '
+    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
+    console.log(release?.published === false ? "false" : "true");
+  ' "$ROOT/changelog/changelog.json" "$1"
 }
 
 publish() {
@@ -265,12 +282,7 @@ publish() {
     exit 1
   fi
   # A mini release ("published": false) is only pushed, its notes are part of the next published release.
-  local published
-  published="$(node -e '
-    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
-    console.log(release?.published === false ? "false" : "true");
-  ' "$ROOT/changelog/changelog.json" "$version")"
-  if [[ "$published" == false ]]; then
+  if [[ "$(release_published "$version")" == false ]]; then
     confirm "Push $(git branch --show-current) and the tag $tag (unpublished: no GitHub release, jar or docker images)?" || exit 1
     git push --follow-tags
     echo "Pushed $tag. Its changes are part of the release notes of the next published release."
@@ -282,6 +294,22 @@ publish() {
       exit 1
     fi
   done
+  # The jar must be the one of the release, its checksum is in the changelog since pfDev.sh release.
+  local sha256 expected notes_with_sha
+  sha256="$(shasum -a 256 "$jar" | cut -d' ' -f1)"
+  expected="$(node -e '
+    const release = require(process.argv[1]).releases.find((r) => r.version === process.argv[2]);
+    console.log(release?.sha256 ?? "");
+  ' "$ROOT/changelog/changelog.json" "$version")"
+  if [[ -z "$expected" ]]; then
+    echo "Note: the changelog has no SHA-256 of $version yet, add \"sha256\": \"$sha256\" to its entry."
+  elif [[ "$sha256" != "$expected" ]]; then
+    echo "The SHA-256 $sha256 of $jar isn't the one of the changelog ($expected), it was rebuilt after the release." >&2
+    exit 1
+  fi
+  notes_with_sha="$ROOT/build/release-notes-$version-sha256.md"
+  { cat "$notes"; echo; echo "SHA-256 of $(basename "$jar"): \`$sha256\`"; } >"$notes_with_sha"
+  notes="$notes_with_sha"
   echo "----- $notes -----"
   cat "$notes"
   echo "-----"
@@ -295,6 +323,9 @@ publish() {
   confirm "Create the GitHub release $tag with $(basename "$jar")?" || exit 1
   gh release create "$tag" "$jar" --title "ProjectForge $version" --notes-file "$notes" --latest
   echo "Next, the docker images: docker/push-release.sh $version arch (on an arm64 and an amd64 machine)"
+  # The upload to SourceForge is done by hand; afterwards the jar is set as default download there (files/latest).
+  echo "SourceForge: upload with: rsync -e ssh --progress $jar <user>@frs.sourceforge.net:/home/frs/project/pforge/ProjectForge/$version/"
+  echo "  and make it the default download (info icon of the file, \"Default Download For\": all platforms)."
 }
 
 cmd="${1:-help}"

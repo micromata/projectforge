@@ -12,6 +12,9 @@ sort_key: "2026-10-08 0032"
 [.changelog-source]
 __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__ +++{% include release-pills.html tag="9.0.0-RELEASE" docker="9.0.0" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.0.jar: `+1289b10a87ef77d5f25ea6e363d809fe894d661a60b8ccca7733450362dce5cb+`
+
 - **New frontend projectforge-next:** all pages migrated, Wicket removed
 - **Problem dashboard** and error digest mails for operations
 - **Charts and key figures:** order statistics, contribution margins, forecast
@@ -122,6 +125,9 @@ ProjectForge 9.0 is a major update. The classic Wicket user interface was replac
 
 [.changelog-source]
 __2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__ +++{% include release-pills.html tag="9.0.3-RELEASE" docker="9.0.3" %}+++
+
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.3.jar: `+fbe9999a9a8b919e8c421c6d275da44a408a26c2ed609e5564ea099efc18a2a0+`
 
 - **New file store** in the database replacing the JCR
 - Calendar: book several days also on already booked days
