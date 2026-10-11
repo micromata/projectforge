@@ -461,7 +461,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
                 val mailSubject = translateMsg("poll.mail.ended.fullAccess.subject", postData.data.title)
                 val mailContent =
-                    translateMsg("poll.mail.ended.fullAccess.content", postData.data.title, owner?.displayName)
+                    translateMsg("poll.mail.ended.fullAccess.content", PollMailService.html(postData.data.title), PollMailService.html(owner?.displayName))
 
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
             }
@@ -470,7 +470,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             val mailFrom = owner?.email.toString()
             val mailTo = pollMailService.getAllAttendeesEmails(postData.data)
             val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
-            val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
+            val mailContent = translateMsg("poll.mail.ended.content", PollMailService.html(postData.data.title), PollMailService.html(owner?.displayName))
             pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
         }
         return responseEntity
@@ -510,7 +510,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
                 mailSubject = translateMsg("poll.mail.update.subject", obj.description, obj.deadline)
                 mailContent = translateMsg(
-                    "poll.mail.update.content", obj.title, owner?.displayName
+                    "poll.mail.update.content", PollMailService.html(obj.title), PollMailService.html(owner?.displayName)
                 )
 
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
@@ -528,8 +528,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     mailSubject = translateMsg("poll.mail.created.subject", obj.title, obj.description, obj.deadline)
                     mailContent = translateMsg(
                         "poll.mail.created.content",
-                        obj.title,
-                        owner?.displayName,
+                        PollMailService.html(obj.title),
+                        PollMailService.html(owner?.displayName),
                         obj.id.toString(),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
@@ -540,10 +540,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     mailSubject = translateMsg("poll.mail.created.subject", obj.title, obj.deadline)
                     mailContent = translateMsg(
                         content,
-                        obj.title,
-                        owner?.displayName,
+                        PollMailService.html(obj.title),
+                        PollMailService.html(owner?.displayName),
                         "<p><a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\">Link</a></p>",
-                        obj.description,
+                        PollMailService.html(obj.description),
                         obj.deadline
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
@@ -553,10 +553,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     mailSubject = translateMsg("$subject", obj.title, obj.deadline)
                     mailContent = translateMsg(
                         "poll.mail.created.content",
-                        obj.title,
-                        owner?.displayName,
+                        PollMailService.html(obj.title),
+                        PollMailService.html(owner?.displayName),
                         "https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}",
-                        obj.description,
+                        PollMailService.html(obj.description),
                         obj.deadline
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
@@ -567,10 +567,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     mailSubject = translateMsg("$subject", obj.title, obj.deadline)
                     mailContent = translateMsg(
                         content,
-                        obj.title,
-                        owner?.displayName,
+                        PollMailService.html(obj.title),
+                        PollMailService.html(owner?.displayName),
                         "<p>Hier kommst du direkt <a href=\"https://projectforge.micromata.de/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
-                        obj.description,
+                        PollMailService.html(obj.description),
                         obj.deadline
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)

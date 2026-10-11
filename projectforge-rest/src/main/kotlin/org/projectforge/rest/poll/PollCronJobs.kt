@@ -127,9 +127,9 @@ class PollCronJobs {
                         val mailTo = pollMailService.getAllAttendeesEmails(poll)
                         val mailFrom = pollDO.owner?.email.toString()
                         val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
-                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
+                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", PollMailService.html(pollDO.title), PollMailService.html(owner?.displayName), )
 
-                        pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
+                        pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
                         pollDao.insertOrUpdate(pollDO, checkAccess = false)
@@ -156,8 +156,8 @@ class PollCronJobs {
                     val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                     val mailContent = translateMsg(
                         "poll.mail.endingSoon.content",
-                        pollDO.title,
-                        pollDO.owner?.displayName,
+                        PollMailService.html(pollDO.title),
+                        PollMailService.html(pollDO.owner?.displayName),
                         pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
                         pollDO.id.toString(),
                     )
