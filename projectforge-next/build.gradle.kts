@@ -34,9 +34,15 @@ tasks {
         // No args: this task already runs `npm install` (NpmInstallTask sets npmCommand itself and
         // NpmTask appends args). An args entry of "install" made it `npm install install`, which
         // installs the npm package named "install" and saves it to package.json on every build.
+        // Runs if node_modules is missing or older than package.json/package-lock.json (npm rewrites its
+        // hidden lockfile node_modules/.package-lock.json on every install). Checking only for a missing
+        // node_modules let a dependency added on another branch go uninstalled after a merge.
         val nodeModulesDir = layout.projectDirectory.dir("node_modules")
+        val hiddenLockfile = nodeModulesDir.file(".package-lock.json")
+        val manifests = listOf(layout.projectDirectory.file("package.json"), layout.projectDirectory.file("package-lock.json"))
         onlyIf {
-            !nodeModulesDir.asFile.exists()
+            val installed = hiddenLockfile.asFile
+            !installed.exists() || manifests.any { it.asFile.lastModified() > installed.lastModified() }
         }
         outputs.dir(project.layout.projectDirectory.dir("node_modules"))
     }
