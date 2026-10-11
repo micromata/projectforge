@@ -44,8 +44,9 @@ Commands:
                    tagged X.Y.Z-RELEASE, its sections may come from changelog/unreleased/
                    only; its summary and overview, en+de, are in the release entry or in
                    changelog/unreleased/release.json). A missing release entry is added
-                   (default titles, today, published or a mini release, asked first);
-                   folds changelog/unreleased/ into it, sets the version,
+                   (default titles, today, published or a mini release, asked first).
+                   Runs the tests first (unless --skip-tests), before anything is changed;
+                   then folds changelog/unreleased/ into the entry, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
   publish <X.Y.Z>  Pushes the release and its tag and creates its GitHub release (notes
@@ -227,6 +228,8 @@ release() {
     fi
   done
   confirm "Release $version from $(git branch --show-current) (then $next)?" || exit 1
+  # The tests run first, on the unchanged tree: a failure stops the release before anything is changed.
+  if ! $skip_tests; then "$GRADLEW" -p "$ROOT" clean test; fi
   start="$(git rev-parse --short HEAD)"
   trap 'echo "pfDev.sh release failed. To start over: git reset --hard $start && git tag -d $tag (if created)." >&2' ERR
   # The entries of changelog/unreleased/ go into the release (checked folded already), its entry is added if missing.
@@ -240,8 +243,9 @@ release() {
   git add -A
   git commit -q -m "release: $version"
   # Built from the release commit, so the jar's build.properties show it (and not a dirty tree). A clean build,
-  # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build.
-  if $skip_tests; then "$GRADLEW" -p "$ROOT" clean build -x test; else "$GRADLEW" -p "$ROOT" clean build; fi
+  # so no leftovers of earlier builds end up in the release jar. Tagged only after a successful build. The tests
+  # ran before the release commit, which only changes the changelog, the version and generated files.
+  "$GRADLEW" -p "$ROOT" clean build -x test
   git tag -a "$tag" -m "ProjectForge $version"
   set_version "$next"
   # The jar contains the changelog, so the checksum of a published release's jar follows after the tag.
