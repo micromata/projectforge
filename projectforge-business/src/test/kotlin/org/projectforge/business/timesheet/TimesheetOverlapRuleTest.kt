@@ -28,11 +28,14 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +52,9 @@ import java.util.*
  *
  * A cost unit may override its task's setting ([Kost2DO.sharedCost]): true/false win over the task's flag, null leaves
  * the decision to the task.
+ *
+ * Never allowed: the same cost unit twice, and two cost units of the same overlap group
+ * ([ConfigurationParam.TIMESHEET_OVERLAP_GROUPS]), which counts like one project.
  */
 class TimesheetOverlapRuleTest : AbstractTestBase() {
     @Autowired
@@ -118,6 +124,8 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
             // (d) Released + neither has a project (null project is never "the same project") => allowed.
             insert("ovl-released-np", user, date(13, 8), date(13, 16))
             insert("ovl-plain", user, date(13, 15), date(13, 18)) // overlaps, must be accepted.
+            // ... but not twice on the same task without cost units (e.g. a double vacation) => forbidden.
+            assertOverlapRejected("ovl-released-np", user, date(13, 9), date(13, 10))
 
             // Collisions the validation would reject (legacy data), persisted directly: same project and
             // not released. Touching periods (one ends when the next starts) are no collision.
@@ -206,6 +214,73 @@ class TimesheetOverlapRuleTest : AbstractTestBase() {
             )
             null
         }
+    }
+
+    @Test
+    fun overlapGroups() {
+        persistenceService.runInTransaction { context ->
+            logon(AbstractTestBase.TEST_FINANCE_USER)
+            // Cost units without project: 6.100.00.01, 6.100.00.02, 6.300.00.01, 6.200.00.01.
+            val k100a = addKost2(6, 100, 1)
+            val k100b = addKost2(6, 100, 2)
+            val k300 = addKost2(6, 300, 1)
+            val k200 = addKost2(6, 200, 1)
+            // A released task (shared cost element) without project, the cost units may be booked on it.
+            val task = initTestDB.addTask("ovl-g", "root")
+            task.allowTimeOverlap = true
+            task.kost2BlackWhiteList = listOf(k100a, k100b, k300, k200).joinToString(", ") { it.formattedNumber }
+            task.kost2IsBlackList = false
+            taskDao.update(task, checkAccess = false)
+            val user = initTestDB.addUser("ovl-g-user")
+            val config = Configuration.instance
+            try {
+                // Without groups: the same cost unit is forbidden even though shared, different ones are allowed.
+                config.putParameterManual(ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, "")
+                insert("ovl-g", user, date(3, 8), date(3, 16), k100a)
+                assertOverlapRejected("ovl-g", user, date(3, 15), date(3, 18), k100a)
+                insert("ovl-g", user, date(3, 15), date(3, 18), k100b)
+
+                // Group 1: 6.100.* and 6.300.*, group 2: 6.200.*.
+                config.putParameterManual(ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, "6.100,6.300;6.200")
+                insert("ovl-g", user, date(4, 8), date(4, 16), k100a)
+                assertOverlapRejected("ovl-g", user, date(4, 15), date(4, 18), k100b) // Same group.
+                assertOverlapRejected("ovl-g", user, date(4, 15), date(4, 18), k300) // Same group.
+                insert("ovl-g", user, date(4, 15), date(4, 18), k200) // Other group, shared => allowed.
+
+                // One group 6.*: no parallel bookings at all.
+                config.putParameterManual(ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, "6")
+                insert("ovl-g", user, date(5, 8), date(5, 16), k100a)
+                assertOverlapRejected("ovl-g", user, date(5, 15), date(5, 18), k200)
+
+                // The list's collision search applies the groups as well.
+                val collision1 = persistRaw(context, "ovl-g", user, date(6, 8), date(6, 16), k300)
+                val collision2 = persistRaw(context, "ovl-g", user, date(6, 15), date(6, 18), k200)
+                context.flush()
+                Assertions.assertEquals(
+                    setOf(collision1, collision2),
+                    timesheetDao.getCollidingTimesheetIds(user.id!!, date(6, 0), date(6, 23)),
+                )
+                config.putParameterManual(ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, "6.100,6.300;6.200")
+                Assertions.assertEquals(
+                    emptySet<Long>(),
+                    timesheetDao.getCollidingTimesheetIds(user.id!!, date(6, 0), date(6, 23)),
+                )
+            } finally {
+                config.putParameterManual(ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, "")
+            }
+            null
+        }
+    }
+
+    /** A cost unit without project: [nummernkreis].[bereich].00.[kost2Art]. */
+    private fun addKost2(nummernkreis: Int, bereich: Int, kost2Art: Long): Kost2DO {
+        val kost2 = Kost2DO().also {
+            it.nummernkreis = nummernkreis
+            it.bereich = bereich
+            it.teilbereich = 0
+            it.kost2Art = Kost2ArtDO().withId(kost2Art)
+        }
+        return kost2Dao.find(kost2Dao.insert(kost2))!!
     }
 
     /** The project's two cost units of Kost2Art 0 and 1, as [InitTestDB.addProjekt] created them. */

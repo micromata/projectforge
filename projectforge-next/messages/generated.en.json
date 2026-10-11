@@ -232,6 +232,10 @@
           "noteSavingsByAI": {
             "_": "Note regarding AI savings",
             "description": "Note in the time reports regarding AI savings (only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          },
+          "overlapGroups": {
+            "_": "Time sheet overlap groups",
+            "description": "Groups of cost 2 units whose time sheets must never overlap in time, even with shared costs: each group counts like one project. Groups are separated by semicolons, the cost 2 number prefixes of a group by commas. A prefix has one to four parts (number range, area, sub area, cost 2 type), e.g. \"6\" matches all cost 2 units 6.*. Examples: \"6\" (one group: all cost 2 units 6.*), \"6.100.00.01,6.100.00.02,6.300\" (one group of three prefixes), \"6.100,6.300;6.200\" (two groups). Time sheets on the same cost 2 never overlap, also without any group."
           }
         },
         "timesheetTags": {
@@ -1346,7 +1350,7 @@
       "sharedCost": {
         "_": "Shared costs",
         "inherited": "As structure element",
-        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets within the same project remain unsupported."
+        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported."
       },
       "title": {
         "add": "New cost 2",
@@ -3687,7 +3691,7 @@
     "_": "Structure element",
     "allowTimeOverlap": {
       "_": "Shared cost element",
-      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported. A setting of the cost 2 takes precedence."
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
     "consumption": "Consumption",

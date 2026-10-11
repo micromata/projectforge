@@ -102,6 +102,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   TIMESHEET_TAGS("timesheetTags", ConfigurationType.STRING), //
   /**
+   * Groups of cost 2 units whose time sheets must never overlap in time, as if they were one project (e.g. "6" for all
+   * cost 2 units 6.*), see org.projectforge.business.timesheet.TimesheetOverlapGroups.
+   */
+  TIMESHEET_OVERLAP_GROUPS("timesheet.overlapGroups", ConfigurationType.STRING), //
+  /**
    * End date vacation lastr year configuration param.
    */
   END_DATE_VACATION_LAST_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, "31.03."),
@@ -201,7 +206,8 @@ public enum ConfigurationParam implements IConfigurationParam
 
   /**
    * @return Who may change this parameter. The finance parameters are maintained by PF_Finance and
-   * PF_Controlling only, all others by PF_Admin only (see ConfigurationDao.hasAccess).
+   * PF_Controlling only, the controlling parameters by members of both groups only, all others by PF_Admin only (see
+   * ConfigurationDao.hasAccess).
    */
   public ConfigurationEditors getEditors()
   {
@@ -213,6 +219,8 @@ public enum ConfigurationParam implements IConfigurationParam
       case CUSTOMER_GROUPS:
       case FIBU_FORECAST:
         return ConfigurationEditors.FINANCE;
+      case TIMESHEET_OVERLAP_GROUPS:
+        return ConfigurationEditors.CONTROLLING;
       default:
         return ConfigurationEditors.ADMIN;
     }

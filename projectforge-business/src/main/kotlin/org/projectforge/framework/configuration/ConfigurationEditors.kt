@@ -26,7 +26,9 @@ package org.projectforge.framework.configuration
 /**
  * Who maintains a configuration parameter (see [ConfigurationParam.getEditors]). The parameters are split
  * between the system administration and the finance department, and neither side may change the other's:
- * an admin sees the finance parameters read-only, a finance user sees only the finance parameters.
+ * an admin sees the finance parameters read-only, a finance user sees only the finance parameters. The
+ * controlling parameters are seen by the finance department only, and changed only by those in both PF_Finance and
+ * PF_Controlling.
  */
 enum class ConfigurationEditors {
     /** Members of PF_Admin. */
@@ -34,4 +36,10 @@ enum class ConfigurationEditors {
 
     /** Members of PF_Finance or PF_Controlling (not admins). */
     FINANCE,
+
+    /**
+     * Members of both PF_Finance and PF_Controlling; a member of only one of them sees them read-only, admins don't
+     * see them at all.
+     */
+    CONTROLLING,
 }
