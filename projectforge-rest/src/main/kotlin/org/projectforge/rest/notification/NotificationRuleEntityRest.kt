@@ -62,7 +62,7 @@ import java.util.Date
 @RestController
 @RequestMapping("${Rest.URL}/notificationRule")
 class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, NotificationRule, NotificationRuleDao>(
-    NotificationRuleDao::class.java, "notification.rule.title",
+    NotificationRuleDao::class.java, "notification.rule",
 ) {
     /** A variable `{{key}}` of the rule texts with its translated label. */
     class Variable(val key: String, val label: String)

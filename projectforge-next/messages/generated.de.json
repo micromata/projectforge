@@ -2527,6 +2527,7 @@
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich."
       },
       "lastRun": "Letzter Lauf",
+      "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
       "menuBadge": "Zähler im Menü",
       "name": "Name",

@@ -2527,6 +2527,7 @@
         "noDeliveryStep": "At least one delivery step is required."
       },
       "lastRun": "Last run",
+      "list": "Notification rules",
       "manualDone": "The recipient may mark it as done",
       "menuBadge": "Counter in the menu",
       "name": "Name",
