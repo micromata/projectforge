@@ -34,8 +34,9 @@ import org.projectforge.framework.integration.SyncStats
 import org.springframework.stereotype.Component
 
 /**
- * The caches as tile of the overview: down if a refresh is stuck, degraded if the last refresh of a cache failed.
- * Unknown while no cache is filled yet. The stuck and failed caches are shown as its syncs.
+ * The caches as tile of the overview: down if a refresh is stuck, degraded if the last refresh of a cache failed or
+ * the thread of a terminated refresh still runs. Unknown while no cache is filled yet. These caches are shown as its
+ * syncs.
  */
 @Component
 class CacheSubsystemStatusProvider(private val adminService: CacheAdminService) : SubsystemStatusProvider {
@@ -52,7 +53,9 @@ class CacheSubsystemStatusProvider(private val adminService: CacheAdminService) 
     companion object {
         internal fun statusOf(caches: List<CacheEntry>): SubsystemStatus {
             val detail = translateMsg("system.caches.subsystem.detail", caches.size)
-            val problems = caches.filter { it.state == CacheState.STUCK || it.state == CacheState.FAILED }
+            val problems = caches.filter {
+                it.state == CacheState.STUCK || it.state == CacheState.FAILED || it.status.abandonedThreads > 0
+            }
             val state = when {
                 problems.any { it.state == CacheState.STUCK } -> SubsystemState.DOWN
                 problems.isNotEmpty() -> SubsystemState.DEGRADED
@@ -71,7 +74,12 @@ class CacheSubsystemStatusProvider(private val adminService: CacheAdminService) 
                 lastRun = status.lastRefreshStart,
                 lastStatus = if (stuck) SyncStats.Status.ABORTED else SyncStats.Status.ERRORS,
                 lastDurationMs = status.lastRefreshDurationMs,
-                lastError = if (stuck) translateMsg("system.caches.subsystem.stuck", status.name) else status.lastRefreshError,
+                lastError = when {
+                    stuck -> translateMsg("system.caches.subsystem.stuck", status.name)
+                    cache.state != CacheState.FAILED && status.abandonedThreads > 0 ->
+                        translateMsg("system.caches.subsystem.abandoned", status.name, status.abandonedThreads)
+                    else -> status.lastRefreshError
+                },
                 lastErrorDate = if (stuck) status.refreshRunningSince else status.lastRefreshEnd,
             )
         }

@@ -31,7 +31,9 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.scheduling.SchedulerJobAdminService
 import org.projectforge.framework.scheduling.SchedulerJobDetail
 import org.projectforge.framework.scheduling.SchedulerJobList
+import org.projectforge.framework.scheduling.SchedulerJobRegistry
 import org.projectforge.framework.scheduling.SchedulerJobRegistry.RunNowStatus
+import org.projectforge.framework.scheduling.SchedulerJobRegistry.TerminateStatus
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -97,6 +99,22 @@ class AdminSchedulerRest {
                 log.info { "$user couldn't start scheduler job $id: ${result.status} ${result.reason ?: ""}" }
                 ResponseEntity.status(HttpStatus.CONFLICT).body(result.status.name)
             }
+        }
+    }
+
+    /**
+     * Terminates the running job (interrupts and abandons it, see [SchedulerJobRegistry.terminate]). 404 for an
+     * unknown job, 409 (body `NOT_RUNNING`) if it isn't running (any more).
+     */
+    @AccessChecked("Admin group only")
+    @PostMapping("terminate")
+    fun terminate(@RequestParam("id") id: String): ResponseEntity<String> {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        val user = ThreadLocalUserContext.loggedInUser?.username
+        return when (val status = schedulerJobAdminService.terminate(id, user)) {
+            TerminateStatus.TERMINATED -> ResponseEntity.ok(status.name)
+            TerminateStatus.NOT_FOUND -> ResponseEntity.notFound().build()
+            TerminateStatus.NOT_RUNNING -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.name)
         }
     }
 

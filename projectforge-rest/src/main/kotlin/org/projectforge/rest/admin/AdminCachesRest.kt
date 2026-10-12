@@ -26,8 +26,11 @@ package org.projectforge.rest.admin
 
 import jakarta.validation.Valid
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.cache.CacheAdminService
+import org.projectforge.framework.cache.CacheAdminService.TerminateStatus
 import org.projectforge.framework.cache.CacheEntry
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
@@ -76,6 +79,22 @@ class AdminCachesRest {
             return ResponseEntity.notFound().build()
         }
         return ResponseEntity.ok(cacheAdminService.list())
+    }
+
+    /**
+     * Terminates the running refresh of the cache (interrupts and abandons it, see [AbstractCache.terminateRefresh])
+     * and returns the list. 404 for an unknown cache, 409 if no refresh is running (any more).
+     */
+    @AccessChecked("Admin group only")
+    @PostMapping("terminate")
+    fun terminate(@RequestParam("id") id: String): ResponseEntity<List<CacheEntry>> {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        val user = ThreadLocalUserContext.loggedInUser?.username
+        return when (cacheAdminService.terminate(id, user)) {
+            TerminateStatus.TERMINATED -> ResponseEntity.ok(cacheAdminService.list())
+            TerminateStatus.NOT_FOUND -> ResponseEntity.notFound().build()
+            TerminateStatus.NOT_RUNNING -> ResponseEntity.status(HttpStatus.CONFLICT).build()
+        }
     }
 
     /** Starts the refresh of all caches in the background and returns the list. 409 if it is still running. */

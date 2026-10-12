@@ -6,6 +6,12 @@
     "date" : "2026-10-12",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "System dashboard",
+        "items" : [ "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.", "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).", "After a failed cache refresh, the cache serves its current data and retries after a minute at the earliest, instead of retrying on every access." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "Changelog: the releases of a major version are listed newest first, the release opening it last, linked from the top of the major; the release notes of an update link to it as well." ]
     }, {

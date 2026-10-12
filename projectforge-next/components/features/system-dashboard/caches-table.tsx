@@ -26,6 +26,8 @@ interface Props {
   /** The id of the cache whose refresh is being started. */
   refreshing?: string;
   onRefresh: (cache: CacheEntry) => void;
+  /** Terminates the running refresh of the cache (asks first). */
+  onTerminate: (cache: CacheEntry) => void;
   /** Beside the search, e.g. "refresh all". */
   toolbar?: ReactNode;
 }
@@ -46,6 +48,7 @@ function LoadedTable({
   isFetching,
   refreshing,
   onRefresh,
+  onTerminate,
   toolbar,
   storedState,
 }: Props & { storedState: ColumnState }) {
@@ -53,8 +56,8 @@ function LoadedTable({
   const ctx = useFormatContext();
   const [search, setSearch] = useState("");
   const columns = useMemo(
-    () => cacheColumns(t, ctx, onRefresh, refreshing),
-    [t, ctx, onRefresh, refreshing]
+    () => cacheColumns(t, ctx, onRefresh, refreshing, onTerminate),
+    [t, ctx, onRefresh, refreshing, onTerminate]
   );
   const searched = useMemo(() => {
     const term = search.trim().toLowerCase();

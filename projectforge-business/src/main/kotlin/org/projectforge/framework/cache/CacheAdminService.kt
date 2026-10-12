@@ -90,8 +90,21 @@ class CacheAdminService {
         return true
     }
 
+    enum class TerminateStatus { TERMINATED, NOT_FOUND, NOT_RUNNING }
+
+    /**
+     * Terminates the running refresh of the cache, see [AbstractCache.terminateRefresh].
+     * @param user Only logged.
+     */
+    fun terminate(id: String, user: String?): TerminateStatus {
+        val cache = caches().firstOrNull { it.first == id }?.second ?: return TerminateStatus.NOT_FOUND
+        return if (cache.terminateRefresh(user)) TerminateStatus.TERMINATED else TerminateStatus.NOT_RUNNING
+    }
+
     /**
      * Refreshes all caches one after the other in the background, the dependent ones last (see [REFRESH_LAST]).
+     * If a refresh is terminated ([terminate]) whose thread doesn't react, this run only goes on (and a new one may
+     * only start) once that thread returns.
      * @return false, if a refresh of all caches is still running.
      */
     fun refreshAll(): Boolean {

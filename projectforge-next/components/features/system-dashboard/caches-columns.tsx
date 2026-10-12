@@ -23,12 +23,16 @@ import { formatDurationMillis } from "./scheduler-labels";
 type T = ReturnType<typeof useTranslations>;
 type Column = ColumnDef<CacheEntry, unknown>;
 
-/** The columns of the CachesTable, the last one with the button refreshing the cache. */
+/**
+ * The columns of the CachesTable, the last one with the button refreshing the cache — or terminating its refresh
+ * while one is running.
+ */
 export function cacheColumns(
   t: T,
   ctx: FormatContext,
   onRefresh: (cache: CacheEntry) => void,
-  refreshing: string | undefined
+  refreshing: string | undefined,
+  onTerminate: (cache: CacheEntry) => void
 ): Column[] {
   const header = (label: string, filterKind?: FilterKind): Column["header"] =>
     function CacheColumnHeader({ column, table }) {
@@ -58,6 +62,7 @@ export function cacheColumns(
     failures: t("system.caches.column.failures"),
     error: t("system.caches.column.lastError"),
     refresh: t("system.caches.refresh._"),
+    terminate: t("system.caches.terminate._"),
   };
   return [
     {
@@ -87,7 +92,21 @@ export function cacheColumns(
       header: header(t("status"), "text"),
       size: 130,
       meta: { label: t("status") },
-      cell: ({ row }) => <CacheStatePill cache={row.original} />,
+      cell: ({ row }) => {
+        const abandoned = row.original.status.abandonedThreads ?? 0;
+        return (
+          <div className="flex flex-col items-start gap-1">
+            <CacheStatePill cache={row.original} />
+            {abandoned > 0 && (
+              <HintTooltip text={t("system.caches.abandoned.tooltip")}>
+                <span className="text-xs text-destructive">
+                  {t("system.caches.abandoned._", { arg0: abandoned })}
+                </span>
+              </HintTooltip>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "lastRefresh",
@@ -184,21 +203,29 @@ export function cacheColumns(
       enableSorting: false,
       enableColumnFilter: false,
       meta: { label: label.refresh },
-      cell: ({ row }) => (
-        <HintTooltip text={t("system.caches.refresh.tooltip")}>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={
-              refreshing === row.original.id ||
-              row.original.status.refreshInProgress
-            }
-            onClick={() => onRefresh(row.original)}
-          >
-            {label.refresh}
-          </Button>
-        </HintTooltip>
-      ),
+      cell: ({ row }) =>
+        row.original.status.refreshInProgress ? (
+          <HintTooltip text={t("system.caches.terminate.tooltip")}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => onTerminate(row.original)}
+            >
+              {label.terminate}
+            </Button>
+          </HintTooltip>
+        ) : (
+          <HintTooltip text={t("system.caches.refresh.tooltip")}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={refreshing === row.original.id}
+              onClick={() => onRefresh(row.original)}
+            >
+              {label.refresh}
+            </Button>
+          </HintTooltip>
+        ),
     },
   ];
 }

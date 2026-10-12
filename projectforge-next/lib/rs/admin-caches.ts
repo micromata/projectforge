@@ -34,6 +34,8 @@ export interface CacheStatus {
   lastRefreshError?: string | null;
   refreshCount: number;
   failureCount: number;
+  /** Threads of terminated refreshes still running (not reacting to the interrupt). */
+  abandonedThreads?: number;
 }
 
 /** `CacheEntry`. */
@@ -67,6 +69,20 @@ export function refreshAdminCache(id: string): Promise<CacheEntry[]> {
  */
 export async function refreshAllAdminCaches(): Promise<boolean> {
   const path = "/rs/adminCaches/refreshAll";
+  const res = await rawRequest(path, { method: "POST" });
+  if (res.status === 409) return false;
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  return true;
+}
+
+/**
+ * Terminates the running refresh of the cache: interrupts and abandons it, so a new refresh may start at once.
+ * @return false, if no refresh is running (any more).
+ */
+export async function terminateAdminCacheRefresh(id: string): Promise<boolean> {
+  const path = `/rs/adminCaches/terminate?id=${encodeURIComponent(id)}`;
   const res = await rawRequest(path, { method: "POST" });
   if (res.status === 409) return false;
   if (!res.ok) {

@@ -92,6 +92,10 @@ class SchedulerJobEntry(
     val avgDurationMs7d: Long?,
     val maxDurationMs7d: Long?,
     val runNowAllowed: Boolean,
+    /** The running job may be terminated, see [SchedulerJobRegistry.terminate]. */
+    val terminateAllowed: Boolean = false,
+    /** Threads of terminated runs still running (not reacting to the interrupt). */
+    val abandonedThreads: Int = 0,
 )
 
 class SchedulerJobList(
@@ -176,6 +180,9 @@ class SchedulerJobAdminService(
     /** @param user Only logged. */
     fun runNow(id: String, user: String?): SchedulerJobRegistry.RunNowResult = registry.runNow(id, user)
 
+    /** @param user Only logged. */
+    fun terminate(id: String, user: String?): SchedulerJobRegistry.TerminateStatus = registry.terminate(id, user)
+
     /** The jobs with their status, for the tile of the overview ([SchedulerSubsystemStatusProvider]). */
     internal fun overview(): List<Pair<SchedulerJobState, SchedulerJobEntry>> {
         val now = clock()
@@ -242,6 +249,8 @@ class SchedulerJobAdminService(
             // A disabled job may be run manually (e.g. the JCR sanity check, run nightly by the sanity checks).
             runNowAllowed = state.entry != null && inactiveReason == null && !snapshot.running &&
                     schedule !is ResolvedSchedule.Invalid,
+            terminateAllowed = snapshot.running && snapshot.runningThreadKnown,
+            abandonedThreads = snapshot.abandonedThreads,
         )
     }
 

@@ -33,7 +33,8 @@ import org.projectforge.framework.integration.SyncStats
 import org.springframework.stereotype.Component
 
 /**
- * The scheduled jobs as tile of the overview: degraded by failed or overdue jobs, down if one of the jobs running
+ * The scheduled jobs as tile of the overview: degraded by failed or overdue jobs or by threads of terminated runs still
+ * running, down if one of the jobs running
  * every minute or more often ([CANARY_JOBS]) is overdue: the scheduler itself is stuck then. Unknown before the first
  * run. The failed and overdue jobs are shown as its syncs.
  */
@@ -54,7 +55,9 @@ class SchedulerSubsystemStatusProvider(private val adminService: SchedulerJobAdm
 
         internal fun statusOf(jobs: List<SchedulerJobEntry>): SubsystemStatus {
             val detail = translateMsg("system.scheduler.subsystem.detail", jobs.size)
-            val problems = jobs.filter { it.status == SchedulerJobStatus.FAILED || it.status == SchedulerJobStatus.OVERDUE }
+            val problems = jobs.filter {
+                it.status == SchedulerJobStatus.FAILED || it.status == SchedulerJobStatus.OVERDUE || it.abandonedThreads > 0
+            }
             val state = when {
                 problems.any { it.overdue && it.id in CANARY_JOBS } -> SubsystemState.DOWN
                 problems.isNotEmpty() -> SubsystemState.DEGRADED
@@ -70,7 +73,12 @@ class SchedulerSubsystemStatusProvider(private val adminService: SchedulerJobAdm
             lastRun = job.lastRun,
             lastStatus = if (job.overdue && job.id in CANARY_JOBS) SyncStats.Status.ABORTED else SyncStats.Status.ERRORS,
             lastDurationMs = job.lastDurationMs,
-            lastError = if (job.overdue) translateMsg("system.scheduler.subsystem.overdue", job.title) else job.lastError,
+            lastError = when {
+                job.overdue -> translateMsg("system.scheduler.subsystem.overdue", job.title)
+                job.status != SchedulerJobStatus.FAILED && job.abandonedThreads > 0 ->
+                    translateMsg("system.scheduler.subsystem.abandoned", job.title, job.abandonedThreads)
+                else -> job.lastError
+            },
             lastErrorDate = if (job.overdue) job.nextRun else job.lastErrorTime,
         )
     }

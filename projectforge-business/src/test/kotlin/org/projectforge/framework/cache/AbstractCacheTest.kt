@@ -30,6 +30,7 @@ import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -64,6 +65,12 @@ class AbstractCacheTest {
 
         override val maxRefreshDurationMs: Long
             get() = maxRefreshDurationMsOverride ?: super.maxRefreshDurationMs
+
+        /** Overrides [failedRefreshRetryMs]; null keeps the production default. */
+        var failedRefreshRetryMsOverride: Long? = null
+
+        override val failedRefreshRetryMs: Long
+            get() = failedRefreshRetryMsOverride ?: super.failedRefreshRetryMs
 
         val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
@@ -495,6 +502,224 @@ class AbstractCacheTest {
             Assertions.assertFalse(it.stuck)
             Assertions.assertTrue(it.expired, "The interrupted refresh left the cache expired, it heals on next access.")
             Assertions.assertEquals(1, it.failureCount)
+        }
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a terminated refresh ignoring the interrupt is abandoned and the cache refreshes again at once`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        Assertions.assertFalse(cache.terminateRefresh("admin"), "No refresh running.")
+        val block = AtomicBoolean(true)
+        val release = AtomicBoolean(false)
+        cache.refreshAction = {
+            if (block.getAndSet(false)) {
+                // Simulates a JDBC call not reacting to the interrupt.
+                while (!release.get()) {
+                    try {
+                        Thread.sleep(10)
+                    } catch (_: InterruptedException) {
+                        // Ignored.
+                    }
+                }
+            }
+        }
+        // A pooled thread (as request and coroutine threads are): it stays alive after the abandoned refresh.
+        val pool = Executors.newSingleThreadExecutor()
+        val zombie = pool.submit { cache.forceReload() }
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        Assertions.assertTrue(cache.terminateRefresh("admin"))
+        cache.status().let {
+            Assertions.assertFalse(it.refreshInProgress)
+            Assertions.assertTrue(it.expired, "The next access refreshes the cache.")
+            Assertions.assertEquals(1, it.abandonedThreads)
+            Assertions.assertEquals(1, it.failureCount)
+            Assertions.assertTrue(it.lastRefreshError!!.contains("Terminated by admin"))
+        }
+        // A new refresh doesn't wait for the hanging one: the lock was replaced.
+        val begin = System.currentTimeMillis()
+        cache.forceReload()
+        Assertions.assertTrue(System.currentTimeMillis() - begin < 5_000, "Didn't wait for the abandoned refresh.")
+        Assertions.assertEquals(3, cache.refreshCount.get(), "1 initial + abandoned + new refresh.")
+        cache.status().let {
+            Assertions.assertFalse(it.expired)
+            Assertions.assertNull(it.lastRefreshError)
+            Assertions.assertFalse(it.refreshInProgress)
+        }
+        // The abandoned refresh returns at last: it doesn't touch the state, but expires the cache again, as its data
+        // may be older than the new refresh's.
+        release.set(true)
+        zombie.get(20, TimeUnit.SECONDS)
+        cache.status().let {
+            Assertions.assertTrue(it.expired)
+            Assertions.assertFalse(it.refreshInProgress)
+            Assertions.assertEquals(0, it.abandonedThreads, "The abandoned refresh is over, the pooled thread lives on.")
+            Assertions.assertEquals(3L, it.refreshCount, "The abandoned refresh wasn't counted twice.")
+        }
+        // The pooled thread of the abandoned refresh may refresh the cache again.
+        pool.submit { cache.accessData() }.get(20, TimeUnit.SECONDS)
+        Assertions.assertEquals(4, cache.refreshCount.get(), "The cache heals on the next access.")
+        Assertions.assertFalse(cache.status().expired)
+        pool.shutdown()
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a waiter on the replaced lock doesn't refresh beside the new refresh`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        val refreshes = TerminateScenario(cache)
+        val pool = Executors.newFixedThreadPool(3)
+        val zombie = pool.submit { cache.forceReload() }
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        // Waits for the lock of the hanging refresh (the lock replaced by terminateRefresh).
+        val waiter = pool.submit { cache.forceReload() }
+        Thread.sleep(200)
+        Assertions.assertTrue(cache.terminateRefresh("admin"))
+        val newRefresh = pool.submit { cache.forceReload() }
+        Assertions.assertTrue(refreshes.newRefreshStarted.await(10, TimeUnit.SECONDS))
+        // The terminated refresh returns and releases the old lock: the waiter gets it.
+        refreshes.releaseZombie.set(true)
+        zombie.get(10, TimeUnit.SECONDS)
+        Thread.sleep(300)
+        Assertions.assertEquals(
+            3, cache.refreshCount.get(),
+            "1 initial + terminated + new refresh: the waiter didn't refresh beside the new refresh.",
+        )
+        refreshes.releaseNewRefresh.countDown()
+        newRefresh.get(10, TimeUnit.SECONDS)
+        waiter.get(20, TimeUnit.SECONDS)
+        pool.shutdown()
+    }
+
+    @Test
+    @Timeout(30)
+    fun `the expiry by a returning terminated refresh isn't lost by a refresh running meanwhile`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        val refreshes = TerminateScenario(cache)
+        val pool = Executors.newFixedThreadPool(2)
+        val zombie = pool.submit { cache.forceReload() }
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        Assertions.assertTrue(cache.terminateRefresh("admin"))
+        val newRefresh = pool.submit { cache.forceReload() }
+        Assertions.assertTrue(refreshes.newRefreshStarted.await(10, TimeUnit.SECONDS))
+        // The terminated refresh returns while the new one runs: its (older) data may have overwritten the new data.
+        refreshes.releaseZombie.set(true)
+        zombie.get(10, TimeUnit.SECONDS)
+        refreshes.releaseNewRefresh.countDown()
+        newRefresh.get(10, TimeUnit.SECONDS)
+        Assertions.assertTrue(cache.status().expired, "The new refresh didn't mark the cache up-to-date.")
+        cache.accessData()
+        Assertions.assertEquals(4, cache.refreshCount.get(), "The cache heals on the next access.")
+        Assertions.assertFalse(cache.status().expired)
+        pool.shutdown()
+    }
+
+    @Test
+    @Timeout(30)
+    fun `after a failed refresh accesses serve the current data until the retry interval passed`() {
+        val cache = TestCache()
+        cache.failedRefreshRetryMsOverride = 500
+        val afterRefresh = AtomicInteger(0)
+        cache.register(object : CacheListener {
+            override fun onAfterCacheRefresh() {
+                afterRefresh.incrementAndGet()
+            }
+        })
+        cache.accessData() // Initial refresh.
+        Assertions.assertEquals(1, afterRefresh.get())
+        cache.throwExceptionOnRefresh = true
+        cache.setExpired()
+        cache.accessData() // Fails, e.g. on a database lock timeout.
+        Assertions.assertEquals(2, cache.refreshCount.get())
+        Assertions.assertEquals(1, afterRefresh.get(), "No listener notified after a failed refresh.")
+        repeat(10) { cache.accessData() }
+        Assertions.assertEquals(2, cache.refreshCount.get(), "No retry on every access, the current data is served.")
+        Assertions.assertTrue(cache.status().expired)
+        Thread.sleep(600)
+        cache.throwExceptionOnRefresh = false
+        cache.accessData()
+        Assertions.assertEquals(3, cache.refreshCount.get(), "Retried after the interval.")
+        Assertions.assertFalse(cache.status().expired)
+        Assertions.assertEquals(2, afterRefresh.get())
+        // An explicit reload always refreshes, also right after a failure.
+        cache.throwExceptionOnRefresh = true
+        cache.forceReload()
+        cache.throwExceptionOnRefresh = false
+        cache.forceReload()
+        Assertions.assertEquals(5, cache.refreshCount.get())
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a caller waiting for a failing refresh doesn't refresh again at once`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        cache.refreshDurationMs = 300
+        cache.throwExceptionOnRefresh = true // E.g. a database lock timeout.
+        cache.setExpired()
+        val first = Thread { cache.accessData() }
+        first.start()
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        // Enters before the failure (no backoff yet) and waits for the lock of the failing refresh.
+        val waiter = Thread { cache.accessData() }
+        waiter.start()
+        first.join(10_000)
+        waiter.join(10_000)
+        Assertions.assertEquals(2, cache.refreshCount.get(), "The waiter didn't start the next refresh at once.")
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a nested access to a failed never filled cache doesn't retry on every access`() {
+        val failing = TestCache()
+        failing.throwExceptionOnRefresh = true
+        val outer = TestCache()
+        // Like AuftragsRechnungCache reading AuftragsCache once per invoice position while refreshing.
+        outer.refreshAction = { repeat(100) { failing.accessData() } }
+        outer.accessData()
+        Assertions.assertEquals(1, failing.refreshCount.get(), "Tried once, not once per access.")
+        // A top-level caller of a never filled cache keeps trying (there is no data to serve).
+        failing.accessData()
+        Assertions.assertEquals(2, failing.refreshCount.get())
+    }
+
+    /**
+     * The 2nd refresh of the cache hangs ignoring the interrupt until [releaseZombie] (to be terminated), the 3rd (the
+     * new one after the termination) blocks until [releaseNewRefresh].
+     */
+    private class TerminateScenario(cache: TestCache) {
+        val releaseZombie = AtomicBoolean(false)
+        val newRefreshStarted = CountDownLatch(1)
+        val releaseNewRefresh = CountDownLatch(1)
+
+        init {
+            cache.refreshAction = {
+                when (cache.refreshCount.get()) {
+                    2 -> while (!releaseZombie.get()) {
+                        try {
+                            Thread.sleep(10)
+                        } catch (_: InterruptedException) {
+                            // Ignored, simulates a JDBC call not reacting to the interrupt.
+                        }
+                    }
+
+                    3 -> {
+                        newRefreshStarted.countDown()
+                        releaseNewRefresh.await(20, TimeUnit.SECONDS)
+                    }
+                }
+            }
         }
     }
 
