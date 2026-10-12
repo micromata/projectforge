@@ -66,6 +66,12 @@ class AbstractCacheTest {
         override val maxRefreshDurationMs: Long
             get() = maxRefreshDurationMsOverride ?: super.maxRefreshDurationMs
 
+        /** Overrides [failedRefreshRetryMs]; null keeps the production default. */
+        var failedRefreshRetryMsOverride: Long? = null
+
+        override val failedRefreshRetryMs: Long
+            get() = failedRefreshRetryMsOverride ?: super.failedRefreshRetryMs
+
         val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
         override fun refresh() {
@@ -615,6 +621,56 @@ class AbstractCacheTest {
         Assertions.assertEquals(4, cache.refreshCount.get(), "The cache heals on the next access.")
         Assertions.assertFalse(cache.status().expired)
         pool.shutdown()
+    }
+
+    @Test
+    @Timeout(30)
+    fun `after a failed refresh accesses serve the current data until the retry interval passed`() {
+        val cache = TestCache()
+        cache.failedRefreshRetryMsOverride = 500
+        val afterRefresh = AtomicInteger(0)
+        cache.register(object : CacheListener {
+            override fun onAfterCacheRefresh() {
+                afterRefresh.incrementAndGet()
+            }
+        })
+        cache.accessData() // Initial refresh.
+        Assertions.assertEquals(1, afterRefresh.get())
+        cache.throwExceptionOnRefresh = true
+        cache.setExpired()
+        cache.accessData() // Fails, e.g. on a database lock timeout.
+        Assertions.assertEquals(2, cache.refreshCount.get())
+        Assertions.assertEquals(1, afterRefresh.get(), "No listener notified after a failed refresh.")
+        repeat(10) { cache.accessData() }
+        Assertions.assertEquals(2, cache.refreshCount.get(), "No retry on every access, the current data is served.")
+        Assertions.assertTrue(cache.status().expired)
+        Thread.sleep(600)
+        cache.throwExceptionOnRefresh = false
+        cache.accessData()
+        Assertions.assertEquals(3, cache.refreshCount.get(), "Retried after the interval.")
+        Assertions.assertFalse(cache.status().expired)
+        Assertions.assertEquals(2, afterRefresh.get())
+        // An explicit reload always refreshes, also right after a failure.
+        cache.throwExceptionOnRefresh = true
+        cache.forceReload()
+        cache.throwExceptionOnRefresh = false
+        cache.forceReload()
+        Assertions.assertEquals(5, cache.refreshCount.get())
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a nested access to a failed never filled cache doesn't retry on every access`() {
+        val failing = TestCache()
+        failing.throwExceptionOnRefresh = true
+        val outer = TestCache()
+        // Like AuftragsRechnungCache reading AuftragsCache once per invoice position while refreshing.
+        outer.refreshAction = { repeat(100) { failing.accessData() } }
+        outer.accessData()
+        Assertions.assertEquals(1, failing.refreshCount.get(), "Tried once, not once per access.")
+        // A top-level caller of a never filled cache keeps trying (there is no data to serve).
+        failing.accessData()
+        Assertions.assertEquals(2, failing.refreshCount.get())
     }
 
     /**

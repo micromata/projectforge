@@ -292,6 +292,7 @@ abstract class AbstractCache {
             abandonedThreads.add(thread)
             failureCount.incrementAndGet()
             lastRefreshError = "Terminated by $user after ${runningSeconds}s."
+            lastFailureMillis = -1 // The next access refreshes at once, no failure backoff (see inFailureBackoff).
             endRefresh(startMillis)
             // Last: a new refresh may start as soon as the new lock is set, its state must not be reset any more.
             refreshLock = ReentrantLock()
@@ -350,10 +351,18 @@ abstract class AbstractCache {
      * the rare caller that needs guaranteed fresh data even without an explicit invalidation. Still deadlock-safe: like
      * every refresh it honors the nested-refresh guard, so a nested cross-cache call never blocks on the other lock.
      * The invalidation path is synchronous regardless of this flag.
+     *
+     * After a failed refresh no new one is started for [failedRefreshRetryMs], see [inFailureBackoff].
      */
     @JvmOverloads
     protected fun checkRefresh(waitForRefresh: Boolean = false) {
+        // Checked before checkStuckRefresh: a stuck refresh interrupted by it fails, but must be healed at once.
+        val backoff = inFailureBackoff()
         checkStuckRefresh()
+        if (backoff) {
+            log.debug { "Last refresh of cache ${this::class.simpleName} failed, serving the current data until the retry." }
+            return
+        }
         if (this.isExpired) {
             // Explicitly invalidated or not yet initialized: must refresh synchronously.
             performRefresh()
@@ -412,8 +421,11 @@ abstract class AbstractCache {
             return
         }
         if (refreshDepthOnThisThread.get() > 0) {
-            // Nested cross-cache refresh: must not wait on this cache's lock. Try once, then serve whatever is there.
-            performRefresh()
+            // Nested cross-cache refresh: must not wait on this cache's lock. Try once (unless the last try just
+            // failed), then serve whatever is there.
+            if (!inFailureBackoff()) {
+                performRefresh()
+            }
             return
         }
         // Not filled yet (startup): wait for the initial refresh (ours or a concurrent one) to complete, bounded so a
@@ -440,7 +452,7 @@ abstract class AbstractCache {
      * the fresh data). Never blocks the calling thread.
      */
     private fun triggerAsyncRefresh(byTimeExpiry: Boolean) {
-        if (!refreshLock.isLocked) {
+        if (!refreshLock.isLocked && !inFailureBackoff()) {
             refreshScope.launch {
                 performRefresh(byTimeExpiry = byTimeExpiry)
             }
@@ -487,6 +499,18 @@ abstract class AbstractCache {
      */
     protected open val maxRefreshDurationMs: Long
         get() = MAX_REFRESH_DURATION_MS
+
+    /**
+     * After a failed refresh, accesses don't start a new one for this long (milliseconds), see [inFailureBackoff].
+     * Overridable for tests; defaults to [FAILED_REFRESH_RETRY_MS].
+     */
+    protected open val failedRefreshRetryMs: Long
+        get() = FAILED_REFRESH_RETRY_MS
+
+    /** [System.currentTimeMillis] of the last failed refresh, -1 after a successful one. */
+    @Transient
+    @Volatile
+    private var lastFailureMillis: Long = -1
 
     /**
      * Refreshes the cache, guarded by [refreshLock]: only one thread at a time may refresh this cache. All other
@@ -549,6 +573,7 @@ abstract class AbstractCache {
         refreshDepthOnThisThread.set(refreshDepthOnThisThread.get() + 1)
         val generation = refreshGeneration.get()
         var abandoned = false
+        var failed = false
         try {
             if (isUpToDate(byTimeExpiry, requiredInvalidation)) {
                 // Another thread already refreshed while we waited for the lock.
@@ -592,9 +617,12 @@ abstract class AbstractCache {
                             }
                             lastSuccessMillis = System.currentTimeMillis()
                             lastRefreshError = null
+                            lastFailureMillis = -1
                         } else {
                             failureCount.incrementAndGet()
                             lastRefreshError = error.message ?: error::class.java.name
+                            lastFailureMillis = System.currentTimeMillis()
+                            failed = true
                         }
                         endRefresh(startMillis)
                     }
@@ -634,9 +662,30 @@ abstract class AbstractCache {
             setExpired()
             return
         }
+        if (failed) {
+            // The listeners react to new data (e.g. AuftragsRechnungCache re-reads the orders), there is none. Notified
+            // after a failure, they started the next refresh at once, e.g. 60 s each while a database lock persists.
+            return
+        }
         // Notify the listeners after releasing the lock: a listener may invalidate and reload this cache again
         // (see AuftragsRechnungCache), which must not deadlock nor be swallowed as a nested call.
         cacheListeners?.forEach { listener -> listener.onAfterCacheRefresh() }
+    }
+
+    /**
+     * True for [failedRefreshRetryMs] after a failed refresh (e.g. a database lock timeout): [checkRefresh] and the
+     * background refresh don't start a new one meanwhile, the callers get the current data. Otherwise every access
+     * retried at once: a caller looping over the cache (AuftragsRechnungCache, once per invoice position) started one
+     * refresh after the other, each waiting for the timeout again. Not for a top-level caller of a never filled cache
+     * (there is no data to serve, e.g. at startup), but for a nested one (it gets no data while another thread
+     * refreshes either). Explicit reloads ([forceReload], [forceReloadAsync]) always refresh.
+     */
+    private fun inFailureBackoff(): Boolean {
+        val failedMillis = lastFailureMillis
+        if (failedMillis < 0 || System.currentTimeMillis() - failedMillis >= failedRefreshRetryMs) {
+            return false
+        }
+        return everFilled || refreshDepthOnThisThread.get() > 0
     }
 
     /**
@@ -744,6 +793,12 @@ abstract class AbstractCache {
          * refresh duration to avoid interrupting a legitimately slow refresh.
          */
         private const val MAX_REFRESH_DURATION_MS = 120_000L
+
+        /**
+         * See [failedRefreshRetryMs]: as long as the default database lock timeout of maintenance work
+         * (MaintenanceDbTimeouts), so a refresh failing on a persisting lock is retried at most once per timeout.
+         */
+        private const val FAILED_REFRESH_RETRY_MS = 60_000L
 
         /**
          * Back-off between attempts in [waitForInitialization] while another thread's initial refresh is still

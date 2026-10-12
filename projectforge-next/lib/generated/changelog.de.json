@@ -9,7 +9,7 @@
       "type" : "added",
       "items" : [ {
         "title" : "System-Dashboard",
-        "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden)." ]
+        "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
       } ]
     }, {
       "type" : "improved",
