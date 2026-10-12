@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ {
+        "title" : "Adminprotokoll",
+        "items" : [ "Suche in den Logdateien der letzten Tage nach Text, Zeitraum, Level und Logger-Kategorie (einschließen oder ausblenden), auch für die Tage vor dem Serverstart.", "Zu jedem Treffer lässt sich der Kontext direkt darunter aufklappen: die Einträge davor und danach, alle oder nur die derselben Benutzer:in bzw. desselben Loggers, mit Blättern zu älteren und neueren. Auch für die Vorkommen einer Störung des System-Dashboards." ]
+      }, {
         "title" : "System-Dashboard",
         "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
       } ]

@@ -8,6 +8,9 @@
     "sections" : [ {
       "type" : "added",
       "items" : [ {
+        "title" : "Admin log viewer",
+        "items" : [ "Search in the log files of the last days by text, period, level and logger category (to show or to hide), also for the days before the server's start.", "Each hit opens its context inline: the entries before and after it, all of them or only those of the same user or logger, with paging to older and newer ones. Also for the occurrences of a problem of the system dashboard." ]
+      }, {
         "title" : "System dashboard",
         "items" : [ "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.", "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).", "After a failed cache refresh, the cache serves its current data and retries after a minute at the earliest, instead of retrying on every access." ]
       } ]

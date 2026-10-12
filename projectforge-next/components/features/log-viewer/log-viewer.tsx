@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -45,6 +45,8 @@ export interface LogViewerProps {
   admin: boolean;
   /** The log subscription of the user view; null for the admin log viewer. */
   id: number | null;
+  /** Between the title and the actions, e.g. the admin log viewer's switch to the log files. */
+  titleCenter?: ReactNode;
 }
 
 /**
@@ -53,7 +55,7 @@ export interface LogViewerProps {
  * Merlin run, a script or a mass update, linked from those pages -, the admin view the last log events of the
  * whole system. Every endpoint checks on its own (subscription owner resp. admin group, see LogViewerRest).
  */
-export function LogViewer({ admin, id }: LogViewerProps) {
+export function LogViewer({ admin, id, titleCenter }: LogViewerProps) {
   const t = useTranslations();
   const { isAdmin, isLoading } = useAuth();
   const allowed = !admin || isAdmin;
@@ -80,12 +82,14 @@ export function LogViewer({ admin, id }: LogViewerProps) {
           id={id}
           title={title}
           initial={initial.data}
+          titleCenter={titleCenter}
         />
       ) : (
         <>
           <PageTitleRow
             category={admin ? undefined : t("system.admin.logViewer.title")}
             title={title}
+            center={titleCenter}
           />
           <div className="px-4 pb-8 pt-2 text-sm">
             {denied ? (
@@ -119,6 +123,7 @@ function LogViewerContent({
   id,
   title,
   initial,
+  titleCenter,
 }: LogViewerProps & { title: string; initial: LogViewerData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -178,6 +183,7 @@ function LogViewerContent({
       <PageTitleRow
         category={admin ? undefined : t("system.admin.logViewer.title")}
         title={title}
+        center={titleCenter}
       >
         <Button
           size="sm"

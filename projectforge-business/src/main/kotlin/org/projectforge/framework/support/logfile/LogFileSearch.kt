@@ -66,20 +66,77 @@ class LogFileSearchResult(
     val recommendedPattern: String = LogFileParser.RECOMMENDED_PATTERN,
 )
 
-/** Searches the log files for the occurrences of a problem, see [LogFileSearchService]. */
+/**
+ * What the log files are searched for: the records of a time window passing a test, see [LogFileProblemMatcher]
+ * and [LogFileQuery].
+ */
+interface LogFileMatcher {
+    /** The time window in epoch millis, inclusive. */
+    val from: Long
+    val until: Long
+
+    /** The days back from [until] whose rolled files are searched at most. */
+    val maxDays: Long
+        get() = LogFileSearch.MAX_DAYS
+
+    /** Called for the records of the time window only. */
+    fun matches(record: LogFileRecord): Boolean
+}
+
+/** The occurrences of a problem of the log aggregation, see [LogFileSearchService]. */
+class LogFileProblemMatcher(private val problem: LogFileProblem) : LogFileMatcher {
+    override val from = problem.firstSeen - Constants.MILLIS_PER_MINUTE
+    override val until = problem.lastSeen + Constants.MILLIS_PER_MINUTE
+    private val normalizedSample = problem.sampleMessage?.let { ErrorDigestCollector.normalize(it) }
+    private val locationClass = problem.location?.substringBefore(':')?.substringBefore('.')?.substringBefore('$')
+        ?.takeIf { it.isNotBlank() && it != "?" }
+    private val locationFrame = problem.location?.substringAfter(':', "")?.takeIf { it.isNotBlank() }?.let { ":$it)" }
+
+    override fun matches(record: LogFileRecord): Boolean {
+        if (!levelMatches(record.level)) {
+            return false
+        }
+        if (normalizedSample != null && ErrorDigestCollector.normalize(record.message) == normalizedSample) {
+            return true
+        }
+        val stackTrace = record.stackTrace
+        val exceptionFound = problem.exceptionClass == null || stackTrace?.contains(problem.exceptionClass) == true
+        // A request's exception: located by the root cause's frame, logged by the exception handler.
+        if (problem.exceptionClass != null && exceptionFound && locationClass != null && locationFrame != null &&
+            stackTrace!!.lineSequence().any { it.contains(locationFrame) && it.contains(locationClass) }
+        ) {
+            return true
+        }
+        // The message isn't comparable: it differs by the code or there is no sample anymore.
+        return (problem.byCode || normalizedSample == null) && exceptionFound && loggerMatches(record.logger)
+    }
+
+    /** Logback has no FATAL, written as ERROR. */
+    private fun levelMatches(level: LogLevel) =
+        level == problem.level || (problem.level == LogLevel.FATAL && level == LogLevel.ERROR)
+
+    /** The logger's class, `%-40.40logger{39}` cuts its beginning if longer than 40 characters. */
+    private fun loggerMatches(logger: String): Boolean {
+        val cls = locationClass ?: return false
+        val simple = logger.substringAfterLast('.').substringBefore('$')
+        return simple == cls || (logger.length >= 40 && simple.isNotEmpty() && cls.endsWith(simple))
+    }
+}
+
+/** Searches the log files for the records of a [LogFileMatcher], the newest first. */
 class LogFileSearch(
-    private val problem: LogFileProblem,
+    private val matcher: LogFileMatcher,
     private val zone: ZoneId = ZoneId.systemDefault(),
     private val maxHits: Int = MAX_HITS,
     private val maxChars: Long = MAX_CHARS,
     private val maxMillis: Long = MAX_MILLIS,
 ) {
-    private val from = problem.firstSeen - Constants.MILLIS_PER_MINUTE
-    private val until = problem.lastSeen + Constants.MILLIS_PER_MINUTE
-    private val normalizedSample = problem.sampleMessage?.let { ErrorDigestCollector.normalize(it) }
-    private val locationClass = problem.location?.substringBefore(':')?.substringBefore('.')?.substringBefore('$')
-        ?.takeIf { it.isNotBlank() && it != "?" }
-    private val locationFrame = problem.location?.substringAfter(':', "")?.takeIf { it.isNotBlank() }?.let { ":$it)" }
+    /** The occurrences of a problem of the log aggregation. */
+    constructor(problem: LogFileProblem, zone: ZoneId = ZoneId.systemDefault(), maxHits: Int = MAX_HITS) :
+            this(LogFileProblemMatcher(problem), zone, maxHits)
+
+    private val from = matcher.from
+    private val until = matcher.until
 
     fun search(files: LogFiles): LogFileSearchResult {
         val started = System.currentTimeMillis()
@@ -134,9 +191,9 @@ class LogFileSearch(
         )
     }
 
-    /** The current file and the rolled ones of the problem's last days, newest first. */
+    /** The current file and the rolled ones of the time window's days (at most [LogFileMatcher.maxDays]), newest first. */
     internal fun candidates(files: LogFiles): List<File> {
-        val start = maxOf(from, until - MAX_DAYS * Constants.MILLIS_PER_DAY)
+        val start = maxOf(from, until - matcher.maxDays * Constants.MILLIS_PER_DAY)
         val firstDay = Instant.ofEpochMilli(start).atZone(zone).toLocalDate()
         val lastDay = Instant.ofEpochMilli(until).atZone(zone).toLocalDate()
         val rolled = generateSequence(lastDay) { it.minusDays(1) }.takeWhile { !it.isBefore(firstDay) }
@@ -146,47 +203,19 @@ class LogFileSearch(
         return listOfNotNull(current) + rolled
     }
 
-    internal fun matches(record: LogFileRecord): Boolean {
-        if (record.timestampMillis !in from..until || !levelMatches(record.level)) {
-            return false
-        }
-        if (normalizedSample != null && ErrorDigestCollector.normalize(record.message) == normalizedSample) {
-            return true
-        }
-        val stackTrace = record.stackTrace
-        val exceptionFound = problem.exceptionClass == null || stackTrace?.contains(problem.exceptionClass) == true
-        // A request's exception: located by the root cause's frame, logged by the exception handler.
-        if (problem.exceptionClass != null && exceptionFound && locationClass != null && locationFrame != null &&
-            stackTrace!!.lineSequence().any { it.contains(locationFrame) && it.contains(locationClass) }
-        ) {
-            return true
-        }
-        // The message isn't comparable: it differs by the code or there is no sample anymore.
-        return (problem.byCode || normalizedSample == null) && exceptionFound && loggerMatches(record.logger)
-    }
-
-    /** Logback has no FATAL, written as ERROR. */
-    private fun levelMatches(level: LogLevel) =
-        level == problem.level || (problem.level == LogLevel.FATAL && level == LogLevel.ERROR)
-
-    /** The logger's class, `%-40.40logger{39}` cuts its beginning if longer than 40 characters. */
-    private fun loggerMatches(logger: String): Boolean {
-        val cls = locationClass ?: return false
-        val simple = logger.substringAfterLast('.').substringBefore('$')
-        return simple == cls || (logger.length >= 40 && simple.isNotEmpty() && cls.endsWith(simple))
-    }
-
-    private fun reader(file: File) =
-        if (file.name.endsWith(".gz")) {
-            GZIPInputStream(file.inputStream()).bufferedReader()
-        } else {
-            file.bufferedReader()
-        }
+    internal fun matches(record: LogFileRecord) = record.timestampMillis in from..until && matcher.matches(record)
 
     companion object {
         const val MAX_HITS = 50
         const val MAX_DAYS = 7L
         const val MAX_CHARS = 300_000_000L
         const val MAX_MILLIS = 8_000L
+
+        internal fun reader(file: File) =
+            if (file.name.endsWith(".gz")) {
+                GZIPInputStream(file.inputStream()).bufferedReader()
+            } else {
+                file.bufferedReader()
+            }
     }
 }

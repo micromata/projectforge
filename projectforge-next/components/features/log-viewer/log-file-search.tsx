@@ -1,11 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/components/data-table";
-import { logLevelRowClass } from "@/components/shared/log-level";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Button } from "@/components/ui/button";
@@ -14,16 +10,19 @@ import { isAccessDenied } from "@/hooks/use-read-access-guard";
 import {
   fetchAdminErrorDetail,
   fetchAdminErrorLogFile,
-  type LogFileEvent,
 } from "@/lib/rs/admin-errors";
+import { LogFileEntries } from "./log-file-entries";
 import { LogFileFormatWarning } from "./log-file-format-warning";
-import { LOG_VIEWER_SORTING, logViewerColumns } from "./log-viewer-columns";
+
+/** The entries before and after an occurrence its context starts with. */
+const CONTEXT_SIZE = 10;
 
 /**
  * The occurrences of a problem of the system dashboard in the log files of its last days
  * (`/next/adminLogViewer?incident=<id>`), also of those before the server's start, which the log viewer
  * doesn't have any more. Searched once on opening (the backend reads the files on every request), with a
- * warning naming the format to configure if the files aren't fully readable. Admin group only.
+ * warning naming the format to configure if the files aren't fully readable, each occurrence with its context
+ * (what happened before and after it). Admin group only.
  */
 export function LogFileSearch({ problemId }: { problemId: number }) {
   const t = useTranslations();
@@ -39,8 +38,6 @@ export function LogFileSearch({ problemId }: { problemId: number }) {
     enabled: isAdmin,
     staleTime: Infinity,
   });
-  const columns = useMemo(() => logFileColumns(t), [t]);
-  const [sorting, setSorting] = useState(LOG_VIEWER_SORTING);
 
   const entry = detail.data?.entry;
   const title = t("system.admin.adminErrors.logFile.title", {
@@ -90,47 +87,14 @@ export function LogFileSearch({ problemId }: { problemId: number }) {
         )}
       </div>
       {data && data.entries.length > 0 && (
-        <div className="flex min-h-0 flex-1 flex-col px-4 pb-4">
-          <DataTable<LogFileEvent>
-            columns={columns}
-            data={data.entries}
-            isFetching={search.isFetching}
-            enableColumnFilters={false}
-            manualSorting={false}
-            sorting={sorting}
-            onSortingChange={setSorting}
-            showPagination={false}
-            dense
-            getRowId={(row) => String(row.id)}
-            rowClassName={(row) => logLevelRowClass(row.level)}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+          <LogFileEntries
+            entries={data.entries}
+            before={CONTEXT_SIZE}
+            after={CONTEXT_SIZE}
           />
         </div>
       )}
     </PageShell>
   );
-}
-
-/** The admin log viewer's columns, with where an entry was found instead of the user agent (not in the file). */
-function logFileColumns(
-  t: ReturnType<typeof useTranslations>
-): ColumnDef<LogFileEvent, unknown>[] {
-  const columns: ColumnDef<LogFileEvent, unknown>[] =
-    logViewerColumns<LogFileEvent>(t, true).filter(
-      (column) => column.id !== "userAgent"
-    );
-  columns.push({
-    id: "source",
-    header: t("system.admin.adminErrors.logFile.source"),
-    size: 260,
-    enableSorting: false,
-    meta: { label: t("system.admin.adminErrors.logFile.source"), wrap: true },
-    cell: ({ row }) => (
-      <span className="break-all text-muted-foreground">
-        {row.original.source}
-        <br />
-        {row.original.logger}
-      </span>
-    ),
-  });
-  return columns;
 }

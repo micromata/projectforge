@@ -45,6 +45,21 @@ class LogFiles(val current: File?, val rolledPattern: String?, val pattern: Stri
         return File(pattern.replace(DATE_TOKEN, day.toString())).takeIf { it.isFile }
     }
 
+    /**
+     * The file of the given name ([File.getName]): the current one or a rolled one, of the configured location only,
+     * so a name from outside never leads to another file.
+     */
+    fun byName(name: String): File? {
+        current?.takeIf { it.name == name }?.let { return it }
+        val parts = File(rolledPattern ?: return null).name.split(DATE_TOKEN)
+        if (parts.size != 2) {
+            return null
+        }
+        val day = Regex("${Regex.escape(parts[0])}(\\d{4}-\\d\\d-\\d\\d)${Regex.escape(parts[1])}")
+            .matchEntire(name)?.groupValues?.get(1) ?: return null
+        return runCatching { LocalDate.parse(day) }.getOrNull()?.let { rolled(it) }
+    }
+
     private companion object {
         val DATE_TOKEN = Regex("%d(\\{[^}]*})?")
     }
