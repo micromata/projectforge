@@ -189,11 +189,14 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
                 errorMessage = "Terminated by $user after ${duration.formatMillis()}.",
                 stackExcerpt = "Stack trace of the terminated thread ${thread.name}:$stackTrace".take(SchedulerJobRunDO.MAX_STACK),
             )
+            // In memory before releasing the running flag: a newer run, started at once, must be recorded after it
+            // (otherwise this error would overwrite its status). The sink (database) outside the lock.
+            state.record(record)
             state.runningSince = null
             state.running.set(false)
             thread.interrupt()
         }
-        record(state, record)
+        sinkRecord(state, record)
         return TerminateStatus.TERMINATED
     }
 
@@ -326,6 +329,10 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
 
     private fun record(state: SchedulerJobState, record: SchedulerRunRecord) {
         state.record(record)
+        sinkRecord(state, record)
+    }
+
+    private fun sinkRecord(state: SchedulerJobState, record: SchedulerRunRecord) {
         try {
             sink?.recordRun(state, record)
         } catch (t: Throwable) {
