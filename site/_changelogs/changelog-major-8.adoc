@@ -6,61 +6,10 @@ sort_key: "2025-09-01 0011"
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-[discrete.changelog-release]
-=== ProjectForge 8.0: new persistence layer
+[.changelog-major-link]
+What's new in ProjectForge 8: <<release-8-0,ProjectForge 8.0>> ↓
 
-[.changelog-source]
-__2024-12-23, tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__ +++{% include release-pills.html tag="8.0-RELEASE" docker="8.0" %}+++
-
-- **Persistence layer** completely refactored (Spring Data JPA)
-- **Own CardDAV server** for contact synchronization
-- **Docker images** for arm64 and amd64
-- Java 17, Spring 6, Hibernate 6, jakarta namespace
-
-.Overview
-[%collapsible]
-====
-- Own CardDAV server for contact synchronization.
-- Docker images for arm64 and amd64.
-- Java 17, Spring 6, Hibernate 6, jakarta namespace.
-====
-
-.All changes
-[%collapsible]
-====
-Major release with a completely refactored persistence layer and current major versions of all libraries.
-
-++++
-{% include tag.html tag="improved" %}
-++++
-- Own CardDav-Implementation for synchronization of contacts (tested with Apple contacts (macOS/iOS), Thunderbird).
-- Sipgate interface implemented for synchronization of address.
-- Calendar view improved.
-- Excel-Export of vacations for all employees, teams and colleagues.
-- Birthdaybutler for monthly birthday list.
-- Export of timesheets as xlsx.
-- Attachments to books added.
-- lots of minor improvements.
-
-++++
-{% include tag.html tag="fixed" %}
-++++
-- several bugs fixed.
-
-++++
-{% include tag.html tag="technology" %}
-++++
-- Docker container available for arm64 as well as for amd64 (Linux and macOS X).
-- Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.
-- technical debt reduced.
-- New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
-
-++++
-{% include download-link.html %}
-++++
-====
-
-[discrete.changelog-release]
+[discrete#release-8-1.changelog-release]
 === ProjectForge 8.1: stability and memory fixes
 
 [.changelog-source]
@@ -180,6 +129,60 @@ SHA-256 of projectforge-application-8.1.jar: `+0001c9e3ad13cc8828a9ec43f28871a92
 - Package dependency updates including security patches.
 - Gradle build system optimizations and test framework enhancements.
 - Source file headers updated to 2025 copyright year.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-8-0.changelog-release]
+=== ProjectForge 8.0: new persistence layer
+
+[.changelog-source]
+__2024-12-23, tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__ +++{% include release-pills.html tag="8.0-RELEASE" docker="8.0" %}+++
+
+- **Persistence layer** completely refactored (Spring Data JPA)
+- **Own CardDAV server** for contact synchronization
+- **Docker images** for arm64 and amd64
+- Java 17, Spring 6, Hibernate 6, jakarta namespace
+
+.Overview
+[%collapsible]
+====
+- Own CardDAV server for contact synchronization.
+- Docker images for arm64 and amd64.
+- Java 17, Spring 6, Hibernate 6, jakarta namespace.
+====
+
+.All changes
+[%collapsible]
+====
+Major release with a completely refactored persistence layer and current major versions of all libraries.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Own CardDav-Implementation for synchronization of contacts (tested with Apple contacts (macOS/iOS), Thunderbird).
+- Sipgate interface implemented for synchronization of address.
+- Calendar view improved.
+- Excel-Export of vacations for all employees, teams and colleagues.
+- Birthdaybutler for monthly birthday list.
+- Export of timesheets as xlsx.
+- Attachments to books added.
+- lots of minor improvements.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- several bugs fixed.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Docker container available for arm64 as well as for amd64 (Linux and macOS X).
+- Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.
+- technical debt reduced.
+- New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
 
 ++++
 {% include download-link.html %}

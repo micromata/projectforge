@@ -496,6 +496,7 @@
     "collapseAll": "Collapse all",
     "compare": "Changes",
     "expandAll": "Expand all",
+    "majorLink": "What''s new in ProjectForge {arg0}:",
     "nextMatch": "Next match (Enter)",
     "noMatches": "Nothing in the changelog matches the search.",
     "overview": "Overview",

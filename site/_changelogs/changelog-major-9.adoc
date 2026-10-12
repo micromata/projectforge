@@ -6,7 +6,285 @@ sort_key: "2026-10-11 0033"
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-[discrete.changelog-release]
+[.changelog-major-link]
+What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-4.changelog-release]
+=== ProjectForge 9.0.4 released
+
+[.changelog-source]
+__2026-10-11, tag https://github.com/micromata/projectforge/tree/9.0.4-RELEASE[9.0.4-RELEASE]__ +++{% include release-pills.html tag="9.0.4-RELEASE" docker="9.0.4" %}+++
+
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.4.jar: `+47595cb45f18b15f3830463a2177ddfc7d2ccfc3b74f4339c289e50e16cd6d78+`
+
+- **Notifications** (experimental) in the app and by mail
+- **System dashboard** with statistics, scheduler and caches
+- **Scripts** in the new interface, also as buttons on selected pages
+- Time sheets: no more overlaps on the same cost 2
+- Fix: user-entered texts in mails no longer taken over as HTML
+
+.Overview
+[%collapsible]
+====
+- **Notifications (experimental):** rules notify users in the app (toast, banner, menu counter) and by mail, also as a cascade; first rules for missing time sheets and expiring vacation days, plus manual messages.
+- **System dashboard:** the problem dashboard becomes the system dashboard, with the system statistics and the new tabs scheduler and caches; problems (in German now "Störungen") can be changed many at once, the tiles count only open ones.
+- **Scripts:** list, form and execution pages in the new interface with a code editor and toolbar; the output gets a tab of its own; a script can appear as a button on selected pages and gets their filter.
+- **Time sheets:** bookings on the same cost 2 may no longer overlap; new configuration parameter for overlap groups.
+- **Rich text:** markdown is shown formatted and taken over by the editor, which now offers headings and tables; also used for the message of the day and the AI-savings note.
+- **Forecast:** snapshot date for the order book as of a given day, hint for the planning date.
+- **Lists and data transfer:** exports in an Export menu; data transfer with capacity bar, configurable file columns and the activity log as a tab.
+- **Fixes:** HTML in user-entered mail texts, poll mails, cancelled invoices count as paid, attachment rename, liquidity entries cloneable, task tree under concurrent changes, project list sorted by number.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Statistics, forecast**
+  * New field snapshot date: the forecast is calculated from the order book as it was on that day.
+  * The tooltip of the planning date shows a hint maintained by finance in the new configuration parameter "Forecast" (formatted text with a small editor).
+- Notifications (experimental): admins and finance can set up rules that notify users in the app (toast, toast to be confirmed or banner, with the levels info, important and urgent, optionally as a menu counter) and by mail, also as a cascade (e.g. a mail if not confirmed in the app within two days). First rules: missing time sheets and vacation days about to expire; a manual rule sends a message on demand. Recipients are groups, users and employees by status, by default only those concerned. Texts are formatted and contain variables such as the list of days without time sheets. Who confirmed a notification and when is recorded. The problem dashboard shows the state of the notification jobs. Approved vacation days no longer count as days without time sheets, also in the monthly report.
+- Scripts: a script can be shown as a button with a tooltip in the top right corner of selected pages, e.g. the order book or other lists, and the forecast or contribution margin tab of the order statistics. The button opens the script's execution page, and the script gets the current filter of that page as variable pageContext (e.g. pageContext.list() for the shown entries).
+- **System dashboard: new tab "Scheduler"**
+  * Lists every scheduled job with area, description, schedule, last and next run, duration and status; sortable, with the columns stored per user like every list; overdue and failed jobs stand out, also as a tile in the overview.
+  * The runs are stored per day (failed and slow runs one by one) and merged into months after 90 days.
+  * A job can be started at once; a run is skipped while the previous one is still running.
+- **System dashboard: new tab "Caches"**
+  * Lists every cache with its state, last refresh, duration, expiry time and failed refreshes; a single cache or all caches can be refreshed by hand.
+  * Hanging cache refreshes are detected every minute, reported as problem and interrupted; stuck and failed caches also show up as a tile in the overview.
+  * The button "Refresh all caches" of the system page is replaced by the caches tab, which refreshes every cache, not only a fixed selection.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Data transfer: the used capacity of an area is shown as a colored fill-level bar, in the list and in the file view.
+- Mass update: the file name of the Excel protocol now contains the entity name (e.g. invoices).
+- Configuration: the note on AI savings in time sheets and the message of the day on the login page are edited with the rich text editor (bold, italic, lists, links, colours).
+- Problem dashboard: the key figures and the subsystem tiles now count only the problems that still need a look. Resolved, ignored and muted problems are shown separately below each figure, so handling a problem changes the tiles at once.
+- Rich text: texts written in markdown (e.g. older tooltips and notes) are shown formatted instead of with their raw markup, and the editor takes them over directly; they are stored in the rich text format on the next save. Markdown pasted as plain text is converted as well. The editor now also offers headings (levels 1 to 4) and tables.
+- System dashboard: the problem dashboard is now called system dashboard and also shows the system statistics in a tab of their own, which replaces their menu entry; old links are redirected. The statistics are part of the new interface and show each section as soon as its figures are collected instead of waiting for all of them. Memory, disks, the database connection pool and the database server connections are shown as fill-level bars, and new figures were added: pool configuration and maximum size, database version and size, CPU load, processors, physical memory, operating system, non-heap memory, garbage collection and thread counts.
+- Code editor (scripts): a toolbar with undo, redo, search and replace and comment out, each naming its keyboard shortcut in the tooltip, and an info button listing all shortcuts. The search panel is shown at the top and in the user's language.
+- Dark mode: the text is rendered in a lighter weight and smoothed, so it no longer looks overly bold on the dark background.
+- Data transfer: the columns of an area's file table can be shown, hidden, reordered, pinned and resized like in every list; the layout and the sort order are kept per user for all areas.
+- Lists: the exports (Excel, PDF, forecast, cost assignments, ics) are now in an "Export" menu right beside the gear menu, each entry with its explanation shown directly in the menu.
+- System dashboard: with the multi selection, many problems can be picked at once and acknowledged, resolved, ignored, reopened, muted or unmuted together. In German the problems are now called "Störungen".
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Data transfer: the activity log of an area is a tab of its own (after Info) instead of a dialog.
+- Scripts: the script list, the script form, "My scripts" and the execution pages are part of the new interface, with a code editor with syntax highlighting. The descriptions of a script and of its parameters are rich text (existing Markdown is converted on the next save). A stored script now always runs as stored; only the parameter values are taken from the form. Code executed directly (without a stored script) now runs as Kotlin instead of Groovy.
+- Scripts: the output of an execution (result, log) is shown in its own tab, which opens after the run. A file to download is shown prominently at the top of both the output and the execution tab.
+- Groovy scripts: only the Groovy core and its date, JSON, XML and template modules are bundled; the other modules (e.g. Ant, SQL, Swing, console) were removed.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Attachments: a changed file name or description was not saved.
+- Project list: sorting by the number column had no effect.
+- Personal box and employee fields: the "select me" button for picking oneself was missing.
+- Time sheet list: the hint that the filter needs a date or structure element is now shown highlighted above the list instead of easily overlooked below it.
+- Outgoing invoices: cancelled invoices and their cancellations now count as paid. They no longer appear under the filter 'unpaid' and are no longer included in the sums above the list (gross, net, open).
+- Problem dashboard: a mail that couldn't be sent is now reported once as a mail problem, no longer a second time as an unexpected error of the function that sent it.
+- Task list and task tree: no more sporadic internal errors while another user creates or moves a task at the same time.
+- Attachments: long file names without spaces are wrapped in the attachment table instead of widening it.
+- Liquidity planning: entries can be cloned again; a clone of a recurring entry is a standalone entry.
+- Mails: names, titles, file names and texts entered by users are no longer taken over as HTML (e.g. in the mails of polls, data transfer areas, vacations and to-dos); only simple formatting and links remain in the mail text of a poll.
+- **Polls**
+  * The links in the mails point to this installation instead of a fixed server; the link of the invitation works again.
+  * The reminder before the deadline goes only to the participants who haven't responded yet.
+  * The subject of the invitation no longer shows HTML tags; subject and text of the mail after the deadline are no longer swapped.
+- **Time sheets: no more overlapping bookings on the same cost unit**
+  * Two time sheets of a user on the same cost 2 (or, without cost 2, on the same structure element) may no longer overlap in time, even if a shared cost element is involved. Before, e.g. a vacation could be booked twice for the same time if the cost 2 had no project.
+  * New configuration parameter "Time sheet overlap groups": groups of cost 2 number prefixes (e.g. "6" for all cost 2 units 6.*) whose time sheets never overlap; for shared costs, a group counts like one project. Visible to finance and controlling, changed only by members of both groups.
+  * Existing overlapping bookings are shown by the filter "Only collisions" of the time sheet list.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- npm vulnerabilities in projectforge-next and projectforge-webapp fixed: @modelcontextprotocol/sdk, proxy-addr, sharp and source-map-js updated.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-9-0-3.changelog-release]
+=== ProjectForge 9.0.3 released
+
+[.changelog-source]
+__2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__ +++{% include release-pills.html tag="9.0.3-RELEASE" docker="9.0.3" %}+++
+
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.3.jar: `+fbe9999a9a8b919e8c421c6d275da44a408a26c2ed609e5564ea099efc18a2a0+`
+
+- **New file store** in the database replacing the JCR
+- Calendar: book several days also on already booked days
+- Fixes from the **problem dashboard**
+- Fix: user settings saved again on logout
+
+.Overview
+[%collapsible]
+====
+- **File store:** with `+projectforge.files.store=db+` all files are stored in the database, data transfer files in the file system; existing installations stay on the JCR until switched.
+- **JCR migration:** after switching, files are copied in the background and verified by size and checksum, with a report; switching back or a rollback stays possible. The system page shows the active store and starts backup ZIP and migration.
+- **Backups:** the admin guide describes a main dump and a separate dump of the files; the backup purge handles several prefixes.
+- **Calendar:** booking several days also books days that already have time sheets, as long as nothing collides; the preview shows each overlap.
+- **Data transfer:** areas sorted by last modification, latest first.
+- **Problem dashboard fixes:** structure tree and list filters without a session, field error for a time sheet without a task, invoices found by order number, fewer needless error log entries.
+- **Projects:** changing cost 2 types of an ended project in the mass update is reported as an error, with the reason in the Excel export.
+- **Fixes:** user settings saved again on logout, Safari browser back, tall company logos on legacy pages, wider mail layout, e-invoice checker error message, rare internal error when opening an order.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **File store**
+  * New file store replacing the JCR (Apache Oak): with `+projectforge.files.store=db+` all files are stored in the database (schema `+pf_files+`), data transfer files in the file system (directory `+datatransfer+` of the home directory). Existing installations stay on the JCR until switched to `+db+` (see the admin guide).
+  * After switching to `+db+`, all files of the JCR are copied in the background and verified by size and checksum, with a report in `+jcr-migration-report.txt+` in the home directory; the JCR keeps them, so switching back or a rollback to the former release is possible. The migration continues on the next start if it was interrupted.
+  * System page: the card "Document repository (JCR)" shows the active store and starts the JCR backup ZIP and the migration.
+  * Backups: the admin guide describes two dumps, the main dump without the schema `+pf_files+` and a separate dump of the files; the backup purge accepts several comma-separated prefixes and purges each backup series on its own.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed.
+- Data transfer: the list of areas is sorted by the last modification, latest first, by default.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- **Problems from the problem dashboard**
+  * Structure tree and list filters no longer fail without a session.
+  * A time sheet without a task shows a field error instead of a server error.
+  * The vacation list is sortable by the mode column.
+  * Invoices are found by the number of their order.
+  * No more needless error log entries for unsaved orders, invalid search syntax (now a warning) and a systemic failure of calendar subscriptions (logged at most once a day).
+- Legacy pages: a tall company logo is limited in height and no longer covers parts of the application.
+- Mails: wider layout; field names in the change history no longer wrap letter by letter.
+- Projects: changing the cost 2 types of an already ended project in the mass update is an error instead of being silently skipped; the Excel export of the mass update shows the changed cost 2 types and lists failed entries with their reason. The edit form of an ended project shows its existing cost 2 units checked and ended.
+- Safari: browser back from an entry returns to the list again instead of skipping it and landing on an earlier page.
+- Changed user settings (e.g. list filters and column layouts) are saved again on logout instead of being lost.
+- E-invoice checker: an e-invoice whose amount due doesn't match its lines is shown with this error instead of "no e-invoice data found".
+- Orders: opening an order could rarely fail with an internal error.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-9-0-2.changelog-release]
+=== ProjectForge 9.0.2 released
+
+[.changelog-source]
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9.0.2-RELEASE]__ +++{% include release-pills.html tag="9.0.2-RELEASE" docker="9.0.2" %}+++
+
+- Calendar: **book several days** at once
+- Orders: **further contact persons** instead of fixed roles
+- Chart pages with **rearrangeable tiles**
+- Faster forecast and contribution margin
+- Project list: last activity columns
+
+.Overview
+[%collapsible]
+====
+- **Calendar:** book several days at once, e.g. a vacation or an absence for a colleague; weekends, holidays and booked days are skipped, half working days booked pro rata.
+- **Orders:** one contact person plus any number of further contact persons instead of project manager, head of business and key account manager; they get the same access and the change mail.
+- **Charts:** chart pages show charts as tiles that can be reordered, resized and hidden, stored per user.
+- **Statistics:** forecast and contribution margin calculated much faster; forecast analysis of an order opens in a dialog from the forecast tables.
+- **Project list:** sortable columns for the last time sheet, last order date and last activity to spot ended projects.
+- **Problem dashboard:** a click on a key figure shows the problems it counts; the mail tile shows the outcome of the last mail; failing calendar subscriptions are reported in the error digest.
+- **Lists:** the search box gets the focus on page load; statistics and problem dashboard moved to new URLs with redirects.
+- **Fixes:** a cloned time sheet keeps its user, search terms highlighted in cells with JIRA links, no stale frontend files in the release jar.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.
+- Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.
+- Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.
+- Calendar: book several days at once, e.g. a vacation or an absence booked on behalf of a colleague; weekends, holidays and already booked days are skipped, half working days are booked pro rata, templates, recent time sheets and the booked user's vacations can be taken over (vacation task and cost unit configurable via projectforge.timesheet.vacation.taskId/kost2).
+- Statistics: a pill behind the order number in the forecast tables opens the forecast analysis of the order in a dialog, without leaving the table.
+- Lists: the search box gets the focus on page load (not on touch devices).
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before.
+- Statistics: forecast and contribution margin are calculated much faster; the contribution margin is cached per project.
+- Contribution margin configuration: a cost unit assigned twice is marked as an error.
+- Cost units: the cost type is shown only for customer cost units (4.x and 5.x) in the list and export, as in the monthly report.
+- Problem dashboard: the mail tile shows the outcome of the last mail sent (unknown, OK, send failed or mail server unreachable).
+- Failing calendar subscriptions no longer send a separate mail to the administrator and the feedback address; the error digest reports them.
+- The statistics page moves to /next/finance/statistics and the problem dashboard to /next/problemDashboard; old links are redirected.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- A cloned time sheet (e.g. dragged in the calendar) keeps its user if the logged-in user may book for them.
+- Search terms are highlighted in list cells with JIRA links, too (order title and reference, task, time sheet, HR planning).
+- The release jar no longer carries stale frontend files of earlier builds.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-9-0-1.changelog-release]
+=== ProjectForge 9.0.1 released
+
+[.changelog-source]
+__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__ +++{% include release-pills.html tag="9.0.1-RELEASE" docker="9.0.1" mini=true %}+++
+
+- **Problem dashboard:** problems as lead key figure
+- Project status in the mass update
+- Fix: gateway ICS push delivers all calendars
+- Fix: nightly search re-index with inactive plugins
+
+.Overview
+[%collapsible]
+====
+- **Problem dashboard and error digest:** problems instead of occurrences as lead key figure, numbers with thousands separators; subsystem tiles count only open problems.
+- **Projects:** the status can be changed in the mass update.
+- **Gateway:** the ICS push delivers all calendars of a user again and generates each team calendar only once per run.
+- **Fixes:** nightly search re-index no longer fails on tables of inactive plugins, long values no longer break mail tables, no needless error log entries when saving orders.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.
+- The status of projects can be changed in the mass update.
+- The gateway's ICS push generates each team calendar only once per run.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- The gateway's ICS push delivered only the first calendar of each user.
+- A subsystem tile of the problem dashboard counts only open problems, like the list behind it.
+- Long file names and values no longer push tables beyond the mail card.
+- The nightly re-index of the search no longer fails on tables of non-active plugins.
+- No more needless error log entries when saving orders.
+====
+
+[discrete#release-9-0-0.changelog-release]
 === ProjectForge 9.0: a new frontend, Wicket retired, all libraries up to date
 
 [.changelog-source]
@@ -120,286 +398,11 @@ ProjectForge 9.0 is a major update. The classic Wicket user interface was replac
 ++++
 ====
 
-[discrete.changelog-release]
-=== ProjectForge 9.0.4 released
-
-[.changelog-source]
-__2026-10-11, tag https://github.com/micromata/projectforge/tree/9.0.4-RELEASE[9.0.4-RELEASE]__ +++{% include release-pills.html tag="9.0.4-RELEASE" docker="9.0.4" %}+++
-
-[.changelog-checksum]
-SHA-256 of projectforge-application-9.0.4.jar: `+47595cb45f18b15f3830463a2177ddfc7d2ccfc3b74f4339c289e50e16cd6d78+`
-
-- **Notifications** (experimental) in the app and by mail
-- **System dashboard** with statistics, scheduler and caches
-- **Scripts** in the new interface, also as buttons on selected pages
-- Time sheets: no more overlaps on the same cost 2
-- Fix: user-entered texts in mails no longer taken over as HTML
-
-.Overview
-[%collapsible]
-====
-- **Notifications (experimental):** rules notify users in the app (toast, banner, menu counter) and by mail, also as a cascade; first rules for missing time sheets and expiring vacation days, plus manual messages.
-- **System dashboard:** the problem dashboard becomes the system dashboard, with the system statistics and the new tabs scheduler and caches; problems (in German now "Störungen") can be changed many at once, the tiles count only open ones.
-- **Scripts:** list, form and execution pages in the new interface with a code editor and toolbar; the output gets a tab of its own; a script can appear as a button on selected pages and gets their filter.
-- **Time sheets:** bookings on the same cost 2 may no longer overlap; new configuration parameter for overlap groups.
-- **Rich text:** markdown is shown formatted and taken over by the editor, which now offers headings and tables; also used for the message of the day and the AI-savings note.
-- **Forecast:** snapshot date for the order book as of a given day, hint for the planning date.
-- **Lists and data transfer:** exports in an Export menu; data transfer with capacity bar, configurable file columns and the activity log as a tab.
-- **Fixes:** HTML in user-entered mail texts, poll mails, cancelled invoices count as paid, attachment rename, liquidity entries cloneable, task tree under concurrent changes, project list sorted by number.
-====
-
-.All changes
-[%collapsible]
-====
-
-++++
-{% include tag.html tag="added" %}
-++++
-- **Statistics, forecast**
-  * New field snapshot date: the forecast is calculated from the order book as it was on that day.
-  * The tooltip of the planning date shows a hint maintained by finance in the new configuration parameter "Forecast" (formatted text with a small editor).
-- Notifications (experimental): admins and finance can set up rules that notify users in the app (toast, toast to be confirmed or banner, with the levels info, important and urgent, optionally as a menu counter) and by mail, also as a cascade (e.g. a mail if not confirmed in the app within two days). First rules: missing time sheets and vacation days about to expire; a manual rule sends a message on demand. Recipients are groups, users and employees by status, by default only those concerned. Texts are formatted and contain variables such as the list of days without time sheets. Who confirmed a notification and when is recorded. The problem dashboard shows the state of the notification jobs. Approved vacation days no longer count as days without time sheets, also in the monthly report.
-- Scripts: a script can be shown as a button with a tooltip in the top right corner of selected pages, e.g. the order book or other lists, and the forecast or contribution margin tab of the order statistics. The button opens the script's execution page, and the script gets the current filter of that page as variable pageContext (e.g. pageContext.list() for the shown entries).
-- **System dashboard: new tab "Scheduler"**
-  * Lists every scheduled job with area, description, schedule, last and next run, duration and status; sortable, with the columns stored per user like every list; overdue and failed jobs stand out, also as a tile in the overview.
-  * The runs are stored per day (failed and slow runs one by one) and merged into months after 90 days.
-  * A job can be started at once; a run is skipped while the previous one is still running.
-- **System dashboard: new tab "Caches"**
-  * Lists every cache with its state, last refresh, duration, expiry time and failed refreshes; a single cache or all caches can be refreshed by hand.
-  * Hanging cache refreshes are detected every minute, reported as problem and interrupted; stuck and failed caches also show up as a tile in the overview.
-  * The button "Refresh all caches" of the system page is replaced by the caches tab, which refreshes every cache, not only a fixed selection.
-
-++++
-{% include tag.html tag="improved" %}
-++++
-- Data transfer: the used capacity of an area is shown as a colored fill-level bar, in the list and in the file view.
-- Mass update: the file name of the Excel protocol now contains the entity name (e.g. invoices).
-- Configuration: the note on AI savings in time sheets and the message of the day on the login page are edited with the rich text editor (bold, italic, lists, links, colours).
-- Problem dashboard: the key figures and the subsystem tiles now count only the problems that still need a look. Resolved, ignored and muted problems are shown separately below each figure, so handling a problem changes the tiles at once.
-- Rich text: texts written in markdown (e.g. older tooltips and notes) are shown formatted instead of with their raw markup, and the editor takes them over directly; they are stored in the rich text format on the next save. Markdown pasted as plain text is converted as well. The editor now also offers headings (levels 1 to 4) and tables.
-- System dashboard: the problem dashboard is now called system dashboard and also shows the system statistics in a tab of their own, which replaces their menu entry; old links are redirected. The statistics are part of the new interface and show each section as soon as its figures are collected instead of waiting for all of them. Memory, disks, the database connection pool and the database server connections are shown as fill-level bars, and new figures were added: pool configuration and maximum size, database version and size, CPU load, processors, physical memory, operating system, non-heap memory, garbage collection and thread counts.
-- Code editor (scripts): a toolbar with undo, redo, search and replace and comment out, each naming its keyboard shortcut in the tooltip, and an info button listing all shortcuts. The search panel is shown at the top and in the user's language.
-- Dark mode: the text is rendered in a lighter weight and smoothed, so it no longer looks overly bold on the dark background.
-- Data transfer: the columns of an area's file table can be shown, hidden, reordered, pinned and resized like in every list; the layout and the sort order are kept per user for all areas.
-- Lists: the exports (Excel, PDF, forecast, cost assignments, ics) are now in an "Export" menu right beside the gear menu, each entry with its explanation shown directly in the menu.
-- System dashboard: with the multi selection, many problems can be picked at once and acknowledged, resolved, ignored, reopened, muted or unmuted together. In German the problems are now called "Störungen".
-
-++++
-{% include tag.html tag="changed" %}
-++++
-- Data transfer: the activity log of an area is a tab of its own (after Info) instead of a dialog.
-- Scripts: the script list, the script form, "My scripts" and the execution pages are part of the new interface, with a code editor with syntax highlighting. The descriptions of a script and of its parameters are rich text (existing Markdown is converted on the next save). A stored script now always runs as stored; only the parameter values are taken from the form. Code executed directly (without a stored script) now runs as Kotlin instead of Groovy.
-- Scripts: the output of an execution (result, log) is shown in its own tab, which opens after the run. A file to download is shown prominently at the top of both the output and the execution tab.
-- Groovy scripts: only the Groovy core and its date, JSON, XML and template modules are bundled; the other modules (e.g. Ant, SQL, Swing, console) were removed.
-
-++++
-{% include tag.html tag="fixed" %}
-++++
-- Attachments: a changed file name or description was not saved.
-- Project list: sorting by the number column had no effect.
-- Personal box and employee fields: the "select me" button for picking oneself was missing.
-- Time sheet list: the hint that the filter needs a date or structure element is now shown highlighted above the list instead of easily overlooked below it.
-- Outgoing invoices: cancelled invoices and their cancellations now count as paid. They no longer appear under the filter 'unpaid' and are no longer included in the sums above the list (gross, net, open).
-- Problem dashboard: a mail that couldn't be sent is now reported once as a mail problem, no longer a second time as an unexpected error of the function that sent it.
-- Task list and task tree: no more sporadic internal errors while another user creates or moves a task at the same time.
-- Attachments: long file names without spaces are wrapped in the attachment table instead of widening it.
-- Liquidity planning: entries can be cloned again; a clone of a recurring entry is a standalone entry.
-- Mails: names, titles, file names and texts entered by users are no longer taken over as HTML (e.g. in the mails of polls, data transfer areas, vacations and to-dos); only simple formatting and links remain in the mail text of a poll.
-- **Polls**
-  * The links in the mails point to this installation instead of a fixed server; the link of the invitation works again.
-  * The reminder before the deadline goes only to the participants who haven't responded yet.
-  * The subject of the invitation no longer shows HTML tags; subject and text of the mail after the deadline are no longer swapped.
-- **Time sheets: no more overlapping bookings on the same cost unit**
-  * Two time sheets of a user on the same cost 2 (or, without cost 2, on the same structure element) may no longer overlap in time, even if a shared cost element is involved. Before, e.g. a vacation could be booked twice for the same time if the cost 2 had no project.
-  * New configuration parameter "Time sheet overlap groups": groups of cost 2 number prefixes (e.g. "6" for all cost 2 units 6.*) whose time sheets never overlap; for shared costs, a group counts like one project. Visible to finance and controlling, changed only by members of both groups.
-  * Existing overlapping bookings are shown by the filter "Only collisions" of the time sheet list.
-
-++++
-{% include tag.html tag="security" %}
-++++
-- npm vulnerabilities in projectforge-next and projectforge-webapp fixed: @modelcontextprotocol/sdk, proxy-addr, sharp and source-map-js updated.
-
-++++
-{% include download-link.html %}
-++++
-====
-
-[discrete.changelog-release]
-=== ProjectForge 9.0.3 released
-
-[.changelog-source]
-__2026-10-08, tag https://github.com/micromata/projectforge/tree/9.0.3-RELEASE[9.0.3-RELEASE]__ +++{% include release-pills.html tag="9.0.3-RELEASE" docker="9.0.3" %}+++
-
-[.changelog-checksum]
-SHA-256 of projectforge-application-9.0.3.jar: `+fbe9999a9a8b919e8c421c6d275da44a408a26c2ed609e5564ea099efc18a2a0+`
-
-- **New file store** in the database replacing the JCR
-- Calendar: book several days also on already booked days
-- Fixes from the **problem dashboard**
-- Fix: user settings saved again on logout
-
-.Overview
-[%collapsible]
-====
-- **File store:** with `+projectforge.files.store=db+` all files are stored in the database, data transfer files in the file system; existing installations stay on the JCR until switched.
-- **JCR migration:** after switching, files are copied in the background and verified by size and checksum, with a report; switching back or a rollback stays possible. The system page shows the active store and starts backup ZIP and migration.
-- **Backups:** the admin guide describes a main dump and a separate dump of the files; the backup purge handles several prefixes.
-- **Calendar:** booking several days also books days that already have time sheets, as long as nothing collides; the preview shows each overlap.
-- **Data transfer:** areas sorted by last modification, latest first.
-- **Problem dashboard fixes:** structure tree and list filters without a session, field error for a time sheet without a task, invoices found by order number, fewer needless error log entries.
-- **Projects:** changing cost 2 types of an ended project in the mass update is reported as an error, with the reason in the Excel export.
-- **Fixes:** user settings saved again on logout, Safari browser back, tall company logos on legacy pages, wider mail layout, e-invoice checker error message, rare internal error when opening an order.
-====
-
-.All changes
-[%collapsible]
-====
-
-++++
-{% include tag.html tag="added" %}
-++++
-- **File store**
-  * New file store replacing the JCR (Apache Oak): with `+projectforge.files.store=db+` all files are stored in the database (schema `+pf_files+`), data transfer files in the file system (directory `+datatransfer+` of the home directory). Existing installations stay on the JCR until switched to `+db+` (see the admin guide).
-  * After switching to `+db+`, all files of the JCR are copied in the background and verified by size and checksum, with a report in `+jcr-migration-report.txt+` in the home directory; the JCR keeps them, so switching back or a rollback to the former release is possible. The migration continues on the next start if it was interrupted.
-  * System page: the card "Document repository (JCR)" shows the active store and starts the JCR backup ZIP and the migration.
-  * Backups: the admin guide describes two dumps, the main dump without the schema `+pf_files+` and a separate dump of the files; the backup purge accepts several comma-separated prefixes and purges each backup series on its own.
-
-++++
-{% include tag.html tag="improved" %}
-++++
-- Calendar, book several days: a day already booked is booked as well if the new time sheet doesn't collide with an existing one (an overlap allowed by a shared cost element is fine); the preview shows each overlap and whether it is allowed.
-- Data transfer: the list of areas is sorted by the last modification, latest first, by default.
-
-++++
-{% include tag.html tag="fixed" %}
-++++
-- **Problems from the problem dashboard**
-  * Structure tree and list filters no longer fail without a session.
-  * A time sheet without a task shows a field error instead of a server error.
-  * The vacation list is sortable by the mode column.
-  * Invoices are found by the number of their order.
-  * No more needless error log entries for unsaved orders, invalid search syntax (now a warning) and a systemic failure of calendar subscriptions (logged at most once a day).
-- Legacy pages: a tall company logo is limited in height and no longer covers parts of the application.
-- Mails: wider layout; field names in the change history no longer wrap letter by letter.
-- Projects: changing the cost 2 types of an already ended project in the mass update is an error instead of being silently skipped; the Excel export of the mass update shows the changed cost 2 types and lists failed entries with their reason. The edit form of an ended project shows its existing cost 2 units checked and ended.
-- Safari: browser back from an entry returns to the list again instead of skipping it and landing on an earlier page.
-- Changed user settings (e.g. list filters and column layouts) are saved again on logout instead of being lost.
-- E-invoice checker: an e-invoice whose amount due doesn't match its lines is shown with this error instead of "no e-invoice data found".
-- Orders: opening an order could rarely fail with an internal error.
-
-++++
-{% include download-link.html %}
-++++
-====
-
-[discrete.changelog-release]
-=== ProjectForge 9.0.2 released
-
-[.changelog-source]
-__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.2-RELEASE[9.0.2-RELEASE]__ +++{% include release-pills.html tag="9.0.2-RELEASE" docker="9.0.2" %}+++
-
-- Calendar: **book several days** at once
-- Orders: **further contact persons** instead of fixed roles
-- Chart pages with **rearrangeable tiles**
-- Faster forecast and contribution margin
-- Project list: last activity columns
-
-.Overview
-[%collapsible]
-====
-- **Calendar:** book several days at once, e.g. a vacation or an absence for a colleague; weekends, holidays and booked days are skipped, half working days booked pro rata.
-- **Orders:** one contact person plus any number of further contact persons instead of project manager, head of business and key account manager; they get the same access and the change mail.
-- **Charts:** chart pages show charts as tiles that can be reordered, resized and hidden, stored per user.
-- **Statistics:** forecast and contribution margin calculated much faster; forecast analysis of an order opens in a dialog from the forecast tables.
-- **Project list:** sortable columns for the last time sheet, last order date and last activity to spot ended projects.
-- **Problem dashboard:** a click on a key figure shows the problems it counts; the mail tile shows the outcome of the last mail; failing calendar subscriptions are reported in the error digest.
-- **Lists:** the search box gets the focus on page load; statistics and problem dashboard moved to new URLs with redirects.
-- **Fixes:** a cloned time sheet keeps its user, search terms highlighted in cells with JIRA links, no stale frontend files in the release jar.
-====
-
-.All changes
-[%collapsible]
-====
-
-++++
-{% include tag.html tag="added" %}
-++++
-- Project list: columns for the last time sheet, the last order date and the last activity (the later of both), sortable, to spot projects that have probably ended.
-- Problem dashboard: a click on a key figure (new problems, regressions, external systems etc.) shows exactly the problems it counts.
-- Chart pages (statistics, liquidity forecast, invoices, my statistics): charts as tiles that can be reordered by drag and drop, resized in steps and hidden; the arrangement is stored per user.
-- Calendar: book several days at once, e.g. a vacation or an absence booked on behalf of a colleague; weekends, holidays and already booked days are skipped, half working days are booked pro rata, templates, recent time sheets and the booked user's vacations can be taken over (vacation task and cost unit configurable via projectforge.timesheet.vacation.taskId/kost2).
-- Statistics: a pill behind the order number in the forecast tables opens the forecast analysis of the order in a dialog, without leaving the table.
-- Lists: the search box gets the focus on page load (not on touch devices).
-
-++++
-{% include tag.html tag="improved" %}
-++++
-- Orders: one contact person plus any number of further contact persons instead of project manager, head of business and key account manager (existing entries are migrated, the old fields remain in the database). Further contact persons have the same access to the order and its invoices as the contact person, and the change mail now also goes to them and to everyone who has edited the order before.
-- Statistics: forecast and contribution margin are calculated much faster; the contribution margin is cached per project.
-- Contribution margin configuration: a cost unit assigned twice is marked as an error.
-- Cost units: the cost type is shown only for customer cost units (4.x and 5.x) in the list and export, as in the monthly report.
-- Problem dashboard: the mail tile shows the outcome of the last mail sent (unknown, OK, send failed or mail server unreachable).
-- Failing calendar subscriptions no longer send a separate mail to the administrator and the feedback address; the error digest reports them.
-- The statistics page moves to /next/finance/statistics and the problem dashboard to /next/problemDashboard; old links are redirected.
-
-++++
-{% include tag.html tag="fixed" %}
-++++
-- A cloned time sheet (e.g. dragged in the calendar) keeps its user if the logged-in user may book for them.
-- Search terms are highlighted in list cells with JIRA links, too (order title and reference, task, time sheet, HR planning).
-- The release jar no longer carries stale frontend files of earlier builds.
-
-++++
-{% include download-link.html %}
-++++
-====
-
-[discrete.changelog-release]
-=== ProjectForge 9.0.1 released
-
-[.changelog-source]
-__2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__ +++{% include release-pills.html tag="9.0.1-RELEASE" docker="9.0.1" mini=true %}+++
-
-- **Problem dashboard:** problems as lead key figure
-- Project status in the mass update
-- Fix: gateway ICS push delivers all calendars
-- Fix: nightly search re-index with inactive plugins
-
-.Overview
-[%collapsible]
-====
-- **Problem dashboard and error digest:** problems instead of occurrences as lead key figure, numbers with thousands separators; subsystem tiles count only open problems.
-- **Projects:** the status can be changed in the mass update.
-- **Gateway:** the ICS push delivers all calendars of a user again and generates each team calendar only once per run.
-- **Fixes:** nightly search re-index no longer fails on tables of inactive plugins, long values no longer break mail tables, no needless error log entries when saving orders.
-====
-
-.All changes
-[%collapsible]
-====
-
-++++
-{% include tag.html tag="improved" %}
-++++
-- Problem dashboard and error digest mail: problems instead of occurrences as the lead key figure, so one frequent problem no longer hides all others; numbers with thousands separators.
-- The status of projects can be changed in the mass update.
-- The gateway's ICS push generates each team calendar only once per run.
-
-++++
-{% include tag.html tag="fixed" %}
-++++
-- The gateway's ICS push delivered only the first calendar of each user.
-- A subsystem tile of the problem dashboard counts only open problems, like the list behind it.
-- Long file names and values no longer push tables beyond the mail card.
-- The nightly re-index of the search no longer fails on tables of non-active plugins.
-- No more needless error log entries when saving orders.
-====
-
 .Development snapshots (17)
 [%collapsible.changelog-snapshots]
 ======
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20261005.changelog-release]
 === ProjectForge 8.2 snapshot (2026-10-05)
 
 [.changelog-source]
@@ -488,7 +491,7 @@ The classic Wicket user interface is gone: the last pages were migrated to proje
 - Kotlin 2.3, JUnit 6, Gradle 9.8, kotlin-logging 7.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20261002.changelog-release]
 === ProjectForge 8.2 snapshot (2026-10-02)
 
 [.changelog-source]
@@ -546,7 +549,7 @@ __2026-10-02, snapshot build https://github.com/micromata/projectforge/commit/e9
 - 2FA required for the migrated system and plugin pages and the liquidity series split.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260930.changelog-release]
 === ProjectForge 8.2 snapshot (2026-09-30)
 
 [.changelog-source]
@@ -628,7 +631,7 @@ __2026-09-30, snapshot build https://github.com/micromata/projectforge/commit/1c
 - Legacy XML user preferences are migrated to the JSON store.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260913.changelog-release]
 === ProjectForge 8.2 snapshot (2026-09-13)
 
 [.changelog-source]
@@ -687,7 +690,7 @@ __2026-09-13, snapshot build https://github.com/micromata/projectforge/commit/81
 - npm audit vulnerabilities resolved in next and webapp.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260901.changelog-release]
 === ProjectForge 8.2 snapshot (2026-09-01)
 
 [.changelog-source]
@@ -756,7 +759,7 @@ __2026-09-01, snapshot build https://github.com/micromata/projectforge/commit/06
 - Docker container is buildable and startable again; step by step guide for a test instance.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260816.changelog-release]
 === ProjectForge 8.2 snapshot (2026-08-16)
 
 [.changelog-source]
@@ -830,7 +833,7 @@ First snapshot with **projectforge-next**, the new frontend that runs side by si
 - The Spring profile is no longer lost via the generated environment.sh.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260802.changelog-release]
 === ProjectForge 8.2 snapshot (2026-08-02)
 
 [.changelog-source]
@@ -883,7 +886,7 @@ The table framework moved from AG Grid to TanStack React Table.
 - High-severity npm vulnerabilities in projectforge-webapp fixed.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260630.changelog-release]
 === ProjectForge 8.2 snapshot (2026-06-30)
 
 [.changelog-source]
@@ -924,7 +927,7 @@ __2026-06-30, snapshot build https://github.com/micromata/projectforge/commit/f8
 - npm vulnerabilities in projectforge-webapp fixed; esbuild, Vite, vitest and others updated.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260531.changelog-release]
 === ProjectForge 8.2 snapshot (2026-05-31)
 
 [.changelog-source]
@@ -976,7 +979,7 @@ __2026-05-31, snapshot build https://github.com/micromata/projectforge/commit/8f
 - Frontend build migrated from react-scripts to Vite, tests from Jest to Vitest.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260430.changelog-release]
 === ProjectForge 8.2 snapshot (2026-04-30)
 
 [.changelog-source]
@@ -1016,7 +1019,7 @@ __2026-04-30, snapshot build https://github.com/micromata/projectforge/commit/c7
 - Spring Boot 3.4.13 (Spring Framework 6.2.15); Jackson/npm dependency conflicts resolved.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260331.changelog-release]
 === ProjectForge 8.2 snapshot (2026-03-31)
 
 [.changelog-source]
@@ -1065,7 +1068,7 @@ __2026-03-31, snapshot build https://github.com/micromata/projectforge/commit/aa
 - System statistics show reduced information for non-admins.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20260131.changelog-release]
 === ProjectForge 8.2 snapshot (2026-01-31)
 
 [.changelog-source]
@@ -1103,7 +1106,7 @@ __2026-01-31, snapshot build https://github.com/micromata/projectforge/commit/13
 - Podman instead of Docker for the test database.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20251130.changelog-release]
 === ProjectForge 8.2 snapshot (2025-11-30)
 
 [.changelog-source]
@@ -1135,7 +1138,7 @@ __2025-11-30, snapshot build https://github.com/micromata/projectforge/commit/0d
 - Endless LDAP synchronization (empty strings normalized to null).
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20251102.changelog-release]
 === ProjectForge 8.2 snapshot (2025-11-02)
 
 [.changelog-source]
@@ -1180,7 +1183,7 @@ __2025-11-02, snapshot build https://github.com/micromata/projectforge/commit/fe
 - Sipgate sync.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20251021.changelog-release]
 === ProjectForge 8.2 snapshot (2025-10-21)
 
 [.changelog-source]
@@ -1222,7 +1225,7 @@ __2025-10-21, snapshot build https://github.com/micromata/projectforge/commit/50
 - JAXB removed (SEPA XML generator migrated); MarkdownBuilder escapes its input.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20251005.changelog-release]
 === ProjectForge 8.2 snapshot (2025-10-05)
 
 [.changelog-source]
@@ -1256,7 +1259,7 @@ __2025-10-05, snapshot build https://github.com/micromata/projectforge/commit/34
 - Survey plugin: reminder mails improved, missing answers fixed.
 ====
 
-[discrete.changelog-release]
+[discrete#release-8-2-snapshot-20250909.changelog-release]
 === ProjectForge 8.2 snapshot (2025-09-09)
 
 [.changelog-source]

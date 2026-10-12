@@ -496,6 +496,7 @@
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
+    "majorLink": "Neu in ProjectForge {arg0}:",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
     "overview": "Überblick",

@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.4",
+    "date" : "2026-10-12",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Changelog: the releases of a major version are listed newest first, the release opening it last, linked from the top of the major; the release notes of an update link to it as well." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Migration of files out of the JCR failed in the packaged application with \"No LoginModule found\"." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

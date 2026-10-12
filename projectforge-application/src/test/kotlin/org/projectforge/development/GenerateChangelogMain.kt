@@ -378,6 +378,14 @@ object GenerateChangelogMain {
     val releases = aggregatedReleases(root, version)
     val sb = StringBuilder()
     sb.appendLine("# ProjectForge $version")
+    majorReleaseOf(root, releases.first())?.let { head ->
+      sb.appendLine()
+      val headVersion = head["version"].asText()
+      sb.appendLine(
+        "Update of ProjectForge $headVersion, what's new in ProjectForge ${majorOf(headVersion)}: " +
+          "$REPO_URL/releases/tag/${head["tag"].asText()}"
+      )
+    }
     if (releases.size > 1) {
       sb.appendLine()
       val versions = releases.drop(1).map { it["version"].asText() }
@@ -456,6 +464,16 @@ object GenerateChangelogMain {
     require(index >= 0) { "No release of version $version." }
     val older = releases.drop(index + 1).filter { it["tag"] != null }.takeWhile { !isPublished(it) }
     return listOf(releases[index]) + older
+  }
+
+  /**
+   * The published release opening the major of the tagged [release] (see [groups]), null if [release] opens it
+   * itself or there is none: the release notes of an update link to it.
+   */
+  internal fun majorReleaseOf(root: JsonNode, release: JsonNode): JsonNode? {
+    if (release["tag"] == null) return null
+    val head = groups(root).firstOrNull { group -> group.updates.any { it === release } }?.head ?: return null
+    return head.takeIf { isPublished(it) }
   }
 
   /** A release is published (GitHub release, jar, docker images) unless it says `"published": false`. */
@@ -745,8 +763,9 @@ object GenerateChangelogMain {
 
   /**
    * A major version: its [head], the release opening it (X.0.0 or X.0, else its oldest tagged release; null if there
-   * is no tagged release yet), its other tagged releases ([updates], newest first) and the snapshots of develop
-   * leading up to it ([snapshots], newest first).
+   * is no tagged release yet), its other tagged releases ([updates], newest first, all newer than the head) and the
+   * snapshots of develop leading up to it ([snapshots], newest first). Both targets show the updates first, then the
+   * head, linked from the top of the major.
    */
   internal class Group(val major: String, val head: JsonNode?, val updates: List<JsonNode>, val snapshots: List<JsonNode>) {
     /** The newest release of the major, the source is sorted newest first. */
@@ -1047,8 +1066,9 @@ object GenerateChangelogMain {
   private fun sortKey(newest: JsonNode, rank: Int): String = "\"${newest["date"].asText()} ${"%04d".format(rank)}\""
 
   /**
-   * The page of a major version: its opening release, its updates and, folded, its snapshots, each release with its
-   * summary shown and its overview and all of its changes as collapsible blocks (see [releaseToAdoc]).
+   * The page of a major version: its tagged releases newest first (the opening release last) and, folded, its
+   * snapshots, each release with its summary shown and its overview and all of its changes as collapsible blocks
+   * (see [releaseToAdoc]). With updates, the page starts with a link to the opening release (what's new in the major).
    */
   internal fun groupToAdoc(group: Group, rank: Int): String {
     val sb = StringBuilder()
@@ -1059,7 +1079,12 @@ object GenerateChangelogMain {
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
     sb.appendLine("// $GENERATED_NOTE")
-    (listOfNotNull(group.head) + group.updates).forEach { releaseToAdoc(it, sb, "====") }
+    group.head?.takeIf { group.updates.isNotEmpty() }?.let { head ->
+      sb.appendLine()
+      sb.appendLine("[.changelog-major-link]")
+      sb.appendLine("What's new in ProjectForge ${group.major}: <<${releaseAnchor(head)},ProjectForge ${head["version"].asText()}>> ↓")
+    }
+    (group.updates + listOfNotNull(group.head)).forEach { releaseToAdoc(it, sb, "====") }
     if (group.snapshots.isNotEmpty()) {
       sb.appendLine()
       sb.appendLine(".Development snapshots (${group.snapshots.size})")
@@ -1077,7 +1102,7 @@ object GenerateChangelogMain {
    */
   internal fun releaseToAdoc(release: JsonNode, sb: StringBuilder, delimiter: String) {
     sb.appendLine()
-    sb.appendLine("[discrete.changelog-release]")
+    sb.appendLine("[discrete#${releaseAnchor(release)}.changelog-release]")
     sb.appendLine("=== ${release["title"].asText()}")
     sb.appendLine()
     val tag = release["tag"]?.asText()
@@ -1138,6 +1163,9 @@ object GenerateChangelogMain {
     sb.appendLine(delimiter)
   }
 
+  /** The anchor of a release on the website and in the app: `release-9-0-0`. */
+  internal fun releaseAnchor(release: JsonNode): String = "release-${release["id"].asText()}"
+
   /** A list item, its `- ` continuation lines as its sub list. */
   private fun appendAdocItem(sb: StringBuilder, text: String) {
     val lines = text.split('\n')
@@ -1146,8 +1174,7 @@ object GenerateChangelogMain {
   }
 
   /**
-   * The page itself has the front matter and the latest of the [tagged] releases (newest first; a major page starts
-   * with the opening release of the major, which otherwise looks like the current version) with the latest binaries:
+   * The page itself has the front matter and the latest of the [tagged] releases (newest first) with the latest binaries:
    * they come later with `pfDev.sh publish`, so `site/_includes/latest-binaries.html` looks them up in the data
    * fetched on each build of the website. The layout lists the majors of the collection below.
    */

@@ -6,7 +6,7 @@ sort_key: "2018-07-17 0001"
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-[discrete.changelog-release]
+[discrete#release-6-22.changelog-release]
 === ProjectForge 6.22.0 released
 
 [.changelog-source]

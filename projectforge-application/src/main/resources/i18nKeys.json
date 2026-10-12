@@ -715,6 +715,7 @@
   {"i18nKey":"changelog.collapseAll","bundleName":"I18nResources","translation":"Collapse all","translationDE":"Alle zuklappen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"changelog.compare","bundleName":"I18nResources","translation":"Changes","translationDE":"Änderungen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"changelog.expandAll","bundleName":"I18nResources","translation":"Expand all","translationDE":"Alle aufklappen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"changelog.majorLink","bundleName":"I18nResources","translation":"What''s new in ProjectForge {0}:","translationDE":"Neu in ProjectForge {0}:","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"changelog.nextMatch","bundleName":"I18nResources","translation":"Next match (Enter)","translationDE":"Nächster Treffer (Enter)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"changelog.noMatches","bundleName":"I18nResources","translation":"Nothing in the changelog matches the search.","translationDE":"Nichts im Changelog passt zur Suche.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"changelog.overview","bundleName":"I18nResources","translation":"Overview","translationDE":"Überblick","usedInClasses":[],"usedInFiles":[]},
