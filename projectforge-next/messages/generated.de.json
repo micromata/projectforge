@@ -3752,7 +3752,7 @@
     "caches": {
       "abandoned": {
         "_": "Beendete Aktualisierungen, die noch laufen: {arg0}",
-        "tooltip": "Der Thread einer beendeten Aktualisierung reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet. Er ändert den Cache nicht mehr. Nur ein Neustart beendet ihn früher."
+        "tooltip": "Der Thread einer beendeten Aktualisierung reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet; sein Ergebnis wird dann verworfen und der Cache neu geladen. Nur ein Neustart beendet ihn früher."
       },
       "column": {
         "cache": "Cache",
@@ -3788,7 +3788,7 @@
         "_": "Beenden",
         "done": "Die Aktualisierung wurde beendet. Der Cache wird beim nächsten Zugriff neu geladen.",
         "notRunning": "Es läuft keine Aktualisierung (mehr).",
-        "question": "Aktualisierung von „{arg0}“ beenden? Sie wird unterbrochen und aufgegeben, sodass der Cache sofort wieder aktualisiert werden kann. Reagiert die Aktualisierung nicht (z. B. blockiert in einem Datenbankaufruf), läuft ihr Thread im Hintergrund weiter, bis er von selbst endet, ändert den Cache aber nicht mehr.",
+        "question": "Aktualisierung von „{arg0}“ beenden? Sie wird unterbrochen und aufgegeben, sodass der Cache sofort wieder aktualisiert werden kann. Reagiert die Aktualisierung nicht (z. B. blockiert in einem Datenbankaufruf), läuft ihr Thread im Hintergrund weiter, bis er von selbst endet; sein Ergebnis wird dann verworfen und der Cache neu geladen.",
         "tooltip": "Beendet die laufende Aktualisierung, z. B. wenn sie an einer Datenbanksperre hängt."
       }
     },

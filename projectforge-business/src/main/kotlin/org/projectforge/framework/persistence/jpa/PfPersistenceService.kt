@@ -267,13 +267,15 @@ open class PfPersistenceService {
             return
         }
         try {
+            // One statement for all settings: a single round trip per context.
+            val sql = "select " + settings.joinToString(", ") { "set_config(?, ?, true)" }
             context.em.unwrap(Session::class.java).doWork { connection ->
-                connection.prepareStatement("select set_config(?, ?, true)").use { statement ->
-                    settings.forEach { (name, value) ->
-                        statement.setString(1, name)
-                        statement.setString(2, value)
-                        statement.executeQuery().close()
+                connection.prepareStatement(sql).use { statement ->
+                    settings.forEachIndexed { index, (name, value) ->
+                        statement.setString(2 * index + 1, name)
+                        statement.setString(2 * index + 2, value)
                     }
+                    statement.executeQuery().close()
                 }
             }
         } catch (ex: Exception) {

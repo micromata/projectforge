@@ -3752,7 +3752,7 @@
     "caches": {
       "abandoned": {
         "_": "Terminated refreshes still running: {arg0}",
-        "tooltip": "The thread of a terminated refresh doesn't react to the interrupt (e.g. blocked in a database call) and runs on until it returns by itself. It no longer changes the cache. Only a restart ends it earlier."
+        "tooltip": "The thread of a terminated refresh doesn't react to the interrupt (e.g. blocked in a database call) and runs on until it returns by itself; its result is then discarded and the cache refreshed again. Only a restart ends it earlier."
       },
       "column": {
         "cache": "Cache",
@@ -3788,7 +3788,7 @@
         "_": "Terminate",
         "done": "The refresh was terminated. The cache is refreshed again on the next access.",
         "notRunning": "No refresh is running (any more).",
-        "question": "Terminate the refresh of \"{arg0}\"? It is interrupted and abandoned, so the cache can be refreshed again at once. If the refresh does not react (e.g. blocked in a database call), its thread runs on in the background until it returns by itself, but no longer changes the cache.",
+        "question": "Terminate the refresh of \"{arg0}\"? It is interrupted and abandoned, so the cache can be refreshed again at once. If the refresh does not react (e.g. blocked in a database call), its thread runs on in the background until it returns by itself; its result is then discarded and the cache refreshed again.",
         "tooltip": "Terminates the running refresh, e.g. if it hangs on a database lock."
       }
     },
