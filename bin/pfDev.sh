@@ -21,22 +21,7 @@ Commands:
                    catalogs + field metadata, changelog (site + next, from
                    changelog/changelog{,.de}.json), i18n key usage
                    (:projectforge-application:developmentMainForRelease)
-  run [slot]       Build (skip tests), then run the app in dev mode
-  setup <slot> [pw] Create a slot instance (see below); its first run fills the
-                   database with test data (admin password pw, random if omitted)
-  reset <slot>     Delete the home dir of a slot instance (asks first)
-  ps               List the running servers of all slots (:8080–:8089 and
-                   :3000–:3009) with PID and working dir (i.e. worktree)
-  stop [slot]      Stop the Spring (:8080+slot) and the next dev server
-                   (:3000+slot) of a slot
-  dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
-                   -p <n> picks another port (pfDev.sh dev -p 3005)
   build            next build (projectforge-next)
-  e2e [slot] […]   Playwright e2e tests; args are forwarded
-                   (e.g. pfDev.sh e2e book-edit --headed). Against Spring, the
-                   Next export is refreshed first (processResources, a no-op if
-                   current); skipped with --dev / --port <n> (dev server)
-  e2e:ui [slot] …  Playwright e2e tests in UI mode
   check            Next quality gates: typecheck → lint → format:check
   changelog-fold [id]
                    Moves the entries of changelog/unreleased/ (one file per change,
@@ -64,18 +49,32 @@ Commands:
                    notes of the next published release
   help             Show this help
 
-Slots (1–9) run independent instances side by side, e.g. one per worktree:
-  pfDev.sh setup 1 Creates the home ~/ProjectForge-1 from
+Instances (slots):
+Slots 1–9 run independent instances side by side, e.g. one per worktree;
+slot n uses :8080+n (Spring), :3000+n (next dev), the home ~/ProjectForge-n
+with its own HSQLDB and the session cookie JSESSIONID_n. Without a slot
+everything is as before: :8080/:3000, ~/ProjectForge and its configured
+database.
+  setup <slot> [pw] Create the home ~/ProjectForge-n from
                    ~/ProjectForge/projectforge.properties: own HSQLDB, mails and
-                   gateway push off. Once per slot.
-  pfDev.sh run 1   Spring on :8081 with that home and session cookie
-                   JSESSIONID_1; the first run initializes the database with
-                   test data and prints the admin login
-  pfDev.sh dev 1   next dev on :3001, proxying to :8081
-  pfDev.sh e2e 1 … e2e against :8081 (or :3001 with --dev), credentials from
-                   ~/ProjectForge-1/testAccounts.txt
-Without a slot everything is as before: :8080/:3000, ~/ProjectForge and its
-configured database.
+                   gateway push off. Once per slot. Its first run fills the
+                   database with test data (admin password pw, random if omitted)
+  reset <slot>     Delete the home dir of a slot instance (asks first)
+  run [slot]       Build (skip tests), then run the app in dev mode (Spring on
+                   :8080+slot); the first run after setup initializes the
+                   database with test data and prints the admin login
+  dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
+                   -p <n> picks another port (pfDev.sh dev -p 3005)
+  e2e [slot] […]   Playwright e2e tests against :8080+slot (or :3000+slot with
+                   --dev), credentials from the slot's testAccounts.txt; args are
+                   forwarded (e.g. pfDev.sh e2e 1 book-edit --headed). Against
+                   Spring, the Next export is refreshed first (processResources, a
+                   no-op if current); skipped with --dev / --port <n> (dev server)
+  e2e:ui [slot] …  Playwright e2e tests in UI mode
+  ps               List the running servers of all slots (:8080–:8089 and
+                   :3000–:3009) with PID and working dir (i.e. worktree)
+  stop [slot]      Stop the Spring (:8080+slot) and the next dev server
+                   (:3000+slot) of a slot
 
 Env:
   PROJECTFORGE_HOME  Base dir of the main instance (default: ~/ProjectForge)
