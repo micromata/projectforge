@@ -92,12 +92,14 @@ class JobHandler : ShutdownListener {
         val userContext = ThreadLocalUserContext.userContextAsContextElement
         val localeContext = ThreadLocalUserContext.localeAsContextElement
         val mdcContext = MDCContext() // For MDC context of logger.
-        thread {
+        // The job runs in the event loop of runBlocking on its own thread: jobs block (db, jcr, files) and run long, so
+        // they mustn't occupy the small shared pool of Dispatchers.Default. The context classloader is set explicitly,
+        // because libraries (e.g. JAAS of the JCR) load classes through it and the app classloader of the Spring Boot
+        // fat jar doesn't see BOOT-INF/lib.
+        thread(name = "job-${job.id}", contextClassLoader = JobHandler::class.java.classLoader) {
             var start = true
             runBlocking {
-                job.coroutinesJob = launch(
-                    Dispatchers.Default + userContext + localeContext + mdcContext
-                ) {
+                job.coroutinesJob = launch(userContext + localeContext + mdcContext) {
                     for (i in 0..10000) {// Paranoia counter (wait time max 10.000s)
                         var blocking: AbstractJob.Status? = null
                         synchronized(jobs) {

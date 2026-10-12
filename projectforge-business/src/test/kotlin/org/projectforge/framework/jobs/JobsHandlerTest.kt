@@ -28,13 +28,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.commons.test.TestUtils
 
 class JobsHandlerTest {
   @Test
   fun jobExecutionTest() {
-    ThreadLocalUserContext.setUser(PFUserDO())
+    ThreadLocalUserContext.userContext = UserContext(PFUserDO(), nofresh = true) // No UserGroupCache in this test.
     val jobHandler = JobHandler()
     var onBeforeCancel = false
     var onAfterCancel = false
@@ -75,7 +76,7 @@ class JobsHandlerTest {
 
   @Test
   fun failureTest() {
-    ThreadLocalUserContext.setUser(PFUserDO())
+    ThreadLocalUserContext.userContext = UserContext(PFUserDO(), nofresh = true) // No UserGroupCache in this test.
     val jobHandler = JobHandler()
     var onAfterException = false
     TestUtils.suppressErrorLogs {
