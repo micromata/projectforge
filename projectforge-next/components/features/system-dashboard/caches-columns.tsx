@@ -24,8 +24,8 @@ type T = ReturnType<typeof useTranslations>;
 type Column = ColumnDef<CacheEntry, unknown>;
 
 /**
- * The columns of the CachesTable, the last one with the button refreshing the cache — or terminating its refresh
- * while one is running.
+ * The columns of the CachesTable, the fourth one (beside the last refresh) with the button refreshing the cache — or
+ * terminating its refresh while one is running.
  */
 export function cacheColumns(
   t: T,
@@ -140,6 +140,37 @@ export function cacheColumns(
       },
     },
     {
+      id: "actions",
+      header: () => null,
+      size: 110,
+      enableSorting: false,
+      enableColumnFilter: false,
+      meta: { label: label.refresh },
+      cell: ({ row }) =>
+        row.original.status.refreshInProgress ? (
+          <HintTooltip text={t("system.caches.terminate.tooltip")}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => onTerminate(row.original)}
+            >
+              {label.terminate}
+            </Button>
+          </HintTooltip>
+        ) : (
+          <HintTooltip text={t("system.caches.refresh.tooltip")}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={refreshing === row.original.id}
+              onClick={() => onRefresh(row.original)}
+            >
+              {label.refresh}
+            </Button>
+          </HintTooltip>
+        ),
+    },
+    {
       id: "duration",
       accessorFn: (row) => row.status.lastRefreshDurationMs ?? -1,
       header: header(label.duration),
@@ -195,37 +226,6 @@ export function cacheColumns(
           />
         </span>
       ),
-    },
-    {
-      id: "actions",
-      header: () => null,
-      size: 110,
-      enableSorting: false,
-      enableColumnFilter: false,
-      meta: { label: label.refresh },
-      cell: ({ row }) =>
-        row.original.status.refreshInProgress ? (
-          <HintTooltip text={t("system.caches.terminate.tooltip")}>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => onTerminate(row.original)}
-            >
-              {label.terminate}
-            </Button>
-          </HintTooltip>
-        ) : (
-          <HintTooltip text={t("system.caches.refresh.tooltip")}>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={refreshing === row.original.id}
-              onClick={() => onRefresh(row.original)}
-            >
-              {label.refresh}
-            </Button>
-          </HintTooltip>
-        ),
     },
   ];
 }

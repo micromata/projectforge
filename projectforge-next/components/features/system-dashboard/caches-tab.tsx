@@ -24,7 +24,7 @@ export const CACHES_QUERY_KEY = "adminCaches";
 
 /**
  * The caches tab of the system dashboard (`?tab=caches`, admin group only): every cache with its state, last
- * refresh, duration and error, refreshed every 30 seconds — every 2 seconds while a refresh is running. A cache, or
+ * refresh, duration and error, refreshed every 5 seconds — every 2 seconds while a refresh is running. A cache, or
  * all of them, can be refreshed by hand; the refresh runs in the background. A running refresh (e.g. hanging on a
  * database lock) can be terminated.
  */
@@ -44,7 +44,7 @@ function Caches() {
     queryKey: [CACHES_QUERY_KEY, "list"],
     queryFn: ({ signal }) => fetchAdminCaches(signal),
     refetchInterval: (query) =>
-      isRefreshing(query.state.data) ? 2_000 : 30_000,
+      isRefreshing(query.state.data) ? 2_000 : 5_000,
   });
   // The refresh starts in the background: shown as running a moment later.
   const refetchSoon = () =>
