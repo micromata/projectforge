@@ -268,6 +268,16 @@ class SchedulerJobStatsService : SchedulerRunSink, IPrivacyProtectionJob, Shutdo
         refreshBaselines()
     }
 
+    /**
+     * The start of the last successful run of the job, also of one before a restart (looked up the last
+     * [LAST_RUN_SEARCH_DAYS] days), null if there is none. For a job taking up where it succeeded last.
+     */
+    fun lastSuccessStart(jobId: String): Long? {
+        val inMemory = registry.get(jobId)?.snapshot()?.lastSuccessStart
+        val stored = statsSince(today().minusDays(LAST_RUN_SEARCH_DAYS), jobId)[jobId]?.lastSuccessStart
+        return listOfNotNull(inMemory, stored).maxOrNull()
+    }
+
     /** The stats per job since the given day (stored and not yet written). */
     fun statsSince(since: LocalDate, jobId: String? = null): Map<String, SchedulerStats> {
         val result = mutableMapOf<String, SchedulerStats>()

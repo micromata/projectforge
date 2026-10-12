@@ -90,6 +90,7 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
     private var lastStatus: SchedulerRunStatus? = null
     private var lastError: String? = null
     private var lastErrorTime: Long? = null
+    private var lastSuccessStart: Long? = null
     private var runs = 0
     private var errors = 0
     private var skipped = 0
@@ -113,6 +114,8 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
             errors++
             lastError = record.errorMessage
             lastErrorTime = record.start
+        } else if (record.status == SchedulerRunStatus.SUCCESS) {
+            lastSuccessStart = record.start
         }
     }
 
@@ -128,6 +131,9 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
             lastError = stats.lastErrorMessage
             lastErrorTime = stats.lastErrorTime
         }
+        if (lastSuccessStart == null && stats.lastSuccessStart != null) {
+            lastSuccessStart = stats.lastSuccessStart
+        }
     }
 
     @Synchronized
@@ -137,6 +143,7 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         lastStatus = lastStatus,
         lastError = lastError,
         lastErrorTime = lastErrorTime,
+        lastSuccessStart = lastSuccessStart,
         runs = runs,
         errors = errors,
         skipped = skipped,
@@ -156,6 +163,8 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         val lastStatus: SchedulerRunStatus?,
         val lastError: String?,
         val lastErrorTime: Long?,
+        /** The start of the last successful run, also of one before the restart (see [restore]). */
+        val lastSuccessStart: Long? = null,
         val runs: Int,
         val errors: Int,
         val skipped: Int,

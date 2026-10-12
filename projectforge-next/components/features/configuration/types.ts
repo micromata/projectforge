@@ -61,6 +61,17 @@ export interface ConfigurationDetail {
    * instead of a textarea (ConfigurationParam.isRichText).
    */
   richText?: boolean;
+  /** The category the list groups the parameter by (ConfigurationParam.getCategory), e.g. "FINANCE". */
+  category?: string | null;
+  /** i18n key of the category, `administration.configuration.categories.<category>`. */
+  categoryI18nKey?: string | null;
+  /** The groups seeing the parameter, formatted by the backend, e.g. "PF_Admin, PF_Finance". */
+  viewers?: string | null;
+  /**
+   * The groups changing it, formatted by the backend: "PF_Finance, PF_Controlling" if any of them suffices,
+   * "PF_Finance + PF_Controlling" if a member of all of them is required (ConfigurationEditors).
+   */
+  editors?: string | null;
   /** False where the user may only look (EntityAccessSupport, see lib/rs/entity-access.ts). */
   writeAccess?: boolean;
   /** `boolean` (not `| null`): NON_NULL omits it for a row that isn't deleted, so it matches ListRow. */

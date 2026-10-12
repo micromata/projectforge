@@ -52,6 +52,10 @@ export interface SchedulerJobEntry {
   lastRunTimeAgo?: string | null;
   /** Set (translated) if the last run was before the start of the system. */
   lastRunBeforeStart?: string | null;
+  /** The start of the last successful run. */
+  lastSuccess?: number | null;
+  /** Set (translated) only if the last run failed: when the job succeeded last, or that it never did. */
+  lastSuccessHint?: string | null;
   lastDurationMs?: number | null;
   lastStatus?: SchedulerRunStatus | null;
   lastError?: string | null;

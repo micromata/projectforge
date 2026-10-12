@@ -68,6 +68,9 @@ class SchedulerStats {
     var lastErrorMessage: String? = null
     var lastErrorTime: Long? = null
 
+    /** The start of the last successful run, e.g. a job taking up where it succeeded last. */
+    var lastSuccessStart: Long? = null
+
     val avgDurationMs: Long?
         get() = if (runCount > 0) sumDurationMs / runCount else null
 
@@ -87,6 +90,9 @@ class SchedulerStats {
             lastRunStart = record.start
             lastStatus = record.status
             lastDurationMs = record.durationMs
+        }
+        if (record.status == SchedulerRunStatus.SUCCESS && (lastSuccessStart == null || record.start >= lastSuccessStart!!)) {
+            lastSuccessStart = record.start
         }
         if (record.status == SchedulerRunStatus.ERROR && (lastErrorTime == null || record.start >= lastErrorTime!!)) {
             lastErrorTime = record.start
@@ -111,6 +117,7 @@ class SchedulerStats {
             lastStatus = other.lastStatus
             lastDurationMs = other.lastDurationMs
         }
+        lastSuccessStart = listOfNotNull(lastSuccessStart, other.lastSuccessStart).maxOrNull()
         val otherError = other.lastErrorTime
         if (otherError != null && (lastErrorTime == null || otherError >= lastErrorTime!!)) {
             lastErrorTime = otherError
@@ -134,6 +141,7 @@ class SchedulerStats {
         dbo.lastDurationMs = lastDurationMs
         dbo.lastErrorMessage = lastErrorMessage?.take(SchedulerJobStatsDO.MAX_MESSAGE)
         dbo.lastErrorTime = lastErrorTime?.let { Date(it) }
+        dbo.lastSuccessStart = lastSuccessStart?.let { Date(it) }
     }
 
     companion object {
@@ -152,6 +160,7 @@ class SchedulerStats {
             it.lastDurationMs = dbo.lastDurationMs
             it.lastErrorMessage = dbo.lastErrorMessage
             it.lastErrorTime = dbo.lastErrorTime?.time
+            it.lastSuccessStart = dbo.lastSuccessStart?.time
         }
 
         /** Merges [other] into the row (new or loaded). */

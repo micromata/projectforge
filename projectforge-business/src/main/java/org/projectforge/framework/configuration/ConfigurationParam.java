@@ -107,6 +107,21 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   TIMESHEET_OVERLAP_GROUPS("timesheet.overlapGroups", ConfigurationType.STRING), //
   /**
+   * Maximum number of past days (up to yesterday, at most 7) the nightly job books approved vacation as time sheets
+   * for, on days without any time sheet; never further back than its last successful run. 0 (default) disables the
+   * job. See org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob.
+   */
+  TIMESHEET_VACATION_AUTO_BOOKING_DAYS("timesheet.vacation.autoBookingDays", ConfigurationType.LONG), //
+  /**
+   * The task vacation is booked on as time sheets (by the user in the calendar or by the nightly job), see
+   * org.projectforge.business.timesheet.TimesheetVacationBookingConfig.
+   */
+  TIMESHEET_VACATION_TASK_ID("timesheet.vacation.taskId", ConfigurationType.LONG), //
+  /**
+   * The cost unit (format #.###.##.##) vacation is booked on, together with {@link #TIMESHEET_VACATION_TASK_ID}.
+   */
+  TIMESHEET_VACATION_KOST2("timesheet.vacation.kost2", ConfigurationType.STRING), //
+  /**
    * End date vacation lastr year configuration param.
    */
   END_DATE_VACATION_LAST_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, "31.03."),
@@ -216,6 +231,9 @@ public enum ConfigurationParam implements IConfigurationParam
       case END_DATE_VACATION_LAST_YEAR:
       case TIMESHEET_NOTE_SAVINGS_BY_AI:
       case TIMESHEET_TAGS:
+      case TIMESHEET_VACATION_AUTO_BOOKING_DAYS:
+      case TIMESHEET_VACATION_TASK_ID:
+      case TIMESHEET_VACATION_KOST2:
       case CUSTOMER_GROUPS:
       case FIBU_FORECAST:
         return ConfigurationEditors.FINANCE;
@@ -223,6 +241,65 @@ public enum ConfigurationParam implements IConfigurationParam
         return ConfigurationEditors.CONTROLLING;
       default:
         return ConfigurationEditors.ADMIN;
+    }
+  }
+
+  /**
+   * @return The category the configuration list groups the parameter by. Every parameter needs one (no default
+   * branch, so a new parameter without a category throws).
+   */
+  public ConfigurationCategory getCategory()
+  {
+    switch (this) {
+      case SYSTEM_ADMIN_E_MAIL:
+      case FEEDBACK_E_MAIL:
+      case MESSAGE_OF_THE_DAY:
+      case CALENDAR_DOMAIN:
+      case PLUGIN_ACTIVATED:
+        return ConfigurationCategory.SYSTEM;
+      case MIN_PASSWORD_LENGTH:
+      case PASSWORD_FLAG_CHECK_CHANGE:
+        return ConfigurationCategory.SECURITY;
+      case ORGANIZATION:
+      case DEFAULT_TIMEZONE:
+      case DATE_FORMATS:
+      case EXCEL_DATE_FORMATS:
+      case DEFAULT_COUNTRY_PHONE_PREFIX:
+        return ConfigurationCategory.REGIONAL;
+      case FIBU_DEFAULT_VAT:
+      case COST_CONFIGURED:
+      case FIBU_CONTRIBUTION_MARGIN:
+      case FIBU_FORECAST:
+      case CUSTOMER_GROUPS:
+        return ConfigurationCategory.FINANCE;
+      case TIMESHEET_TAGS:
+      case TIMESHEET_OVERLAP_GROUPS:
+      case TIMESHEET_NOTE_SAVINGS_BY_AI:
+      case TIMESHEET_VACATION_AUTO_BOOKING_DAYS:
+      case TIMESHEET_VACATION_TASK_ID:
+      case TIMESHEET_VACATION_KOST2:
+        return ConfigurationCategory.TIMESHEET;
+      case HR_MAILADDRESS:
+      case END_DATE_VACATION_LAST_YEAR:
+        return ConfigurationCategory.HR;
+    }
+    throw new IllegalStateException("No category given for configuration parameter " + this);
+  }
+
+  /**
+   * @return The key of the property (projectforge.properties) this parameter was configured by before, or null. Its
+   * value is taken over once, when the parameter's row is created (see ConfigurationDao), afterwards only the
+   * parameter applies (also if cleared there).
+   */
+  public String getLegacyProperty()
+  {
+    switch (this) {
+      case TIMESHEET_VACATION_TASK_ID:
+        return "projectforge.timesheet.vacation.taskId";
+      case TIMESHEET_VACATION_KOST2:
+        return "projectforge.timesheet.vacation.kost2";
+      default:
+        return null;
     }
   }
 

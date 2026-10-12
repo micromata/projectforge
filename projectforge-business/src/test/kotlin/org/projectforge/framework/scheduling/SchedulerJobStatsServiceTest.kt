@@ -89,6 +89,7 @@ class SchedulerJobStatsServiceTest : AbstractTestBase() {
         Assertions.assertEquals(SchedulerRunStatus.ERROR, stats.lastStatus)
         Assertions.assertEquals("broken", stats.lastErrorMessage)
         Assertions.assertEquals(millis(day, 12), stats.lastErrorTime)
+        Assertions.assertEquals(millis(day, 11), stats.lastSuccessStart, "The failed run after it doesn't count.")
         Assertions.assertEquals(3, statsService.statsSince(day, job)[job]!!.runCount)
         Assertions.assertTrue(statsService.days(job, day.plusDays(1)).isEmpty())
 
@@ -164,6 +165,10 @@ class SchedulerJobStatsServiceTest : AbstractTestBase() {
         registry.register(definition, {})
         val state = registry.get(definition.id)!!
         val start = System.currentTimeMillis() - 3_600_000
+        val successStart = start - 3_600_000
+        statsService.recordRun(
+            state, SchedulerRunRecord(definition.id, successStart, 1_000, SchedulerRunStatus.SUCCESS, SchedulerTrigger.SCHEDULED),
+        )
         statsService.recordRun(
             state, SchedulerRunRecord(definition.id, start, 1_234, SchedulerRunStatus.ERROR, SchedulerTrigger.SCHEDULED, errorMessage = "failed"),
         )
@@ -175,8 +180,10 @@ class SchedulerJobStatsServiceTest : AbstractTestBase() {
             Assertions.assertEquals(1_234L, it.lastDurationMs)
             Assertions.assertEquals(SchedulerRunStatus.ERROR, it.lastStatus)
             Assertions.assertEquals("failed", it.lastError)
+            Assertions.assertEquals(successStart, it.lastSuccessStart)
             Assertions.assertEquals(0, it.runs, "The counts are those since the start.")
         }
+        Assertions.assertEquals(successStart, statsService.lastSuccessStart(definition.id))
     }
 
     private fun record(

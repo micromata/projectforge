@@ -154,10 +154,12 @@ open class TimesheetDayBookingService {
     /**
      * Books the days of the request in one transaction: if any day fails, none is booked.
      *
+     * @param addToRecent If false, the booking isn't offered as recent time sheet of the user (an automatic booking,
+     * see [VacationTimesheetAutoBookingJob]).
      * @return The days as booked.
      * @throws UserException if the request is invalid or a time sheet can't be booked.
      */
-    open fun book(request: Request): List<Day> {
+    open fun book(request: Request, addToRecent: Boolean = true): List<Day> {
         if (request.taskId == null) {
             throw UserException("timesheet.bookDays.error.taskRequired")
         }
@@ -167,7 +169,9 @@ open class TimesheetDayBookingService {
             throw UserException("timesheet.bookDays.error.nothingToBook")
         }
         timesheetDao.insert(timesheets, checkAccess = true)
-        timesheetRecentService.addRecentTimesheet(timesheets.first())
+        if (addToRecent) {
+            timesheetRecentService.addRecentTimesheet(timesheets.first())
+        }
         return days
     }
 
@@ -184,10 +188,12 @@ open class TimesheetDayBookingService {
             .firstOrNull { Holidays.instance.isWorkingDay(it) && it !in booked } ?: from
     }
 
-    /** A fifth of the user's weekly working hours, 8 if the user has no employee or no hours. */
-    open fun defaultHoursPerDay(userId: Long?): BigDecimal {
+    /**
+     * A fifth of the user's weekly working hours valid at [day], 8 if the user has no employee or no hours.
+     */
+    open fun defaultHoursPerDay(userId: Long?, day: LocalDate = LocalDate.now()): BigDecimal {
         val employee = employeeCache.getEmployeeByUserId(checkUser(userId))
-        val weekly = employeeService.getWeeklyWorkingHours(employee, LocalDate.now(), checkAccess = false)
+        val weekly = employeeService.getWeeklyWorkingHours(employee, day, checkAccess = false)
         if (weekly == null || weekly.signum() <= 0) {
             return DEFAULT_HOURS_PER_DAY
         }

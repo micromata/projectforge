@@ -57,8 +57,23 @@ export const CONFIGURATION_PAGE = definePage<
   // table (the backend returns no inherent order otherwise, so a saved row drifts to where the DB last
   // wrote it). The label is a runtime translation, so the backend sorts it in memory keyed by this column
   // id (ConfigurationEntityRest.computedSortProperties["parameter"]), not by a SQL ORDER BY.
-  defaultSort: { id: "parameter" },
+  defaultSort: { id: "category" },
   columns: [
+    {
+      // The category (ConfigurationParam.getCategory), the default sort: the backend sorts by the translated
+      // category and within it by the label (ConfigurationEntityRest.computedSortProperties["category"]).
+      id: "category",
+      labelKey: "administration.configuration.category",
+      accessor: (row) => row.category,
+      filterKind: null,
+      size: 160,
+      cell: (ctx) => (
+        <ParamLabelCell
+          i18nKey={ctx.row.original.categoryI18nKey}
+          highlight={ctx.table.options.meta?.highlight}
+        />
+      ),
+    },
     {
       // The parameter, shown as its translated label (the `i18nKey` resolved through next-intl) and sorted
       // by that same label (see defaultSort). No column filter: free-text search matches the label already
@@ -89,6 +104,26 @@ export const CONFIGURATION_PAGE = definePage<
           highlight={ctx.table.options.meta?.highlight}
         />
       ),
+    },
+    {
+      // The groups seeing the parameter and those changing it, formatted by the backend from
+      // ConfigurationEditors ("PF_Finance + PF_Controlling": a member of both is required).
+      id: "viewers",
+      labelKey: "administration.configuration.viewers",
+      accessor: (row) => row.viewers,
+      sortable: false,
+      filterKind: null,
+      size: 200,
+      wrap: true,
+    },
+    {
+      id: "editors",
+      labelKey: "administration.configuration.editors",
+      accessor: (row) => row.editors,
+      sortable: false,
+      filterKind: null,
+      size: 200,
+      wrap: true,
     },
     {
       // The parameter's description (its `descriptionI18nKey`), wrapped since it is a sentence.

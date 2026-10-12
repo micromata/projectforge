@@ -92,6 +92,21 @@ class Configuration(
      * The value is rich text (HTML of the rich text editor), see [ConfigurationParam.isRichText].
      */
     var richText: Boolean? = null,
+    /**
+     * The category the list groups the parameter by ([ConfigurationParam.getCategory]), and its i18n key.
+     */
+    var category: String? = null,
+    var categoryI18nKey: String? = null,
+    /**
+     * The groups seeing the parameter, e.g. "PF_Admin, PF_Finance, PF_Controlling"
+     * ([org.projectforge.framework.configuration.ConfigurationEditors.viewersText]).
+     */
+    var viewers: String? = null,
+    /**
+     * The groups changing it: "PF_Finance, PF_Controlling" if any of them suffices, "PF_Finance + PF_Controlling" if
+     * a member of all of them is required ([org.projectforge.framework.configuration.ConfigurationEditors.editorsText]).
+     */
+    var editors: String? = null,
     override var writeAccess: Boolean? = null,
     override var deleteAccess: Boolean? = null,
 ) : BaseDTO<ConfigurationDO>(), EntityAccessSupport {
@@ -109,6 +124,12 @@ class Configuration(
         val param = src.parameter?.let { ConfigurationParam.ofKey(it) }
         editPage = param?.editPage
         richText = param?.isRichText == true
+        param?.let {
+            category = it.category.name
+            categoryI18nKey = it.category.i18nKey
+            viewers = it.editors.viewersText
+            editors = it.editors.editorsText
+        }
     }
 
     /**
