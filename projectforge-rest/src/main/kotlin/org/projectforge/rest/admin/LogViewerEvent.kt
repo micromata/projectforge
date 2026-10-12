@@ -63,4 +63,7 @@ class LogViewerEvent(event: LoggingEventData, userFriendlyTime: Boolean = false)
 
   @PropertyInfo(i18nKey = "system.admin.logViewer.userAgent")
   val userAgent = event.userAgent
+
+  @PropertyInfo(i18nKey = "system.admin.logViewer.loggerName")
+  val logger = event.loggerName
 }

@@ -3658,6 +3658,49 @@
         "trend": "Trend (7 days)"
       },
       "adminLogViewer": {
+        "logFile": {
+          "after": "after",
+          "before": "before",
+          "context": "Context",
+          "contextTooltip": "The number of entries before and after a hit shown when its context is opened, and the step to page further.",
+          "contextTruncated": "The time limit was reached, the context is incomplete.",
+          "exclude": "Hide",
+          "excludeTooltip": "Leaves out the entries of these loggers (the noise), in the hits and in their context. A package with its subpackages (org.hibernate), a class or a word of the class name. The loggers in the log file are abbreviated (o.h.e.j.s.SqlExceptionHelper): a package written out matches them, a single word like hibernate does not.",
+          "hideThis": "Hide {arg0}",
+          "hits": "{arg0} hits",
+          "include": "Categories",
+          "includeTooltip": "Only the entries of these loggers: a package with its subpackages (org.projectforge.business.fibu), a class or a word of the class name. Click a logger in the list to add it.",
+          "loggerPlaceholder": "Logger + Enter",
+          "newer": "{arg0} newer",
+          "noNewer": "No newer entries in {arg0}.",
+          "noOlder": "No older entries in {arg0}.",
+          "none": "No entries found.",
+          "notFound": "The entry is no longer at its position, the log file was rolled meanwhile. Please search again.",
+          "older": "{arg0} older",
+          "onlyThis": "Only {arg0}",
+          "period": {
+            "custom": "Custom"
+          },
+          "remove": "Remove",
+          "scope": {
+            "all": "All",
+            "logger": "Same logger",
+            "user": "Same user"
+          },
+          "searchPlaceholder": "Words, -excluded, \"a phrase\"",
+          "start": "Enter what to search for and start the search. The log files of the server are read on every search, so it is slower than the live view.",
+          "truncated": "The search stopped at its limit (200 hits, time or size), older entries may exist. Narrow it down by period, level or category."
+        },
+        "memory": {
+          "noNewer": "No newer entries yet; newer ones are read by paging on later.",
+          "noOlder": "No older entries in memory (only the last 10,000 are kept since the start of the server).",
+          "notFound": "The entry is no longer in memory: only the last 10,000 are kept. The log files have it."
+        },
+        "source": {
+          "files": "Log files",
+          "memory": "Live (memory)"
+        },
+        "tab": "Logs",
         "title": "Admin log viewer"
       },
       "alertMessage": {
@@ -3762,6 +3805,7 @@
       "logViewer": {
         "autoRefresh": "Auto refresh",
         "level": "Loglevel",
+        "loggerName": "Logger name",
         "message": "Message",
         "stacktrace": "Stacktrace",
         "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",

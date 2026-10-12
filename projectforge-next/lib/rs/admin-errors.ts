@@ -225,6 +225,9 @@ export interface LogFileEvent extends LogViewerEvent {
   logger: string;
   /** Where it was found: `ProjectForge.2026-10-05.log.gz:1234`. */
   source: string;
+  /** The file's name and the record's first line, to read its context (see fetchLogFileContext). */
+  file: string;
+  line: number;
 }
 
 /** `LogFileSearchData`: the occurrences of a problem in the log files of its last days. */

@@ -445,7 +445,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
   `NextMigration.MIGRATED` (keine Entity-Seite).
 - **Log-Viewer** – `next/logViewer/<id>` (eigenes `LogSubscription`, Link via
-  `LogViewerRest.viewerUrl`) und `next/adminLogViewer` (Menü `ADMIN_LOG_VIEWER`). Layoutfreie
+  `LogViewerRest.viewerUrl`) und für Admins der Tab `next/systemDashboard?tab=logs` (Live aus dem
+  Speicher, `&source=files` Suche in den Logdateien mit Kontext, `&incident=<id>` Vorkommen einer Störung;
+  vormals `next/adminLogViewer`, Redirect über `OrphanedLinkFilter`, Menü `ADMIN_LOG_VIEWER` entfernt). Layoutfreie
   Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
   (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
   Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).

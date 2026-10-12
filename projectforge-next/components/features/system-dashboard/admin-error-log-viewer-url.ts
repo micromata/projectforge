@@ -1,7 +1,7 @@
 import type { LogGroupDetail, LogGroupEntry } from "@/lib/rs/admin-errors";
 
 /**
- * The admin log viewer at the problem's level, searching for the uri of a request's problem or else the class of
+ * The admin log viewer (the system dashboard's tab) at the problem's level, searching for the uri of a request's problem or else the class of
  * the problem's location (`Foo` of `Foo:42`): its search doesn't know the codes, and a normalized message isn't
  * found. Only the last log events since the server's start are there.
  */
@@ -11,12 +11,12 @@ export function logViewerUrl(detail: LogGroupDetail): string | null {
   // FATAL is never a threshold (see LOG_THRESHOLDS).
   const threshold =
     detail.entry.level === "FATAL" ? "ERROR" : detail.entry.level;
-  return `next/adminLogViewer?search=${encodeURIComponent(search)}&threshold=${threshold}`;
+  return `next/systemDashboard?tab=logs&search=${encodeURIComponent(search)}&threshold=${threshold}`;
 }
 
 /** The problem's occurrences in the log files of its last days, also before the server's start (LogFileSearch). */
 export function logFileSearchUrl(detail: LogGroupDetail): string {
-  return `next/adminLogViewer?incident=${detail.entry.id}`;
+  return `next/systemDashboard?tab=logs&incident=${detail.entry.id}`;
 }
 
 /**

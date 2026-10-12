@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageShell } from "@/components/shared/page-shell";
@@ -26,6 +26,7 @@ const ADMIN_TABS = [
   "problems",
   "scheduler",
   "caches",
+  "logs",
   "statistics",
 ];
 
@@ -40,9 +41,16 @@ const USER_TABS = ["statistics"];
  * the error digest reports. The digest links each problem as `?id=<id>`, which opens its detail. The statistics tab
  * (`?tab=statistics`, the only one for other users) shows the system statistics, the scheduler tab
  * (`?tab=scheduler`) the scheduled jobs with their runs, the caches tab (`?tab=caches`) the caches with their
- * refreshes.
+ * refreshes, the log viewer tab (`?tab=logs`, see [logViewerTab]) the log events in memory and in the log files.
+ *
+ * @param logViewerTab The admin log viewer's tab content (a TabsContent of value `logs`), handed in by the route:
+ * it is a feature of its own, which this one doesn't import.
  */
-export function SystemDashboard() {
+export function SystemDashboard({
+  logViewerTab,
+}: {
+  logViewerTab?: ReactNode;
+}) {
   const t = useTranslations();
   const { isAdmin, isLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -58,32 +66,36 @@ export function SystemDashboard() {
   const statistics = tab === "statistics";
   // Tabs with data of their own: their refresh doesn't wait for the problems.
   const ownData = statistics || tab === "scheduler" || tab === "caches";
+  // The log viewer has its own refresh, which also reads a period anew.
+  const logs = tab === "logs";
   const data = problems.list.data;
 
   return (
     <PageShell>
       <PageTitleRow title={t("system.dashboard.title")}>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={!ownData && (!data || problems.list.isFetching)}
-          onClick={() =>
-            queryClient.invalidateQueries({
-              queryKey: [
-                statistics
-                  ? SYSTEM_STATISTICS_QUERY_KEY
-                  : tab === "scheduler"
-                    ? SCHEDULER_QUERY_KEY
-                    : tab === "caches"
-                      ? CACHES_QUERY_KEY
-                      : "adminErrors",
-              ],
-            })
-          }
-        >
-          {t("refresh")}
-        </Button>
-        {!ownData && (
+        {!logs && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!ownData && (!data || problems.list.isFetching)}
+            onClick={() =>
+              queryClient.invalidateQueries({
+                queryKey: [
+                  statistics
+                    ? SYSTEM_STATISTICS_QUERY_KEY
+                    : tab === "scheduler"
+                      ? SCHEDULER_QUERY_KEY
+                      : tab === "caches"
+                        ? CACHES_QUERY_KEY
+                        : "adminErrors",
+                ],
+              })
+            }
+          >
+            {t("refresh")}
+          </Button>
+        )}
+        {!ownData && !logs && (
           <ExportButton
             variant="outline"
             label={t("system.admin.adminErrors.downloadJson._")}
@@ -112,6 +124,9 @@ export function SystemDashboard() {
                 {t("system.scheduler.tab")}
               </TabsTrigger>
               <TabsTrigger value="caches">{t("system.caches.tab")}</TabsTrigger>
+              <TabsTrigger value="logs">
+                {t("system.admin.adminLogViewer.tab")}
+              </TabsTrigger>
             </>
           )}
           <TabsTrigger value="statistics">
@@ -121,6 +136,7 @@ export function SystemDashboard() {
         {isAdmin && <ProblemTabContents problems={problems} setTab={setTab} />}
         {isAdmin && <SchedulerTab />}
         {isAdmin && <CachesTab />}
+        {isAdmin && logViewerTab}
         <SystemStatisticsTab />
       </Tabs>
       {isAdmin && (

@@ -273,6 +273,44 @@ export function formatTimestampSeconds(
   }).format(date);
 }
 
+/** Date and time to the millisecond, for log entries: the order of those of one second matters. */
+export function formatTimestampMillis(
+  value: unknown,
+  ctx: FormatContext
+): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    ...hourOptions(ctx),
+    second: "2-digit",
+    fractionalSecondDigits: 3,
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
+/**
+ * The time elapsed between two events, in its largest units: `4.2 s`, `3 min, 12 s`, `2 h, 5 min` (abbreviated
+ * units of the locale).
+ */
+export function formatElapsed(millis: number, ctx: FormatContext): string {
+  const unit = (value: number, name: string, digits = 0) =>
+    new Intl.NumberFormat(ctx.locale, {
+      style: "unit",
+      unit: name,
+      unitDisplay: "short",
+      maximumFractionDigits: digits,
+    }).format(value);
+  const seconds = millis / 1000;
+  if (seconds < 60) return unit(seconds, "second", 1);
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60)
+    return `${unit(minutes, "minute")}, ${unit(Math.floor(seconds % 60), "second")}`;
+  return `${unit(Math.floor(minutes / 60), "hour")}, ${unit(minutes % 60, "minute")}`;
+}
+
 export function formatNumber(
   value: unknown,
   ctx: FormatContext,

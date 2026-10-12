@@ -23,8 +23,10 @@
 
 package org.projectforge.rest.admin
 
+import org.projectforge.common.logging.LogContext
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.support.logfile.LogFileContextResult
 import org.projectforge.framework.support.logfile.LogFileRecord
 import org.projectforge.framework.support.logfile.LogFileSearchResult
 import java.time.Instant
@@ -51,6 +53,10 @@ class LogFileEvent(val id: Int, record: LogFileRecord) {
     /** Where it is found: `ProjectForge.2026-10-05.log.gz:1234`. */
     val source = "${record.file}:${record.line}"
 
+    /** The file's name and the number of the record's first line, to read its context. */
+    val file = record.file
+    val line = record.line
+
     private companion object {
         val TIMESTAMP_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC)
     }
@@ -65,4 +71,32 @@ class LogFileSearchData(result: LogFileSearchResult) {
     val unparsedLines = result.unparsedLines
     val pattern = result.pattern
     val recommendedPattern = result.recommendedPattern
+}
+
+/**
+ * `POST /rs/adminLogViewer/logFile/context`: a hit with its context, see [LogFileContextResult].
+ * @param found False, if the hit isn't found at its position anymore (e.g. the current file was rolled since).
+ */
+class LogFileContextData(result: LogFileContextResult?) {
+    val found = result?.hit != null
+    val before = result?.before.orEmpty().mapIndexed { index, record -> LogFileEvent(index, record) }
+    val hit = result?.hit?.let { LogFileEvent(0, it) }
+    val after = result?.after.orEmpty().mapIndexed { index, record -> LogFileEvent(index, record) }
+    val moreBefore = result?.moreBefore == true
+    val moreAfter = result?.moreAfter == true
+    val truncated = result?.truncated == true
+}
+
+/**
+ * `POST /rs/adminLogViewer/context`: a log event in memory with its context, as [LogFileContextData].
+ * @param found False, if the event isn't in memory anymore (only the last events are kept).
+ */
+class LogViewerContextData(context: LogContext?) {
+    val found = context != null
+    val before = context?.before.orEmpty().map { LogViewerEvent(it) }
+    val hit = context?.hit?.let { LogViewerEvent(it) }
+    val after = context?.after.orEmpty().map { LogViewerEvent(it) }
+    val moreBefore = context?.moreBefore == true
+    val moreAfter = context?.moreAfter == true
+    val truncated = false
 }

@@ -3658,6 +3658,49 @@
         "trend": "Verlauf (7 Tage)"
       },
       "adminLogViewer": {
+        "logFile": {
+          "after": "danach",
+          "before": "davor",
+          "context": "Kontext",
+          "contextTooltip": "Die Anzahl der Einträge vor und nach einem Treffer, die beim Öffnen seines Kontexts gezeigt werden, und die Schrittweite zum Weiterblättern.",
+          "contextTruncated": "Das Zeitlimit wurde erreicht, der Kontext ist unvollständig.",
+          "exclude": "Ausblenden",
+          "excludeTooltip": "Lässt die Einträge dieser Logger weg (das Rauschen), bei den Treffern und in ihrem Kontext. Ein Paket mit seinen Unterpaketen (org.hibernate), eine Klasse oder ein Wort des Klassennamens. Die Logger stehen abgekürzt in der Logdatei (o.h.e.j.s.SqlExceptionHelper): Ein ausgeschriebenes Paket findet sie, ein einzelnes Wort wie hibernate nicht.",
+          "hideThis": "{arg0} ausblenden",
+          "hits": "{arg0} Treffer",
+          "include": "Kategorien",
+          "includeTooltip": "Nur die Einträge dieser Logger: ein Paket mit seinen Unterpaketen (org.projectforge.business.fibu), eine Klasse oder ein Wort des Klassennamens. Ein Klick auf einen Logger in der Liste fügt ihn hinzu.",
+          "loggerPlaceholder": "Logger + Enter",
+          "newer": "{arg0} neuere",
+          "noNewer": "Keine neueren Einträge in {arg0}.",
+          "noOlder": "Keine älteren Einträge in {arg0}.",
+          "none": "Keine Einträge gefunden.",
+          "notFound": "Der Eintrag steht nicht mehr an seiner Stelle, die Logdatei wurde inzwischen archiviert. Bitte erneut suchen.",
+          "older": "{arg0} ältere",
+          "onlyThis": "Nur {arg0}",
+          "period": {
+            "custom": "Benutzerdefiniert"
+          },
+          "remove": "Entfernen",
+          "scope": {
+            "all": "Alle",
+            "logger": "Gleicher Logger",
+            "user": "Gleiche:r Benutzer:in"
+          },
+          "searchPlaceholder": "Wörter, -ausgeschlossen, \"eine Phrase\"",
+          "start": "Suchbegriffe eingeben und die Suche starten. Die Logdateien des Servers werden bei jeder Suche gelesen, daher ist sie langsamer als die Live-Ansicht.",
+          "truncated": "Die Suche wurde an ihrer Grenze beendet (200 Treffer, Zeit oder Größe), es kann ältere Einträge geben. Zeitraum, Level oder Kategorie eingrenzen."
+        },
+        "memory": {
+          "noNewer": "Noch keine neueren Einträge; später kommen neue beim Weiterblättern dazu.",
+          "noOlder": "Keine älteren Einträge im Speicher (nur die letzten 10.000 seit dem Serverstart werden gehalten).",
+          "notFound": "Der Eintrag ist nicht mehr im Speicher, es werden nur die letzten 10.000 gehalten. In den Logdateien steht er."
+        },
+        "source": {
+          "files": "Logdateien",
+          "memory": "Live (Speicher)"
+        },
+        "tab": "Protokolle",
         "title": "Adminprotokoll einsehen"
       },
       "alertMessage": {
@@ -3762,6 +3805,7 @@
       "logViewer": {
         "autoRefresh": "Auto-Aktualisierung",
         "level": "Log-Level",
+        "loggerName": "Quelle",
         "message": "Meldung",
         "stacktrace": "Stacktrace",
         "subscriptionMissing": "Dieses Protokoll ist nicht mehr verfügbar: Es verfällt nach einer Stunde ohne Aktivität und bei einem Neustart des Servers. Es lässt sich über die Seite, zu der es gehört, erneut öffnen.",

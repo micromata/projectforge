@@ -107,6 +107,12 @@ class OrphanedLinkFilterTest {
             "/next/systemDashboard?tab=statistics&x=1",
             redirectOf("/next/systemStatistics", mapOf("x" to "1")),
         )
+        Assertions.assertEquals("/next/systemDashboard?tab=logs", redirectOf("/next/adminLogViewer"))
+        Assertions.assertEquals(
+            "/next/systemDashboard?tab=logs&incident=7",
+            redirectOf("/next/adminLogViewer", mapOf("incident" to "7")),
+        )
+        Assertions.assertNull(redirectOf("/rs/adminLogViewer/initial"))
         Assertions.assertNull(redirectOf("/next/systemDashboard"))
         Assertions.assertNull(redirectOf("/next/orderStatisticsXyz"))
         Assertions.assertNull(redirectOf("/next/adminErrors.txt"))

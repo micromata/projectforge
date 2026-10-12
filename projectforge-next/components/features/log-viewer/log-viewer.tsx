@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -9,9 +9,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { DataTable } from "@/components/data-table";
-import { PageShell } from "@/components/shared/page-shell";
-import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { Button } from "@/components/ui/button";
@@ -30,12 +27,9 @@ import {
   type LogViewerEvent,
   type LogViewFilter,
 } from "@/lib/rs/log-viewer";
-import {
-  LOG_LEVEL_KEYS,
-  LOG_THRESHOLDS,
-  logLevelRowClass,
-} from "@/components/shared/log-level";
-import { LOG_VIEWER_SORTING, logViewerColumns } from "./log-viewer-columns";
+import { LOG_LEVEL_KEYS, LOG_THRESHOLDS } from "@/components/shared/log-level";
+import { LogViewerTable } from "./log-viewer-table";
+import { LogViewerShell, LogViewerTitle } from "./log-viewer-frame";
 
 /** Often enough to follow a running import, rare enough not to flood the server. */
 const AUTO_REFRESH_MS = 5000;
@@ -45,15 +39,17 @@ export interface LogViewerProps {
   admin: boolean;
   /** The log subscription of the user view; null for the admin log viewer. */
   id: number | null;
+  /** Between the title and the actions, e.g. the admin log viewer's switch to the log files. */
+  titleCenter?: ReactNode;
 }
 
 /**
- * The log viewer (`/next/logViewer/<id>` and `/next/adminLogViewer`), successor of the React app's server laid
+ * The log viewer (`/next/logViewer/<id>`, and for admins the system dashboard's tab `?tab=logs`), successor of the React app's server laid
  * out log viewer. The user view shows one of the user's own log subscriptions - the log of a DATEV import, a
  * Merlin run, a script or a mass update, linked from those pages -, the admin view the last log events of the
  * whole system. Every endpoint checks on its own (subscription owner resp. admin group, see LogViewerRest).
  */
-export function LogViewer({ admin, id }: LogViewerProps) {
+export function LogViewer({ admin, id, titleCenter }: LogViewerProps) {
   const t = useTranslations();
   const { isAdmin, isLoading } = useAuth();
   const allowed = !admin || isAdmin;
@@ -73,19 +69,21 @@ export function LogViewer({ admin, id }: LogViewerProps) {
     (admin && !isLoading && !isAdmin) || isAccessDenied(initial.error);
 
   return (
-    <PageShell>
+    <LogViewerShell>
       {initial.data && !initial.data.subscriptionMissing ? (
         <LogViewerContent
           admin={admin}
           id={id}
           title={title}
           initial={initial.data}
+          titleCenter={titleCenter}
         />
       ) : (
         <>
-          <PageTitleRow
+          <LogViewerTitle
             category={admin ? undefined : t("system.admin.logViewer.title")}
             title={title}
+            center={titleCenter}
           />
           <div className="px-4 pb-8 pt-2 text-sm">
             {denied ? (
@@ -104,7 +102,7 @@ export function LogViewer({ admin, id }: LogViewerProps) {
           </div>
         </>
       )}
-    </PageShell>
+    </LogViewerShell>
   );
 }
 
@@ -119,6 +117,7 @@ function LogViewerContent({
   id,
   title,
   initial,
+  titleCenter,
 }: LogViewerProps & { title: string; initial: LogViewerData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -170,14 +169,12 @@ function LogViewerContent({
       toast.error(err instanceof Error ? err.message : String(err)),
   });
 
-  const columns = useMemo(() => logViewerColumns(t, admin), [t, admin]);
-  const [sorting, setSorting] = useState(LOG_VIEWER_SORTING);
-
   return (
     <>
-      <PageTitleRow
+      <LogViewerTitle
         category={admin ? undefined : t("system.admin.logViewer.title")}
         title={title}
+        center={titleCenter}
       >
         <Button
           size="sm"
@@ -198,7 +195,7 @@ function LogViewerContent({
             {t("reset")}
           </Button>
         )}
-      </PageTitleRow>
+      </LogViewerTitle>
       <div className="flex flex-wrap items-center gap-4 px-4 pb-2 pt-3">
         <div className="relative w-full max-w-md">
           <SearchInput
@@ -240,18 +237,10 @@ function LogViewerContent({
         </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-4">
-        <DataTable<LogViewerEvent>
-          columns={columns}
-          data={entries.data ?? []}
+        <LogViewerTable
+          admin={admin}
+          entries={entries.data ?? []}
           isFetching={entries.isFetching}
-          enableColumnFilters={false}
-          manualSorting={false}
-          sorting={sorting}
-          onSortingChange={setSorting}
-          showPagination={false}
-          dense
-          getRowId={(row) => String(row.id)}
-          rowClassName={(row) => logLevelRowClass(row.level)}
         />
       </div>
     </>
