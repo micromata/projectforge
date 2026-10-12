@@ -187,7 +187,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
      */
     private val bookedDays: MutableSet<Int> = HashSet()
 
-    private val unbookedDays: MutableList<Int> = ArrayList()
+    private var unbookedDays = UnbookedDaysCalculator.UnbookedDays(emptyList(), emptyList())
 
     /**
      * Key is kost2.id.
@@ -354,9 +354,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         }
         val monthHolder = MonthHolder(this.fromDateTime)
         this.numberOfWorkingDays = monthHolder.numberOfWorkingDays
-        // The same days as the notifications about missing time sheets show: vacation days don't count as unbooked.
+        // The same days as the notifications about missing time sheets show, the vacation days among them separately.
         val vacationDays = WicketSupport.get(UnbookedDaysCalculator::class.java)?.vacationDays(employee, yearMonth).orEmpty()
-        unbookedDays.addAll(UnbookedDaysCalculator.unbookedDays(yearMonth, bookedDays, vacationDays))
+        unbookedDays = UnbookedDaysCalculator.unbookedDays(yearMonth, bookedDays, vacationDays)
         if (calculateVacationStats) {
             val vacationService = WicketSupport.get(VacationService::class.java)
             if (vacationService != null && this.employee != null && employee!!.user != null) {
@@ -385,14 +385,33 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
      * Gets the list of unbooked working days. These are working days without time sheets of the actual user.
      */
     fun getUnbookedDays(): List<Int> {
-        return unbookedDays
+        return unbookedDays.all
+    }
+
+    /**
+     * The unbooked working days covered by an approved vacation (a subset of [getUnbookedDays]).
+     */
+    fun getUnbookedVacationDays(): List<Int> {
+        return unbookedDays.vacationDays
     }
 
     val formattedUnbookedDays: String?
         /**
          * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
          */
-        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays)
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.all)
+
+    val formattedUnbookedWorkingDays: String?
+        /**
+         * @return Days of month without time sheets not covered by a vacation: 03.11., 08.11., ... or null if none.
+         */
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.workingDays)
+
+    val formattedUnbookedVacationDays: String?
+        /**
+         * @return Vacation days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
+         */
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.vacationDays)
 
     private val yearMonth: YearMonth
         get() = YearMonth.of(fromDateTime.year, fromDateTime.monthValue)

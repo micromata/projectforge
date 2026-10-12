@@ -173,18 +173,23 @@ class NotificationModelTest {
     fun unbookedDaysTest() {
         val november = YearMonth.of(2025, 11)
         // 20 working days in November 2025 (no holiday).
-        assertEquals(20, UnbookedDaysCalculator.unbookedDays(november, emptySet(), emptySet()).size)
-        val days = UnbookedDaysCalculator.unbookedDays(november, setOf(3, 4, 5), setOf(6, 7))
+        assertEquals(20, UnbookedDaysCalculator.unbookedDays(november, emptySet(), emptySet()).all.size)
+        val unbooked = UnbookedDaysCalculator.unbookedDays(november, setOf(3, 4, 5), setOf(6, 7, 8))
+        assertEquals(17, unbooked.all.size)
+        assertEquals(listOf(6, 7), unbooked.vacationDays) // The 8th is a Saturday.
+        val days = unbooked.workingDays
         assertEquals(15, days.size)
         assertEquals(10, days.first())
         assertEquals("10.11., 11.11.", UnbookedDaysCalculator.format(november, days.take(2)))
         assertNull(UnbookedDaysCalculator.format(november, emptyList()))
         // December 2025: the holidays are no working days.
-        val december = UnbookedDaysCalculator.unbookedDays(YearMonth.of(2025, 12), emptySet(), emptySet())
+        val december = UnbookedDaysCalculator.unbookedDays(YearMonth.of(2025, 12), emptySet(), emptySet()).all
         assertFalse(december.contains(25))
         assertFalse(december.contains(26))
         // Only the days up to the run count:
-        assertEquals(listOf(10), TimesheetsMissingRuleHandler.cut(days.take(2), november, LocalDate.of(2025, 11, 10)))
+        val cut = unbooked.cut(november, LocalDate.of(2025, 11, 10))
+        assertEquals(listOf(6, 7), cut.vacationDays)
+        assertEquals(listOf(10), cut.workingDays)
     }
 
     @Test

@@ -260,7 +260,8 @@ class MonthlyEmployeeReportRest {
             "report" to report,
             "signatureEmployeeLabel" to "${translate("timesheet.signatureEmployee")}: ${user.getFullname()}",
             "signatureProjectLeaderLabel" to translate("timesheet.signatureProjectLeader"),
-            "unbookedWorkingDaysLabel" to translate("fibu.monthlyEmployeeReport.withoutTimesheets"),
+            "unbookedWorkingDaysLabel" to translate("fibu.monthlyEmployeeReport.workingDaysWithoutTimesheets"),
+            "unbookedVacationDaysLabel" to translate("fibu.monthlyEmployeeReport.vacationDaysWithoutTimesheets"),
         )
         val ba = pdfRenderer.render(STYLE_SHEET, XML_DATA, data)
         val filename = "${translate("menu.monthlyEmployeeReport.fileprefix")}_${user.lastname}_$year-${report.formmattedMonth}.pdf"
@@ -375,6 +376,8 @@ class MonthlyEmployeeReportRest {
             numberOfWorkingDays = report.numberOfWorkingDays?.toString(),
             targetWorkingHours = targetWorkingHours,
             formattedUnbookedDays = report.formattedUnbookedDays,
+            formattedUnbookedWorkingDays = report.formattedUnbookedWorkingDays,
+            formattedUnbookedVacationDays = report.formattedUnbookedVacationDays,
             averageWorkingTimeStats = averageWorkingTimeStats,
             timeSavingsByAIEnabled = timeSavingsByAIEnabled,
             hasTimeSavingsByAI = timeSavingsByAIEnabled && report.totalTimeSavedByAI > 0,

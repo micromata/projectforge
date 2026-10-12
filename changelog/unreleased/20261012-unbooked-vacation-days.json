@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Approved vacation days without time sheets count again as days without time sheets in the monthly report and the notifications about missing time sheets. The monthly report lists working days and vacation days without time sheets separately, a click on the vacation days opens the dialog for booking several days; notification texts can list all days, only the vacation days or only the other working days without time sheets.",
+  "de": "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen."
+}

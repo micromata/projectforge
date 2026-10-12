@@ -47,7 +47,7 @@ import java.util.*
 
 /**
  * The days without time sheets of the notifications must be the same as "without time sheets" of the monthly
- * report; approved vacation days (also half days) don't count.
+ * report; approved vacation days (also half days) count, but are also listed separately.
  */
 class UnbookedDaysCalculatorTest : AbstractTestBase() {
   @Autowired
@@ -92,10 +92,17 @@ class UnbookedDaysCalculatorTest : AbstractTestBase() {
       insertVacation(employee, manager, 3, 5)
       insertVacation(employee, manager, 8, 8, halfDay = true)
       insertVacation(employee, manager, 9, 9, VacationStatus.IN_PROGRESS)
-      val expected = listOf(9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 30, 31)
+      val workingDays = listOf(9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 30, 31)
+      val vacationDays = listOf(3, 4, 5, 8)
+      val all = (workingDays + vacationDays).sorted()
       val month = YearMonth.of(2032, 3)
-      assertEquals(expected, unbookedDaysCalculator.unbookedDays(listOf(employee), month)[employee.id])
-      assertEquals(expected, monthlyEmployeeReportDao.getReport(2032, 3, user, false)!!.getUnbookedDays())
+      val days = unbookedDaysCalculator.unbookedDays(listOf(employee), month)[employee.id]!!
+      assertEquals(all, days.all)
+      assertEquals(vacationDays, days.vacationDays)
+      assertEquals(workingDays, days.workingDays)
+      val report = monthlyEmployeeReportDao.getReport(2032, 3, user, false)!!
+      assertEquals(all, report.getUnbookedDays())
+      assertEquals(vacationDays, report.getUnbookedVacationDays())
       null
     }
   }

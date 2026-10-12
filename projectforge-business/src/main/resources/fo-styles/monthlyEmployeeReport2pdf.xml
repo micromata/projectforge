@@ -39,10 +39,16 @@
         <td></td>
         <groovy>}</groovy>
       </tr>
-      <groovy>if (report.formattedUnbookedDays != null) {</groovy>
+      <groovy>if (report.formattedUnbookedWorkingDays != null) {</groovy>
       <tr>
         <th color="#990000">${unbookedWorkingDaysLabel}</th>
-        <td number-columns-spanned="5" color="#990000">${report.formattedUnbookedDays}</td>
+        <td number-columns-spanned="5" color="#990000">${report.formattedUnbookedWorkingDays}</td>
+      </tr>
+      <groovy>}</groovy>
+      <groovy>if (report.formattedUnbookedVacationDays != null) {</groovy>
+      <tr>
+        <th color="#999999">${unbookedVacationDaysLabel}</th>
+        <td number-columns-spanned="5">${report.formattedUnbookedVacationDays}</td>
       </tr>
       <groovy>}</groovy>
     </table-body>

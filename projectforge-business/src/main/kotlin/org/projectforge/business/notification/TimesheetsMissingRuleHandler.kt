@@ -39,8 +39,9 @@ import java.time.format.TextStyle
 
 /**
  * Working days without time sheets in the referred month ([NotificationParams.referredMonth]), the same days as
- * "without time sheets" of the monthly report: only days up to the day of the run count (all days of a past month).
- * Resolved once these days are booked (or covered by an approved vacation).
+ * "without time sheets" of the monthly report, vacation days included: only days up to the day of the run count
+ * (all days of a past month). Resolved once these days are booked. The templates may list all of these days, only
+ * the vacation days or only the other working days.
  */
 @Service
 class TimesheetsMissingRuleHandler : NotificationRuleHandler {
@@ -58,7 +59,17 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
 
     override val ruleType = NotificationRuleType.TIMESHEETS_MISSING
 
-    override val variables = listOf("month", "unbookedDays", "unbookedDaysCount", "timesheetLink", "monthlyReportLink")
+    override val variables = listOf(
+        "month",
+        "unbookedDays",
+        "unbookedDaysCount",
+        "unbookedVacationDays",
+        "unbookedVacationDaysCount",
+        "unbookedWorkingDays",
+        "unbookedWorkingDaysCount",
+        "timesheetLink",
+        "monthlyReportLink",
+    )
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation {
         val month = rule.readParams().referredMonth.of(today)
@@ -68,8 +79,8 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
         val affected = mutableMapOf<Long, Map<String, String>>()
         employees.forEach { employee ->
             val user = caches.getUser(employee.user?.id) ?: return@forEach
-            val days = cut(unbookedDays[employee.id].orEmpty(), month, today)
-            if (days.isNotEmpty()) {
+            val days = unbookedDays[employee.id]?.cut(month, today) ?: return@forEach
+            if (days.all.isNotEmpty()) {
                 affected[user.id!!] = variables(user, month, days)
             }
         }
@@ -83,7 +94,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
         val employee = caches.getEmployeeByUserId(user.id)
         val days = employee?.let { unbookedDaysCalculator.unbookedDays(listOf(it), month)[it.id] }
             ?: UnbookedDaysCalculator.unbookedDays(month, emptySet(), emptySet())
-        return variables(user, month, cut(days, month, today))
+        return variables(user, month, days.cut(month, today))
     }
 
     override fun isRelevant(rule: NotificationRuleDO, today: LocalDate, user: PFUserDO): Boolean {
@@ -105,7 +116,7 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
             list.forEach { notification ->
                 val employee = caches.getEmployeeByUserId(notification.recipientId) ?: return@forEach
                 val created = notification.created?.toInstant()?.atZone(Configuration.instance.defaultTimeZone.toZoneId())?.toLocalDate() ?: today
-                if (cut(unbookedDays[employee.id].orEmpty(), month, created).isEmpty()) {
+                if (unbookedDays[employee.id]?.cut(month, created)?.all.isNullOrEmpty()) {
                     result[notification.id!!] = NotificationStatus.RESOLVED
                 }
             }
@@ -113,12 +124,20 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
         return result
     }
 
-    private fun variables(user: PFUserDO, month: YearMonth, days: List<Int>): Map<String, String> {
+    private fun variables(
+        user: PFUserDO,
+        month: YearMonth,
+        days: UnbookedDaysCalculator.UnbookedDays,
+    ): Map<String, String> {
         val locale = UserLocale.determineUserLocale(user)
         return mapOf(
             "month" to "${month.month.getDisplayName(TextStyle.FULL_STANDALONE, locale)} ${month.year}",
-            "unbookedDays" to (UnbookedDaysCalculator.format(month, days) ?: "–"),
-            "unbookedDaysCount" to days.size.toString(),
+            "unbookedDays" to (UnbookedDaysCalculator.format(month, days.all) ?: "–"),
+            "unbookedDaysCount" to days.all.size.toString(),
+            "unbookedVacationDays" to (UnbookedDaysCalculator.format(month, days.vacationDays) ?: "–"),
+            "unbookedVacationDaysCount" to days.vacationDays.size.toString(),
+            "unbookedWorkingDays" to (UnbookedDaysCalculator.format(month, days.workingDays) ?: "–"),
+            "unbookedWorkingDaysCount" to days.workingDays.size.toString(),
             "timesheetLink" to notificationLinks.absolute(TIMESHEET_PATH),
             "monthlyReportLink" to notificationLinks.absolute(monthlyReportPath(month, "${user.id}")),
         )
@@ -134,11 +153,6 @@ class TimesheetsMissingRuleHandler : NotificationRuleHandler {
          */
         internal fun monthlyReportPath(month: YearMonth, userId: String) =
             "$MONTHLY_REPORT_PATH?userId=$userId&year=${month.year}&month=${month.monthValue}"
-
-        /** The days of the month up to [until] (all of them, if the month is over). */
-        internal fun cut(days: List<Int>, month: YearMonth, until: LocalDate): List<Int> {
-            return days.filter { !month.atDay(it).isAfter(until) }
-        }
 
         internal fun isEmployedIn(employee: EmployeeDO, month: YearMonth): Boolean {
             return employee.eintrittsDatum?.isAfter(month.atEndOfMonth()) != true

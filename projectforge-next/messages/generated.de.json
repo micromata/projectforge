@@ -1456,7 +1456,8 @@
         "_": "Bruttoarbeitszeit",
         "tooltip": "Die Bruttoarbeitszeit kann von der Summe abweichen, wenn für bestimmte Kostenarten nur ein Anteil als Arbeitszeit gerechnet wird."
       },
-      "withoutTimesheets": "ohne Zeitberichte"
+      "vacationDaysWithoutTimesheets": "Urlaubstage ohne Zeitberichte",
+      "workingDaysWithoutTimesheets": "Arbeitstage ohne Zeitberichte"
     },
     "notYetInvoiced": "noch nicht fakturiert",
     "payment": {
@@ -2602,8 +2603,12 @@
       "monthlyReportLink": "Link zum Monatsbericht",
       "nickname": "Spitzname (sonst Vorname)",
       "timesheetLink": "Link zu den Zeitberichten",
-      "unbookedDays": "Tage ohne Zeitberichte",
-      "unbookedDaysCount": "Anzahl der Tage ohne Zeitberichte",
+      "unbookedDays": "Alle Tage ohne Zeitberichte (inkl. Urlaub)",
+      "unbookedDaysCount": "Anzahl aller Tage ohne Zeitberichte (inkl. Urlaub)",
+      "unbookedVacationDays": "Urlaubstage ohne Zeitberichte",
+      "unbookedVacationDaysCount": "Anzahl der Urlaubstage ohne Zeitberichte",
+      "unbookedWorkingDays": "Arbeitstage ohne Zeitberichte (ohne Urlaub)",
+      "unbookedWorkingDaysCount": "Anzahl der Arbeitstage ohne Zeitberichte (ohne Urlaub)",
       "vacationLink": "Link zum Urlaub"
     }
   },

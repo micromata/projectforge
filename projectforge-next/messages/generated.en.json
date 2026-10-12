@@ -1456,7 +1456,8 @@
         "_": "Total sum",
         "tooltip": "The total sum may differ from the sum above due to cost types for which only a fraction of workhours are counting."
       },
-      "withoutTimesheets": "without time sheets"
+      "vacationDaysWithoutTimesheets": "vacation days without time sheets",
+      "workingDaysWithoutTimesheets": "working days without time sheets"
     },
     "notYetInvoiced": "not yet invoiced",
     "payment": {
@@ -2602,8 +2603,12 @@
       "monthlyReportLink": "Link to the monthly report",
       "nickname": "Nickname (otherwise first name)",
       "timesheetLink": "Link to the time sheets",
-      "unbookedDays": "Days without time sheets",
-      "unbookedDaysCount": "Number of days without time sheets",
+      "unbookedDays": "All days without time sheets (vacation included)",
+      "unbookedDaysCount": "Number of all days without time sheets (vacation included)",
+      "unbookedVacationDays": "Vacation days without time sheets",
+      "unbookedVacationDaysCount": "Number of vacation days without time sheets",
+      "unbookedWorkingDays": "Working days without time sheets (no vacation)",
+      "unbookedWorkingDaysCount": "Number of working days without time sheets (no vacation)",
       "vacationLink": "Link to the vacation"
     }
   },

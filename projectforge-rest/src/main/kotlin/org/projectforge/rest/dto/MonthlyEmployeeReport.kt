@@ -55,8 +55,12 @@ class MonthlyEmployeeReportData(
     val numberOfWorkingDays: String?,
     /** Target working hours of the month (weekly hours × working days ÷ 5), formatted, or null. */
     val targetWorkingHours: String?,
-    /** Working days without time sheets, e.g. "03.11., 08.11." or null. */
+    /** Working days without time sheets (vacation days included), e.g. "03.11., 08.11." or null. */
     val formattedUnbookedDays: String?,
+    /** The days of [formattedUnbookedDays] not covered by a vacation, e.g. "08.11." or null. */
+    val formattedUnbookedWorkingDays: String?,
+    /** The vacation days of [formattedUnbookedDays], e.g. "03.11." or null. */
+    val formattedUnbookedVacationDays: String?,
     /** The localized average-working-time statistics line, or null. */
     val averageWorkingTimeStats: String?,
     /** Whether the "time saved by AI" feature is enabled at all. */

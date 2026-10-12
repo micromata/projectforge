@@ -41,8 +41,9 @@ import java.util.*
 
 /**
  * The working days of a month without time sheets ("ohne Zeitberichte"), shared by the monthly employee report
- * and the notifications about missing time sheets, so both show the same days: every working day of the month without any time sheet,
- * except the days of an approved vacation (a half day included).
+ * and the notifications about missing time sheets, so both show the same days: every working day of the month
+ * without any time sheet, also the days of an approved vacation (a half day included), which are listed
+ * separately as well ([UnbookedDays.vacationDays]).
  */
 @Service
 open class UnbookedDaysCalculator {
@@ -72,7 +73,7 @@ open class UnbookedDaysCalculator {
    * (cron job): the time sheets are read in one query, the days are those of each employee's own time zone, as
    * the employee sees them in the own monthly report.
    */
-  open fun unbookedDays(employees: Collection<EmployeeDO>, month: YearMonth): Map<Long, List<Int>> {
+  open fun unbookedDays(employees: Collection<EmployeeDO>, month: YearMonth): Map<Long, UnbookedDays> {
     // Widened by a day on both sides: the time zones of the users differ, the days are cut per user below.
     val from = Date.from(month.atDay(1).minusDays(1).atStartOfDay(ZoneId.of("UTC")).toInstant())
     val to = Date.from(month.atEndOfMonth().plusDays(2).atStartOfDay(ZoneId.of("UTC")).toInstant())
@@ -83,7 +84,7 @@ open class UnbookedDaysCalculator {
     } else {
       vacationDao.getVacationsOfAllEmployeesForPeriod(month.atDay(1), month.atEndOfMonth()).groupBy { it.employee?.id }
     }
-    val result = mutableMapOf<Long, List<Int>>()
+    val result = mutableMapOf<Long, UnbookedDays>()
     employees.forEach { employee ->
       val employeeId = employee.id ?: return@forEach
       val user = caches.getUser(employee.user?.id) ?: return@forEach
@@ -100,13 +101,31 @@ open class UnbookedDaysCalculator {
     return result
   }
 
+  /**
+   * The unbooked working days of a month, as days of month.
+   * @param all All working days without time sheets, vacation days included.
+   * @param vacationDays Those of [all] covered by an approved vacation.
+   */
+  data class UnbookedDays(val all: List<Int>, val vacationDays: List<Int>) {
+    /** The days of [all] not covered by a vacation. */
+    val workingDays: List<Int>
+      get() = all - vacationDays.toSet()
+
+    /** The days of the month up to [until] (all of them, if the month is over). */
+    fun cut(month: YearMonth, until: LocalDate): UnbookedDays {
+      val filter = { day: Int -> !month.atDay(day).isAfter(until) }
+      return UnbookedDays(all.filter(filter), vacationDays.filter(filter))
+    }
+  }
+
   companion object {
-    /** The working days of the [month] neither booked nor covered by a vacation, as days of month. */
+    /** The working days of the [month] without time sheets, as days of month, those of a vacation also separately. */
     @JvmStatic
-    fun unbookedDays(month: YearMonth, bookedDays: Set<Int>, vacationDays: Set<Int>): List<Int> {
-      return (1..month.lengthOfMonth()).filter { dayOfMonth ->
-        Holidays.instance.isWorkingDay(month.atDay(dayOfMonth)) && dayOfMonth !in bookedDays && dayOfMonth !in vacationDays
+    fun unbookedDays(month: YearMonth, bookedDays: Set<Int>, vacationDays: Set<Int>): UnbookedDays {
+      val all = (1..month.lengthOfMonth()).filter { dayOfMonth ->
+        Holidays.instance.isWorkingDay(month.atDay(dayOfMonth)) && dayOfMonth !in bookedDays
       }
+      return UnbookedDays(all, all.filter { it in vacationDays })
     }
 
     /** The days of the [month] covered by the approved ones of the given vacations. */
