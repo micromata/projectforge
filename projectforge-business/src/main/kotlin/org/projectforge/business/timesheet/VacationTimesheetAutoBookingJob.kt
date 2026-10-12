@@ -68,7 +68,8 @@ private val log = KotlinLogging.logger {}
  * the days before it, see [SchedulerJobStatsService.lastSuccessStart]), but at most
  * [ConfigurationService.vacationAutoBookingDays] days back (catching up nights the job didn't run). So a vacation
  * time sheet the user deleted is not booked again, and a vacation approved only after its days were processed is not
- * booked automatically either (the monthly report lists such days, they are booked in the calendar). A failed run
+ * booked automatically either (the monthly report lists such days, they are booked in the calendar). A day failing
+ * unexpectedly is logged as error and not retried either (it is booked in the calendar). Only a run failing as a whole
  * doesn't count: the next one processes its days again (days with a time sheet are skipped anyway).
  *
  * The days are booked as the user would in the calendar ([TimesheetDayBookingService]): with the user's hours per day
@@ -128,9 +129,8 @@ class VacationTimesheetAutoBookingJob {
                 "Booked ${result.bookedDays} vacation day(s) of ${result.users} user(s), skipped ${result.skippedDays}" +
                         if (result.failedDays > 0) ", failed ${result.failedDays}." else "."
             )
-            if (result.failedDays > 0) {
-                run.fail("Booking of ${result.failedDays} vacation day(s) failed unexpectedly, see the log.")
-            }
+            // Failed days don't fail the run (they are logged as errors): a failed run would let the next ones process
+            // its days again and book vacation time sheets deleted meanwhile again, every night if the failure persists.
         }
     }
 

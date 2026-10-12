@@ -49,7 +49,7 @@ object JobLogEvents {
         code = "jobs.vacationAutoBooking.failed",
         category = LogCategory.BUG,
         explanation = "The nightly job couldn't book an approved vacation day of a user as time sheet. The day " +
-                "stays without time sheet (other days and users are booked).",
-        action = "Analyze the stack trace; the next night retries it within the configured number of days.",
+                "stays without time sheet and is not retried (other days and users are booked).",
+        action = "Analyze the stack trace; book the day in the calendar of the user.",
     )
 }
