@@ -21,18 +21,7 @@ Commands:
                    catalogs + field metadata, changelog (site + next, from
                    changelog/changelog{,.de}.json), i18n key usage
                    (:projectforge-application:developmentMainForRelease)
-  run [slot]       Build (skip tests), then run the app in dev mode
-  setup <slot> [pw] Create a slot instance (see below); its first run fills the
-                   database with test data (admin password pw, random if omitted)
-  reset <slot>     Delete the home dir of a slot instance (asks first)
-  dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
-                   -p <n> picks another port (pfDev.sh dev -p 3005)
   build            next build (projectforge-next)
-  e2e [slot] […]   Playwright e2e tests; args are forwarded
-                   (e.g. pfDev.sh e2e book-edit --headed). Against Spring, the
-                   Next export is refreshed first (processResources, a no-op if
-                   current); skipped with --dev / --port <n> (dev server)
-  e2e:ui [slot] …  Playwright e2e tests in UI mode
   check            Next quality gates: typecheck → lint → format:check
   changelog-fold [id]
                    Moves the entries of changelog/unreleased/ (one file per change,
@@ -60,18 +49,32 @@ Commands:
                    notes of the next published release
   help             Show this help
 
-Slots (1–9) run independent instances side by side, e.g. one per worktree:
-  pfDev.sh setup 1 Creates the home ~/ProjectForge-1 from
+Instances (slots):
+Slots 1–9 run independent instances side by side, e.g. one per worktree;
+slot n uses :8080+n (Spring), :3000+n (next dev), the home ~/ProjectForge-n
+with its own HSQLDB and the session cookie JSESSIONID_n. Without a slot
+everything is as before: :8080/:3000, ~/ProjectForge and its configured
+database.
+  setup <slot> [pw] Create the home ~/ProjectForge-n from
                    ~/ProjectForge/projectforge.properties: own HSQLDB, mails and
-                   gateway push off. Once per slot.
-  pfDev.sh run 1   Spring on :8081 with that home and session cookie
-                   JSESSIONID_1; the first run initializes the database with
-                   test data and prints the admin login
-  pfDev.sh dev 1   next dev on :3001, proxying to :8081
-  pfDev.sh e2e 1 … e2e against :8081 (or :3001 with --dev), credentials from
-                   ~/ProjectForge-1/testAccounts.txt
-Without a slot everything is as before: :8080/:3000, ~/ProjectForge and its
-configured database.
+                   gateway push off. Once per slot. Its first run fills the
+                   database with test data (admin password pw, random if omitted)
+  reset <slot>     Delete the home dir of a slot instance (asks first)
+  run [slot]       Build (skip tests), then run the app in dev mode (Spring on
+                   :8080+slot); the first run after setup initializes the
+                   database with test data and prints the admin login
+  dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
+                   -p <n> picks another port (pfDev.sh dev -p 3005)
+  e2e [slot] […]   Playwright e2e tests against :8080+slot (or :3000+slot with
+                   --dev), credentials from the slot's testAccounts.txt; args are
+                   forwarded (e.g. pfDev.sh e2e 1 book-edit --headed). Against
+                   Spring, the Next export is refreshed first (processResources, a
+                   no-op if current); skipped with --dev / --port <n> (dev server)
+  e2e:ui [slot] …  Playwright e2e tests in UI mode
+  ps               List the running servers of all slots (:8080–:8089 and
+                   :3000–:3009) with PID and working dir (i.e. worktree)
+  stop [slot]      Stop the Spring (:8080+slot) and the next dev server
+                   (:3000+slot) of a slot
 
 Env:
   PROJECTFORGE_HOME  Base dir of the main instance (default: ~/ProjectForge)
@@ -164,6 +167,62 @@ require_slot() {
     echo "$1 needs a slot number (1–9)." >&2
     exit 1
   fi
+}
+
+# PID of the process listening on TCP port $1, empty if none.
+listener_pid() {
+  lsof -nP -t -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | head -1 || true
+}
+
+# Working dir of process $1 (shows the worktree a server runs from), ~ for $HOME.
+process_cwd() {
+  local dir
+  dir="$(lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' || true)"
+  echo "${dir/#$HOME/~}"
+}
+
+list_servers() {
+  local slot port pid kind lines=()
+  for slot in 0 1 2 3 4 5 6 7 8 9; do
+    for port in $((8080 + slot)) $((3000 + slot)); do
+      pid="$(listener_pid "$port")"
+      [[ -n "$pid" ]] || continue
+      ((port >= 8080)) && kind=spring || kind=next
+      lines+=("$(printf '%-5s %-7s %-7s %-7s %s' "$slot" ":$port" "$kind" "$pid" "$(process_cwd "$pid")")")
+    done
+  done
+  if ((${#lines[@]} == 0)); then
+    echo "No servers running."
+    return
+  fi
+  printf '%-5s %-7s %-7s %-7s %s\n' SLOT PORT KIND PID DIR
+  printf '%s\n' "${lines[@]}"
+}
+
+# Stops the server listening on port $1: TERM first, KILL if it still listens after 30 s.
+stop_port() {
+  local port="$1" pid parent pids=()
+  pid="$(listener_pid "$port")"
+  if [[ -z "$pid" ]]; then
+    echo "Nothing listens on :$port."
+    return
+  fi
+  pids=("$pid")
+  # next dev: the listening server is a child of `next dev` and npm (node processes), which would outlive it.
+  # The forked JVM of bootRun has the Gradle daemon as parent, which keeps running.
+  parent="$(ps -o ppid= -p "$pid" | tr -d ' ')"
+  while [[ -n "$parent" ]] && ((parent > 1)) && [[ "$(ps -o comm= -p "$parent")" =~ (^|/)(node|npm)$ ]]; do
+    pids+=("$parent")
+    parent="$(ps -o ppid= -p "$parent" | tr -d ' ')"
+  done
+  echo "Stopping :$port (PID ${pids[*]})…"
+  kill "${pids[@]}" 2>/dev/null || true
+  for _ in $(seq 1 60); do
+    [[ -z "$(listener_pid "$port")" ]] && { echo "Stopped :$port."; return; }
+    sleep 0.5
+  done
+  echo "Still listening on :$port, killing it."
+  kill -9 "${pids[@]}" 2>/dev/null || true
 }
 
 # Sets the version of all modules (the single source is gradle.properties).
@@ -402,6 +461,13 @@ case "$cmd" in
     fi
     read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
     [[ "$answer" == [yY] ]] && rm -rf "$PF_HOME" && echo "Deleted."
+    ;;
+  ps)
+    list_servers
+    ;;
+  stop)
+    stop_port "$SPRING_PORT"
+    stop_port "$NEXT_PORT"
     ;;
   dev)
     # An own -p/--port replaces the slot's port: pfDev.sh dev -p 3005 → :3005 against :8080.
