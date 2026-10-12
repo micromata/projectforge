@@ -28,8 +28,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.framework.persistence.jpa.MaintenanceDbTimeouts
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.utils.AbandonedThreads
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -100,9 +102,30 @@ abstract class AbstractCache {
     /**
      * Guards [performRefresh], so a cache is never refreshed by two threads at the same time. Reentrant, because a
      * refresh may (indirectly) access this very cache again: such nested calls must not start a second refresh.
+     * Replaced by a new lock when a hanging refresh is terminated ([terminateRefresh]): the abandoned thread still
+     * holds (and finally releases) the old one.
      */
     @Transient
-    private val refreshLock = ReentrantLock()
+    @Volatile
+    private var refreshLock = ReentrantLock()
+
+    /**
+     * Incremented by [terminateRefresh]: a refresh started before (the abandoned one) must no longer change the state
+     * of the cache when it returns at last.
+     */
+    @Transient
+    private val refreshGeneration = AtomicLong(0)
+
+    /** The threads of terminated refreshes still running, see [terminateRefresh]. */
+    @Transient
+    private val abandonedThreads = AbandonedThreads()
+
+    /**
+     * Makes [terminateRefresh] and the end of a refresh mutually exclusive: either the refresh ends normally or it is
+     * terminated (and then doesn't touch the state any more). Not `this`, as subclasses synchronize on it.
+     */
+    @Transient
+    private val refreshStateMonitor = Any()
 
     /**
      * Incremented by every [setExpired]. A caller waiting for a refresh of another thread remembers the value it has
@@ -227,6 +250,52 @@ abstract class AbstractCache {
         checkStuckRefresh()
     }
 
+    /**
+     * Terminates the running refresh (system dashboard): interrupts its thread and abandons it, so a new refresh may
+     * start at once instead of waiting for a refresh that hangs (e.g. on a database lock). The lock is replaced and
+     * the cache left expired, so the next access refreshes it. A thread ignoring the interrupt can't be stopped (no
+     * [Thread.stop] on Java 20+): it runs on until it returns by itself, but doesn't change the state of the cache any
+     * more, see [performRefresh]. It is counted in [CacheStatus.abandonedThreads] meanwhile.
+     * @param user Only logged.
+     * @return false, if no refresh is running.
+     */
+    fun terminateRefresh(user: String?): Boolean {
+        val lock = refreshLock
+        val thread = refreshingThread
+        if (!isRefreshInProgress || thread == null) {
+            return false
+        }
+        synchronized(refreshStateMonitor) {
+            if (refreshLock !== lock || refreshingThread !== thread) {
+                return false // Finished or terminated meanwhile.
+            }
+            val startMillis = refreshStartMillis
+            val runningSeconds = if (startMillis >= 0) (System.currentTimeMillis() - startMillis) / 1000 else 0
+            log.error {
+                "Refresh of cache ${this::class.simpleName} terminated by $user after ${runningSeconds}s " +
+                        "(thread=${thread.name}, state=${thread.state}). Stack trace of the terminated thread:" +
+                        AbandonedThreads.stackTraceOf(thread)
+            }
+            refreshGeneration.incrementAndGet()
+            refreshLock = ReentrantLock()
+            abandonedThreads.add(thread)
+            val end = System.currentTimeMillis()
+            lastRefreshEndMillis = end
+            if (startMillis >= 0) {
+                lastRefreshDurationMs = end - startMillis
+            }
+            refreshCount.incrementAndGet()
+            failureCount.incrementAndGet()
+            lastRefreshError = "Terminated by $user after ${runningSeconds}s."
+            isRefreshInProgress = false
+            refreshingThread = null
+            refreshStartMillis = -1
+            setExpired()
+            thread.interrupt()
+        }
+        return true
+    }
+
     /** A snapshot of the state of this cache, for the system dashboard. */
     fun status(): CacheStatus {
         val runningSince = refreshStartMillis.takeIf { isRefreshInProgress && it >= 0 }
@@ -246,6 +315,7 @@ abstract class AbstractCache {
             lastRefreshError = lastRefreshError,
             refreshCount = refreshCount.get(),
             failureCount = failureCount.get(),
+            abandonedThreads = abandonedThreads.aliveCount(),
         )
     }
 
@@ -394,7 +464,7 @@ abstract class AbstractCache {
         // pinpoints the exact stack instead of only telling that "something" is stuck. Then interrupt it: refresh()
         // catches the resulting exception, releases the lock and leaves the cache expired, so it heals on the next
         // access without a restart.
-        val stackTrace = thread?.stackTrace?.joinToString(separator = "") { "\n\tat $it" } ?: " <thread already gone>"
+        val stackTrace = AbandonedThreads.stackTraceOf(thread)
         log.error {
             "Refresh of cache ${this::class.simpleName} has been running for ${runningSeconds}s and seems to be " +
                     "stuck (thread=${thread?.name}, state=${thread?.state}). This is usually a JDBC call blocked on a " +
@@ -432,8 +502,11 @@ abstract class AbstractCache {
      * [checkRefresh].
      */
     private fun performRefresh(byTimeExpiry: Boolean = false) {
-        if (refreshLock.isHeldByCurrentThread) {
-            // Nested access from within our own refresh: the outer call is doing the work.
+        // Captured: terminateRefresh replaces the lock, but this call must release the one it acquired.
+        val lock = refreshLock
+        if (lock.isHeldByCurrentThread || abandonedThreads.contains(Thread.currentThread())) {
+            // Nested access from within our own refresh: the outer call is doing the work. Or from within a
+            // terminated refresh, which must not start a new one beside the refresh replacing it.
             return
         }
         // Remember the state we want to be refreshed before waiting for the lock: a refresh started after this point
@@ -442,9 +515,9 @@ abstract class AbstractCache {
         val nested = refreshDepthOnThisThread.get() > 0
         val locked = if (nested) {
             // Inside another cache's refresh (holding its lock): never wait for this cache's lock, that could deadlock.
-            refreshLock.tryLock()
+            lock.tryLock()
         } else {
-            refreshLock.tryLock(MAX_WAIT_FOR_CONCURRENT_REFRESH_MS, TimeUnit.MILLISECONDS)
+            lock.tryLock(MAX_WAIT_FOR_CONCURRENT_REFRESH_MS, TimeUnit.MILLISECONDS)
         }
         if (!locked) {
             val runningRefresh = refreshStartMillis
@@ -461,48 +534,80 @@ abstract class AbstractCache {
         // cache's lock (see the tryLock choice above), so a thread holding a lock never blocks on another lock and no
         // lock-ordering cycle can form.
         refreshDepthOnThisThread.set(refreshDepthOnThisThread.get() + 1)
+        val generation = refreshGeneration.get()
+        var abandoned = false
         try {
             if (isUpToDate(byTimeExpiry, requiredInvalidation)) {
                 // Another thread already refreshed while we waited for the lock.
                 return
             }
             cacheListeners?.forEach { listener -> listener.onBeforeCacheRefresh() }
+            val startMillis = System.currentTimeMillis()
             try {
                 isRefreshInProgress = true
                 stuckRefreshReported = false
-                refreshStartMillis = System.currentTimeMillis()
+                refreshStartMillis = startMillis
                 refreshingThread = Thread.currentThread()
                 val invalidation = invalidationCounter.get()
-                this.timeOfLastRefresh = System.currentTimeMillis()
+                this.timeOfLastRefresh = startMillis
+                var error: Throwable? = null
                 try {
-                    this.refresh()
-                    // Mark the cache up-to-date only after a successful refresh. A failed or interrupted refresh (see
-                    // checkStuckRefresh) leaves it expired, so the next checkRefresh triggers a new refresh and the
-                    // cache heals itself without a restart.
-                    this.refreshedInvalidation = invalidation
-                    this.isExpired = false
-                    lastSuccessMillis = System.currentTimeMillis()
-                    lastRefreshError = null
+                    // A statement blocked on a database lock fails after the timeout instead of hanging the refresh.
+                    MaintenanceDbTimeouts.run { this.refresh() }
                 } catch (ex: Throwable) {
-                    failureCount.incrementAndGet()
-                    lastRefreshError = ex.message ?: ex::class.java.name
-                    log.error(ex) { ex.message }
+                    error = ex
+                }
+                synchronized(refreshStateMonitor) {
+                    abandoned = refreshGeneration.get() != generation
+                    if (abandoned) {
+                        // Terminated (see terminateRefresh): a newer refresh may already run or be done. Leave the
+                        // state alone, but expire the cache again, as the data just set may be older than the
+                        // newer refresh's.
+                        setExpired()
+                    } else if (error == null) {
+                        // Mark the cache up-to-date only after a successful refresh. A failed or interrupted refresh
+                        // (see checkStuckRefresh) leaves it expired, so the next checkRefresh triggers a new refresh
+                        // and the cache heals itself without a restart.
+                        this.refreshedInvalidation = invalidation
+                        this.isExpired = false
+                        lastSuccessMillis = System.currentTimeMillis()
+                        lastRefreshError = null
+                    } else {
+                        failureCount.incrementAndGet()
+                        lastRefreshError = error.message ?: error::class.java.name
+                    }
+                }
+                if (abandoned) {
+                    log.warn {
+                        "Terminated refresh of cache ${this::class.simpleName} returned after " +
+                                "${(System.currentTimeMillis() - startMillis) / 1000}s" +
+                                (error?.let { " with ${it::class.java.simpleName}: ${it.message}" } ?: ".")
+                    }
+                } else if (error != null) {
+                    log.error(error) { error.message }
                 }
             } finally {
-                val end = System.currentTimeMillis()
-                lastRefreshEndMillis = end
-                lastRefreshDurationMs = end - refreshStartMillis
-                refreshCount.incrementAndGet()
-                isRefreshInProgress = false
-                refreshingThread = null
-                refreshStartMillis = -1
+                synchronized(refreshStateMonitor) {
+                    if (!abandoned && refreshGeneration.get() == generation) {
+                        val end = System.currentTimeMillis()
+                        lastRefreshEndMillis = end
+                        lastRefreshDurationMs = end - startMillis
+                        refreshCount.incrementAndGet()
+                        isRefreshInProgress = false
+                        refreshingThread = null
+                        refreshStartMillis = -1
+                    }
+                }
                 // Clear a pending interrupt so the (pooled/coroutine) thread is not left interrupted, in case
-                // checkStuckRefresh interrupted us but refresh() finished before observing it.
+                // checkStuckRefresh or terminateRefresh interrupted us but refresh() finished before observing it.
                 Thread.interrupted()
             }
         } finally {
             refreshDepthOnThisThread.set(refreshDepthOnThisThread.get() - 1)
-            refreshLock.unlock()
+            lock.unlock()
+        }
+        if (abandoned) {
+            return
         }
         // Notify the listeners after releasing the lock: a listener may invalidate and reload this cache again
         // (see AuftragsRechnungCache), which must not deadlock nor be swallowed as a nested call.

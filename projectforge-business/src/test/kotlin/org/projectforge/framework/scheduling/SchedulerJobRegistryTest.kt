@@ -34,6 +34,7 @@ import org.springframework.core.env.StandardEnvironment
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SchedulerJobRegistryTest {
     private val registry = SchedulerJobRegistry(StandardEnvironment())
@@ -189,6 +190,54 @@ class SchedulerJobRegistryTest {
         Assertions.assertEquals(1, registry.get(job.id)!!.snapshot().runs)
         Assertions.assertFalse(registry.get(job.id)!!.snapshot().running)
         Assertions.assertEquals(SchedulerJobRegistry.RunNowStatus.NOT_FOUND, registry.runNow(job.id, "admin").status)
+    }
+
+    @Test
+    fun `a terminated run is recorded as failed, abandoned and the job may run again at once`() {
+        val job = definition("test.terminate")
+        Assertions.assertEquals(SchedulerJobRegistry.TerminateStatus.NOT_FOUND, registry.terminate(job.id, "admin"))
+        registry.run(job) {}
+        Assertions.assertEquals(SchedulerJobRegistry.TerminateStatus.NOT_RUNNING, registry.terminate(job.id, "admin"))
+        val started = CountDownLatch(1)
+        val release = AtomicBoolean(false)
+        var zombie: Thread? = null
+        registry.runAsync(job) { run ->
+            zombie = Thread.currentThread()
+            started.countDown()
+            // Simulates a JDBC call not reacting to the interrupt.
+            while (!release.get()) {
+                try {
+                    Thread.sleep(10)
+                } catch (_: InterruptedException) {
+                    // Ignored.
+                }
+            }
+            run.note("finished at last")
+        }
+        Assertions.assertTrue(started.await(10, TimeUnit.SECONDS))
+        waitUntil { registry.get(job.id)!!.runningThread != null }
+        Assertions.assertEquals(SchedulerJobRegistry.TerminateStatus.TERMINATED, registry.terminate(job.id, "admin"))
+        registry.get(job.id)!!.snapshot().let {
+            Assertions.assertFalse(it.running)
+            Assertions.assertEquals(1, it.abandonedThreads)
+            Assertions.assertEquals(SchedulerRunStatus.ERROR, it.lastStatus)
+            Assertions.assertTrue(it.lastError!!.startsWith("Terminated by admin"))
+            Assertions.assertTrue(it.recentRuns.first().stackExcerpt!!.contains("SchedulerJobRegistryTest"))
+        }
+        var called = false
+        registry.run(job) { called = true }
+        Assertions.assertTrue(called, "Runs again at once.")
+        // The abandoned run returns at last: nothing is recorded, the state of the newer run is kept.
+        release.set(true)
+        zombie!!.join(10_000)
+        registry.get(job.id)!!.snapshot().let {
+            Assertions.assertFalse(it.running)
+            Assertions.assertEquals(0, it.abandonedThreads, "The thread has gone.")
+            Assertions.assertEquals(3, it.runs, "First + terminated + second run, the abandoned one not twice.")
+            Assertions.assertEquals(SchedulerRunStatus.SUCCESS, it.lastStatus)
+            Assertions.assertTrue(it.recentRuns.none { run -> "finished at last" in run.notes })
+        }
+        Assertions.assertEquals(3, sunk.count { it.jobId == job.id })
     }
 
     private fun definition(id: String) = SchedulerJobDefinition(

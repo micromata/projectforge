@@ -29,9 +29,12 @@ import jakarta.persistence.LockModeType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.error
 import org.hibernate.Session
+import org.hibernate.jpa.SpecHints
+import org.projectforge.common.DatabaseDialect
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -48,10 +51,18 @@ open class PfPersistenceService {
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
 
+    @Value("\${projectforge.maintenance.db.lockTimeoutSeconds:${MaintenanceDbTimeouts.DEFAULT_LOCK_TIMEOUT_SECONDS}}")
+    private var maintenanceLockTimeoutSeconds: Int = MaintenanceDbTimeouts.DEFAULT_LOCK_TIMEOUT_SECONDS
+
+    @Value("\${projectforge.maintenance.db.statementTimeoutSeconds:0}")
+    private var maintenanceStatementTimeoutSeconds: Int = 0
+
     @PostConstruct
     private fun postConstruct() {
         instance = this
         HibernateUtils.internalInit(entityManagerFactory)
+        MaintenanceDbTimeouts.lockTimeoutSeconds = maintenanceLockTimeoutSeconds
+        MaintenanceDbTimeouts.statementTimeoutSeconds = maintenanceStatementTimeoutSeconds
     }
 
     /**
@@ -162,6 +173,7 @@ open class PfPersistenceService {
                 log.debug { "Begin transactional context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 em.transaction.begin()
+                applyMaintenanceTimeouts(context)
                 // openedTransactions.add(em.transaction)
                 //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
                 try {
@@ -220,6 +232,7 @@ open class PfPersistenceService {
                 // log.info { "Running read only" }
                 em.unwrap(Session::class.java).isDefaultReadOnly = true
                 // No transaction in readonly mode.
+                applyMaintenanceTimeouts(context)
                 return block(context)
             }
         } finally {
@@ -227,6 +240,44 @@ open class PfPersistenceService {
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().readonlyClosed()
+        }
+    }
+
+    /**
+     * Sets the [MaintenanceDbTimeouts] for a new context, if called inside [MaintenanceDbTimeouts.run] (cache refresh,
+     * scheduler run):
+     * - PostgreSQL: transaction-local on the connection (`set_config(..., true)`). The pool has auto-commit off and
+     *   Hibernate holds the connection until the context is closed (handling mode DELAYED_ACQUISITION_AND_HOLD), so a
+     *   readonly context runs in one implicit transaction, too, rolled back on return to the pool. The pooled
+     *   connection therefore never keeps the timeouts.
+     * - HSQLDB has no lock timeout, but its JDBC query timeout covers the wait for locks, too. It is set as JPA query
+     *   timeout of the context's session, which Hibernate applies to every query created by it (not to `find` or lazy
+     *   loading).
+     */
+    private fun applyMaintenanceTimeouts(context: PfPersistenceContext) {
+        if (!MaintenanceDbTimeouts.isActive) {
+            return
+        }
+        if (HibernateUtils.databaseDialect == DatabaseDialect.HSQL) {
+            MaintenanceDbTimeouts.queryTimeoutMillis()?.let { context.em.setProperty(SpecHints.HINT_SPEC_QUERY_TIMEOUT, it) }
+            return
+        }
+        val settings = MaintenanceDbTimeouts.settings()
+        if (settings.isEmpty()) {
+            return
+        }
+        try {
+            context.em.unwrap(Session::class.java).doWork { connection ->
+                connection.prepareStatement("select set_config(?, ?, true)").use { statement ->
+                    settings.forEach { (name, value) ->
+                        statement.setString(1, name)
+                        statement.setString(2, value)
+                        statement.executeQuery().close()
+                    }
+                }
+            }
+        } catch (ex: Exception) {
+            log.warn { "Couldn't set the database timeouts for maintenance work: ${ex.message}" }
         }
     }
 

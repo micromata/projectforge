@@ -25,7 +25,10 @@ package org.projectforge.framework.scheduling
 
 import org.projectforge.common.scheduling.SchedulerActiveCheck
 import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerTrigger
+import org.projectforge.framework.utils.AbandonedThreads
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * The state of a scheduled job since the start (in memory), see [SchedulerJobRegistry]. The last run is restored
@@ -46,6 +49,23 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
     @Volatile
     var runningSince: Long? = null
         internal set
+
+    /** The thread executing the running job, for terminating it ([SchedulerJobRegistry.terminate]). */
+    @Volatile
+    internal var runningThread: Thread? = null
+
+    /** The trigger of the running job, for recording a terminated run. */
+    @Volatile
+    internal var runningTrigger: SchedulerTrigger? = null
+
+    /**
+     * Incremented by every run and by [SchedulerJobRegistry.terminate]: a terminated run must no longer record its
+     * result nor reset the running flag of a newer run when it returns at last.
+     */
+    internal val runId = AtomicLong(0)
+
+    /** The threads of terminated runs still running. */
+    internal val abandonedThreads = AbandonedThreads()
 
     /** The reason of the last check, null if active (or not yet checked). */
     @Volatile
@@ -125,6 +145,7 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         inactiveReason = inactiveReason,
         lastScheduledReference = lastScheduledReference,
         recentRuns = recentRuns.toList(),
+        abandonedThreads = abandonedThreads.aliveCount(),
     )
 
     /** A consistent copy of the state. The counts are those since the start. */
@@ -143,6 +164,8 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         val lastScheduledReference: Long?,
         /** Newest first. */
         val recentRuns: List<SchedulerRunRecord>,
+        /** Threads of terminated runs still running (not reacting to the interrupt). */
+        val abandonedThreads: Int = 0,
     )
 
     companion object {

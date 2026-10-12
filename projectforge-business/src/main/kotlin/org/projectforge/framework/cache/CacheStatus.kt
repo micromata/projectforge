@@ -52,4 +52,6 @@ class CacheStatus(
     val lastRefreshError: String?,
     val refreshCount: Long,
     val failureCount: Long,
+    /** Threads of terminated refreshes still running (not reacting to the interrupt), see [AbstractCache.terminateRefresh]. */
+    val abandonedThreads: Int = 0,
 )

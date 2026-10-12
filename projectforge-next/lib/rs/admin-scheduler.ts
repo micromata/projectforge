@@ -65,6 +65,10 @@ export interface SchedulerJobEntry {
   avgDurationMs7d?: number | null;
   maxDurationMs7d?: number | null;
   runNowAllowed: boolean;
+  /** The running job may be terminated. */
+  terminateAllowed?: boolean;
+  /** Threads of terminated runs still running (not reacting to the interrupt). */
+  abandonedThreads?: number;
 }
 
 export interface SchedulerJobList {
@@ -156,4 +160,19 @@ export async function runSchedulerJobNow(
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
   return null;
+}
+
+/**
+ * Terminates the running job: interrupts and abandons the run (recorded as failed), so the job may run again at once.
+ * @return false, if the job isn't running (any more).
+ * @throws RsError on other failures (e.g. 404 for an unknown job).
+ */
+export async function terminateSchedulerJob(id: string): Promise<boolean> {
+  const path = `/rs/adminScheduler/terminate?id=${encodeURIComponent(id)}`;
+  const res = await rawRequest(path, { method: "POST" });
+  if (res.status === 409) return false;
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  return true;
 }

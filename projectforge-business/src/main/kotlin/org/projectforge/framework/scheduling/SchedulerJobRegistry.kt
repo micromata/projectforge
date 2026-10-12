@@ -31,6 +31,8 @@ import org.projectforge.common.scheduling.SchedulerJobDefinition
 import org.projectforge.common.scheduling.SchedulerJobRunner
 import org.projectforge.common.scheduling.SchedulerRun
 import org.projectforge.common.scheduling.SchedulerTrigger
+import org.projectforge.framework.persistence.jpa.MaintenanceDbTimeouts
+import org.projectforge.framework.utils.AbandonedThreads
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
@@ -56,6 +58,8 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
     enum class RunNowStatus { STARTED, NOT_FOUND, INACTIVE, RUNNING }
 
     class RunNowResult(val status: RunNowStatus, val reason: String? = null)
+
+    enum class TerminateStatus { TERMINATED, NOT_FOUND, NOT_RUNNING }
 
     private val states = ConcurrentHashMap<String, SchedulerJobState>()
 
@@ -98,12 +102,10 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
     override fun runAsync(definition: SchedulerJobDefinition, body: SchedulerJobBody) {
         val state = stateOf(definition)
         val trigger = currentTrigger()
-        if (!begin(state, trigger, async = true)) {
-            return
-        }
+        val runId = begin(state, trigger, async = true) ?: return
         try {
             thread(name = "pf-scheduler-${definition.id}") {
-                execute(state, trigger, body, async = true)
+                execute(state, runId, trigger, body, async = true)
             }
         } catch (t: Throwable) {
             // Thread couldn't be started: release the lock, otherwise the job would never run again.
@@ -116,9 +118,8 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
     override fun run(definition: SchedulerJobDefinition, body: SchedulerJobBody) {
         val state = stateOf(definition)
         val trigger = currentTrigger()
-        if (begin(state, trigger, async = false)) {
-            execute(state, trigger, body, async = false)
-        }
+        val runId = begin(state, trigger, async = false) ?: return
+        execute(state, runId, trigger, body, async = false)
     }
 
     /**
@@ -147,6 +148,50 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
             }
         }
         return RunNowResult(RunNowStatus.STARTED)
+    }
+
+    /**
+     * Terminates the running job (system dashboard): interrupts its thread and abandons the run, so the job may run
+     * again at once instead of waiting for a run that hangs (e.g. on a database lock or a remote call). The run is
+     * recorded as failed. A thread ignoring the interrupt can't be stopped (no [Thread.stop] on Java 20+): it runs on
+     * until it returns by itself, but its result isn't recorded any more and it doesn't touch the state of newer runs
+     * (see [execute]). It is counted in [SchedulerJobState.Snapshot.abandonedThreads] meanwhile.
+     * @param user Only logged.
+     */
+    fun terminate(id: String, user: String?): TerminateStatus {
+        val state = states[id] ?: return TerminateStatus.NOT_FOUND
+        val now = clock()
+        val record: SchedulerRunRecord
+        synchronized(state) {
+            val thread = state.runningThread
+            if (!state.running.get() || thread == null) {
+                return TerminateStatus.NOT_RUNNING
+            }
+            val start = state.runningSince ?: now
+            val duration = now - start
+            val stackTrace = AbandonedThreads.stackTraceOf(thread)
+            log.error {
+                "Scheduler job $id terminated by $user after ${duration.formatMillis()} (thread=${thread.name}, " +
+                        "state=${thread.state}). Stack trace of the terminated thread:$stackTrace"
+            }
+            state.runId.incrementAndGet()
+            state.runningThread = null
+            state.abandonedThreads.add(thread)
+            record = SchedulerRunRecord(
+                jobId = id,
+                start = start,
+                durationMs = duration,
+                status = SchedulerRunStatus.ERROR,
+                trigger = state.runningTrigger ?: SchedulerTrigger.SCHEDULED,
+                errorMessage = "Terminated by $user after ${duration.formatMillis()}.",
+                stackExcerpt = "Stack trace of the terminated thread ${thread.name}:$stackTrace".take(SchedulerJobRunDO.MAX_STACK),
+            )
+            state.runningSince = null
+            state.running.set(false)
+            thread.interrupt()
+        }
+        record(state, record)
+        return TerminateStatus.TERMINATED
     }
 
     /** Checks whether every `@Scheduled` method is tracked (a forgotten job would be missing on the dashboard). */
@@ -180,8 +225,8 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
             "activity check failed: ${t.message}"
         }
 
-    /** @return false, if the job is inactive or still running (skipped). */
-    private fun begin(state: SchedulerJobState, trigger: SchedulerTrigger, async: Boolean): Boolean {
+    /** @return The id of the new run, or null, if the job is inactive or still running (skipped). */
+    private fun begin(state: SchedulerJobState, trigger: SchedulerTrigger, async: Boolean): Long? {
         val now = clock()
         val reason = inactiveReasonOf(state)
         state.inactiveReason = reason
@@ -190,7 +235,7 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
         }
         if (reason != null) {
             log.debug { "Scheduler job ${state.definition.id} inactive: $reason" }
-            return false
+            return null
         }
         if (!state.running.compareAndSet(false, true)) {
             if (trigger == SchedulerTrigger.SCHEDULED && !async) {
@@ -198,22 +243,53 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
             }
             logOf(state) { "Scheduler job ${state.definition.id} skipped: the previous run (since ${state.runningSince?.let { (now - it).formatMillis() }}) is still running." }
             record(state, SchedulerRunRecord(state.definition.id, now, 0, SchedulerRunStatus.SKIPPED, trigger))
-            return false
+            return null
         }
         state.runningSince = now
-        return true
+        state.runningTrigger = trigger
+        return state.runId.incrementAndGet()
     }
 
-    private fun execute(state: SchedulerJobState, trigger: SchedulerTrigger, body: SchedulerJobBody, async: Boolean) {
+    /**
+     * Runs the job and records the run. A run terminated meanwhile ([terminate], [runId] changed) is already recorded
+     * and its running flag released, so it records nothing when it returns and leaves the state of a newer run alone.
+     */
+    private fun execute(
+        state: SchedulerJobState,
+        runId: Long,
+        trigger: SchedulerTrigger,
+        body: SchedulerJobBody,
+        async: Boolean,
+    ) {
         val id = state.definition.id
         val run = Run(trigger)
         val start = clock()
+        synchronized(state) {
+            if (state.runId.get() == runId) {
+                state.runningThread = Thread.currentThread()
+            }
+        }
         try {
-            body.run(run)
+            // A statement blocked on a database lock fails after the timeout instead of hanging the job.
+            MaintenanceDbTimeouts.run { body.run(run) }
         } catch (t: Throwable) {
-            log.error(t) { "Scheduler job $id failed: ${t.message}" }
+            if (state.runId.get() == runId) {
+                log.error(t) { "Scheduler job $id failed: ${t.message}" }
+            }
             run.fail(t.message ?: t.javaClass.name, t)
         } finally {
+            val current = synchronized(state) {
+                (state.runId.get() == runId).also { if (it) state.runningThread = null }
+            }
+            if (!current) {
+                log.warn {
+                    "Terminated run of scheduler job $id returned after ${(clock() - start).formatMillis()}" +
+                            (run.errorMessage?.let { ": $it" } ?: ".")
+                }
+                // Don't leave a pooled thread (run in the scheduler's thread) interrupted.
+                Thread.interrupted()
+                return
+            }
             val end = clock()
             val duration = end - start
             val slow = duration >= SchedulerSlowDetector.thresholdMillis(state, minSlowMillis, slowFactor, end)

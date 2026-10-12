@@ -3566,6 +3566,10 @@
       "title": "Administration"
     },
     "caches": {
+      "abandoned": {
+        "_": "Beendete Aktualisierungen, die noch laufen: {arg0}",
+        "tooltip": "Der Thread einer beendeten Aktualisierung reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet. Er ändert den Cache nicht mehr. Nur ein Neustart beendet ihn früher."
+      },
       "column": {
         "cache": "Cache",
         "duration": "Dauer",
@@ -3595,7 +3599,14 @@
         "refreshing": "Wird aktualisiert",
         "stuck": "Hängt"
       },
-      "tab": "Caches"
+      "tab": "Caches",
+      "terminate": {
+        "_": "Beenden",
+        "done": "Die Aktualisierung wurde beendet. Der Cache wird beim nächsten Zugriff neu geladen.",
+        "notRunning": "Es läuft keine Aktualisierung (mehr).",
+        "question": "Aktualisierung von „{arg0}“ beenden? Sie wird unterbrochen und aufgegeben, sodass der Cache sofort wieder aktualisiert werden kann. Reagiert die Aktualisierung nicht (z. B. blockiert in einem Datenbankaufruf), läuft ihr Thread im Hintergrund weiter, bis er von selbst endet, ändert den Cache aber nicht mehr.",
+        "tooltip": "Beendet die laufende Aktualisierung, z. B. wenn sie an einer Datenbanksperre hängt."
+      }
     },
     "dashboard": {
       "title": "System-Dashboard"
@@ -3612,6 +3623,10 @@
       "title": "Plugins"
     },
     "scheduler": {
+      "abandoned": {
+        "_": "Beendete Läufe, die noch laufen: {arg0}",
+        "tooltip": "Der Thread eines beendeten Laufs reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet. Sein Ergebnis wird nicht mehr erfasst. Nur ein Neustart beendet ihn früher."
+      },
       "column": {
         "area": "Bereich",
         "avgDuration7d": "Ø Dauer (7 Tage)",
@@ -3673,7 +3688,14 @@
         "running": "Läuft",
         "skipped": "Übersprungen"
       },
-      "tab": "Scheduler"
+      "tab": "Scheduler",
+      "terminate": {
+        "_": "Beenden",
+        "done": "Der Lauf wurde beendet und als fehlgeschlagen erfasst.",
+        "notRunning": "Der Job läuft nicht (mehr).",
+        "question": "Laufenden Job „{arg0}“ beenden? Der Lauf wird unterbrochen, aufgegeben und als fehlgeschlagen erfasst, sodass der Job sofort wieder laufen kann. Bereits vorgenommene Änderungen bleiben erhalten. Reagiert der Lauf nicht (z. B. blockiert in einem Datenbankaufruf), läuft sein Thread im Hintergrund weiter, bis er von selbst endet, sein Ergebnis wird aber nicht mehr erfasst.",
+        "tooltip": "Beendet den laufenden Job, z. B. wenn er an einer Datenbanksperre hängt."
+      }
     },
     "statistics": {
       "title": "Systemstatistiken"

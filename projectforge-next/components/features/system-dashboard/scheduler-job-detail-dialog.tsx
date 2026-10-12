@@ -17,6 +17,7 @@ import { formatNumber, formatTimestampMinutes } from "@/lib/format";
 import {
   fetchSchedulerJobDetail,
   runSchedulerJobNow,
+  terminateSchedulerJob,
   type SchedulerJobDetail,
   type SchedulerRunEntry,
 } from "@/lib/rs/admin-scheduler";
@@ -89,8 +90,19 @@ function DetailContent({ detail }: { detail: SchedulerJobDetail }) {
           <span className="font-mono text-xs text-muted-foreground">
             {job.id}
           </span>
-          <span className="ml-auto">
+          {(job.abandonedThreads ?? 0) > 0 && (
+            <span
+              className="text-xs text-destructive"
+              title={t("system.scheduler.abandoned.tooltip")}
+            >
+              {t("system.scheduler.abandoned._", {
+                arg0: job.abandonedThreads ?? 0,
+              })}
+            </span>
+          )}
+          <span className="ml-auto flex gap-2">
             <RunNowButton detail={detail} />
+            {job.terminateAllowed && <TerminateButton detail={detail} />}
           </span>
         </div>
       </DialogHeader>
@@ -220,6 +232,57 @@ function RunNowButton({ detail }: { detail: SchedulerJobDetail }) {
         onConfirm={() => {
           setConfirm(false);
           runNow.mutate();
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * "Terminate" of a running job behind a question: interrupts and abandons the run (recorded as failed), so the job
+ * may run again at once, e.g. if it hangs on a database lock.
+ */
+function TerminateButton({ detail }: { detail: SchedulerJobDetail }) {
+  const t = useTranslations();
+  const queryClient = useQueryClient();
+  const [confirm, setConfirm] = useState(false);
+  const job = detail.job;
+  const terminate = useMutation({
+    mutationFn: () => terminateSchedulerJob(job.id),
+    onSuccess: (terminated) => {
+      if (terminated) {
+        toast.success(t("system.scheduler.terminate.done"));
+      } else {
+        toast.error(t("system.scheduler.terminate.notRunning"));
+      }
+      queryClient.invalidateQueries({ queryKey: [SCHEDULER_QUERY_KEY] });
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : String(err)),
+  });
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="destructive"
+        disabled={terminate.isPending}
+        title={t("system.scheduler.terminate.tooltip")}
+        onClick={() => setConfirm(true)}
+      >
+        {t("system.scheduler.terminate._")}
+      </Button>
+      <ConfirmDialog
+        open={confirm}
+        onOpenChange={setConfirm}
+        title={t("system.scheduler.terminate._")}
+        description={t("system.scheduler.terminate.question", {
+          arg0: job.title,
+        })}
+        confirmLabel={t("system.scheduler.terminate._")}
+        destructive
+        onConfirm={() => {
+          setConfirm(false);
+          terminate.mutate();
         }}
       />
     </>

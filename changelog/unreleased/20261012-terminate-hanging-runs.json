@@ -1,0 +1,15 @@
+{
+  "type": "added",
+  "en": "System dashboard",
+  "de": "System-Dashboard",
+  "items": [
+    {
+      "en": "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.",
+      "de": "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen."
+    },
+    {
+      "en": "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).",
+      "de": "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden)."
+    }
+  ]
+}
