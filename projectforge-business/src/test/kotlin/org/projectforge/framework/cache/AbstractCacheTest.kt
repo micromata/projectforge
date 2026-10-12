@@ -560,6 +560,92 @@ class AbstractCacheTest {
         pool.shutdown()
     }
 
+    @Test
+    @Timeout(30)
+    fun `a waiter on the replaced lock doesn't refresh beside the new refresh`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        val refreshes = TerminateScenario(cache)
+        val pool = Executors.newFixedThreadPool(3)
+        val zombie = pool.submit { cache.forceReload() }
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        // Waits for the lock of the hanging refresh (the lock replaced by terminateRefresh).
+        val waiter = pool.submit { cache.forceReload() }
+        Thread.sleep(200)
+        Assertions.assertTrue(cache.terminateRefresh("admin"))
+        val newRefresh = pool.submit { cache.forceReload() }
+        Assertions.assertTrue(refreshes.newRefreshStarted.await(10, TimeUnit.SECONDS))
+        // The terminated refresh returns and releases the old lock: the waiter gets it.
+        refreshes.releaseZombie.set(true)
+        zombie.get(10, TimeUnit.SECONDS)
+        Thread.sleep(300)
+        Assertions.assertEquals(
+            3, cache.refreshCount.get(),
+            "1 initial + terminated + new refresh: the waiter didn't refresh beside the new refresh.",
+        )
+        refreshes.releaseNewRefresh.countDown()
+        newRefresh.get(10, TimeUnit.SECONDS)
+        waiter.get(20, TimeUnit.SECONDS)
+        pool.shutdown()
+    }
+
+    @Test
+    @Timeout(30)
+    fun `the expiry by a returning terminated refresh isn't lost by a refresh running meanwhile`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        val refreshes = TerminateScenario(cache)
+        val pool = Executors.newFixedThreadPool(2)
+        val zombie = pool.submit { cache.forceReload() }
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        Assertions.assertTrue(cache.terminateRefresh("admin"))
+        val newRefresh = pool.submit { cache.forceReload() }
+        Assertions.assertTrue(refreshes.newRefreshStarted.await(10, TimeUnit.SECONDS))
+        // The terminated refresh returns while the new one runs: its (older) data may have overwritten the new data.
+        refreshes.releaseZombie.set(true)
+        zombie.get(10, TimeUnit.SECONDS)
+        refreshes.releaseNewRefresh.countDown()
+        newRefresh.get(10, TimeUnit.SECONDS)
+        Assertions.assertTrue(cache.status().expired, "The new refresh didn't mark the cache up-to-date.")
+        cache.accessData()
+        Assertions.assertEquals(4, cache.refreshCount.get(), "The cache heals on the next access.")
+        Assertions.assertFalse(cache.status().expired)
+        pool.shutdown()
+    }
+
+    /**
+     * The 2nd refresh of the cache hangs ignoring the interrupt until [releaseZombie] (to be terminated), the 3rd (the
+     * new one after the termination) blocks until [releaseNewRefresh].
+     */
+    private class TerminateScenario(cache: TestCache) {
+        val releaseZombie = AtomicBoolean(false)
+        val newRefreshStarted = CountDownLatch(1)
+        val releaseNewRefresh = CountDownLatch(1)
+
+        init {
+            cache.refreshAction = {
+                when (cache.refreshCount.get()) {
+                    2 -> while (!releaseZombie.get()) {
+                        try {
+                            Thread.sleep(10)
+                        } catch (_: InterruptedException) {
+                            // Ignored, simulates a JDBC call not reacting to the interrupt.
+                        }
+                    }
+
+                    3 -> {
+                        newRefreshStarted.countDown()
+                        releaseNewRefresh.await(20, TimeUnit.SECONDS)
+                    }
+                }
+            }
+        }
+    }
+
     private fun awaitRefreshCount(cache: TestCache, expected: Int) {
         val timeout = System.currentTimeMillis() + 20_000
         while (cache.refreshCount.get() < expected && System.currentTimeMillis() < timeout) {

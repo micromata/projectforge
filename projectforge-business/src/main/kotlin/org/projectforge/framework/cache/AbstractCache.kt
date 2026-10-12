@@ -121,6 +121,13 @@ abstract class AbstractCache {
     private val abandonedThreads = AbandonedThreads()
 
     /**
+     * Incremented when a terminated refresh returns at last: its data may have overwritten the data of a refresh
+     * running meanwhile, which therefore must leave the cache expired (see [performRefresh]).
+     */
+    @Transient
+    private val abandonedReturns = AtomicLong(0)
+
+    /**
      * Makes [terminateRefresh] and the end of a refresh mutually exclusive: either the refresh ends normally or it is
      * terminated (and then doesn't touch the state any more). Not `this`, as subclasses synchronize on it.
      */
@@ -527,6 +534,13 @@ abstract class AbstractCache {
             }
             return
         }
+        if (lock !== refreshLock) {
+            // Replaced by terminateRefresh while we waited: the old lock was released by the abandoned refresh, a new
+            // refresh may hold the current one. Retry with it, never refresh beside it.
+            lock.unlock()
+            performRefresh(byTimeExpiry)
+            return
+        }
         // Invariant for deadlock-freedom: from here until unlock this thread holds refreshLock, so it must count as
         // "refreshing" (depth > 0) for the whole region - including the onBeforeCacheRefresh listeners, which may
         // (indirectly) refresh a mutually dependent cache. While depth > 0, such a refresh never waits for the other
@@ -549,6 +563,7 @@ abstract class AbstractCache {
                 refreshStartMillis = startMillis
                 refreshingThread = Thread.currentThread()
                 val invalidation = invalidationCounter.get()
+                val abandonedReturnsAtStart = abandonedReturns.get()
                 this.timeOfLastRefresh = startMillis
                 try {
                     // A statement blocked on a database lock fails after the timeout instead of hanging the refresh.
@@ -561,15 +576,20 @@ abstract class AbstractCache {
                 // counted as abandoned forever.
                 synchronized(refreshStateMonitor) {
                     abandoned = refreshGeneration.get() != generation
-                    if (!abandoned) {
-                        // Terminated otherwise: a newer refresh may already run or be done. Leave the state alone
-                        // (the cache is expired again below).
+                    if (abandoned) {
+                        // Terminated: a newer refresh may already run or be done. Leave the state alone (the cache
+                        // is expired again below), but tell a running refresh its data may have been overwritten.
+                        abandonedReturns.incrementAndGet()
+                    } else {
                         if (error == null) {
                             // Mark the cache up-to-date only after a successful refresh. A failed or interrupted
                             // refresh (see checkStuckRefresh) leaves it expired, so the next checkRefresh triggers a
-                            // new refresh and the cache heals itself without a restart.
-                            this.refreshedInvalidation = invalidation
-                            this.isExpired = false
+                            // new refresh and the cache heals itself without a restart. Also left expired, if a
+                            // terminated refresh returned meanwhile: it may have overwritten our data with older one.
+                            if (abandonedReturns.get() == abandonedReturnsAtStart) {
+                                this.refreshedInvalidation = invalidation
+                                this.isExpired = false
+                            }
                             lastSuccessMillis = System.currentTimeMillis()
                             lastRefreshError = null
                         } else {
