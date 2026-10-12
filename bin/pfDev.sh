@@ -25,6 +25,10 @@ Commands:
   setup <slot> [pw] Create a slot instance (see below); its first run fills the
                    database with test data (admin password pw, random if omitted)
   reset <slot>     Delete the home dir of a slot instance (asks first)
+  ps               List the running servers of all slots (:8080–:8089 and
+                   :3000–:3009) with PID and working dir (i.e. worktree)
+  stop [slot]      Stop the Spring (:8080+slot) and the next dev server
+                   (:3000+slot) of a slot
   dev [slot] […]   next dev (projectforge-next) on :3000+slot against :8080+slot;
                    -p <n> picks another port (pfDev.sh dev -p 3005)
   build            next build (projectforge-next)
@@ -164,6 +168,62 @@ require_slot() {
     echo "$1 needs a slot number (1–9)." >&2
     exit 1
   fi
+}
+
+# PID of the process listening on TCP port $1, empty if none.
+listener_pid() {
+  lsof -nP -t -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | head -1 || true
+}
+
+# Working dir of process $1 (shows the worktree a server runs from), ~ for $HOME.
+process_cwd() {
+  local dir
+  dir="$(lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' || true)"
+  echo "${dir/#$HOME/~}"
+}
+
+list_servers() {
+  local slot port pid kind lines=()
+  for slot in 0 1 2 3 4 5 6 7 8 9; do
+    for port in $((8080 + slot)) $((3000 + slot)); do
+      pid="$(listener_pid "$port")"
+      [[ -n "$pid" ]] || continue
+      ((port >= 8080)) && kind=spring || kind=next
+      lines+=("$(printf '%-5s %-7s %-7s %-7s %s' "$slot" ":$port" "$kind" "$pid" "$(process_cwd "$pid")")")
+    done
+  done
+  if ((${#lines[@]} == 0)); then
+    echo "No servers running."
+    return
+  fi
+  printf '%-5s %-7s %-7s %-7s %s\n' SLOT PORT KIND PID DIR
+  printf '%s\n' "${lines[@]}"
+}
+
+# Stops the server listening on port $1: TERM first, KILL if it still listens after 30 s.
+stop_port() {
+  local port="$1" pid parent pids=()
+  pid="$(listener_pid "$port")"
+  if [[ -z "$pid" ]]; then
+    echo "Nothing listens on :$port."
+    return
+  fi
+  pids=("$pid")
+  # next dev: the listening server is a child of `next dev` and npm (node processes), which would outlive it.
+  # The forked JVM of bootRun has the Gradle daemon as parent, which keeps running.
+  parent="$(ps -o ppid= -p "$pid" | tr -d ' ')"
+  while [[ -n "$parent" ]] && ((parent > 1)) && [[ "$(ps -o comm= -p "$parent")" =~ (^|/)(node|npm)$ ]]; do
+    pids+=("$parent")
+    parent="$(ps -o ppid= -p "$parent" | tr -d ' ')"
+  done
+  echo "Stopping :$port (PID ${pids[*]})…"
+  kill "${pids[@]}" 2>/dev/null || true
+  for _ in $(seq 1 60); do
+    [[ -z "$(listener_pid "$port")" ]] && { echo "Stopped :$port."; return; }
+    sleep 0.5
+  done
+  echo "Still listening on :$port, killing it."
+  kill -9 "${pids[@]}" 2>/dev/null || true
 }
 
 # Sets the version of all modules (the single source is gradle.properties).
@@ -402,6 +462,13 @@ case "$cmd" in
     fi
     read -r -p "Delete $PF_HOME (database, index, logs)? [y/N] " answer
     [[ "$answer" == [yY] ]] && rm -rf "$PF_HOME" && echo "Deleted."
+    ;;
+  ps)
+    list_servers
+    ;;
+  stop)
+    stop_port "$SPRING_PORT"
+    stop_port "$NEXT_PORT"
     ;;
   dev)
     # An own -p/--port replaces the slot's port: pfDev.sh dev -p 3005 → :3005 against :8080.
