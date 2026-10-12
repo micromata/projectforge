@@ -660,6 +660,27 @@ class AbstractCacheTest {
 
     @Test
     @Timeout(30)
+    fun `a caller waiting for a failing refresh doesn't refresh again at once`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        cache.refreshDurationMs = 300
+        cache.throwExceptionOnRefresh = true // E.g. a database lock timeout.
+        cache.setExpired()
+        val first = Thread { cache.accessData() }
+        first.start()
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        // Enters before the failure (no backoff yet) and waits for the lock of the failing refresh.
+        val waiter = Thread { cache.accessData() }
+        waiter.start()
+        first.join(10_000)
+        waiter.join(10_000)
+        Assertions.assertEquals(2, cache.refreshCount.get(), "The waiter didn't start the next refresh at once.")
+    }
+
+    @Test
+    @Timeout(30)
     fun `a nested access to a failed never filled cache doesn't retry on every access`() {
         val failing = TestCache()
         failing.throwExceptionOnRefresh = true

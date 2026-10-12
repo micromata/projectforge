@@ -235,7 +235,7 @@ abstract class AbstractCache {
      */
     fun forceReload() {
         setExpired()
-        performRefresh()
+        performRefresh(explicit = true)
     }
 
     /**
@@ -245,7 +245,7 @@ abstract class AbstractCache {
     fun forceReloadAsync() {
         setExpired()
         refreshScope.launch {
-            performRefresh()
+            performRefresh(explicit = true)
         }
     }
 
@@ -356,10 +356,8 @@ abstract class AbstractCache {
      */
     @JvmOverloads
     protected fun checkRefresh(waitForRefresh: Boolean = false) {
-        // Checked before checkStuckRefresh: a stuck refresh interrupted by it fails, but must be healed at once.
-        val backoff = inFailureBackoff()
         checkStuckRefresh()
-        if (backoff) {
+        if (inFailureBackoff()) {
             log.debug { "Last refresh of cache ${this::class.simpleName} failed, serving the current data until the retry." }
             return
         }
@@ -530,8 +528,10 @@ abstract class AbstractCache {
      *
      * @param byTimeExpiry true, if the cache is only outdated by [expireTime] (and wasn't invalidated), see
      * [checkRefresh].
+     * @param explicit true for [forceReload] and [forceReloadAsync]: refreshes also right after a failed refresh
+     * (see [inFailureBackoff]).
      */
-    private fun performRefresh(byTimeExpiry: Boolean = false) {
+    private fun performRefresh(byTimeExpiry: Boolean = false, explicit: Boolean = false) {
         // Captured: terminateRefresh replaces the lock, but this call must release the one it acquired.
         val lock = refreshLock
         if (lock.isHeldByCurrentThread || abandonedThreads.contains(Thread.currentThread())) {
@@ -562,7 +562,13 @@ abstract class AbstractCache {
             // Replaced by terminateRefresh while we waited: the old lock was released by the abandoned refresh, a new
             // refresh may hold the current one. Retry with it, never refresh beside it.
             lock.unlock()
-            performRefresh(byTimeExpiry)
+            performRefresh(byTimeExpiry, explicit)
+            return
+        }
+        if (!explicit && inFailureBackoff()) {
+            // The refresh we waited for failed (e.g. a database lock timeout): don't try again at once, every waiting
+            // caller would otherwise start the next refresh, each waiting for the timeout again.
+            lock.unlock()
             return
         }
         // Invariant for deadlock-freedom: from here until unlock this thread holds refreshLock, so it must count as
@@ -621,7 +627,11 @@ abstract class AbstractCache {
                         } else {
                             failureCount.incrementAndGet()
                             lastRefreshError = error.message ?: error::class.java.name
-                            lastFailureMillis = System.currentTimeMillis()
+                            if (!stuckRefreshReported) {
+                                // Not for a stuck refresh interrupted by checkStuckRefresh: it is to be healed by the
+                                // next access at once.
+                                lastFailureMillis = System.currentTimeMillis()
+                            }
                             failed = true
                         }
                         endRefresh(startMillis)
