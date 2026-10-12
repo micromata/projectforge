@@ -439,6 +439,8 @@ class OrphanedLinkFilter : Filter {
             "adminErrors" to "systemDashboard",
             "problemDashboard" to "systemDashboard",
             "systemStatistics" to SYSTEM_STATISTICS_ROUTE,
+            // The admin log viewer, a tab of the system dashboard; its query (?source=, ?search=, ?incident=) is kept.
+            "adminLogViewer" to "systemDashboard?tab=logs",
         )
 
         /** The system statistics, a tab of the system dashboard. */

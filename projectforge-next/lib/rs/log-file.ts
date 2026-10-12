@@ -5,7 +5,7 @@
 
 import { request } from "./client";
 import type { LogFileEvent, LogFileSearchData } from "./admin-errors";
-import type { LogLevel } from "./log-viewer";
+import type { LogContextScope, LogLevel } from "./log-viewer";
 
 /** `LogFileQueryFilter`, also the admin's last search (user pref). */
 export interface LogFileQueryFilter {
@@ -27,7 +27,7 @@ export interface LogFileQueryFilter {
 }
 
 /** `LogFileContextScope`: which neighbours of a hit are its context. */
-export type LogFileContextScope = "ALL" | "USER" | "LOGGER";
+export type LogFileContextScope = LogContextScope;
 
 /** `LogFileContextRequest`. */
 export interface LogFileContextRequest {

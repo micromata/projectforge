@@ -3661,10 +3661,16 @@
           "start": "Suchbegriffe eingeben und die Suche starten. Die Logdateien des Servers werden bei jeder Suche gelesen, daher ist sie langsamer als die Live-Ansicht.",
           "truncated": "Die Suche wurde an ihrer Grenze beendet (200 Treffer, Zeit oder Größe), es kann ältere Einträge geben. Zeitraum, Level oder Kategorie eingrenzen."
         },
+        "memory": {
+          "noNewer": "Noch keine neueren Einträge; später kommen neue beim Weiterblättern dazu.",
+          "noOlder": "Keine älteren Einträge im Speicher (nur die letzten 10.000 seit dem Serverstart werden gehalten).",
+          "notFound": "Der Eintrag ist nicht mehr im Speicher, es werden nur die letzten 10.000 gehalten. In den Logdateien steht er."
+        },
         "source": {
           "files": "Logdateien",
           "memory": "Live (Speicher)"
         },
+        "tab": "Protokolle",
         "title": "Adminprotokoll einsehen"
       },
       "alertMessage": {

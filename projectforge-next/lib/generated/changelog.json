@@ -11,6 +11,9 @@
         "title" : "Admin log viewer",
         "items" : [ "Search in the log files of the last days by text, period, level and logger category (to show or to hide), also for the days before the server's start.", "Each hit opens its context inline: the entries before and after it, all of them or only those of the same user or logger, with paging to older and newer ones. Also for the occurrences of a problem of the system dashboard." ]
       }, {
+        "title" : "Admin log viewer",
+        "items" : [ "Live view: each entry opens its context, the events before and after it in memory, all of them or only those of the same user or logger; with a logger column.", "The tables of the live view and of the log file search can be customized (column width, pinning, showing and hiding), stored per user as in all other lists." ]
+      }, {
         "title" : "System dashboard",
         "items" : [ "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.", "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).", "After a failed cache refresh, the cache serves its current data and retries after a minute at the earliest, instead of retrying on every access." ]
       } ]
@@ -19,7 +22,7 @@
       "items" : [ "Changelog: the releases of a major version are listed newest first, the release opening it last, linked from the top of the major; the release notes of an update link to it as well." ]
     }, {
       "type" : "changed",
-      "items" : [ "Approved vacation days without time sheets count again as days without time sheets in the monthly report and the notifications about missing time sheets. The monthly report lists working days and vacation days without time sheets separately, a click on the vacation days opens the dialog for booking several days; notification texts can list all days, only the vacation days or only the other working days without time sheets." ]
+      "items" : [ "The admin log viewer is now a tab of the system dashboard; its own menu entry is gone, and old links lead to the tab.", "Approved vacation days without time sheets count again as days without time sheets in the monthly report and the notifications about missing time sheets. The monthly report lists working days and vacation days without time sheets separately, a click on the vacation days opens the dialog for booking several days; notification texts can list all days, only the vacation days or only the other working days without time sheets." ]
     }, {
       "type" : "fixed",
       "items" : [ "Migration of files out of the JCR failed in the packaged application with \"No LoginModule found\"." ]

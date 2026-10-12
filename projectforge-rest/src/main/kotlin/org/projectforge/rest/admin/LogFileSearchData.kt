@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.admin
 
+import org.projectforge.common.logging.LogContext
 import org.projectforge.common.logging.LogLevel
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.support.logfile.LogFileContextResult
@@ -84,4 +85,18 @@ class LogFileContextData(result: LogFileContextResult?) {
     val moreBefore = result?.moreBefore == true
     val moreAfter = result?.moreAfter == true
     val truncated = result?.truncated == true
+}
+
+/**
+ * `POST /rs/adminLogViewer/context`: a log event in memory with its context, as [LogFileContextData].
+ * @param found False, if the event isn't in memory anymore (only the last events are kept).
+ */
+class LogViewerContextData(context: LogContext?) {
+    val found = context != null
+    val before = context?.before.orEmpty().map { LogViewerEvent(it) }
+    val hit = context?.hit?.let { LogViewerEvent(it) }
+    val after = context?.after.orEmpty().map { LogViewerEvent(it) }
+    val moreBefore = context?.moreBefore == true
+    val moreAfter = context?.moreAfter == true
+    val truncated = false
 }

@@ -122,6 +122,16 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
         return queue.query(filter, locale)
     }
 
+    /** The context of the event of the given id, see [LogQueue.context]; null if it isn't in memory anymore. */
+    fun context(
+        id: Long,
+        before: Int,
+        after: Int,
+        accept: (LoggingEventData, hit: LoggingEventData) -> Boolean,
+    ): LogContext? {
+        return queue.context(id, before, after, accept)
+    }
+
     companion object {
         private const val QUEUE_SIZE = 10000
         private const val REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS = 10 * 60 * 1000 // run GC every 10 minutes

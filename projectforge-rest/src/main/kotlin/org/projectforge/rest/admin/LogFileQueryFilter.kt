@@ -68,3 +68,15 @@ class LogFileContextRequest(
     val scope: LogFileContextScope = LogFileContextScope.ALL,
     val excludeLoggers: List<String> = emptyList(),
 )
+
+/**
+ * The context of a log event in memory ([AdminLogViewerRest.memoryContext]), found by its [id] (the order
+ * number of [LogViewerEvent.id]).
+ */
+class LogMemoryContextRequest(
+    val id: Long = 0,
+    val before: Int = 10,
+    val after: Int = 10,
+    val scope: LogFileContextScope = LogFileContextScope.ALL,
+    val excludeLoggers: List<String> = emptyList(),
+)

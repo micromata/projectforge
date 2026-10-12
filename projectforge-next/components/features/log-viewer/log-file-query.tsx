@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { PageShell } from "@/components/shared/page-shell";
-import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useFormatContext } from "@/hooks/use-format";
@@ -21,9 +19,10 @@ import {
 import { CUSTOM_PERIOD, logFileBounds } from "./log-file-period";
 import { LogFileResults } from "./log-file-results";
 import { LogSourceSwitch } from "./log-source-switch";
+import { LogViewerShell, LogViewerTitle } from "./log-viewer-frame";
 
 /**
- * The admin log viewer's search over the log files (`/next/adminLogViewer?source=files`): by text, period,
+ * The admin log viewer's search over the log files (`/next/systemDashboard?tab=logs&source=files`): by text, period,
  * level and logger category, also of the days before the server's start, each hit with its context. Starts
  * with the admin's last filter; a search runs only on demand, since the backend reads the files every time.
  */
@@ -39,12 +38,12 @@ export function LogFileQuery() {
   const title = t("system.admin.adminLogViewer.title");
   const denied = (!isLoading && !isAdmin) || isAccessDenied(initial.error);
   return (
-    <PageShell>
+    <LogViewerShell>
       {initial.data ? (
         <LogFileQueryContent title={title} initial={initial.data} />
       ) : (
         <>
-          <PageTitleRow
+          <LogViewerTitle
             title={title}
             center={<LogSourceSwitch value="files" />}
           />
@@ -57,7 +56,7 @@ export function LogFileQuery() {
           </p>
         </>
       )}
-    </PageShell>
+    </LogViewerShell>
   );
 }
 
@@ -99,7 +98,7 @@ function LogFileQueryContent({
 
   return (
     <>
-      <PageTitleRow title={title} center={<LogSourceSwitch value="files" />}>
+      <LogViewerTitle title={title} center={<LogSourceSwitch value="files" />}>
         <Button
           size="sm"
           variant="outline"
@@ -108,7 +107,7 @@ function LogFileQueryContent({
         >
           {t("refresh")}
         </Button>
-      </PageTitleRow>
+      </LogViewerTitle>
       <LogFileQueryFilterBar
         filter={filter}
         searching={result.isFetching}

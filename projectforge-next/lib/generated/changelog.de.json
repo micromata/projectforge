@@ -11,6 +11,9 @@
         "title" : "Adminprotokoll",
         "items" : [ "Suche in den Logdateien der letzten Tage nach Text, Zeitraum, Level und Logger-Kategorie (einschließen oder ausblenden), auch für die Tage vor dem Serverstart.", "Zu jedem Treffer lässt sich der Kontext direkt darunter aufklappen: die Einträge davor und danach, alle oder nur die derselben Benutzer:in bzw. desselben Loggers, mit Blättern zu älteren und neueren. Auch für die Vorkommen einer Störung des System-Dashboards." ]
       }, {
+        "title" : "Adminprotokoll",
+        "items" : [ "Live-Ansicht: Zu jedem Eintrag lässt sich der Kontext aufklappen, die Ereignisse davor und danach im Speicher, alle oder nur die derselben Benutzer:in bzw. desselben Loggers; mit Logger-Spalte.", "Die Tabellen der Live-Ansicht und der Logdatei-Suche lassen sich anpassen (Spaltenbreite, Pinnen, Ein- und Ausblenden), pro Benutzer:in gespeichert wie bei allen anderen Listen." ]
+      }, {
         "title" : "System-Dashboard",
         "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
       } ]
@@ -19,7 +22,7 @@
       "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]
     }, {
       "type" : "changed",
-      "items" : [ "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen." ]
+      "items" : [ "Das Adminprotokoll ist jetzt ein Tab des System-Dashboards; sein eigener Menüeintrag entfällt, alte Links führen auf den Tab.", "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen." ]
     }, {
       "type" : "fixed",
       "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl." ]

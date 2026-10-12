@@ -2,13 +2,17 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import {
   formatElapsed,
   formatTimestampMillis,
   type FormatContext,
 } from "@/lib/format";
 import type { LogFileEvent } from "@/lib/rs/admin-errors";
+import {
+  beforeStackTrace,
+  contextColumn,
+  type ContextToggle,
+} from "./log-context-column";
 import { logViewerColumns } from "./log-viewer-columns";
 import { highlightTerms } from "./log-file-text";
 import { LoggerMenu, type OnLogger } from "./logger-menu";
@@ -26,7 +30,7 @@ export interface LogFileColumnOptions {
   terms: string[];
   onLogger?: OnLogger;
   /** The column with the button opening a hit's context; left out for the entries of a context. */
-  context?: { isOpen: (id: string) => boolean; toggle: (id: string) => void };
+  context?: ContextToggle;
   /** The time since the entry before, per row id (the context shows a jump in time). */
   gaps?: Map<string, number>;
 }
@@ -107,27 +111,7 @@ export function logFileColumns({
         ) : null,
     },
   ];
-  if (context) {
-    columns.push({
-      id: "context",
-      header: t("system.admin.adminLogViewer.logFile.context"),
-      size: 90,
-      enableSorting: false,
-      meta: { label: t("system.admin.adminLogViewer.logFile.context") },
-      cell: ({ row }) => {
-        const open = context.isOpen(row.id);
-        return (
-          <Button
-            size="xs"
-            variant={open ? "secondary" : "outline"}
-            aria-expanded={open}
-            onClick={() => context.toggle(row.id)}
-          >
-            {t("system.admin.adminLogViewer.logFile.context")}
-          </Button>
-        );
-      },
-    });
-  }
-  return columns;
+  return context
+    ? beforeStackTrace(columns, contextColumn(t, context))
+    : columns;
 }

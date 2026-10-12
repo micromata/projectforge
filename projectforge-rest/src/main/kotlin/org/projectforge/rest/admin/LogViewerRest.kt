@@ -47,7 +47,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The log viewer of projectforge-next (`next/logViewer/<id>`): lets every user browse the log events of an own
  * [LogSubscription] queue (e.g. of the DATEV import, a Merlin run, a script or a mass update). The admin variant
- * ([AdminLogViewerRest], `next/adminLogViewer`) shows the last 10,000 log events of the whole system.
+ * ([AdminLogViewerRest], the tab `next/systemDashboard?tab=logs`) shows the last 10,000 log events of the whole system.
  *
  * Plain JSON for the hand built next page, successor of the server laid out `LogViewerPageRest` of the React app.
  * The admin variant lives under a REST path of its own, so its 2FA registration (`ProjectForge2FAInitialization`,

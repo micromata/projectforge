@@ -604,7 +604,7 @@ open class MenuCreator {
             .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
         adminMenu
-            .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            // The admin log viewer is a tab of the system dashboard (?tab=logs).
             .add(MenuItemDef(MenuItemDefId.ADMIN_ERRORS, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
             // The rules of the notification system (NotificationRuleDao: admins and finance).
             .add(
