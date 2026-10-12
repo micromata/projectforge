@@ -131,6 +131,9 @@ object GenerateNextI18nMessagesMain {
     "attachment.zip.",
     // Errors an upload is refused with, reported by key.
     "file.upload.",
+    // The notification system (components/features/notification-rule/, components/shared/notifications/): the
+    // names of its enums (rule type, channel, severity, ...), picked by value.
+    "notification.",
     // Status names of the structure tree filter, sent as enum values.
     "task.status.",
     // Two factor authentication and webauthn: the code channels and the errors the browser API answers

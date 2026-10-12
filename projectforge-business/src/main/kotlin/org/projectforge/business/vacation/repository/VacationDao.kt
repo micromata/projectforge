@@ -387,6 +387,20 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         )
     }
 
+    /**
+     * The not deleted vacations (special ones included) of all employees overlapping the given period, in one query
+     * (e.g. for the unbooked days of all employees, instead of one query per employee).
+     */
+    open fun getVacationsOfAllEmployeesForPeriod(startDate: LocalDate, endDate: LocalDate): List<VacationDO> {
+        return persistenceService.executeQuery(
+            "SELECT v FROM VacationDO v WHERE v.endDate >= :startDate AND v.startDate <= :endDate$META_SQL_WITH_SPECIAL",
+            VacationDO::class.java,
+            Pair("startDate", startDate),
+            Pair("endDate", endDate),
+            Pair("deleted", false),
+        )
+    }
+
     override fun select(filter: BaseSearchFilter): List<VacationDO> {
         val myFilter: VacationFilter = if (filter is VacationFilter) {
             filter

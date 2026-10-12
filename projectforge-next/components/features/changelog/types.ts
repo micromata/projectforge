@@ -32,7 +32,7 @@ export interface ChangelogRelease {
 
 /**
  * A major version, grouped by the generator: the release opening it (none before the first one), its updates and
- * the snapshots of develop leading up to it, both newest first.
+ * the snapshots of develop leading up to it, both newest first. The page shows the updates first, then the head.
  */
 export interface ChangelogGroup {
   major: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { ExperimentalBadge } from "@/components/shared/experimental-badge";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
@@ -12,6 +13,8 @@ export interface PageTitleRowProps {
   title: string;
   /** The legacy page this one replaces (`ui.legacyUrl` of a list response), see LegacyPageLink. */
   legacyUrl?: string;
+  /** The page belongs to an unfinished feature: a large red badge beside the title (see ExperimentalBadge). */
+  experimental?: boolean;
   /** Fills the flexible space between the title and the actions — a header-level control such as the
       calendar's chooser field. Left empty it is just the spacer that pushes the actions right. */
   center?: ReactNode;
@@ -30,6 +33,7 @@ export function PageTitleRow({
   category,
   title,
   legacyUrl,
+  experimental,
   center,
   children,
 }: PageTitleRowProps) {
@@ -44,6 +48,7 @@ export function PageTitleRow({
         )}
         <h1 className="text-lg font-bold tracking-tight">{title}</h1>
       </div>
+      {experimental && <ExperimentalBadge />}
       {/* The flexible middle: a header control if the page gives one, otherwise a plain spacer that
           pushes the actions to the right edge. `min-w-0` lets an input here shrink instead of overflow. */}
       <div className="min-w-0 flex-1">{center}</div>

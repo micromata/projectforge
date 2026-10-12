@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -284,6 +285,8 @@ class GenerateChangelogMainTest {
       """
       # ProjectForge 8.3.3
 
+      Update of ProjectForge 8.3.0, what's new in ProjectForge 8: https://github.com/micromata/projectforge/releases/tag/8.3.0-RELEASE
+
       Also includes the changes of 8.3.2 and 8.3.1, released without downloads.
 
       - Summary 3
@@ -315,6 +318,28 @@ class GenerateChangelogMainTest {
     )
     // A published release directly after a published one lists its own changes only.
     assertEquals(listOf("r0"), GenerateChangelogMain.aggregatedReleases(root, "8.3.0").map { it["id"].asText() })
+  }
+
+  @Test
+  fun releaseNotesOfAnUpdateLinkToTheMajorRelease() {
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+         {"id": "r1", "version": "9.0.1", "tag": "9.0.1-RELEASE", "sections": [{"type": "fixed", "items": ["fix 1"]}]},
+         {"id": "r0", "version": "9.0.0", "tag": "9.0.0-RELEASE", "sections": [{"type": "added", "items": ["feature"]}]},
+         {"id": "o1", "version": "8.1", "tag": "8.1-RELEASE", "sections": [{"type": "fixed", "items": ["fix"]}]},
+         {"id": "o0", "version": "8.0", "tag": "8.0-RELEASE", "published": false, "sections": [{"type": "added", "items": ["x"]}]}]}
+      """.trimIndent()
+    )
+    assertTrue(
+      GenerateChangelogMain.releaseNotesMarkdown(root, "9.0.1").startsWith(
+        "# ProjectForge 9.0.1\n\nUpdate of ProjectForge 9.0.0, what's new in ProjectForge 9: " +
+          "https://github.com/micromata/projectforge/releases/tag/9.0.0-RELEASE\n"
+      )
+    )
+    assertFalse(GenerateChangelogMain.releaseNotesMarkdown(root, "9.0.0").contains("Update of"))
+    // An unpublished major release has no GitHub release to link to.
+    assertFalse(GenerateChangelogMain.releaseNotesMarkdown(root, "8.1").contains("Update of"))
   }
 
   @Test
@@ -550,30 +575,10 @@ class GenerateChangelogMainTest {
       :page-liquid:
       // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-      [discrete.changelog-release]
-      === Major
+      [.changelog-major-link]
+      What's new in ProjectForge 9: <<release-r0,ProjectForge 9.0.0>> ↓
 
-      [.changelog-source]
-      __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__ +++{% include release-pills.html tag="9.0.0-RELEASE" docker="9.0.0" %}+++
-
-      - Major key
-
-      .All changes
-      [%collapsible]
-      ====
-      Intro.
-
-      ++++
-      {% include tag.html tag="added" %}
-      ++++
-      - feature
-
-      ++++
-      {% include download-link.html %}
-      ++++
-      ====
-
-      [discrete.changelog-release]
+      [discrete#release-r1.changelog-release]
       === Update
 
       [.changelog-source]
@@ -597,11 +602,34 @@ class GenerateChangelogMainTest {
       - bug
       ====
 
+      [discrete#release-r0.changelog-release]
+      === Major
+
+      [.changelog-source]
+      __2026-10-06, tag https://github.com/micromata/projectforge/tree/9.0.0-RELEASE[9.0.0-RELEASE]__ +++{% include release-pills.html tag="9.0.0-RELEASE" docker="9.0.0" %}+++
+
+      - Major key
+
+      .All changes
+      [%collapsible]
+      ====
+      Intro.
+
+      ++++
+      {% include tag.html tag="added" %}
+      ++++
+      - feature
+
+      ++++
+      {% include download-link.html %}
+      ++++
+      ====
+
       .Development snapshots (1)
       [%collapsible.changelog-snapshots]
       ======
 
-      [discrete.changelog-release]
+      [discrete#release-s.changelog-release]
       === Snapshot
 
       [.changelog-source]

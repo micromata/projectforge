@@ -88,7 +88,7 @@ export function RichTextEditor({
       attributes: {
         ...(id ? { id } : {}),
         class: cn(
-          "rich-text-editor min-h-24 px-3 py-2 text-sm focus:outline-none",
+          "rich-text-editor min-h-24 px-3 py-2 text-sm font-normal focus:outline-none",
           RICH_TEXT_MUTED_CLASSES
         ),
       },

@@ -36,7 +36,23 @@ private val log = KotlinLogging.logger {}
  * Handles close and clean-up. Thin wrapper for [Session]
  */
 open class SessionWrapper(repoStore: OakStorage) {
-    val session: Session = repoStore.repository.login(credentials)
+    val session: Session = login(repoStore)
+
+    /**
+     * JAAS loads Oak's LoginModule via the thread context classloader. On threads not created by the servlet
+     * container (e.g. coroutine workers of jobs) this is the plain app classloader of the Spring Boot fat jar,
+     * which doesn't see BOOT-INF/lib ("No LoginModule found for ...LoginModuleImpl").
+     */
+    private fun login(repoStore: OakStorage): Session {
+        val thread = Thread.currentThread()
+        val origClassLoader = thread.contextClassLoader
+        thread.contextClassLoader = SessionWrapper::class.java.classLoader
+        try {
+            return repoStore.repository.login(credentials)
+        } finally {
+            thread.contextClassLoader = origClassLoader
+        }
+    }
 
     val valueFactory: ValueFactory
         get() = session.valueFactory

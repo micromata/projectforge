@@ -63,6 +63,19 @@ public class GroovyEngineTest extends AbstractTestBase {
   }
 
   @Test
+  public void escapeTest() {
+    // Names entered by users are escaped in the HTML of a mail, whatever the type of the given object.
+    final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
+    PFUserDO user = new PFUserDO();
+    user.setFirstname("<img src=x>");
+    user.setLastname("Reinhard");
+    engine.putVariable("user", user);
+    assertEquals("&lt;img src=x&gt; Reinhard", engine.executeTemplate("<%= pf.getString(user) %>"));
+    assertEquals("<a href=\"mailto:a&amp;b@example.org\">&lt;b&gt;Kai&lt;/b&gt;</a>",
+            SendMail.Companion.formatUserWithMail("<b>Kai</b>", "a&b@example.org"));
+  }
+
+  @Test
   public void mailTemplateTest() {
     final GroovyEngine engine = new GroovyEngine(configurationService, Locale.GERMAN, TimeZone.getTimeZone("UTC"));
     PFUserDO user = new PFUserDO();

@@ -232,6 +232,10 @@
           "noteSavingsByAI": {
             "_": "Hinweis KI-Einsparungen",
             "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          },
+          "overlapGroups": {
+            "_": "Überlappungsgruppen für Zeitberichte",
+            "description": "Gruppen von Kost2, deren Zeitberichte sich zeitlich nie überlappen dürfen, auch nicht bei geteilten Kosten: Jede Gruppe gilt wie ein Projekt. Gruppen werden durch Semikolons getrennt, die Kost2-Nummernpräfixe einer Gruppe durch Kommas. Ein Präfix hat ein bis vier Teile (Nummernkreis, Bereich, Teilbereich, Kost2-Art), z. B. passt \"6\" auf alle Kost2 6.*. Beispiele: \"6\" (eine Gruppe: alle Kost2 6.*), \"6.100.00.01,6.100.00.02,6.300\" (eine Gruppe aus drei Präfixen), \"6.100,6.300;6.200\" (zwei Gruppen). Zeitberichte auf derselben Kost2 überlappen sich auch ohne Gruppe nie."
           }
         },
         "timesheetTags": {
@@ -376,7 +380,16 @@
   "calendar": {
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
-    "day": "Tag",
+    "day": {
+      "_": "Tag",
+      "friday": "Freitag",
+      "monday": "Montag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag",
+      "thursday": "Donnerstag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch"
+    },
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
@@ -483,6 +496,7 @@
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
+    "majorLink": "Neu in ProjectForge {arg0}:",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
     "overview": "Überblick",
@@ -683,6 +697,7 @@
   },
   "execute": "Ausführen",
   "expand": "Aufklappen",
+  "experimental": "Experimentell",
   "export": "Export",
   "exportAsPdf": "Pdf-Export",
   "exportAsXls": "Excel-Export",
@@ -1346,7 +1361,7 @@
       "sharedCost": {
         "_": "Geteilte Kosten",
         "inherited": "Wie Strukturelement",
-        "tooltip": "Bei Ja dürfen sich auf diese Kost2 gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten), bei Nein nicht. Diese Einstellung hat Vorrang vor der des Strukturelements. Ist sie leer, entscheidet das Strukturelement. Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt."
+        "tooltip": "Bei Ja dürfen sich auf diese Kost2 gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten), bei Nein nicht. Diese Einstellung hat Vorrang vor der des Strukturelements. Ist sie leer, entscheidet das Strukturelement. Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt."
       },
       "title": {
         "add": "Neue Kost2",
@@ -2423,6 +2438,175 @@
   "nickname": "Rufname",
   "no": "Nein",
   "nothingFound": "Nichts gefunden.",
+  "notification": {
+    "acknowledge": "Bestätigen",
+    "acknowledgedAt": "Bestätigt",
+    "action": {
+      "preview": "Vorschau",
+      "testToMe": "Test an mich",
+      "trigger": "Jetzt auslösen",
+      "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
+    },
+    "center": "Benachrichtigungen",
+    "centerEmpty": "Keine offenen Benachrichtigungen.",
+    "channels": {
+      "IN_APP": "In der App",
+      "MAIL": "E-Mail",
+      "SMS": "SMS (noch nicht unterstützt)"
+    },
+    "created": "Erstellt",
+    "delivery": {
+      "addStep": "Schritt hinzufügen",
+      "channel": "Kanal",
+      "delay": "Nach",
+      "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
+      "onlyIfUnacknowledged": "Nur wenn unbestätigt",
+      "removeStep": "Schritt entfernen",
+      "unit": {
+        "days": "Tagen",
+        "hours": "Stunden",
+        "minutes": "Minuten"
+      }
+    },
+    "deliverySteps": "Zustellung",
+    "display": "Anzeige",
+    "displays": {
+      "BANNER": "Banner bis erledigt",
+      "TOAST": "Toast (einmal angezeigt)",
+      "TOAST_CONFIRM": "Toast mit Bestätigung"
+    },
+    "doneAt": "Erledigt",
+    "error": {
+      "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
+    },
+    "log": "Versendete Benachrichtigungen",
+    "logEmpty": "Noch keine Benachrichtigungen versendet.",
+    "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
+    "markDone": "Als erledigt markieren",
+    "open": "Öffnen",
+    "params": {
+      "daysBeforeExpiry": "Tage vor dem Verfall",
+      "referredMonth": {
+        "_": "Monat",
+        "CURRENT": "Aktueller Monat",
+        "PREVIOUS": "Vormonat"
+      },
+      "vacationExpiry": {
+        "_": "Verfallende Urlaubstage",
+        "CARRY_OVER": "Resturlaub aus dem Vorjahr",
+        "YEAR_END": "Resttage zum Jahresende"
+      }
+    },
+    "preview": {
+      "alreadyNotified": "davon {arg0} für diesen Zeitraum bereits benachrichtigt",
+      "none": "Heute ist niemand zu benachrichtigen.",
+      "period": "Zeitraum",
+      "recipients": "{arg0} Empfänger",
+      "sample": "Beispiel mit den eigenen Werten"
+    },
+    "recipient": "Empfänger",
+    "recipients": {
+      "allEmployees": "Alle Mitarbeitenden",
+      "employeeStatus": "Mitarbeitende mit Status",
+      "excludedEmployeeStatus": "Ausgenommen Mitarbeitende mit Status",
+      "groups": "Gruppen",
+      "onlyAffected": "Nur Betroffene",
+      "onlyAffectedInfo": "Nur die von der Regel betroffenen Empfänger, z. B. mit fehlenden Zeitberichten. Ohne angegebene Empfänger: alle Betroffenen.",
+      "users": "Benutzer"
+    },
+    "resolvedAt": "Beendet",
+    "rule": {
+      "active": "Aktiv",
+      "delivery": "Zustellung",
+      "editableByGroups": "Bearbeitbar von Gruppen",
+      "editableByGroupsInfo": "Leer: von allen Admins und Mitgliedern der Finanzgruppe. Admins können die Regel immer bearbeiten.",
+      "error": {
+        "day": "Der Tag muss zwischen 0 und 15 (Arbeitstage vor Monatsende) bzw. 1 und 31 (Tag im Monat) liegen.",
+        "dayOfWeek": "Ein Wochentag ist erforderlich.",
+        "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
+        "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich."
+      },
+      "lastRun": "Letzter Lauf",
+      "list": "Benachrichtigungsregeln",
+      "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "menuBadge": "Zähler im Menü",
+      "name": "Name",
+      "newTitle": "Neue Benachrichtigungsregel",
+      "params": "Einstellungen",
+      "recipients": "Empfänger",
+      "ruleType": "Auslöser",
+      "schedule": "Zeitplan",
+      "sections": {
+        "access": "Bearbeitung",
+        "general": "Regel",
+        "message": "Nachricht"
+      },
+      "title": "Benachrichtigungsregeln"
+    },
+    "ruleName": "Regel",
+    "ruleTypes": {
+      "MANUAL": "Manuell (ohne Bedingung)",
+      "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "VACATION_LEFT": "Verfallender Resturlaub"
+    },
+    "schedule": {
+      "day": "Tag",
+      "dayOfWeek": "Wochentag",
+      "info": "Die Regeln werden einmal täglich am Morgen geprüft.",
+      "mode": {
+        "DAILY": "Jeden Arbeitstag",
+        "DAY_OF_MONTH": "Tag im Monat",
+        "NONE": "Nur manuell",
+        "WEEKLY": "Wöchentlich",
+        "WORKING_DAYS_BEFORE_MONTH_END": "Arbeitstage vor Monatsende"
+      },
+      "workingDaysInfo": "0 ist der letzte Arbeitstag des Monats."
+    },
+    "severities": {
+      "IMPORTANT": "Wichtig",
+      "INFO": "Hinweis",
+      "URGENT": "Dringend"
+    },
+    "severity": "Dringlichkeit",
+    "status": "Status",
+    "statuses": {
+      "ACKNOWLEDGED": "Bestätigt",
+      "DONE": "Erledigt",
+      "EXPIRED": "Abgelaufen",
+      "OPEN": "Offen",
+      "RESOLVED": "Aufgelöst"
+    },
+    "stepState": {
+      "failed": "Fehlgeschlagen",
+      "pending": "Ausstehend",
+      "retry": "Wiederholung {arg0}",
+      "sent": "Gesendet",
+      "skipped": "Übersprungen"
+    },
+    "subject": "Betreff",
+    "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
+    "testDelivered": "Test gesendet: {arg0}",
+    "testFailed": "Nicht gesendet: {arg0}",
+    "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
+    "text": "Text",
+    "triggerErrors": "{arg0} Fehler: {arg1}",
+    "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
+    "variable": {
+      "daysLeft": "Verbleibende Urlaubstage",
+      "expiryDate": "Verfallsdatum",
+      "firstName": "Vorname",
+      "fullName": "Vollständiger Name",
+      "lastName": "Nachname",
+      "month": "Monat",
+      "monthlyReportLink": "Link zum Monatsbericht",
+      "nickname": "Spitzname (sonst Vorname)",
+      "timesheetLink": "Link zu den Zeitberichten",
+      "unbookedDays": "Tage ohne Zeitberichte",
+      "unbookedDaysCount": "Anzahl der Tage ohne Zeitberichte",
+      "vacationLink": "Link zum Urlaub"
+    }
+  },
   "operation": {
     "deleted": "gelöscht",
     "inserted": "angelegt",
@@ -3709,7 +3893,7 @@
     "_": "Strukturelement",
     "allowTimeOverlap": {
       "_": "Strukturelement mit geteilten Kosten",
-      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
+      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",

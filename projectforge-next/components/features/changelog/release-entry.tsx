@@ -13,6 +13,10 @@ const REPO_URL = "https://github.com/micromata/projectforge";
 /** The levels of a release unfolded on request: its overview (level 2) and all its changes (level 3). */
 export type ReleaseLevel = "overview" | "all";
 
+/** The anchor of a release, the same as on the website (GenerateChangelogMain.releaseAnchor). */
+export const releaseAnchor = (release: ChangelogRelease) =>
+  `release-${release.id}`;
+
 /**
  * One release or snapshot milestone: title, date and source, its summary (level 1) always shown, and two
  * toggles side by side, each unfolding one more level with a single click — the overview and all changes
@@ -39,8 +43,9 @@ export function ReleaseEntry({
   const allOpen = hasAll && isOpen("all");
   return (
     <article
+      id={releaseAnchor(release)}
       className={cn(
-        "flex flex-col gap-2 rounded-md border bg-card px-3 py-2 shadow-sm",
+        "flex scroll-mt-4 flex-col gap-2 rounded-md border bg-card px-3 py-2 shadow-sm",
         head && "border-l-4 border-l-primary"
       )}
     >

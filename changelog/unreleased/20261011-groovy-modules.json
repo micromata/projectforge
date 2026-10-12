@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Groovy scripts: only the Groovy core and its date, JSON, XML and template modules are bundled; the other modules (e.g. Ant, SQL, Swing, console) were removed.",
-  "de": "Groovy-Skripte: Mitgeliefert werden nur noch der Groovy-Kern und die Module für Datum, JSON, XML und Templates; die übrigen Module (z. B. Ant, SQL, Swing, Konsole) wurden entfernt."
-}

@@ -6,57 +6,10 @@ sort_key: "2022-10-21 0009"
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
-[discrete.changelog-release]
-=== ProjectForge 7.0: new frontend and data transfer
+[.changelog-major-link]
+What's new in ProjectForge 7: <<release-7-0,ProjectForge 7.0>> ↓
 
-[.changelog-source]
-__2021-04-07, tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__ +++{% include release-pills.html tag="7.0.0-RELEASE" docker="7.0.0" %}+++
-
-- **Major release:** new React frontend
-- **Data transfer tool** for sharing files, also with externals
-- **Docker images** and setup wizard for easy installation
-- New plugin: **skill matrix**
-
-.Overview
-[%collapsible]
-====
-- **New frontend** built with React, with full REST support for most functions, e.g. for other clients such as a smartphone app.
-- **Data transfer tool:** sharing files with other users and external customers.
-- **Skill matrix:** new plugin for sharing knowledge.
-- **Installation:** Docker images and a setup wizard.
-- **Technology:** over 20% of the code is now developed with Kotlin.
-====
-
-.All changes
-[%collapsible]
-====
-Major release with a new React frontend, the data transfer tool and Docker support.
-
-**Major Release:** This version contains a lot of cool stuff: new front-end, data transfer tool, docker support.
-
-++++
-{% include tag.html tag="added" %}
-++++
-- New front-end
-- Data transfer tool for sharing files with other user's and external customers
-- New plugin: skill matrix for sharing knowledge.
-- Tons of new functionalities and improvements.
-
-++++
-{% include tag.html tag="technology" %}
-++++
-- Available as Docker images for fastest installation ever.
-- Setup wizard for easy setup.
-- New front-end works with React.
-- Over 20% of the code is now developed with Kotlin.
-- Full Rest support for most functionality for other clients (such as a smartphone app).
-
-++++
-{% include download-link.html %}
-++++
-====
-
-[discrete.changelog-release]
+[discrete#release-7-5.changelog-release]
 === ProjectForge 7.5 released
 
 [.changelog-source]
@@ -124,7 +77,7 @@ __2022-10-21, tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-4.changelog-release]
 === ProjectForge 7.4: two-factor authentication
 
 [.changelog-source]
@@ -191,7 +144,7 @@ Two-factor authentication (SMS, mail, authenticator app, WebAuthn/FIDO2) is now 
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-3.changelog-release]
 === ProjectForge 7.3 released
 
 [.changelog-source]
@@ -253,7 +206,7 @@ Data transfer combined with Merlin, scripting improved, 2FA introduced.
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-2.changelog-release]
 === ProjectForge 7.2 released
 
 [.changelog-source]
@@ -324,7 +277,7 @@ Word templating (Merlin), log viewer, encryption in data transfer, privacy featu
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-1-2.changelog-release]
 === ProjectForge 7.1.2 released
 
 [.changelog-source]
@@ -378,7 +331,7 @@ Security issues of pentests, DataTransfer improved.
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-1-1.changelog-release]
 === ProjectForge 7.1.1 released
 
 [.changelog-source]
@@ -421,7 +374,7 @@ DataTransfer supports now personal boxes for one to one exchange of files. Docke
 ++++
 ====
 
-[discrete.changelog-release]
+[discrete#release-7-1.changelog-release]
 === ProjectForge 7.1 released
 
 [.changelog-source]
@@ -463,6 +416,56 @@ Improvements, support of Java 1.13+.
 - Support of Java 13+.
 - Major updates of nearly all libraries.
 - Multi tenancy removed.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-0.changelog-release]
+=== ProjectForge 7.0: new frontend and data transfer
+
+[.changelog-source]
+__2021-04-07, tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__ +++{% include release-pills.html tag="7.0.0-RELEASE" docker="7.0.0" %}+++
+
+- **Major release:** new React frontend
+- **Data transfer tool** for sharing files, also with externals
+- **Docker images** and setup wizard for easy installation
+- New plugin: **skill matrix**
+
+.Overview
+[%collapsible]
+====
+- **New frontend** built with React, with full REST support for most functions, e.g. for other clients such as a smartphone app.
+- **Data transfer tool:** sharing files with other users and external customers.
+- **Skill matrix:** new plugin for sharing knowledge.
+- **Installation:** Docker images and a setup wizard.
+- **Technology:** over 20% of the code is now developed with Kotlin.
+====
+
+.All changes
+[%collapsible]
+====
+Major release with a new React frontend, the data transfer tool and Docker support.
+
+**Major Release:** This version contains a lot of cool stuff: new front-end, data transfer tool, docker support.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- New front-end
+- Data transfer tool for sharing files with other user's and external customers
+- New plugin: skill matrix for sharing knowledge.
+- Tons of new functionalities and improvements.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Available as Docker images for fastest installation ever.
+- Setup wizard for easy setup.
+- New front-end works with React.
+- Over 20% of the code is now developed with Kotlin.
+- Full Rest support for most functionality for other clients (such as a smartphone app).
 
 ++++
 {% include download-link.html %}

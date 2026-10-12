@@ -32,8 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Who may see and change which configuration parameter ([ConfigurationDao.hasAccess]): admins the admin
- * parameters (and see the finance ones), PF_Finance and PF_Controlling the finance ones only, and nobody a
- * parameter with a page of its own through the configuration page.
+ * parameters (and see the finance ones), PF_Finance and PF_Controlling the finance ones only, the controlling
+ * ones only who is in both groups (either group sees them), and nobody a parameter with a page of its own through
+ * the configuration page.
  */
 class ConfigurationDaoAccessTest : AbstractTestBase() {
     @Autowired
@@ -54,6 +55,25 @@ class ConfigurationDaoAccessTest : AbstractTestBase() {
                 access(username, ConfigurationParam.SYSTEM_ADMIN_E_MAIL, OperationType.UPDATE),
                 access(username, ConfigurationParam.FIBU_DEFAULT_VAT, OperationType.SELECT),
                 access(username, ConfigurationParam.FIBU_DEFAULT_VAT, OperationType.UPDATE),
+            )
+            assertEquals(access, actual, "user: $username")
+        }
+    }
+
+    @Test
+    fun `a controlling parameter is seen by finance and controlling and changed by members of both only`() {
+        // user -> (select, update)
+        val expected = mapOf(
+            TEST_ADMIN_USER to listOf(false, false),
+            TEST_FINANCE_USER to listOf(true, false),
+            TEST_CONTROLLING_USER to listOf(true, false),
+            TEST_FULL_ACCESS_USER to listOf(true, true), // Member of PF_Finance and PF_Controlling (and PF_Admin).
+            TEST_USER to listOf(false, false),
+        )
+        expected.forEach { (username, access) ->
+            val actual = listOf(
+                access(username, ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, OperationType.SELECT),
+                access(username, ConfigurationParam.TIMESHEET_OVERLAP_GROUPS, OperationType.UPDATE),
             )
             assertEquals(access, actual, "user: $username")
         }

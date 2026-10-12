@@ -1,3 +1,5 @@
+import type { NotificationSummary } from "./notification";
+
 // Mirrors org.projectforge.framework.persistence.api.MagicFilter and
 // related Kotlin classes from projectforge-business / projectforge-rest.
 // Keep field names aligned with the Spring Boot JSON contract — the
@@ -216,6 +218,11 @@ export interface UserStatus {
   adminUser?: boolean;
   /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
   jira?: JiraConfig;
+  /**
+   * The summary of the user's notifications visible in the app; the notification center loads them only
+   * when it changes (see components/shared/notifications).
+   */
+  notifications?: NotificationSummary;
 }
 
 export interface SystemStatus {

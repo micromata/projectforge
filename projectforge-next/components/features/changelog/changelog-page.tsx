@@ -14,7 +14,11 @@ import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
 import { MatchStepper } from "./match-stepper";
-import { ReleaseEntry, type ReleaseLevel } from "./release-entry";
+import {
+  ReleaseEntry,
+  releaseAnchor,
+  type ReleaseLevel,
+} from "./release-entry";
 import { filterRelease, searchTerms } from "./search";
 import type { Changelog, ChangelogGroup, ChangelogRelease } from "./types";
 
@@ -69,9 +73,9 @@ function filterGroup(
 
 /**
  * The changelog page (`/next/changelog`), reached from the version in the status bar and the user menu:
- * the releases grouped by major version, newest first — the release opening a major, its updates and,
- * folded, the snapshots leading up to it. Each release shows its summary, its overview and all its changes
- * are unfolded with one click each. The entries not released yet are shown on top. The search field
+ * the releases grouped by major version, newest first — the updates of a major, the release opening it
+ * (linked from the top of the major) and, folded, the snapshots leading up to it. Each release shows its
+ * summary, its overview and all its changes are unfolded with one click each. The entries not released yet are shown on top. The search field
  * searches all of it, folded or not, and shows only what matches, unfolded, every occurrence highlighted
  * and stepped through. The texts are German for the German locale, English otherwise (the website's
  * changelog is English only).
@@ -178,8 +182,11 @@ export function ChangelogPage() {
             <h2 className="text-base font-semibold">
               ProjectForge {group.major}
             </h2>
-            {group.head && entry(group.head, true)}
+            {group.head && group.updates.length > 0 && (
+              <MajorLink major={group.major} head={group.head} />
+            )}
             {group.updates.map((release) => entry(release))}
+            {group.head && entry(group.head, true)}
             {group.snapshots.length > 0 && (
               <Snapshots
                 count={group.snapshots.length}
@@ -198,6 +205,22 @@ export function ChangelogPage() {
         )}
       </div>
     </PageShell>
+  );
+}
+
+/** On top of a major with updates: the link to its opening release (what's new in the major), listed below them. */
+function MajorLink({ major, head }: { major: string; head: ChangelogRelease }) {
+  const t = useTranslations();
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t("changelog.majorLink", { arg0: major })}{" "}
+      <a
+        href={`#${releaseAnchor(head)}`}
+        className="text-primary hover:underline"
+      >
+        ProjectForge {head.version} ↓
+      </a>
+    </p>
   );
 }
 

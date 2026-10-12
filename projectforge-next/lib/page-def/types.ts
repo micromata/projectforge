@@ -846,6 +846,11 @@ export interface PageDef<
    */
   massUpdate?: MassUpdateDef;
   /**
+   * The feature is not finished yet — its list and edit pages carry a large red "experimental" badge
+   * beside their title (see ExperimentalBadge), so nobody mistakes it for a released one.
+   */
+  experimental?: boolean;
+  /**
    * The form behind a row — absent for an entity whose list is migrated but whose form is not yet.
    *
    * A page without it is a complete list: the columns, the filters, the favorites and the column
