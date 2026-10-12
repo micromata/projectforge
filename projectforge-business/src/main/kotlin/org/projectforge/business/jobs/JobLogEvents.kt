@@ -43,4 +43,13 @@ object JobLogEvents {
         explanation = "The nightly re-index of the full text search failed: search results may be incomplete or outdated.",
         action = "Analyze the stack trace and start the re-index manually in the administration area.",
     )
+
+    @JvmField
+    val VACATION_AUTO_BOOKING_FAILED = LogEvent(
+        code = "jobs.vacationAutoBooking.failed",
+        category = LogCategory.BUG,
+        explanation = "The nightly job couldn't book an approved vacation day of a user as time sheet. The day " +
+                "stays without time sheet (other days and users are booked).",
+        action = "Analyze the stack trace; the next night retries it within the configured number of days.",
+    )
 }

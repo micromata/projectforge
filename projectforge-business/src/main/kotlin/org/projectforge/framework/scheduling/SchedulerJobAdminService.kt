@@ -27,6 +27,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.scheduling.SchedulerTrigger
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.LocalDate
@@ -79,6 +80,13 @@ class SchedulerJobEntry(
     val lastRunTimeAgo: String? = null,
     /** Set (translated) if the last run was before the start of the system, so it doesn't count for overdue jobs. */
     val lastRunBeforeStart: String? = null,
+    /** The start of the last successful run, also of one before the restart. */
+    val lastSuccess: Long? = null,
+    /**
+     * Set (translated) only if the last run failed: when the job succeeded last ("Last success: 2 days ago"), or that
+     * no successful run is known.
+     */
+    val lastSuccessHint: String? = null,
     val lastDurationMs: Long?,
     val lastStatus: SchedulerRunStatus?,
     val lastError: String?,
@@ -234,6 +242,8 @@ class SchedulerJobAdminService(
             lastRunTimeAgo = snapshot.lastStart?.let { TimeAgo.getMessage(Date(it)) },
             lastRunBeforeStart = snapshot.lastStart?.takeIf { start -> registry.readySince.let { it != null && start < it } }
                 ?.let { translate("system.scheduler.hint.beforeRestart") },
+            lastSuccess = snapshot.lastSuccessStart,
+            lastSuccessHint = lastSuccessHint(snapshot),
             lastDurationMs = snapshot.lastDurationMs,
             lastStatus = snapshot.lastStatus,
             lastError = snapshot.lastError,
@@ -266,6 +276,15 @@ class SchedulerJobAdminService(
 
     private fun today(now: Long): LocalDate =
         LocalDate.ofInstant(Instant.ofEpochMilli(now), statsService.zone)
+
+    /** Only if the last run failed, see [SchedulerJobEntry.lastSuccessHint]. */
+    private fun lastSuccessHint(snapshot: SchedulerJobState.Snapshot): String? {
+        if (snapshot.lastStatus != SchedulerRunStatus.ERROR) {
+            return null
+        }
+        val lastSuccess = snapshot.lastSuccessStart ?: return translate("system.scheduler.hint.noSuccess")
+        return translateMsg("system.scheduler.hint.lastSuccess", TimeAgo.getMessage(Date(lastSuccess)))
+    }
 
     companion object {
         private const val STATS_DAYS = 7L

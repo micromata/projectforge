@@ -138,9 +138,24 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "categories": {
+        "finance": "Finanzen",
+        "hr": "Personal",
+        "regional": "Regionales",
+        "security": "Sicherheit",
+        "system": "System",
+        "timesheet": "Zeitberichte"
+      },
+      "category": "Kategorie",
       "editPage": {
         "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
         "link": "Editor öffnen"
+      },
+      "editors": "Änderbar durch",
+      "error": {
+        "vacationKost2NotBookable": "Der Kostenträger {arg0} ist auf dem Urlaubs-Strukturelement „{arg1}“ nicht buchbar.",
+        "vacationKost2NotFound": "Kein Kostenträger {arg0} (Format #.###.##.##).",
+        "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
       "json": {
         "invalid": "Kein gültiges JSON."
@@ -236,6 +251,20 @@
           "overlapGroups": {
             "_": "Überlappungsgruppen für Zeitberichte",
             "description": "Gruppen von Kost2, deren Zeitberichte sich zeitlich nie überlappen dürfen, auch nicht bei geteilten Kosten: Jede Gruppe gilt wie ein Projekt. Gruppen werden durch Semikolons getrennt, die Kost2-Nummernpräfixe einer Gruppe durch Kommas. Ein Präfix hat ein bis vier Teile (Nummernkreis, Bereich, Teilbereich, Kost2-Art), z. B. passt \"6\" auf alle Kost2 6.*. Beispiele: \"6\" (eine Gruppe: alle Kost2 6.*), \"6.100.00.01,6.100.00.02,6.300\" (eine Gruppe aus drei Präfixen), \"6.100,6.300;6.200\" (zwei Gruppen). Zeitberichte auf derselben Kost2 überlappen sich auch ohne Gruppe nie."
+          },
+          "vacation": {
+            "autoBookingDays": {
+              "_": "Urlaub als Zeitberichte buchen (max. Tage zurück)",
+              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf, höchstens aber so viele Tage bis gestern zurück (max. 7), damit Nächte nachgeholt werden, in denen der Job nicht lief. Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
+            },
+            "kost2": {
+              "_": "Kostenträger für Urlaub",
+              "description": "Der Kostenträger (Kost2, Format #.###.##.##, z. B. 5.000.00.03), auf den Urlaub als Zeitbericht gebucht wird, zusammen mit dem Urlaubs-Strukturelement. Er muss auf diesem Strukturelement buchbar sein."
+            },
+            "taskId": {
+              "_": "Strukturelement für Urlaub (Id)",
+              "description": "Die Id des Strukturelements, auf das Urlaub als Zeitbericht gebucht wird, im Kalender („Mehrere Tage buchen“) und durch den nächtlichen Job."
+            }
           }
         },
         "timesheetTags": {
@@ -274,7 +303,8 @@
         "heading": "Configuration parameter",
         "list": "Konfigurationsparameter"
       },
-      "value": "Wert"
+      "value": "Wert",
+      "viewers": "Sichtbar für"
     }
   },
   "akquise": "Akquise",

@@ -138,9 +138,24 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "categories": {
+        "finance": "Finance",
+        "hr": "Human resources",
+        "regional": "Regional settings",
+        "security": "Security",
+        "system": "System",
+        "timesheet": "Time sheets"
+      },
+      "category": "Category",
       "editPage": {
         "hint": "This parameter is maintained on a page of its own.",
         "link": "Open the editor"
+      },
+      "editors": "Editable by",
+      "error": {
+        "vacationKost2NotBookable": "The cost unit {arg0} isn''t bookable on the vacation task ''{arg1}''.",
+        "vacationKost2NotFound": "No cost unit {arg0} (format #.###.##.##).",
+        "vacationTaskNotFound": "No task with the id {arg0}."
       },
       "json": {
         "invalid": "No valid JSON."
@@ -236,6 +251,20 @@
           "overlapGroups": {
             "_": "Time sheet overlap groups",
             "description": "Groups of cost 2 units whose time sheets must never overlap in time, even with shared costs: each group counts like one project. Groups are separated by semicolons, the cost 2 number prefixes of a group by commas. A prefix has one to four parts (number range, area, sub area, cost 2 type), e.g. \"6\" matches all cost 2 units 6.*. Examples: \"6\" (one group: all cost 2 units 6.*), \"6.100.00.01,6.100.00.02,6.300\" (one group of three prefixes), \"6.100,6.300;6.200\" (two groups). Time sheets on the same cost 2 never overlap, also without any group."
+          },
+          "vacation": {
+            "autoBookingDays": {
+              "_": "Book vacation as time sheets (max. days back)",
+              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on, but at most this number of days back up to yesterday (max. 7), so nights the job didn't run are caught up. A vacation time sheet deleted by hand is therefore not booked again. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
+            },
+            "kost2": {
+              "_": "Cost unit for vacation",
+              "description": "The cost unit (Kost2, format #.###.##.##, e.g. 5.000.00.03) vacation is booked on as time sheets, together with the vacation task. It must be bookable on that task."
+            },
+            "taskId": {
+              "_": "Task for vacation (id)",
+              "description": "The id of the task (structure element) vacation is booked on as time sheets, in the calendar (\"Book several days\") and by the nightly job."
+            }
           }
         },
         "timesheetTags": {
@@ -274,7 +303,8 @@
         "heading": "Configuration parameter",
         "list": "List of configuration parameters"
       },
-      "value": "Value"
+      "value": "Value",
+      "viewers": "Visible to"
     }
   },
   "akquise": "Acquisition",

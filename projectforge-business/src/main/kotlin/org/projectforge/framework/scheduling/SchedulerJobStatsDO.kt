@@ -139,6 +139,10 @@ open class SchedulerJobStatsDO {
     @get:Column(name = "last_error_time")
     open var lastErrorTime: Date? = null
 
+    /** The start of the last successful run of the period. */
+    @get:Column(name = "last_success_start")
+    open var lastSuccessStart: Date? = null
+
     companion object {
         internal const val FIND_BY_JOB_PERIOD = "SchedulerJobStatsDO_FindByJobPeriod"
         internal const val SELECT_BY_JOB_SINCE = "SchedulerJobStatsDO_SelectByJobSince"
