@@ -519,8 +519,9 @@ class AbstractCacheTest {
                 }
             }
         }
-        val zombie = Thread { cache.forceReload() }
-        zombie.start()
+        // A pooled thread (as request and coroutine threads are): it stays alive after the abandoned refresh.
+        val pool = Executors.newSingleThreadExecutor()
+        val zombie = pool.submit { cache.forceReload() }
         while (!cache.isRefreshInProgress) {
             Thread.sleep(10)
         }
@@ -545,16 +546,18 @@ class AbstractCacheTest {
         // The abandoned refresh returns at last: it doesn't touch the state, but expires the cache again, as its data
         // may be older than the new refresh's.
         release.set(true)
-        zombie.join(20_000)
-        Assertions.assertFalse(zombie.isAlive)
+        zombie.get(20, TimeUnit.SECONDS)
         cache.status().let {
             Assertions.assertTrue(it.expired)
             Assertions.assertFalse(it.refreshInProgress)
-            Assertions.assertEquals(0, it.abandonedThreads, "The thread has gone.")
+            Assertions.assertEquals(0, it.abandonedThreads, "The abandoned refresh is over, the pooled thread lives on.")
             Assertions.assertEquals(3L, it.refreshCount, "The abandoned refresh wasn't counted twice.")
         }
-        cache.accessData()
+        // The pooled thread of the abandoned refresh may refresh the cache again.
+        pool.submit { cache.accessData() }.get(20, TimeUnit.SECONDS)
         Assertions.assertEquals(4, cache.refreshCount.get(), "The cache heals on the next access.")
+        Assertions.assertFalse(cache.status().expired)
+        pool.shutdown()
     }
 
     private fun awaitRefreshCount(cache: TestCache, expected: Int) {

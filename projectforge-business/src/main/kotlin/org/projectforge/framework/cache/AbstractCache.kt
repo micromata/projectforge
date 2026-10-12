@@ -290,9 +290,10 @@ abstract class AbstractCache {
             isRefreshInProgress = false
             refreshingThread = null
             refreshStartMillis = -1
-            setExpired()
             thread.interrupt()
         }
+        // Outside the monitor: setExpired is open (overridden e.g. by AuftragsCache).
+        setExpired()
         return true
     }
 
@@ -561,9 +562,7 @@ abstract class AbstractCache {
                     abandoned = refreshGeneration.get() != generation
                     if (abandoned) {
                         // Terminated (see terminateRefresh): a newer refresh may already run or be done. Leave the
-                        // state alone, but expire the cache again, as the data just set may be older than the
-                        // newer refresh's.
-                        setExpired()
+                        // state alone (the cache is expired again below).
                     } else if (error == null) {
                         // Mark the cache up-to-date only after a successful refresh. A failed or interrupted refresh
                         // (see checkStuckRefresh) leaves it expired, so the next checkRefresh triggers a new refresh
@@ -605,8 +604,14 @@ abstract class AbstractCache {
         } finally {
             refreshDepthOnThisThread.set(refreshDepthOnThisThread.get() - 1)
             lock.unlock()
+            if (abandoned) {
+                // The terminated refresh is over: a pooled thread (request, coroutine) may refresh this cache again.
+                abandonedThreads.remove(Thread.currentThread())
+            }
         }
         if (abandoned) {
+            // The data just set by the terminated refresh may be older than a newer refresh's: refresh again.
+            setExpired()
             return
         }
         // Notify the listeners after releasing the lock: a listener may invalidate and reload this cache again

@@ -249,7 +249,7 @@ class SchedulerJobAdminService(
             // A disabled job may be run manually (e.g. the JCR sanity check, run nightly by the sanity checks).
             runNowAllowed = state.entry != null && inactiveReason == null && !snapshot.running &&
                     schedule !is ResolvedSchedule.Invalid,
-            terminateAllowed = snapshot.running,
+            terminateAllowed = snapshot.running && snapshot.runningThreadKnown,
             abandonedThreads = snapshot.abandonedThreads,
         )
     }

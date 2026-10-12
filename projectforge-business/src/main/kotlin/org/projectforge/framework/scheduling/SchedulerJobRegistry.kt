@@ -156,6 +156,9 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
      * recorded as failed. A thread ignoring the interrupt can't be stopped (no [Thread.stop] on Java 20+): it runs on
      * until it returns by itself, but its result isn't recorded any more and it doesn't touch the state of newer runs
      * (see [execute]). It is counted in [SchedulerJobState.Snapshot.abandonedThreads] meanwhile.
+     *
+     * Note: a job running in the scheduler's own thread ([run], e.g. the gateway sync) is only triggered again by
+     * Spring once the hanging method returned; until then only "run now" starts it at once.
      * @param user Only logged.
      */
     fun terminate(id: String, user: String?): TerminateStatus {
@@ -286,8 +289,10 @@ class SchedulerJobRegistry(private val environment: Environment) : SchedulerJobR
                     "Terminated run of scheduler job $id returned after ${(clock() - start).formatMillis()}" +
                             (run.errorMessage?.let { ": $it" } ?: ".")
                 }
-                // Don't leave a pooled thread (run in the scheduler's thread) interrupted.
+                // Don't leave a pooled thread (run in the scheduler's thread) interrupted, and don't count it as
+                // abandoned any more: it stays alive in the pool.
                 Thread.interrupted()
+                state.abandonedThreads.remove(Thread.currentThread())
                 return
             }
             val end = clock()

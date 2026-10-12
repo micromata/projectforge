@@ -146,6 +146,7 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         lastScheduledReference = lastScheduledReference,
         recentRuns = recentRuns.toList(),
         abandonedThreads = abandonedThreads.aliveCount(),
+        runningThreadKnown = runningThread != null,
     )
 
     /** A consistent copy of the state. The counts are those since the start. */
@@ -166,6 +167,11 @@ class SchedulerJobState(val definition: SchedulerJobDefinition, val schedule: Re
         val recentRuns: List<SchedulerRunRecord>,
         /** Threads of terminated runs still running (not reacting to the interrupt). */
         val abandonedThreads: Int = 0,
+        /**
+         * The thread of the running job is known, so it may be terminated. False for a moment after the start, until
+         * the job's thread is running.
+         */
+        val runningThreadKnown: Boolean = false,
     )
 
     companion object {

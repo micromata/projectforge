@@ -30,7 +30,7 @@ import java.lang.ref.WeakReference
  * interrupted and abandoned: its lock or running flag is released at once, so a new run may start. A thread not
  * reacting to the interrupt (e.g. blocked in a JDBC call) can't be stopped on Java 20+ ([Thread.stop] is gone) and
  * lives on until it returns by itself; it may no longer change the state of its cache or job. Such threads are listed
- * here as long as they are alive, so the dashboard can show them.
+ * here until their terminated run returns ([remove]), so the dashboard can show them.
  */
 class AbandonedThreads {
     private val threads = mutableListOf<WeakReference<Thread>>()
@@ -41,16 +41,26 @@ class AbandonedThreads {
         threads.add(WeakReference(thread))
     }
 
+    /**
+     * To be called by the abandoned thread once its terminated run returned: a pooled thread (request, coroutine or
+     * scheduler thread) stays alive and would otherwise be counted (and treated as abandoned) forever.
+     */
+    @Synchronized
+    fun remove(thread: Thread) {
+        threads.removeAll { it.get().let { t -> t == null || t === thread } }
+    }
+
     @Synchronized
     fun contains(thread: Thread): Boolean = threads.any { it.get() === thread }
 
-    /** The number of abandoned threads still alive. */
+    /** The number of abandoned threads still running their terminated run. */
     @Synchronized
     fun aliveCount(): Int {
         prune()
         return threads.size
     }
 
+    /** Fallback for a thread that ended without [remove] (e.g. killed by an error before). */
     private fun prune() {
         threads.removeAll { it.get()?.isAlive != true }
     }
