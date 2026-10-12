@@ -21,7 +21,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-
 package org.projectforge.rest.admin
 
 import io.github.oshai.kotlinlogging.KotlinLogging

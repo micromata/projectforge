@@ -109,7 +109,12 @@ export function LogContext<E extends LogEntry>(props: LogContextProps<E>) {
       ) : !data ? (
         note(t("loading"))
       ) : !data.found ? (
-        note(props.notFound)
+        // Not reached within the time limit (a hit far back in a big file) rather than gone.
+        note(
+          data.truncated
+            ? t("system.admin.adminLogViewer.logFile.contextTruncated")
+            : props.notFound
+        )
       ) : (
         <>
           <ContextEdge

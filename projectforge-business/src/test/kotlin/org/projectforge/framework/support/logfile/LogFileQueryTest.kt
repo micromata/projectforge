@@ -155,6 +155,18 @@ class LogFileQueryTest {
         Assertions.assertNull(other.read(files, "ProjectForge.2026-10-01.log.gz"), "No such file.")
     }
 
+    /** A hit not reached within the limits is told apart from one no longer at its position. */
+    @Test
+    fun `a hit beyond the limits of the context is truncated, not lost`() {
+        val text = (1..1100).joinToString("\n") {
+            "2026-10-05 10:00:00.000  INFO kai@1.2.3.4 o.p.business.user.UserDao                : entry $it"
+        }
+        val result = LogFileContext(1100, millis("2026-10-05T10:00:00Z"), "", "", 1, 1, zone = ZoneOffset.UTC, maxChars = 1)
+            .read(files(text), "ProjectForge.log")!!
+        Assertions.assertNull(result.hit)
+        Assertions.assertTrue(result.truncated)
+    }
+
     @Test
     fun `resolves the configured files by their names only`() {
         val files = files(current = "", rolled = mapOf("2026-10-04" to ""))

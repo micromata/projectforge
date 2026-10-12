@@ -506,7 +506,13 @@ export function DataTable<TData>({
                         )}
                       />
                       {detail != null && (
-                        <TableRow data-row-detail-of={row.id}>
+                        <TableRow
+                          data-row-detail-of={row.id}
+                          // The keys and clicks of the detail (e.g. an embedded table) aren't the body's
+                          // keyboard navigation or selection.
+                          onKeyDown={(event) => event.stopPropagation()}
+                          onMouseDown={(event) => event.stopPropagation()}
+                        >
                           <TableCell colSpan={cols} className="border-b p-0!">
                             <div
                               className="sticky left-0"

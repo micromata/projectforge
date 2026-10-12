@@ -40,6 +40,8 @@ export function LogFileContext({
   );
   return (
     <LogContext<LogFileEvent>
+      // Started anew with a changed number of entries before or after.
+      key={`${before}-${after}`}
       queryKey={[
         "logFile",
         "context",
