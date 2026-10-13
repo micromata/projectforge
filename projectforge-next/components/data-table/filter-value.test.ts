@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FormatContext } from "@/lib/format";
 import type { FilterElement } from "@/lib/rs/types";
-import { filterPillContent } from "./filter-value";
+import { filterPillContent, steppedNumberOf } from "./filter-value";
 
 const ctx: FormatContext = { locale: "de-DE", timeZone: "Europe/Berlin" };
 
@@ -78,5 +78,28 @@ describe("filterPillContent", () => {
     );
     expect(content.text).toBe("Task");
     expect(content.tooltip).toBe("Task: Root | Project | Task");
+  });
+});
+
+describe("steppedNumberOf", () => {
+  const year: FilterElement = {
+    id: "year",
+    key: "year",
+    type: "FILTER_ELEMENT",
+    filterType: "STRING",
+    stepWidth: 1,
+  };
+
+  it("reads the number, also wrapped in the wildcards of a text search", () => {
+    expect(steppedNumberOf(year, { value: "2026" })).toBe(2026);
+    expect(steppedNumberOf(year, { value: "*2026*" })).toBe(2026);
+  });
+
+  it("is null without a step width or without a number", () => {
+    expect(
+      steppedNumberOf({ ...year, stepWidth: undefined }, { value: "2026" })
+    ).toBeNull();
+    expect(steppedNumberOf(year, { value: "20x6" })).toBeNull();
+    expect(steppedNumberOf(year, undefined)).toBeNull();
   });
 });

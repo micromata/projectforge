@@ -204,7 +204,7 @@ class VacationEntityRest :
                 .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER)
         )
         elements.add(UIFilterBooleanElement("conflicts", label = translate("vacation.conflicts"), defaultFilter = true))
-        elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
+        elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true).also { it.stepWidth = 1 })
         elements.add(UIFilterBooleanElement("special", label = translate("vacation.special")))
         elements.add(
             UIFilterElement(

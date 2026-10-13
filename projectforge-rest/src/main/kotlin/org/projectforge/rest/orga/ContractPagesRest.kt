@@ -119,7 +119,7 @@ class ContractPagesRest
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-    elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
+    elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true).also { it.stepWidth = 1 })
   }
 
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {

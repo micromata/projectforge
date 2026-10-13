@@ -13,6 +13,9 @@
       }, {
         "title" : "Leave applications",
         "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
+      }, {
+        "title" : "List filters",
+        "items" : [ "Arrows beside the year filter of the leave applications and the contracts page it a year back or forth.", "The employee filter of the leave applications is always on the filter row." ]
       } ]
     }, {
       "type" : "changed",

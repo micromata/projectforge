@@ -210,3 +210,16 @@ function taskLeafOf(path: string): string {
   const segments = path.split(" | ");
   return segments[segments.length - 1] || path;
 }
+
+/**
+ * The whole number a filter with a step width holds (a year), or null if it holds none — typed with the
+ * wildcards of a text search before the field was raw, or not a number at all.
+ */
+export function steppedNumberOf(
+  element: FilterElement,
+  value: MagicFilterEntryValue | undefined
+): number | null {
+  if (element.stepWidth == null) return null;
+  const text = fromLikeTerm(value?.value).trim();
+  return /^-?\d+$/.test(text) ? Number(text) : null;
+}

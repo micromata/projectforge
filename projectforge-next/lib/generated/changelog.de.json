@@ -13,6 +13,9 @@
       }, {
         "title" : "Urlaubsanträge",
         "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
+      }, {
+        "title" : "Listenfilter",
+        "items" : [ "Pfeile am Jahresfilter der Urlaubsanträge und der Verträge blättern ein Jahr zurück oder vor.", "Der Mitarbeiterfilter der Urlaubsanträge steht immer in der Filterzeile." ]
       } ]
     }, {
       "type" : "changed",

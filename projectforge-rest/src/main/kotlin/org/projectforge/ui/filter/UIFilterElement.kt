@@ -62,6 +62,12 @@ open class UIFilterElement(
         var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     /**
+     * A STRING filter holding a whole number (a year): projectforge-next flanks its pill with arrows stepping the
+     * value by this much. Ignored by the legacy React app.
+     */
+    var stepWidth: Int? = null
+
+    /**
      * MONTH is a DATE range of whole calendar months (the values are still `yyyy-MM-dd`: the first day of the
      * begin month, the last day of the end month) — for a field the query reads by year and month only.
      */
