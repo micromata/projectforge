@@ -1,0 +1,11 @@
+{
+  "type": "fixed",
+  "en": "Year filter",
+  "de": "Jahresfilter",
+  "items": [
+    {
+      "en": "The year filter of the leave applications and the contracts is applied again; it was ignored in the new interface.",
+      "de": "Der Jahresfilter der Urlaubsanträge und der Verträge greift wieder; in der neuen Oberfläche wurde er ignoriert."
+    }
+  ]
+}

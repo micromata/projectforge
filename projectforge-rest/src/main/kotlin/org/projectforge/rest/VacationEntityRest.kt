@@ -253,7 +253,7 @@ class VacationEntityRest :
         }
         source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
-            NumberHelper.parseInteger(entry.value.value)?.let { filters.add(VacationYearFilter(it)) }
+            NumberHelper.parseInteger(entry.plainValue)?.let { filters.add(VacationYearFilter(it)) }
         }
         source.entries.find { it.field == "period" }?.let { entry ->
             entry.synthetic = true

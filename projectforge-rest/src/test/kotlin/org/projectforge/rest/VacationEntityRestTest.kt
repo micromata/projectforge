@@ -42,6 +42,9 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
@@ -148,6 +151,36 @@ class VacationEntityRestTest : AbstractTestBase() {
         assertEquals(0, BigDecimal("4.5").compareTo(stats.workingDays), "Half a day less: ${stats.workingDays}")
         assertNotEquals(leftOfOther, stats.vacationDaysLeftInYear, "Days left of somebody else are not told.")
         assertTrue(stats.allowedStatus!!.isNotEmpty())
+    }
+
+    @Test
+    fun `the year filter applies together with the employee filter`() {
+        val own = createEmployee("year-own")
+        val manager = createEmployee("year-manager")
+        val hr = createEmployee("year-hr", hrAccess = true)
+        logon(hr.user!!)
+        val year = LocalDate.now().year + 4
+        listOf(year - 1, year).forEach { y ->
+            vacationDao.insert(VacationDO().also {
+                it.employee = own
+                it.manager = manager
+                it.replacement = manager
+                // A Tuesday in March: a working day, no holiday.
+                val day = LocalDate.of(y, 3, 4).let { d -> d.plusDays((9L - d.dayOfWeek.value) % 7) }
+                it.startDate = day
+                it.endDate = day
+                it.status = VacationStatus.IN_PROGRESS
+                it.special = true
+            })
+        }
+        val filter = MagicFilter()
+        filter.entries.add(MagicFilterEntry("employee").also { it.value.id = own.id })
+        // As the client sends a text filter: wrapped in the wildcards of a LIKE search.
+        filter.entries.add(MagicFilterEntry("year", "*$year*"))
+        val result = vacationEntityRest.listPage(
+            MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+        )
+        assertEquals(listOf(year), result.resultSet.map { (it as Vacation).startDate?.year })
     }
 
     /** An employee with a user of its own and 30 days of annual leave; HR staff with the HR vacation right. */

@@ -12,19 +12,22 @@
         "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
       }, {
         "title" : "Urlaubsanträge",
-        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
+        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
       } ]
     }, {
       "type" : "changed",
       "items" : [ "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", {
         "title" : "Sicherheit",
         "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
       }, {
         "title" : "Urlaubsexport",
         "items" : [ "Abgelehnte Urlaubsanträge werden nicht mehr exportiert." ]
+      }, {
+        "title" : "Jahresfilter",
+        "items" : [ "Der Jahresfilter der Urlaubsanträge und der Verträge greift wieder; in der neuen Oberfläche wurde er ignoriert." ]
       } ]
     } ]
   },

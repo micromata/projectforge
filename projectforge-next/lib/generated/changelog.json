@@ -12,19 +12,22 @@
         "items" : [ "The database tile appears at once: the number of history entries and attributes is the estimate of the database (~) instead of a count taking minutes.", "Tiles still loading show their title and a spinner.", "CPU load and system load average as bars." ]
       }, {
         "title" : "Leave applications",
-        "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
+        "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
       } ]
     }, {
       "type" : "changed",
       "items" : [ "Docker image: based on Java 21 (Eclipse Temurin 21 JRE) instead of Java 17. ProjectForge still runs on Java 17 or newer." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", {
         "title" : "Security",
         "items" : [ "Phone lookup (/rsPublic/phoneLookup) is disabled until an own key is configured in projectforge.phoneLookupKey; the former default placeholder is no longer accepted.", "Force delete checks the CSRF token like all other write actions." ]
       }, {
         "title" : "Vacation export",
         "items" : [ "Rejected leave applications are no longer exported." ]
+      }, {
+        "title" : "Year filter",
+        "items" : [ "The year filter of the leave applications and the contracts is applied again; it was ignored in the new interface." ]
       } ]
     } ]
   },

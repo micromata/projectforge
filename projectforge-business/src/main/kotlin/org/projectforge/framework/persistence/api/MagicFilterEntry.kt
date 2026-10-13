@@ -104,6 +104,15 @@ class MagicFilterEntry(
             return false
         }
 
+    /**
+     * The typed value without the wildcards the client wraps a text filter's term in for a LIKE search ("*2026*",
+     * see filter-field-inputs.tsx of projectforge-next): for a synthetic entry the backend parses itself, e.g. a year.
+     */
+    @get:JsonIgnore
+    @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
+    val plainValue: String?
+        get() = if (value == null) null else value.value?.trim()?.trim('*')?.trim()?.ifEmpty { null }
+
     @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
     val isNoValueGiven: Boolean
         get() = value == null || (value.value.isNullOrBlank() && value.fromValue.isNullOrBlank() && value.toValue.isNullOrBlank() && value.values.isNullOrEmpty())
