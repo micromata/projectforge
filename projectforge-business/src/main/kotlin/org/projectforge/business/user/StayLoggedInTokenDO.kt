@@ -86,6 +86,10 @@ import java.util.Date
         query = "delete from StayLoggedInTokenDO t where t.user.id = :userId",
     ),
     NamedQuery(
+        name = StayLoggedInTokenDO.DELETE_BY_ID_AND_USER,
+        query = "delete from StayLoggedInTokenDO t where t.id = :id and t.user.id = :userId",
+    ),
+    NamedQuery(
         name = StayLoggedInTokenDO.DELETE_EXPIRED,
         // "is null" is needed: a comparison with NULL is UNKNOWN, so a row without lastAccess would never be
         // purged. Such a row can't restore a session either ([StayLoggedInTokenDao.getValidToken] treats null
@@ -146,6 +150,7 @@ open class StayLoggedInTokenDO {
         internal const val UPDATE_LAST_ACCESS = "StayLoggedInTokenDO_UpdateLastAccess"
         internal const val DELETE_BY_TOKEN_HASH = "StayLoggedInTokenDO_DeleteByTokenHash"
         internal const val DELETE_BY_USER = "StayLoggedInTokenDO_DeleteByUser"
+        internal const val DELETE_BY_ID_AND_USER = "StayLoggedInTokenDO_DeleteByIdAndUser"
         internal const val DELETE_EXPIRED = "StayLoggedInTokenDO_DeleteExpired"
 
         const val MAX_USER_AGENT_LENGTH = 255

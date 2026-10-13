@@ -158,6 +158,14 @@ class CookieService {
   }
 
   /**
+   * @return The plain token of the calling device's stay-logged-in cookie, if any. For marking this device in
+   * the list of devices (my-account page), never for checking it - that is [checkStayLoggedIn]'s job.
+   */
+  fun getStayLoggedInToken(request: HttpServletRequest): String? {
+    return getStayLoggedInCookie(request)?.value
+  }
+
+  /**
    * Reads the secure cookie setting from the spring boot configuration.
    */
   private val isSecureCookieConfigured: Boolean

@@ -1,0 +1,27 @@
+{
+  "type": "changed",
+  "en": "My account",
+  "de": "Mein Zugang",
+  "items": [
+    {
+      "en": "Migrated to the new interface; old links lead to the new page. Saving stays on the page, and a changed language, time zone or date format takes effect at once.",
+      "de": "In die neue Oberfläche umgezogen, alte Links führen auf die neue Seite. Nach dem Speichern bleibt die Seite offen, eine geänderte Sprache, Zeitzone oder ein geändertes Datumsformat wirkt sofort."
+    },
+    {
+      "en": "Devices staying logged in are listed with browser, IP address and last access, the current device is marked; each one can be logged out on its own.",
+      "de": "Angemeldet bleibende Geräte werden mit Browser, IP-Adresse und letztem Zugriff aufgelistet, das aktuelle Gerät ist markiert; jedes lässt sich einzeln abmelden."
+    },
+    {
+      "en": "The usage of an access token is shown as a table of the clients (browser, IP address, last access, number of accesses).",
+      "de": "Die Nutzung eines Zugangsschlüssels wird als Tabelle der Clients angezeigt (Browser, IP-Adresse, letzter Zugriff, Anzahl der Zugriffe)."
+    },
+    {
+      "en": "The language can be set back to the browser's default.",
+      "de": "Die Sprache lässt sich wieder auf die Voreinstellung des Browsers zurücksetzen."
+    },
+    {
+      "en": "An empty date format or time notation names the default that applies; the mobile phone links to the setup of the second factor, where it is changed.",
+      "de": "Ein leeres Datums- oder Uhrzeitformat nennt die geltende Voreinstellung; die Mobilnummer verweist auf die Einrichtung des zweiten Faktors, wo sie geändert wird."
+    }
+  ]
+}

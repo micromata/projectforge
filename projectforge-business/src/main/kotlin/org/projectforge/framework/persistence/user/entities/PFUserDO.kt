@@ -195,7 +195,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     @get:Column
     open var loginFailures: Int = 0
 
-    @PropertyInfo(i18nKey = "user.locale")
+    @PropertyInfo(i18nKey = "user.locale", tooltip = "user.tooltip.locale")
     @get:Column
     open var locale: Locale? = null
 
@@ -205,7 +205,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      */
     private var _timeZone: TimeZone? = null
 
-    @get:PropertyInfo(i18nKey = "timezone")
+    @get:PropertyInfo(i18nKey = "timezone", tooltip = "user.tooltip.timeZone")
     @get:Transient
     var timeZone: TimeZone
         get() = _timeZone ?: Configuration.instance.defaultTimeZone
@@ -216,7 +216,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
-    @get:PropertyInfo(i18nKey = "timezone")
+    @get:PropertyInfo(i18nKey = "timezone", tooltip = "user.tooltip.timeZone")
     @get:Column(name = "time_zone")
     open var timeZoneString: String?
         get() = _timeZone?.id
@@ -255,7 +255,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateFormat")
+    @PropertyInfo(i18nKey = "dateFormat", tooltip = "user.tooltip.dateFormat")
     @get:Column(name = "date_format", length = 20)
     open var dateFormat: String? = null
 
@@ -266,7 +266,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateFormat.xls")
+    @PropertyInfo(i18nKey = "dateFormat.xls", tooltip = "user.tooltip.excelDateFormat")
     @get:Column(name = "excel_date_format", length = 20)
     open var excelDateFormat: String? = null
 
@@ -283,7 +283,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
             firstDayOfWeekValue = PFDayUtils.getISODayOfWeekValue(value)
         }
 
-    @PropertyInfo(i18nKey = "timeNotation")
+    @PropertyInfo(i18nKey = "timeNotation", tooltip = "user.tooltip.timeNotation")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "time_notation", length = 6)
     open var timeNotation: TimeNotation? = null
@@ -331,15 +331,15 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     /**
      * The user's sshPublicKey, if any.
      */
-    @PropertyInfo(i18nKey = "user.sshPublicKey")
-    @get:Column(name = "ssh_public_key", length = 4096)
+    @PropertyInfo(i18nKey = "user.sshPublicKey", tooltip = "user.tooltip.sshPublicKey")
+    @get:Column(name = "ssh_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var sshPublicKey: String? = null
 
     /**
      * The user's gpgPublicKey, if any.
      */
-    @PropertyInfo(i18nKey = "user.gpgPublicKey")
-    @get:Column(name = "gpg_public_key", length = 4096)
+    @PropertyInfo(i18nKey = "user.gpgPublicKey", tooltip = "user.tooltip.gpgPublicKey")
+    @get:Column(name = "gpg_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var gpgPublicKey: String? = null
 
     /**
@@ -442,6 +442,12 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     }
 
     companion object {
+        /**
+         * Room for an armored GPG key with subkeys and signatures (often more than 4096 characters) or several
+         * SSH keys.
+         */
+        const val PUBLIC_KEY_MAX_LENGTH = 20000
+
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
         const val FIND_BY_IDP_EXTERNAL_ID = "PFUserDO_FindByIdpExternalId"
 

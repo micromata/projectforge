@@ -37,7 +37,6 @@ import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
-import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -67,7 +66,6 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.KProperty
 
@@ -778,7 +776,7 @@ class UserPagesRest
     }
 
     /**
-     * The admin's counterpart of [MyAccountPageRest]: how many devices of this user may log in without a
+     * The admin's counterpart of [MyAccountRest]: how many devices of this user may log in without a
      * password, and a button to end all of it. There is no per device logout here - an admin has no way to
      * tell the user's devices apart, so "all" is the only honest granularity.
      */
@@ -977,19 +975,12 @@ class UserPagesRest
         internal fun createUserSettingsCol(uiLength: UILength, user: PFUserDO): UICol {
             val userLC = LayoutContext(PFUserDO::class.java)
 
-            val locales =
-                UserLocale.LOCALIZATIONS.map { UISelectValue(Locale(it), translate("locale.$it")) }.toMutableList()
-            locales.add(0, UISelectValue(Locale("DEFAULT"), translate("user.defaultLocale")))
-
-            val today = LocalDate.now()
-            val formats = Configuration.instance.dateFormats
-            val dateFormats = formats.map { createUISelectValue(it, today) }.toMutableList()
-            val excelDateFormats = formats.map { createUISelectValue(it, today, true) }.toMutableList()
-
-            val timeNotations = listOf(
-                UISelectValue(TimeNotation.H12, translate("timeNotation.12")),
-                UISelectValue(TimeNotation.H24, translate("timeNotation.24"))
-            )
+            // The values are typed (Locale, TimeNotation): the React page binds them to the user DTO's fields.
+            val locales = UserSettingsOptions.locales().map { UISelectValue(Locale(it.value), it.label) }
+            val dateFormats = UserSettingsOptions.dateFormats().map { UISelectValue(it.value, it.label) }
+            val excelDateFormats = UserSettingsOptions.excelDateFormats().map { UISelectValue(it.value, it.label) }
+            val timeNotations =
+                UserSettingsOptions.timeNotations().map { UISelectValue(TimeNotation.valueOf(it.value), it.label) }
 
             val col = UICol(uiLength)
                 .add(UIReadOnlyField("lastLoginFormatted", label = "login.lastLogin"))
@@ -1013,19 +1004,6 @@ class UserPagesRest
                 .add(UISelect("excelDateFormat", userLC, required = false, values = excelDateFormats))
                 .add(UISelect("timeNotation", userLC, required = false, values = timeNotations))
             return col
-        }
-
-        private fun createUISelectValue(
-            pattern: String,
-            today: LocalDate,
-            excelDateFormat: Boolean = false
-        ): UISelectValue<String> {
-            val str = if (excelDateFormat) {
-                pattern.replace('y', 'Y').replace('d', 'D')
-            } else {
-                pattern
-            }
-            return UISelectValue(str, "$str: ${java.time.format.DateTimeFormatter.ofPattern(pattern).format(today)}")
         }
     }
 

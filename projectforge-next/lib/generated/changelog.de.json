@@ -22,10 +22,13 @@
       "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]
     }, {
       "type" : "changed",
-      "items" : [ "Das Adminprotokoll ist jetzt ein Tab des System-Dashboards; sein eigener Menüeintrag entfällt, alte Links führen auf den Tab.", "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen." ]
+      "items" : [ "Das Adminprotokoll ist jetzt ein Tab des System-Dashboards; sein eigener Menüeintrag entfällt, alte Links führen auf den Tab.", "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen.", {
+        "title" : "Mein Zugang",
+        "items" : [ "In die neue Oberfläche umgezogen, alte Links führen auf die neue Seite. Nach dem Speichern bleibt die Seite offen, eine geänderte Sprache, Zeitzone oder ein geändertes Datumsformat wirkt sofort.", "Angemeldet bleibende Geräte werden mit Browser, IP-Adresse und letztem Zugriff aufgelistet, das aktuelle Gerät ist markiert; jedes lässt sich einzeln abmelden.", "Die Nutzung eines Zugangsschlüssels wird als Tabelle der Clients angezeigt (Browser, IP-Adresse, letzter Zugriff, Anzahl der Zugriffe).", "Die Sprache lässt sich wieder auf die Voreinstellung des Browsers zurücksetzen.", "Ein leeres Datums- oder Uhrzeitformat nennt die geltende Voreinstellung; die Mobilnummer verweist auf die Einrichtung des zweiten Faktors, wo sie geändert wird." ]
+      } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl." ]
+      "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl.", "Merlin-Vorlagen: Die Liste lässt sich nach den Spalten Admins, Benutzer und Gruppen sortieren (sie blieb bisher unsortiert).", "Mein Zugang: Öffentliche GPG- und SSH-Schlüssel dürfen jetzt bis zu 20.000 Zeichen lang sein (bisher 4.096, ein längerer GPG-Schlüssel ließ sich nicht speichern); ein immer noch zu langer Schlüssel wird als Fehler am Feld angezeigt." ]
     } ]
   },
   "groups" : [ {
