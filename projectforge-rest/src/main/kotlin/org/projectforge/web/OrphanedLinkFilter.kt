@@ -91,6 +91,13 @@ class OrphanedLinkFilter : Filter {
             // Old dynamic React page of the system statistics, migrated to projectforge-next. The React page was
             // removed, so there is no "classic version" escape hatch.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$SYSTEM_STATISTICS_ROUTE")
+        } else if (uri.endsWith("/react/myAccount") || uri.contains("/react/myAccount/")
+            || uri.endsWith("/react/tokenInfo") || uri.contains("/react/tokenInfo/")
+        ) {
+            // Old dynamic React pages of my account and of a token's usage (a modal of my account), migrated to
+            // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
+            // precise segment match keeps this from catching sibling pages like /react/myScript.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}myAccount")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

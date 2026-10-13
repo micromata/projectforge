@@ -31,7 +31,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 /**
- * Per-user UI preferences of the Next.js frontend that have no counterpart in [org.projectforge.rest.MyAccountPageRest]
+ * Per-user UI preferences of the Next.js frontend that have no counterpart in [org.projectforge.rest.MyAccountRest]
  * because they only steer the client's appearance, not the account.
  *
  * The colour theme (light/dark/system) and the tile layouts of the chart dashboards. Persisted per user through [UserPrefService] (no DB migration),

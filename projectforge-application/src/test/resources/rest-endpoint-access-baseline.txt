@@ -164,8 +164,6 @@ org.projectforge.rest.my2fa.WebAuthnEntryPageRest#delete
 org.projectforge.rest.my2fa.WebAuthnEntryPageRest#getForm
 org.projectforge.rest.my2fa.WebAuthnEntryPageRest#registerFinish
 org.projectforge.rest.my2fa.WebAuthnEntryPageRest#update
-org.projectforge.rest.MyAccountPageRest#getForm
-org.projectforge.rest.MyAccountPageRest#save
 org.projectforge.rest.orga.VisitorbookEntryPageRest#delete
 org.projectforge.rest.orga.VisitorbookEntryPageRest#getForm
 org.projectforge.rest.orga.VisitorbookEntryPageRest#insert
@@ -209,13 +207,10 @@ org.projectforge.rest.TimesheetEntityRest#getReferences
 org.projectforge.rest.TimesheetEntityRest#selectRecent
 org.projectforge.rest.TimesheetEntityRest#switch2CalendarEvent
 org.projectforge.rest.TimeZoneServicesRest#getLTimeZones
-org.projectforge.rest.TokenInfoPageRest#getForm
 org.projectforge.rest.UserPagesRest#createSambaSID
 org.projectforge.rest.UserPagesRest#createUid
 org.projectforge.rest.UserPagesRest#exportAsExcel
 org.projectforge.rest.UserPagesRest#resetToken
-org.projectforge.rest.UserServicesRest#getTokenAccess
-org.projectforge.rest.UserServicesRest#renewToken
 org.projectforge.rest.UserStatusRest#loginTest
 org.projectforge.rest.VacationAccountPageRest#getForm
 org.projectforge.rest.VacationAccountPageRest#recalculateRemainingLeave

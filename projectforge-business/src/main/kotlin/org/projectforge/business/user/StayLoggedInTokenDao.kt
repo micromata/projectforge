@@ -150,6 +150,39 @@ class StayLoggedInTokenDao {
     }
 
     /**
+     * Invalidates one device of a user (the per device logout of the my-account page). The user is part of
+     * the condition, so an id of another user's device deletes nothing.
+     *
+     * @return The number of deleted rows: 1, or 0 if the device isn't (or no longer) one of the user's.
+     */
+    fun deleteOfUser(userId: Long?, id: Long?): Int {
+        userId ?: return 0
+        id ?: return 0
+        val counter = persistenceService.runInTransaction { context ->
+            context.executeNamedUpdate(
+                StayLoggedInTokenDO.DELETE_BY_ID_AND_USER,
+                Pair("id", id),
+                Pair("userId", userId),
+            )
+        }
+        if (counter > 0) {
+            log.info { "Stay-logged-in token #$id of user #$userId deleted (device logged out)." }
+        }
+        return counter
+    }
+
+    /**
+     * @return True if [token] (the plain value of a stay-logged-in cookie) is the one of [entry]. For marking
+     * the calling device in the list of devices.
+     */
+    fun isTokenOf(entry: StayLoggedInTokenDO, token: String?): Boolean {
+        if (token.isNullOrBlank()) {
+            return false
+        }
+        return entry.tokenHash == hash(token)
+    }
+
+    /**
      * The devices of a user, most recently used first. For displaying them to their owner.
      */
     fun getEntries(userId: Long?): List<StayLoggedInTokenDO> {

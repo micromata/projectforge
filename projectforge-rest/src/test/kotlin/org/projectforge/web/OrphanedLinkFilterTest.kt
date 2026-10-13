@@ -274,6 +274,16 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/systemDashboard?tab=statistics", redirectOf("/react/systemStatistics"))
     }
 
+    @Test
+    fun `the old react my account pages are redirected to next`() {
+        Assertions.assertEquals("/next/myAccount", redirectOf("/react/myAccount/dynamic"))
+        Assertions.assertEquals("/next/myAccount", redirectOf("/react/myAccount"))
+        Assertions.assertEquals("/next/myAccount", redirectOf("/react/tokenInfo/dynamic"))
+        Assertions.assertNull(redirectOf("/react/myAccountXyz"))
+        Assertions.assertNull(redirectOf("/next/myAccount"))
+        Assertions.assertNull(redirectOf("/rs/myAccount"))
+    }
+
     /**
      * The Wicket user preference pages are gone without a replacement, so their links land on the next start page.
      */
