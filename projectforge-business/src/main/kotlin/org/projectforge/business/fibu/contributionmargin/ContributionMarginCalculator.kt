@@ -344,7 +344,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
 
     /**
      * The accounting records of the given projects as entries: records on a revenue account as revenue,
-     * all others as costs. The amount is taken as booked, so costs are negative and credits positive.
+     * all others as costs, each in its booking period ([bookingDate]). The amount is taken as booked, so costs are negative and credits positive.
      *
      * @param kost2ToProject The project id of each kost2 id; records of other kost2 are skipped.
      * @param accountNumber The account number of a record.
@@ -356,7 +356,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
       isRevenueAccount: (Int) -> Boolean,
     ): List<ContributionMarginEntry> {
       return records.mapNotNull { record ->
-        val date = record.datum ?: return@mapNotNull null
+        val date = bookingDate(record) ?: return@mapNotNull null
         val amount = record.betrag ?: return@mapNotNull null
         val projectId = kost2ToProject[record.kost2?.id ?: return@mapNotNull null] ?: return@mapNotNull null
         val account = accountNumber(record)
@@ -369,6 +369,24 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
           kost2Id = record.kost2?.id,
           account = account,
         )
+      }
+    }
+
+    /**
+     * The date a record counts at: its date within its booking period ([BuchungssatzDO.year],
+     * [BuchungssatzDO.month], part of the record number). A record may be dated outside its period, e.g. an
+     * invoice of September booked into August; then the first or last day of the period is taken. Null
+     * without a period.
+     */
+    fun bookingDate(record: BuchungssatzDO): LocalDate? {
+      val year = record.year ?: return null
+      val month = record.month ?: return null
+      val period = YearMonth.of(year, month)
+      val date = record.datum ?: return period.atEndOfMonth()
+      return when {
+        date < period.atDay(1) -> period.atDay(1)
+        date > period.atEndOfMonth() -> period.atEndOfMonth()
+        else -> date
       }
     }
 

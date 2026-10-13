@@ -2,7 +2,7 @@
     Grid of cards. Parameters:
     - data: name of the data file in _data (default: navigation_boxes)
     - columns (2-5, default 3), title, subtitle, id (anchor of the section), tone (muted for a grey band)
-    Items: title, desc, step (numbered badge), url (makes the whole card a link), img (screenshot in /uploads/).
+    Items: title, desc, step (numbered badge), icon (name of an SVG in _includes/icons/), url (makes the whole card a link), img (screenshot in /uploads/).
 {% endcomment %}
 {%- assign columns = include.columns | default: 3 | plus: 0 -%}
 {%- case columns -%}
@@ -26,6 +26,8 @@
                 <img class="h-auto w-full rounded-md border border-border" src="{{ site.uploads | relative_url }}{{ item.img }}" alt="{{ item.img_alt | default: item.title | escape }}" loading="lazy">
                 {%- elsif item.step %}
                 <span class="web-title inline-grid size-9 place-items-center rounded-md bg-info text-link">{{ item.step }}</span>
+                {%- elsif item.icon %}
+                <span class="inline-grid size-11 place-items-center rounded-md bg-info text-link [&>svg]:size-6">{% include icons/{{ item.icon }}.svg %}</span>
                 {%- endif %}
                 <h3 class="web-title">{{ item.title }}</h3>
                 {%- if item.desc %}

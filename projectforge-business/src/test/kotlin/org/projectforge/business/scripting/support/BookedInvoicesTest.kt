@@ -57,6 +57,13 @@ class BookedInvoicesTest {
   }
 
   @Test
+  fun `the booking date lies in the booking period, not at the record's date`() {
+    // Invoice of 21.09. booked into August (record number 2026-08-…):
+    val booked = BookedInvoices(listOf(record("17316", 4400, 2026, 9, 21, period = 2026 to 8)))
+    assertEquals(PFDay.of(2026, 8, 31), booked.bookedDate(invoice(17316)))
+  }
+
+  @Test
   fun `records outside the revenue accounts are ignored`() {
     val booked = BookedInvoices(listOf(record("17209", 1200, 2026, 7, 31), record("17209", 6300, 2026, 7, 31)))
     assertFalse(booked.isBooked(invoice(17209)))
@@ -102,10 +109,20 @@ class BookedInvoicesTest {
     it.typ = RechnungTyp.RECHNUNG
   }
 
-  private fun record(beleg: String, account: Int, year: Int, month: Int, day: Int): BuchungssatzDO =
+  /** A record dated [year]-[month]-[day], booked into that month unless [period] (year to month) is given. */
+  private fun record(
+    beleg: String,
+    account: Int,
+    year: Int,
+    month: Int,
+    day: Int,
+    period: Pair<Int, Int> = year to month,
+  ): BuchungssatzDO =
     BuchungssatzDO().also {
       it.beleg = beleg
       it.konto = KontoDO().also { konto -> konto.nummer = account }
       it.datum = LocalDate.of(year, month, day)
+      it.year = period.first
+      it.month = period.second
     }
 }

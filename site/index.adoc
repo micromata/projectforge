@@ -4,8 +4,13 @@ width: expand
 hero:
     title: From order to invoice – one place for projects, time, people and money.
     subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.
-    image: screenshots/2026-Timesheets.png
-    image_alt: The time sheet list in ProjectForge with its filter row
+    images:
+      - src: screenshots/2026-OrderBook.png
+        alt: The order book with budgets and invoicing status
+      - src: screenshots/2026-Calendar.png
+        alt: The team calendar with appointments and leave
+      - src: screenshots/2026-Dark.png
+        alt: The revenue forecast in the dark theme
     buttons:
       - title: Download
         url: /download/

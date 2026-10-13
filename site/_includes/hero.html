@@ -1,6 +1,7 @@
 {%- comment -%}
     Page hero from the front matter (page.hero): title, subtitle, buttons (title, url, style: primary or
-    outline), note (small print below the buttons), image (screenshot below, path in /uploads/) and image_alt.
+    outline), note (small print below the buttons), image (screenshot below, path in /uploads/) and image_alt, or images
+    (up to three screenshots with src and alt, shown as an overlapping collage: back left, back right, front).
 {%- endcomment -%}
 {%- assign hero = page.hero -%}
 <section class="pt-24 pb-16 text-center max-sm:pt-16 max-sm:pb-12">
@@ -21,7 +22,20 @@
         <p class="mx-auto mt-4 max-w-[640px] text-[13px] leading-5 text-muted-foreground">{{ hero.note }}</p>
         {%- endif %}
     </div>
-    {%- if hero.image %}
+    {%- if hero.images %}
+    <div class="pf-container">
+        <div class="relative mx-auto mt-12 aspect-[2/1] w-full max-w-[1100px]">
+            {%- for image in hero.images limit: 3 %}
+            {%- case forloop.index -%}
+            {%- when 1 -%}{%- assign pos = 'left-0 top-0' -%}
+            {%- when 2 -%}{%- assign pos = 'right-0 top-[12%]' -%}
+            {%- else -%}{%- assign pos = 'left-[21%] top-[31%] shadow-xl' -%}
+            {%- endcase %}
+            <img class="absolute {{ pos }} block h-auto w-[58%] rounded-lg border border-border bg-card shadow-lg" src="{{ site.uploads | relative_url }}{{ image.src }}" alt="{{ image.alt | escape }}">
+            {%- endfor %}
+        </div>
+    </div>
+    {%- elsif hero.image %}
     <div class="pf-container">
         <figure class="pf-hero-image mt-12 overflow-hidden rounded-xl border border-border bg-card">
             <img class="block h-auto w-full" src="{{ site.uploads | relative_url }}{{ hero.image }}" alt="{{ hero.image_alt | escape }}">
