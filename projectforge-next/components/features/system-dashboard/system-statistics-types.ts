@@ -5,6 +5,8 @@
 
 export interface SystemStatisticsSection {
   id: string;
+  /** Heading shown while the section is loading, null if only known once it is built. */
+  title?: string | null;
 }
 
 /** Fill level of an entry, `used` and `max` in bytes or as a count. */

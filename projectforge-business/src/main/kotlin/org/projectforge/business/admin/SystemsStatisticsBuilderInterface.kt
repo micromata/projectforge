@@ -39,6 +39,13 @@ interface SystemsStatisticsBuilderInterface {
   val adminOnly: Boolean
     get() = true
 
+  /**
+   * Group of (the first card of) this section, shown as title of its placeholder while the section is loading.
+   * Null for a section whose groups are only known once it is built.
+   */
+  val group: String?
+    get() = null
+
   fun addStatisticsEntries(stats: SystemStatisticsData)
 
   fun format(number: Number, scale: Int? = null): String {

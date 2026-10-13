@@ -53,32 +53,36 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
 
   override val adminOnly = false
 
+  override val group = GROUP
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     val jdbc = JdbcTemplate(dataSource)
+    // An exact count of a huge table (history) may take minutes on PostgreSQL, the section would never appear.
+    val countJdbc = JdbcTemplate(dataSource).also { it.queryTimeout = COUNT_TIMEOUT_SECONDS }
     val totalDuration = taskTree.rootTaskNode.getDuration(taskTree, true)
     var totalPersonDays = BigDecimal(totalDuration).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
     totalPersonDays = NumberHelper.setDefaultScale(totalPersonDays)!!
 
     stats.add(
       "totalNumberOfTimesheets", GROUP, "system.statistics.totalNumberOfTimesheets",
-      getTableCount(jdbc, TimesheetDO::class.java)
+      getTableCount(countJdbc, jdbc, TimesheetDO::class.java)
     )
     stats.add("totalTimesheetDurations", GROUP, "system.statistics.totalTimesheetDurations", totalPersonDays)
     stats.add(
       "totalNumberOfUsers", GROUP, "system.statistics.totalNumberOfUsers",
-      getTableCount(jdbc, PFUserDO::class.java)
+      getTableCount(countJdbc, jdbc, PFUserDO::class.java)
     )
     stats.add(
       "totalNumberOfTasks", GROUP, "system.statistics.totalNumberOfTasks",
-      getTableCount(jdbc, TaskDO::class.java)
+      getTableCount(countJdbc, jdbc, TaskDO::class.java)
     )
     stats.add(
       "totalNumberOfHistoryEntries", GROUP, "system.statistics.totalNumberOfHistoryEntries",
-      getTableCount(jdbc, HistoryEntryDO::class.java)
+      getTableCount(countJdbc, jdbc, HistoryEntryDO::class.java, estimate = true)
     )
     stats.add(
       "totalNumberOfHistoryAttrs", GROUP, "'Number of history attributes",
-      getTableCount(jdbc, HistoryEntryAttrDO::class.java)
+      getTableCount(countJdbc, jdbc, HistoryEntryAttrDO::class.java, estimate = true)
     )
     addPoolStatistics(stats)
     addServerStatistics(stats, jdbc)
@@ -155,16 +159,50 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
     }
   }
 
-  private fun getTableCount(jdbc: JdbcTemplate, entity: Class<*>): Int {
-    return try {
-      jdbc.queryForObject("SELECT COUNT(*) FROM " + HibernateUtils.getDBTableName(entity), Int::class.java)!!
+  /**
+   * The formatted exact number of rows, or the estimate of PostgreSQL (prefixed by `~`) if counting takes longer than
+   * [COUNT_TIMEOUT_SECONDS].
+   * @param estimate If true, the estimate is taken at once if available: counting the history tables (tens of
+   * millions of rows) takes PostgreSQL minutes, the section would appear only then.
+   */
+  private fun getTableCount(
+    countJdbc: JdbcTemplate,
+    jdbc: JdbcTemplate,
+    entity: Class<*>,
+    estimate: Boolean = false,
+  ): String {
+    val table = HibernateUtils.getDBTableName(entity) ?: return "?"
+    if (estimate) {
+      getEstimatedTableCount(jdbc, table)?.let { return it }
+    }
+    try {
+      return format(countJdbc.queryForObject("SELECT COUNT(*) FROM $table", Long::class.java)!!)
     } catch (ex: Exception) {
-      log.error(ex) { ex.message }
-      0
+      log.warn { "Can't count the rows of table '$table' (within $COUNT_TIMEOUT_SECONDS s), using the estimate: ${ex.message}" }
+    }
+    return getEstimatedTableCount(jdbc, table) ?: "?"
+  }
+
+  /**
+   * The number of rows estimated by PostgreSQL (statistics of the last vacuum/analyze), prefixed by `~`.
+   * @return null for other databases or a table never analyzed.
+   */
+  private fun getEstimatedTableCount(jdbc: JdbcTemplate, table: String): String? {
+    return try {
+      // reltuples is -1 for a table never analyzed (PostgreSQL 14+, 0 before).
+      val estimate = jdbc.queryForObject(
+        "SELECT reltuples::bigint FROM pg_class WHERE oid = to_regclass(?)", Long::class.java, table
+      )
+      if (estimate != null && estimate > 0) "~${format(estimate)}" else null
+    } catch (ex: Exception) {
+      log.debug { "Can't get the estimated number of rows of table '$table': ${ex.message}" }
+      null
     }
   }
 
   companion object {
     const val GROUP = "database"
+
+    private const val COUNT_TIMEOUT_SECONDS = 5
   }
 }
