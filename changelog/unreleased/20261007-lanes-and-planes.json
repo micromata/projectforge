@@ -1,0 +1,27 @@
+{
+  "type": "added",
+  "en": "Lanes & Planes interface",
+  "de": "Lanes-&-Planes-Schnittstelle",
+  "items": [
+    {
+      "en": "The active employees are pushed with the general Kost1 as cost centers, the general Kost2 and the Kost2 they may book on (restricted by patterns like 5.*.02) as cost units, their Kost1 as reference cost center, their creditor account and their nickname as abbreviation. Numbers are sent without dots (as the DATEV export of Lanes & Planes requires). Finance maintains these settings in the configuration parameter \"Lanes & Planes\"; activation and API key are set in projectforge.lanesandplanes.*.",
+      "de": "Die aktiven Mitarbeitenden werden mit den allgemeinen Kost1 als Kostenstellen, den allgemeinen Kost2 und den Kost2, auf die sie buchen dürfen (über Muster wie 5.*.02 einschränkbar), als Kostenträger, ihrer Kost1 als Referenz-Kostenstelle, ihrem Kreditorenkonto und ihrem Spitznamen als Kürzel übertragen. Die Nummern werden ohne Punkte übertragen, wie es der DATEV-Export von Lanes & Planes braucht. Die Einstellungen pflegt die Buchhaltung im Konfigurationsparameter „Lanes & Planes“, Aktivierung und API-Key stehen in projectforge.lanesandplanes.*."
+    },
+    {
+      "en": "Additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter. They are sent with name and email only, so they aren't deactivated and their role and managers are kept. The service admin and guest profiles of Lanes & Planes can't be entered: the import doesn't touch them.",
+      "de": "Im Konfigurationsparameter können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten. Der Service-Admin und Gastprofile von Lanes & Planes können nicht eingetragen werden: Der Import lässt sie unberührt."
+    },
+    {
+      "en": "Cost centers and cost units already existing in Lanes & Planes can be entered with their names in the configuration parameter (pasted from the user export). They are sent under that name, so Lanes & Planes reuses them instead of rejecting them as duplicates.",
+      "de": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt, können mit ihren Namen im Konfigurationsparameter eingetragen werden (aus dem User-Export eingefügt). Sie werden unter diesem Namen übertragen, Lanes & Planes verwendet sie also weiter, statt sie als Dopplung abzulehnen."
+    },
+    {
+      "en": "A changed email of an employee is held back (the old one is still sent, with a hint on the problem dashboard) until it was changed in Lanes & Planes and confirmed in the configuration parameter. Otherwise Lanes & Planes would deactivate the user and create a new one.",
+      "de": "Eine geänderte E-Mail von Mitarbeitenden wird zurückgehalten (weiter wird die alte übertragen, mit Hinweis im Problem-Dashboard), bis sie in Lanes & Planes geändert und im Konfigurationsparameter bestätigt wurde. Sonst würde Lanes & Planes den User deaktivieren und neu anlegen."
+    },
+    {
+      "en": "A suspiciously small user list isn't pushed (Lanes & Planes deactivates every user not sent): it's checked against a minimum number of users and against the last push, also after a restart of ProjectForge. A missing push state is reported on the problem dashboard.",
+      "de": "Eine verdächtig kleine User-Liste wird nicht übertragen (Lanes & Planes deaktiviert alle nicht übertragenen User): Geprüft wird gegen eine Mindestanzahl und gegen den letzten Push, auch nach einem Neustart von ProjectForge. Ein fehlender Push-Status wird im Problem-Dashboard gemeldet."
+    }
+  ]
+}
