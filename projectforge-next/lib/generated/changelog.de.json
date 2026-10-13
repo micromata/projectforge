@@ -6,6 +6,12 @@
     "date" : "2026-10-13",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten), auch als Spalte in der Liste und im Excel-Export.", "Lanes-&-Planes-Schnittstelle: Im Konfigurationsparameter „Lanes & Planes“ können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten.", "Lanes-&-Planes-Schnittstelle: Die aktiven Mitarbeitenden werden mit den allgemeinen Kost1 als Kostenstellen, den allgemeinen Kost2 und den Kost2, auf die sie buchen dürfen (über Muster wie 5.*.02 einschränkbar), als Kostenträger, ihrer Kost1 als Referenz-Kostenstelle, ihrem Kreditorenkonto und ihrem Spitznamen als Kürzel übertragen. Die Nummern werden ohne Punkte übertragen, wie es der DATEV-Export von Lanes & Planes braucht. Die Einstellungen pflegt die Buchhaltung im Konfigurationsparameter „Lanes & Planes“, Aktivierung und API-Key stehen in projectforge.lanesandplanes.*.", {
+        "title" : "Lanes-&-Planes-Schnittstelle",
+        "items" : [ "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt, können mit ihren Namen im Konfigurationsparameter „Lanes & Planes“ eingetragen werden (aus dem User-Export eingefügt). Sie werden unter diesem Namen übertragen, Lanes & Planes verwendet sie also weiter, statt sie als Dopplung abzulehnen.", "Eine geänderte E-Mail von Mitarbeitenden wird zurückgehalten (weiter wird die alte übertragen, mit Hinweis im Problem-Dashboard), bis sie in Lanes & Planes geändert und im Konfigurationsparameter bestätigt wurde. Sonst würde Lanes & Planes den User deaktivieren und neu anlegen.", "Der Service-Admin und Gastprofile von Lanes & Planes können nicht mehr als weitere User eingetragen werden: Der Import lässt sie unberührt." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", {
         "title" : "Systemstatistik",
@@ -16,10 +22,10 @@
       "items" : [ "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", {
         "title" : "Sicherheit",
         "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
-      } ]
+      }, "Urlaubsliste: Die Sortierung nach den Spalten Status und Tage hatte keine Wirkung." ]
     } ]
   },
   "groups" : [ {

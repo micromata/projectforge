@@ -216,7 +216,7 @@
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, and the additional users who aren't employees. The technical settings (activation, API key, dry run) are in projectforge.properties."
+          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, the additional users who aren't employees, the names of the cost centers and cost units already existing in Lanes & Planes and the confirmed email changes. The technical settings (activation, API key, dry run) are in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Message of the day",
@@ -2219,7 +2219,16 @@
         "email": "Email",
         "firstName": "First name",
         "lastName": "Last name",
-        "tooltip": "Users of Lanes & Planes who aren't employees, e.g. an external accountant or the service admin of Lanes & Planes. Sent with name, email and invoice profiles only, so their role, managers and cost centers are kept. Otherwise they would be deactivated by the push, and if one of them has responsibilities (e.g. as accountant or travel manager), the whole push fails."
+        "tooltip": "Users of Lanes & Planes who aren't employees, e.g. an external accountant. Sent with name, email and invoice profiles only, so their role, managers and cost centers are kept. Otherwise they would be deactivated by the push, and if one of them has responsibilities (e.g. as accountant), the whole push fails. Not needed for the service admin of Lanes & Planes and for guest profiles: the import doesn't touch them."
+      },
+      "confirmedEmailChanges": {
+        "_": "Confirmed email changes",
+        "tooltip": "Lanes & Planes identifies users by their email only. If the email of an employee changes, the old one is still sent (see the problem dashboard), otherwise the user would be deactivated and created anew. Change the email in Lanes & Planes by hand first, then enter the new email here. The entry can be removed after the next push."
+      },
+      "existingCostObjects": {
+        "_": "Existing names in Lanes & Planes",
+        "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
+        "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
       },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
@@ -2240,7 +2249,7 @@
         "text": "Text"
       },
       "remove": "Remove {arg0}",
-      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users",
+      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users · {arg4} existing names",
       "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file."
     }
   },

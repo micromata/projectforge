@@ -28,6 +28,13 @@ export interface LanesAndPlanesConfig {
   kost2Patterns: string[];
   /** Users who aren't employees (e.g. an external accountant), so the push doesn't deactivate them. */
   additionalUsers: LanesAndPlanesAdditionalUser[];
+  /**
+   * Names of cost centers/units already existing in Lanes & Planes, starting with the number without dots
+   * (`50123401 Project - Travel costs`): sent as ident and name, so L&P reuses them.
+   */
+  existingCostObjects: string[];
+  /** New emails of employees already changed in Lanes & Planes by hand: no longer held back. */
+  confirmedEmailChanges: string[];
 }
 
 /** The backend's defaults (`LanesAndPlanesSettings`), for a parameter not set yet. */
@@ -37,6 +44,8 @@ export const LANES_AND_PLANES_DEFAULTS: LanesAndPlanesConfig = {
   generalKost2: [],
   kost2Patterns: [],
   additionalUsers: [],
+  existingCostObjects: [],
+  confirmedEmailChanges: [],
 };
 
 function arrayOf<T>(value: unknown): T[] {
@@ -74,6 +83,8 @@ export function parseLanesAndPlanesConfig(json: string | null | undefined): {
         additionalUsers: arrayOf<Partial<LanesAndPlanesAdditionalUser>>(
           config.additionalUsers
         ).map((user) => ({ ...EMPTY_ADDITIONAL_USER, ...user })),
+        existingCostObjects: arrayOf(config.existingCostObjects),
+        confirmedEmailChanges: arrayOf(config.confirmedEmailChanges),
       },
       invalid: false,
     };
@@ -89,6 +100,18 @@ export function parseLanesAndPlanesConfig(json: string | null | undefined): {
 export function splitEntries(text: string): string[] {
   return text
     .split(/[,;\r\n]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+/**
+ * The names of existing cost objects typed or pasted as text: one per line, or the comma separated list of the
+ * `cost_centers` column of the Lanes & Planes user export. Names may contain commas, so a list is only split
+ * before the next number (`, 50123401 …`).
+ */
+export function splitCostObjectNames(text: string): string[] {
+  return text
+    .split(/\r?\n|[,;]\s*(?=\d{8}(?!\d))/)
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
 }

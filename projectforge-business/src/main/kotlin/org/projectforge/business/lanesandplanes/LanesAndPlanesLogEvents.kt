@@ -45,4 +45,15 @@ object LanesAndPlanesLogEvents {
                 "list is suspiciously small (a push deactivates every user not sent).",
         action = "See the message. Check projectforge.lanesandplanes.* and the active employees (with email).",
     )
+
+    @JvmField
+    val EMAIL_CHANGED = LogEvent(
+        code = "lanesAndPlanes.emailChanged",
+        category = LogCategory.CONFIG,
+        explanation = "The email of an employee changed in ProjectForge. Lanes & Planes identifies users by their " +
+                "email only: without a change by hand in Lanes & Planes, the push would deactivate the user and " +
+                "create a new one with the default role. So the old email is still sent.",
+        action = "Change the email of the user in Lanes & Planes by hand, then add the new email to the confirmed " +
+                "email changes of the configuration parameter 'lanesAndPlanes'.",
+    )
 }

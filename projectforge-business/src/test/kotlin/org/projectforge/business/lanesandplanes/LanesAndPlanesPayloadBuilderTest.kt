@@ -133,6 +133,17 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             Assertions.assertEquals("kt", user2.abbreviation)
             Assertions.assertNull(user2.costCenters, "Without general Kost1 the cost centers of L&P are kept.")
             Assertions.assertEquals(emptyList<LanesAndPlanesCostObject>(), user2.costUnits)
+            val existing = "${kost2a.rawNumberString} Entered by hand"
+            val user3 = payloadBuilder.createUser(
+                employee, withAccess, "k.tester@example.org", listOf(kost1(1, 5, 2, "Travel costs")), listOf(kost2a, kost2b),
+                LanesAndPlanesSettings(existingCostObjects = listOf(existing, "10050200 Reisekosten")),
+            )
+            Assertions.assertEquals(
+                listOf(LanesAndPlanesCostObject(existing, existing), payloadBuilder.createCostObject(kost2b)),
+                user3.costUnits,
+                "An existing L&P name is sent as ident and name, the others as generated.",
+            )
+            Assertions.assertEquals(listOf(LanesAndPlanesCostObject("10050200 Reisekosten", "10050200 Reisekosten")), user3.costCenters)
             val additional = payloadBuilder.createAdditionalUser(
                 LanesAndPlanesSettings.AdditionalUser(" ext@example.org", " Ext ", "Accountant "), "ext@example.org", settings,
             )

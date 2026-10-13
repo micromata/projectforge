@@ -92,13 +92,24 @@ open class LanesAndPlanesSyncService(
                 run.abort("build failed: ${ex.message}")
                 return
             }
-            val users = result.request.users
+            val stateFile = File(ConfigXml.getInstance().workingDirectory, STATE_FILENAME)
+            val holds = LanesAndPlanesEmailHolds.apply(
+                result.request.users, LanesAndPlanesEmailHolds.load(stateFile), settings.confirmedEmails,
+            )
+            holds.holds.forEach { hold ->
+                log.warn(LanesAndPlanesLogEvents.EMAIL_CHANGED) {
+                    "Lanes & Planes: the email of user #${hold.ident} changed from '${hold.sentEmail}' to " +
+                            "'${hold.newEmail}', still sending '${hold.sentEmail}'. Change it in Lanes & Planes, " +
+                            "then add '${hold.newEmail}' to the confirmed email changes of the configuration."
+                }
+            }
+            val users = holds.users
             refuseReason(users.size, settings)?.let { reason ->
                 log.error(LanesAndPlanesLogEvents.PUSH_REFUSED) { "Lanes & Planes push refused: $reason" }
                 run.abort(reason)
                 return
             }
-            val json = JsonUtils.toJson(result.request, ignoreNullableProps = true)
+            val json = JsonUtils.toJson(LanesAndPlanesUsersRequest(users), ignoreNullableProps = true)
             if (config.dryRun) {
                 val file = File(ConfigXml.getInstance().workingDirectory, DRY_RUN_FILENAME)
                 file.writeText(json)
@@ -109,7 +120,9 @@ open class LanesAndPlanesSyncService(
                             "${users.sumOf { it.costUnits?.size ?: 0 }} cost units " +
                             "(${settings.generalKost2Numbers.size} general Kost2, patterns ${settings.kost2Patterns}), " +
                             "${users.count { it.creditorAccount != null }} with creditor account, " +
+                            "${users.sumOf { countExisting(it, settings) }} cost objects with an existing L&P name, " +
                             "${settings.additionalUserList.size} additional users, " +
+                            "${holds.holds.size} changed emails held back, " +
                             "written to ${file.absolutePath}, nothing sent."
                 }
                 run.finish()
@@ -136,6 +149,11 @@ open class LanesAndPlanesSyncService(
             }
             lastPushedHash = hash
             lastPushedUsers = users.size
+            try {
+                LanesAndPlanesEmailHolds.save(stateFile, users)
+            } catch (ex: Exception) {
+                log.error(ex) { "Lanes & Planes: push state ${stateFile.absolutePath} not written: ${ex.message}" }
+            }
             run.finish()
         } finally {
             pushLock.unlock()
@@ -164,6 +182,12 @@ open class LanesAndPlanesSyncService(
         return null
     }
 
+    /** The cost objects of the user sent with an existing name of the settings. */
+    private fun countExisting(user: LanesAndPlanesUser, settings: LanesAndPlanesSettings): Int {
+        val existing = settings.existingNamesByNumber.values.toSet()
+        return ((user.costCenters ?: emptyList()) + (user.costUnits ?: emptyList())).count { it.ident in existing }
+    }
+
     private fun post(json: String) {
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
@@ -177,6 +201,9 @@ open class LanesAndPlanesSyncService(
         const val SYNC_TYPE = "lanes-and-planes"
 
         private const val DRY_RUN_FILENAME = "lanes-and-planes-users.json"
+
+        /** The emails of the last successful push by ident, see [LanesAndPlanesEmailHolds]. */
+        private const val STATE_FILENAME = "lanes-and-planes-state.json"
 
         internal fun gzip(json: String): ByteArray {
             val bytes = ByteArrayOutputStream()

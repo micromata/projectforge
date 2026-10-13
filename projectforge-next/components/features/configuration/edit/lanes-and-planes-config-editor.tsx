@@ -14,6 +14,7 @@ import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import {
   EMPTY_ADDITIONAL_USER,
   parseLanesAndPlanesConfig,
+  splitCostObjectNames,
   type LanesAndPlanesAdditionalUser,
   type LanesAndPlanesConfig,
 } from "../lanes-and-planes-config";
@@ -173,6 +174,38 @@ export function LanesAndPlanesConfigEditor({
                   />
                 }
               />
+              <ListOrTextSetting
+                label={t("existingCostObjects._")}
+                hint={t("existingCostObjects.tooltip")}
+                invalid={hasError(t("existingCostObjects._"))}
+                entries={config.existingCostObjects}
+                placeholder="50123401 Project - Travel costs"
+                split={splitCostObjectNames}
+                textHint={t("existingCostObjects.textHint")}
+                onChange={(existingCostObjects) =>
+                  update({ existingCostObjects })
+                }
+                onBlur={field.handleBlur}
+                list={
+                  <LanesAndPlanesRows<string>
+                    rows={config.existingCostObjects}
+                    empty=""
+                    onChange={(existingCostObjects) =>
+                      update({ existingCostObjects })
+                    }
+                    ariaLabel={t("existingCostObjects._")}
+                    renderInput={(value, set, ariaLabel) => (
+                      <Input
+                        value={value}
+                        placeholder="50123401 Project - Travel costs"
+                        aria-label={ariaLabel}
+                        onChange={(e) => set(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                    )}
+                  />
+                }
+              />
               <LanesAndPlanesRows<LanesAndPlanesAdditionalUser>
                 label={t("additionalUsers._")}
                 hint={t("additionalUsers.tooltip")}
@@ -203,6 +236,27 @@ export function LanesAndPlanesConfigEditor({
                       />
                     ))}
                   </div>
+                )}
+              />
+              <LanesAndPlanesRows<string>
+                label={t("confirmedEmailChanges._")}
+                hint={t("confirmedEmailChanges.tooltip")}
+                invalid={hasError(t("confirmedEmailChanges._"))}
+                ariaLabel={t("confirmedEmailChanges._")}
+                rows={config.confirmedEmailChanges}
+                empty=""
+                onChange={(confirmedEmailChanges) =>
+                  update({ confirmedEmailChanges })
+                }
+                renderInput={(value, set, ariaLabel) => (
+                  <Input
+                    value={value}
+                    type="email"
+                    placeholder={t("additionalUsers.email")}
+                    aria-label={ariaLabel}
+                    onChange={(e) => set(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
                 )}
               />
             </div>

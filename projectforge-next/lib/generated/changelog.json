@@ -6,6 +6,12 @@
     "date" : "2026-10-13",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses), also shown as a column in the list and in the Excel export.", "Lanes & Planes interface: additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter \"Lanes & Planes\". They are sent with name and email only, so they aren't deactivated and their role and managers are kept.", "Lanes & Planes interface: the active employees are pushed with the general Kost1 as cost centers, the general Kost2 and the Kost2 they may book on (restricted by patterns like 5.*.02) as cost units, their Kost1 as reference cost center, their creditor account and their nickname as abbreviation. Numbers are sent without dots (as the DATEV export of Lanes & Planes requires). Finance maintains these settings in the configuration parameter \"Lanes & Planes\"; activation and API key are set in projectforge.lanesandplanes.*.", {
+        "title" : "Lanes & Planes interface",
+        "items" : [ "Cost centers and cost units already existing in Lanes & Planes can be entered with their names in the configuration parameter \"Lanes & Planes\" (pasted from the user export). They are sent under that name, so Lanes & Planes reuses them instead of rejecting them as duplicates.", "A changed email of an employee is held back (the old one is still sent, with a hint on the problem dashboard) until it was changed in Lanes & Planes and confirmed in the configuration parameter. Otherwise Lanes & Planes would deactivate the user and create a new one.", "The service admin and guest profiles of Lanes & Planes can no longer be entered as additional users: the import doesn't touch them." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", {
         "title" : "System statistics",
@@ -16,10 +22,10 @@
       "items" : [ "Docker image: based on Java 21 (Eclipse Temurin 21 JRE) instead of Java 17. ProjectForge still runs on Java 17 or newer." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", {
         "title" : "Security",
         "items" : [ "Phone lookup (/rsPublic/phoneLookup) is disabled until an own key is configured in projectforge.phoneLookupKey; the former default placeholder is no longer accepted.", "Force delete checks the CSRF token like all other write actions." ]
-      } ]
+      }, "Vacation list: sorting by the status or the days column had no effect." ]
     } ]
   },
   "groups" : [ {

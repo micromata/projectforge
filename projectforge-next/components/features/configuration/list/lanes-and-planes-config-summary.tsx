@@ -24,6 +24,7 @@ export function LanesAndPlanesConfigSummary({
         arg2: count(config.kost2Patterns),
         arg3: config.additionalUsers.filter((user) => user.email.trim() !== "")
           .length,
+        arg4: count(config.existingCostObjects),
       })}
     </span>
   );

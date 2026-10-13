@@ -140,9 +140,11 @@ open class LanesAndPlanesPayloadBuilder {
      * Numbers without dots (e.g. `50123401`), as the DATEV export of L&P needs them. The name follows the L&P
      * convention: number, project and Kost2 type (e.g. `50123401 Project - Diverses`), the description for a
      * Kost2 without project. At most [MAX_NAME_LENGTH] characters.
+     * @param existingNames The names already existing in L&P by number, see [existingCostObject].
      */
-    internal fun createCostObject(kost2: Kost2DO): LanesAndPlanesCostObject {
+    internal fun createCostObject(kost2: Kost2DO, existingNames: Map<String, String> = emptyMap()): LanesAndPlanesCostObject {
         val number = KostFormatter.instance.formatKost2(kost2, KostFormatter.FormatType.NUMBER)
+        existingCostObject(number, existingNames)?.let { return it }
         val projekt = caches.getProjektIfNotInitialized(kost2.projekt)
         val text = if (projekt != null) {
             listOfNotNull(projekt.name, caches.getKost2ArtIfNotInitialized(kost2.kost2Art)?.name)
@@ -155,9 +157,18 @@ open class LanesAndPlanesPayloadBuilder {
     }
 
     /** Number without dots and its description, e.g. `10050100 Travel costs`. */
-    internal fun createCostObject(kost1: Kost1DO): LanesAndPlanesCostObject {
+    internal fun createCostObject(kost1: Kost1DO, existingNames: Map<String, String> = emptyMap()): LanesAndPlanesCostObject {
         val number = KostFormatter.instance.formatKost1(kost1, KostFormatter.FormatType.NUMBER)
+        existingCostObject(number, existingNames)?.let { return it }
         return LanesAndPlanesCostObject(ident = number, name = "$number ${kost1.description?.trim() ?: ""}".trim().abbreviate(MAX_NAME_LENGTH))
+    }
+
+    /**
+     * A cost object already existing in L&P is reused only, if its name is sent as ident and name (L&P refuses a
+     * new ident with a used name, deleted entries included).
+     */
+    private fun existingCostObject(number: String, existingNames: Map<String, String>): LanesAndPlanesCostObject? {
+        return existingNames[number]?.let { LanesAndPlanesCostObject(ident = it, name = it) }
     }
 
     /**
@@ -171,6 +182,7 @@ open class LanesAndPlanesPayloadBuilder {
         kost2List: Collection<Kost2DO>,
         settings: LanesAndPlanesSettings,
     ): LanesAndPlanesUser {
+        val existingNames = settings.existingNamesByNumber
         return LanesAndPlanesUser(
             ident = "${user.id}",
             firstName = user.firstname!!.trim(),
@@ -183,8 +195,8 @@ open class LanesAndPlanesPayloadBuilder {
                 KostFormatter.instance.formatKost1(it, KostFormatter.FormatType.NUMBER)
             },
             creditorAccount = kontoCache.getKontoIfNotInitialized(employee.konto)?.nummer?.toString(),
-            costUnits = kost2List.sortedBy { it.formattedNumber }.map { createCostObject(it) },
-            costCenters = kost1List.sortedBy { it.formattedNumber }.map { createCostObject(it) }.ifEmpty { null },
+            costUnits = kost2List.sortedBy { it.formattedNumber }.map { createCostObject(it, existingNames) },
+            costCenters = kost1List.sortedBy { it.formattedNumber }.map { createCostObject(it, existingNames) }.ifEmpty { null },
             accountingInvoiceProfileIds = settings.invoiceProfileIds,
         )
     }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   kostNumberOf,
   parseLanesAndPlanesConfig,
+  splitCostObjectNames,
   splitEntries,
 } from "./lanes-and-planes-config";
 
@@ -15,6 +16,21 @@ describe("splitEntries", () => {
   it("drops blanks and empty entries", () => {
     expect(splitEntries("  ;; ,\n  1.010.01.00  ,,")).toEqual(["1.010.01.00"]);
     expect(splitEntries("")).toEqual([]);
+  });
+});
+
+describe("splitCostObjectNames", () => {
+  it("splits at line breaks and before the next number only", () => {
+    expect(
+      splitCostObjectNames(
+        "10050100 Travel, misc, 50123401 Project - Travel costs;50123402 B\n\n 50123403 C \r\n"
+      )
+    ).toEqual([
+      "10050100 Travel, misc",
+      "50123401 Project - Travel costs",
+      "50123402 B",
+      "50123403 C",
+    ]);
   });
 });
 
@@ -41,5 +57,7 @@ describe("parseLanesAndPlanesConfig", () => {
       { email: "a@example.org", firstName: "", lastName: "" },
     ]);
     expect(config.generalKost1).toEqual([]);
+    expect(config.existingCostObjects).toEqual([]);
+    expect(config.confirmedEmailChanges).toEqual([]);
   });
 });

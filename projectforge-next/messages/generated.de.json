@@ -216,7 +216,7 @@
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, und die weiteren User, die keine Mitarbeitenden sind. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
+          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, die weiteren User, die keine Mitarbeitenden sind, die Namen der in Lanes & Planes schon bestehenden Kostenstellen und Kostenträger und die bestätigten E-Mail-Änderungen. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Meldung des Tages",
@@ -2219,7 +2219,16 @@
         "email": "E-Mail",
         "firstName": "Vorname",
         "lastName": "Nachname",
-        "tooltip": "User von Lanes & Planes, die keine Mitarbeitenden sind, z. B. eine externe Buchhaltung oder der Service-Admin von Lanes & Planes. Werden nur mit Name, E-Mail und Rechnungsprofilen übertragen, ihre Rolle, Manager und Kostenstellen bleiben also erhalten. Ohne Eintrag würden sie von der Übertragung deaktiviert, und hat einer von ihnen Verantwortlichkeiten (z. B. als Buchhaltung oder Reisemanager), schlägt die ganze Übertragung fehl."
+        "tooltip": "User von Lanes & Planes, die keine Mitarbeitenden sind, z. B. eine externe Buchhaltung. Werden nur mit Name, E-Mail und Rechnungsprofilen übertragen, ihre Rolle, Manager und Kostenstellen bleiben also erhalten. Ohne Eintrag würden sie von der Übertragung deaktiviert, und hat einer von ihnen Verantwortlichkeiten (z. B. als Buchhaltung), schlägt die ganze Übertragung fehl. Für den Service-Admin von Lanes & Planes und Gastprofile nicht nötig: Der Import lässt sie unberührt."
+      },
+      "confirmedEmailChanges": {
+        "_": "Bestätigte E-Mail-Änderungen",
+        "tooltip": "Lanes & Planes erkennt User nur an ihrer E-Mail. Ändert sich die E-Mail von Mitarbeitenden, wird weiter die alte übertragen (siehe Problem-Dashboard), sonst würde der User deaktiviert und neu angelegt. Die E-Mail zuerst in Lanes & Planes von Hand ändern, dann die neue E-Mail hier eintragen. Nach der nächsten Übertragung kann der Eintrag entfernt werden."
+      },
+      "existingCostObjects": {
+        "_": "Bestehende Namen in Lanes & Planes",
+        "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
+        "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
@@ -2240,7 +2249,7 @@
         "text": "Text"
       },
       "remove": "{arg0} entfernen",
-      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User",
+      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User · {arg4} bestehende Namen",
       "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt."
     }
   },

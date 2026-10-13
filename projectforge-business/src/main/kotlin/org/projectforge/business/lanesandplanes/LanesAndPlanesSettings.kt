@@ -57,11 +57,24 @@ class LanesAndPlanesSettings(
      */
     var kost2Patterns: List<String> = emptyList(),
     /**
-     * Users of Lanes & Planes who aren't employees (e.g. an external accountant or the service admin of L&P), sent
-     * in addition to the employees: otherwise the full replace would deactivate them, and a missing user with
-     * responsibilities lets the whole push fail.
+     * Users of Lanes & Planes who aren't employees (e.g. an external accountant), sent in addition to the
+     * employees: otherwise the full replace would deactivate them, and a missing user with responsibilities lets
+     * the whole push fail. Not the service admin of L&P and no guest profiles: they aren't touched by the import.
      */
     var additionalUsers: List<AdditionalUser> = emptyList(),
+    /**
+     * The names of the cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand),
+     * starting with the number without dots, e.g. `50123401 Project - Travel costs` (as in the user export). A Kost
+     * with this number is sent with the existing name as ident and name, so L&P reuses the entry: L&P refuses a
+     * new ident with an already used name (deleted entries included) and the import of the user fails.
+     */
+    var existingCostObjects: List<String> = emptyList(),
+    /**
+     * New emails of employees which were already changed in Lanes & Planes by hand. L&P identifies users by their
+     * email only, so a changed email is held back (the old one is sent) until it's listed here, see
+     * [LanesAndPlanesEmailHolds].
+     */
+    var confirmedEmailChanges: List<String> = emptyList(),
 ) {
     /** A user sent as is: only the name, the email and the invoice profiles, everything else is kept in L&P. */
     class AdditionalUser(
@@ -96,6 +109,18 @@ class LanesAndPlanesSettings(
     @get:JsonIgnore
     val additionalUserList: List<AdditionalUser>
         get() = additionalUsers.filter { !it.isEmpty }
+
+    /** The existing names of [existingCostObjects] by their number (without dots). */
+    @get:JsonIgnore
+    val existingNamesByNumber: Map<String, String>
+        get() = existingCostObjects.map { it.trim() }.mapNotNull { name ->
+            EXISTING_NAME_REGEX.find(name)?.let { it.groupValues[1] to name }
+        }.distinctBy { it.first }.toMap()
+
+    /** The confirmed new emails, lower case. */
+    @get:JsonIgnore
+    val confirmedEmails: Set<String>
+        get() = confirmedEmailChanges.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
 
     @get:JsonIgnore
     val kost2Regexes: List<Regex>
@@ -134,11 +159,35 @@ class LanesAndPlanesSettings(
             val email = user.email?.trim() ?: ""
             if (!EMAIL_REGEX.matches(email)) {
                 errors += Error(ADDITIONAL_USERS, "$ERROR_PREFIX.additionalUserEmail", index, email)
+            } else if (email.lowercase().endsWith(LANES_AND_PLANES_DOMAIN)) {
+                errors += Error(ADDITIONAL_USERS, "$ERROR_PREFIX.additionalUserLanesAndPlanes", index, email)
             } else if (!emails.add(email.lowercase())) {
                 errors += Error(ADDITIONAL_USERS, "$ERROR_PREFIX.additionalUserDuplicate", index, email)
             }
             if (user.firstName.isNullOrBlank() || user.lastName.isNullOrBlank()) {
                 errors += Error(ADDITIONAL_USERS, "$ERROR_PREFIX.additionalUserName", index)
+            }
+        }
+        val numbers = mutableSetOf<String>()
+        existingCostObjects.forEachIndexed { index, entry ->
+            val name = entry.trim()
+            if (name.isEmpty()) {
+                return@forEachIndexed
+            }
+            val number = EXISTING_NAME_REGEX.find(name)?.groupValues?.get(1)
+            if (number == null) {
+                errors += Error(EXISTING_COST_OBJECTS, "$ERROR_PREFIX.existingCostObjectNumber", index, name)
+            } else if (!numbers.add(number)) {
+                errors += Error(EXISTING_COST_OBJECTS, "$ERROR_PREFIX.existingCostObjectDuplicate", index, number)
+            }
+            if (name.length > LanesAndPlanesPayloadBuilder.MAX_NAME_LENGTH) {
+                errors += Error(EXISTING_COST_OBJECTS, "$ERROR_PREFIX.existingCostObjectLength", index, name)
+            }
+        }
+        confirmedEmailChanges.forEachIndexed { index, entry ->
+            val email = entry.trim()
+            if (email.isNotEmpty() && !EMAIL_REGEX.matches(email)) {
+                errors += Error(CONFIRMED_EMAIL_CHANGES, "$ERROR_PREFIX.confirmedEmail", index, email)
             }
         }
         return errors
@@ -178,12 +227,20 @@ class LanesAndPlanesSettings(
         const val GENERAL_KOST2 = "generalKost2"
         const val KOST2_PATTERNS = "kost2Patterns"
         const val ADDITIONAL_USERS = "additionalUsers"
+        const val EXISTING_COST_OBJECTS = "existingCostObjects"
+        const val CONFIRMED_EMAIL_CHANGES = "confirmedEmailChanges"
 
         /** The i18n prefix of the labels of the fields, see [Error.field]. */
         const val I18N_PREFIX = "lanesAndPlanes.config"
         private const val ERROR_PREFIX = "$I18N_PREFIX.error"
 
         private val PATTERN_REGEX = Regex("[0-9.*?]+")
+
+        /** The number without dots at the start of an existing name, e.g. `50123401` of `50123401 Project`. */
+        private val EXISTING_NAME_REGEX = Regex("^(\\d{8})(?!\\d)")
+
+        /** Users of this domain (the service admin, guest profiles) aren't touched by the import of L&P. */
+        private const val LANES_AND_PLANES_DOMAIN = "@lanes-planes.com"
 
         private val EMAIL_REGEX = Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")
 

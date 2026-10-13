@@ -73,6 +73,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 LanesAndPlanesSettings.AdditionalUser(),
                 LanesAndPlanesSettings.AdditionalUser("no email", "A", "B"),
                 LanesAndPlanesSettings.AdditionalUser("A@example.org", "A", " "),
+                LanesAndPlanesSettings.AdditionalUser("Service@Lanes-Planes.com", "Service", "Admin"),
             ),
         )
         Assertions.assertEquals(
@@ -88,8 +89,37 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserEmail:2:no email",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserDuplicate:3:A@example.org",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserName:3:null",
+                "additionalUsers:lanesAndPlanes.config.error.additionalUserLanesAndPlanes:4:Service@Lanes-Planes.com",
             ),
             settings.validate(findKost1, find).map(::format),
+        )
+    }
+
+    @Test
+    fun existingCostObjects() {
+        val settings = LanesAndPlanesSettings(
+            existingCostObjects = listOf(
+                " 50123401 Project - Travel costs ", "", "5012340 Too short", "501234011 Too long",
+                "50123401 Duplicate", "10050100", "x".repeat(103),
+            ),
+            confirmedEmailChanges = listOf(" New@Example.org", "", "no email"),
+        )
+        Assertions.assertEquals(
+            mapOf("50123401" to "50123401 Project - Travel costs", "10050100" to "10050100"),
+            settings.existingNamesByNumber,
+            "The first name of a number wins.",
+        )
+        Assertions.assertEquals(setOf("new@example.org", "no email"), settings.confirmedEmails)
+        Assertions.assertEquals(
+            listOf(
+                "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:2:5012340 Too short",
+                "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:3:501234011 Too long",
+                "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectDuplicate:4:50123401",
+                "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:6:${"x".repeat(103)}",
+                "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectLength:6:${"x".repeat(103)}",
+                "confirmedEmailChanges:lanesAndPlanes.config.error.confirmedEmail:2:no email",
+            ),
+            settings.validate({ null }, { null }).map(::format).filter { !it.startsWith("accountingInvoiceProfileIds") },
         )
     }
 

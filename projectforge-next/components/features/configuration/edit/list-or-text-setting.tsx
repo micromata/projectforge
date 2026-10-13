@@ -24,6 +24,8 @@ export function ListOrTextSetting({
   onBlur,
   placeholder,
   list,
+  split = splitEntries,
+  textHint,
 }: {
   label: string;
   hint: string;
@@ -34,6 +36,10 @@ export function ListOrTextSetting({
   onBlur: () => void;
   placeholder?: string;
   list: ReactNode;
+  /** Splits the text into the entries; default: at commas, semicolons and line breaks. */
+  split?: (text: string) => string[];
+  /** The hint below the text area, if [split] differs from the default one. */
+  textHint?: string;
 }) {
   const t = useTranslations("lanesAndPlanes.config");
   const [mode, setMode] = useState<Mode>("list");
@@ -85,14 +91,14 @@ export function ListOrTextSetting({
             onFocus={() => setDraft(entries.join("\n"))}
             onChange={(e) => {
               setDraft(e.target.value);
-              onChange(splitEntries(e.target.value));
+              onChange(split(e.target.value));
             }}
             onBlur={() => {
               setDraft(null);
               onBlur();
             }}
           />
-          <p className="text-xs text-muted-foreground">{t("textHint")}</p>
+          <p className="text-xs text-muted-foreground">{textHint ?? t("textHint")}</p>
         </div>
       )}
     </div>

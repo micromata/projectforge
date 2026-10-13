@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "Lanes & Planes interface",
+  "de": "Lanes-&-Planes-Schnittstelle",
+  "items": [
+    {
+      "en": "Cost centers and cost units already existing in Lanes & Planes can be entered with their names in the configuration parameter \"Lanes & Planes\" (pasted from the user export). They are sent under that name, so Lanes & Planes reuses them instead of rejecting them as duplicates.",
+      "de": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt, können mit ihren Namen im Konfigurationsparameter „Lanes & Planes“ eingetragen werden (aus dem User-Export eingefügt). Sie werden unter diesem Namen übertragen, Lanes & Planes verwendet sie also weiter, statt sie als Dopplung abzulehnen."
+    },
+    {
+      "en": "A changed email of an employee is held back (the old one is still sent, with a hint on the problem dashboard) until it was changed in Lanes & Planes and confirmed in the configuration parameter. Otherwise Lanes & Planes would deactivate the user and create a new one.",
+      "de": "Eine geänderte E-Mail von Mitarbeitenden wird zurückgehalten (weiter wird die alte übertragen, mit Hinweis im Problem-Dashboard), bis sie in Lanes & Planes geändert und im Konfigurationsparameter bestätigt wurde. Sonst würde Lanes & Planes den User deaktivieren und neu anlegen."
+    },
+    {
+      "en": "The service admin and guest profiles of Lanes & Planes can no longer be entered as additional users: the import doesn't touch them.",
+      "de": "Der Service-Admin und Gastprofile von Lanes & Planes können nicht mehr als weitere User eingetragen werden: Der Import lässt sie unberührt."
+    }
+  ]
+}

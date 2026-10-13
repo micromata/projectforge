@@ -12,9 +12,10 @@ users), cost center names or numbers of a real installation. Describe findings g
 - Tested: unit tests (bookable Kost2 per user, patterns, general Kost1/Kost2, settings validation, JSON format, gzip) and
   a dry run against an anonymized database (see [Dry run findings](#dry-run-findings)). Not yet tested: a dry run
   against real data and a real push to L&P.
-- Open questions to the L&P support: see [Open questions](#open-questions). Don't switch off the dry run before
-  they are answered and the comparison with the user export (see [Before the first real push](#before-the-first-real-push))
-  looks as expected.
+- The questions to the L&P support are answered (see [Answers of the L&P support](#answers-of-the-lp-support)),
+  two follow-up questions are open (see [Open questions](#open-questions)). Don't switch off the dry run before
+  the comparison with the user export (see [Before the first real push](#before-the-first-real-push)) looks as
+  expected.
 
 ## The L&P ExtAPI (user import)
 
@@ -25,8 +26,12 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 - API key: created by an L&P user in *User account → Personal settings → Create*. Shown only once, doesn't
   expire, revoked by deleting it. It belongs to that L&P account, so use an admin account that stays active (and
   is part of the push, see below).
+- There is no test environment and no way to validate a payload without importing it.
 - **Full replace:** every push contains the complete user list. **Users missing from the payload are
-  deactivated** in L&P. The e-mail address is the unique key of a user.
+  deactivated** in L&P. Guest profiles and the service admin of L&P aren't touched by the import.
+- **The e-mail address is the only key of a user**, the `ident` can't be used to match one. A changed e-mail has
+  to be changed by hand in L&P before the next push; otherwise the old user is deactivated and a new one is
+  created (with the default role). ProjectForge holds changed e-mails back, see [Safety](#safety).
 - Processed asynchronously: the HTTP answer only says, whether the request was accepted (200, 400 malformed, 401
   token, 403 not allowed, 422 invalid data, 429 too many requests, 500). The result per user is shown in the
   *user import log* of the L&P company account.
@@ -36,12 +41,13 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 - Required per user: `first_name`, `last_name`, `email`, `accounting_invoice_profile_ids` (ids provided by L&P).
   Depending on the company settings `managers_emails`, `cost_centers` and `cost_units` may be required as well.
 - Cost centers (`cost_centers`) and cost units (`cost_units`) only exist per user: lists of
-  `{ident, name, valid_from?, valid_until?}`. They needn't be created in L&P beforehand. A cost center that was
-  created manually in L&P must be sent with its L&P name in both `ident` and `name`, otherwise a second one is
-  created.
-- Fields sent empty (`[]`/`null`) clear the values maintained in L&P. The documentation doesn't say what happens
-  with fields that aren't sent at all; the implementation assumes they are kept (to be verified, see open
-  questions).
+  `{ident, name, valid_from?, valid_until?}`. They needn't be created in L&P beforehand.
+- **A name may exist only once.** An existing cost center or cost unit (e.g. created by hand in L&P) is reused,
+  if it is sent with its exact L&P name as both `ident` and `name`. A new `ident` with a name that already
+  exists lets the import of every user with it fail. Deactivating or deleting the existing entry doesn't help:
+  L&P checks deleted entries as well. Hence the existing names in the settings (see below).
+- Fields sent empty (`[]`/`null`/`""`) clear the values maintained in L&P (for `roles`: the default role
+  "Reisender" is set). Fields not sent at all are kept; new users get the default role.
 - The API can't read users. The L&P company account offers a CSV download of the users instead.
 - There is no API for the company-wide cost center list (*Company account → Settings & policies → Manage cost
   centers*): it can't be read, uploaded or deleted. Cost centers sent in the user import are created there
@@ -62,21 +68,26 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 | `reference_cost_center` | Kost1 of the employee, number without dots (`########`), not sent if empty |
 | `cost_centers` | The general Kost1 (settings), the same for all users, `ident` = number without dots (`########`), `name` = number and description (`<number> <description>`). Not sent if no general Kost1 are configured (the cost centers maintained in L&P are kept then) |
 | `cost_units` | The general Kost2 plus the bookable Kost2 matching the patterns, `ident` = number without dots (`########`), `name` = number, project and Kost2 type (`<number> <project> - <type>`, L&P convention; the description for a Kost2 without project) |
+
+For a Kost1 or Kost2 whose number is in the existing names of the settings, `ident` and `name` are both the
+existing L&P name (e.g. `50123401 Project - Travel costs`), so L&P reuses the entry.
 | `accounting_invoice_profile_ids` | Settings, the same for all users |
 
 Names have at most 102 characters.
 
-Not sent at all (so kept as maintained in L&P, if the assumption above holds): `roles`, `group_ids`,
-`managers_emails`, `delegation`, `company_creditor_account`.
+Not sent at all (so kept as maintained in L&P, confirmed by L&P): `roles`, `group_ids`, `managers_emails`,
+`delegation`, `company_creditor_account`. Travel managers aren't required by the company settings, so new users
+don't need `managers_emails`.
 
 Users: all active employees (`EmployeeService.selectAllActive`) whose user isn't deactivated or deleted. Users
 without any bookable Kost2 are sent nevertheless (otherwise they would be deactivated).
 
-Additional users (settings): L&P users who aren't employees, e.g. an external accountant or the service admin of
-L&P. They are sent with `first_name`, `last_name`, `email` and `accounting_invoice_profile_ids` only (no `ident`,
+Additional users (settings): L&P users who aren't employees, e.g. an external accountant. They are sent with `first_name`, `last_name`, `email` and `accounting_invoice_profile_ids` only (no `ident`,
 no cost centers etc.), so everything else is kept as maintained in L&P. Without them, the full replace would
 deactivate them, and a missing user with responsibilities lets the whole push fail. An additional user with the
-e-mail of an employee is skipped (warning in the log).
+e-mail of an employee is skipped (warning in the log). The service admin of L&P and guest profiles aren't
+additional users: the import doesn't touch them, and e-mails `@lanes-planes.com` are rejected on saving the
+settings.
 
 Bookable Kost2 of a user: the active Kost2 (`effectiveKostentraegerStatus` active, not deleted) of all tasks,
 - for which one of the user's groups has the right to insert own time sheets (`AccessType.OWN_TIMESHEETS`),
@@ -100,6 +111,12 @@ get every Kost2).
   is sent (the API key isn't needed). The file contains personal data (names, e-mails).
 - No push, if the API key or the invoice profile ids are missing, if fewer than `minUsers` users are found, or if
   the number of users dropped by more than half since the last push (in memory; a restart resets it).
+- Changed e-mails are held back: the e-mails of the last successful push are stored by ident in
+  `<work directory>/lanes-and-planes-state.json`. If the e-mail of an employee changed since, the old one is
+  still sent (log event `lanesAndPlanes.emailChanged`, problem dashboard) until the new one is listed in the
+  confirmed e-mail changes of the settings, see [Changing an e-mail](#changing-an-e-mail). Not if the old
+  e-mail is now used by another user (error in the log, the new one is sent). The first push has no state, so
+  nothing is held.
 - Only pushed, if the payload changed since the last successful push (in memory; the first run after a restart
   always pushes).
 - Errors: log events `lanesAndPlanes.push.failed` / `lanesAndPlanes.push.refused`, tile "Lanes & Planes" on the
@@ -130,7 +147,9 @@ run, so a change is sent by the next run (hourly by default):
   "generalKost1": ["1.xxx.xx.xx"],
   "generalKost2": ["5.xxx.xx.xx"],
   "kost2Patterns": ["5.*.02", "5.*.11"],
-  "additionalUsers": [{"email": "accountant@example.org", "firstName": "First", "lastName": "Last"}]
+  "additionalUsers": [{"email": "accountant@example.org", "firstName": "First", "lastName": "Last"}],
+  "existingCostObjects": ["50123401 Project - Travel costs"],
+  "confirmedEmailChanges": ["new.address@example.org"]
 }
 ```
 
@@ -139,6 +158,19 @@ run, so a change is sent by the next run (hourly by default):
 - `generalKost2`: sent to all users as cost units.
 - `kost2Patterns`: restricts the bookable Kost2 per user (cost units). Empty: all.
 - `additionalUsers`: L&P users who aren't employees, see above.
+- `existingCostObjects`: the names of the cost centers and cost units already existing in L&P, exactly as there,
+  starting with the number without dots (8 digits). In the text mode of the editor the `cost_centers` column of
+  the user export can be pasted as it is (split before `, <8 digits>`). The export misses the project Kost2
+  (see below): take them from the company-wide list (*Company account → Settings & policies → Manage cost
+  centers*), including the deleted ones, if they are still shown there.
+- `confirmedEmailChanges`: new e-mails already changed in L&P by hand, see below.
+
+### Changing an e-mail
+
+1. Change the e-mail in ProjectForge. The next push still sends the old one and reports
+   `lanesAndPlanes.emailChanged` on the problem dashboard.
+2. Change the e-mail of the user in L&P by hand.
+3. Add the new e-mail to the confirmed e-mail changes. The next push sends it; then the entry can be removed.
 
 The creditor account is maintained per employee (*HR → Employees*, field *creditor account*, a DATEV account).
 
@@ -175,37 +207,51 @@ Consequences:
 1. Cost centers are Kost1, cost units are Kost2. ProjectForge sends the general Kost1 as `cost_centers` and the
    general plus the bookable Kost2 as `cost_units`. The full replace of `cost_centers` removes the project Kost2
    (and the general 5.* entries) entered by hand as cost centers from every user; they stay in the company-wide
-   list, unassigned, and can be deleted there afterwards (to be confirmed, see open questions).
+   list, unassigned. Deleting them there doesn't free their names (L&P checks deleted entries too).
 2. Numbers are sent without dots (needed by the DATEV export of L&P), the name of a Kost2 follows the L&P
-   convention (`<number> <project> - <type>`). A cost center whose name differs from the existing one (by hand) is
-   created anew, the old one stays unassigned in the company-wide list. Don't use "assign all to all users" after
-   the first push: it would undo the restriction until the next push.
-3. Guest profiles aren't employees in ProjectForge and are deliberately not sent (decided: guests are out of
-   scope). If L&P doesn't leave guest profiles alone, the push deactivates them.
-4. New employees are sent without a travel manager: if managers are required, they fail in the import log (the
-   others are imported).
+   convention (`<number> <project> - <type>`). Every Kost that already exists in L&P must be listed with its
+   exact L&P name in the existing names of the settings (the `cost_centers` column of the export plus the project
+   Kost2 of the company-wide list, which the export misses):
+   otherwise its generated name may collide with the existing one and the import of the users fails. Don't use
+   "assign all to all users" after the first push: it would undo the restriction until the next push.
+3. Guest profiles aren't employees in ProjectForge and aren't sent; the import doesn't touch them (confirmed).
+4. New employees are sent without a travel manager: not required by the company settings (confirmed).
 5. Personnel numbers in L&P are overwritten by the ones of ProjectForge (if set in ProjectForge).
+
+## Answers of the L&P support
+
+Answers to our questions (October 2026), in short:
+
+1. **Roles:** a role not sent at all is kept (new users get the default role "Reisender"). A role sent empty sets
+   the default role "Reisender" for every user. So `roles` isn't sent.
+2. **Travel managers:** not required by the current company settings, `managers_emails` needn't be sent.
+3. **Guest profiles** aren't created, updated or deactivated by the ExtAPI.
+4. **Service admin:** not touched by the import either. It is needed for internal purposes of L&P only and must
+   **not** be used as travel manager of our users.
+5. **Existing cost centers and cost units** can be reused, if their exact name is sent as `ident` as well. If a
+   cost center or cost unit with the same name already exists, the import fails for the users concerned.
+   Deactivating or deleting the entries made by hand doesn't prevent that: L&P checks deleted entries as well
+   and doesn't allow a duplicate.
+6. **Matching by `ident` isn't possible.** A changed e-mail must be changed by hand in L&P before the next import
+   runs with the new e-mail.
+7. **No test environment.** As long as all existing users are in the payload, none is deactivated. In the worst
+   case the import fails and leaves all users untouched.
+
+Consequences in ProjectForge: existing names in the settings (5), holding back changed e-mails (6), e-mails
+`@lanes-planes.com` rejected as additional users (3, 4). 1 and 2 confirm the implementation.
 
 ## Open questions
 
 To the L&P support:
 
-- Are guest profiles (role `guest`) deactivated by the user import, if they are missing in the payload? (Only to
-  know the effect: guests won't be sent.)
-- Are fields that are not sent at all (`roles`, `managers_emails`, `group_ids`, `delegation`,
-  `company_creditor_account`) really kept? Especially: do users keep their role, or is a default role set?
-- Are managers required by the company settings, i.e. do new users fail without `managers_emails`?
-- May the service admin of L&P (role `admin`, e-mail at lanes-planes.com) be sent as additional user, or is it
-  ignored by the import anyway? It is the travel manager of other users, so missing it would let the push fail.
-- Can the cost centers no longer assigned after the first push be deleted from the company-wide list safely?
-- Can an existing user be matched by `ident`, so that a changed e-mail address can be updated by the import?
-  Otherwise the user is deactivated and created anew; change the e-mail by hand in L&P before the push.
-- Is there a test environment or a way to validate a payload without importing it?
+- Is the duplicate check of names done across cost centers and cost units together? The project Kost2 entered by
+  hand are cost centers in L&P, ProjectForge sends Kost2 as cost units: can a cost unit reuse an existing cost
+  center by its name, or does it collide?
+- Does the DATEV export of L&P work with a reused entry whose `ident` is the whole name (number and text), not
+  the number only?
 
 To decide in ProjectForge:
 
-- Travel managers: derive `managers_emails` from ProjectForge (e.g. a configured manager per department or
-  group), if they are required for new users.
 - General Kost1/Kost2 and patterns after reviewing the number of cost centers and cost units per user in the dry
   run.
 
@@ -222,15 +268,21 @@ To decide in ProjectForge:
 ## Before the first real push
 
 1. Set the invoice profile ids (from the CSV export), the general Kost1 and Kost2 and the patterns in the
-   configuration parameter, set the creditor accounts of the employees, and run a dry run.
+   configuration parameter, enter the existing names (the `cost_centers` column of the CSV export and the
+   project Kost2 of the company-wide list), set the
+   creditor accounts of the employees, and run a dry run.
 2. Compare the dry-run file with a fresh CSV export of the L&P users (by e-mail, case-insensitive):
    - active in L&P but missing in ProjectForge → would be deactivated; if one of them has responsibilities, the
      whole push fails,
    - inactive in L&P but sent → would be reactivated,
    - sent but unknown in L&P → new (without travel manager),
    - differing personnel numbers, creditor accounts and names,
-   - number of cost centers and cost units per user.
+   - number of cost centers and cost units per user,
+   - every sent cost center/unit whose number exists in L&P must carry the existing name as ident (otherwise the
+     import of the users fails).
 3. Make sure the L&P account owning the API key is part of the payload, and that every active L&P user with
-   responsibilities who isn't an employee (accountants, admins, travel managers) is entered as additional user.
+   responsibilities who isn't an employee (accountants, admins, travel managers) is entered as additional user
+   (not the service admin of L&P). Check that no user has the service admin as travel manager (`travel_managers`
+   of the export) and change that in L&P by hand.
 4. Set `dryRun=false`, restart, check the user import log in the L&P company account (including whether roles,
    managers and cost centers were kept).
