@@ -204,7 +204,7 @@ open class ContributionMarginService {
     bookingImportEnd: LocalDate?,
     config: ContributionMarginConfig,
   ): Map<Long, ContributionMarginCache.ProjectPart> {
-    val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodEnd, bookingImportEnd, config)
+    val source = load(projectIds, calculator.prevPrevYearBegin, calculator.periodValuesEnd, bookingImportEnd, config)
     val invoiceRows = if (calculator.periodValuesEnd < calculator.periodBegin) {
       emptyList()
     } else {
@@ -256,21 +256,22 @@ open class ContributionMarginService {
    * sheets × the configured hourly rate. Without access checks: the caller is responsible (e.g. scripts,
    * running as superuser, or [calculate]).
    *
-   * Ends with the previous month at the latest, whatever [until] is: the current month isn't complete yet
-   * ([ContributionMarginSource.until] is the actual end).
+   * Ends today at the latest, whatever [until] is ([ContributionMarginSource.until] is the actual end): the
+   * current month counts up to today, preliminary as it isn't booked yet. (The order book's tab, [calculate],
+   * ends with the previous month instead.)
    */
   open fun load(projectIds: Collection<Long>?, from: LocalDate, until: LocalDate): ContributionMarginSource {
-    return load(projectIds, from, until, bookingImportEnd(), config())
+    return load(projectIds, from, minOf(until, PFDay.now().localDate), bookingImportEnd(), config())
   }
 
+  /** @param until The end of the calculation, already capped by the caller (today or the previous month). */
   private fun load(
     projectIds: Collection<Long>?,
     from: LocalDate,
-    requestedUntil: LocalDate,
+    until: LocalDate,
     bookingImportEnd: LocalDate?,
     config: ContributionMarginConfig,
   ): ContributionMarginSource {
-    val until = ContributionMarginCalculator.calculationEnd(requestedUntil, PFDay.now().localDate)
     val isRevenueAccount = config.isRevenueAccount
     val hourlyRate = config.effectiveHourlyRate
     val preliminaryBegin = ContributionMarginCalculator.preliminaryBegin(bookingImportEnd, from, until)
@@ -418,19 +419,29 @@ open class ContributionMarginService {
     }
   }
 
-  /** The accounting records of the given kost2 (of all if null) in [from]..[until]. */
+  /**
+   * The accounting records of the given kost2 (of all if null) whose booking period (year and month of the
+   * record number, not the record's date) lies in [from]..[until]; the records of the months of [from] and
+   * [until] are restricted to these days by [ContributionMarginCalculator.bookingDate].
+   */
   private fun selectRecords(kost2Ids: Collection<Long>?, from: LocalDate, until: LocalDate): List<BuchungssatzDO> {
+    fun inRange(records: List<BuchungssatzDO>) = records.filter { record ->
+      ContributionMarginCalculator.bookingDate(record)?.let { it in from..until } == true
+    }
     if (kost2Ids == null) {
-      val queryFilter = queryFilter()
-      queryFilter.add(between("datum", from, until))
-      return buchungssatzDao.select(queryFilter, checkAccess = false)
+      return inRange(buchungssatzDao.select(recordsQueryFilter(from, until), checkAccess = false))
     }
     return kost2Ids.chunked(CHUNK_SIZE).flatMap { chunk ->
-      val queryFilter = queryFilter()
+      val queryFilter = recordsQueryFilter(from, until)
       queryFilter.add(isIn("kost2.id", chunk))
-      queryFilter.add(between("datum", from, until))
-      buchungssatzDao.select(queryFilter, checkAccess = false)
+      inRange(buchungssatzDao.select(queryFilter, checkAccess = false))
     }
+  }
+
+  private fun recordsQueryFilter(from: LocalDate, until: LocalDate): QueryFilter {
+    val queryFilter = queryFilter()
+    buchungssatzDao.addTimePeriodPredicates(queryFilter, from.year, from.monthValue, until.year, until.monthValue)
+    return queryFilter
   }
 
   private fun projectInfo(projectId: Long): ContributionMarginProjectInfo? {

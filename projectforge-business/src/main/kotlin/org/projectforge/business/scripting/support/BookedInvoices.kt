@@ -24,13 +24,16 @@
 package org.projectforge.business.scripting.support
 
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginCalculator
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.framework.time.PFDay
 
 /**
  * Index of the outgoing invoices that already appear in the accounting records, by their document number
  * ([BuchungssatzDO.beleg]). An invoice may be booked into another month than its date (e.g. the month of
- * service), so scripts use this index to not count it a second time as preliminary revenue.
+ * service), so scripts use this index to not count it a second time as preliminary revenue. The booking date
+ * lies in the booking period of the record (see [ContributionMarginCalculator.bookingDate]), not necessarily
+ * at the record's date.
  *
  * Only records on revenue accounts are considered, so the document number of a cost or payment record
  * can't accidentally match an invoice number.
@@ -39,13 +42,13 @@ class BookedInvoices(records: Collection<BuchungssatzDO>, isRevenueAccount: (Int
   constructor(records: Collection<BuchungssatzDO>, revenueAccounts: IntRange = REVENUE_ACCOUNTS) :
       this(records, { it in revenueAccounts })
 
-  /** Document number (e.g. `17209` or `17209-S`) → earliest booking date. */
+  /** Document number (e.g. `17209` or `17209-S`) → earliest booking date (in the booking period). */
   val bookingDates: Map<String, PFDay>
 
   init {
     val map = mutableMapOf<String, PFDay>()
     records.forEach { record ->
-      val date = record.datum ?: return@forEach
+      val date = ContributionMarginCalculator.bookingDate(record) ?: return@forEach
       val account = record.konto?.nummer ?: return@forEach
       if (!isRevenueAccount(account)) {
         return@forEach

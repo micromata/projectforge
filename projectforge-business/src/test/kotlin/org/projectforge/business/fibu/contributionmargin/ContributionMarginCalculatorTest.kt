@@ -39,6 +39,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.scripting.support.BookedInvoices
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 
 class ContributionMarginCalculatorTest {
   private val isRevenueAccount = ContributionMarginCalculator.parseAccountRanges("4000-4799")
@@ -70,6 +71,37 @@ class ContributionMarginCalculatorTest {
     assertEquals(BigDecimal("350.00"), data.costs[1])
     assertFalse(data.preliminary.any { it })
     assertFalse(data.hourlyRateMissing)
+  }
+
+  @Test
+  fun `records count in their booking period, not at their date`() {
+    val august = YearMonth.of(2026, 8)
+    val entries = ContributionMarginCalculator.recordEntries(
+      listOf(
+        record(KOST2_A, 4400, "712.50", LocalDate.of(2026, 9, 21), august), // Invoice of September booked into August.
+        record(KOST2_A, 6300, "-100.00", LocalDate.of(2026, 7, 28), august), // Dated before its period.
+        record(KOST2_A, 6300, "-50.00", LocalDate.of(2026, 8, 12)),
+      ),
+      mapOf(KOST2_A to PROJECT_A),
+      { it.konto?.nummer },
+      isRevenueAccount,
+    )
+    assertEquals(
+      listOf(LocalDate.of(2026, 8, 31), LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 12)),
+      entries.map { it.date },
+    )
+    val data = calculator(bookingImportEnd = LocalDate.of(2026, 8, 31)).calculate(entries, ::info, null, ContributionMarginConfig())
+    assertEquals(BigDecimal("712.50"), data.revenue[7]) // August
+    assertEquals(BigDecimal.ZERO, data.revenue[8]) // September
+  }
+
+  @Test
+  fun `booking date without a date or period`() {
+    assertEquals(
+      LocalDate.of(2026, 8, 31),
+      ContributionMarginCalculator.bookingDate(record(KOST2_A, 4400, "1.00", null, YearMonth.of(2026, 8))),
+    )
+    assertNull(ContributionMarginCalculator.bookingDate(BuchungssatzDO().also { it.datum = LocalDate.of(2026, 8, 1) }))
   }
 
   @Test
@@ -171,6 +203,8 @@ class ContributionMarginCalculatorTest {
         it.beleg = "17209"
         it.konto = KontoDO().also { konto -> konto.nummer = 4400 }
         it.datum = LocalDate.of(2026, 7, 31)
+        it.year = 2026
+        it.month = 7
       }),
       isRevenueAccount,
     )
@@ -348,11 +382,20 @@ class ContributionMarginCalculatorTest {
     else -> ContributionMarginProjectInfo("5.002.01", "Customer B", "Project B")
   }
 
-  private fun record(kost2Id: Long, account: Int, amount: String, date: LocalDate) = BuchungssatzDO().also {
+  /** A record dated [date], booked into its month unless [period] is given. */
+  private fun record(
+    kost2Id: Long,
+    account: Int,
+    amount: String,
+    date: LocalDate?,
+    period: YearMonth = YearMonth.from(date!!),
+  ) = BuchungssatzDO().also {
     it.kost2 = Kost2DO().also { kost2 -> kost2.id = kost2Id }
     it.konto = KontoDO().also { konto -> konto.nummer = account }
     it.betrag = BigDecimal(amount)
     it.datum = date
+    it.year = period.year
+    it.month = period.monthValue
   }
 
   private fun invoice(
