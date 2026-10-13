@@ -15,7 +15,7 @@
         "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
       }, {
         "title" : "Leave applications",
-        "items" : [ "The period and the employee are always on the filter row of the list; the period finds every leave application overlapping it.", "The period is a calendar year by default: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead." ]
+        "items" : [ "The period and the employee are always on the filter row of the list; the period finds every leave application overlapping it.", "The period is a calendar year by default, the list starts with the current one: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead.", "The form shows the vacation days left once the application being edited is counted, too, in red where they are not enough." ]
       } ]
     }, {
       "type" : "changed",
@@ -23,6 +23,9 @@
     }, {
       "type" : "fixed",
       "items" : [ "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", {
+        "title" : "Lists",
+        "items" : [ "A list came back from an entry with an outdated filter when it had been paged back to a filter used shortly before (e.g. a year back and forth)." ]
+      }, {
         "title" : "Security",
         "items" : [ "Phone lookup (/rsPublic/phoneLookup) is disabled until an own key is configured in projectforge.phoneLookupKey; the former default placeholder is no longer accepted.", "Force delete checks the CSRF token like all other write actions." ]
       }, {

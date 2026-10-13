@@ -15,7 +15,7 @@
         "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
       }, {
         "title" : "Urlaubsanträge",
-        "items" : [ "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt.", "Der Zeitraum ist standardmäßig ein Kalenderjahr: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar." ]
+        "items" : [ "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt.", "Der Zeitraum ist standardmäßig ein Kalenderjahr, die Liste beginnt mit dem laufenden: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar.", "Das Formular zeigt die verfügbaren Urlaubstage auch nach dem gerade bearbeiteten Antrag, rot, wenn sie nicht reichen." ]
       } ]
     }, {
       "type" : "changed",
@@ -23,6 +23,9 @@
     }, {
       "type" : "fixed",
       "items" : [ "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", {
+        "title" : "Listen",
+        "items" : [ "Eine Liste kam aus einem Eintrag mit einem veralteten Filter zurück, wenn zuvor auf einen kurz davor verwendeten Filter zurückgeblättert worden war (z. B. ein Jahr zurück und wieder vor)." ]
+      }, {
         "title" : "Sicherheit",
         "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
       }, {

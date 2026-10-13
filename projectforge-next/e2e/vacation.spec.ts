@@ -10,9 +10,10 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  *
  * The database is a copy of production: nothing is written. The form test intercepts the save and reads
  * what the form computes through `/rs/vacation/stats`, which writes nothing either (not even the conflict
- * cache).
+ * cache). In the vacation lane all the same: a visit of the list writes its loaded filter back, which
+ * vacation-list-filter.spec.ts pages and checks.
  */
-test.describe("vacation", { tag: "@parallel" }, () => {
+test.describe("vacation", { tag: "@lane-vacation" }, () => {
   test("shows the declared columns under the labels of VacationDO", async ({
     loggedInPage: page,
   }) => {

@@ -48,6 +48,7 @@ const LANES = [
   "customer",
   "timesheet",
   "script",
+  "vacation",
 ];
 const PARALLEL_TAGS = /@parallel|@lane-/;
 
