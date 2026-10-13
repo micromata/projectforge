@@ -40,4 +40,17 @@ object ConfigurationLogEvents {
         action = "Check the parameter on the configuration page and remove the property from projectforge.properties " +
                 "(logged on every start as long as it is set).",
     )
+
+    @JvmField
+    val UNKNOWN_ENTRY = LogEvent(
+        code = "configuration.unknownEntry",
+        category = LogCategory.CONFIG,
+        notify = LogNotify.DIGEST_IF_NEW,
+        explanation = "The database contains a configuration parameter this version doesn't know: removed by an " +
+                "update, or created by a newer version on the same database (e.g. after a downgrade, or several " +
+                "servers of different versions on one database). The row is marked as deleted; a version knowing " +
+                "the parameter restores it with its value.",
+        action = "None after an update that removed the parameter. Otherwise check that only one version of " +
+                "ProjectForge runs on this database.",
+    )
 }
