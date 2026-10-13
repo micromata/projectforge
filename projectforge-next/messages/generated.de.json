@@ -408,6 +408,7 @@
     }
   },
   "calendar": {
+    "calendarYear": "Kalenderjahr",
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
     "day": {
@@ -460,12 +461,15 @@
     "previousYear": "Vorheriges Jahr",
     "quickselect": {
       "tooltip": {
+        "selectCurrentCalendarYear": "Quickselect - aktuelles Kalenderjahr",
         "selectCurrentMonth": "Quickselect - aktueller Monat",
         "selectCurrentWeek": "Quickselect - aktuelle Woche",
         "selectCurrentYearToDate": "Quickselect - Jahr bis heute",
+        "selectNextCalendarYear": "Quickselect - nachfolgendes Kalenderjahr",
         "selectNextMonth": "Quickselect - nachfolgender Monat",
         "selectNextWeek": "Quickselect - nachfolgende Woche",
         "selectNextYearToDate": "Quickselect - nachfolgendes Jahr bis heute",
+        "selectPreviousCalendarYear": "Quickselect - vorangehendes Kalenderjahr",
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
         "selectPreviousWeek": "Quickselect - vorangehende Woche",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"

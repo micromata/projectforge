@@ -31,6 +31,8 @@ interface FilterPillsProps {
    * default (`Monat`, `Jahr bis heute`) — see [FilterPeriodKindsProvider].
    */
   periodKinds?: readonly PeriodKindId[];
+  /** The art a date typed into an empty period filter snaps to (see [FilterPeriodKindsProvider]). */
+  defaultPeriodKind?: PeriodKindId;
   /** Sits at the end of the row — meant for the saved-filters menu. */
   trailing?: React.ReactNode;
   className?: string;
@@ -48,6 +50,7 @@ export function FilterPills({
   values,
   onChange,
   periodKinds,
+  defaultPeriodKind,
   trailing,
   className,
 }: FilterPillsProps) {
@@ -96,7 +99,10 @@ export function FilterPills({
   return (
     // Around the whole row, so the fields of the pills and the ones the "all filters" dialog repeats
     // offer the same arts.
-    <FilterPeriodKindsProvider periodKinds={periodKinds}>
+    <FilterPeriodKindsProvider
+      periodKinds={periodKinds}
+      defaultPeriodKind={defaultPeriodKind}
+    >
       {/* Pill edits apply live, so the applied values are the ones a checklist narrows by. */}
       <FilterValuesProvider value={values}>
         <div className={cn("flex flex-wrap items-center gap-1.5", className)}>

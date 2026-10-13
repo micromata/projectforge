@@ -345,11 +345,6 @@ export interface FilterElement {
     type?: string;
     url?: string;
   };
-  /**
-   * STRING holding a whole number (a year): the pill offers arrows stepping the value by this much
-   * (UIFilterElement.stepWidth).
-   */
-  stepWidth?: number;
   /** TIMESTAMP: allows an open-ended range. */
   openInterval?: boolean;
   /** TIMESTAMP: quick range presets (YEAR, MONTH, WEEK, DAY, UNTIL_NOW). */

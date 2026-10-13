@@ -100,6 +100,10 @@ export const VACATION_PAGE = definePage<
   rowClassName: (row) =>
     row.conflict === true && !row.deleted ? "row-red" : undefined,
   defaultSort: { id: "startDate", desc: true },
+  // The pinned period (VacationEntityRest: the vacations overlapping it) is a calendar year unless a month
+  // or a free range is picked: any date typed gives its year.
+  filterPeriodKinds: ["month", "year"],
+  filterDefaultPeriodKind: "year",
   listActions: VacationListActions,
   edit: {
     schema: vacationSchema,

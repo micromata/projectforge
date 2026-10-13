@@ -14,8 +14,8 @@
         "title" : "Leave applications",
         "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
       }, {
-        "title" : "List filters",
-        "items" : [ "Arrows beside the year filter of the leave applications and the contracts page it a year back or forth.", "The employee filter of the leave applications is always on the filter row." ]
+        "title" : "Leave applications",
+        "items" : [ "The period and the employee are always on the filter row of the list; the period finds every leave application overlapping it.", "The period is a calendar year by default: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead." ]
       } ]
     }, {
       "type" : "changed",

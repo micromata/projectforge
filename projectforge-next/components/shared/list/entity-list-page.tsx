@@ -396,6 +396,7 @@ function DeclaredList<
               values={list.filters.values}
               onChange={list.applyValues}
               periodKinds={page.filterPeriodKinds}
+              defaultPeriodKind={page.filterDefaultPeriodKind}
               trailing={
                 <FilterFavoritesMenu
                   favorites={list.favorites}

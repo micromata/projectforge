@@ -183,6 +183,38 @@ class VacationEntityRestTest : AbstractTestBase() {
         assertEquals(listOf(year), result.resultSet.map { (it as Vacation).startDate?.year })
     }
 
+    @Test
+    fun `the period filter finds the vacations overlapping it by their dates`() {
+        val own = createEmployee("period-own")
+        val manager = createEmployee("period-manager")
+        val hr = createEmployee("period-hr", hrAccess = true)
+        logon(hr.user!!)
+        val year = LocalDate.now().year + 6
+        fun insert(start: LocalDate, end: LocalDate) = vacationDao.insert(VacationDO().also {
+            it.employee = own
+            it.manager = manager
+            it.replacement = manager
+            it.startDate = start
+            it.endDate = end
+            it.status = VacationStatus.IN_PROGRESS
+            it.special = true
+        })
+        val overYears = insert(LocalDate.of(year - 1, 12, 20), LocalDate.of(year, 1, 10))
+        val inYear = insert(LocalDate.of(year, 6, 2), LocalDate.of(year, 6, 13))
+        val nextYear = insert(LocalDate.of(year + 1, 6, 2), LocalDate.of(year + 1, 6, 13))
+        fun ids(from: String?, to: String?): Set<Long?> {
+            val filter = MagicFilter()
+            filter.entries.add(MagicFilterEntry("employee").also { it.value.id = own.id })
+            filter.entries.add(MagicFilterEntry("period").also { it.value.fromValue = from; it.value.toValue = to })
+            return vacationEntityRest.listPage(
+                MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+            ).resultSet.map { (it as Vacation).id }.toSet()
+        }
+        assertEquals(setOf(overYears, inYear), ids("$year-01-01", "$year-12-31"), "Begun the year before, too.")
+        assertEquals(setOf(inYear, nextYear), ids("$year-06-13", null), "Open end.")
+        assertEquals(setOf(overYears), ids(null, "$year-01-01"), "Open begin.")
+    }
+
     /** An employee with a user of its own and 30 days of annual leave; HR staff with the HR vacation right. */
     private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.loggedInUser

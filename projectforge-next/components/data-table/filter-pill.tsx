@@ -1,13 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { FilterField } from "./filter-field";
 import { FilterPillShell } from "./filter-pill-shell";
+import { useFilterPeriodKinds } from "./filter-period-kinds";
+import { pageablePeriodOf, steppedPeriodValue } from "./filter-period";
 import { useDebouncedApply } from "./use-debounced-apply";
 import { filterPillContent, isEmptyFilterValue } from "./filter-value";
-import { useFilterPillStep } from "./use-filter-pill-step";
 import { useResolvedFilterElements } from "./use-filter-list-values";
 
 interface FilterPillProps {
@@ -41,6 +43,7 @@ export function FilterPill({
   // The committed value the popover opened with, restored by "Abbrechen".
   const baseline = useRef(value);
   const ctx = useFormatContext();
+  const t = useTranslations();
 
   useDebouncedApply(draft, value, save);
 
@@ -57,12 +60,19 @@ export function FilterPill({
   // default-filter pill on the row, exactly as saving an emptied value does elsewhere.
   const isBoolean = element.filterType === "BOOLEAN";
 
-  // Arrows paging a period or a year without opening the popover (see useFilterPillStep).
-  const stepping = useFilterPillStep(element, value, (next) => {
-    // Keep the draft in step too, in case the popover is open while paging from the pill.
-    setDraft(next);
-    onSave(next);
-  });
+  // A period in effect: the pill offers arrows that page it without opening the popover, so the list —
+  // and the statistics above it — step month by month while the popover stays closed.
+  const kinds = useFilterPeriodKinds();
+  const period = pageablePeriodOf(value, kinds, ctx);
+  const onStep = period
+    ? (steps: number) => {
+        const next = steppedPeriodValue(value, steps, kinds, ctx);
+        if (!next) return;
+        // Keep the draft in step too, in case the popover is open while paging from the pill.
+        setDraft(next);
+        onSave(next);
+      }
+    : undefined;
 
   const label = element.label ?? element.id;
   // Values loaded on demand (the customers of the order book) are fetched to name the picks.
@@ -84,9 +94,11 @@ export function FilterPill({
       tooltip={content.tooltip}
       tooltipPlain={content.tooltipPlain}
       active={!isEmptyFilterValue(value)}
-      onStep={stepping.onStep}
-      stepPreviousLabel={stepping.previousLabel}
-      stepNextLabel={stepping.nextLabel}
+      onStep={onStep}
+      stepPreviousLabel={t(
+        period?.kind.tooltipPreviousKey ?? "duration.previous"
+      )}
+      stepNextLabel={t(period?.kind.tooltipNextKey ?? "duration.next")}
       open={open}
       onOpenChange={(next) => {
         // Re-seed on open so a live-applied edit can still be taken back.

@@ -94,15 +94,33 @@ function freeEdit(
  * end along tomorrow. A begin typed while an art is in effect keeps it instead and re-anchors the whole
  * period on that begin (`boundsOfPeriod`), so the end follows: a term measured off the new begin, "Jahr
  * bis heute" ending today again, and the calendar month snapped to the first of the begin's month — the
- * one asymmetry the stepper's [RangeField] `onSelect` does not have.
+ * one asymmetry the stepper's [RangeField] `onSelect` does not have. A list's default art ([defaultKind])
+ * takes the end as well, see below.
  */
 export function editedDateValue(
   value: MagicFilterEntryValue | undefined,
   part: "from" | "to",
   raw: string | null,
   kinds: readonly PeriodKind[],
-  ctx: FormatContext
+  ctx: FormatContext,
+  defaultKind?: PeriodKind | null
 ): MagicFilterEntryValue | undefined {
+  // The list's default art (a calendar year) takes either bound: whichever date is typed, the period becomes
+  // the one of that art around it — unless the user released it for a free range ("Eigener Zeitraum") or
+  // picked another art.
+  if (raw && defaultKind && !isCustomPeriod(value?.periodKind)) {
+    const period = periodOfDateValue(value, kinds, ctx);
+    if (!period || period.kind === defaultKind) {
+      try {
+        return {
+          ...boundsOfPeriod(defaultKind, raw, ctx),
+          periodKind: defaultKind.id,
+        };
+      } catch {
+        // A date this art cannot compute from: on to the rules below.
+      }
+    }
+  }
   if (part === "from" && raw) {
     const period = periodOfDateValue(value, kinds, ctx);
     if (period) {

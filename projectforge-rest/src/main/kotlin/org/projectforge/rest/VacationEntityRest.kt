@@ -204,13 +204,15 @@ class VacationEntityRest :
                 .buildValues(VacationMode.OWN, VacationMode.REPLACEMENT, VacationMode.MANAGER, VacationMode.OTHER)
         )
         elements.add(UIFilterBooleanElement("conflicts", label = translate("vacation.conflicts"), defaultFilter = true))
-        elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true).also { it.stepWidth = 1 })
+        // Still offered (stored favorites carry it), but the period is pinned instead: it pages by month or year.
+        elements.add(UIFilterElement("year", label = translate("calendar.year")))
         elements.add(UIFilterBooleanElement("special", label = translate("vacation.special")))
         elements.add(
             UIFilterElement(
                 "period",
                 label = translate("timePeriod"),
-                filterType = UIFilterElement.FilterType.DATE
+                filterType = UIFilterElement.FilterType.DATE,
+                defaultFilter = true,
             )
         )
         elements.add(
@@ -258,13 +260,12 @@ class VacationEntityRest :
             entry.synthetic = true
             NumberHelper.parseInteger(entry.plainValue)?.let { filters.add(VacationYearFilter(it)) }
         }
+        // The vacations overlapping the period, by their dates in the query (not a search of the period's text):
+        // ending on or after its begin and beginning on or before its end. Either bound may be open.
         source.entries.find { it.field == "period" }?.let { entry ->
             entry.synthetic = true
-            val fromDate = PFDayUtils.parseDate(entry.value.fromValue)
-            val toDate = PFDayUtils.parseDate(entry.value.toValue)
-            if (fromDate != null) {
-                filters.add(VacationPeriodFilter(fromDate, toDate))
-            }
+            PFDayUtils.parseDate(entry.value.fromValue)?.let { target.add(QueryFilter.ge("endDate", it)) }
+            PFDayUtils.parseDate(entry.value.toValue)?.let { target.add(QueryFilter.le("startDate", it)) }
         }
         // The pickers send the employee as `value.id`, which the generic processor doesn't read.
         source.entries.find { it.field == "employee" }?.let { entry ->

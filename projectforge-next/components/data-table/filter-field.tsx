@@ -77,7 +77,6 @@ export function FilterField({
     case "MONTH":
       return <MonthRangeField {...props} />;
     default:
-      // A number to step (a year) is sent as typed: the wildcards of a LIKE search would only be in the way.
-      return <TextField {...props} raw={element.stepWidth != null} />;
+      return <TextField {...props} />;
   }
 }

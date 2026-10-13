@@ -1,0 +1,15 @@
+{
+  "type": "improved",
+  "en": "Leave applications",
+  "de": "Urlaubsanträge",
+  "items": [
+    {
+      "en": "The period and the employee are always on the filter row of the list; the period finds every leave application overlapping it.",
+      "de": "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt."
+    },
+    {
+      "en": "The period is a calendar year by default: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead.",
+      "de": "Der Zeitraum ist standardmäßig ein Kalenderjahr: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar."
+    }
+  ]
+}

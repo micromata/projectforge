@@ -757,6 +757,12 @@ export interface PageDef<
    */
   filterPeriodKinds?: readonly PeriodKindId[];
   /**
+   * The art of [filterPeriodKinds] a period filter of this list is given as unless the user picks another
+   * or "Eigener Zeitraum": preselected while the filter is empty, and a begin or an end typed into it
+   * snaps to that art around the date (e.g. `"year"`: any date gives its calendar year).
+   */
+  filterDefaultPeriodKind?: PeriodKindId;
+  /**
    * Colour legend shown below the table. `row-deleted` (struck-through, deleted entries) is
    * always added as the first entry; set `legend` only for additional, entity-specific colours.
    */
