@@ -58,6 +58,7 @@ export const notificationRuleSchema = z.object({
   referredMonth: z.enum(["CURRENT", "PREVIOUS"]),
   vacationExpiry: z.enum(["CARRY_OVER", "YEAR_END"]),
   daysBeforeExpiry: count,
+  passwordMaxAgeDays: count,
   recipientGroups: z.array(ref),
   recipientUsers: z.array(ref),
   allEmployees: z.boolean(),

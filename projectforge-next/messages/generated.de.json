@@ -2517,6 +2517,7 @@
     "open": "Öffnen",
     "params": {
       "daysBeforeExpiry": "Tage vor dem Verfall",
+      "passwordMaxAgeDays": "Passwort älter als (Tage)",
       "referredMonth": {
         "_": "Monat",
         "CURRENT": "Aktueller Monat",
@@ -2556,7 +2557,8 @@
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
         "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
         "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
-        "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich."
+        "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
+        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
       },
       "lastRun": "Letzter Lauf",
       "list": "Benachrichtigungsregeln",
@@ -2578,6 +2580,7 @@
     "ruleName": "Regel",
     "ruleTypes": {
       "MANUAL": "Manuell (ohne Bedingung)",
+      "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
@@ -2632,6 +2635,10 @@
       "month": "Monat",
       "monthlyReportLink": "Link zum Monatsbericht",
       "nickname": "Spitzname (sonst Vorname)",
+      "passwordAgeDays": "Tage seit der letzten Passwortänderung",
+      "passwordChangeDate": "Datum der letzten Passwortänderung",
+      "passwordLink": "Link zum Ändern des Passworts",
+      "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
       "timesheetLink": "Link zu den Zeitberichten",
       "unbookedDays": "Alle Tage ohne Zeitberichte (inkl. Urlaub)",
       "unbookedDaysCount": "Anzahl aller Tage ohne Zeitberichte (inkl. Urlaub)",

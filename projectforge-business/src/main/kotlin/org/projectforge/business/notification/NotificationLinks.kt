@@ -35,11 +35,18 @@ class NotificationLinks {
     @Autowired
     private lateinit var domainService: DomainService
 
-    /** The absolute url of the given path of the next app, an absolute url as it is. */
+    /**
+     * The absolute url of the given path of the next app, an absolute url as it is. A path of the legacy React app
+     * (`react/...`, e.g. a menu url) is kept as such.
+     */
     fun absolute(path: String): String {
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path
         }
-        return domainService.getDomain("${Constants.NEXT_APP_PATH}${path.removePrefix("/")}")
+        val relative = path.removePrefix("/")
+        if (relative.startsWith(Constants.REACT_APP_PATH)) {
+            return domainService.getDomain(relative)
+        }
+        return domainService.getDomain("${Constants.NEXT_APP_PATH}$relative")
     }
 }

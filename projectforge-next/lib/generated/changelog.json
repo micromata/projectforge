@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.4",
-    "date" : "2026-10-12",
+    "date" : "2026-10-13",
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
@@ -16,7 +16,7 @@
       }, {
         "title" : "System dashboard",
         "items" : [ "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.", "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).", "After a failed cache refresh, the cache serves its current data and retries after a minute at the earliest, instead of retrying on every access." ]
-      }, "Approved vacation can be booked as time sheets automatically: a nightly job books the past vacation days without any time sheet on the configured vacation task and cost unit, never in advance and never further back than its last successful run, so a deleted vacation time sheet isn't booked again. Finance and controlling enable it on the configuration page (maximum days back, vacation task and cost unit); the former settings in projectforge.properties are taken over into the configuration once, and invalid values are refused on saving. The configuration list now groups the parameters by category and shows who may see and who may change each parameter. The statistics of the scheduled jobs also keep the last successful run; after a failed run, the system dashboard shows when the job succeeded last." ]
+      }, "Approved vacation can be booked as time sheets automatically: a nightly job books the past vacation days without any time sheet on the configured vacation task and cost unit, never in advance and never further back than its last successful run, so a deleted vacation time sheet isn't booked again. Finance and controlling enable it on the configuration page (maximum days back, vacation task and cost unit); the former settings in projectforge.properties are taken over into the configuration once, and invalid values are refused on saving. The configuration list now groups the parameters by category and shows who may see and who may change each parameter. The statistics of the scheduled jobs also keep the last successful run; after a failed run, the system dashboard shows when the job succeeded last.", "Notifications: a new rule notifies users whose password hasn't been changed for more than a given number of days, with a link to change it. The notification is resolved once the password is changed." ]
     }, {
       "type" : "improved",
       "items" : [ "Changelog: the releases of a major version are listed newest first, the release opening it last, linked from the top of the major; the release notes of an update link to it as well." ]

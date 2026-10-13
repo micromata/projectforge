@@ -48,5 +48,17 @@ export function RuleParamsField({ className }: { className?: string }) {
       </div>
     );
   }
+  if (ruleType === "PASSWORD_NOT_CHANGED") {
+    return (
+      <NumberField
+        name="passwordMaxAgeDays"
+        label={t("passwordMaxAgeDays")}
+        metadataLess
+        fractionDigits={0}
+        maxDigits={4}
+        className={className}
+      />
+    );
+  }
   return null;
 }

@@ -60,6 +60,7 @@ class NotificationRule(
     var referredMonth: NotificationParams.ReferredMonth = NotificationParams.ReferredMonth.CURRENT,
     var vacationExpiry: NotificationParams.VacationExpiry = NotificationParams.VacationExpiry.CARRY_OVER,
     var daysBeforeExpiry: Int = 30,
+    var passwordMaxAgeDays: Int = 90,
     var recipientGroups: List<Group> = emptyList(),
     var recipientUsers: List<User> = emptyList(),
     var allEmployees: Boolean = false,
@@ -95,6 +96,7 @@ class NotificationRule(
         referredMonth = params.referredMonth
         vacationExpiry = params.vacationExpiry
         daysBeforeExpiry = params.daysBeforeExpiry
+        passwordMaxAgeDays = params.passwordMaxAgeDays
         val recipients = src.readRecipients()
         recipientGroups = recipients.groupIds.map { Group(it) }.also { Group.restoreDisplayNames(it) }
         recipientUsers = recipients.userIds.map { User(it) }.also { User.restoreDisplayNames(it) }
@@ -109,7 +111,7 @@ class NotificationRule(
     override fun copyTo(dest: NotificationRuleDO) {
         super.copyTo(dest)
         dest.schedule = JsonUtils.toJson(schedule)
-        dest.params = JsonUtils.toJson(NotificationParams(referredMonth, vacationExpiry, daysBeforeExpiry))
+        dest.params = JsonUtils.toJson(NotificationParams(referredMonth, vacationExpiry, daysBeforeExpiry, passwordMaxAgeDays))
         dest.recipients = JsonUtils.toJson(
             NotificationRecipients(
                 groupIds = recipientGroups.mapNotNull { it.id }.distinct(),

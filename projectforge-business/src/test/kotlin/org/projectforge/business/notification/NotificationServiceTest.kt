@@ -36,6 +36,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.business.user.UserDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -60,6 +61,9 @@ class NotificationServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
+
+    @Autowired
+    private lateinit var userDao: UserDao
 
     @Test
     fun cascadeTest() {
@@ -141,6 +145,30 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun passwordNotChangedTest() {
+        val user = initTestDB.addUser("notification-password-user")
+        val rule = insertRule(NotificationRuleType.PASSWORD_NOT_CHANGED, user, NotificationDelivery())
+        rule.params = JsonUtils.toJson(NotificationParams(passwordMaxAgeDays = 90))
+        val today = LocalDate.of(2032, 3, 3)
+        val now = Date.from(today.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
+        // Never changed: the creation of the user (today) is long ago in 2032.
+        assertEquals(1, notificationService.runRule(rule, today, now).created)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+        assertEquals("password-${user.created!!.time}", notification.periodKey)
+        assertEquals(0, notificationService.runRule(rule, today, now).created, "Not twice per password.")
+        notificationService.resolvePending(today)
+        assertEquals(NotificationStatus.OPEN, notificationDao.findById(notification.id)!!.status)
+        // The password is changed: resolved, and no notification until the new password is older than 90 days.
+        user.lastPasswordChange = Date.from(today.minusDays(1).atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
+        userDao.update(user, checkAccess = false)
+        notificationService.resolvePending(today)
+        assertEquals(NotificationStatus.RESOLVED, notificationDao.findById(notification.id)!!.status)
+        assertEquals(0, notificationService.runRule(rule, today, now).created)
+        assertEquals(0, notificationService.runRule(rule, today.plusDays(89), now).created, "90 days old: not older.")
+        assertEquals(1, notificationService.runRule(rule, today.plusDays(90), now).created, "The new password is too old.")
+    }
+
+    @Test
     fun expireOfDeletedRuleTest() {
         val user = initTestDB.addUser("notification-deleted-rule-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
@@ -199,6 +227,8 @@ class NotificationServiceTest : AbstractTestBase() {
         rule.subject = "Hello {{firstName}}"
         rule.text = if (type == NotificationRuleType.TIMESHEETS_MISSING) {
             "<p>{{unbookedDaysCount}} days: {{unbookedDays}}</p>"
+        } else if (type == NotificationRuleType.PASSWORD_NOT_CHANGED) {
+            "<p>Changed {{passwordAgeDays}} days ago: {{passwordLink}}</p>"
         } else {
             "<p>Hello {{fullName}}</p>"
         }
