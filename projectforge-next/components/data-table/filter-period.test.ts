@@ -242,3 +242,62 @@ describe("editedInstantValue", () => {
     ).toBeUndefined();
   });
 });
+
+describe("a list's default art (calendar year)", () => {
+  const yearKinds = periodKindsOf(["month", "year"]);
+  const year = yearKinds.find((kind) => kind.id === "year")!;
+
+  it("snaps a begin or an end typed into an empty filter to its calendar year", () => {
+    for (const part of ["from", "to"] as const) {
+      expect(
+        editedDateValue(undefined, part, "2026-05-14", yearKinds, berlin, year)
+      ).toEqual({ from: "2026-01-01", to: "2026-12-31", periodKind: "year" });
+    }
+  });
+
+  it("moves the year with any date typed while it is in effect", () => {
+    expect(
+      editedDateValue(
+        { from: "2026-01-01", to: "2026-12-31", periodKind: "year" },
+        "to",
+        "2027-03-01",
+        yearKinds,
+        berlin,
+        year
+      )
+    ).toEqual({ from: "2027-01-01", to: "2027-12-31", periodKind: "year" });
+  });
+
+  it("leaves a free range and another art alone", () => {
+    expect(
+      editedDateValue(
+        { from: "2026-01-01", to: "2026-12-31", periodKind: "custom" },
+        "to",
+        "2026-06-30",
+        yearKinds,
+        berlin,
+        year
+      )
+    ).toMatchObject({ from: "2026-01-01", to: "2026-06-30" });
+    expect(
+      editedDateValue(
+        { from: "2026-05-01", to: "2026-05-31", periodKind: "month" },
+        "from",
+        "2026-07-10",
+        yearKinds,
+        berlin,
+        year
+      )
+    ).toEqual({ from: "2026-07-01", to: "2026-07-31", periodKind: "month" });
+  });
+
+  it("pages a calendar year by whole years and reads 01.01.–31.12. back as one", () => {
+    const value = { from: "2026-01-01", to: "2026-12-31" };
+    expect(pageablePeriodOf(value, yearKinds, berlin)?.kind.id).toBe("year");
+    expect(steppedPeriodValue(value, -1, yearKinds, berlin)).toEqual({
+      from: "2025-01-01",
+      to: "2025-12-31",
+      periodKind: "year",
+    });
+  });
+});

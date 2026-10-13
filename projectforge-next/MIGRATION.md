@@ -367,7 +367,7 @@ bislang auf eine dynamische next-Seite.
 - **Listen** rendern mit der echten `DataTable` (Adapter `lib/dynamic/grid/`,
   Zell-Formatter-Registry `components/data-table/cells/`). **Kein `Function()`/`eval`:**
   `valueGetter`/`valueFormatter` strikt als Punktpfad; `getRowClass` deklarativ aus den
-  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `vacation`,
+  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `employee`, zuvor `vacation`,
   `skillentry`, `address`).
 
 **Verbliebene Lücken:**
@@ -559,6 +559,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`TimeAgo.getDateAndMessage`). Admins ändern das Passwort eines anderen Benutzers mit `?userId=` (aus der
   React-Benutzerbearbeitung per REDIRECT verlinkt). `react/changePassword/**` und `react/changeWlanPassword/**`
   leitet `OrphanedLinkFilter` um (eine numerische `userId` wird übernommen).
+- **Urlaub** (`vacation`, Liste + Formular, vorher React-UILayout `VacationPagesRest`, gelöscht) –
+  layoutfrei über `VacationEntityRest` (`/rs/vacation`). Die React-Watch-Fields ersetzt `POST
+/rs/vacation/stats` (Arbeitstage, Resturlaub, Urlaube der Vertretungen, Konflikt, erlaubte Status),
+  debounced aus dem Formular (`use-vacation-stats.ts`); er schreibt nichts, auch nicht in den
+  `ConflictingVacationsCache` (`getVacationOverlaps(updateCache = false)`), und liefert Nicht-HR-Benutzern
+  nur den Resturlaub des eigenen bzw. des gespeicherten Mitarbeiters. Der Status bietet nur
+  `VacationDao.getAllowedStatus`, den Mitarbeiter wählt nur HR (`employeeEditable`). Rückweg: Liste,
+  Kalender (`?returnTo=/calendar`); das noch React-basierte Urlaubskonto bekommt seinen Rückweg erst mit
+  seiner Migration (`docs/vacation-account-migration.md`). `OrphanedLinkFilter` vergleicht Legacy-Pfade
+  jetzt segmentgenau, sonst landete `react/vacationAccount/dynamic` auf der Urlaubsliste. Die Mail-Links
+  (`VacationSendMailService.getLinkToVacationEntry`) folgen `NextMigration`.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

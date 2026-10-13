@@ -6,34 +6,36 @@ import type { Page } from "@playwright/test";
 /**
  * The server-laid-out list page (`components/dynamic/components/grid/`) against the live backend.
  *
- * `vacation` is the check page for it: its layout carries every part the adapter has to translate —
- * `valueGetter` (`data?.employee?.displayName`), two DATE formatter columns, a
- * SHOW_LIST_OF_DISPLAYNAMES one, explicit widths, a `getRowClass` with two branches and a
- * `rowClickRedirectUrl` ending in `/id`. The list is read-only, so no test data is created; the
- * persistence test does write the account's column state and resets it again at the end.
+ * `employee` is the check page for it (the vacation list was, until it was migrated): its layout carries
+ * the parts the adapter has to translate — `valueGetter` (`data?.user?.firstname`), DATE formatter
+ * columns, explicit widths and a `rowClickRedirectUrl` ending in `/id`. The list is read-only, so no test
+ * data is created; the persistence test does write the account's column state and resets it again at the
+ * end.
  *
- * A vacation entry cannot be created from here (it needs an employee, a leave account and an
- * approver, none of which exist on a fresh database), so the cases that need a row skip when the list
- * is empty rather than failing — see [requireRows]. Nothing of the rows is named in this file: what is
- * asserted is their *shape* (a date is a date, a nested displayName is a name), never a value.
+ * An employee cannot be created from here (it needs a user of its own), so the cases that need a row skip
+ * when the list is empty rather than failing — see [requireRows]. Nothing of the rows is named in this
+ * file: what is asserted is their *shape* (a date is a date, a nested name is a name), never a value.
  */
-const LIST = "/vacation";
+const LIST = "/employee";
 
 /**
  * The layout sends its column labels as text (`headerName`), already translated — so the expectation
  * translates the same keys rather than spelling out one language's word (see projectforge-next/CLAUDE.md).
- * These are the keys `VacationDO` carries as `@PropertyInfo(i18nKey = …)`, which is where `lc` takes
- * the header names from.
+ * These are the keys `PFUserDO` and `EmployeeDO` carry as `@PropertyInfo(i18nKey = …)`, which is where `lc`
+ * takes the header names from.
  */
-const EMPLOYEE_KEY = "vacation.employee";
-const START_DATE_KEY = "vacation.startdate";
+const FIRST_NAME_KEY = "firstName";
+const JOIN_DATE_KEY = "fibu.employee.eintrittsdatum";
 const COMMENT_KEY = "comment";
+
+/** Position of the join date among the columns (EmployeePagesRest.createListLayout), 1-based. */
+const JOIN_DATE_COLUMN = 8;
 
 /**
  * Skips the case when the list has no row, and answers the rows otherwise.
  *
- * Only a spec whose entity it can create may insist on data. Vacation entries are not among those, so
- * "the list is empty" is a statement about the database rather than about the code under test.
+ * Only a spec whose entity it can create may insist on data. Employees are not among those, so "the list
+ * is empty" is a statement about the database rather than about the code under test.
  */
 async function requireRows(page: Page) {
   const rows = listRows(page);
@@ -44,7 +46,7 @@ async function requireRows(page: Page) {
     .waitFor({ state: "visible", timeout: 20_000 })
     .then(() => 1)
     .catch(() => 0);
-  test.skip(count === 0, "no vacation entry in this database");
+  test.skip(count === 0, "no employee in this database");
   return rows;
 }
 
@@ -75,7 +77,7 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
   // that hides a column would otherwise dictate what the next one (or the next run) sees. Resetting
   // through the endpoint rather than through the UI keeps it independent of a failed assertion.
   test.beforeEach(async ({ loggedInPage: page }) => {
-    await page.request.get("/rs/vacation/resetGridState/");
+    await page.request.get("/rs/employee/resetGridState/");
   });
 
   test("renders the layout's columns, formatted values and row colours", async ({
@@ -86,23 +88,25 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
 
     // The header proves the column defs survived the adapter, including the one whose value comes
     // from a valueGetter rather than from its own field.
-    await headerCell(page, t(EMPLOYEE_KEY));
-    await headerCell(page, t(START_DATE_KEY));
+    await headerCell(page, t(FIRST_NAME_KEY));
+    await headerCell(page, t(JOIN_DATE_KEY));
     await headerCell(page, t(COMMENT_KEY));
 
     const rows = await requireRows(page);
 
-    // valueGetter: the employee cell must show the nested displayName, not "[object Object]" or
+    // valueGetter: the first name cell must show the nested user's name, not "[object Object]" or
     // JSON — that is what the replaced hand-written table did.
-    const firstEmployee = rows.first().locator("td").first();
-    await expect(firstEmployee).not.toHaveText(/object|\{/i);
-    await expect(firstEmployee).toHaveText(/\p{L}/u);
+    const firstName = rows.first().locator("td").first();
+    await expect(firstName).not.toHaveText(/object|\{/i);
+    await expect(firstName).toHaveText(/\p{L}/u);
 
-    // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every start date is
-    // a German date and never an ISO string.
-    const startDates = listRows(page).locator("td:nth-child(2)");
-    for (const text of await startDates.allInnerTexts()) {
-      expect(text.trim()).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
+    // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every join date is a
+    // German date and never an ISO string — or empty, an employee may have none.
+    const joinDates = listRows(page).locator(
+      `td:nth-child(${JOIN_DATE_COLUMN})`
+    );
+    for (const text of await joinDates.allInnerTexts()) {
+      expect(text.trim()).toMatch(/^(\d{2}\.\d{2}\.\d{4})?$/);
     }
 
     // getRowClass, translated by row-class.ts: a row the layout's rule does not match gets no class
@@ -123,10 +127,10 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
     const rows = await requireRows(page);
 
     await rows.first().click();
-    // `rowClickRedirectUrl` is "/react/vacation/edit/id": vacation is not in NextMigration.MIGRATED,
+    // `rowClickRedirectUrl` is "/react/employee/edit/id": employee is not in NextMigration.MIGRATED,
     // so the row leads into the legacy frontend — with the row's id substituted for the trailing
     // "/id" segment (applyRowId).
-    await expect(page).toHaveURL(/\/react\/vacation\/edit\/\d+/, {
+    await expect(page).toHaveURL(/\/react\/employee\/edit\/\d+/, {
       timeout: 20_000,
     });
   });
@@ -145,7 +149,7 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
 
     // Sorting: a click on the header cell sorts (DataTable sorts on the whole cell), which posts to
     // onColumnStatesChangedUrl.
-    await (await headerCell(page, t(EMPLOYEE_KEY))).click();
+    await (await headerCell(page, t(FIRST_NAME_KEY))).click();
     const sortedFirst = await listRows(page)
       .first()
       .locator("td")
@@ -171,7 +175,7 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
     // The reload is the actual assertion: the state has to come back through the *layout* response,
     // which the backend rewrites in restoreColumnsFromUserPref — nothing is stored in the client.
     await page.reload({ waitUntil: "domcontentloaded" });
-    await headerCell(page, t(EMPLOYEE_KEY));
+    await headerCell(page, t(FIRST_NAME_KEY));
     await expect(
       page.locator("th").filter({ hasText: t(COMMENT_KEY) })
     ).toHaveCount(0);

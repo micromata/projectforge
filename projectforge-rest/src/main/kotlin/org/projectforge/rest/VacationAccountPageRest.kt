@@ -165,13 +165,12 @@ class VacationAccountPageRest {
     val buttonCol = UICol(6)
     val responseAction = ResponseAction(
       PagesResolver.getEditPageUrl(
-        VacationPagesRest::class.java,
-        params = mapOf("employee" to employeeId, "returnToCaller" to "account"),
+        VacationEntityRest::class.java,
+        // The form of projectforge-next returns to the vacation list, not here (no way back to a React page).
+        params = mapOf("employee" to employeeId),
         absolute = true
       ), targetType = TargetType.REDIRECT
     )
-    responseAction.addVariable("returnToCaller", "account")
-    // TODO: Add employee for preselecting edit form
     buttonCol.add(UIButton.createAddButton(responseAction = responseAction))
     if (this.vacationService.hasLoggedInUserHRVacationAccess() &&
       !NumberHelper.isEqual(currentStats.remainingLeaveFromPreviousYear, prevStats.vacationDaysLeftInYear)
@@ -233,7 +232,7 @@ class VacationAccountPageRest {
       MenuItem(
         "leaveForApplication",
         i18nKey = "menu.vacation",
-        url = PagesResolver.getListPageUrl(VacationPagesRest::class.java),
+        url = PagesResolver.getListPageUrl(VacationEntityRest::class.java),
         type = MenuItemTargetType.REDIRECT,
       )
     )

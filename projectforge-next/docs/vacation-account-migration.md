@@ -1,6 +1,7 @@
 # Plan: migrate the vacation account (`react/vacationAccount/dynamic`) to Next.js
 
 ## Context
+
 The leave account ("Urlaubskonto", menu `VACATION_ACCOUNT`, also in the user-name menu) is still a React
 UILayout page (`VacationAccountPageRest` + the React custom components `vacation.statistics` /
 `vacation.entries`). It moves to projectforge-next as a hand-built standalone page (like `hrList`,
@@ -39,8 +40,14 @@ Two silent bugs of the old page get fixed: conflicting vacations get a red row (
    - `workingHoursStatistics: String?`,
    - URLs: `newVacationUrl` (`getEditPageUrl(VacationPagesRest, params = employee + returnToCaller=account, absolute = true)`),
      `vacationListUrl` (`getListPageUrl(VacationPagesRest)` or its next successor), `exportUrl` (`getDynamicPageUrl(VacationExportPageRest)`, still React).
-   Edit URLs via `PagesResolver.getEditPageUrl(..., id, returnToCaller = "account", absolute = true)`.
-3. **Return path:** `VacationPagesRest.createReturnToCallerResponseAction` and
+     Edit URLs via `PagesResolver.getEditPageUrl(..., id, returnToCaller = "account", absolute = true)`.
+3. **Return path:** `vacation` is migrated meanwhile (`VacationEntityRest`, `components/features/vacation`);
+   its form returns to the list or the calendar only (`VACATION_PAGE.returnTargets`). Add
+   `{ route: "/vacationAccount", labelKey: "menu.vacation.leaveaccount" }` there and send
+   `?returnTo=/vacationAccount` with the edit/new urls of the account (and consider the mail link of
+   `VacationSendMailService.getLinkToVacationEntry`, which has no return parameter any more). The rest of this
+   point applies to `leaveAccountEntry` only:
+   **Former plan:** `VacationPagesRest.createReturnToCallerResponseAction` and
    `LeaveAccountEntryPagesRest.createReturnToCallerResponseAction` (or their next successors) answer
    `"account"` with `/${Constants.NEXT_APP_PATH}vacationAccount` (works from React via `RedirectToNext`
    and from Next via `resolveMenuUrl`). Same for `VacationSendMailService.getLinkToVacationEntry` only if
@@ -83,17 +90,20 @@ Two silent bugs of the old page get fixed: conflicting vacations get a red row (
   `bin/pfDev.sh gen` (check that the generated files were really rewritten, `--rerun-tasks` if needed).
 
 ## Delete from the old React app
+
 - `projectforge-webapp/src/components/base/dynamicLayout/components/customized/components/vacation/`
   (`VacationStatistics*.jsx`, `VacationTable.jsx`, `VacationEntries.jsx`, `VacationLeaveAccountTable.jsx`,
   `Vacation.module.scss`) and the `vacation.entries`/`vacation.statistics` cases in `customized/index.jsx`
   (only used by this page — check with grep first).
 
 ## Docs / changelog
+
 - `projectforge-next/MIGRATION.md`: a Phase-3 bullet "Urlaubskonto" (standalone, edit URLs from the backend,
   bugs fixed).
 - `changelog/unreleased/20261009-vacation-account-next.json` (type `improved`, en + de, de with "du" or no direct address).
 
 ## Verification
+
 - `./gradlew :projectforge-rest:test --tests "*VacationAccountRest*" --tests "*OrphanedLinkFilterTest*" --tests "*NextMigration*"`,
   `:projectforge-application:test --tests "*RestEndpointAccessCheckTest*" --tests "*GenerateNextI18nMessagesTest*"`.
 - `npm run lint`, `tsc`, unit tests in projectforge-next.

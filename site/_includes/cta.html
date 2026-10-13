@@ -1,17 +1,30 @@
-{% if include.button_url contains 'http' %}
-    {% assign domain = '' %}
-{% else %}
-    {% assign domain = '' | relative_url %}
-{% endif %}
-
-{% if include.button_url %}
-<div class="uk-section uk-text-center{% if include.background %} uk-section-{{include.background}}{% endif %}">
-    <div class="uk-container uk-container-small">
-        <div data-uk-scrollspy="cls: uk-animation-slide-bottom-medium; repeat: true">
-            {% if include.title %}<h2 class="uk-h1 uk-margin-bottom">{{ include.title }}</h2>{% endif %}
-            {% if include.subtitle %}<p class="uk-text-lead uk-text-center">{{ include.subtitle | escape }}</p>{% endif %}
-            <a class="uk-button uk-button-primary uk-button-large uk-margin-medium-top" href="{{ domain }}{{ include.button_url }}">{{ include.button_text }}</a>
+{%- comment -%}
+    Call-to-action section. Parameters: title, subtitle, tone (plain; default: a grey band),
+    buttons (list of title, url, style; e.g. from the front matter) or button_text/button_url (primary) and
+    button2_text/button2_url (outline).
+{%- endcomment -%}
+<section class="{% if include.title or include.subtitle %}py-16 max-sm:py-12{% else %}pb-16 max-sm:pb-12{% endif %}{% unless include.tone == 'plain' %} border-y border-border bg-secondary{% endunless %}">
+    <div class="pf-container pf-narrow text-center">
+        {%- if include.title %}
+        <h2 class="web-headline">{{ include.title }}</h2>
+        {%- endif %}
+        {%- if include.subtitle %}
+        <p class="web-lead mt-3 text-secondary-foreground">{{ include.subtitle }}</p>
+        {%- endif %}
+        <div class="{% if include.title or include.subtitle %}mt-8 {% endif %}flex flex-wrap justify-center gap-3">
+            {%- if include.buttons %}
+            {%- for button in include.buttons %}
+            {%- if button.style %}{% assign style = button.style %}{% elsif forloop.first %}{% assign style = 'primary' %}{% else %}{% assign style = 'outline' %}{% endif %}
+            {% include button.html url=button.url text=button.title style=style size='lg' %}
+            {%- endfor %}
+            {%- else %}
+            {%- if include.button_url %}
+            {% include button.html url=include.button_url text=include.button_text style=include.button_style size='lg' %}
+            {%- endif %}
+            {%- if include.button2_url %}
+            {% include button.html url=include.button2_url text=include.button2_text style='outline' size='lg' %}
+            {%- endif %}
+            {%- endif %}
         </div>
     </div>
-</div>
-{% endif %}
+</section>

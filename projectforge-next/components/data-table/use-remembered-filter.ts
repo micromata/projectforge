@@ -27,9 +27,10 @@ export function useRememberedFilter(
   {
     /**
      * Off for a view beside a mounted list (the "Grafiken" tabs): it must follow the filter the list is
-     * *showing*, which useRememberFilter keeps in the cache. The backend's copy can lag behind it — the
-     * list answers a recently used filter from its own cache without posting it, so the backend still
-     * holds the one before — and a forced refetch would overwrite the live filter with that stale one.
+     * *showing*, which useRememberFilter keeps in the cache. The backend's copy lags behind it until the
+     * list's request for a new filter has been answered (the list asks on every change, see
+     * useMagicFilterQuery's `staleTime`), and a forced refetch meanwhile would overwrite the live filter
+     * with the one before.
      * The cache is still fetched when empty.
      */
     fresh = true,

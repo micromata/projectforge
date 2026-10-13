@@ -50,10 +50,10 @@ test.describe("legacy page link", { tag: "@isolated" }, () => {
     const { t } = await userFormat(page);
     // Not migrated, so the link points at the page the user is effectively looking at already. It is
     // rendered all the same: the frontend doesn't decide which pages have a way back.
-    await goto(page, "/vacation");
+    await goto(page, "/employee");
 
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", "/react/vacation?legacyEscape");
+    ).toHaveAttribute("href", "/react/employee?legacyEscape");
   });
 });

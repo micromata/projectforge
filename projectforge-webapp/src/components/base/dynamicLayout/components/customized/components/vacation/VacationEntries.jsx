@@ -1,8 +1,6 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import history from '../../../../../../../utilities/history';
-import prefix from '../../../../../../../utilities/prefix';
 import styles from './Vacation.module.scss';
 
 function VacationEntries({ entries }) {
@@ -10,7 +8,8 @@ function VacationEntries({ entries }) {
         <tr
             key={entry.id}
             className={classNames({ [styles.highlighted]: index === 0 }, { 'ag-row-red': entry.conflict === true })}
-            onClick={() => history.push(`${prefix}vacation/edit/${entry.id}?returnToCaller=account`)}
+            // The form is a page of projectforge-next: a real page load, not client-side routing.
+            onClick={() => window.location.assign(`/next/vacation/${entry.id}`)}
         >
             <td>{entry.startDateFormatted}</td>
             <td>{entry.endDateFormatted}</td>

@@ -30,21 +30,39 @@ const FilterPeriodKindsContext = createContext<readonly PeriodKindId[]>([
   "yearToDate",
 ]);
 
+/** The art a period filter of this list is given as by default (see [PageDef.filterDefaultPeriodKind]). */
+const FilterDefaultPeriodKindContext = createContext<PeriodKindId | null>(null);
+
 export function FilterPeriodKindsProvider({
   periodKinds,
+  defaultPeriodKind,
   children,
 }: {
   /** Absent means the default; `[]` leaves the quick access out of every period filter of the list. */
   periodKinds?: readonly PeriodKindId[];
+  /** The art a date typed into an empty period filter snaps to; absent leaves the two dates free. */
+  defaultPeriodKind?: PeriodKindId;
   children: React.ReactNode;
 }) {
   const value = useMemo(() => periodKinds, [periodKinds]);
-  if (!value) return children;
+  const inner = (
+    <FilterDefaultPeriodKindContext.Provider value={defaultPeriodKind ?? null}>
+      {children}
+    </FilterDefaultPeriodKindContext.Provider>
+  );
+  if (!value) return inner;
   return (
     <FilterPeriodKindsContext.Provider value={value}>
-      {children}
+      {inner}
     </FilterPeriodKindsContext.Provider>
   );
+}
+
+/** The default art of this list's period filters, if it offers it at all. */
+export function useFilterDefaultPeriodKind(): PeriodKind | null {
+  const id = useContext(FilterDefaultPeriodKindContext);
+  const kinds = useFilterPeriodKinds();
+  return kinds.find((kind) => kind.id === id) ?? null;
 }
 
 /** The arts a period filter offers, resolved to the kinds themselves. */

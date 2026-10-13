@@ -1,0 +1,7 @@
+{%- comment -%}Centered headline and lead of a section. Parameters: title, subtitle.{%- endcomment -%}
+{%- if include.title %}
+<h2 class="web-headline text-center">{{ include.title }}</h2>
+{%- endif %}
+{%- if include.subtitle %}
+<p class="web-lead mx-auto mt-3 max-w-[760px] text-center text-secondary-foreground">{{ include.subtitle }}</p>
+{%- endif %}

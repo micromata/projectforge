@@ -563,6 +563,28 @@ class VacationServiceTest : AbstractTestBase() {
         )
     }
 
+    @Test
+    fun `only the given statuses are listed`() {
+        val employee = createEmployee("status-filter", LocalDate.of(2018, Month.MAY, 1))
+        val manager = createEmployee("status-filter-manager", LocalDate.of(2018, Month.MAY, 1))
+        logon(TEST_HR_USER)
+        addVacations(employee, manager, 2021, Month.MARCH, 1, Month.MARCH, 5, status = VacationStatus.APPROVED)
+        addVacations(employee, manager, 2021, Month.MARCH, 8, Month.MARCH, 12, status = VacationStatus.REJECTED)
+        val begin = LocalDate.of(2021, Month.MARCH, 1)
+        val end = LocalDate.of(2021, Month.MARCH, 31)
+        Assertions.assertEquals(
+            listOf(VacationStatus.APPROVED),
+            vacationService.getVacationsListForPeriod(employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED))
+                .map { it.status },
+        )
+        Assertions.assertEquals(
+            setOf(VacationStatus.APPROVED, VacationStatus.REJECTED),
+            vacationService.getVacationsListForPeriod(
+                employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED, VacationStatus.REJECTED)
+            ).map { it.status }.toSet(),
+        )
+    }
+
     /**
      * If endMonth is before startMonth, the next year will be used as endYear.
      * @return Number of vacation days (equals to working days between startDate and endDate)

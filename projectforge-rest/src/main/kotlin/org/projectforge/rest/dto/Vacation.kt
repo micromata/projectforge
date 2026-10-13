@@ -58,6 +58,9 @@ class Vacation(
     var comment: String? = null,
     var vacationDaysLeftInYear: BigDecimal? = null,
     var vacationDaysLeftInYearString: String? = null,
+    /** The days left in the year once this entry (as edited) is counted instead of its stored state. */
+    var vacationDaysLeftAfterThis: BigDecimal? = null,
+    var vacationDaysLeftAfterThisString: String? = null,
     /**
      * Vacations of substitutes overlapping this vacation. Only set in detail
      * view.
@@ -67,6 +70,19 @@ class Vacation(
      * If at least one day of the vacation period isn't covered by any substitute (replacement).
      */
     var conflict: Boolean? = null,
+    /**
+     * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
+     */
+    var allowedStatus: List<VacationStatus>? = null,
+    /**
+     * Whether the logged-in user may choose the employee (HR staff only). Only set in detail view.
+     */
+    var employeeEditable: Boolean? = null,
+    /**
+     * The days the form charts the overlapping vacations on (the period with a margin, see [VacationChartDay]). Only
+     * set in detail view.
+     */
+    var chartDays: List<VacationChartDay>? = null,
 ) : BaseDTO<VacationDO>() {
     constructor(src: VacationDO) : this() {
         this.copyFrom(src)
@@ -100,3 +116,17 @@ class Vacation(
         dest.otherReplacements = Employee.toEmployeeDOList(otherReplacements)
     }
 }
+
+/**
+ * A day of the chart of the overlapping vacations in the vacation form.
+ *
+ * @param workingDay Neither weekend nor holiday (a holiday may be a half working day, e.g. Christmas Eve).
+ * @param holiday The holiday's name, if it is one.
+ * @param uncovered A day of the vacation on which no substitute is on duty.
+ */
+class VacationChartDay(
+    val date: LocalDate,
+    val workingDay: Boolean,
+    val holiday: String? = null,
+    val uncovered: Boolean = false,
+)

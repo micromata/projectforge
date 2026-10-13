@@ -132,6 +132,10 @@ open class VacationService {
          * day).
          */
         val conflict: Boolean = false,
+        /**
+         * The days of the vacation on which every substitute is on leave as well (see [uncoveredDays]).
+         */
+        val uncoveredDays: List<LocalDate> = emptyList(),
     )
 
     /**
@@ -259,7 +263,7 @@ open class VacationService {
             : List<VacationDO> {
         var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         result = if (status.isNotEmpty()) {
-            result.filter { VacationStatus.entries.contains(it.status) }
+            result.filter { status.contains(it.status) }
         } else {
             result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
         }
@@ -461,7 +465,16 @@ open class VacationService {
         return result
     }
 
-    open fun getVacationOverlaps(vacation: VacationDO): VacationOverlaps {
+    /**
+     * The vacations of the replacements overlapping the given one, and whether at least one day isn't covered by
+     * any of them.
+     *
+     * @param updateCache Stores the result in [ConflictingVacationsCache]. Only for a vacation as it is stored:
+     * the edit form asks for the state the user is still editing (see `VacationEntityRest.stats`), which must not
+     * leave its unsaved conflict in the cache.
+     */
+    @JvmOverloads
+    open fun getVacationOverlaps(vacation: VacationDO, updateCache: Boolean = true): VacationOverlaps {
         val periodBegin = vacation.startDate ?: return VacationOverlaps() // Should not occur on db entries.
         val periodEnd = vacation.endDate ?: return VacationOverlaps() // Should not occur on db entries.
         val employees = collectAllReplacements(vacation)
@@ -474,7 +487,8 @@ open class VacationService {
             periodBegin,
             periodEnd,
             withSpecial = true,
-            trimVacations = true,
+            // Not trimmed to the period: the form charts them as they are (see VacationEntityRest.computeStats).
+            trimVacations = false,
         ).forEach { employeeVacations ->
             employeeVacations.vacations.forEach { otherVacation ->
                 if (vacation.hasOverlap(otherVacation)) {
@@ -482,9 +496,12 @@ open class VacationService {
                 }
             }
         }
-        val conflict = checkConflict(vacation, vacationOverlaps)
-        conflictingVacationsCache.updateVacation(vacation, conflict)
-        return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
+        val uncoveredDays = uncoveredDays(vacation, vacationOverlaps)
+        val conflict = uncoveredDays.isNotEmpty()
+        if (updateCache) {
+            conflictingVacationsCache.updateVacation(vacation, conflict)
+        }
+        return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict, uncoveredDays)
     }
 
     /**
@@ -498,48 +515,41 @@ open class VacationService {
 
 
     internal fun checkConflict(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): Boolean {
+        return uncoveredDaySequence(vacation, vacationsOfReplacements).any()
+    }
+
+    /**
+     * The days of the vacation on which no substitute is on duty: every substitute (replacement and other
+     * replacements) has a vacation covering the day. None, if one of them has no vacation at all among the given ones.
+     * Calendar days, as for the conflict flag.
+     */
+    internal fun uncoveredDays(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): List<LocalDate> {
+        return uncoveredDaySequence(vacation, vacationsOfReplacements).toList()
+    }
+
+    private fun uncoveredDaySequence(
+        vacation: VacationDO,
+        vacationsOfReplacements: List<VacationDO>,
+    ): Sequence<LocalDate> {
         if (vacationsOfReplacements.isEmpty()) {
-            return false
+            return emptySequence()
         }
         val allReplacements = collectAllReplacements(vacation)
         if (allReplacements.isEmpty()) {
-            return false // return should not occur
+            return emptySequence() // should not occur
         }
-        allReplacements.forEach { employeeDO ->
-            if (vacationsOfReplacements.none { it.employee?.id == employeeDO.id }) {
-                return false // one replacement employee found without any vacation in the vacation period -> no conflict.
-            }
+        val startDate = vacation.startDate ?: return emptySequence() // should not occur on db entries.
+        val endDate = vacation.endDate ?: return emptySequence() // should not occur on db entries.
+        val vacationsByReplacement = allReplacements.map { replacement ->
+            vacationsOfReplacements.filter { it.employee?.id == replacement.id }
         }
-
-        val startDate = vacation.startDate ?: return false // return should not occur on db entries.
-        val endDate = vacation.endDate ?: return false // return should not occur on db entries.
-        if (startDate > endDate) {
-            return false // startDate after endDate shouldn't occur fore db entries.
+        if (vacationsByReplacement.any { it.isEmpty() }) {
+            return emptySequence() // A substitute without any vacation in the period is on duty all the time.
         }
-        var date = startDate
-        var paranoiaCounter = 10000
-        while (date <= endDate) {
-            if (--paranoiaCounter <= 0) {
-                // Paranoia counter for avoiding endless loops
-                break
-            }
-            var substituteAvailable = false
-            // No check either at least one substitute is on duty or not:
-            allReplacements.forEach replacements@{ replacement ->
-                vacationsOfReplacements.filter { it.employee?.id == replacement.id }.forEach { other ->
-                    if (!other.isInBetween(date)) {
-                        substituteAvailable = true
-                        return@replacements
-                    }
-                }
-            }
-            if (!substituteAvailable) {
-                // No substitute found for at least one day.
-                return true
-            }
-            date = date.plusDays(1)
-        }
-        return false
+        return generateSequence(startDate) { it.plusDays(1) }
+            .takeWhile { it <= endDate }
+            .take(10000) // Paranoia limit against endless periods.
+            .filter { date -> vacationsByReplacement.all { vacations -> vacations.any { it.isInBetween(date) } } }
     }
 
     /**

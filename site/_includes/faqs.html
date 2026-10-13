@@ -1,28 +1,23 @@
-<div class="uk-section">
-    <div class="uk-container uk-container-small">
-
-        {% if include.title %}
-            <h2 class="uk-h1 uk-text-center">{{ include.title }}</h2>
-        {% endif %}
-
-        {% if include.subtitle %}
-            <p class="uk-text-center uk-text-lead">{{ include.subtitle | escape }}</p>
-        {% endif %}
-
-        {% if include.category %}
-            {% assign faqs = site.faqs | where: "categories", include.category %}
-        {% else %}
-            {% assign faqs = site.faqs %}
-        {% endif %}
-
-        <ul class="uk-margin-medium-top" data-uk-accordion{% if include.multiple %}="multiple: true"{% endif %}>
-            {% for faq in faqs %}
-                <li>
-                    <a class="uk-accordion-title uk-box-shadow-hover-small" href="#">{{ faq.title }}</a>
-                    <div class="article-content uk-accordion-content link-primary">{{ faq.content }}</div>                
-                </li>
-            {% endfor %}
-        </ul>
-
+{%- comment -%}
+    FAQ list from the faqs collection, one <details> per question. Parameters: title, subtitle,
+    category (only the FAQs of this category), multiple (several answers may be open at once),
+    id (anchor of the section), tone (muted for a grey band).
+{%- endcomment -%}
+{%- if include.category -%}
+    {%- assign faqs = site.faqs | where: "categories", include.category -%}
+{%- else -%}
+    {%- assign faqs = site.faqs -%}
+{%- endif -%}
+<section class="py-16 max-sm:py-12{% if include.tone == 'muted' %} border-y border-border bg-secondary{% endif %}"{% if include.id %} id="{{ include.id }}"{% endif %}>
+    <div class="pf-container pf-narrow">
+        {% include section-heading.html title=include.title subtitle=include.subtitle %}
+        <div class="border-t border-border{% if include.title or include.subtitle %} mt-12{% endif %}">
+            {%- for faq in faqs %}
+            <details class="border-b border-border"{% unless include.multiple %} name="faq-{{ include.category | default: 'all' }}"{% endunless %}>
+                <summary class="pf-chevron web-title flex items-center justify-between gap-4 py-4">{{ faq.title }}</summary>
+                <div class="pf-richtext web-body max-w-[62ch] pb-6 text-secondary-foreground">{{ faq.content }}</div>
+            </details>
+            {%- endfor %}
+        </div>
     </div>
-</div>
+</section>

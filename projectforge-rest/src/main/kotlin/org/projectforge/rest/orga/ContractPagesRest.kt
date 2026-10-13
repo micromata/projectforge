@@ -126,7 +126,7 @@ class ContractPagesRest
     val filters = mutableListOf<CustomResultFilter<ContractDO>>()
     source.entries.find { it.field == "year" }?.let { entry ->
       entry.synthetic = true
-      NumberHelper.parseInteger(entry.value.value)?.let { year ->
+      NumberHelper.parseInteger(entry.plainValue)?.let { year ->
         target.setYearAndMonth("date", year, -1)
       }
     }

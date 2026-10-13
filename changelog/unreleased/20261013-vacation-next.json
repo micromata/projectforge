@@ -1,0 +1,23 @@
+{
+  "type": "improved",
+  "en": "Leave applications",
+  "de": "Urlaubsanträge",
+  "items": [
+    {
+      "en": "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.",
+      "de": "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe."
+    },
+    {
+      "en": "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.",
+      "de": "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist."
+    },
+    {
+      "en": "Only the statuses that may be set are offered.",
+      "de": "Angeboten werden nur die Status, die gesetzt werden dürfen."
+    },
+    {
+      "en": "A leave application opened from the calendar returns to it on save.",
+      "de": "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück."
+    }
+  ]
+}

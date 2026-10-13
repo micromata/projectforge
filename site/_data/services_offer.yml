@@ -1,0 +1,19 @@
+# "What we offer" on the services page
+
+- title: Hosting
+  desc: We run your ProjectForge instance, install updates and take care of backups and monitoring.
+
+- title: Introduction
+  desc: We help you set up your structure tree, groups and access rights, cost accounting and leave management, so you can get started quickly and on solid ground.
+
+- title: Data import
+  desc: We bring over customers, projects, orders, timesheets or accounting data from your current tools and spreadsheets.
+
+- title: Integration
+  desc: We connect ProjectForge to LDAP, Keycloak or Authentik, your mail server, DATEV workflows or your phone system.
+
+- title: Support
+  desc: Response times and contact channels that fit your business.
+
+- title: Extensions
+  desc: Your own reports, scripts, plugins or features – developed by the ProjectForge team.

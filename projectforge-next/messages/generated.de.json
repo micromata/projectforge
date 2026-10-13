@@ -412,6 +412,7 @@
     }
   },
   "calendar": {
+    "calendarYear": "Kalenderjahr",
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
     "day": {
@@ -464,12 +465,15 @@
     "previousYear": "Vorheriges Jahr",
     "quickselect": {
       "tooltip": {
+        "selectCurrentCalendarYear": "Quickselect - aktuelles Kalenderjahr",
         "selectCurrentMonth": "Quickselect - aktueller Monat",
         "selectCurrentWeek": "Quickselect - aktuelle Woche",
         "selectCurrentYearToDate": "Quickselect - Jahr bis heute",
+        "selectNextCalendarYear": "Quickselect - nachfolgendes Kalenderjahr",
         "selectNextMonth": "Quickselect - nachfolgender Monat",
         "selectNextWeek": "Quickselect - nachfolgende Woche",
         "selectNextYearToDate": "Quickselect - nachfolgendes Jahr bis heute",
+        "selectPreviousCalendarYear": "Quickselect - vorangehendes Kalenderjahr",
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
         "selectPreviousWeek": "Quickselect - vorangehende Woche",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"
@@ -4509,9 +4513,26 @@
   },
   "username": "Benutzer:innenname",
   "vacation": {
+    "_": "Urlaub",
+    "Days": "Urlaubstage",
     "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
+    "availabledays": "Verfügbare Urlaubstage",
+    "availabledaysAfterThis": "{arg0}, nach diesem Antrag: {arg1}",
+    "chart": {
+      "ariaLabel": "Balkengrafik dieses Urlaubs und der überlappenden Urlaube der Vertretungen",
+      "nonWorkingDay": "Wochenende oder Feiertag",
+      "own": "Dieser Urlaub",
+      "uncovered": "Keine Vertretung im Dienst"
+    },
+    "conflict": {
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
+    },
+    "conflicts": "Konflikte",
     "employee": "Mitarbeiter",
     "enddate": "Enddatum",
+    "export": {
+      "title": "Export von Teamurlaubskalendern"
+    },
     "halfDayBegin": {
       "_": "Halber Urlaubstag am ersten Tag",
       "tooltip": "Der erste Tag, sofern es sich um einen Arbeitstag handelt, soll nur halb genommen werden."
@@ -4544,7 +4565,13 @@
       "inProgress": "In Abstimmung",
       "rejected": "Abgelehnt"
     },
-    "vacationmode": "Zuordnung"
+    "title": {
+      "add": "Urlaubseintrag erstellen",
+      "list": "Urlaubseintragsliste"
+    },
+    "vacationmode": "Zuordnung",
+    "vacationsOfReplacements": "Urlaube der Vertretungen",
+    "workingdays": "Anzahl Urlaubstage"
   },
   "validation": {
     "error": {

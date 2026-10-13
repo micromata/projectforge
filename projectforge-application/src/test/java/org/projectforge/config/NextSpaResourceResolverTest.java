@@ -121,8 +121,8 @@ class NextSpaResourceResolverTest {
         assertEquals("book history shell", resolve("book/25219084/history"));
         // No prerender of its own, so the catch-all's shell answers - which reads the category from
         // the url at runtime.
-        assertEquals("dynamic list shell", resolve("vacation"));
-        assertEquals("dynamic edit shell", resolve("vacation/edit/17"));
+        assertEquals("dynamic list shell", resolve("visitorbook"));
+        assertEquals("dynamic edit shell", resolve("visitorbook/edit/17"));
     }
 
     @Test
@@ -132,7 +132,7 @@ class NextSpaResourceResolverTest {
         // A file below the page, which must not be resolved by stripping the extension: without the
         // ".txt" the path looks like a match of /[category]/[type]/[...params].
         assertEquals("book edit tree", resolve("book/25219084/__next._tree.txt"));
-        assertEquals("dynamic list payload", resolve("vacation.txt"));
+        assertEquals("dynamic list payload", resolve("visitorbook.txt"));
     }
 
     /** An unresolvable asset stays a 404 rather than being masked with a page's HTML. */

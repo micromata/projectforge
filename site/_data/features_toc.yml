@@ -1,0 +1,22 @@
+# Overview cards on top of the features page, each links to its section of features.adoc
+
+- title: Projects & Orders
+  url: /features/#projects_orders
+- title: Time Tracking
+  url: /features/#time_tracking
+- title: People & Leave
+  url: /features/#people_leave
+- title: Finance & E-Invoicing
+  url: /features/#finance_e_invoicing
+- title: Controlling & Liquidity
+  url: /features/#controlling_liquidity
+- title: Collaboration
+  url: /features/#collaboration
+- title: Easy to Use
+  url: /features/#easy_to_use
+- title: Security & Integration
+  url: /features/#security_integration
+- title: Operations & Extensibility
+  url: /features/#operations_extensibility
+- title: Technical requirements
+  url: /features/#requirements

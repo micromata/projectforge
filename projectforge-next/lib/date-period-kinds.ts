@@ -63,6 +63,22 @@ const MONTH: PeriodKind = {
 };
 
 /**
+ * Calendar-aligned year: 01.01.–31.12. of the year a date falls in, paged a whole year at a time — "welches
+ * Jahr?" of a list, where the `termYear` term would run twelve months from whatever begin was typed.
+ */
+const YEAR: PeriodKind = {
+  id: "year",
+  labelKey: "calendar.calendarYear",
+  shortLabelKey: "duration.short.year",
+  tooltipPreviousKey: "calendar.quickselect.tooltip.selectPreviousCalendarYear",
+  tooltipCurrentKey: "calendar.quickselect.tooltip.selectCurrentCalendarYear",
+  tooltipNextKey: "calendar.quickselect.tooltip.selectNextCalendarYear",
+  beginOf: (iso) => isoOfParts(partsOf(iso).year, 1, 1),
+  endOf: (iso) => isoOfParts(partsOf(iso).year, 12, 31),
+  shift: (iso, steps) => isoOfParts(partsOf(iso).year + steps, 1, 1),
+};
+
+/**
  * From the day the user entered up to today, paged in whole years.
  *
  * The anchor is **not** snapped: whatever begin stands in the two boxes is where the year starts, so a
@@ -154,13 +170,15 @@ export const TERM_KINDS: readonly PeriodKind[] = [
 
 /**
  * Every kind there is, and this is the order every picker offers its own selection in (see
- * [periodKindsOf]): the calendar week and month, then the terms rising in length, and "Jahr bis heute"
+ * [periodKindsOf]): the calendar week, month and year, then the terms rising in length, and "Jahr bis heute"
  * last — it is the year again, only ending today, so it reads as the entry below "Jahr" rather than
  * between the lengths.
  */
 export const PERIOD_KINDS: readonly PeriodKind[] = [
   WEEK,
   MONTH,
+  // Before the terms: 01.01.–31.12. reads as the calendar year, not as twelve months from the 1st.
+  YEAR,
   ...TERM_KINDS,
   YEAR_TO_DATE,
 ];

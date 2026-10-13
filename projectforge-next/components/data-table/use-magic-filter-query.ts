@@ -223,6 +223,12 @@ export function useMagicFilterQuery<O>({
           )
         : fetchList<O>(entity, filter, signal, doNotStore),
     placeholderData: keepPreviousData,
+    // Always asked again, a filter seen a moment ago too (the cached rows show meanwhile): the request is
+    // what stores the filter as the user's current one on the backend (getList → saveCurrentFilter). Under
+    // the global stale time, paging 2026 → 2025 → 2026 answered the second 2026 from the cache, the
+    // backend kept 2025, and the list came back from an edit page with that one (useRememberedFilter
+    // re-reads the backend's copy on return).
+    staleTime: 0,
     // Refetch whenever the list's tab regains focus, regardless of staleTime: a list is exactly the view
     // a user leaves open in one tab while creating or editing the entity in another (or in the legacy
     // UI), and React Query's cache and invalidation are per-tab, so the open list otherwise never learns

@@ -412,6 +412,7 @@
     }
   },
   "calendar": {
+    "calendarYear": "Calendar year",
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
     "day": {
@@ -464,12 +465,15 @@
     "previousYear": "Previous year",
     "quickselect": {
       "tooltip": {
+        "selectCurrentCalendarYear": "Quick select - current calendar year",
         "selectCurrentMonth": "Quick select - current month",
         "selectCurrentWeek": "Quick select - current week",
         "selectCurrentYearToDate": "Quick select - year to date",
+        "selectNextCalendarYear": "Quick select - next calendar year",
         "selectNextMonth": "Quick select - next month",
         "selectNextWeek": "Quick select - next week",
         "selectNextYearToDate": "Quick select - next year to date",
+        "selectPreviousCalendarYear": "Quick select - previous calendar year",
         "selectPreviousMonth": "Quick select - previous month",
         "selectPreviousWeek": "Quick select - previous week",
         "selectPreviousYearToDate": "Quick select - previous year to date"
@@ -4509,9 +4513,26 @@
   },
   "username": "User name",
   "vacation": {
+    "_": "Vacation",
+    "Days": "Vacation days",
     "annualleave": "Number of leave days for the year",
+    "availabledays": "Available vacation days",
+    "availabledaysAfterThis": "{arg0}, after this application: {arg1}",
+    "chart": {
+      "ariaLabel": "Chart of this vacation and the overlapping vacations of the substitutes",
+      "nonWorkingDay": "Weekend or holiday",
+      "own": "This vacation",
+      "uncovered": "No substitute on duty"
+    },
+    "conflict": {
+      "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
+    },
+    "conflicts": "Conflicts",
     "employee": "Employee",
     "enddate": "End date",
+    "export": {
+      "title": "Export of team vacation calendars"
+    },
     "halfDayBegin": {
       "_": "Half leave day at first day",
       "tooltip": "The first leave day should be treated as half leave day, if it is a workday."
@@ -4544,7 +4565,13 @@
       "inProgress": "In progress",
       "rejected": "Rejected"
     },
-    "vacationmode": "Assignment"
+    "title": {
+      "add": "Create leave application",
+      "list": "Leave application list"
+    },
+    "vacationmode": "Assignment",
+    "vacationsOfReplacements": "Vacations of substitutes",
+    "workingdays": "Workdays"
   },
   "validation": {
     "error": {
