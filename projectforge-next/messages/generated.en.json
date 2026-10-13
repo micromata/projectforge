@@ -3725,6 +3725,12 @@
       },
       "alertMessage": {
         "copyAndPaste": {
+          "maintenance": {
+            "title": "Maintenance"
+          },
+          "release": {
+            "title": "New release"
+          },
           "title": "For copy & paste"
         }
       },

@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.5",
+    "date" : "2026-10-13",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

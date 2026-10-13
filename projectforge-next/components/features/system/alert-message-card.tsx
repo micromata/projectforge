@@ -74,13 +74,22 @@ export function AlertMessageCard({ data }: { data: SystemAdminData }) {
             {t("system.admin.button.clearAlertMessage")}
           </Button>
         </div>
-        {/* The copy&paste maintenance-notice sample, as offered by the classic page. */}
+        {/* The copy&paste samples (maintenance, new release), the time is the next full hour. */}
         <div className="flex flex-col gap-1">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {t("system.admin.alertMessage.copyAndPaste.title")}
           </p>
+          <p className="text-xs font-medium">
+            {t("system.admin.alertMessage.copyAndPaste.maintenance.title")}
+          </p>
           <p className="rounded-md border border-border bg-muted p-3 text-xs">
-            {data.alertMessageSample}
+            {data.alertMessageSampleMaintenance}
+          </p>
+          <p className="mt-1 text-xs font-medium">
+            {t("system.admin.alertMessage.copyAndPaste.release.title")}
+          </p>
+          <p className="rounded-md border border-border bg-muted p-3 text-xs">
+            {data.alertMessageSampleRelease}
           </p>
         </div>
       </CardContent>

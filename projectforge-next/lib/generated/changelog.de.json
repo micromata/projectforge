@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.5",
+    "date" : "2026-10-13",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
