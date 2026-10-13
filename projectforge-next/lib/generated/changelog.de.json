@@ -7,7 +7,19 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt." ]
+      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", {
+        "title" : "Systemstatistik",
+        "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
+      } ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ {
+        "title" : "Sicherheit",
+        "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
+      } ]
     } ]
   },
   "groups" : [ {
