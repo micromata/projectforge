@@ -8,8 +8,12 @@
       "de": "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt."
     },
     {
-      "en": "The period is a calendar year by default: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead.",
-      "de": "Der Zeitraum ist standardmäßig ein Kalenderjahr: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar."
+      "en": "The period is a calendar year by default, the list starts with the current one: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead.",
+      "de": "Der Zeitraum ist standardmäßig ein Kalenderjahr, die Liste beginnt mit dem laufenden: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar."
+    },
+    {
+      "en": "The form shows the vacation days left once the application being edited is counted, too, in red where they are not enough.",
+      "de": "Das Formular zeigt die verfügbaren Urlaubstage auch nach dem gerade bearbeiteten Antrag, rot, wenn sie nicht reichen."
     }
   ]
 }

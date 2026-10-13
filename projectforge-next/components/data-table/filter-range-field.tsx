@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { DateInput } from "@/components/shared/date-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
@@ -10,11 +9,12 @@ import { CUSTOM_PERIOD_KIND } from "@/lib/date-period";
 import { todayOf } from "@/lib/user-zone";
 import { anchorOfBounds, boundsOfPeriod } from "@/lib/date-period-bounds";
 import type { FilterInputProps } from "./filter-field-inputs";
-import { editedDateValue, periodOfDateValue } from "./filter-period";
+import { periodOfDateValue } from "./filter-period";
 import {
   useFilterDefaultPeriodKind,
   useFilterPeriodKinds,
 } from "./filter-period-kinds";
+import { usePeriodDefaultSnap } from "./use-period-default-snap";
 
 /**
  * A DATE filter (org.projectforge.ui.filter.UIFilterElement with FilterType.DATE): two `yyyy-MM-dd`
@@ -36,31 +36,15 @@ export function RangeField({
   const kinds = useFilterPeriodKinds();
   const defaultKind = useFilterDefaultPeriodKind();
 
-  // Bumped when a typed date did not stay as typed (snapped to the default art): the box keeps its own text
-  // while the value it reports does not change, and an end snapped to the 31.12. it already was is no
-  // change. A new key rebuilds both boxes from the value.
-  const [revision, setRevision] = useState(0);
-
-  function edited(part: "from" | "to", raw: string | null) {
-    const result = next(part, raw);
-    if (raw && result?.[part] !== raw) setRevision((r) => r + 1);
-    return result;
-  }
-
-  function next(part: "from" | "to", raw: string | null) {
-    // A begin typed by hand keeps the art and drags the end along it, exactly as a term does on a form;
-    // the end typed by hand dissolves it, so the two dates are the user's again and "bis heute" cannot
-    // drag the other end along tomorrow (see [editedDateValue]).
-    // A list's default art (the calendar year of the vacations) snaps either bound instead.
-    return editedDateValue(value, part, raw, kinds, ctx, defaultKind);
-  }
+  // A date typed snaps to the list's default art (the calendar year of the vacations) once it is typed.
+  const snap = usePeriodDefaultSnap(value, kinds, ctx, defaultKind, onChange);
 
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium">{label}</p>
       <RangeBounds breakpoint="@2xs">
         <DateInput
-          key={`from-${revision}`}
+          key={`from-${snap.revision}`}
           // Never focused on open, whatever the pill asks for: focusing a [DateInput] opens its
           // calendar, and that popover would cover the second bound and the stepper below it. A period
           // filter is opened to page or to pick as often as to type, and the field is one click away.
@@ -68,18 +52,20 @@ export function RangeField({
           aria-label={`${label}: ${t("value")}`}
           value={value?.from}
           defaultMonth={value?.to}
-          onChange={(iso) => onChange(edited("from", iso))}
+          onChange={(iso) => snap.change("from", iso)}
           // The date [DateInput] just committed, since `value` here is still the previous one.
-          onSubmit={(iso) => onSubmit?.(edited("from", iso))}
+          onSubmit={(iso) => onSubmit?.(snap.submit("from", iso))}
+          onBlur={() => snap.blur("from")}
         />
         <DateInput
-          key={`to-${revision}`}
+          key={`to-${snap.revision}`}
           aria-label={`${label}: ${t("valueTo")}`}
           value={value?.to}
           // Opens in the month of the range's start while the end is still empty.
           defaultMonth={value?.from}
-          onChange={(iso) => onChange(edited("to", iso))}
-          onSubmit={(iso) => onSubmit?.(edited("to", iso))}
+          onChange={(iso) => snap.change("to", iso)}
+          onSubmit={(iso) => onSubmit?.(snap.submit("to", iso))}
+          onBlur={() => snap.blur("to")}
         />
       </RangeBounds>
       <PeriodStepper

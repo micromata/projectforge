@@ -38,6 +38,9 @@ export interface VacationFormStats {
   workingDaysFormatted?: string | null;
   vacationDaysLeftInYear?: number | null;
   vacationDaysLeftInYearString?: string | null;
+  /** The days left once this entry is counted as edited instead of as stored (a new one isn't at all). */
+  vacationDaysLeftAfterThis?: number | null;
+  vacationDaysLeftAfterThisString?: string | null;
   /** The vacations of the replacements overlapping this one. */
   conflictingVacations?: VacationDetail[] | null;
   /** At least one day of the period without any replacement on duty. */

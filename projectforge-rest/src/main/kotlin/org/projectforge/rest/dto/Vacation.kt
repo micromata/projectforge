@@ -58,6 +58,9 @@ class Vacation(
     var comment: String? = null,
     var vacationDaysLeftInYear: BigDecimal? = null,
     var vacationDaysLeftInYearString: String? = null,
+    /** The days left in the year once this entry (as edited) is counted instead of its stored state. */
+    var vacationDaysLeftAfterThis: BigDecimal? = null,
+    var vacationDaysLeftAfterThisString: String? = null,
     /**
      * Vacations of substitutes overlapping this vacation. Only set in detail
      * view.

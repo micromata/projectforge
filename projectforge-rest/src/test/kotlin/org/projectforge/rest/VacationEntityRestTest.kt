@@ -215,6 +215,55 @@ class VacationEntityRestTest : AbstractTestBase() {
         assertEquals(setOf(overYears), ids(null, "$year-01-01"), "Open begin.")
     }
 
+    @Test
+    fun `the days left after this entry count it as edited instead of as stored`() {
+        val own = createEmployee("after-own")
+        val manager = createEmployee("after-manager")
+        val hr = createEmployee("after-hr", hrAccess = true)
+        logon(hr.user!!)
+        // Weeks of March without holidays, in a future year (no carry from the year before).
+        val monday = LocalDate.of(LocalDate.now().year + 3, 3, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val stored = vacationDao.insert(VacationDO().also {
+            it.employee = own
+            it.manager = manager
+            it.replacement = manager
+            it.startDate = monday
+            it.endDate = monday.plusDays(4)
+            it.status = VacationStatus.APPROVED
+        })
+        fun stats(id: Long?, start: LocalDate, end: LocalDate, special: Boolean? = null) = vacationEntityRest.stats(
+            PostData(
+                Vacation(
+                    employee = Employee(own.id), startDate = start, endDate = end, special = special,
+                    manager = Employee(manager.id), replacement = Employee(manager.id),
+                ).also { it.id = id; it.status = VacationStatus.IN_PROGRESS }, watchFieldsTriggered = null, serverData = null
+            )
+        )
+        val nextWeek = monday.plusDays(7)
+        stats(null, nextWeek, nextWeek.plusDays(4)).let {
+            assertEquals(0, BigDecimal(25).compareTo(it.vacationDaysLeftInYear), "${it.vacationDaysLeftInYear}")
+            assertEquals(0, BigDecimal(20).compareTo(it.vacationDaysLeftAfterThis), "A new entry counts on top.")
+        }
+        stats(stored, monday, monday.plusDays(3)).let {
+            assertEquals(0, BigDecimal(26).compareTo(it.vacationDaysLeftAfterThis), "The stored state replaced.")
+        }
+        stats(stored, monday, monday.plusDays(4)).let {
+            assertEquals(0, it.vacationDaysLeftInYear!!.compareTo(it.vacationDaysLeftAfterThis), "Unchanged.")
+        }
+        stats(null, nextWeek, nextWeek.plusDays(4), special = true).let {
+            assertEquals(0, BigDecimal(25).compareTo(it.vacationDaysLeftAfterThis), "Special leave isn't counted.")
+        }
+    }
+
+    @Test
+    fun `the list starts with the current calendar year`() {
+        val period = vacationEntityRest.newMagicFilter().entries.single { it.field == "period" }.value
+        val year = LocalDate.now().year
+        assertEquals("$year-01-01", period.fromValue)
+        assertEquals("$year-12-31", period.toValue)
+        assertEquals("year", period.periodKind)
+    }
+
     /** An employee with a user of its own and 30 days of annual leave; HR staff with the HR vacation right. */
     private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.loggedInUser

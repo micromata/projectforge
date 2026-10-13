@@ -37,9 +37,12 @@ import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.LocalDatePeriod
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
@@ -111,6 +114,8 @@ class VacationEntityRest :
         var workingDaysFormatted: String? = null,
         var vacationDaysLeftInYear: BigDecimal? = null,
         var vacationDaysLeftInYearString: String? = null,
+        var vacationDaysLeftAfterThis: BigDecimal? = null,
+        var vacationDaysLeftAfterThisString: String? = null,
         var conflictingVacations: List<Vacation>? = null,
         var conflict: Boolean? = null,
         var allowedStatus: List<VacationStatus>? = null,
@@ -330,12 +335,19 @@ class VacationEntityRest :
 
     private fun computeStats(dto: Vacation, updateCache: Boolean): VacationFormStats {
         val result = VacationFormStats()
+        val vacationDO = VacationDO()
+        dto.copyTo(vacationDO)
         dto.employee?.id?.let { employeeId ->
             val employeeDO = EmployeeDO()
             employeeDO.id = employeeId
-            val vacationStats = vacationService.getVacationStats(employeeDO, dto.startDate?.year ?: Year.now().value)
+            val year = dto.startDate?.year ?: Year.now().value
+            val vacationStats = vacationService.getVacationStats(employeeDO, year)
             result.vacationDaysLeftInYear = vacationStats.vacationDaysLeftInYear
             result.vacationDaysLeftInYearString = VacationStats.format(vacationStats.vacationDaysLeftInYear)
+            daysLeftAfter(employeeDO, year, vacationDO)?.let {
+                result.vacationDaysLeftAfterThis = it
+                result.vacationDaysLeftAfterThisString = VacationStats.format(it)
+            }
         }
         val startDate = dto.startDate
         val endDate = dto.endDate
@@ -343,8 +355,6 @@ class VacationEntityRest :
             result.workingDays = VacationService.getVacationDays(startDate, endDate, dto.halfDayBegin, dto.halfDayEnd)
             result.workingDaysFormatted = VacationStats.format(result.workingDays)
         }
-        val vacationDO = VacationDO()
-        dto.copyTo(vacationDO)
         val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
         result.conflictingVacations = vacationOverlaps.otherVacations.map { Vacation(it) }
         result.conflict = vacationOverlaps.conflict
@@ -355,6 +365,23 @@ class VacationEntityRest :
         return result
     }
 
+    /**
+     * The days left in [year] with the edited entry counted as it is in the form instead of as stored (a new one
+     * isn't stored at all), the way [org.projectforge.business.vacation.service.VacationValidator] checks them.
+     * Null without a period: then there's nothing to count.
+     */
+    private fun daysLeftAfter(employeeDO: EmployeeDO, year: Int, vacationDO: VacationDO): BigDecimal? {
+        if (vacationDO.startDate == null || vacationDO.endDate == null) {
+            return null
+        }
+        // Not special unless said so: the sum takes it only for the flag it adds up (special or not), never null.
+        vacationDO.special = vacationDO.special ?: false
+        val yearPeriod = LocalDatePeriod.wholeYear(year)
+        val entries = vacationService.getVacationsListForPeriod(employeeDO, yearPeriod.begin, yearPeriod.end, true)
+            .filter { it.id != vacationDO.id } + vacationDO
+        return vacationService.getVacationStats(employeeDO, year, vacationEntries = entries).vacationDaysLeftInYear
+    }
+
     private fun applyStats(dto: Vacation, stats: VacationFormStats) {
         stats.workingDays?.let {
             dto.workingDays = it
@@ -362,6 +389,8 @@ class VacationEntityRest :
         }
         dto.vacationDaysLeftInYear = stats.vacationDaysLeftInYear
         dto.vacationDaysLeftInYearString = stats.vacationDaysLeftInYearString
+        dto.vacationDaysLeftAfterThis = stats.vacationDaysLeftAfterThis
+        dto.vacationDaysLeftAfterThisString = stats.vacationDaysLeftAfterThisString
         dto.conflictingVacations = stats.conflictingVacations
         dto.conflict = stats.conflict
         dto.allowedStatus = stats.allowedStatus
@@ -387,6 +416,18 @@ class VacationEntityRest :
             } else null
             VacationChartDay(date, holidays.isWorkingDay(date), holiday, uncovered.contains(date))
         }.toList()
+    }
+
+    /** The list starts with the vacations overlapping the current calendar year (the pinned period). */
+    override fun newMagicFilter(): MagicFilter {
+        val filter = super.newMagicFilter()
+        val today = PFDay.now()
+        filter.entries.add(MagicFilterEntry("period").also {
+            it.value.fromValue = today.beginOfYear.isoString
+            it.value.toValue = today.endOfYear.isoString
+            it.value.periodKind = "year"
+        })
+        return filter
     }
 
     private fun hasHrRights(): Boolean = baseDao.hasHrRights(ThreadLocalUserContext.loggedInUser)

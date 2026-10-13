@@ -4459,6 +4459,7 @@
     "Days": "Vacation days",
     "annualleave": "Number of leave days for the year",
     "availabledays": "Available vacation days",
+    "availabledaysAfterThis": "{arg0}, after this application: {arg1}",
     "chart": {
       "ariaLabel": "Chart of this vacation and the overlapping vacations of the substitutes",
       "nonWorkingDay": "Weekend or holiday",

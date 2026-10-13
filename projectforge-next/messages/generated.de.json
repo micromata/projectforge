@@ -4459,6 +4459,7 @@
     "Days": "Urlaubstage",
     "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
     "availabledays": "Verfügbare Urlaubstage",
+    "availabledaysAfterThis": "{arg0}, nach diesem Antrag: {arg1}",
     "chart": {
       "ariaLabel": "Balkengrafik dieses Urlaubs und der überlappenden Urlaube der Vertretungen",
       "nonWorkingDay": "Wochenende oder Feiertag",
