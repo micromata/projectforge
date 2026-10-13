@@ -111,7 +111,10 @@ function TokenRow({
 
   const lastChangeLabel = t("user.authenticationToken.lastChange._");
   return (
-    <div className="flex flex-col gap-1.5 lg:col-span-4 lg:grid lg:grid-cols-subgrid lg:items-center">
+    <div
+      data-slot="token-row"
+      className="flex flex-col gap-1.5 lg:col-span-4 lg:grid lg:grid-cols-subgrid lg:items-center"
+    >
       <div className="flex items-start gap-1">
         <Label className="text-[11.5px] font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase">
           {label}

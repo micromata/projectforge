@@ -1514,7 +1514,7 @@
         "Major release with a completely refactored persistence layer and current major versions of all libraries."
       ],
       "summary": [
-        "**Persistence layer** completely refactored (Spring Data JPA)",
+        "**Persistence layer** completely refactored (custom implementation instead of MGC)",
         "**Own CardDAV server** for contact synchronization",
         "**Docker images** for arm64 and amd64",
         "Java 17, Spring 6, Hibernate 6, jakarta namespace"
@@ -1548,7 +1548,7 @@
           "type": "technology",
           "items": [
             "Docker container available for arm64 as well as for amd64 (Linux and macOS X).",
-            "Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.",
+            "Persistence layer completely refactored, MGC removed and replaced by a custom persistence layer.",
             "technical debt reduced.",
             "New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..."
           ]

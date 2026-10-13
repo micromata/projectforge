@@ -5,6 +5,8 @@
     "version" : "9.0.4",
     "date" : "2026-10-13",
     "title" : "Not yet released",
+    "summary" : [ "**Vacation** booked as time sheets automatically", "**Admin log viewer** with log file search, now in the system dashboard", "**My account** in the new interface", "Hanging cache refreshes and scheduler runs can be terminated", "Fix: current exchange rates suggested again" ],
+    "overview" : [ "**Vacation:** a nightly job books past approved vacation days without time sheets, enabled on the configuration page; unbooked vacation days count again as days without time sheets in the monthly report and the notifications, listed separately and bookable with a click.", "**Configuration:** parameters grouped by category, showing who may see and change each one; the former vacation settings of projectforge.properties are taken over once.", "**Admin log viewer:** a tab of the system dashboard; search in the log files of the last days, the context of each entry inline, customizable tables.", "**System dashboard:** hanging cache refreshes and scheduler runs can be terminated, blocked database statements time out, a failed cache refresh is retried after a minute at the earliest; the last successful run of a job is shown.", "**My account:** migrated to the new interface, with the devices staying logged in, the usage of access tokens and longer GPG and SSH keys.", "**Notifications:** new rule for passwords not changed for a given number of days.", "**Changelog:** the releases of a major version newest first.", "**Fixes:** exchange rate suggestions, JCR migration in the packaged application, sorting of the Merlin template list." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ {
@@ -16,7 +18,7 @@
       }, {
         "title" : "System dashboard",
         "items" : [ "A hanging cache refresh or scheduler run can be terminated, so it can run again at once without a restart.", "Cache refreshes and scheduler runs no longer wait endlessly for a database lock: a blocked statement fails after a timeout (60 seconds by default).", "After a failed cache refresh, the cache serves its current data and retries after a minute at the earliest, instead of retrying on every access." ]
-      }, "Approved vacation can be booked as time sheets automatically: a nightly job books the past vacation days without any time sheet on the configured vacation task and cost unit, never in advance and never further back than its last successful run, so a deleted vacation time sheet isn't booked again. Finance and controlling enable it on the configuration page (maximum days back, vacation task and cost unit); the former settings in projectforge.properties are taken over into the configuration once, and invalid values are refused on saving. The configuration list now groups the parameters by category and shows who may see and who may change each parameter. The statistics of the scheduled jobs also keep the last successful run; after a failed run, the system dashboard shows when the job succeeded last.", "Notifications: a new rule notifies users whose password hasn't been changed for more than a given number of days, with a link to change it. The notification is resolved once the password is changed." ]
+      }, "Approved vacation can be booked as time sheets automatically: a nightly job books the past vacation days without any time sheet on the configured vacation task and cost unit, never in advance and never further back than its last successful run, so a deleted vacation time sheet isn't booked again. Finance and controlling enable it on the configuration page (maximum days back, vacation task and cost unit); the former settings in projectforge.properties are taken over into the configuration once (a property still set afterwards is ignored and reported as a problem on the system dashboard on every start, so it can be removed), and invalid values are refused on saving. The configuration list now groups the parameters by category and shows who may see and who may change each parameter. The statistics of the scheduled jobs also keep the last successful run; after a failed run, the system dashboard shows when the job succeeded last.", "Notifications: a new rule notifies users whose password hasn't been changed for more than a given number of days, with a link to change it. The notification is resolved once the password is changed." ]
     }, {
       "type" : "improved",
       "items" : [ "Changelog: the releases of a major version are listed newest first, the release opening it last, linked from the top of the major; the release notes of an update link to it as well." ]
@@ -28,7 +30,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Migration of files out of the JCR failed in the packaged application with \"No LoginModule found\".", "Merlin templates: sorting the list by the admins, users or groups column works (the list was left unsorted).", "My account: GPG and SSH public keys may now have up to 20,000 characters (were 4,096, a longer GPG key couldn't be saved); a key that is still too long is shown as an error at the field." ]
+      "items" : [ "Migration of files out of the JCR failed in the packaged application with \"No LoginModule found\".", "Currency conversion: current exchange rates are suggested again when a new conversion rate is created or its valid-from date is changed (the exchange rate API had moved).", "Merlin templates: sorting the list by the admins, users or groups column works (the list was left unsorted).", "My account: GPG and SSH public keys may now have up to 20,000 characters (were 4,096, a longer GPG key couldn't be saved); a key that is still too long is shown as an error at the field." ]
     } ]
   },
   "groups" : [ {
@@ -585,7 +587,7 @@
       "tag" : "8.0-RELEASE",
       "downloadLink" : true,
       "intro" : [ "Major release with a completely refactored persistence layer and current major versions of all libraries." ],
-      "summary" : [ "**Persistence layer** completely refactored (Spring Data JPA)", "**Own CardDAV server** for contact synchronization", "**Docker images** for arm64 and amd64", "Java 17, Spring 6, Hibernate 6, jakarta namespace" ],
+      "summary" : [ "**Persistence layer** completely refactored (custom implementation instead of MGC)", "**Own CardDAV server** for contact synchronization", "**Docker images** for arm64 and amd64", "Java 17, Spring 6, Hibernate 6, jakarta namespace" ],
       "overview" : [ "Own CardDAV server for contact synchronization.", "Docker images for arm64 and amd64.", "Java 17, Spring 6, Hibernate 6, jakarta namespace." ],
       "sections" : [ {
         "type" : "improved",
@@ -595,7 +597,7 @@
         "items" : [ "several bugs fixed." ]
       }, {
         "type" : "technology",
-        "items" : [ "Docker container available for arm64 as well as for amd64 (Linux and macOS X).", "Persistence layer completely refactored, MGC removed and replaced by Spring Data JPA.", "technical debt reduced.", "New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
+        "items" : [ "Docker container available for arm64 as well as for amd64 (Linux and macOS X).", "Persistence layer completely refactored, MGC removed and replaced by a custom persistence layer.", "technical debt reduced.", "New major versions: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
       } ]
     },
     "updates" : [ {

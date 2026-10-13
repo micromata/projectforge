@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Currency conversion: current exchange rates are suggested again when a new conversion rate is created or its valid-from date is changed (the exchange rate API had moved).",
+  "de": "Währungsumrechnung: Beim Anlegen eines neuen Umrechnungskurses oder Ändern des Gültig-ab-Datums werden wieder aktuelle Kurse vorgeschlagen (die Kurs-API war umgezogen)."
+}

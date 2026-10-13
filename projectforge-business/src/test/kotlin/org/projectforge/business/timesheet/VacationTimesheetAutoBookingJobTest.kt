@@ -42,6 +42,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationValidator
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationLegacyProperties
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
@@ -70,6 +71,9 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var configurationDao: ConfigurationDao
+
+    @Autowired
+    private lateinit var configurationLegacyProperties: ConfigurationLegacyProperties
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -217,7 +221,7 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
             setLong(ConfigurationParam.TIMESHEET_VACATION_TASK_ID, null)
             setString(ConfigurationParam.TIMESHEET_VACATION_KOST2, null)
             Assertions.assertNull(vacationBookingConfig.resolve())
-            vacationBookingConfig.takeOverProperties()
+            configurationLegacyProperties.takeOverAndCheck()
             Assertions.assertNull(configurationDao.getEntry(ConfigurationParam.TIMESHEET_VACATION_TASK_ID)!!.longValue)
             Assertions.assertNull(configurationDao.getEntry(ConfigurationParam.TIMESHEET_VACATION_KOST2)!!.stringValue)
         } finally {

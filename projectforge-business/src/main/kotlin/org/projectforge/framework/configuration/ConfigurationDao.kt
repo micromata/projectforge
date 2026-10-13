@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration
 
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.common.logging.PfLog
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
@@ -74,7 +75,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                 // selectAll returns the deleted rows too, so guard on !deleted: an obsolete parameter is
                 // marked (and logged) once on the transition, not again on every list load that re-runs this.
                 if (!params.contains(entry.parameter) && !entry.deleted) {
-                    log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
+                    PfLog.warn(log, ConfigurationLogEvents.UNKNOWN_ENTRY, "Unknown configuration entry. Mark as deleted: " + entry.parameter)
                     markAsDeleted(entry, checkAccess = false)
                 }
             }

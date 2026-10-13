@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Service for fetching current exchange rates from external API.
- * Uses Frankfurter API (https://www.frankfurter.app/) - free, open source, no API key required.
+ * Uses Frankfurter API v2 (https://frankfurter.dev/) - free, open source, no API key required.
  *
  * @author Kai Reinhard
  */
@@ -47,6 +47,8 @@ private val log = KotlinLogging.logger {}
 class ExchangeRateApiService {
     private val httpClient: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(5))
+        // The API already moved its domain once (frankfurter.app -> frankfurter.dev, answered with 301).
+        .followRedirects(HttpClient.Redirect.NORMAL)
         .build()
 
     private val objectMapper = ObjectMapper()
@@ -97,9 +99,9 @@ class ExchangeRateApiService {
             return BigDecimal.ONE
         }
 
+        val dateString = date?.toString() ?: "latest"
         return try {
-            val dateString = date?.toString() ?: "latest"
-            val url = "https://api.frankfurter.app/$dateString?from=${sourceCurrency.uppercase()}&to=${targetCurrency.uppercase()}"
+            val url = buildUrl(sourceCurrency.uppercase(), targetCurrency.uppercase(), date)
             val request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(5))
@@ -111,33 +113,46 @@ class ExchangeRateApiService {
             if (response.statusCode() == 200) {
                 parseRate(response.body(), targetCurrency.uppercase())
             } else {
-                log.warn { "Exchange rate API returned status ${response.statusCode()} for $sourceCurrency -> $targetCurrency on $dateString" }
+                log.warn(ExchangeRateLogEvents.UNEXPECTED_RESPONSE) {
+                    "Exchange rate API returned status ${response.statusCode()} for $sourceCurrency -> $targetCurrency on $dateString ($url)"
+                }
                 null
             }
         } catch (ex: Exception) {
-            log.warn(ExchangeRateLogEvents.FETCH_FAILED, ex) { "Failed to fetch exchange rate for $sourceCurrency -> $targetCurrency on ${date ?: "latest"}" }
+            log.warn(ExchangeRateLogEvents.FETCH_FAILED, ex) { "Failed to fetch exchange rate for $sourceCurrency -> $targetCurrency on $dateString" }
             null
         }
     }
 
+    internal fun buildUrl(sourceCurrency: String, targetCurrency: String, date: java.time.LocalDate?): String {
+        val url = "$BASE_URL?base=$sourceCurrency&quotes=$targetCurrency"
+        return if (date != null) "$url&date=$date" else url
+    }
+
     /**
-     * Parses the JSON response from Frankfurter API.
-     * Example response: {"amount":1.0,"base":"USD","date":"2025-10-03","rates":{"EUR":0.85}}
+     * Parses the JSON response from Frankfurter API v2.
+     * Example response: [{"date":"2025-10-03","base":"USD","quote":"EUR","rate":0.85}]
      */
-    private fun parseRate(jsonResponse: String, targetCurrency: String): BigDecimal? {
+    internal fun parseRate(jsonResponse: String, targetCurrency: String): BigDecimal? {
         return try {
             val root: JsonNode = objectMapper.readTree(jsonResponse)
-            val rates = root.get("rates")
-            if (rates != null && rates.has(targetCurrency)) {
-                val rateValue = rates.get(targetCurrency).asDouble()
-                BigDecimal.valueOf(rateValue)
+            val rate = root.takeIf { it.isArray }
+                ?.firstOrNull { it.get("quote")?.asText() == targetCurrency }
+                ?.get("rate")
+                ?.takeIf { it.isNumber }
+            if (rate != null) {
+                rate.decimalValue()
             } else {
-                log.warn { "No rate found for $targetCurrency in API response" }
+                log.warn(ExchangeRateLogEvents.UNEXPECTED_RESPONSE) { "No rate found for $targetCurrency in API response: $jsonResponse" }
                 null
             }
         } catch (ex: Exception) {
             log.warn(ExchangeRateLogEvents.UNEXPECTED_RESPONSE, ex) { "Failed to parse exchange rate API response" }
             null
         }
+    }
+
+    companion object {
+        internal const val BASE_URL = "https://api.frankfurter.dev/v2/rates"
     }
 }
