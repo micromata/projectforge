@@ -64,6 +64,7 @@ export const VACATION_PAGE = definePage<
       size: 120,
       accessor: (row) => row.vacationModeString ?? "",
     },
+    // Sorted as displayed, by its translation (VacationEntityRest.computedSortProperties).
     { name: "status", size: 120 },
     {
       name: "replacement",
@@ -85,11 +86,10 @@ export const VACATION_PAGE = definePage<
       cell: ({ row }) => displayName(row.original.manager),
     },
     {
-      // Computed from the period (VacationService.getVacationDays), no column to sort on.
+      // Computed from the period (VacationService.getVacationDays), sorted by that number on the server.
       id: "workingDaysFormatted",
       labelKey: "vacation.Days",
       size: 100,
-      sortable: false,
       align: "right",
       accessor: (row) => row.workingDaysFormatted ?? "",
     },

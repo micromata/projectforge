@@ -98,6 +98,16 @@ class OrphanedLinkFilter : Filter {
             // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
             // precise segment match keeps this from catching sibling pages like /react/myScript.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}myAccount")
+        } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")
+            || uri.endsWith("/react/changeWlanPassword") || uri.contains("/react/changeWlanPassword/")
+        ) {
+            // Old dynamic React pages for changing the (WLAN) password, migrated to projectforge-next. The React
+            // pages were removed, so there is no "classic version" escape hatch. The user id (admins changing
+            // another user's password) is interpolated into the Location header, so only a number is passed on.
+            val page = if (uri.contains("/react/changeWlanPassword")) "changeWlanPassword" else "changePassword"
+            val userId = servletRequest.getParameter("userId")?.toLongOrNull()
+            val query = if (userId != null) "?userId=$userId" else ""
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$page$query")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

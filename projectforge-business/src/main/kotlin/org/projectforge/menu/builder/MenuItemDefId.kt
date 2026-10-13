@@ -55,8 +55,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
-    CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
-    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
+    // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); the react pages are
+    // redirected by OrphanedLinkFilter.
+    CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
+    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.

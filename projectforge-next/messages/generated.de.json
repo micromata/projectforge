@@ -4389,12 +4389,16 @@
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
       },
       "newPassword": "Neues Passwort",
+      "notSupported": "Die Passwortänderung wird nicht unterstützt. Bitte wende dich an die Administration.",
+      "oldPassword": "Altes Passwort",
       "password": {
         "lastChange": "Letzte Passwortänderung"
       }
     },
     "changeWlanPassword": {
-      "lastChange": "Letzte WLAN/Samba-Passwortänderung"
+      "lastChange": "Letzte WLAN/Samba-Passwortänderung",
+      "loginPassword": "Login-Passwort",
+      "newPassword": "Neues WLAN-Passwort"
     },
     "deactivated": "Deaktiviert",
     "gpgPublicKey": "GPG-Public-Key",

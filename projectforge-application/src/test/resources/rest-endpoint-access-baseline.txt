@@ -93,10 +93,6 @@ org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest#getLayout
 org.projectforge.rest.calendar.TeamEventEntityRest#switch2Timesheet
 org.projectforge.rest.calendar.VacationServicesRest#getVacationUserObjects
 org.projectforge.rest.CardDAVInfoPageRest#getForm
-org.projectforge.rest.ChangePasswordPageRest#getForm
-org.projectforge.rest.ChangePasswordPageRest#save
-org.projectforge.rest.ChangeWlanPasswordPageRest#getForm
-org.projectforge.rest.ChangeWlanPasswordPageRest#save
 org.projectforge.rest.core.AbstractPagesRest#getItemAndLayout
 org.projectforge.rest.core.AbstractPagesRest#requestInitialList
 org.projectforge.rest.core.AbstractPagesRest#resetGridState

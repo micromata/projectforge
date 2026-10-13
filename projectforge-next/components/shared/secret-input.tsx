@@ -28,6 +28,14 @@ export interface SecretInputProps {
    * apart at a glance without the whole being readable (the legacy ReadonlyField's `coverUp`).
    */
   peek?: boolean;
+  /** Without the copy button: a password the user types in (old and new password) is not passed on. */
+  copyable?: boolean;
+  /**
+   * Off by default, see below. A form for the user's own login password opts in ("current-password",
+   * "new-password"), so the browser's password manager fills and stores it.
+   */
+  autoComplete?: string;
+  autoFocus?: boolean;
   /** Further controls after the box — a "renew". */
   children?: ReactNode;
   className?: string;
@@ -43,8 +51,8 @@ export interface SecretInputProps {
  * invisible. Focused, the peek gives way to the whole box, dots or clear, as it is being edited.
  *
  * Starts hidden on every mount, so a secret revealed once isn't left readable on the screen the next
- * time the page is opened. `autoComplete="off"`: a password box is what browsers fill the user's own
- * login into, which must never end up as an area's password.
+ * time the page is opened. `autoComplete="off"` by default: a password box is what browsers fill the user's
+ * own login into, which must never end up as an area's password.
  */
 export function SecretInput({
   value,
@@ -57,6 +65,9 @@ export function SecretInput({
   disabled,
   maxLength,
   peek,
+  copyable = true,
+  autoComplete = "off",
+  autoFocus,
   children,
   className,
 }: SecretInputProps) {
@@ -77,7 +88,8 @@ export function SecretInput({
           value={value ?? ""}
           disabled={disabled}
           maxLength={maxLength}
-          autoComplete="off"
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
           spellCheck={false}
           aria-label={ariaLabel}
           aria-invalid={invalid || undefined}
@@ -104,7 +116,7 @@ export function SecretInput({
             label={label}
             disabled={!value}
           />
-          <CopyButton value={value} label={label} inline />
+          {copyable && <CopyButton value={value} label={label} inline />}
         </InputGroupAddon>
       </InputGroup>
       {children}

@@ -123,12 +123,15 @@ class VacationEntityRest :
     )
 
     /**
-     * The mode column (own, replacement, manager, other) is computed from the logged-in user, there's no database
-     * column to sort on. See [computedSortProperties].
+     * Columns a database `ORDER BY` can't sort as shown, see [computedSortProperties]: the mode (own, replacement,
+     * manager, other) is computed from the logged-in user, the status is shown translated (sorted as displayed,
+     * not by the enum's name) and the working days are computed from the period.
      */
     override val computedSortProperties: Map<String, (VacationDO) -> Comparable<*>?>
         get() = mapOf(
-            "vacationModeString" to { vacation -> translate(vacation.getVacationmode().i18nKey) }
+            "vacationModeString" to { vacation -> translate(vacation.getVacationmode().i18nKey) },
+            "status" to { vacation -> vacation.status?.let { translate(it.i18nKey) } },
+            "workingDaysFormatted" to { vacation -> VacationService.getVacationDays(vacation) },
         )
 
     override fun transformForDB(dto: Vacation): VacationDO {
