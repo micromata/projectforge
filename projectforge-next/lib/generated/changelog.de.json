@@ -10,6 +10,9 @@
       "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", {
         "title" : "Systemstatistik",
         "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
+      }, {
+        "title" : "Urlaubsanträge",
+        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
       } ]
     }, {
       "type" : "changed",

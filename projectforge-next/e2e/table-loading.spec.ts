@@ -24,9 +24,9 @@ const HOLD_MS = 2500;
 
 /**
  * How long the overlay may take to go once the answer is let through. Generous on purpose: the hold
- * is what is under test, not the speed of what follows — and the vacation list answers with every
- * entry at once (paged in the browser, over 10,000 rows on the test system), which a dev server under
- * the load of the parallel lanes takes seconds to parse and render.
+ * is what is under test, not the speed of what follows — and a server-laid-out list answers with every
+ * entry at once (paged in the browser), which a dev server under the load of the parallel lanes takes
+ * seconds to parse and render.
  */
 const SETTLE_MS = HOLD_MS + 15_000;
 
@@ -75,10 +75,10 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
-    await goto(page, "/vacation");
+    await goto(page, "/employee");
     await page.locator(ROW).first().waitFor();
 
-    await holdBackPosts(page, "vacation");
+    await holdBackPosts(page, "employee");
     // These pages fetch through the layout's actions, not through a query of the table's own.
     await page
       // `search._` is the bundle's plain "Suchen"; the button's own label is the server's, from the

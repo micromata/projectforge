@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.NextMigration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.VacationDO
@@ -37,7 +38,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
-import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -282,13 +282,18 @@ open class VacationSendMailService {
     private class MailInfo(val subject: String, val operation: String, val mode: String)
 
     companion object {
-        private val linkToVacationEntry: String by lazy {
-            val sendMail = ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
-            sendMail.buildUrl("$vacationEditPagePath/")
+        private val sendMail: SendMail by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
         }
 
+        /**
+         * The edit page of the vacation entry, wherever it is served ([NextMigration]). No way back to the vacation
+         * account: the edit page of projectforge-next returns to the vacation list.
+         */
         fun getLinkToVacationEntry(id: String): String {
-            return "$linkToVacationEntry$id?returnToCaller=account"
+            return sendMail.buildUrl(
+                NextMigration.standardEditPage("vacation").replace(NextMigration.ID_PLACEHOLDER, id)
+            )
         }
 
         fun getLinkToVacationEntry(id: Long?): String {
@@ -296,7 +301,6 @@ open class VacationSendMailService {
             return getLinkToVacationEntry(id.toString())
         }
 
-        private val vacationEditPagePath = "${MenuItemDefId.VACATION.url}/edit"
         private val dateFormatter = DateTimeFormatter.instance()
 
         private fun translate(recipient: PFUserDO?, i18nKey: String, vararg params: Any): String {

@@ -126,7 +126,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
-    VACATION("menu.vacation", getReactListUrl("vacation")), //
+    VACATION("menu.vacation", getListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 

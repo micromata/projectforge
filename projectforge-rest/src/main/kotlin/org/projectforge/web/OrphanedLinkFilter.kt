@@ -312,7 +312,7 @@ class OrphanedLinkFilter : Filter {
             }
             // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
             // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
-            if (uri.contains("/${link.legacyEditPath}")) {
+            if (containsPath(uri, link.legacyEditPath)) {
                 val id = when (link.legacyApp) {
                     NextMigration.LegacyApp.WICKET -> request.getParameter("id")?.toLongOrNull()
                     // react/group/edit/<id>; no id means the add page.
@@ -331,13 +331,31 @@ class OrphanedLinkFilter : Filter {
                 redirect(response, uri, target)
                 return true
             }
-            if (uri.contains("/${link.legacyListPath}")) {
+            if (containsPath(uri, link.legacyListPath)) {
                 // The presets of a Wicket list travel as parameters too (wa/accessList?taskId=42 of the task page,
                 // the same as next/access?taskId=42).
                 val query = if (link.legacyApp == NextMigration.LegacyApp.WICKET) wicketQuery(request) else ""
                 redirect(response, uri, "${link.nextListUrl}$query")
                 return true
             }
+        }
+        return false
+    }
+
+    /**
+     * Whether [uri] holds [path] as whole segments: `/react/vacation` and `/react/vacation/edit/42`, but not the
+     * sibling pages `/react/vacationAccount/dynamic` or `/react/vacationExport/dynamic`, which a plain `contains`
+     * would bend onto the vacation list.
+     */
+    private fun containsPath(uri: String, path: String): Boolean {
+        val needle = "/$path"
+        var index = uri.indexOf(needle)
+        while (index >= 0) {
+            val end = index + needle.length
+            if (end == uri.length || uri[end] == '/' || uri[end] == ';') {
+                return true
+            }
+            index = uri.indexOf(needle, index + 1)
         }
         return false
     }

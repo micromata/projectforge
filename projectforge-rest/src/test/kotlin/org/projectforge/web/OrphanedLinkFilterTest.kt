@@ -231,6 +231,21 @@ class OrphanedLinkFilterTest {
     }
 
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
+    /**
+     * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
+     * the next pages. The vacation account and the vacation export, whose React routes start with the same name,
+     * are other pages and stay where they are.
+     */
+    @Test
+    fun `the old react vacation pages are redirected to next`() {
+        Assertions.assertEquals("/next/vacation", redirectOf("/react/vacation"))
+        Assertions.assertEquals("/next/vacation/42", redirectOf("/react/vacation/edit/42"))
+        Assertions.assertEquals("/next/vacation/42", redirectOf("/react/vacation/edit/42", mapOf("returnToCaller" to "account")))
+        Assertions.assertEquals("/next/vacation/new", redirectOf("/react/vacation/edit"))
+        Assertions.assertNull(redirectOf("/react/vacationAccount/dynamic"))
+        Assertions.assertNull(redirectOf("/react/vacationExport/dynamic"))
+    }
+
     @Test
     fun `the old wicket IHK page is redirected to next`() {
         val uri = "/wa/wicket/bookmarkable/org.projectforge.plugins.ihk.IHKPage"

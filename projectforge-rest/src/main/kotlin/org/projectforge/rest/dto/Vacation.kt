@@ -67,6 +67,14 @@ class Vacation(
      * If at least one day of the vacation period isn't covered by any substitute (replacement).
      */
     var conflict: Boolean? = null,
+    /**
+     * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
+     */
+    var allowedStatus: List<VacationStatus>? = null,
+    /**
+     * Whether the logged-in user may choose the employee (HR staff only). Only set in detail view.
+     */
+    var employeeEditable: Boolean? = null,
 ) : BaseDTO<VacationDO>() {
     constructor(src: VacationDO) : this() {
         this.copyFrom(src)

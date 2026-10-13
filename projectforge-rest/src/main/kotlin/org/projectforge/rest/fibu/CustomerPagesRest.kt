@@ -76,7 +76,7 @@ class CustomerPagesRest
      * `status` is a real enum property of KundeDO, so the standard magic filter applies it by field name
      * — no [preProcessMagicFilter] entry is needed (unlike the synthetic filters of the group or user
      * list). `defaultFilter = true` puts its pill on the row without the user adding it first, the same
-     * way the vacation list pins its status. See VacationPagesRest for the pattern.
+     * way the vacation list pins its status. See VacationEntityRest for the pattern.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(

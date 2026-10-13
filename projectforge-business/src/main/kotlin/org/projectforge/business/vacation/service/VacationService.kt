@@ -461,7 +461,16 @@ open class VacationService {
         return result
     }
 
-    open fun getVacationOverlaps(vacation: VacationDO): VacationOverlaps {
+    /**
+     * The vacations of the replacements overlapping the given one, and whether at least one day isn't covered by
+     * any of them.
+     *
+     * @param updateCache Stores the result in [ConflictingVacationsCache]. Only for a vacation as it is stored:
+     * the edit form asks for the state the user is still editing (see `VacationEntityRest.stats`), which must not
+     * leave its unsaved conflict in the cache.
+     */
+    @JvmOverloads
+    open fun getVacationOverlaps(vacation: VacationDO, updateCache: Boolean = true): VacationOverlaps {
         val periodBegin = vacation.startDate ?: return VacationOverlaps() // Should not occur on db entries.
         val periodEnd = vacation.endDate ?: return VacationOverlaps() // Should not occur on db entries.
         val employees = collectAllReplacements(vacation)
@@ -483,7 +492,9 @@ open class VacationService {
             }
         }
         val conflict = checkConflict(vacation, vacationOverlaps)
-        conflictingVacationsCache.updateVacation(vacation, conflict)
+        if (updateCache) {
+            conflictingVacationsCache.updateVacation(vacation, conflict)
+        }
         return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
     }
 

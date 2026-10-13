@@ -10,6 +10,9 @@
       "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", {
         "title" : "System statistics",
         "items" : [ "The database tile appears at once: the number of history entries and attributes is the estimate of the database (~) instead of a count taking minutes.", "Tiles still loading show their title and a spinner.", "CPU load and system load average as bars." ]
+      }, {
+        "title" : "Leave applications",
+        "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
       } ]
     }, {
       "type" : "changed",

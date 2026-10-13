@@ -59,9 +59,8 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
       return q ? `/teamEvent/${dbId}?${q}` : `/teamEvent/${dbId}`;
     }
     case "vacation":
-      return id != null
-        ? `/vacation/edit/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
-        : null;
+      // Save and cancel return to the calendar (see VACATION_PAGE.returnTargets, whose default is the list).
+      return id != null ? `/vacation/${id}?returnTo=/calendar` : null;
     case "address":
       // A birthday opens the address view. That page isn't migrated yet, so keep it on the legacy
       // React app (`react/` prefix → external, full page load); without it `resolveMenuUrl` would

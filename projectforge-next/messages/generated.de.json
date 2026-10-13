@@ -4451,9 +4451,19 @@
   },
   "username": "Benutzer:innenname",
   "vacation": {
+    "_": "Urlaub",
+    "Days": "Urlaubstage",
     "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
+    "availabledays": "Verfügbare Urlaubstage",
+    "conflict": {
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
+    },
+    "conflicts": "Konflikte",
     "employee": "Mitarbeiter",
     "enddate": "Enddatum",
+    "export": {
+      "title": "Export von Teamurlaubskalendern"
+    },
     "halfDayBegin": {
       "_": "Halber Urlaubstag am ersten Tag",
       "tooltip": "Der erste Tag, sofern es sich um einen Arbeitstag handelt, soll nur halb genommen werden."
@@ -4486,7 +4496,13 @@
       "inProgress": "In Abstimmung",
       "rejected": "Abgelehnt"
     },
-    "vacationmode": "Zuordnung"
+    "title": {
+      "add": "Urlaubseintrag erstellen",
+      "list": "Urlaubseintragsliste"
+    },
+    "vacationmode": "Zuordnung",
+    "vacationsOfReplacements": "Urlaube der Vertretungen",
+    "workingdays": "Anzahl Urlaubstage"
   },
   "validation": {
     "error": {

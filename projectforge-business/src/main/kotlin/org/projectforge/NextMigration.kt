@@ -542,6 +542,18 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the vacation entries (VacationEntityRest, components/features/vacation),
+        // migrated from React. The live statistics of the form (working days, days left, conflicts with the
+        // replacements, the allowed statuses) come from `vacation/stats`, the replacement of the React watch
+        // fields. The React pages are gone (no UILayout served any more), so there is no way back; the legacy app
+        // is kept for the redirect of bookmarked React links and links of old notification mails only.
+        "vacation" to NextPage(
+            route = "vacation",
+            editRoute = "vacation/$ID_PLACEHOLDER",
+            newEntryRoute = "vacation/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // The scripts every user may execute by the script configuration (MyScriptEntityRest,
         // MyScriptExecuteRest): a list whose row leads to the execution (`myscript/:id`), there is no form.
         // Migrated from React like "script", see there.
