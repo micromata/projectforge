@@ -16,7 +16,7 @@
       }, {
         "title" : "System-Dashboard",
         "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
-      }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen, ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war.", "Benachrichtigungen: Eine neue Regel benachrichtigt Benutzer, deren Passwort länger als eine einstellbare Anzahl von Tagen nicht geändert wurde, mit einem Link zum Ändern. Die Benachrichtigung erledigt sich, sobald das Passwort geändert wird." ]
+      }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen (eine danach noch gesetzte Property wird ignoriert und bei jedem Start als Störung im System-Dashboard gemeldet, damit sie entfernt werden kann), ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war.", "Benachrichtigungen: Eine neue Regel benachrichtigt Benutzer, deren Passwort länger als eine einstellbare Anzahl von Tagen nicht geändert wurde, mit einem Link zum Ändern. Die Benachrichtigung erledigt sich, sobald das Passwort geändert wird." ]
     }, {
       "type" : "improved",
       "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]
@@ -28,7 +28,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl.", "Merlin-Vorlagen: Die Liste lässt sich nach den Spalten Admins, Benutzer und Gruppen sortieren (sie blieb bisher unsortiert).", "Mein Zugang: Öffentliche GPG- und SSH-Schlüssel dürfen jetzt bis zu 20.000 Zeichen lang sein (bisher 4.096, ein längerer GPG-Schlüssel ließ sich nicht speichern); ein immer noch zu langer Schlüssel wird als Fehler am Feld angezeigt." ]
+      "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl.", "Währungsumrechnung: Beim Anlegen eines neuen Umrechnungskurses oder Ändern des Gültig-ab-Datums werden wieder aktuelle Kurse vorgeschlagen (die Kurs-API war umgezogen).", "Merlin-Vorlagen: Die Liste lässt sich nach den Spalten Admins, Benutzer und Gruppen sortieren (sie blieb bisher unsortiert).", "Mein Zugang: Öffentliche GPG- und SSH-Schlüssel dürfen jetzt bis zu 20.000 Zeichen lang sein (bisher 4.096, ein längerer GPG-Schlüssel ließ sich nicht speichern); ein immer noch zu langer Schlüssel wird als Fehler am Feld angezeigt." ]
     } ]
   },
   "groups" : [ {
@@ -585,7 +585,7 @@
       "tag" : "8.0-RELEASE",
       "downloadLink" : true,
       "intro" : [ "Major Release mit einer komplett überarbeiteten Persistenzschicht und aktuellen Hauptversionen aller Bibliotheken." ],
-      "summary" : [ "**Persistenzschicht** komplett überarbeitet (Spring Data JPA)", "**Eigener CardDAV-Server** zur Kontaktsynchronisation", "**Docker-Images** für arm64 und amd64", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace" ],
+      "summary" : [ "**Persistenzschicht** komplett überarbeitet (eigene Implementierung statt MGC)", "**Eigener CardDAV-Server** zur Kontaktsynchronisation", "**Docker-Images** für arm64 und amd64", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace" ],
       "overview" : [ "Eigener CardDAV-Server zur Kontaktsynchronisation.", "Docker-Images für arm64 und amd64.", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace." ],
       "sections" : [ {
         "type" : "improved",
@@ -595,7 +595,7 @@
         "items" : [ "Diverse Fehler behoben." ]
       }, {
         "type" : "technology",
-        "items" : [ "Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).", "Persistenzschicht komplett überarbeitet, MGC entfernt und durch Spring Data JPA ersetzt.", "Technische Schulden abgebaut.", "Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
+        "items" : [ "Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).", "Persistenzschicht komplett überarbeitet, MGC entfernt und durch einen eigenen Persistence-Layer ersetzt.", "Technische Schulden abgebaut.", "Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
       } ]
     },
     "updates" : [ {
