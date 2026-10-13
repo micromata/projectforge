@@ -23,9 +23,11 @@
 
 package org.projectforge.business.vacation.service
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import java.time.Month
@@ -36,7 +38,8 @@ class VacationExcelExporterTest {
   fun sheetListTest() {
     val user = PFUserDO()
     user.locale = Locale.ENGLISH
-    ThreadLocalUserContext.setUser(user)
+    // Without a Spring context: setUser would refresh the user from the UserGroupCache, which isn't there.
+    ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
     assert(VacationExcelExporter.getSheetsData(PFDay.withDate(2023, Month.JANUARY, 5)),
       "Q1 2023", "2023", "Q2 2023", "Q3 2023", "Q4 2023", "2024")
     assert(VacationExcelExporter.getSheetsData(PFDay.withDate(2023, Month.FEBRUARY, 5)),
@@ -51,6 +54,11 @@ class VacationExcelExporterTest {
       "Nov-Jan 24", "Nov-Dec 23", "Q4 2023", "Q1 2024", "Q2 2024", "Q3 2024", "2023", "2024")
     assert(VacationExcelExporter.getSheetsData(PFDay.withDate(2023, Month.DECEMBER, 5)),
       "Dec-Feb 24", "Dec-Dec 23", "Q4 2023", "Q1 2024", "Q2 2024", "Q3 2024", "2023", "2024")
+  }
+
+  @AfterEach
+  fun clearUser() {
+    ThreadLocalUserContext.clear()
   }
 
   private fun assert(list: List<VacationExcelExporter.SheetData>, vararg sheetNames: String) {
