@@ -35,6 +35,7 @@ import org.projectforge.ui.ValidationError
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import jakarta.servlet.http.HttpServletRequest
+import java.security.MessageDigest
 
 private val log = KotlinLogging.logger {}
 
@@ -101,10 +102,11 @@ open class SessionCsrfService {
       return false
     }
     val expected = ensureAndGetToken(request) // If no token is given or is expired, create a new one for next request.
-    if (expected == token) {
+    // Compared in constant time, and neither token is logged: the expected one is valid for the whole session.
+    if (MessageDigest.isEqual(expected.toByteArray(), token.toByteArray())) {
       return true
     }
-    log.info { "Token check failed for session id '${RequestLog.getTruncatedSessionId(request)}': expected='$expected', given='$token'" }
+    log.info { "Token check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
     return false
   }
 
@@ -115,7 +117,7 @@ open class SessionCsrfService {
       return token
     }
     token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
-    log.debug { "No valid csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
+    log.debug { "No valid csrf token found in AbstractSessionCache, creating a new one for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN, token)
     return token
   }

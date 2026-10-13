@@ -34,6 +34,8 @@ export function useChangePassword(
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const change = useMutation({
+    // The function holds the typed passwords: no cached mutation keeps them once the page is left.
+    gcTime: 0,
     mutationFn: () =>
       changePassword(variant, { userId: init.userId, ...values }),
     onSuccess: (result) => {

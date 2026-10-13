@@ -26,6 +26,7 @@ package org.projectforge.rest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.login.Login
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
@@ -44,6 +45,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.ValidationError
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -107,6 +109,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     return ChangePasswordInit(
       userId = userId,
       userDisplayName = user?.userDisplayName,
+      username = user?.username,
       changeOwn = changeOwn,
       supported = isSupported(user, type),
       lastChangeFormatted = user?.let { type.lastChange(it) }?.let { TimeAgo.getDateAndMessage(it) },
@@ -167,7 +170,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
         )
       }
       if (validationErrors.isEmpty()) {
-        changePassword(data, changeOwnPassword)?.forEach {
+        changeProtected(request, data, changeOwnPassword, changePassword).forEach {
           validationErrors.add(ValidationError.create(it, fieldId = fieldIdOf(it.key)))
         }
       }
@@ -178,6 +181,39 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     } finally {
       data.clear()
     }
+  }
+
+  /**
+   * Changes the password, guessing the user's old (login) password protected like the login: a wrong one counts
+   * as failed login attempt of the user ([LoginProtection], the same counter as the login's), and during the
+   * resulting penalty the password isn't checked at all. Otherwise a hijacked session could guess it without
+   * any limit. An admin changing another user's password enters no password, so there is nothing to guess.
+   */
+  private fun changeProtected(
+    request: HttpServletRequest,
+    data: ChangePasswordData,
+    changeOwnPassword: Boolean,
+    changePassword: (data: ChangePasswordData, changeOwnPassword: Boolean) -> List<I18nKeyAndParams>?,
+  ): List<I18nKeyAndParams> {
+    if (!changeOwnPassword) {
+      return changePassword(data, false) ?: emptyList()
+    }
+    val loginProtection = LoginProtection.instance()
+    val user = ThreadLocalUserContext.loggedInUser!!
+    val clientIp = WebUtils.getClientIp(request)
+    val offset = loginProtection.getFailedLoginTimeOffsetIfExists(user.username, clientIp)
+    if (offset > 0) {
+      log.warn { "Password change of user with id ${user.id} declined: locked for ${offset / 1000} seconds due to failed login attempts." }
+      val attempts = loginProtection.getNumberOfFailedLoginAttempts(user.username, clientIp)
+      return listOf(I18nKeyAndParams(MESSAGE_KEY_TIME_OFFSET, (offset / 1000).toString(), attempts.toString()))
+    }
+    val errors = changePassword(data, true) ?: emptyList()
+    if (errors.any { it.key in WRONG_PASSWORD_KEYS }) {
+      loginProtection.incrementFailedLoginTimeOffset(user.username, clientIp)
+    } else if (errors.isEmpty()) {
+      loginProtection.clearLoginTimeOffset(user.username, user.id, clientIp)
+    }
+    return errors
   }
 
   /**
@@ -228,17 +264,21 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
 
   companion object {
     internal const val MESSAGE_KEY_NOT_SUPPORTED = "user.changePassword.notSupported"
+    internal const val MESSAGE_KEY_TIME_OFFSET = "login.timeOffset"
     private const val FIELD_LOGIN_PASSWORD = "loginPassword"
     private const val FIELD_NEW_PASSWORD = "newPassword"
     private const val FIELD_PASSWORD_REPEAT = "passwordRepeat"
+
+    /** The error keys of [UserService] for a wrong old (login) password. */
+    private val WRONG_PASSWORD_KEYS =
+      setOf("user.changePassword.error.oldPasswordWrong", "user.changeWlanPassword.error.loginPasswordWrong")
 
     /**
      * The field an error key of [UserService] / [PasswordQualityService] belongs to, null for a general error.
      */
     internal fun fieldIdOf(i18nKey: String): String? {
       return when (i18nKey) {
-        "user.changePassword.error.oldPasswordWrong",
-        "user.changeWlanPassword.error.loginPasswordWrong" -> FIELD_LOGIN_PASSWORD
+        in WRONG_PASSWORD_KEYS, MESSAGE_KEY_TIME_OFFSET -> FIELD_LOGIN_PASSWORD
 
         "user.changePassword.error.notMinLength",
         "user.changePassword.error.noCharacter",

@@ -29,8 +29,10 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.rest.core.RestCsrfProtection
@@ -55,6 +57,12 @@ class ChangePasswordPageRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
+
+    @AfterEach
+    fun clearLoginProtection() {
+        // A wrong old password is a failed login attempt of the test user, shared with other tests.
+        LoginProtection.instance().clearAll()
+    }
 
     @Test
     fun `the init of the own password page`() {
@@ -107,6 +115,7 @@ class ChangePasswordPageRestTest : AbstractTestBase() {
             listOf("loginPassword"),
             fieldIds(changePasswordPageRest.change(requestWithToken(), postData(login = "wrong"))),
         )
+        LoginProtection.instance().clearAll()
         // The right old password, but a new one breaking the quality rules (too short, no non-letter): nothing is
         // changed, and every broken rule is on the field.
         assertEquals(
@@ -117,6 +126,25 @@ class ChangePasswordPageRestTest : AbstractTestBase() {
                 )
             ),
         )
+    }
+
+    @Test
+    fun `a wrong old password locks the change like a failed login`() {
+        logon(TEST_USER)
+        val wrong = changePasswordPageRest.change(requestWithToken(), postData(login = "wrong"))
+        assertEquals(listOf("user.changePassword.error.oldPasswordWrong"), messageIds(wrong))
+        // Right away again, now with the right password: refused without checking it, on the field of the old one.
+        val locked = changePasswordPageRest.change(
+            requestWithToken(), postData(login = String(TEST_USER_PASSWORD), new = "a", repeat = "a"),
+        )
+        assertEquals(listOf(ChangePasswordPageRest.MESSAGE_KEY_TIME_OFFSET), messageIds(locked))
+        assertEquals(listOf("loginPassword"), fieldIds(locked))
+        // The admin changing another user's password enters none, so isn't locked by the user's attempts.
+        logon(TEST_ADMIN_USER)
+        val byAdmin = changePasswordPageRest.change(
+            requestWithToken(), postData(userId = getUserId(TEST_USER), new = "a", repeat = "a"),
+        )
+        assertEquals(listOf("newPassword", "newPassword"), fieldIds(byAdmin))
     }
 
     @Test
@@ -164,7 +192,12 @@ class ChangePasswordPageRestTest : AbstractTestBase() {
         serverData = null,
     )
 
-    private fun fieldIds(response: ResponseEntity<*>): List<String?> {
+    private fun messageIds(response: ResponseEntity<*>): List<String?> {
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.statusCode)
+        return (response.body as ResponseAction).validationErrors!!.map { it.messageId }
+    }
+
+        private fun fieldIds(response: ResponseEntity<*>): List<String?> {
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.statusCode)
         return (response.body as ResponseAction).validationErrors!!.map { it.fieldId }
     }

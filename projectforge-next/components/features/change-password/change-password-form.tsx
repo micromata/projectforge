@@ -37,6 +37,9 @@ export function ChangePasswordForm({
   const router = useRouter();
   const { values, errors, setValue, change } = useChangePassword(variant, init);
   const wlan = variant === "wlan";
+  // Offered for saving only as the user's own new login password: neither the WLAN password nor another
+  // user's (an admin's change) must replace the saved login of the one at the keyboard.
+  const newAutoComplete = !wlan && init.changeOwn ? "new-password" : "off";
 
   function field(
     name: ChangePasswordField,
@@ -71,6 +74,17 @@ export function ChangePasswordForm({
         if (!change.isPending) change.mutate();
       }}
     >
+      {init.changeOwn && init.username && (
+        // Tells the password manager whose password this is, so it updates that entry.
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          value={init.username}
+          readOnly
+          hidden
+        />
+      )}
       <div className="flex-1 overflow-y-auto px-4 pb-6 pt-2">
         <SectionCard className="w-full max-w-xl">
           <FieldGroup>
@@ -103,13 +117,12 @@ export function ChangePasswordForm({
                     : t("user.changePassword.newPassword"),
                   {
                     hint: init.passwordQualityHint ?? undefined,
-                    // The WLAN password isn't the login: the browser mustn't store it as such.
-                    autoComplete: wlan ? "off" : "new-password",
+                    autoComplete: newAutoComplete,
                     autoFocus: !init.changeOwn,
                   }
                 )}
                 {field("passwordRepeat", t("passwordRepeat"), {
-                  autoComplete: wlan ? "off" : "new-password",
+                  autoComplete: newAutoComplete,
                 })}
               </>
             ) : (

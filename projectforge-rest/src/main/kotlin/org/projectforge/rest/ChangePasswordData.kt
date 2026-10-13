@@ -51,6 +51,8 @@ class ChangePasswordData(
 class ChangePasswordInit(
   var userId: Long? = null,
   var userDisplayName: String? = null,
+  /** The login name, for the browser's password manager to update the right entry of the own password. */
+  var username: String? = null,
   /** True if the logged-in user changes their own password (the old/login password is required then). */
   var changeOwn: Boolean = true,
   /**

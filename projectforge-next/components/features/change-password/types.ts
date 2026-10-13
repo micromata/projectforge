@@ -5,6 +5,8 @@ export type PasswordVariant = "password" | "wlan";
 export interface ChangePasswordInit {
   userId: number;
   userDisplayName?: string | null;
+  /** The login name, for the password manager (see ChangePasswordForm). */
+  username?: string | null;
   /** True if the logged-in user changes their own password: the old (login) password is asked then. */
   changeOwn: boolean;
   /**
