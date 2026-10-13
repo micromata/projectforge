@@ -152,6 +152,11 @@ open class LoginService {
             logout(request, response)
             return false
         }
+        if (userContext.isPasswordChangedSinceLogin()) {
+            log.info { "Password of user #${userContext.user?.id} was changed after the login of this session: logged out." }
+            logout(request, response)
+            return false
+        }
         return !userContext.new2FARequired
     }
 
