@@ -83,6 +83,10 @@ class Vacation(
      * set in detail view.
      */
     var chartDays: List<VacationChartDay>? = null,
+    /** The weekends and holidays of the period, for the list's bar. Only set in the list. */
+    var nonWorkingDays: List<LocalDate>? = null,
+    /** The days of the period without any substitute on duty, for the list's bar. Only set in the list, on a conflict. */
+    var uncoveredDays: List<LocalDate>? = null,
 ) : BaseDTO<VacationDO>() {
     constructor(src: VacationDO) : this() {
         this.copyFrom(src)

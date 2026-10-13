@@ -5,7 +5,8 @@
       "reason": "Grund"
     },
     "exception": {
-      "noAccess": "Kein Zugriff."
+      "noAccess": "Kein Zugriff.",
+      "noEmployeeToUser": "Angemeldete:r Benutzer:in hat keinen zugehörige:n Mitarbeiter:in"
     },
     "permission": {
       "denied": "nicht erlaubt",
@@ -1234,14 +1235,30 @@
     },
     "employee": {
       "_": "Mitarbeiter:in",
+      "accountHolder": "Kontoinhaber:in",
       "austrittsdatum": "Austrittsdatum",
+      "bankAccountData": "Kontodaten",
+      "bic": "BIC",
+      "birthday": "Geburtstag",
+      "city": "Stadt",
+      "coredata": "Stammdaten",
+      "country": "Land",
       "division": "Team",
       "eintrittsdatum": "Eintrittsdatum",
+      "error": {
+        "employeWithUserExists": "Es existiert bereits ein:e Mitarbeiter:in mit dem oder der zugeordneten Benutzer:in."
+      },
+      "iban": "IBAN",
+      "insert": {
+        "hint": "Bitte erst eine:n neue:n Mitarbeiter:in anlegen, bevor du die Stammdaten bearbeitest. Die Stammdaten können erst nach dem Anlegen des Mitarbeiters/der Mitarbeiterin bearbeitet werden."
+      },
+      "iststunden": "Iststunden",
       "konto": {
         "_": "Kreditorenkonto",
         "tooltip": "Das Konto der Mitarbeiterin bzw. des Mitarbeiters, z. B. für Reisekosten (wird an Lanes & Planes als Kreditorenkonto übertragen)."
       },
       "salaries": {
+        "_": "Gehälter",
         "import": {
           "_": "Gehälterimport",
           "error": {
@@ -1265,12 +1282,20 @@
         }
       },
       "salary": {
+        "_": "Gehaltszahlung",
+        "agAnteil": "AG-Anteil",
         "bruttoMitAgAnteil": "Brutto mit AG-Anteil",
+        "error": {
+          "monthNotGiven": "Ein Monat muss ausgewählt werden.",
+          "salaryAlreadyExist": "Das Monatsgehalt für diese:n Mitarbeiter:in existiert bereits."
+        },
         "exportXls": {
           "tooltip": "Gehaltsexport mit Kostenträgerzuweisungen gemäß der Zeitberichtsbuchungen."
         },
+        "id": "Gehalts-ID",
         "title": {
           "add": "Neue Gehaltszahlung",
+          "edit": "Gehaltszahlung bearbeiten",
           "heading": "Gehaltszahlungen",
           "list": "Gehaltsliste"
         },
@@ -1283,7 +1308,9 @@
           "zielvereinbarung": "Zielvereinbarung"
         }
       },
+      "sollstunden": "Sollstunden",
       "staffNumber": "Personalnummer",
+      "state": "Bundesland",
       "status": {
         "_": "Mitarbeiter:instatus",
         "aushilfe": "Aushilfe",
@@ -1295,9 +1322,17 @@
         "studentischeAbschlussarbeit": "Studentische Abschlussarbeit",
         "studentischeHilfskraft": "Studentische Hilfskraft"
       },
+      "street": "Straße",
+      "title": {
+        "add": "Neue:r Mitarbeiter:in",
+        "edit": "Mitarbeiter:in bearbeiten",
+        "heading": "Mitarbeiter:in",
+        "list": "Mitarbeitendenliste"
+      },
       "urlaubstage": "Urlaubstage pro Jahr",
       "user": "Benutzer:in",
-      "wochenstunden": "Wochenstunden"
+      "wochenstunden": "Wochenstunden",
+      "zipCode": "PLZ"
     },
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
@@ -2513,7 +2548,13 @@
     "sendSms": "SMS senden",
     "system": "System",
     "taskTree": "Strukturbaum",
-    "timesheetList": "Zeitberichte"
+    "timesheetList": "Zeitberichte",
+    "vacation": {
+      "_": "Urlaubseinträge",
+      "lastyear": "Urlaub aus dem Vorjahr",
+      "leaveAccountEntry": "Urlaubskontokorrekturen",
+      "leaveaccount": "Urlaubskonto"
+    }
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
@@ -4518,11 +4559,12 @@
     "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
     "availabledays": "Verfügbare Urlaubstage",
     "availabledaysAfterThis": "{arg0}, nach diesem Antrag: {arg1}",
+    "availablevacation": "Noch verfügbarer Urlaub",
     "chart": {
       "ariaLabel": "Balkengrafik dieses Urlaubs und der überlappenden Urlaube der Vertretungen",
       "nonWorkingDay": "Wochenende oder Feiertag",
       "own": "Dieser Urlaub",
-      "uncovered": "Keine Vertretung im Dienst"
+      "uncovered": "Keine Vertretung"
     },
     "conflict": {
       "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
@@ -4533,6 +4575,7 @@
     "export": {
       "title": "Export von Teamurlaubskalendern"
     },
+    "halfDay": "Halber Tag",
     "halfDayBegin": {
       "_": "Halber Urlaubstag am ersten Tag",
       "tooltip": "Der erste Tag, sofern es sich um einen Arbeitstag handelt, soll nur halb genommen werden."
@@ -4543,13 +4586,20 @@
     },
     "hr": "HR",
     "leaveAccountEntry": {
-      "amount": "Korrekturwert"
+      "amount": "Korrekturwert",
+      "title": {
+        "heading": "Urlaubskontokorrekturen"
+      }
+    },
+    "leaveaccount": {
+      "title": "Urlaubskonto"
     },
     "manager": "Abstimmung",
     "other": "Anderer",
     "own": "Eigner:in",
     "plandannualleave": "Anzahl geplanter Urlaubstage für restliches Kalenderjahr",
     "previousyearleave": "Resturlaub aus dem Vorjahr",
+    "recalculateRemainingLeave": "Resturlaub neu berechnen",
     "replacement": {
       "_": "Vertretung",
       "others": "Weitere Vertretungen"
@@ -4558,6 +4608,8 @@
       "_": "Sonderurlaub",
       "tooltip": "Sonderurlaub wird im Urlaubskonto nicht berücksichtigt."
     },
+    "specialApproved": "Abgestimmter Sonderurlaub",
+    "specialInProgress": "Sonderurlaub in Abstimmung",
     "startdate": "Startdatum",
     "status": {
       "_": "Status",
@@ -4565,10 +4617,17 @@
       "inProgress": "In Abstimmung",
       "rejected": "Abgelehnt"
     },
+    "subscription": {
+      "_": "Abonnieren von Urlaubseinträgen",
+      "info": "Urlaubseinträge können in der Kalendersicht eingesehen werden, aber auch als Kalender (s. Kalenderliste) für bestimmte Benutzer:innen oder Gruppen angelegt und auch abonniert werden. Sie können insbesondere die eigenen Urlaube und die von Kollegen oder Kolleginnen/Teams in die eigene Kalendersoftware integriert werden."
+    },
+    "subtotal": "Zwischensumme",
     "title": {
       "add": "Urlaubseintrag erstellen",
       "list": "Urlaubseintragsliste"
     },
+    "vacationApproved": "Abgestimmter Urlaub",
+    "vacationInProgress": "Urlaub in Abstimmung",
     "vacationmode": "Zuordnung",
     "vacationsOfReplacements": "Urlaube der Vertretungen",
     "workingdays": "Anzahl Urlaubstage"

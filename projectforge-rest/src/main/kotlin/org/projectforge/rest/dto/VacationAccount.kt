@@ -1,0 +1,93 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.dto
+
+import org.projectforge.business.vacation.service.VacationStatsFormatted
+
+/**
+ * The vacation account ("Urlaubskonto") of an employee, for the page of projectforge-next
+ * (`org.projectforge.rest.VacationAccountRest`): the statistics of the previous, current and next year, the
+ * vacations of these years and the leave account entries of the previous and current year.
+ *
+ * Every value is formatted for the logged-in user already; the urls are paths of the app (`/next/…`, `/react/…`).
+ */
+class VacationAccount(
+    /** The employee shown. Null if the logged-in user has no employee (then everything else is empty). */
+    val employee: VacationAccountEmployee?,
+    /** The logged-in user is HR staff: may choose any employee and recalculate the remaining leave. */
+    val hrAccess: Boolean,
+    /** HR staff only, and only if the carry of the current year differs from what was left of the previous one. */
+    val canRecalculate: Boolean = false,
+    /** Previous, current and next year, in this order. */
+    val statistics: List<VacationStatsFormatted> = emptyList(),
+    /** The label of the row of the unused carry: it names the day the carry expires on. */
+    val previousYearLeaveUnusedLabel: String? = null,
+    /** Next, current and previous year, in this order (as the old page showed them). */
+    val years: List<VacationAccountYear> = emptyList(),
+    /** Newest first. */
+    val leaveAccountEntries: List<VacationAccountLeaveEntry> = emptyList(),
+    /** The booked hours of the last three months divided by the working days, as a localized text. */
+    val workingHoursStatistics: String? = null,
+    /** A new vacation of this employee; its form returns here. */
+    val newVacationUrl: String? = null,
+    val vacationListUrl: String,
+    val exportUrl: String,
+)
+
+class VacationAccountEmployee(
+    val id: Long?,
+    val displayName: String?,
+)
+
+class VacationAccountYear(
+    val year: Int,
+    val vacations: List<VacationAccountVacation>,
+)
+
+class VacationAccountVacation(
+    val id: Long?,
+    val startDateFormatted: String?,
+    val endDateFormatted: String?,
+    val statusString: String?,
+    val workingDaysFormatted: String?,
+    val specialFormatted: String?,
+    val replacement: String?,
+    val otherReplacements: String?,
+    val manager: String?,
+    val vacationModeString: String?,
+    val comment: String?,
+    /** At least one day of it without any replacement on duty (`ConflictingVacationsCache`). */
+    val conflict: Boolean,
+    /** Its form, which returns here. */
+    val editUrl: String,
+)
+
+class VacationAccountLeaveEntry(
+    val id: Long?,
+    val dateFormatted: String?,
+    val amountFormatted: String?,
+    val description: String?,
+    /** Its form, which returns here. */
+    val editUrl: String,
+)

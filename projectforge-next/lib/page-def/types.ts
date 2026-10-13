@@ -318,8 +318,12 @@ export interface FieldGroupDeclaration<
    * A member is usually a plain field, but a [CustomField] is allowed too — a control the declaration
    * cannot describe (the liquidity entry's three-state paid select) still belongs on the line with the
    * date and amount it is read beside. The row renders each member through the same DeclaredFormField.
+   *
+   * A member may be a group itself, one level deep: fields that must stay together when the row wraps — a
+   * date and its "half day" box. In a [packed] row it is as wide as its members side by side, so the row
+   * breaks between such pairs, never inside one.
    */
-  group: (DeclaredField<M> | CustomField)[];
+  group: (DeclaredField<M> | CustomField | FieldGroupDeclaration<M>)[];
   /**
    * Sizes every member to its content and packs them at the start of the row, rather than letting the
    * label-topped members grow to share the width. For a row whose fields have a natural width — a date,
@@ -393,6 +397,13 @@ export interface SectionDef<M extends EntityMetadata> {
    * be narrower than a date box, so the grid keeps two, where a span of 2 or 4 is the whole row.
    */
   mainColumns?: 2 | 4;
+  /**
+   * Columns of a section without an [aside]: 3 by default, or 4 for a form of many short fields (the
+   * vacation's employee, days and special leave in one line). The same rule as [mainColumns]: four only
+   * from `lg`, two below it, so a span of 2 is half a row there and the whole row below, a span of 4 the
+   * whole row always; a span of 3 doesn't fit and isn't used.
+   */
+  columns?: 3 | 4;
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
   /**

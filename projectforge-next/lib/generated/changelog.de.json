@@ -17,8 +17,11 @@
         "title" : "Systemstatistik",
         "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
       }, {
+        "title" : "Urlaubskonto",
+        "items" : [ "In der neuen Oberfläche; die Statistik enthält jetzt auch das nächste Jahr.", "Urlaubsanträge mit einem Tag ohne Vertretung sind rot markiert.", "Ein aus dem Urlaubskonto geöffneter Urlaubsantrag oder Kontokorrektureintrag führt dorthin zurück." ]
+      }, {
         "title" : "Urlaubsanträge",
-        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
+        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen ohne Vertretung.", "Die Liste zeigt jeden Urlaubsantrag als Balken über seinen Tagen, die Tage ohne Vertretung rot.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
       }, {
         "title" : "Urlaubsanträge",
         "items" : [ "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt.", "Der Zeitraum ist standardmäßig ein Kalenderjahr, die Liste beginnt mit dem laufenden: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar.", "Das Formular zeigt die verfügbaren Urlaubstage auch nach dem gerade bearbeiteten Antrag, rot, wenn sie nicht reichen." ]

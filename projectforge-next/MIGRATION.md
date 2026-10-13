@@ -566,10 +566,18 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `ConflictingVacationsCache` (`getVacationOverlaps(updateCache = false)`), und liefert Nicht-HR-Benutzern
   nur den Resturlaub des eigenen bzw. des gespeicherten Mitarbeiters. Der Status bietet nur
   `VacationDao.getAllowedStatus`, den Mitarbeiter wählt nur HR (`employeeEditable`). Rückweg: Liste,
-  Kalender (`?returnTo=/calendar`); das noch React-basierte Urlaubskonto bekommt seinen Rückweg erst mit
-  seiner Migration (`docs/vacation-account-migration.md`). `OrphanedLinkFilter` vergleicht Legacy-Pfade
-  jetzt segmentgenau, sonst landete `react/vacationAccount/dynamic` auf der Urlaubsliste. Die Mail-Links
-  (`VacationSendMailService.getLinkToVacationEntry`) folgen `NextMigration`.
+  Kalender (`?returnTo=/calendar`), Urlaubskonto (`?returnTo=/vacationAccount`). `OrphanedLinkFilter` vergleicht
+  Legacy-Pfade jetzt segmentgenau, sonst landete `react/vacationAccount/dynamic` auf der Urlaubsliste. Die
+  Mail-Links (`VacationSendMailService.getLinkToVacationEntry`) folgen `NextMigration`.
+- **Urlaubskonto** (`/next/vacationAccount`, vorher React-UILayout `VacationAccountPageRest` mit den
+  Custom-Komponenten `vacation.statistics`/`vacation.entries`, alle gelöscht) – eigenständige Seite auf
+  `GET /rs/vacationAccount` (`VacationAccountRest`, layoutfreies JSON); `POST …/recalculate` nur für HR. HR wählt
+  den Mitarbeiter (`?employeeId=`, als User-Pref gespeichert wie bisher), alle anderen sehen nur das eigene
+  Konto; ohne Mitarbeiter ein Hinweis statt NPE. Behoben: Konfliktzeilen rot (`ag-row-red` war nirgends
+  gestylt), das nächste Jahr als dritte Statistikspalte (berechnet, nie gesendet). Die Bearbeitungs-URLs kommen
+  vom Backend: Urlaub mit `?returnTo=/vacationAccount`, Urlaubskontokorrektur (noch React) mit
+  `returnToCaller=account`, das `LeaveAccountEntryPagesRest` auf `/next/vacationAccount` abbildet.
+  `react/vacationAccount/**` leitet `OrphanedLinkFilter` um (eine numerische Id wird zu `?employeeId=`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

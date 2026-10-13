@@ -8,6 +8,7 @@ import {
   useFormReadOnly,
 } from "@/components/shared/form/form-context";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
+import { cn } from "@/lib/utils";
 import { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 import type { VacationDetail } from "./types";
 
@@ -25,7 +26,8 @@ export function VacationEmployeeField({ className }: { className?: string }) {
       label={label("employee")}
       entity="employee"
       disabled={readOnly || data?.employeeEditable !== true}
-      className={className}
+      // A name's width, not a quarter of the page (after `className`, so it wins over a group's `w-auto`).
+      className={cn(className, "w-60 max-w-full")}
     />
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/components/shared/form/form-context";
 import { SelectField } from "@/components/shared/form/select-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
+import { cn } from "@/lib/utils";
 import { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import type { VacationDetail } from "./types";
@@ -33,7 +34,8 @@ export function VacationStatusField({ className }: { className?: string }) {
       name="status"
       label={label("status")}
       disabled={readOnly}
-      className={className}
+      // The longest status, "In Abstimmung", and no more.
+      className={cn(className, "w-44 max-w-full")}
       options={m.enumOptions("status", t).filter((o) => allowed.has(o.value))}
     />
   );

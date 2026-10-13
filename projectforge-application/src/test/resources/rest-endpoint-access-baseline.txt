@@ -208,9 +208,6 @@ org.projectforge.rest.UserPagesRest#createUid
 org.projectforge.rest.UserPagesRest#exportAsExcel
 org.projectforge.rest.UserPagesRest#resetToken
 org.projectforge.rest.UserStatusRest#loginTest
-org.projectforge.rest.VacationAccountPageRest#getForm
-org.projectforge.rest.VacationAccountPageRest#recalculateRemainingLeave
-org.projectforge.rest.VacationAccountPageRest#watchFields
 org.projectforge.rest.VacationExportPageRest#exportExcel
 org.projectforge.rest.VacationExportPageRest#getForm
 org.projectforge.rest.VacationExportPageRest#watchFields
