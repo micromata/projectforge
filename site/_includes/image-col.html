@@ -1,7 +1,7 @@
 {% if include.lightbox == 'true' %}
 <figure data-uk-lightbox="animation: slide">
-    <a class="uk-inline" style="min-height: 260px" href="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.caption %} caption="{{ include.caption }}"{% endif %}>
-        <img src="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.alt %} alt="{{ include.alt }}"{% endif %}>
+    <a class="uk-inline" style="min-height: 260px" href="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.caption %} caption="{{ include.caption | escape }}"{% endif %}>
+        <img src="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.alt %} alt="{{ include.alt | escape }}"{% endif %}>
     </a>
     {% if include.caption %}
     <figcaption data-uk-grid class="uk-flex-right uk-text-left">

@@ -1,0 +1,36 @@
+{% comment %}
+    Text section with optional bullet list, screenshot and button, read from _data/home_sections.yml.
+    Parameters: key (entry of home_sections), background (optional UIkit section style, e.g. muted).
+    Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption,
+    button_text (default: "Learn more"), button_url.
+    Renders nothing if the key is missing in home_sections.yml.
+{% endcomment %}
+{% assign section = site.data.home_sections[include.key] %}
+{% if section %}
+<div class="uk-section{% if include.background %} uk-section-{{ include.background }}{% endif %}" id="{{ include.key }}">
+    <div class="uk-container{% unless section.img %} uk-container-small{% endunless %}">
+        <div class="{% if section.img %}uk-child-width-1-2@m uk-flex-middle{% endif %}" data-uk-grid>
+            <div>
+                {% if section.title %}<h2 class="uk-h1">{{ section.title }}</h2>{% endif %}
+                {% if section.subtitle %}<p class="uk-text-lead">{{ section.subtitle }}</p>{% endif %}
+                {% if section.text %}<div class="link-primary">{{ section.text | markdownify }}</div>{% endif %}
+                {% if section.bullets %}
+                <ul class="uk-list uk-list-bullet link-primary">
+                    {% for bullet in section.bullets %}
+                    <li>{{ bullet | markdownify | remove: '<p>' | remove: '</p>' }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if section.button_url %}
+                <a class="uk-button uk-button-primary uk-margin-top" href="{% if section.button_url contains 'http' %}{{ section.button_url }}{% else %}{{ section.button_url | relative_url }}{% endif %}">{{ section.button_text | default: 'Learn more' }}</a>
+                {% endif %}
+            </div>
+            {% if section.img %}
+            <div>
+                {% include image-col.html img=section.img lightbox="true" alt=section.title caption=section.img_caption %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

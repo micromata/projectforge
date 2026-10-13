@@ -1,7 +1,7 @@
 ---
-title: Start-up of ProjectForge fails due to Lucene errors.partly (e. g. half)?
+title: Start-up of ProjectForge fails due to Lucene errors?
 categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 
-Probably ProjectForge and therefore the indexer wasn't terminated correctly. Please feel free to remove the directories and/or files of Lucene and rebuild index via the administrator's web page. The files are located in the ProjectForge's application dir in the `hibernate-search` dir.
+Probably ProjectForge (and with it the search indexer) wasn't shut down properly. Stop ProjectForge, delete the `hibernateSearch` directory in the ProjectForge home directory and start ProjectForge again. Then rebuild the search index: as an administrator, choose *Re-build whole search index* in the gear menu of a list.

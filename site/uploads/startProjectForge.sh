@@ -1,22 +1,30 @@
 #!/bin/bash
 
-PF_JAR=${HOME}/application/projectforge-application-xxx.jar"
+# Example start script for ProjectForge without Docker (for later starts, after the setup).
+#
+# The first start must run in the foreground (java -jar projectforge-application-<version>.jar), so that the
+# setup wizard can be shown. This script starts ProjectForge in the background; the log file is written to
+# logs/ProjectForge.log in ProjectForge's home directory.
+#
+# The jar file name must contain "projectforge-application", otherwise stopProjectForge.sh won't find the process.
 
-echo "Using ProjectForge jar: ${PF_JAR}..."
+PF_JAR="${PF_JAR:-${HOME}/application/projectforge-application.jar}"
+JAVA_OPTS="${JAVA_OPTS:--Xms2g -Xmx4g}"
 
-if [ "${OSTYPE}" == 'cygwin' ]
-then
-    JAVA=`cygpath "${JAVA_HOME}"`/jre/bin/java
-else
-    if [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
-    	JAVA="$JAVA_HOME/bin/java"
-	else
-    	JAVA=/usr/bin/java
-	fi
+if [[ ! -f "${PF_JAR}" ]]; then
+  echo "ProjectForge jar not found: ${PF_JAR} (set PF_JAR or edit this script)."
+  exit 1
 fi
 
+if [[ -n "${JAVA_HOME}" && -x "${JAVA_HOME}/bin/java" ]]; then
+  JAVA="${JAVA_HOME}/bin/java"
+else
+  JAVA=java
+fi
+
+echo "Using ProjectForge jar: ${PF_JAR}"
 echo "Using ${JAVA}"
 
-DEBUGOPTS=
+nohup "${JAVA}" ${JAVA_OPTS} -jar "${PF_JAR}" > /dev/null 2>&1 &
 
-nohup ${JAVA}  -Xms4g -Xmx4g ${DEBUGOPTS} -jar $PF_JAR 2>&1 > /dev/null &
+echo "ProjectForge started (pid $!), see logs/ProjectForge.log in ProjectForge's home directory."

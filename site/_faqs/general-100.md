@@ -1,7 +1,7 @@
 ---
-title: Calendar view have different time of days than called time sheet edit page.
+title: The calendar shows different times than the timesheet edit page?
 categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 
-Please ensure that your browser/client has the same time zone as your account has (refer my account).
+Make sure that your browser or device uses the same time zone as your ProjectForge account (see *My account*).

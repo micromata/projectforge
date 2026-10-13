@@ -34,6 +34,9 @@ left:
       - title: Migration
         url: /docs/migration/
 
+  - title: Services
+    url: /services/
+
   - title: FAQ
     url: /misc/faqs
 
