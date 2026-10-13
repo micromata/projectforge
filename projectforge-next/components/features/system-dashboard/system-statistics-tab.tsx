@@ -7,6 +7,7 @@ import {
   fillLevelPercent,
 } from "@/components/shared/fill-level-bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/shared/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabsContent } from "@/components/ui/tabs";
 import {
@@ -45,20 +46,30 @@ function StatisticsSections() {
         <p className="text-sm text-destructive">{t("errorpage.title")}</p>
       )}
       {sections.data?.map((section) => (
-        <StatisticsSection key={section.id} id={section.id} />
+        <StatisticsSection
+          key={section.id}
+          id={section.id}
+          title={section.title}
+        />
       ))}
     </div>
   );
 }
 
 /** One section: one card per group of its entries, a placeholder card while it is loading. */
-function StatisticsSection({ id }: { id: string }) {
+function StatisticsSection({
+  id,
+  title,
+}: {
+  id: string;
+  title?: string | null;
+}) {
   const t = useTranslations();
   const query = useQuery({
     queryKey: [SYSTEM_STATISTICS_QUERY_KEY, "section", id],
     queryFn: ({ signal }) => fetchSystemStatisticsSection(id, signal),
   });
-  if (query.isPending) return <SectionSkeleton />;
+  if (query.isPending) return <SectionSkeleton title={title} />;
   if (query.isError) {
     return (
       <Card>
@@ -117,11 +128,19 @@ function StatisticsRow({ entry }: { entry: SystemStatisticsEntry }) {
   );
 }
 
-function SectionSkeleton() {
+/** Placeholder of a loading section, with its heading if already known. */
+function SectionSkeleton({ title }: { title?: string | null }) {
+  const t = useTranslations();
   return (
-    <Card>
-      <CardHeader className="border-b">
-        <Skeleton className="h-4 w-32" />
+    <Card aria-busy>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
+        {title ? (
+          <CardTitle className="text-primary">{title}</CardTitle>
+        ) : (
+          <Skeleton className="h-4 w-32" />
+        )}
+        <Spinner className="h-4 w-4 border-2" />
+        <span className="sr-only">{t("loading")}</span>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <Skeleton className="h-4 w-full" />

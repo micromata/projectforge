@@ -44,6 +44,8 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
     }
   }
 
+  override val group = "system"
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     // First: Get the system load average (don't measure gc run ;-)
     val osBean = ManagementFactory.getOperatingSystemMXBean()
@@ -64,11 +66,22 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "scm", "system", "'SCM",
       "${ProjectForgeVersion.SCM}=${ProjectForgeVersion.SCM_ID}"
     )
-    stats.add("systemLoadAverage", "system", "'System load average", format(systemLoadAverage))
     val processors = osBean.availableProcessors
+    // Load per processor, a load above the number of processors is shown as a full bar (negative if unavailable).
+    stats.add(
+      "systemLoadAverage", "system", "'System load average", format(systemLoadAverage),
+      if (osBean.systemLoadAverage >= 0 && processors > 0) {
+        gauge(osBean.systemLoadAverage, processors.toDouble())
+      } else null,
+    )
     stats.add("availableProcessors", "system", "'Available processors", format(processors))
     (osBean as? com.sun.management.OperatingSystemMXBean)?.let { sunBean ->
-      stats.add("cpuLoad", "system", "'CPU load (system/process)", "${percent(sunBean.cpuLoad)} / ${percent(sunBean.processCpuLoad)}")
+      // The bar shows the system load (0..1, negative if unavailable), the process load is part of it.
+      stats.add(
+        "cpuLoad", "system", "'CPU load (system/process)",
+        "${percent(sunBean.cpuLoad)} / ${percent(sunBean.processCpuLoad)}",
+        if (sunBean.cpuLoad >= 0) gauge(sunBean.cpuLoad, 1.0) else null,
+      )
       val total = sunBean.totalMemorySize
       if (total > 0) {
         val free = sunBean.freeMemorySize
@@ -104,6 +117,13 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
   /**
    * @param load 0..1 or negative, if not available.
    */
+  /** Gauges count integers, the loads are scaled to per mille. */
+  private fun gauge(used: Double, max: Double): SystemStatisticsData.Gauge {
+    return SystemStatisticsData.Gauge(
+      (used * 1000).toLong(), (max * 1000).toLong(), SystemStatisticsData.Gauge.Unit.COUNT,
+    )
+  }
+
   private fun percent(load: Double): String {
     return if (load < 0) "--" else "${format(BigDecimal(load * 100).setScale(0, RoundingMode.HALF_UP))}%"
   }

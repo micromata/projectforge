@@ -50,7 +50,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("${Rest.URL}/systemStatistics")
 class SystemStatisticsRest {
-    class Section(val id: String)
+    /** [title]: the heading shown while the section is loading, null if unknown before it is built. */
+    class Section(val id: String, val title: String?)
 
     class Entry(
         val id: String,
@@ -72,7 +73,7 @@ class SystemStatisticsRest {
     @AccessChecked("Logged-in user; non-admins only get the sections not marked as adminOnly")
     fun getSections(): List<Section> {
         val isAdmin = accessChecker.isLoggedInUserMemberOfAdminGroup
-        return systemStatistics.builders.filter { isAdmin || !it.adminOnly }.map { Section(it.id) }
+        return systemStatistics.builders.filter { isAdmin || !it.adminOnly }.map { Section(it.id, it.group?.capitalize()) }
     }
 
     @GetMapping("section/{id}")
