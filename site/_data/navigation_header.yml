@@ -1,113 +1,32 @@
-# Navbar left menu navigation links
+# Navigation of the site header (_includes/header.html).
+# links: the main navigation; match marks a link active on every page whose url contains it.
+# actions: the buttons on the right (style: primary, outline or ghost).
 
-left:
-  - title: Home
-    url: /
-
-  - title: GitHub
-    url: https://github.com/micromata/projectforge/
-
+links:
   - title: Features
     url: /features/
 
   - title: Docs
-    dropdown:
-
-      - title: Quick Start
-        url: /docs/quickstart/
-
-      - title: Installation
-        url: /docs/installation/
-
-      - title: Administration guide
-        url: /docs/adminguide/
-
-      - title: User guide
-        url: /docs/userguide/
-
-      - title: Development
-        url: /docs/development/
-
-      - title: Technologies
-        url: /docs/technologies/
-
-      - title: Migration
-        url: /docs/migration/
+    url: /docs/quickstart/
+    match: /docs/
 
   - title: Services
     url: /services/
 
   - title: FAQ
-    url: /misc/faqs
+    url: /#faq
 
   - title: About
     url: /about/
 
-  - title: Search
-    url: /search/
+  - title: GitHub
+    url: https://github.com/micromata/projectforge/
 
-      # - title: Blog
-  # url: /blog/
-
-  # - title: Changelog
-    # url: /changelog-posts/
-    # dropdown:
-
-      # - title: Timeline Style
-      # url: /changelog-timeline/
-
-      # - title: Post Style
-      # url: /changelog-posts/
-
-
-# Navbar right menu navigation links
-
-right:
-
+actions:
   - title: Changelog
     url: /changelog-posts/
-    button: primary-outline
+    style: ghost
 
   - title: Download
     url: /download/
-    button: success
-
-  # - title: Changelog
-  #   url: /contact/
-  #   button: default
-
-  # - title: Contact
-  #   url: /contact/
-  #   button: primary
-
-  # - title: Changelog
-  #   url: /contact/
-  #   button: secondary
-
-  # - title: Contact
-  #   url: /contact/
-  #   button: danger
-
-  # - title: Changelog
-  #   url: /contact/
-  #   button: success
-
-  # - title: Contact
-  #   url: /contact/
-  #   button: warning
-
-  # - title: Changelog
-  #   url: /contact/
-  #   button: primary-outline
-
-  # - title: Contact
-  #   url: /contact/
-  #   button: danger-outline
-
-  # - title: Changelog
-  #   url: /contact/
-  #   button: success-outline
-
-  # - title: Contact
-  #   url: /contact/
-  #   button: warning-outline
+    style: primary

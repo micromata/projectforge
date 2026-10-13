@@ -1,53 +1,20 @@
 ---
 layout: page
-width: small
+width: expand
 title: Download
+description: "Download ProjectForge as Docker image, executable JAR or sources – open source and free, with all features and no limits on users."
+hero:
+    title: Download
+    subtitle: ProjectForge is open source and free – with all features and no limits on users. Pick the way you want to run it.
 permalink: /download/
 ---
-:hide-uri-scheme:
+:page-liquid:
 
-[.uk-text-lead]
-ProjectForge is open source and free – with all features and no limits on users. Pick the way you want to run it.
-
-== Get ProjectForge
-
-[cols="1,2,3",options=header]
-|===
-|Type |Link |Description
-
-|Docker
-|https://hub.docker.com/r/micromata/projectforge[Docker Hub,window=_blank]
-|The easiest way: image for a single container or a Docker Compose stack with PostgreSQL. Recommended for production.
-
-|Executable JAR
-|https://github.com/micromata/projectforge/releases[GitHub releases,window=_blank] (mirror: https://sourceforge.net/projects/pforge/files/ProjectForge/[SourceForge,window=_blank])
-|Runs on Linux, macOS and Windows with Java 17 or newer – ideal for trying ProjectForge on your own machine.
-
-|Sources
-|https://github.com/micromata/projectforge[GitHub,window=_blank]
-|Everything you need to build, change and extend ProjectForge yourself.
-|===
-
-Next steps: follow the link:/docs/installation/[Installation guide], then set up your company with the link:/docs/quickstart/[Quick start].
-What has changed in each release is listed in the link:/changelog-posts/[Changelog].
-
-Need someone to run it for you? We offer link:/services/[hosting and professional services] on request.
-
-== Updates
-
-Updating is easy: stop ProjectForge, start the new version. Database schema and data are migrated automatically on the first start.
-Back up your database before, and check the link:/docs/migration/[Migration guide] for the few changes that need your attention.
-
-== Translations
-
-ProjectForge is available in English and German, and fully internationalized. A new language needs a bit more than one file:
-the backend texts (a translation of the
-https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties[English translation file,window=_blank],
-format `key=Translation`), the texts of the web frontend and a small code change to register the language.
-If you'd like to contribute a language, please open a https://github.com/micromata/projectforge/issues[GitHub issue,window=_blank]
-first – we'll gladly help you get started and include it in a release.
-
-== Archive
-
-All earlier versions are available on https://github.com/micromata/projectforge/releases[GitHub,window=_blank] and, back to 2010, on
-https://sourceforge.net/projects/pforge/files/ProjectForge/[SourceForge,window=_blank].
+++++
+{% include boxes.html data="download_options" columns="3" title="Get ProjectForge" %}
+{% include text-section.html data="download_sections" key="next_steps" %}
+{% include text-section.html data="download_sections" key="updates" background="muted" %}
+{% include text-section.html data="download_sections" key="translations" %}
+{% include text-section.html data="download_sections" key="archive" background="muted" %}
+{% include cta.html tone="plain" title="Need someone to run it for you?" subtitle="We offer hosting and professional services on request." button_text="Professional services" button_url="/services/" button2_text="Quick start" button2_url="/docs/quickstart/" %}
+++++
