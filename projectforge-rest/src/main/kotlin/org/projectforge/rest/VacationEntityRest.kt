@@ -218,7 +218,10 @@ class VacationEntityRest :
                 "employee",
                 label = translate("vacation.employee"),
                 autoCompletion = AutoCompletion.getAutoCompletion4Employees(),
-            )
+            ).also {
+                // Pinned: the filter most lists of leave are looked at by, always on the filter row.
+                it.defaultFilter = true
+            }
         )
         elements.add(
             UIFilterObjectElement(
