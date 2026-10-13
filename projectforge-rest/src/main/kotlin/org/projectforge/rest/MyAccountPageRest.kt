@@ -45,6 +45,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.sipgate.SipgateDirectCallService
@@ -126,6 +127,12 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
             SipgateDirectCallService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
         user.gpgPublicKey = data.gpgPublicKey
         user.sshPublicKey = data.sshPublicKey
+        // A too long key would fail in the database (HTTP 500), so answer it as a field error. Only the key
+        // fields: the other values of the user aren't edited here, so their errors aren't the user's to fix.
+        ValidationUtils.validateFields(user)
+            .filter { it.fieldId == "gpgPublicKey" || it.fieldId == "sshPublicKey" }
+            .takeIf { it.isNotEmpty() }
+            ?.let { return ResponseEntity(ResponseAction(validationErrors = it), HttpStatus.NOT_ACCEPTABLE) }
         userService.updateMyAccount(user)
         return ResponseEntity(ResponseAction("/${NextMigration.listUrl("calendar")}"), HttpStatus.OK)
     }

@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "My account: GPG and SSH public keys may now have up to 20,000 characters (were 4,096, a longer GPG key couldn't be saved); a key that is still too long is shown as an error at the field.",
+  "de": "Mein Zugang: Öffentliche GPG- und SSH-Schlüssel dürfen jetzt bis zu 20.000 Zeichen lang sein (bisher 4.096, ein längerer GPG-Schlüssel ließ sich nicht speichern); ein immer noch zu langer Schlüssel wird als Fehler am Feld angezeigt."
+}

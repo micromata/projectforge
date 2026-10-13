@@ -332,14 +332,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      * The user's sshPublicKey, if any.
      */
     @PropertyInfo(i18nKey = "user.sshPublicKey")
-    @get:Column(name = "ssh_public_key", length = 4096)
+    @get:Column(name = "ssh_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var sshPublicKey: String? = null
 
     /**
      * The user's gpgPublicKey, if any.
      */
     @PropertyInfo(i18nKey = "user.gpgPublicKey")
-    @get:Column(name = "gpg_public_key", length = 4096)
+    @get:Column(name = "gpg_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var gpgPublicKey: String? = null
 
     /**
@@ -442,6 +442,12 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     }
 
     companion object {
+        /**
+         * Room for an armored GPG key with subkeys and signatures (often more than 4096 characters) or several
+         * SSH keys.
+         */
+        const val PUBLIC_KEY_MAX_LENGTH = 20000
+
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
         const val FIND_BY_IDP_EXTERNAL_ID = "PFUserDO_FindByIdpExternalId"
 
