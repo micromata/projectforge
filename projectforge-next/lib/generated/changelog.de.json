@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", {
+      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", "Passwort ändern und WLAN-Passwort ändern sind Seiten der neuen Oberfläche und zeigen, wann das Passwort zuletzt geändert wurde.", {
         "title" : "Systemstatistik",
         "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
       } ]
@@ -26,6 +26,9 @@
         "title" : "Sicherheit",
         "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
       }, "Urlaubsliste: Die Sortierung nach den Spalten Status und Tage hatte keine Wirkung." ]
+    }, {
+      "type" : "security",
+      "items" : [ "Eigenes Passwort oder WLAN-Passwort ändern: Ein falsches altes Passwort zählt als Fehlanmeldung und sperrt weitere Versuche für eine Weile, wie bei der Anmeldung.", "Eine Passwortänderung (selbst, durch einen Admin oder per Passwort-Zurücksetzen) beendet jetzt auch die anderen offenen Sitzungen des Benutzers, nicht nur die angemeldet gebliebenen Geräte. Die Sitzung, in der das eigene Passwort geändert wurde, bleibt angemeldet." ]
     } ]
   },
   "groups" : [ {

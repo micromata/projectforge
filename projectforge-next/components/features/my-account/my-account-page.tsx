@@ -5,15 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { Button } from "@/components/ui/button";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import { MenuLink } from "@/components/shared/menu-link";
 import { fetchMyAccount, MY_ACCOUNT_QUERY_KEY } from "@/lib/rs/my-account";
 import { MyAccountForm } from "./my-account-form";
 
 /**
  * The my-account page (`/next/myAccount`), successor of the React page `react/myAccount/dynamic`: the
  * logged-in user's name, personal settings, access tokens, stay-logged-in devices, groups and public keys.
- * Change password, change WLAN password and the 2FA setup are still React pages and linked from here or
- * from the user menu.
+ * Change password and change WLAN password (next) are linked from here; the 2FA setup is still a React page,
+ * linked from the form and from the user menu.
  */
 export function MyAccountPage() {
   const t = useTranslations();
@@ -27,8 +27,8 @@ export function MyAccountPage() {
         category={t("menu.myAccount")}
         title={t("user.myAccount.title.edit")}
       >
-        {/* The pages of the legacy page's menu, still React (MenuItemDefId); the WLAN password only where
-            it can be changed. */}
+        {/* The pages of the legacy page's menu (MenuItemDefId); the WLAN password only where it can be
+            changed. */}
         {query.data && (
           <div className="flex items-center gap-2">
             <PasswordPageButton
@@ -55,7 +55,7 @@ export function MyAccountPage() {
   );
 }
 
-/** A full page load into the legacy app (see resolveMenuUrl), shaped as a button of the title row. */
+/** A menu url (see resolveMenuUrl, a route of this app), shaped as a button of the title row. */
 function PasswordPageButton({
   url,
   label,
@@ -66,7 +66,7 @@ function PasswordPageButton({
   if (!url) return null;
   return (
     <Button variant="outline" asChild>
-      <a href={toAbsoluteUrl(resolveMenuUrl(url))}>{label}</a>
+      <MenuLink url={url}>{label}</MenuLink>
     </Button>
   );
 }

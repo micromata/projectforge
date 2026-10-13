@@ -327,7 +327,7 @@ function ReadOnlyValue({
 }
 
 /**
- * A page of another frontend (the password pages are still React): a full page load, as the menu does it
+ * A page of another frontend (the 2FA setup is still React): a full page load, as the menu does it
  * (see resolveMenuUrl).
  */
 function LegacyLink({ url, label }: { url?: string | null; label: string }) {

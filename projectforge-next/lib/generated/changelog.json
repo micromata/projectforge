@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", {
+      "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", "Change password and change WLAN password are pages of the new user interface and show when the password was last changed.", {
         "title" : "System statistics",
         "items" : [ "The database tile appears at once: the number of history entries and attributes is the estimate of the database (~) instead of a count taking minutes.", "Tiles still loading show their title and a spinner.", "CPU load and system load average as bars." ]
       } ]
@@ -26,6 +26,9 @@
         "title" : "Security",
         "items" : [ "Phone lookup (/rsPublic/phoneLookup) is disabled until an own key is configured in projectforge.phoneLookupKey; the former default placeholder is no longer accepted.", "Force delete checks the CSRF token like all other write actions." ]
       }, "Vacation list: sorting by the status or the days column had no effect." ]
+    }, {
+      "type" : "security",
+      "items" : [ "Changing the own password or WLAN password: a wrong old password counts as failed login attempt and locks further attempts for a while, like the login does.", "A password change (own, by an admin or by a password reset) now also ends the user's other open sessions, not only the stay-logged-in devices. The session the own password was changed in stays logged in." ]
     } ]
   },
   "groups" : [ {
