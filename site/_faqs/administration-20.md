@@ -1,8 +1,8 @@
 ---
-title: Projects, customers and some other functionalities aren't visible?
+title: Projects, customers and some other features aren't visible?
 categories: [administration,faq]
 permalink: /misc/faqs.html
 ---
 
-If you really need cost-unit accounting please activate this functionality via configuration web page (it's a config parameter. Please, don't forget to re-login, if the menu isn't up-to-date.) 
-Projects and customers are only needed for cost-unit accounting. If you don't need it, please refer the structure tree for configuring your projects: Customer -> Project -> Release -> ...
+Projects, customers and cost units are only needed for cost-unit accounting, which is switched off by default. If you need it, enable *Cost-unit accounting configured?* under *Administration → Configuration* and log in again, so that the menu is updated.
+If you don't need cost-unit accounting, use the structure tree to organize your work instead, e.g. customer → project → release → work package.

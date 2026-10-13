@@ -13,7 +13,7 @@ hero:
       - title: See all features
         url: /features/
         style: default
-    note: Open source (GPL) · In daily use since 2001 · English & German
+    note: Open source (GPLv3) · In daily use since 2001 · English & German
 ---
 :page-liquid:
 
@@ -30,7 +30,7 @@ hero:
 ++++
 
 ++++
-{% include cta.html title="" button_text="See all features" button_url="/features/" %}
+{% include cta.html button_text="See all features" button_url="/features/" %}
 ++++
 
 ++++

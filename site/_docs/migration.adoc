@@ -17,7 +17,32 @@ Only a few changes, e.g. in configuration files or scripts, need your attention.
 
 TIP: Always back up your database (and, if you still use it, the JCR repository) before an update. See link:/docs/adminguide/#backup[Admin guide – Backup] and link:/docs/installation/[Installation].
 
-=== Version 9.0.x (9.0.1 – 9.0.4)
+=== Version 9.0.x
+
+. Log viewer and vacation settings (9.0.5)
++
+The admin log viewer is now a tab of the _System dashboard_; its own menu entry is gone, old links lead to the tab.
+The task and cost unit for booking vacation (`projectforge.timesheet.vacation.taskId` and
+`projectforge.timesheet.vacation.kost2`) are now configured on the configuration page. Values set in
+`projectforge.properties` are taken over once on the first start; afterwards they are ignored and reported as a problem
+on the system dashboard on every start, so please remove them from `projectforge.properties`.
+The database migrations (Flyway `V9.0.5.1`, `V9.0.5.2`) run automatically.
+
+. Scripts (9.0.4)
++
+A stored script now always runs as stored; only the parameter values are taken from the execution form.
+Code executed directly (without a stored script) now runs as Kotlin instead of Groovy.
+Script descriptions are rich text, existing Markdown is converted on the next save.
+
+. Groovy modules (9.0.4)
++
+Only the Groovy core and its date, JSON, XML and template modules are bundled. Groovy scripts using other modules
+(e.g. Ant, SQL, Swing, console) must be rewritten, e.g. as Kotlin scripts.
+
+. Time sheet overlaps (9.0.4)
++
+Time sheets of a user on the same cost 2 may no longer overlap; saving an overlapping time sheet is rejected.
+Existing data is not changed. Overlap groups can be configured on the configuration page.
 
 . New file store (9.0.3)
 +
@@ -34,32 +59,23 @@ Orders now have one contact person plus any number of further contact persons in
 head of business and key account manager. Existing entries are migrated automatically; the old fields remain in the database.
 If your scripts read the old fields, switch them to the contact persons.
 
-. Groovy modules (9.0.4)
-+
-Only the Groovy core and its date, JSON, XML and template modules are bundled. Groovy scripts using other modules
-(e.g. Ant, SQL, Swing, console) must be rewritten, e.g. as Kotlin scripts.
-
-. Scripts (9.0.4)
-+
-A stored script now always runs as stored; only the parameter values are taken from the execution form.
-Script descriptions are rich text, existing Markdown is converted on the next save.
-
-. Time sheet overlaps (9.0.4)
-+
-Time sheets of a user on the same cost 2 may no longer overlap; saving an overlapping time sheet is rejected.
-Existing data is not changed. Overlap groups can be configured on the configuration page.
-
 === Version 8.x -> 9.0
 
 ProjectForge 9.0 is a major update: the classic Wicket user interface was replaced by the new frontend, and all
 libraries were brought up to date (Spring Boot 4, Hibernate 7, Kotlin 2.3). The development builds leading up to it were
-published as 8.2 snapshots.
+published as 8.2 snapshots; the changes listed for them below are part of 9.0.
 
 . Back up your database first. The schema is migrated automatically at the first start; a rollback means restoring the backup.
 . New user interface
 +
 All pages run in the new frontend, the only login is `/next/login`. Links and bookmarks of the classic pages lead to the
 new ones, so your users don't need to change anything.
+. 2FA configuration
++
+Expressions with `/wa/...` paths in `projectforge.2fa.expiryPeriod.*` don't protect anything any more, because the
+Wicket pages are gone and their URLs are only redirected. Replace them by the `/rs/...` paths of the entities or by
+the shortcuts (e.g. `ADMIN`, `FINANCE`, `HR`), see link:/docs/adminguide/#2fa_two_factor_authentication[Admin guide – 2FA].
+Check the result with _Administration_ -> _System_ -> _Export 2FA configuration_.
 . Search index
 +
 Hibernate Search was upgraded. If searching shows incomplete results after the update, rebuild the search index on the system page.
@@ -68,22 +84,18 @@ Hibernate Search was upgraded. If searching shows incomplete results after the u
 Legacy XML user preferences are migrated to the JSON store automatically.
 . Java
 +
-Java 17 or newer is required (the Docker image already contains it).
-
-=== Version 8.1 -> 8.2
-
-. Stricter validation of REST writes
+Java 17 or newer is still required, as for 8.x (the Docker image already contains Java).
+. Stricter validation of REST writes (8.2 snapshots)
 +
-
-Saving an entity through the REST API (`AbstractPagesRest.saveOrUpdate` and everything built on it,
+Saving an entity through the REST API (`AbstractEntityRest.saveOrUpdate` and everything built on it,
 i. e. the frontend as well as imports and mass updates) now validates *all* properties
 declared by `@PropertyInfo` / JPA `@Column`, and it validates the maximum length of string values too.
-
++
 Before, two things were only checked by accident: mandatory fields were validated against a cache that
 was filled while a page's layout was built, so which fields got checked depended on the pages the JVM
 had served since its start; and the maximum length of a string was not checked at all on this path,
 so an over-long value ran into the database unchecked.
-
++
 Consequence: a write that used to be accepted silently may now be answered with HTTP 406 and a
 readable message naming the field. This is intended — the data was invalid before as well — but if an
 import or a script of yours suddenly reports a validation error, this is where it comes from. The rule
@@ -99,8 +111,8 @@ You should also remove `projectforge.receiveSmsKey` and `projectforge.cron.mebPo
 
 . Scripting
 .. The scripting functionality is fully migrated to React. Multiple attachmentes are now supported. Therefore the files
-has to be addressed via ``files.file` instead of `file` (Kotlin) or `script.file` (Groovy) or by `files.getFile("abcdef.xlsx")`.
-Also filenames will be accessible via 'files.filename' instead of `filename' (Kotlin) or `script.filename`. All bindings
+has to be addressed via `files.file` instead of `file` (Kotlin) or `script.file` (Groovy) or by `files.getFile("abcdef.xlsx")`.
+Also filenames will be accessible via `files.filename` instead of `filename` (Kotlin) or `script.filename`. All bindings
 will be done automatically for the Kotlin script (of not already there). Multiple imports will be prevented by auto-inserting of
 imports (and bindings).
 

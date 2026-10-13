@@ -40,10 +40,12 @@ Back up your database before, and check the link:/docs/migration/[Migration guid
 
 == Translations
 
-ProjectForge is available in English and German, and fully internationalized. To add another language, translate the
-https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties[English translation file,window=_blank]
-(format `key=Translation`, missing keys fall back to English) and contribute it via a pull request or a
-https://github.com/micromata/projectforge/issues[GitHub issue,window=_blank]. We're happy to include it in the next release.
+ProjectForge is available in English and German, and fully internationalized. A new language needs a bit more than one file:
+the backend texts (a translation of the
+https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties[English translation file,window=_blank],
+format `key=Translation`), the texts of the web frontend and a small code change to register the language.
+If you'd like to contribute a language, please open a https://github.com/micromata/projectforge/issues[GitHub issue,window=_blank]
+first – we'll gladly help you get started and include it in a release.
 
 == Archive
 

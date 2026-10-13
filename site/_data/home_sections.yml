@@ -4,12 +4,12 @@ dach:
   title: Speaks DATEV. Knows XRechnung.
   subtitle: Made for companies in Germany, Austria, Switzerland and the EU.
   text: >-
-    Import your DATEV accounting records and incoming invoices, export salaries, create e-invoices
-    in XRechnung and ZUGFeRD and validate them for PEPPOL. Public holidays, leave accounts and an
+    Import your DATEV accounting records and incoming invoices, export salaries, create PEPPOL-ready
+    e-invoices in XRechnung and ZUGFeRD, checked for completeness before export. Public holidays, leave accounts and an
     English/German interface are built in. And because ProjectForge runs on your own server,
     GDPR is a matter of your own policies – not of someone else's cloud.
-  img: screenshots/2026-Invoice.png
-  img_caption: Outgoing invoices with open and delinquent amounts at a glance.
+  img: screenshots/2026-Liquidity.png
+  img_caption: The liquidity forecast combines invoices, expected payments and recurring series.
 
 security:
   title: Sleep well, admins.

@@ -39,10 +39,10 @@
             <div>
                 <div class="uk-card uk-card-default uk-box-shadow-medium uk-card-hover uk-card-body uk-inline border-radius-large border-xlight">
                     {% if item.url %}
-                    <a class="uk-position-cover" href="{% if item.url contains 'http' %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" aria-label="{{ item.title }}"></a>
+                    <a class="uk-position-cover" href="{% if item.url contains 'http' %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" aria-label="{{ item.title | escape }}"></a>
                     {% endif %}
                     {% if item.img %}
-                    <img class="uk-margin-bottom" src="{{ site.uploads | absolute_url }}{{ item.img }}" alt="{{ item.title }}" loading="lazy">
+                    <img class="uk-margin-bottom" src="{{ site.uploads | absolute_url }}{{ item.img }}" alt="{{ item.title | escape }}" loading="lazy">
                     {% elsif item.step %}
                     <span class="uk-h1 uk-text-primary">{{ item.step }}</span>
                     {% elsif item.icon %}

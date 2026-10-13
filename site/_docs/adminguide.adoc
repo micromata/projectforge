@@ -87,18 +87,30 @@ server.ssl.key-store-type=PKCS12
 
 ==== Setting up the database
 
+PostgreSQL 13 or newer is required: a database migration (Flyway `V8.0.24`) runs
+`CREATE EXTENSION IF NOT EXISTS pg_trgm` for the trigram indexes of the history search. `pg_trgm` is a trusted
+extension since PostgreSQL 13, so it's sufficient that the database user of ProjectForge has the `CREATE` privilege on
+the database (e.g. as its owner, see below). Otherwise a database administrator has to create the extension once
+beforehand: `psql -U postgres -d projectforge -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"`.
+
+The files of the file store are stored in an own schema `pf_files`, which is created by Flyway as well (so the
+database user also needs the right to create schemas, which the owner of the database has), see <<Backup>>.
+
 . Create the user (e.g. as admin user): `createuser -U postgres -P projectforge`
 . Create the database: `createdb -U postgres -E UTF-8 -O projectforge projectforge`
 . You can drop an existing user and database with: `dropdb projectforge` and `dropuser projectforge`
 . To re-use an existing database, restore a dump, see <<Restoring a backup>>.
 
 Recommended settings in `postgresql.conf` (`max_connections` must be larger than ProjectForge's connection pool,
-`spring.datasource.hikari.maximum-pool-size`, default 100):
-```
+`spring.datasource.hikari.maximum-pool-size`, default 100). If the JCR still uses PostgreSQL as well
+(`oak.datasource.url` given), its own pool adds up to 10 more connections (`oak.datasource.hikari.maximum-pool-size`):
+
+----
 max_connections = 120
 statement_timeout =  300000 # 300s
 lock_timeout = 300000       # 300s
-```
+----
+
 == Configuration
 
 === Base directory (application's home)
@@ -174,7 +186,7 @@ To customize translations:
 [source,properties,linenums]
 ----
 # Example: Override existing translation
-menu.addressbook.title=Contacts
+menu.addressList=Contacts
 # Example: Add custom translation
 myorganization.custom.greeting=Welcome to Acme Corp
 ----
@@ -281,12 +293,12 @@ version groups them more coarsely, the problems recorded before are merged short
 admin's status kept if they agree, else new). The mail lists new problems, regressions
 (problems that occurred again after being resolved) and spikes (much more often than in the last 7 days)
 first, then the 30 most frequent known problems sorted by severity (unreachable external systems first).
-Each problem links to the problem dashboard (Administration), where it can be acknowledged, resolved, ignored
+Each problem links to the _System dashboard_ (Administration), where it can be acknowledged, resolved, ignored
 or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
 
 For an analysis or classification with an AI (or any other tool), the digest also attaches everything as a
-JSON file (`format: projectforge-log-analysis`), and the problem dashboard downloads all problems of its
+JSON file (`format: projectforge-log-analysis`), and the _System dashboard_ downloads all problems of its
 current filter in the same format (_Download as JSON_), with sample message, stack trace and the occurrences
 of the last 30 days. The file explains its fields and values itself (`guide`), so it can be handed over as it
 is. It contains no user names, but messages and requests are as logged and may contain personal data: check
@@ -376,12 +388,16 @@ All options are listed in `application.properties` (`projectforge.sms.*`).
 ==== Phone lookup
 
 With the phone lookup service, a telephony system (such as Asterisk) may look up the caller of incoming phone calls:
-`https://projectforge.acme.com/rsPublic/phoneLookup?nr=<number>&key=<key>`. The service is only available if a key is
-configured; wrong keys are delayed like failed logins.
+`https://projectforge.acme.com/rsPublic/phoneLookup?nr=<number>&key=<key>`. Wrong keys are delayed like failed logins.
+
+The built-in `application.properties` contains a placeholder key, and only a blank key disables the service. So set
+your own random secret key in `projectforge.properties` (e.g. generated with `openssl rand -hex 32`), or an empty
+value if you don't use the phone lookup:
 
 [source,properties,linenums]
 ----
-projectforge.phoneLookupKey=*******SECRET********
+# Your own random secret, or empty for disabling the phone lookup:
+projectforge.phoneLookupKey=
 ----
 
 === business assessment / BWA
@@ -492,8 +508,8 @@ slapd.conf of OpenLDAP):
 
 [source,shell,linenums]
 ----
-include /sw/etc/openldap/schema/cosine.schema +
-include /sw/etc/openldap/schema/inetorgperson.schema
+include /etc/openldap/schema/cosine.schema
+include /etc/openldap/schema/inetorgperson.schema
 ----
 
 ==== Configuration
@@ -655,12 +671,11 @@ ProjectForge will prefill all POSIX account fields:
 . The UID number will be the next free number (ProjectForge searches the
 highest used UID and increments it by one). If no such number found,
 1,000 is assumed.
-. The GID number will be preset with the defaultGidNumber configured
-in `projectforge.properties`.
-. The home directory will be the prefix `/home/` (configured
-in `projectforge.properties`) followed by the user-name: e. g. `/home/jdoe`
-. The login-shell will be preset with `/bin/bash` or any other which is
+. The GID number will be preset with `projectforge.ldap.posixAccountsDefaultGidNumber`
 configured in `projectforge.properties`.
+. The home directory will be the prefix `/home/` followed by the user-name: e. g. `/home/jdoe`
+(not configurable).
+. The login-shell will be preset with `/bin/bash` (not configurable).
 +
 Don't forget to save the user. After changing any of these POSIX account
 fields the LDAP entries are updated immediately.
@@ -789,7 +804,14 @@ spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/logi
 spring.security.oauth2.client.provider.authentik.issuer-uri=${AUTHENTIK_ISSUER_URI}
 ----
 
-Replace `authentik` with your provider's registration name (e.g. `keycloak`) and configure the issuer URI accordingly.
+The registration id must be `authentik`, also for other providers such as Keycloak: ProjectForge activates its OAuth2
+login only if `spring.security.oauth2.client.registration.authentik.client-id` is set. For Keycloak, just set the
+issuer URI of your realm (e.g. `https://auth.acme.com/realms/acme.com`) and the client of ProjectForge. The redirect
+URI to register at the provider is `https://<your-projectforge-domain>/login/oauth2/code/authentik`.
+
+The login page of ProjectForge has no button for the identity provider: users start the login via
+`https://<your-projectforge-domain>/oauth2/authorization/authentik` (e.g. as a link or bookmark, or from the
+application dashboard of your identity provider).
 
 ==== User mapping
 
@@ -947,7 +969,7 @@ Create the following custom user attributes in the Keycloak realm:
 |`organization` |0 |255 |
 |`description` |0 |255 |
 |`nickname` |0 |255 |
-|`sambaNTWlanPassword` |0 |255 |WLAN password (Samba NT hash)
+|`sambaNTPassword` |0 |255 |WLAN password (Samba NT hash)
 |===
 
 Set the username validator minimum length to *2* (Keycloak default is 3; reduced for short usernames like `jo`).
@@ -991,7 +1013,7 @@ projectforge.idp.groupAttributes.organization=organization
 
 [source,properties]
 ----
-projectforge.idp.wlanPasswordAttribute=sambaNTWlanPassword
+projectforge.idp.wlanPasswordAttribute=sambaNTPassword
 ----
 
 ==== Login handlers
@@ -1045,17 +1067,29 @@ tools, then `kill -3 <pid>` writes a thread dump to the container's output (`doc
 
 === Backup
 
-All datasets of ProjectForge® will be stored in the underlaying
-database (e. g. PostgreSQL).  +
-You should install an Unix cron script making frequently a backup of the
+All datasets of ProjectForge® are stored in the underlying
+database (e. g. PostgreSQL).
+You should install a Unix cron script making frequently a backup of the
 database (see <<Backup script>>).
+
+==== Embedded database (HSQLDB)
+
+With the embedded database, everything is located in ProjectForge's home directory: the database (`database`), the
+configuration files, your `resources`, the data transfer files (`datatransfer`) and, if still used, the JCR (`jcr`).
+The files of the file store are part of the embedded database. For a backup, stop ProjectForge and copy the whole home
+directory (e.g. `tar czf projectforge-home_2026-10-06.tar.gz -C $HOME ProjectForge`); `logs` and `hibernateSearch`
+may be left out. For restoring, stop ProjectForge, replace the home directory by the copy and start ProjectForge
+again (rebuild the search index if you left out `hibernateSearch`).
+
+==== PostgreSQL dumps
 
 The files of the new file store (attachments of contracts, orders, invoices etc., see <<Moving the files out of the JCR>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
 
 * The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
 
-Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the JCR sanity check.
+Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
+(`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
 Data transfer files (`<home>/datatransfer`) are not part of any backup: their metadata is in `pf_files`, but the content is stored in the file system and is short-lived.
 
@@ -1066,7 +1100,7 @@ Data transfer files (`<home>/datatransfer`) are not part of any backup: their me
 [source,shell,linenums]
 ----
 gunzip projectforge_2026-10-06_02-00.sql.gz
-psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge 2>&1 > log.txt
+psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
 Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
@@ -1076,7 +1110,7 @@ Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain
 pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
 ----
 
-Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. Run the JCR sanity check on the system page after restoring.
+Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_.
 
 For dropping and creating a new database, see <<PostgreSQL>>.
 Don't forget to rebuild the search index afterwards (_Administration_ -> _System_ -> _Reindex_)!
@@ -1116,7 +1150,10 @@ After switching to `db` and restarting, ProjectForge copies all files of the JCR
 * Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
 * The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<Backup script>>), data transfer files are not backed up.
 
-Switch to `db` and wait for a successful migration before updating to the release without JCR.
+Before updating to a release without JCR, either switch to `db` and wait for a successful migration, or create a
+fresh JCR backup ZIP right before the update (system page, card "Document repository (JCR)", _Create JCR backup ZIP_):
+the next release imports the documents from this ZIP into the database. The ZIP doesn't contain the data transfer
+files.
 
 === Automatical backup
 
@@ -1176,15 +1213,18 @@ projectforge.cron.purgeBackupDir=/home/projectforge/backup
 
 The files dump `projectforge_files_...` is its own series, so it is purged like the main dump (also with the prefix `projectforge_`, because it starts with it).
 
-For allowing `pg_dump` without prompting password (if set), you can add
-the following line to:
+For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
+the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
 
-*File:* `pg_hba.conf:`
+*File:* `pg_hba.conf`:
 
 [source,shell,linenums]
 ----
-local projectforge projectforge ident sameuser
+local projectforge projectforge peer
 ----
+
+Alternatively, store the password in `~/.pgpass` of the user running the script (`chmod 600 ~/.pgpass`):
+`localhost:5432:projectforge:projectforge:<password>` (then add `-h localhost` to the `pg_dump` calls).
 
 ==== Adding crontab
 
@@ -1192,7 +1232,7 @@ Adding following entry to the Unix crontab:
 
 [source,shell,linenums]
 ----
-# run every day at 2:00 am +
+# run every day at 2:00 am
 0 2 * * * /home/projectforge/bin/pforgebackup.sh
 ----
 
@@ -1216,19 +1256,27 @@ ProjectForge® server with a cronjob starting e. g. one hour later:
 SERVER=projectforge.mydomain
 DIR=/home/projectforge/backup
 REMOTE_DIR=backup REMOTE_USER=projectforge
-rsync -avz -e "ssh -P" -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR
+# Add e.g. -e "ssh -p <port>" if ssh doesn't use the default port.
+rsync -avz -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR
 ....
 
 In that case you have to generate ssh key on your backup server and to
-add it to the authorized keys on your ProjectForge® server. +
+add it to the authorized keys on your ProjectForge® server.
 Add the following entry to your crontab on the backup server:
-# run every day at 3:00 am 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
+
+[source,shell,linenums]
+----
+# run every day at 3:00 am
+0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
+----
 
 === Monitoring
 
 You may monitor ProjectForge with your monitoring tool (such as Nagios) by calling the public system status, e.g.
-`https://projectforge.acme.com/rsPublic/systemStatus`. It answers with a small JSON object (application name,
-version, build date) as soon as the web server is up.
+`https://projectforge.acme.com/rsPublic/systemStatus`. It answers with a small JSON object as soon as the web server
+is up. Without a login, version and build date are only placeholders (`<version>`, `<date>`), so only the application
+name (`appname`) and the start-up state are useful for monitoring: `setupRedirectUrl` is given as long as the setup
+isn't completed.
 
 Problems at runtime (errors, unreachable external systems, failed scheduler runs) are reported by the
 <<Support error digest>> and shown on the _System dashboard_.
@@ -1237,7 +1285,8 @@ Problems at runtime (errors, unreachable external systems, failed scheduler runs
 
 ==== Data base search index
 
-The search index is rebuilt every night by the nightly job (`projectforge.cron.nightly`, default 2:30 UTC). Errors are
+The search index is rebuilt every night by the nightly job (`projectforge.cron.nightly`, default 2:30). ProjectForge runs with
+the time zone UTC (independent of the server's time zone), so the cron expressions of `projectforge.cron.*` are UTC. Errors are
 logged and therefore part of the error digest. The runs of all scheduled jobs are listed on the _System dashboard_.
 
 === Uninstalling ProjectForge

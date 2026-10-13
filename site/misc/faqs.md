@@ -1,5 +1,8 @@
 ---
 layout: page
+title: FAQ
+description: "Answers to frequently asked questions about ProjectForge: pricing, hosting, data, support, languages, data import and administration."
+hide_title: true
 width: small
 hero:
     title: Frequently Asked Questions

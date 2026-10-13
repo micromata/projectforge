@@ -60,7 +60,9 @@ name): drag entries from the template on the right to your menu on the left (or 
 them), create, rename and remove groups and save your changes. *Reset to Default* restores the
 default menu.
 
-The user menu also contains *My account*, *Two-factor authentication*, *Appearance* and *Logout*.
+The user menu also contains *Send feedback*, *My account*, *Two-factor authentication*, *Leave
+account* (for employees), entries of plugins (e. g. the *Personal box* of DataTransfer), *Appearance*
+and *Logout*.
 
 === Global search
 
@@ -97,7 +99,8 @@ The search isn't case-sensitive.
 
 |abc def |Searches for objects containing words beginning with 'abc' or 'def'.
 
-|+abc -def |Searches for objects containing words beginning with 'abc' but not with 'def'.
+|+abc -def |Searches for objects containing the word 'abc' but not the word 'def' (no automatic
+wildcards, see below; `+abc* -def*` for words beginning with 'abc' but not with 'def').
 
 |name:abc def |Searches for all objects where the field 'name' contains the word 'abc' and
 searches for 'def' in all fields.
@@ -109,9 +112,11 @@ searches for 'def' in all fields.
 
 ____
 If the search term consists only of letters, digits, spaces and the characters `@._-+*`,
-ProjectForge® automatically appends the wildcard character '*' to each word. Words already ending
-with '*', words starting with '+' or '-' and the keywords AND, OR and NOT are left untouched. For all
-other expressions (e. g. containing ':', '~', '"' or brackets) the term is used as entered.
+ProjectForge® automatically appends the wildcard character '*' to each word. Words ending with '*',
+words starting with '+' or '-' (Lucene operators) and the keywords AND, OR and NOT are left
+untouched. A search term starting with '+' or '-' is used as entered, as are all other expressions
+(e. g. containing ':', '~', '"' or brackets). A word with a separator inside such as `dhl-pop` is
+searched as typed and as its parts: `dhl-pop*` or both `dhl*` and `pop*`.
 
 Start your search term with an apostrophe (') to switch off any modification: the apostrophe is
 removed and the rest is used exactly as entered.
@@ -216,8 +221,9 @@ On the login screen you may tick *Remember my login on this computer.*:
 is renewed every time you use it.
 * *Logout* removes the cookie of the current browser only.
 * Changing your password logs out all devices.
-* Under *My account* you see all devices staying logged in (browser, IP address, last access) and
-may log out all of them with *Log out all devices.*
+* Under *My account* you see all devices staying logged in (browser, IP address, last access).
+*Log out* in the row of a device logs out this device only, *Log out all devices.* logs out all of
+them, including the current one.
 
 === Two-factor authentication
 
@@ -252,7 +258,7 @@ time sheets and personal events as well as team events in a convenient way.
 
 === Views and navigation
 
-The calendar offers the following views: *Month*, *Week* and *day*, each month and week also
+The calendar offers the following views: *Month*, *Week* and *Day*, each month and week also
 without weekends (*Workdays*), a week overview (*overview*) and a list of all entries (*agenda*).
 
 Use *Today*, the arrow buttons and *Choose date* (a month picker with a year selection) for
@@ -303,11 +309,13 @@ training or a longer stay at a customer:
 . Choose the period (at most one month), the start time, the hours per day, the structure element,
 cost unit, location and description (or use one of your templates or recent entries).
 . Check the *Preview*: weekends and holidays are skipped. On a day that is already booked, the time
-sheet is only booked if it doesn't collide with an existing one.
+sheet is only booked if it doesn't collide with an existing one (an overlap with a
+<<shared_cost_element,shared cost element>> is allowed).
 . Click *Book*.
 
-With *Take over vacation* you choose one of your approved leave applications and book its days on
-the vacation cost unit configured by your administrator.
+With *Take over vacation* you choose one of your leave applications (approved or in progress, a year
+back and ahead) and book its days on the vacation cost unit configured by your administrator. If no
+vacation cost unit is configured, you choose the structure element and cost unit yourself.
 
 === Team calendars
 
@@ -441,12 +449,16 @@ The leave account also offers a subscription URL for the leave days of employees
 
 === Automatic booking of vacation
 
-ProjectForge® may book your approved leave automatically as time sheets every night, if your
-administrator configured the vacation structure element and cost unit (under _Administration >
-Configuration_):
+ProjectForge® may book your approved leave (special leave included) automatically as time sheets
+every night, if your administrator configured the vacation structure element and cost unit and set
+*Book vacation as time sheets (max. days back)* to a value greater than 0 (under _Administration >
+Configuration_; default 0, i. e. switched off, at most 7):
 
 * Only past working days up to yesterday are booked, never in advance, and only days without any
 time sheet.
+* Each day is processed once: a run books the days since the last successful run, but at most the
+configured number of days back, so nights the job didn't run are caught up. A vacation time sheet
+deleted by hand isn't booked again.
 * The hours per day are derived from your weekly working hours (half leave days get half of the
 hours). The description is "Vacation".
 * Leave approved after its days have already been processed isn't booked automatically. Use
@@ -613,12 +625,17 @@ inserted and updated, see <<time_sheet_protection>>.
 |Protection of privacy |If checked, the time sheets of this structure element and any descendant
 structure elements are invisible for other users (except the members of the financial staff).
 
+|Shared cost element |If checked (inherited by all descendant structure elements), time sheets booked
+here may overlap in time with time sheets of other projects, see <<shared_cost_element>>. Unlike the
+other fields of this section, it may be changed by everybody allowed to edit the structure element.
+
 |Gantt settings |Start and end date, duration, progress and predecessor for the Gantt chart
 (_Project management > Gantt_).
 |===
 
-The fields of the section *Finance administration* may only be changed by the financial staff
-(cost 2 list and booking status also by the project managers of the assigned project).
+The fields of the section *Finance administration* (except *Shared cost element*) may only be changed
+by the financial staff (cost 2 list and booking status also by the project managers of the assigned
+project).
 
 [[consumption]]
 === Consumption
@@ -646,7 +663,9 @@ are assigned, from the ordered person days.
 |over 100% |The track of the bar turns red: the budget is exceeded.
 |===
 
-For finished (closed) structure elements the bar stays green up to 100%.
+For finished (closed) structure elements the bar stays green up to 100%; from 100% to 110% the bar
+shows a mild over-budget status (red track with a neutral bar), above 110% the normal over-budget
+status.
 
 ==== Suppressing the status of consumption bars
 
@@ -664,6 +683,8 @@ on such a structure element:
 . The user needs access to this structure element or any ancestor structure element including the
 right of booking time sheets.
 . The structure element and its ancestors must not be closed or deleted.
+. The project of the structure element (the nearest assigned project in the structure tree) must not
+be ended or deleted.
 . The structure element or any ancestor structure element may have a time sheet protection. The
 users aren't able to modify or add time sheets for a day before the protection date.
 . The booking status of the structure element (or of the nearest ancestor with a booking status
@@ -675,7 +696,29 @@ because otherwise ProjectForge® won't be able to calculate the consumption of b
 orders.
 
 Further checks: a time sheet must have a duration (maximum 14 hours) and must not overlap with
-another time sheet of the same user.
+another time sheet of the same user, except for a shared cost element (see below).
+
+[[shared_cost_element]]
+==== Shared cost element
+
+Time sheets of the same user may overlap in time, if at least one of the two is booked on a shared
+cost element and both don't belong to the same project. A time sheet is booked on a shared cost element
+if its cost 2 unit has *Shared costs* set to yes. If the cost 2 unit leaves it empty (*As structure
+element*) or there is no cost 2 unit, the checkbox *Shared cost element* of the structure element (or
+of an ancestor) decides. A cost 2 unit set to no takes precedence: its time sheets don't count as
+shared, even on a shared cost element.
+
+Never allowed, shared or not, are overlaps:
+
+* on the same cost 2 unit, or on the same structure element if neither time sheet has a cost 2 unit,
+* within the same project,
+* within the same overlap group: the administrator may define groups of cost 2 units under
+_Administration > Configuration_ (*Time sheet overlap groups*, e. g. `6` for all cost 2 units 6.*);
+each group counts like one project.
+
+Overlapping time is counted pro rata in attendance, statistics and the monthly employee report: e. g.
+1 hour on project A plus an overlapping hour on project B count 0.5 hours each. For the effort of a
+project (e. g. invoicing and project exports) every time sheet counts with its full duration.
 
 If a structure element is protected, the user may still modify fields not affecting financial
 parameters (such as description and location but not times or cost units). The user may therefore
@@ -709,7 +752,7 @@ this structure element.
 * If there is no project or cost unit assigned to a structure element, all settings of the parent
 structure element are used. If no such setting is found for the parent element, the grandparent
 element is used and so on.
-* Only such cost units are used which have no status value or the status value 'ACTIVE'.
+* Only such cost units are used which have no status value or the status value 'active'.
 
 If there is any cost 2 unit associated with a structure element (directly or derived), a user has
 to select a suitable cost unit while booking time sheets.
@@ -717,8 +760,8 @@ to select a suitable cost unit while booking time sheets.
 *Hint*
 
 ____
-If you are missing cost units you may add them via the project edit page (with status 'ACTIVE'). +
-If you want to disable cost units you may change the status of such units to 'INACTIVE' or 'ENDED'
+If you are missing cost units you may add them via the project edit page (with status 'active'). +
+If you want to disable cost units you may change the status of such units to 'not active' or 'ended'
 or you may remove them by using the black or white list of the structure element.
 ____
 
@@ -759,7 +802,8 @@ if they have the right to do so (see user administration of ProjectForge®).
 structure element etc.) and an optional payment schedule.
 * Only the financial staff may mark positions and payment schedules as completely invoiced.
 * The export menu offers a *Forecast* of the filtered orders as Excel file. Further statistics such
-as forecast and contribution margin are available under _Finance > Statistics_.
+as forecast and contribution margin are available under _Finance > Statistics_ (or _Project
+management > Statistics_ for users without the finance menu).
 
 === E-mail notification
 
@@ -851,10 +895,12 @@ entry as a series*, enter the interval (*Every N months*) and optionally the *Nu
 installments* (empty means endless).
 
 * The occurrences of a series are shown automatically, they aren't stored.
-* If you open and save a single occurrence (e. g. to change its amount), it becomes an independent
-entry (*Fixed*) which doesn't follow later changes of the series.
+* If you open and save a single occurrence (e. g. to change its amount or to mark it as paid), or
+change or delete it by a mass update, it becomes an independent entry (*Fixed*) which
+doesn't follow later changes of the series.
 * If you change a series, you choose whether the change applies to the whole series or from a given
-date on (*Change from a date on*). In the latter case earlier occurrences keep their values.
+date on (*Change from a date on*). In the latter case earlier occurrences keep their values, and the
+interval can't be changed (the continuation keeps the interval of the series).
 
 ==== Forecast
 
@@ -869,7 +915,8 @@ ProjectForge® additionally calculates the expected dates of payment based on th
 last 12 months of the same:
 
 . Project: Do paid invoices already exist for the same project?
-. Customer number: Do paid invoices already exist for the customer (given by the cost number)?
+. Customer number: Do paid invoices already exist for the same customer (grouped by the customer
+number)?
 . Account: Do paid invoices already exist for the same account?
 . Customer text: Do paid invoices already exist for the customer (full text)?
 . Customer short text: Do paid invoices already exist for the customer (the beginning of the
@@ -879,7 +926,8 @@ If any paid invoice is found (starting with the project), the mean time of payme
 (weighted by amount) is used for calculating the expected date of payment. The same is done for
 incoming invoices.
 
-The liquidity planning is a plugin which is enabled by default, refer to the
+The liquidity planning is a plugin which is activated automatically when ProjectForge® is set up,
+refer to the
 link:/docs/adminguide/#plugins[Admin guide] for managing plugins.
 
 === DATEV import
@@ -1071,16 +1119,22 @@ return export
 You may create zip files containing multiple files (Excel sheets and diagrams). Optionally the
 archive may be encrypted with a password.
 
-[source,groovy,linenums]
+[source,kotlin,linenums]
 ----
-import ...
-ExportZipArchive zip = new ExportZipArchive("my-first-archive") // File name will be: my-first-archive.zip
-ExportWorkbook workbook = new ExportWorkbook(...)
-zip.add("sheet.xls", workbook)
-ExportJFreeChart chart = new ExportJFreeChart(...)
+// org.projectforge.business.scripting.ExportZipArchive and ExcelUtils are imported by default.
+import org.projectforge.export.ExportJFreeChart
+
+val zip = ExportZipArchive("my-first-archive") // File name will be: my-first-archive.zip
+val workbook = ExcelUtils.prepareWorkbook("sheet.xlsx")
+// ... fill the workbook, see above
+zip.add("sheet.xlsx", workbook)
+val chart = ExportJFreeChart(...)
 zip.add("chart.png", chart)
-return zip
+zip
 ----
+
+The optional parameter `encryptionPassword` (e. g. `ExportZipArchive("my-first-archive",
+encryptionPassword = "...")`) encrypts the archive.
 
 === Nested and indexed properties
 
@@ -1106,7 +1160,8 @@ image::/uploads/userguide/Excel-import-example.png[image]
 |===
 
 The file uploaded to the script is available as variable `file` (byte array) and its name as
-`filename`.
+`filename`. The Groovy example below reads it with `ExportWorkbook`, which supports the .xls format
+only.
 
 [source,groovy,linenums]
 ----
@@ -1119,7 +1174,7 @@ ExportSheet sheet = workbook.getSheet("Sheet-1") // Gets sheet with the given ti
 result = ""
 total = 0.0
 
-for (int i = 1; i < sheet.rows.size; i++) {
+for (int i = 1; i < sheet.rows.size(); i++) {
   row = sheet.getRow(i)
   no = row.getCell(0).getNumericCellValue()
   name = row.getCell(1).getStringCellValue()

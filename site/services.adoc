@@ -1,5 +1,8 @@
 ---
 layout: page
+title: Professional services
+description: "Hosting, introduction, data import, integration, support and extensions for ProjectForge – optional services from Micromata, the team that builds it."
+hide_title: true
 width: small
 hero:
     title: Professional services
@@ -13,7 +16,7 @@ Everything on this page is optional and offered on request. The software itself 
 == What we offer
 
 Hosting:: We run your ProjectForge instance, install updates and take care of backups and monitoring.
-Introduction:: We help you set up your task tree, groups and access rights, cost accounting and leave management, so you can get started quickly and on solid ground.
+Introduction:: We help you set up your structure tree, groups and access rights, cost accounting and leave management, so you can get started quickly and on solid ground.
 Data import:: We bring over customers, projects, orders, timesheets or accounting data from your current tools and spreadsheets.
 Integration:: We connect ProjectForge to LDAP, Keycloak or Authentik, your mail server, DATEV workflows or your phone system.
 Support:: Response times and contact channels that fit your business.
@@ -27,3 +30,4 @@ We have used ProjectForge to run our own company every day since 2001.
 == Get in touch
 
 Tell us what you need in a https://github.com/micromata/projectforge/issues/new[GitHub issue], and we'll get back to you.
+GitHub issues are public, so please don't post anything confidential there. For confidential requests, use the contact details in our link:/misc/imprint.html[imprint].

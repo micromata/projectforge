@@ -37,8 +37,14 @@ The data was designed for 2026-10-13; the scripts shift all dates relative to to
      projectforge.development.mode=false
      projectforge.logoFile=
      projectforge.logoFileDark=
+     projectforge.support.mail=support@example.org
+     mail.session.pfmailsession.emailEnabled=true
+     mail.session.pfmailsession.smtp.host=localhost
+     mail.session.pfmailsession.smtp.port=2525
      ```
-     (no development badge, no company logo; this deactivates the E2E accounts, `laura` is not affected)
+     (no development badge, no company logo; this deactivates the E2E accounts, `laura` is not affected. The mail
+     settings activate the error digest job of the system dashboard; nothing listens on port 2525, so no mail is sent.
+     A later `emailEnabled=false` in the file wins, remove it.)
    - move customer specific texts away, if the home was copied from a productive one:
      `mv ~/ProjectForge-5/resources/CustomerI18nResources*.properties ~/ProjectForge-5/resources-disabled/`
 4. Start it again (`bin/pfDev.sh run 5`). The restart activates the plugin changes of step 2 and runs the plugin

@@ -19,7 +19,8 @@ link:/docs/installation/[Installation]. The steps below are for developers who w
 
 What you need:
 
-* a JDK 17 (the code is compiled for Java 17, see link:/docs/technologies/[Technologies]),
+* a JDK 17 or newer, JDK 21 recommended (the code is compiled for Java 17, see
+  link:/docs/technologies/[Technologies]),
 * git,
 * Node.js with npm, only for the Next.js dev server (`bin/pfDev.sh dev`); the Gradle build downloads its own
   Node.js.
@@ -77,8 +78,11 @@ export and served by Spring Boot under `/next` -- no Node.js process in producti
 `projectforge-next`.
 
 |`projectforge-jcr`, `projectforge-carddav`, `projectforge-idp`
-|Attachments (Apache Jackrabbit Oak), CardDAV for addresses, user and group sync with an identity provider
-(Keycloak, authentik).
+|The JCR document store (Apache Jackrabbit Oak) of existing installations, CardDAV for addresses, user and group
+sync with an identity provider (Keycloak, authentik). Attachments are stored by the file store configured with
+`projectforge.files.store`: `db` (default for new installations) keeps documents in the database and
+DataTransfer files in the file system; `jcr` is only used by existing installations with JCR data, whose files
+are migrated to `db` on start-up when switched.
 
 |`plugins/*`
 |The built-in plugins, see <<Writing own plugins>>.
@@ -162,7 +166,7 @@ used as well, and new code is written in Kotlin.
 
 Java and Kotlin sources are both compiled for Java 17 (`jvmTarget = 17`, see
 `buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 17 or
-newer.
+newer. Micromata runs ProjectForge in production on Java 21, the Docker image is based on Eclipse Temurin 21.
 
 === Entities (BaseDO)
 
@@ -258,6 +262,9 @@ user and the saved filter favorites.
 
 |`DELETE rs/book/markAsDeleted`, `PUT rs/book/undelete`, `DELETE rs/book/delete`
 |Marks a historizable entity as deleted, restores it, or deletes a non-historizable entity.
+
+|`DELETE rs/book/forceDelete`
+|Deletes the entity irrevocably including its history (e. g. for privacy protection), if the DAO supports it.
 
 |`GET rs/book/history/{id}`
 |The history of changes of the given entity.
@@ -371,14 +378,14 @@ completely.
 
 == Writing own plugins
 
-The built-in plugins live in `plugins/` as Gradle modules (e. g. `org.projectforge.plugins.memo`, a small
-example, or `org.projectforge.plugins.todo`) and are included in the application. A plugin consists of:
+The built-in plugins live in `plugins/` as Gradle modules (e. g. `org.projectforge.plugins.skillmatrix` or
+`org.projectforge.plugins.licensemanagement`) and are included in the application. A plugin consists of:
 
 * a class extending `AbstractPlugin`, registered in
   `src/main/resources/META-INF/services/org.projectforge.plugins.core.AbstractPlugin` (Java `ServiceLoader`),
   which registers DAOs, menu entries, access rights and i18n bundles in `initialize()`,
 * its entities, DAOs and REST classes, built like the core entities above,
-* its own i18n bundles (e. g. `MemoI18nResources.properties`),
+* its own i18n bundles (e. g. `SkillMatrixI18nResources.properties` with `_de` and `_en` variants),
 * its frontend pages in `projectforge-next` (`components/features/<plugin>/` and the routes in
   `app/(authenticated)/`), if it has been migrated.
 
@@ -394,7 +401,9 @@ activates all plugins, e. g. on test instances.
   `./gradlew :projectforge-business:test`.
 * *Frontend unit tests:* Vitest, `npm test` in `projectforge-next/`.
 * *End-to-end tests:* Playwright, in `projectforge-next/e2e/`. `bin/pfDev.sh e2e` runs them against Spring
-  Boot (the static export of the last build), `bin/pfDev.sh e2e --dev` against the dev server. A running
+  Boot; it refreshes the static export first (`:projectforge-application:processResources`, a no-op if
+  current). `bin/pfDev.sh e2e --dev` runs them against the dev server, `bin/pfDev.sh e2e:ui` in Playwright's
+  UI mode. A running
   instance in development mode (`projectforge.development.mode=true`) creates its test accounts itself and
   writes their credentials into `testAccounts.txt` of its home directory. Details are in
   `projectforge-next/CLAUDE.md`.
@@ -435,6 +444,10 @@ continuation indent 4); newer Kotlin code uses 4-space indentation. All source f
 license header. The frontend is formatted with Prettier and checked with ESLint (`bin/pfDev.sh check`).
 
 === Working with different databases for testing
+
+A psql client against a PostgreSQL container named `projectforge-postgres` (the client image only needs to
+be a recent PostgreSQL version, it doesn't have to match the server's):
+
 ```
 docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:16 psql -h postgres -U projectforge
 ```
@@ -451,7 +464,9 @@ For a quick test system without PostgreSQL, use a slot instance with HSQLDB and 
 `bin/pfDev.sh` builds and starts the backend, the Next.js dev server and the e2e tests from any working
 directory (`bin/pfDev.sh help` lists all commands). Further commands: `gen` (generated files, see
 <<Generated files and i18n>>), `check` (TypeScript, ESLint, Prettier of the frontend), `build` (`next build`),
-`ps` (list the running servers of all slots), `stop [slot]` and `release`/`publish` (release workflow).
+`e2e:ui` (e2e tests in Playwright's UI mode), `ps` (list the running servers of all slots), `stop [slot]`,
+`changelog-fold [id]` (moves `changelog/unreleased/` into a release entry, done by `release` itself) and
+`release`/`publish` (release workflow).
 
 A _slot_ number (1–9) as the first argument after the
 command runs a complete, independent stack beside the main instance, e.g. one per git worktree or branch:
