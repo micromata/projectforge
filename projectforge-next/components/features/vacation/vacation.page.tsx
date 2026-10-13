@@ -189,19 +189,17 @@ export const VACATION_PAGE = definePage<
           { name: "manager", startsRow: true },
           { name: "replacement" },
           { custom: VacationOtherReplacementsField, span: 2 },
+          // Who is away when, right where the period and the substitutes are chosen.
+          { custom: VacationOverlapChart, span: 4 },
           { name: "comment", span: 4, rows: 4 },
         ],
       },
       {
         id: "vacationsOfReplacements",
         titleKey: "vacation.vacationsOfReplacements",
-        // The chart for the overview, the table for the details (and for screen readers).
-        render: () => (
-          <>
-            <VacationOverlapChart />
-            <VacationsOfReplacements />
-          </>
-        ),
+        // The details of the vacations the chart above the comment shows (and the chart's text for screen
+        // readers).
+        render: () => <VacationsOfReplacements />,
       },
     ],
   },

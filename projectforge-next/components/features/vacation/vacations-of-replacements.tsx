@@ -11,6 +11,8 @@ import { useVacationStats } from "./use-vacation-stats";
 
 type Row = VacationDetail & { index: number };
 
+const PINNED = { left: ["employee"] };
+
 /**
  * The vacations of the replacements overlapping this one — the React form's grid below the fields, which
  * tells why there is a conflict and whom to pick instead. Dates and days as the backend formatted them.
@@ -81,6 +83,8 @@ export function VacationsOfReplacements() {
         showPagination={false}
         dense
         autoHeight
+        // The employee stays at the left while the other columns scroll.
+        columnPinning={PINNED}
         getRowId={(row) => String(row.id ?? row.index)}
         emptyState={
           <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
