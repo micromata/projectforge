@@ -7,6 +7,7 @@
       "title": "ProjectForge 9.0.5 released",
       "tag": "9.0.5-RELEASE",
       "downloadLink": true,
+      "sha256": "044f60907c25c056a44baf6d457c6b951190ef7fd36f795359bbf044026086a0",
       "summary": [
         "**Vacation** booked as time sheets automatically",
         "**Admin log viewer** with log file search, now in the system dashboard",

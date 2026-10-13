@@ -15,6 +15,9 @@ What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
 [.changelog-source]
 __2026-10-13, tag https://github.com/micromata/projectforge/tree/9.0.5-RELEASE[9.0.5-RELEASE]__ +++{% include release-pills.html tag="9.0.5-RELEASE" docker="9.0.5" %}+++
 
+[.changelog-checksum]
+SHA-256 of projectforge-application-9.0.5.jar: `+044f60907c25c056a44baf6d457c6b951190ef7fd36f795359bbf044026086a0+`
+
 - **Vacation** booked as time sheets automatically
 - **Admin log viewer** with log file search, now in the system dashboard
 - **My account** in the new interface
