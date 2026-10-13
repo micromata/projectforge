@@ -43,7 +43,8 @@ object ExchangeRateLogEvents {
         code = "fibu.exchangeRate.unexpectedResponse",
         category = LogCategory.EXTERNAL,
         notify = LogNotify.DIGEST_IF_NEW,
-        explanation = "The exchange rate API answered, but the response couldn't be parsed. The API may have changed.",
+        explanation = "The exchange rate API answered with an unexpected HTTP status (e.g. moved/deprecated endpoint) or " +
+                "a response that couldn't be parsed. The API may have changed; no rate is suggested.",
         action = "Compare the response format of the exchange rate API with ExchangeRateApiService.",
     )
 }
