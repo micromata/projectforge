@@ -108,6 +108,15 @@ class OrphanedLinkFilter : Filter {
             val userId = servletRequest.getParameter("userId")?.toLongOrNull()
             val query = if (userId != null) "?userId=$userId" else ""
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$page$query")
+        } else if (uri.endsWith("/react/vacationAccount") || uri.contains("/react/vacationAccount/")) {
+            // Old dynamic React page of the vacation account, migrated to projectforge-next. The React page was
+            // removed, so there is no "classic version" escape hatch. The employee (HR staff, as path segment
+            // react/vacationAccount/dynamic/<id> or as `?id=`) is interpolated into the Location header, so only a
+            // number is passed on.
+            val employeeId = uri.substringAfter("/react/vacationAccount/dynamic/", "").substringBefore('/')
+                .toLongOrNull() ?: servletRequest.getParameter("id")?.toLongOrNull()
+            val query = if (employeeId != null) "?employeeId=$employeeId" else ""
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationAccount$query")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

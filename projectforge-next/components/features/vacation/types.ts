@@ -89,4 +89,8 @@ export interface VacationDetail extends VacationFormStats {
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
 export interface VacationListRow extends VacationDetail {
   id: number;
+  /** The weekends and holidays of the period (ISO dates), for the bar of the list. */
+  nonWorkingDays?: string[] | null;
+  /** The days without any substitute on duty (ISO dates), only on a conflict. */
+  uncoveredDays?: string[] | null;
 }

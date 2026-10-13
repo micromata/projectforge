@@ -99,7 +99,11 @@ test.describe("vacation", { tag: "@lane-vacation" }, () => {
       exact: true,
     });
     await expect(workingDays).toHaveText(/^5([.,]0+)?$/, { timeout: 20_000 });
-    await page.getByLabel(label(format, "vacation.halfDayEnd")).check();
+    // Both half day boxes are labelled "half day": the end's is the one in the end date's group.
+    await page
+      .locator('[data-field="halfDayEnd"]')
+      .getByRole("checkbox")
+      .check();
     await expect(workingDays).toHaveText(/^4[.,]5$/, { timeout: 20_000 });
     // The chart over the week with three days around it, the vacation itself in the first row.
     const chart = page.getByRole("img", {

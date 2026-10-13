@@ -18,6 +18,7 @@ import {
 import { VacationStatusField } from "./vacation-status-field";
 import { emptyVacationValues, toFormValues } from "./vacation-values";
 import { VacationOverlapChart } from "./vacation-overlap-chart";
+import { VacationDaysBar } from "./vacation-days-bar";
 import { VacationsOfReplacements } from "./vacations-of-replacements";
 import type { VacationDetail, VacationListRow } from "./types";
 
@@ -86,12 +87,20 @@ export const VACATION_PAGE = definePage<
       cell: ({ row }) => displayName(row.original.manager),
     },
     {
-      // Computed from the period (VacationService.getVacationDays), sorted by that number on the server.
+      // Computed from the period (VacationService.getVacationDays), sorted by that number on the server. Beside
+      // the number the period as a bar, red on the days without any substitute on duty.
       id: "workingDaysFormatted",
       labelKey: "vacation.Days",
-      size: 100,
-      align: "right",
+      size: 220,
       accessor: (row) => row.workingDaysFormatted ?? "",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <span className="w-8 shrink-0 text-right tabular-nums">
+            {row.original.workingDaysFormatted}
+          </span>
+          <VacationDaysBar row={row.original} />
+        </div>
+      ),
     },
     { name: "comment", size: 260, wrap: true },
   ],
@@ -116,12 +125,14 @@ export const VACATION_PAGE = definePage<
         .join(", "),
     newTitleKey: "vacation.title.add",
     savedMessageKey: "message.successfullChanged",
-    // The vacation account (still React, VacationAccountPageRest) adds an entry for the employee it shows.
+    // The vacation account (VacationAccountRest) adds an entry for the employee it shows.
     newEntryParams: ["employee"],
-    // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts).
+    // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts), the
+    // vacation account with `?returnTo=/vacationAccount` (VacationAccountRest.vacationEditUrl).
     returnTargets: [
       { route: "/vacation", labelKey: "vacation.title.list" },
       { route: "/calendar", labelKey: "menu.calendar" },
+      { route: "/vacationAccount", labelKey: "menu.vacation.leaveaccount" },
     ],
     editIntro: VacationConflictNotice,
     sections: [
@@ -129,20 +140,56 @@ export const VACATION_PAGE = definePage<
         id: "general",
         // The bare key of a namespace with children; the section takes its leaf (leafKeyOf).
         titleKey: "vacation",
+        // Four columns: who, how many days and the status in one packed line, each field as wide as its value;
+        // then the period with its half days and the special leave, packed the same way (so "half day" stays
+        // beside its date wherever there is room); then who agrees and who substitutes; then the comment.
+        columns: 4,
         fields: [
-          { custom: VacationEmployeeField },
-          { custom: VacationWorkingDaysField },
-          { custom: VacationDaysLeftField },
-          { name: "startDate", startsRow: true },
-          { name: "halfDayBegin" },
-          { name: "endDate", startsRow: true },
-          { name: "halfDayEnd" },
+          {
+            group: [
+              { custom: VacationEmployeeField },
+              { custom: VacationWorkingDaysField },
+              { custom: VacationDaysLeftField },
+              { custom: VacationStatusField },
+            ],
+            packed: true,
+            span: 4,
+          },
+          {
+            // Each date with its half day box as a pair of its own: the line breaks between them, not
+            // inside one.
+            group: [
+              {
+                group: [
+                  { name: "startDate" },
+                  {
+                    name: "halfDayBegin",
+                    labelKey: "vacation.halfDay",
+                    hintKey: "vacation.halfDayBegin.tooltip",
+                  },
+                ],
+                packed: true,
+              },
+              {
+                group: [
+                  { name: "endDate" },
+                  {
+                    name: "halfDayEnd",
+                    labelKey: "vacation.halfDay",
+                    hintKey: "vacation.halfDayEnd.tooltip",
+                  },
+                ],
+                packed: true,
+              },
+              { name: "special" },
+            ],
+            packed: true,
+            span: 4,
+          },
           { name: "manager", startsRow: true },
-          { name: "special" },
-          { name: "replacement", startsRow: true },
-          { custom: VacationStatusField },
-          { custom: VacationOtherReplacementsField, span: 3, startsRow: true },
-          { name: "comment", span: 3, rows: 4 },
+          { name: "replacement" },
+          { custom: VacationOtherReplacementsField, span: 2 },
+          { name: "comment", span: 4, rows: 4 },
         ],
       },
       {

@@ -8,7 +8,8 @@ import { DeclaredFormField, fieldKey } from "./declared-form-field";
 const GRID = "grid grid-cols-1 gap-x-6 gap-y-4";
 
 /**
- * The fields of a declared section: one three-column grid, or — with an [SectionDef.aside] — the main
+ * The fields of a declared section: one grid of three columns (four, see [SectionDef.columns]), or — with an
+ * [SectionDef.aside] — the main
  * fields in the left two columns and the aside stacked in the third, as two grids of their own so their
  * rows never interleave.
  */
@@ -24,7 +25,11 @@ export function DeclaredSectionFields<M extends EntityMetadata>({
       <FieldGrid
         fields={section.fields}
         metadata={metadata}
-        className="md:grid-cols-3"
+        className={
+          section.columns === 4
+            ? "md:grid-cols-2 lg:grid-cols-4"
+            : "md:grid-cols-3"
+        }
       />
     );
   }

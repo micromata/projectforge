@@ -234,7 +234,7 @@ class OrphanedLinkFilterTest {
     /**
      * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
      * the next pages. The vacation account and the vacation export, whose React routes start with the same name,
-     * are other pages and stay where they are.
+     * are other pages: the export stays where it is, the account has its own rule (see below).
      */
     @Test
     fun `the old react vacation pages are redirected to next`() {
@@ -242,8 +242,29 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/vacation/42", redirectOf("/react/vacation/edit/42"))
         Assertions.assertEquals("/next/vacation/42", redirectOf("/react/vacation/edit/42", mapOf("returnToCaller" to "account")))
         Assertions.assertEquals("/next/vacation/new", redirectOf("/react/vacation/edit"))
-        Assertions.assertNull(redirectOf("/react/vacationAccount/dynamic"))
+        Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationAccount/dynamic"))
         Assertions.assertNull(redirectOf("/react/vacationExport/dynamic"))
+    }
+
+    /**
+     * The old React vacation account is gone; only a numeric employee id (HR staff) is passed on.
+     */
+    @Test
+    fun `the old react vacation account is redirected to next`() {
+        Assertions.assertEquals("/next/vacationAccount", redirectOf("/react/vacationAccount/dynamic"))
+        Assertions.assertEquals("/next/vacationAccount", redirectOf("/react/vacationAccount/dynamic/"))
+        Assertions.assertEquals("/next/vacationAccount", redirectOf("/react/vacationAccount"))
+        Assertions.assertEquals("/next/vacationAccount?employeeId=42", redirectOf("/react/vacationAccount/dynamic/42"))
+        Assertions.assertEquals(
+            "/next/vacationAccount?employeeId=42",
+            redirectOf("/react/vacationAccount/dynamic", mapOf("id" to "42")),
+        )
+        Assertions.assertEquals(
+            "/next/vacationAccount",
+            redirectOf("/react/vacationAccount/dynamic", mapOf("id" to "42&foo=bar")),
+        )
+        Assertions.assertNull(redirectOf("/next/vacationAccount"))
+        Assertions.assertNull(redirectOf("/rs/vacationAccount"))
     }
 
     @Test

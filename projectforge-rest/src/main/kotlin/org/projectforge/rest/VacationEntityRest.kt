@@ -82,8 +82,7 @@ import java.time.temporal.ChronoUnit
  * - the statuses offered are the ones the user may set ([VacationDao.getAllowedStatus]),
  * - the employee is changeable by HR staff only.
  *
- * The vacation account (still React, `VacationAccountPageRest`) links into this page; the way back to it isn't
- * offered until the account is migrated as well.
+ * The vacation account ([VacationAccountRest]) links into this page with `?returnTo=/vacationAccount`.
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacation")
@@ -155,8 +154,29 @@ class VacationEntityRest :
         if (editMode) {
             vacation.employeeEditable = hasHrRights()
             applyStats(vacation, computeStats(vacation, updateCache = true))
+        } else {
+            applyListDays(vacation, obj)
         }
         return vacation
+    }
+
+    /**
+     * The days the list's bar draws the vacation with: its weekends and holidays and, for an entry the conflict cache
+     * flags, its days without any substitute on duty. Only the flagged entries are checked against the vacations of
+     * their substitutes — few, as the cache holds current and future ones only — and nothing is written to the cache.
+     */
+    private fun applyListDays(vacation: Vacation, obj: VacationDO) {
+        val startDate = obj.startDate ?: return
+        val endDate = obj.endDate ?: return
+        if (endDate < startDate || ChronoUnit.DAYS.between(startDate, endDate) > CHART_MAX_DAYS) {
+            return
+        }
+        val holidays = Holidays.instance
+        vacation.nonWorkingDays = generateSequence(startDate) { it.plusDays(1) }.takeWhile { it <= endDate }
+            .filter { !holidays.isWorkingDay(it) }.toList()
+        if (vacation.conflict == true) {
+            vacation.uncoveredDays = vacationService.getVacationOverlaps(obj, updateCache = false).uncoveredDays
+        }
     }
 
     override fun newBaseDTO(request: HttpServletRequest?): Vacation {

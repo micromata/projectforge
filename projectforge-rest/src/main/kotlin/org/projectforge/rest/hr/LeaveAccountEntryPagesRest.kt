@@ -24,15 +24,15 @@
 package org.projectforge.rest.hr
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.rest.VacationAccountPageRest
+import org.projectforge.rest.VacationAccountRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.LeaveAccountEntry
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,8 +103,9 @@ class LeaveAccountEntryPagesRest() : AbstractDTOPagesRest<LeaveAccountEntryDO, L
     }
 
     override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
-        if (returnToCaller == "account") {
-            return ResponseAction(PagesResolver.getDynamicPageUrl(VacationAccountPageRest::class.java, absolute = true))
+        if (returnToCaller == VacationAccountRest.RETURN_TO_CALLER) {
+            // The vacation account is a page of projectforge-next.
+            return ResponseAction("/${Constants.NEXT_APP_PATH}${VacationAccountRest.RETURN_ROUTE.removePrefix("/")}")
         }
         return super.createReturnToCallerResponseAction(returnToCaller)
     }

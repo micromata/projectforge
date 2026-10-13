@@ -5,7 +5,8 @@
       "reason": "Reason"
     },
     "exception": {
-      "noAccess": "No access."
+      "noAccess": "No access.",
+      "noEmployeeToUser": "The user has no employee assigned"
     },
     "permission": {
       "denied": "not granted",
@@ -1230,10 +1231,26 @@
     },
     "employee": {
       "_": "Employee",
+      "accountHolder": "Account holder",
       "austrittsdatum": "Leaving date",
+      "bankAccountData": "Bank account details",
+      "bic": "BIC",
+      "birthday": "Birthday",
+      "city": "City",
+      "coredata": "Core Data",
+      "country": "Country",
       "division": "Division",
       "eintrittsdatum": "Entry date",
+      "error": {
+        "employeWithUserExists": "An employee with this assigned user already exists."
+      },
+      "iban": "IBAN",
+      "insert": {
+        "hint": "Please create a new employee before editing the master data. Master data can only be edited after the employee has been created."
+      },
+      "iststunden": "Actual hours",
       "salaries": {
+        "_": "Salaries",
         "import": {
           "_": "Import of salaries",
           "error": {
@@ -1257,12 +1274,20 @@
         }
       },
       "salary": {
+        "_": "Salary",
+        "agAnteil": "Employers' share",
         "bruttoMitAgAnteil": "Gross with employers' share",
+        "error": {
+          "monthNotGiven": "Please choose month.",
+          "salaryAlreadyExist": "Salary for employee and month does already exist."
+        },
         "exportXls": {
           "tooltip": "Excel export of the salaries. The cost id assignments are included and calculated from the time sheet bookings."
         },
+        "id": "Salary id",
         "title": {
           "add": "Add salary",
+          "edit": "Edit salary",
           "heading": "Salaries",
           "list": "List of salaries"
         },
@@ -1275,7 +1300,9 @@
           "zielvereinbarung": "Target agreement"
         }
       },
+      "sollstunden": "Target hours",
       "staffNumber": "Staff number",
+      "state": "State",
       "status": {
         "_": "Employee Status",
         "aushilfe": "Help",
@@ -1287,9 +1314,17 @@
         "studentischeAbschlussarbeit": "Student research",
         "studentischeHilfskraft": "Student assistant"
       },
+      "street": "Street",
+      "title": {
+        "add": "New employee",
+        "edit": "Edit employee",
+        "heading": "Employees",
+        "list": "List of employees"
+      },
       "urlaubstage": "Annual leave days",
       "user": "User",
-      "wochenstunden": "Hours per week"
+      "wochenstunden": "Hours per week",
+      "zipCode": "Zip code"
     },
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
@@ -2459,7 +2494,13 @@
     "sendSms": "Send SMS",
     "system": "System",
     "taskTree": "Structure tree",
-    "timesheetList": "Time sheets"
+    "timesheetList": "Time sheets",
+    "vacation": {
+      "_": "Application for leave",
+      "lastyear": "Vacation from previous year",
+      "leaveAccountEntry": "Leave account entries",
+      "leaveaccount": "Leave account"
+    }
   },
   "message": {
     "successfullChanged": "Successfully changed.",
@@ -4464,11 +4505,12 @@
     "annualleave": "Number of leave days for the year",
     "availabledays": "Available vacation days",
     "availabledaysAfterThis": "{arg0}, after this application: {arg1}",
+    "availablevacation": "Available vacation",
     "chart": {
       "ariaLabel": "Chart of this vacation and the overlapping vacations of the substitutes",
       "nonWorkingDay": "Weekend or holiday",
       "own": "This vacation",
-      "uncovered": "No substitute on duty"
+      "uncovered": "No substitute"
     },
     "conflict": {
       "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
@@ -4479,6 +4521,7 @@
     "export": {
       "title": "Export of team vacation calendars"
     },
+    "halfDay": "Half day",
     "halfDayBegin": {
       "_": "Half leave day at first day",
       "tooltip": "The first leave day should be treated as half leave day, if it is a workday."
@@ -4489,13 +4532,20 @@
     },
     "hr": "HR",
     "leaveAccountEntry": {
-      "amount": "Correction value"
+      "amount": "Correction value",
+      "title": {
+        "heading": "Leave account entries"
+      }
+    },
+    "leaveaccount": {
+      "title": "Leave account"
     },
     "manager": "Manager",
     "other": "Other",
     "own": "Own",
     "plandannualleave": "Number of planned leave days for the rest of the year",
     "previousyearleave": "Previous year leave",
+    "recalculateRemainingLeave": "Recalculate remaining leave",
     "replacement": {
       "_": "Substitution",
       "others": "Other substitutes"
@@ -4504,6 +4554,8 @@
       "_": "Special leave",
       "tooltip": "Special leave days will be excluded from the vacation account."
     },
+    "specialApproved": "Special leave approved",
+    "specialInProgress": "Special leave in progress",
     "startdate": "Start date",
     "status": {
       "_": "Status",
@@ -4511,10 +4563,17 @@
       "inProgress": "In progress",
       "rejected": "Rejected"
     },
+    "subscription": {
+      "_": "Subscription of employee leave days",
+      "info": "Leave days are displayed on demand in the calendar view. They also may be defined as calendars (see list of calendars) for users and/or groups. These calendars can be subscribed for usage in 3rd party calendar tools."
+    },
+    "subtotal": "Subtotal",
     "title": {
       "add": "Create leave application",
       "list": "Leave application list"
     },
+    "vacationApproved": "Approved Vacation",
+    "vacationInProgress": "Vacation in progress",
     "vacationmode": "Assignment",
     "vacationsOfReplacements": "Vacations of substitutes",
     "workingdays": "Workdays"

@@ -39,6 +39,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -72,6 +73,9 @@ class VacationEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var vacationDao: VacationDao
+
+    @Autowired
+    private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
     @Test
     fun `a new entry is of the own employee unless HR staff presets another one`() {
@@ -302,6 +306,42 @@ class VacationEntityRestTest : AbstractTestBase() {
     }
 
     /** An employee with a user of its own and 30 days of annual leave; HR staff with the HR vacation right. */
+    @Test
+    fun `the list tells the weekends and the days without any substitute on duty`() {
+        val own = createEmployee("bar-own")
+        val other = createEmployee("bar-other")
+        val hr = createEmployee("bar-hr", hrAccess = true)
+        // Monday to Sunday of a week of February, years ahead; the substitute is away Wednesday to Friday.
+        val monday = LocalDate.of(LocalDate.now().year + 4, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, monday, monday.plusDays(6)))
+        val otherId = vacationDao.insert(vacation(other, replacement = hr, monday.plusDays(2), monday.plusDays(4)))
+        conflictingVacationsCache.forceReload()
+
+        val listed = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = false)
+        assertEquals(true, listed.conflict)
+        assertEquals(listOf(monday.plusDays(5), monday.plusDays(6)), listed.nonWorkingDays)
+        assertEquals((2L..4L).map { monday.plusDays(it) }, listed.uncoveredDays)
+        val free = vacationEntityRest.transformFromDB(vacationDao.find(otherId)!!, editMode = false)
+        assertEquals(null, free.uncoveredDays, "No conflict: the substitute of the other is on duty.")
+        assertEquals(emptyList<LocalDate>(), free.nonWorkingDays)
+    }
+
+    private fun vacation(
+        employee: EmployeeDO,
+        replacement: EmployeeDO,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ) = VacationDO().also {
+        it.employee = employee
+        it.manager = replacement
+        it.replacement = replacement
+        it.startDate = startDate
+        it.endDate = endDate
+        it.status = VacationStatus.APPROVED
+        it.special = true
+    }
+
     private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         logon(TEST_ADMIN_USER)

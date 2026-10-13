@@ -69,19 +69,23 @@ export function VacationsOfReplacements() {
       column("workingDays", (r) => r.workingDaysFormatted, 90),
     ];
   }, [headerKey]);
+  // Scrolls sideways in its own box, as the chart above it does: an autoHeight table leaves the scrolling to the
+  // page, which would let its columns run out of the section.
   return (
-    <DataTable
-      columns={columns}
-      data={rows}
-      enableColumnFilters={false}
-      manualSorting={false}
-      showPagination={false}
-      dense
-      autoHeight
-      getRowId={(row) => String(row.id ?? row.index)}
-      emptyState={
-        <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
-      }
-    />
+    <div className="min-w-0 overflow-x-auto">
+      <DataTable
+        columns={columns}
+        data={rows}
+        enableColumnFilters={false}
+        manualSorting={false}
+        showPagination={false}
+        dense
+        autoHeight
+        getRowId={(row) => String(row.id ?? row.index)}
+        emptyState={
+          <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+        }
+      />
+    </div>
   );
 }
