@@ -27,6 +27,8 @@ import java.lang.management.ManagementFactory
 import java.lang.management.MemoryType
 
 class MemoryStatisticsBuilder : SystemsStatisticsBuilderInterface {
+  override val group = "memory"
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     // Second: run GC and measure memory consumption before getting database statistics.
     System.gc()

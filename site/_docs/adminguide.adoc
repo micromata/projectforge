@@ -390,14 +390,12 @@ All options are listed in `application.properties` (`projectforge.sms.*`).
 With the phone lookup service, a telephony system (such as Asterisk) may look up the caller of incoming phone calls:
 `https://projectforge.acme.com/rsPublic/phoneLookup?nr=<number>&key=<key>`. Wrong keys are delayed like failed logins.
 
-The built-in `application.properties` contains a placeholder key, and only a blank key disables the service. So set
-your own random secret key in `projectforge.properties` (e.g. generated with `openssl rand -hex 32`), or an empty
-value if you don't use the phone lookup:
+The service is disabled as long as no key is configured (the default is empty). For enabling it, set your own long
+random secret key in `projectforge.properties` (e.g. generated with `openssl rand -hex 32`):
 
 [source,properties,linenums]
 ----
-# Your own random secret, or empty for disabling the phone lookup:
-projectforge.phoneLookupKey=
+projectforge.phoneLookupKey=<your-random-secret>
 ----
 
 === business assessment / BWA
