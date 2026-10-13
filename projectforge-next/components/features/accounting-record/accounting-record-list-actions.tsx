@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FileImportIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import { ExcelExportMenu } from "@/components/shared/export-menu";
 import { downloadListExcel } from "@/lib/rs/list-export";
 import type { MagicFilter } from "@/lib/rs/types";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
@@ -27,9 +27,6 @@ export function AccountingRecordListActions({
   const router = useRouter();
   return (
     <>
-      <ExcelExportButton
-        download={() => downloadListExcel("accountingRecord", filter)}
-      />
       <Button
         type="button"
         variant="outline"
@@ -38,6 +35,9 @@ export function AccountingRecordListActions({
         <HugeiconsIcon icon={FileImportIcon} />
         {t("import._")}
       </Button>
+      <ExcelExportMenu
+        download={() => downloadListExcel("accountingRecord", filter)}
+      />
     </>
   );
 }

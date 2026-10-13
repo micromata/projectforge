@@ -28,6 +28,7 @@ import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminErrorsRest
 import org.projectforge.rest.admin.AdminLogViewerRest
+import org.projectforge.rest.admin.AdminSchedulerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.importer.DatevAccountImportRest
@@ -39,10 +40,10 @@ import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.HRViewRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
-import org.projectforge.rest.scripting.MyScriptExecutePageRest
-import org.projectforge.rest.scripting.MyScriptPagesRest
-import org.projectforge.rest.scripting.ScriptExecutePageRest
-import org.projectforge.rest.scripting.ScriptPagesRest
+import org.projectforge.rest.scripting.MyScriptEntityRest
+import org.projectforge.rest.scripting.MyScriptExecuteRest
+import org.projectforge.rest.scripting.ScriptEntityRest
+import org.projectforge.rest.scripting.ScriptExecuteRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import jakarta.annotation.PostConstruct
@@ -78,6 +79,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       AdminErrorsRest::class.java,
+      AdminSchedulerRest::class.java,
       GroupAccessEntityRest::class.java,
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
@@ -163,26 +165,15 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.SCRIPT,
-      ScriptPagesRest::class.java,
-      MyScriptPagesRest::class.java,
-      MyScriptExecutePageRest::class.java,
-      ScriptExecutePageRest::class.java,
+      ScriptEntityRest::class.java,
+      MyScriptEntityRest::class.java,
+      MyScriptExecuteRest::class.java,
+      ScriptExecuteRest::class.java,
     )
     registerShortCutClasses(
       My2FAShortCut.MY_ACCOUNT,
-      MyAccountPageRest::class.java,
+      MyAccountRest::class.java,
       // My2FASetupPageRest::class.java, // Check done by this page itself.
-      TokenInfoPageRest::class.java,
-    )
-    // UserServicesRest shares its @RequestMapping with UserPagesRest (/rs/user), so these methods are already
-    // covered by the ADMIN registration above - by accident and with the wrong period. They are self service
-    // calls, so they belong to MY_ACCOUNT: an installation configuring MY_ACCOUNT but not ADMIN would leave
-    // them ungated otherwise. Both registrations may match, the shorter period wins (My2FARequestHandler
-    // iterates the periods from minutes1 to days90).
-    registerShortCutMethods(
-      My2FAShortCut.MY_ACCOUNT,
-      UserServicesRest::renewToken,
-      UserServicesRest::logoutAllDevices,
     )
     // Logging other users out of all their devices is an admin operation on foreign accounts:
     registerShortCutMethods(My2FAShortCut.ADMIN_WRITE, UserServicesRest::logoutAllDevicesOfUser)

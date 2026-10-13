@@ -711,6 +711,46 @@ class ForecastExportTest : AbstractTestBase() {
         assertAmounts(withoutPlan.total, withPlan.plan!!, "Plan")
     }
 
+    /**
+     * With a snapshot date the forecast is calculated from the snapshot's version of the selected orders, not from
+     * their current one.
+     */
+    @Test
+    fun snapshotDateUsesSnapshotOrdersTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-2)
+        val order = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1000.0, baseDate,
+            baseDate, today.plusMonths(3), baseDate.plusMonths(1)
+        )
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
+        fun statistics(snapshotDate: LocalDate?) = forecastExport.statistics(
+            listOf(auftragDao.find(order.id)!!), baseDate.localDate, unfiltered = false,
+            distributeUnusedBudget = true, snapshotDate = snapshotDate,
+        )!!.chart
+        val beforeChange = statistics(null)
+
+        val changed = auftragDao.find(order.id)!!
+        changed.getPosition(1)!!.nettoSumme = BigDecimal(12000.0)
+        auftragDao.update(changed)
+        auftragsCache.setExpired()
+        val current = statistics(null)
+        val fromSnapshot = statistics(today.localDate)
+
+        Assertions.assertNotEquals(
+            beforeChange.total.sumOf { it }.setScale(2, RoundingMode.HALF_UP),
+            current.total.sumOf { it }.setScale(2, RoundingMode.HALF_UP),
+            "The change of the order must change the current forecast.",
+        )
+        Assertions.assertNull(current.snapshotDate)
+        Assertions.assertEquals(today.localDate, fromSnapshot.snapshotDate)
+        assertAmounts(beforeChange.total, fromSnapshot.total, "Total of the snapshot")
+        assertAmounts(beforeChange.ist, fromSnapshot.ist, "IST of the snapshot")
+    }
+
     private fun assertAmounts(expected: List<BigDecimal>, actual: List<BigDecimal>, name: String) {
         Assertions.assertEquals(
             expected.map { it.setScale(2, RoundingMode.HALF_UP) },

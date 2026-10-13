@@ -82,6 +82,13 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
     val typ: RechnungTyp? = (invoice as? RechnungDO)?.typ
 
     /**
+     * A cancelled invoice and its cancellation are settled by each other: nothing is due, so both count as
+     * paid and neither adds to the open amount.
+     */
+    val isSettledByCancellation: Boolean
+        get() = status == RechnungStatus.STORNIERT || typ == RechnungTyp.CANCELLATION
+
+    /**
      * @return The total sum of all cost assignment net amounts of all positions.
      */
     var kostZuweisungenNetSum = BigDecimal.ZERO

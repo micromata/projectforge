@@ -1,0 +1,45 @@
+# Text sections of the home page, rendered by _includes/text-section.html
+
+dach:
+  title: Speaks DATEV. Knows XRechnung.
+  subtitle: Made for companies in Germany, Austria, Switzerland and the EU.
+  text: >-
+    Import your DATEV accounting records and incoming invoices, export salaries, create PEPPOL-ready
+    e-invoices in XRechnung and ZUGFeRD, checked for completeness before export. Public holidays, leave accounts and an
+    English/German interface are built in. And because ProjectForge runs on your own server,
+    GDPR is a matter of your own policies – not of someone else's cloud.
+  img: screenshots/2026-Liquidity.png
+  img_caption: The liquidity forecast combines invoices, expected payments and recurring series.
+
+security:
+  title: Sleep well, admins.
+  subtitle: ProjectForge fits into your IT – not the other way round.
+  bullets:
+    - "**Single sign-on** with Keycloak or Authentik, or LDAP – as client or as master."
+    - "**Two-factor login** with authenticator apps, WebAuthn security keys, mail or SMS codes."
+    - "**Fine-grained rights** down to single tasks, and every change is kept in the history."
+    - "**Docker image or JAR**, PostgreSQL, automatic database migrations."
+    - "**System dashboard** that collects problems and mails you a digest – before your users notice."
+  img: screenshots/2026-SystemDashboard.png
+  img_caption: The system dashboard shows problems, caches and every scheduled job.
+  button_text: Installation guide
+  button_url: /docs/installation/
+
+proof:
+  title: Battle-tested since 2001.
+  text: >-
+    ProjectForge started as Micromata's own tool – and it still runs our company every day, from the
+    first timesheet in the morning to the yearly forecast. We develop it because we need it, and we
+    share it because good software gets better when others use it too. Version 9 (2026) brought a
+    completely new, modern interface on an up-to-date technology stack.
+  button_text: What's new
+  button_url: /changelog-posts/
+
+services:
+  title: Want a hand? We're here.
+  text: >-
+    We built ProjectForge, so we know it best. On request we host your instance, help you set up
+    structures, rights and cost accounting, import your existing data, connect LDAP or single sign-on,
+    or build the extensions you need.
+  button_text: Professional services
+  button_url: /services/

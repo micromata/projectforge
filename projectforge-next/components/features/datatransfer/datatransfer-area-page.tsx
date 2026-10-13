@@ -20,13 +20,14 @@ import {
   dataTransferTabs,
   resolveDataTransferTab,
 } from "./datatransfer-area-tabs";
+import { DataTransferAuditTab } from "./datatransfer-audit-tab";
 import { DataTransferEditTab } from "./datatransfer-edit-tab";
 import { DataTransferFilesActions } from "./datatransfer-files-actions";
 import { DataTransferFilesInfo } from "./datatransfer-files-info";
 import { DataTransferFilesTab } from "./datatransfer-files-tab";
 
 /**
- * One area (`/datatransfer/{id}`): its files, its info and — for who may change it — its admin form,
+ * One area (`/datatransfer/{id}`): its files, its info, its activities and — for who may change it — its admin form,
  * as tabs in `?tab=` so a tab can be linked and the back button works. The page every user with access
  * works on, admin or not.
  *
@@ -103,6 +104,9 @@ export function DataTransferAreaPage({ id }: { id: number }) {
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <DataTransferFilesInfo view={view} />
             </div>
+          )}
+          {activeTab === DATA_TRANSFER_TAB.audit && (
+            <DataTransferAuditTab id={areaId} />
           )}
           {editMounted && view.editAccess && (
             <Activity

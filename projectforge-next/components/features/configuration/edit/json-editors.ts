@@ -3,6 +3,8 @@ import { CONTRIBUTION_MARGIN_PARAM } from "../contribution-margin-config";
 import { LANES_AND_PLANES_PARAM } from "../lanes-and-planes-config";
 import { ContributionMarginConfigEditor } from "./contribution-margin-config-editor";
 import { LanesAndPlanesConfigEditor } from "./lanes-and-planes-config-editor";
+import { FORECAST_PARAM } from "../forecast-config";
+import { ForecastConfigEditor } from "./forecast-config-editor";
 
 /** What the editor of a JSON parameter gets; it binds to the form value `stringValue` itself. */
 export interface JsonEditorProps {
@@ -18,4 +20,5 @@ export interface JsonEditorProps {
 export const JSON_EDITORS: Record<string, ComponentType<JsonEditorProps>> = {
   [CONTRIBUTION_MARGIN_PARAM]: ContributionMarginConfigEditor,
   [LANES_AND_PLANES_PARAM]: LanesAndPlanesConfigEditor,
+  [FORECAST_PARAM]: ForecastConfigEditor,
 };

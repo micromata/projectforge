@@ -445,10 +445,23 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
   `NextMigration.MIGRATED` (keine Entity-Seite).
 - **Log-Viewer** – `next/logViewer/<id>` (eigenes `LogSubscription`, Link via
-  `LogViewerRest.viewerUrl`) und `next/adminLogViewer` (Menü `ADMIN_LOG_VIEWER`). Layoutfreie
+  `LogViewerRest.viewerUrl`) und für Admins der Tab `next/systemDashboard?tab=logs` (Live aus dem
+  Speicher, `&source=files` Suche in den Logdateien mit Kontext, `&incident=<id>` Vorkommen einer Störung;
+  vormals `next/adminLogViewer`, Redirect über `OrphanedLinkFilter`, Menü `ADMIN_LOG_VIEWER` entfernt). Layoutfreie
   Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
   (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
   Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
+- **System-Dashboard** – `next/systemDashboard` (vormals `next/problemDashboard`, Menü `ADMIN_ERRORS`):
+  Tabs Übersicht und Probleme (nur Admins) sowie Systemstatistik (`?tab=statistics`; Nicht-Admins
+  sehen nur diesen Tab). Der eigene Menüeintrag `SYSTEM_STATISTICS` samt
+  `projectforge.menu.visibility.systemStatistics` ist entfernt.
+  Layoutfreier Endpunkt `SystemStatisticsRest` (`/rs/systemStatistics/sections`,
+  `…/section/{id}`): ein Abschnitt pro `SystemsStatisticsBuilderInterface` (`id`, `adminOnly`),
+  parallel geladen, damit schnelle Abschnitte nicht auf GC/Plattenbelegung warten. Einträge können
+  ein `gauge` (used/max) tragen → `FillLevelBar` (`components/shared/`). Nicht-Admins bekommen nur
+  den Datenbank-Abschnitt mit Whitelist-Einträgen. `SystemStatisticPageRest` entfernt,
+  `react/systemStatistics/**`, `next/systemStatistics` und `next/problemDashboard` leitet
+  `OrphanedLinkFilter` um.
 - **Kalender-Beiwerk (ICS)** – die letzten Kalenderfunktionen, die nur Wicket hatte:
   **ICS-Import** `next/teamCalImport?teamCalId=` (`TeamEventImportRest` über das gemeinsame
   `ImportFeature` mit Diff-Vorschau; Abgleich per UID im Zielkalender, Ziel vor und nach dem Upload
@@ -512,6 +525,29 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Der Login läuft ohne Frontend-Änderung: der verweigerte RSC-Abruf von `/next/login` fällt auf einen
   vollen Seitenaufruf zurück, den `GatewayPageController` bedient. Unverändert in React bleibt der
   öffentliche externe Zugang (`/react/public/datatransfer`, `restPublic`).
+- **Scripte** (`script`, `myscript`; vorher React-UILayout) – layoutfrei: Liste + Formular der
+  Administration (`ScriptEntityRest`, `/rs/script`, Klonen, Beispiele, Backup-/Effektiv-Download),
+  „Meine Scripte" als reine Liste (`MyScriptEntityRest`, `foreignEdit`) und die Ausführung
+  (`ScriptExecuteRest` / `MyScriptExecuteRest`, `load`/`execute`/`refresh`/`download`). Routen: ein
+  Zeilenklick führt wie in React zur Ausführung (`script/{id}`, `myscript/{id}`), das Formular ist
+  `script/{id}/edit`, neu `script/new`, Ad-hoc-Code `script/execute?example=n`. Nach dem Speichern geht es
+  zur Ausführung, bei Includes zur Liste. Code-Editor: CodeMirror 6 (`components/shared/code-editor/`,
+  lazy geladen, Kotlin/Groovy). Das Log wird während der Ausführung gepollt (`refresh`), statt per SSE.
+  **Sicherheitsfix:** `MyScriptExecutePageRest.execute` führte ein Script ohne Id so aus, wie es gepostet
+  wurde (samt `executableByUsers`) – beliebiger Code für jeden Benutzer. Jetzt nimmt nur
+  `ScriptExecuteRest` (`allowAdHoc`) Code ohne Id an; ein gespeichertes Script läuft immer wie gespeichert,
+  vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg (`offerLegacyLink = false`);
+  `react/scriptExecute/dynamic/{id}` und `react/myScriptExecute/dynamic/{id}` leitet `OrphanedLinkFilter` um.
+- **Mein Zugang** (`next/myAccount`, vorher React-UILayout `MyAccountPageRest` + Modal `TokenInfoPageRest`,
+  beide gelöscht) – layoutfrei über `MyAccountRest` (`/rs/myAccount`: `GET` Daten + Auswahllisten, `save`,
+  `renewToken`, `tokenInfo`, `logoutDevice`, `logoutAllDevices`; 2FA-Kurzbefehl `MY_ACCOUNT`). Die
+  Auswahllisten (Sprache, Datumsformate, Zeitnotation) teilt `UserSettingsOptions` mit der React-
+  Benutzerseite. Neu gegenüber React: die angemeldet bleibenden Geräte als Liste mit Abmelden pro Gerät
+  (`StayLoggedInTokenDao.deleteOfUser`, das aktuelle über den Cookie markiert), Speichern bleibt auf der
+  Seite und lädt `userStatus` neu (Sprache/Formate wirken sofort), die Sprache lässt sich auf „Standard"
+  zurücksetzen. Eingeschränkte und Demo-Benutzer (`InitData.writeAccess = false`) sehen das Formular
+  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Passwort, WLAN-Passwort und 2FA-Einrichtung sind noch React und verlinkt (URLs aus
+  `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

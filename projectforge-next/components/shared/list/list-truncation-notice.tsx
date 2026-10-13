@@ -1,10 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { formatNumber } from "@/lib/format";
 import { useFormatContext } from "@/hooks/use-format";
+import { ListNotice } from "./list-notice";
 
 interface ListTruncationNoticeProps {
   /**
@@ -26,13 +25,8 @@ export function ListTruncationNotice({ count }: ListTruncationNoticeProps) {
   const t = useTranslations("search");
   const ctx = useFormatContext();
   return (
-    <div
-      // Not an alert role: it is the state of the result on screen, not an event, so a screen reader
-      // gets it in reading order beside the filter rather than as an interruption.
-      className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive"
-    >
-      <HugeiconsIcon icon={AlertCircleIcon} size={14} aria-hidden />
-      <span>{t("maxRowsExceeded", { arg0: formatNumber(count, ctx) })}</span>
-    </div>
+    <ListNotice>
+      {t("maxRowsExceeded", { arg0: formatNumber(count, ctx) })}
+    </ListNotice>
   );
 }

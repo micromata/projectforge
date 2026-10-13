@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.feedback.SendFeedbackData
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsPositionsArt
@@ -202,6 +203,35 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
         )
         val attachment = MailAttachment("error-digest.txt", renderer.details(snapshot).toByteArray(Charsets.UTF_8))
         MailPreview.write(sendMail, "errorDigestMail", mail, listOf(attachment))
+    }
+
+    /** Plain text template of SendFeedback (data is a bean) and of JobHandler (data is a map). */
+    @Test
+    fun feedbackMail() {
+        val description = "Die Zeitberichte für Oktober fehlen noch.\nBitte bis Freitag nachtragen."
+        val feedback = SendFeedbackData().also {
+            it.description = description
+            it.subject = "Feedback"
+            it.receiver = "support@example.org"
+        }
+        val mail = Mail().also {
+            it.subject = feedback.subject
+            it.contentType = Mail.CONTENTTYPE_TEXT
+            it.setTo("support@example.org")
+        }
+        mail.content = sendMail.renderGroovyTemplate(
+            mail, "mail/feedback.txt", mutableMapOf("data" to feedback, "subject" to feedback.subject),
+            mail.subject, recipient,
+        )
+        Assertions.assertEquals(description, mail.content.trim())
+        MailPreview.write(sendMail, "feedbackMail", mail)
+
+        val jobMessage = "Job scheduling might not be running (no backups, no e-mail notification etc.)"
+        val content = sendMail.renderGroovyTemplate(
+            Mail(), "mail/feedback.txt", mutableMapOf("data" to mutableMapOf("description" to jobMessage)),
+            "Feedback", null,
+        )
+        Assertions.assertEquals(jobMessage, content.trim())
     }
 
     private fun htmlMail(subject: String, to: Boolean = true) = Mail().also {

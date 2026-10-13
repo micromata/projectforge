@@ -99,6 +99,11 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
      * carried through the JDBC cache - the [RechnungInfo.currency] the foreign-currency conversion needs.
      */
     fun add(rechnungInfo: RechnungInfo) {
+        if (rechnungInfo.isSettledByCancellation) {
+            // A cancelled invoice and its cancellation settle each other: neither counts in any sum, so a
+            // list showing only one of them doesn't show its amount either.
+            return
+        }
         // Get system default currency
         val systemCurrency = configurationService.currency ?: "EUR"
         val rechnungCurrency = rechnungInfo.currency ?: systemCurrency

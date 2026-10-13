@@ -19,6 +19,10 @@
     "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/legacy-modes": "^6.5.5",
+    "@codemirror/search": "^6.7.2",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
@@ -35,12 +39,21 @@
     "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-query-devtools": "^5.100.14",
     "@tanstack/react-table": "^8.21.3",
+    "@tiptap/extension-table": "^3.31.4",
+    "@tiptap/extension-text-style": "^3.31.4",
+    "@tiptap/extensions": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/react": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
+    "@uiw/react-codemirror": "^4.25.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "cn": "^0.4.0",
     "date-fns": "^4.3.0",
+    "dompurify": "^3.4.16",
     "jsondiffpatch": "^0.7.6",
+    "marked": "^18.1.0",
     "next": "16.3.8",
     "next-intl": "^4.12.0",
     "next-themes": "^0.4.6",
@@ -77,6 +90,7 @@
   },
   "overrides": {
     "@hono/node-server": "^1.19.17",
+    "@modelcontextprotocol/sdk@<1.31.0": "^1.31.0",
     "body-parser": "^2.3.0",
     "brace-expansion@<=1.1.20": "^1.1.21",
     "brace-expansion@>=3.0.0 <=5.0.11": "^5.0.12",
@@ -87,8 +101,10 @@
     "js-yaml@>=4.0.0 <=4.3.1": "^4.3.2",
     "postcss@<=8.5.22": "^8.5.26",
     "postcss-selector-parser@7.1.0 - 7.1.2": "^7.1.6",
+    "proxy-addr@<2.0.8": "^2.0.8",
     "qs@<=6.15.3": "^6.16.0",
-    "sharp@<0.35.4": "^0.35.4",
+    "sharp@<0.35.5": "^0.35.5",
+    "source-map-js@<1.2.2": "^1.2.2",
     "undici@>=8.0.0 <=8.10.1": "^8.11.2"
   }
 }

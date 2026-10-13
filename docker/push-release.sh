@@ -179,6 +179,12 @@ push_manifests() {
     fi
   done
   echo "Pushed $REPO:$VERSION and $REPO:latest. Check: https://hub.docker.com/r/micromata/projectforge/tags"
+  # The release pills of the changelog page are fetched by the build of the website (site/fetch-binaries.sh).
+  if command -v gh >/dev/null && gh workflow run github-pages.yml --ref develop; then
+    echo "Started the build of projectforge.org for the Docker pill of $VERSION."
+  else
+    echo "Run the workflow \"GitHub Pages\" for the Docker pill of $VERSION on projectforge.org (otherwise daily)."
+  fi
 }
 
 case "$COMMAND" in

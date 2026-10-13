@@ -36,6 +36,7 @@ import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.business.system.SystemService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.projectforge.framework.i18n.translate
@@ -49,6 +50,8 @@ import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.database.DatabaseTester
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.DatePrecision
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -146,8 +149,10 @@ class SystemRest {
         val alertMessage: String?,
         val reindexNewestNEntries: Int,
         val developmentMode: Boolean,
-        /** The localized copy&paste maintenance-notice sample, with the current version filled in. */
-        val alertMessageSample: String,
+        /** The localized copy&paste maintenance-notice sample, with the next full hour filled in. */
+        val alertMessageSampleMaintenance: String,
+        /** The localized copy&paste new-release-notice sample, with the next full hour and the next release. */
+        val alertMessageSampleRelease: String,
         /** True, if all files are stored by the file store (projectforge.files.store=db), false: JCR. */
         val allFilesInFileStore: Boolean,
     )
@@ -169,13 +174,20 @@ class SystemRest {
     @GetMapping
     fun getData(): SystemAdminData {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        val nextFullHour = PFDateTime.now().withPrecision(DatePrecision.HOUR_OF_DAY).plusHours(1)
+            .format(DateFormatType.TIME_OF_DAY_MINUTES)
         return SystemAdminData(
             alertMessage = SystemAlertMessage.alertMessage,
             reindexNewestNEntries = DEFAULT_REINDEX_NEWEST_N_ENTRIES,
             developmentMode = SystemStatus.isDevelopmentMode(),
-            alertMessageSample = translateMsg(
-                "system.admin.alertMessage.copyAndPaste.text",
-                ProjectForgeVersion.VERSION_NUMBER,
+            alertMessageSampleMaintenance = translateMsg(
+                "system.admin.alertMessage.copyAndPaste.maintenance.text",
+                nextFullHour,
+            ),
+            alertMessageSampleRelease = translateMsg(
+                "system.admin.alertMessage.copyAndPaste.release.text",
+                nextFullHour,
+                nextRelease(),
             ),
             allFilesInFileStore = fileStoreMigrationService.allFilesInFileStore,
         )
@@ -184,6 +196,16 @@ class SystemRest {
     // ------------------------------------------------------------------------------------------
     // Alert message (shown red on every page, not persisted).
     // ------------------------------------------------------------------------------------------
+
+    /**
+     * The release to be installed next: the snapshot's own release (9.0.6-SNAPSHOT -> 9.0.6), otherwise the
+     * next patch level of the running release (9.0.5 -> 9.0.6).
+     */
+    private fun nextRelease(): String {
+        val version = ProjectForgeVersion.VERSION
+        val patchLevel = if (version.isSnapshot) version.patchLevel else version.patchLevel + 1
+        return "${version.majorRelease}.${version.minorRelease}.$patchLevel"
+    }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("setAlertMessage")
@@ -204,17 +226,8 @@ class SystemRest {
     }
 
     // ------------------------------------------------------------------------------------------
-    // Caches / configuration.
+    // Configuration.
     // ------------------------------------------------------------------------------------------
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @PostMapping("refreshCaches")
-    fun refreshCaches(): MessageResponse {
-        checkWriteAccess()
-        log.info { "Administration: refresh all caches." }
-        val refreshedCaches = systemService.refreshCaches()
-        return MessageResponse(translateMsg("administration.refreshCachesDone", refreshedCaches))
-    }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("rereadConfiguration")

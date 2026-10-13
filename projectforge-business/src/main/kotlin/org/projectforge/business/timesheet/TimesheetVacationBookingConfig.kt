@@ -28,6 +28,10 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
+import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationLegacyProperties
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -36,12 +40,18 @@ private val log = KotlinLogging.logger {}
 
 /**
  * The task (Strukturelement) and cost unit (Kost2) a vacation is booked on, when the days of a vacation are taken
- * over as time sheets ([TimesheetDayBookingService]). Both are configured together in projectforge.properties:
+ * over as time sheets ([TimesheetDayBookingService], by the user in the calendar or by the nightly
+ * [VacationTimesheetAutoBookingJob]). Both are configured together by the finance department on the configuration
+ * page ([ConfigurationParam.TIMESHEET_VACATION_TASK_ID], [ConfigurationParam.TIMESHEET_VACATION_KOST2]).
  *
+ * Former installations configured them in projectforge.properties:
  * ```
  * projectforge.timesheet.vacation.taskId=4711
  * projectforge.timesheet.vacation.kost2=5.000.00.03
  * ```
+ * A property is taken over once, as initial value of its parameter when the parameter's row is created on startup
+ * ([ConfigurationLegacyProperties], [ConfigurationParam.getLegacyProperty]). Afterwards only the parameter applies, also if
+ * it is cleared on the configuration page.
  */
 @Service
 open class TimesheetVacationBookingConfig {
@@ -52,6 +62,9 @@ open class TimesheetVacationBookingConfig {
 
     @Value("\${projectforge.timesheet.vacation.kost2:}")
     private var kost2Property: String? = null
+
+    @Autowired
+    private lateinit var configurationDao: ConfigurationDao
 
     @Autowired
     private lateinit var taskTree: TaskTree
@@ -70,27 +83,74 @@ open class TimesheetVacationBookingConfig {
      * bookable on the task (a warning is logged once in the last two cases).
      */
     open fun resolve(): VacationBooking? {
-        val taskIdString = taskIdProperty?.trim()
-        val kost2String = kost2Property?.trim()
-        if (taskIdString.isNullOrEmpty() && kost2String.isNullOrEmpty()) {
+        val (taskIdString, taskIdName) = valueOf(ConfigurationParam.TIMESHEET_VACATION_TASK_ID, taskIdProperty) {
+            it.longValue?.takeIf { id -> id > 0 }?.toString()
+        }
+        val (kost2String, kost2Name) = valueOf(ConfigurationParam.TIMESHEET_VACATION_KOST2, kost2Property) {
+            it.stringValue
+        }
+        if (taskIdString == null && kost2String == null) {
             return null
         }
-        val task = taskIdString?.toLongOrNull()?.let { taskTree.getTaskById(it) }
-        if (task == null) {
-            return warn("projectforge.timesheet.vacation.taskId='$taskIdString' names no task")
-        }
-        val kost2 = kostCache.getKost2(kost2String)
-        if (kost2 == null) {
-            return warn("projectforge.timesheet.vacation.kost2='$kost2String' names no cost unit (format #.###.##.##)")
-        }
-        if (taskTree.getKost2List(task.id)?.any { it.id == kost2.id } != true) {
-            return warn(
-                "projectforge.timesheet.vacation.kost2='$kost2String' is not bookable on task " +
-                        "projectforge.timesheet.vacation.taskId=${task.id} ('${task.title}')"
+        val result = check(taskIdString, kost2String)
+        return when (result.problem) {
+            null -> {
+                lastWarning = null
+                result.booking
+            }
+
+            Problem.TASK_NOT_FOUND -> warn("$taskIdName='${taskIdString ?: ""}' names no task")
+            Problem.KOST2_NOT_FOUND -> warn("$kost2Name='${kost2String ?: ""}' names no cost unit (format #.###.##.##)")
+            Problem.KOST2_NOT_BOOKABLE -> warn(
+                "$kost2Name='$kost2String' is not bookable on task $taskIdName=${result.task?.id} ('${result.task?.title}')"
             )
         }
-        lastWarning = null
-        return VacationBooking(task, kost2)
+    }
+
+    /**
+     * Checks the given task id and cost unit, e.g. on saving them on the configuration page. Task and cost unit are
+     * looked up each on its own, so [CheckResult.task] and [CheckResult.kost2] are set if found, whatever the problem.
+     */
+    open fun check(taskId: String?, kost2: String?): CheckResult {
+        val task = taskId?.trim()?.toLongOrNull()?.let { taskTree.getTaskById(it) }
+        val kost2DO = kost2?.trim()?.ifEmpty { null }?.let { kostCache.getKost2(it) }
+        val problem = when {
+            task == null -> Problem.TASK_NOT_FOUND
+            kost2DO == null -> Problem.KOST2_NOT_FOUND
+            taskTree.getKost2List(task.id)?.any { it.id == kost2DO.id } != true -> Problem.KOST2_NOT_BOOKABLE
+            else -> null
+        }
+        val booking = if (problem == null) VacationBooking(task!!, kost2DO!!) else null
+        return CheckResult(booking = booking, problem = problem, task = task, kost2 = kost2DO)
+    }
+
+    /** @param problem The first problem found (task, cost unit, bookable), null if [booking] is given. */
+    class CheckResult(
+        val booking: VacationBooking?,
+        val problem: Problem?,
+        val task: TaskDO?,
+        val kost2: Kost2DO?,
+    )
+
+    enum class Problem(val i18nKey: String) {
+        TASK_NOT_FOUND("administration.configuration.error.vacationTaskNotFound"),
+        KOST2_NOT_FOUND("administration.configuration.error.vacationKost2NotFound"),
+        KOST2_NOT_BOOKABLE("administration.configuration.error.vacationKost2NotBookable"),
+    }
+
+    /**
+     * The value of the parameter and its name for the warnings. The property only if the parameter's row doesn't
+     * exist yet: it is taken over on creating the row (see [ConfigurationParam.getLegacyProperty]), afterwards the
+     * parameter alone applies, also if cleared.
+     */
+    private fun valueOf(
+        param: ConfigurationParam,
+        propertyValue: String?,
+        value: (ConfigurationDO) -> String?,
+    ): Pair<String?, String> {
+        val entry = configurationDao.getEntry(param)
+            ?: return propertyValue?.trim()?.ifEmpty { null } to (param.legacyProperty ?: param.key)
+        return value(entry)?.trim()?.ifEmpty { null } to param.key
     }
 
     private fun warn(message: String): VacationBooking? {

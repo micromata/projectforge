@@ -4,4 +4,4 @@ categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 
-This happens if you have set different time zones: Please note, that your time zone under 'my account' or config.xml in ProjectForge and the time zone of your client system should match.
+This happens if the time zones don't match. Your personal time zone (under *My account*) should be the same as the time zone of your computer or phone. The default time zone for new users is set by the administrator under *Administration → Configuration*.

@@ -138,9 +138,24 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "categories": {
+        "finance": "Finanzen",
+        "hr": "Personal",
+        "regional": "Regionales",
+        "security": "Sicherheit",
+        "system": "System",
+        "timesheet": "Zeitberichte"
+      },
+      "category": "Kategorie",
       "editPage": {
         "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
         "link": "Editor öffnen"
+      },
+      "editors": "Änderbar durch",
+      "error": {
+        "vacationKost2NotBookable": "Der Kostenträger {arg0} ist auf dem Urlaubs-Strukturelement „{arg1}“ nicht buchbar.",
+        "vacationKost2NotFound": "Kein Kostenträger {arg0} (Format #.###.##.##).",
+        "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
       "json": {
         "invalid": "Kein gültiges JSON."
@@ -187,6 +202,10 @@
           "defaultVAT": {
             "_": "Standardsteuersatz (in %)",
             "description": "Wird für die Vorbelegung in Formularen verwendet (z. B. Rechnungseingabe)."
+          },
+          "forecast": {
+            "_": "Forecast",
+            "description": "Einstellungen des Forecasts (Statistiken): der Hinweis zum Plandatum, der in dessen Tooltip angezeigt wird."
           }
         },
         "hr": {
@@ -231,7 +250,25 @@
         "timesheet": {
           "noteSavingsByAI": {
             "_": "Hinweis KI-Einsparungen",
-            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (Markdown wird unterstützt, nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          },
+          "overlapGroups": {
+            "_": "Überlappungsgruppen für Zeitberichte",
+            "description": "Gruppen von Kost2, deren Zeitberichte sich zeitlich nie überlappen dürfen, auch nicht bei geteilten Kosten: Jede Gruppe gilt wie ein Projekt. Gruppen werden durch Semikolons getrennt, die Kost2-Nummernpräfixe einer Gruppe durch Kommas. Ein Präfix hat ein bis vier Teile (Nummernkreis, Bereich, Teilbereich, Kost2-Art), z. B. passt \"6\" auf alle Kost2 6.*. Beispiele: \"6\" (eine Gruppe: alle Kost2 6.*), \"6.100.00.01,6.100.00.02,6.300\" (eine Gruppe aus drei Präfixen), \"6.100,6.300;6.200\" (zwei Gruppen). Zeitberichte auf derselben Kost2 überlappen sich auch ohne Gruppe nie."
+          },
+          "vacation": {
+            "autoBookingDays": {
+              "_": "Urlaub als Zeitberichte buchen (max. Tage zurück)",
+              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf, höchstens aber so viele Tage bis gestern zurück (max. 7), damit Nächte nachgeholt werden, in denen der Job nicht lief. Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
+            },
+            "kost2": {
+              "_": "Kostenträger für Urlaub",
+              "description": "Der Kostenträger (Kost2, Format #.###.##.##, z. B. 5.000.00.03), auf den Urlaub als Zeitbericht gebucht wird, zusammen mit dem Urlaubs-Strukturelement. Er muss auf diesem Strukturelement buchbar sein."
+            },
+            "taskId": {
+              "_": "Strukturelement für Urlaub (Id)",
+              "description": "Die Id des Strukturelements, auf das Urlaub als Zeitbericht gebucht wird, im Kalender („Mehrere Tage buchen“) und durch den nächtlichen Job."
+            }
           }
         },
         "timesheetTags": {
@@ -270,7 +307,8 @@
         "heading": "Configuration parameter",
         "list": "Konfigurationsparameter"
       },
-      "value": "Wert"
+      "value": "Wert",
+      "viewers": "Sichtbar für"
     }
   },
   "akquise": "Akquise",
@@ -376,7 +414,16 @@
   "calendar": {
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
-    "day": "Tag",
+    "day": {
+      "_": "Tag",
+      "friday": "Freitag",
+      "monday": "Montag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag",
+      "thursday": "Donnerstag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch"
+    },
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
@@ -466,6 +513,7 @@
     "today": "Heute",
     "view": {
       "agenda": "Agenda",
+      "day": "Tag",
       "overview": "Übersicht",
       "settings": {
         "tooltip": "Einstellungen der Ansicht"
@@ -479,14 +527,17 @@
   },
   "cancel": "Abbrechen",
   "changelog": {
+    "allChanges": "Alle Änderungen",
     "collapseAll": "Alle zuklappen",
     "compare": "Änderungen",
     "expandAll": "Alle aufklappen",
-    "news": "Neuigkeiten",
+    "majorLink": "Neu in ProjectForge {arg0}:",
     "nextMatch": "Nächster Treffer (Enter)",
     "noMatches": "Nichts im Changelog passt zur Suche.",
+    "overview": "Überblick",
     "previousMatch": "Vorheriger Treffer (Umschalt+Enter)",
     "snapshot": "Snapshot-Stand",
+    "snapshots": "Entwicklungs-Snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {
@@ -508,7 +559,55 @@
   "charactersLeft": "Zeichen übrig.",
   "clone": "Klonen",
   "close": "Schließen",
+  "codeEditor": {
+    "addCursor": "Weiteren Cursor setzen",
+    "copyLine": "Zeile nach oben / unten kopieren",
+    "deleteLine": "Zeile löschen",
+    "indent": "Einrücken",
+    "key": {
+      "click": "Klick",
+      "ctrl": "Strg",
+      "drag": "Ziehen",
+      "shift": "Umschalt",
+      "then": "dann"
+    },
+    "leave": "Editor per Tastatur verlassen",
+    "moveLine": "Zeile nach oben / unten verschieben",
+    "nextMatch": "Nächster Treffer",
+    "phrase": {
+      "all": "alle",
+      "byWord": "ganzes Wort",
+      "close": "schließen",
+      "currentMatch": "aktueller Treffer",
+      "find": "Suchen",
+      "matchCase": "Groß-/Kleinschreibung",
+      "next": "nächster",
+      "onLine": "in Zeile",
+      "previous": "vorheriger",
+      "regexp": "regulärer Ausdruck",
+      "replace": "Ersetzen durch",
+      "replaceAll": "alle ersetzen",
+      "replaceOne": "ersetzen",
+      "replacedMatches": "$ Treffer ersetzt",
+      "replacedOnLine": "Treffer in Zeile $ ersetzt"
+    },
+    "previousMatch": "Vorheriger Treffer",
+    "rectangularSelection": "Rechteckauswahl",
+    "redo": "Wiederholen",
+    "search": "Suchen und Ersetzen",
+    "selectAllOccurrences": "Alle Vorkommen auswählen",
+    "selectNextOccurrence": "Nächstes Vorkommen zusätzlich auswählen",
+    "shortcuts": "Tastaturkürzel",
+    "toggleComment": "Aus- / einkommentieren",
+    "undo": "Rückgängig",
+    "unindent": "Ausrücken"
+  },
   "collapse": "Zuklappen",
+  "color": {
+    "error": {
+      "unknownFormat": "Farbcode kann nicht verarbeitet werden. Unterstützte Hex-Farbformate: #abc or #abcdef"
+    }
+  },
   "columns": {
     "_": "Spalten",
     "dragToSort": "Ziehen zum Sortieren",
@@ -598,7 +697,6 @@
     "_": "Datumsformat",
     "xls": "Exceldatumsformat"
   },
-  "day": "Tag(e)",
   "days": "Tage",
   "delete": "Löschen",
   "deleted": "gelöscht",
@@ -631,7 +729,9 @@
   "errorpage": {
     "title": "Ein Fehler ist aufgetreten."
   },
+  "execute": "Ausführen",
   "expand": "Aufklappen",
+  "experimental": "Experimentell",
   "export": "Export",
   "exportAsPdf": "Pdf-Export",
   "exportAsXls": "Excel-Export",
@@ -829,11 +929,23 @@
           "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
+          "snapshotDate": {
+            "_": "Snapshot-Datum",
+            "tooltip": "Optional: Der Forecast wird mit dem Stand des Auftragsbuchs dieses Tages (bzw. des nächstgelegenen Snapshots) berechnet, Rechnungen nur bis zum Vortag. Leer lassen für den aktuellen Stand."
+          },
+          "snapshotDateUsed": "Stand des Auftragsbuch-Snapshots vom {arg0}",
           "startDate": {
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
           "total": "Forecast"
+        },
+        "config": {
+          "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+          "planningDateHint": {
+            "_": "Hinweis zum Plandatum",
+            "tooltip": "Wird im Tooltip des Plandatums der Forecast-Statistiken unter der Erklärung angezeigt, z. B. welches Plandatum für welches Jahr zu wählen ist."
+          }
         },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
@@ -1222,6 +1334,11 @@
         "_": "Reporting",
         "clearStorage": "Leeren",
         "createReport": "Report erstellen",
+        "error": {
+          "invalidXml": "Das XML konnte nicht als Report-Objectives gelesen werden (siehe Formatbeschreibung unten und Log-Dateien).",
+          "noXml": "Bitte das XML der Report-Objectives einfügen.",
+          "periodRequired": "Bitte den ersten Monat des Zeitraums wählen."
+        },
         "file": "Report-Objectives-Datei",
         "help": {
           "attributes": "**Attribute:** `id` benennt den Report (als Spaltenkopf und im Pfad), `title` beschreibt ihn. Ohne `suppressOther=\"true\"` werden die Buchungssätze eines Reports, die zu keinem seiner Kinder passen, als zusätzliche Spalte `<id> - Sonstige` ausgewiesen; ohne `suppressDuplicates=\"true\"` die Buchungssätze, die zu mehreren Kindern passen, als Spalte `<id> - Dubletten`. Beide Spalten helfen zu prüfen, ob die Kinder vollständig und überschneidungsfrei sind.",
@@ -1282,7 +1399,7 @@
       "sharedCost": {
         "_": "Geteilte Kosten",
         "inherited": "Wie Strukturelement",
-        "tooltip": "Bei Ja dürfen sich auf diese Kost2 gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten), bei Nein nicht. Diese Einstellung hat Vorrang vor der des Strukturelements. Ist sie leer, entscheidet das Strukturelement. Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt."
+        "tooltip": "Bei Ja dürfen sich auf diese Kost2 gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten), bei Nein nicht. Diese Einstellung hat Vorrang vor der des Strukturelements. Ist sie leer, entscheidet das Strukturelement. Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt."
       },
       "title": {
         "add": "Neue Kost2",
@@ -1377,7 +1494,8 @@
         "_": "Bruttoarbeitszeit",
         "tooltip": "Die Bruttoarbeitszeit kann von der Summe abweichen, wenn für bestimmte Kostenarten nur ein Anteil als Arbeitszeit gerechnet wird."
       },
-      "withoutTimesheets": "ohne Zeitberichte"
+      "vacationDaysWithoutTimesheets": "Urlaubstage ohne Zeitberichte",
+      "workingDaysWithoutTimesheets": "Arbeitstage ohne Zeitberichte"
     },
     "notYetInvoiced": "noch nicht fakturiert",
     "payment": {
@@ -1695,6 +1813,11 @@
   },
   "file": {
     "_": "Datei",
+    "panel": {
+      "deleteExistingFile": {
+        "heading": "Datei wirklich löschen?"
+      }
+    },
     "upload": {
       "audit": {
         "action": {
@@ -2222,12 +2345,22 @@
       "_": "An diesem Browser angemeldet bleiben.",
       "devices": {
         "_": "Angemeldet bleibende Geräte",
+        "created": "angemeldet seit",
+        "current": "dieses Gerät",
+        "ip": "IP-Adresse",
         "lastAccess": "letzter Zugriff",
+        "logout": {
+          "_": "Abmelden",
+          "question": "Dieses Gerät abmelden? Nach dem Ende seiner aktuellen Sitzung muss es sich wieder mit dem Passwort anmelden.",
+          "successful": "Das Gerät wurde abgemeldet."
+        },
         "none": "Kein Gerät bleibt angemeldet.",
-        "tooltip": "Diese Geräte können ohne Passworteingabe auf ProjectForge zugreifen. Jedes hat sein eigenes Merkmal (Cookie), das 30 Tage nach der letzten Nutzung verfällt."
+        "tooltip": "Diese Geräte können ohne Passworteingabe auf ProjectForge zugreifen. Jedes hat sein eigenes Merkmal (Cookie), das 30 Tage nach der letzten Nutzung verfällt.",
+        "userAgent": "Gerät (Browser)"
       },
       "invalidateAllStayLoggedInSessions": {
         "_": "Auf allen Geräten abmelden.",
+        "question": "Alle Geräte abmelden, auch dieses? Jedes Gerät muss sich danach wieder mit dem Passwort anmelden.",
         "successfullDeleted": "Alle Angemeldet-bleiben-Sitzungen wurden erfolgreich beendet.",
         "tooltip": "Macht das Merkmal (Cookie) aller Geräte ungültig, auch das des gerade genutzten. Jedes Gerät fragt beim nächsten Aufruf wieder nach dem Passwort."
       },
@@ -2285,9 +2418,12 @@
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
+    "2FASetup": "2. Faktor einrichten",
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
     "calendar": "Kalender",
+    "changePassword": "Passwort ändern",
+    "changeWlanPassword": "WLAN/Samba Passwort ändern",
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
@@ -2368,7 +2504,8 @@
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
-    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
+    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}",
+    "title": "Meldung"
   },
   "modificationTime": "Änderungszeitraum",
   "modified": "geändert",
@@ -2390,6 +2527,186 @@
   "nickname": "Rufname",
   "no": "Nein",
   "nothingFound": "Nichts gefunden.",
+  "notification": {
+    "acknowledge": "Bestätigen",
+    "acknowledgedAt": "Bestätigt",
+    "action": {
+      "preview": "Vorschau",
+      "testToMe": "Test an mich",
+      "trigger": "Jetzt auslösen",
+      "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
+    },
+    "center": "Benachrichtigungen",
+    "centerEmpty": "Keine offenen Benachrichtigungen.",
+    "channels": {
+      "IN_APP": "In der App",
+      "MAIL": "E-Mail",
+      "SMS": "SMS (noch nicht unterstützt)"
+    },
+    "created": "Erstellt",
+    "delivery": {
+      "addStep": "Schritt hinzufügen",
+      "channel": "Kanal",
+      "delay": "Nach",
+      "info": "Die Schritte werden nach der angegebenen Zeit seit dem Erstellen der Benachrichtigung zugestellt. Ein Schritt „nur wenn unbestätigt“ entfällt, sobald die Benachrichtigung bestätigt oder ihr Anlass erledigt ist.",
+      "onlyIfUnacknowledged": "Nur wenn unbestätigt",
+      "removeStep": "Schritt entfernen",
+      "unit": {
+        "days": "Tagen",
+        "hours": "Stunden",
+        "minutes": "Minuten"
+      }
+    },
+    "deliverySteps": "Zustellung",
+    "display": "Anzeige",
+    "displays": {
+      "BANNER": "Banner bis erledigt",
+      "TOAST": "Toast (einmal angezeigt)",
+      "TOAST_CONFIRM": "Toast mit Bestätigung"
+    },
+    "doneAt": "Erledigt",
+    "error": {
+      "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
+    },
+    "log": "Versendete Benachrichtigungen",
+    "logEmpty": "Noch keine Benachrichtigungen versendet.",
+    "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
+    "markDone": "Als erledigt markieren",
+    "open": "Öffnen",
+    "params": {
+      "daysBeforeExpiry": "Tage vor dem Verfall",
+      "passwordMaxAgeDays": "Passwort älter als (Tage)",
+      "referredMonth": {
+        "_": "Monat",
+        "CURRENT": "Aktueller Monat",
+        "PREVIOUS": "Vormonat"
+      },
+      "vacationExpiry": {
+        "_": "Verfallende Urlaubstage",
+        "CARRY_OVER": "Resturlaub aus dem Vorjahr",
+        "YEAR_END": "Resttage zum Jahresende"
+      }
+    },
+    "preview": {
+      "alreadyNotified": "davon {arg0} für diesen Zeitraum bereits benachrichtigt",
+      "none": "Heute ist niemand zu benachrichtigen.",
+      "period": "Zeitraum",
+      "recipients": "{arg0} Empfänger",
+      "sample": "Beispiel mit den eigenen Werten"
+    },
+    "recipient": "Empfänger",
+    "recipients": {
+      "allEmployees": "Alle Mitarbeitenden",
+      "employeeStatus": "Mitarbeitende mit Status",
+      "excludedEmployeeStatus": "Ausgenommen Mitarbeitende mit Status",
+      "groups": "Gruppen",
+      "onlyAffected": "Nur Betroffene",
+      "onlyAffectedInfo": "Nur die von der Regel betroffenen Empfänger, z. B. mit fehlenden Zeitberichten. Ohne angegebene Empfänger: alle Betroffenen.",
+      "users": "Benutzer"
+    },
+    "resolvedAt": "Beendet",
+    "rule": {
+      "active": "Aktiv",
+      "delivery": "Zustellung",
+      "editableByGroups": "Bearbeitbar von Gruppen",
+      "editableByGroupsInfo": "Leer: von allen Admins und Mitgliedern der Finanzgruppe. Admins können die Regel immer bearbeiten.",
+      "error": {
+        "day": "Der Tag muss zwischen 0 und 15 (Arbeitstage vor Monatsende) bzw. 1 und 31 (Tag im Monat) liegen.",
+        "dayOfWeek": "Ein Wochentag ist erforderlich.",
+        "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
+        "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
+        "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
+      },
+      "lastRun": "Letzter Lauf",
+      "list": "Benachrichtigungsregeln",
+      "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "menuBadge": "Zähler im Menü",
+      "name": "Name",
+      "newTitle": "Neue Benachrichtigungsregel",
+      "params": "Einstellungen",
+      "recipients": "Empfänger",
+      "ruleType": "Auslöser",
+      "schedule": "Zeitplan",
+      "sections": {
+        "access": "Bearbeitung",
+        "general": "Regel",
+        "message": "Nachricht"
+      },
+      "title": "Benachrichtigungsregeln"
+    },
+    "ruleName": "Regel",
+    "ruleTypes": {
+      "MANUAL": "Manuell (ohne Bedingung)",
+      "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
+      "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "VACATION_LEFT": "Verfallender Resturlaub"
+    },
+    "schedule": {
+      "day": "Tag",
+      "dayOfWeek": "Wochentag",
+      "info": "Die Regeln werden einmal täglich am Morgen geprüft.",
+      "mode": {
+        "DAILY": "Jeden Arbeitstag",
+        "DAY_OF_MONTH": "Tag im Monat",
+        "NONE": "Nur manuell",
+        "WEEKLY": "Wöchentlich",
+        "WORKING_DAYS_BEFORE_MONTH_END": "Arbeitstage vor Monatsende"
+      },
+      "workingDaysInfo": "0 ist der letzte Arbeitstag des Monats."
+    },
+    "severities": {
+      "IMPORTANT": "Wichtig",
+      "INFO": "Hinweis",
+      "URGENT": "Dringend"
+    },
+    "severity": "Dringlichkeit",
+    "status": "Status",
+    "statuses": {
+      "ACKNOWLEDGED": "Bestätigt",
+      "DONE": "Erledigt",
+      "EXPIRED": "Abgelaufen",
+      "OPEN": "Offen",
+      "RESOLVED": "Aufgelöst"
+    },
+    "stepState": {
+      "failed": "Fehlgeschlagen",
+      "pending": "Ausstehend",
+      "retry": "Wiederholung {arg0}",
+      "sent": "Gesendet",
+      "skipped": "Übersprungen"
+    },
+    "subject": "Betreff",
+    "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
+    "testDelivered": "Test gesendet: {arg0}",
+    "testFailed": "Nicht gesendet: {arg0}",
+    "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
+    "text": "Text",
+    "triggerErrors": "{arg0} Fehler: {arg1}",
+    "triggerResult": "{arg0} Benachrichtigung(en) für {arg1} Empfänger erstellt.",
+    "variable": {
+      "daysLeft": "Verbleibende Urlaubstage",
+      "expiryDate": "Verfallsdatum",
+      "firstName": "Vorname",
+      "fullName": "Vollständiger Name",
+      "lastName": "Nachname",
+      "month": "Monat",
+      "monthlyReportLink": "Link zum Monatsbericht",
+      "nickname": "Spitzname (sonst Vorname)",
+      "passwordAgeDays": "Tage seit der letzten Passwortänderung",
+      "passwordChangeDate": "Datum der letzten Passwortänderung",
+      "passwordLink": "Link zum Ändern des Passworts",
+      "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
+      "timesheetLink": "Link zu den Zeitberichten",
+      "unbookedDays": "Alle Tage ohne Zeitberichte (inkl. Urlaub)",
+      "unbookedDaysCount": "Anzahl aller Tage ohne Zeitberichte (inkl. Urlaub)",
+      "unbookedVacationDays": "Urlaubstage ohne Zeitberichte",
+      "unbookedVacationDaysCount": "Anzahl der Urlaubstage ohne Zeitberichte",
+      "unbookedWorkingDays": "Arbeitstage ohne Zeitberichte (ohne Urlaub)",
+      "unbookedWorkingDaysCount": "Anzahl der Arbeitstage ohne Zeitberichte (ohne Urlaub)",
+      "vacationLink": "Link zum Urlaub"
+    }
+  },
   "operation": {
     "deleted": "gelöscht",
     "inserted": "angelegt",
@@ -2543,7 +2860,6 @@
       "audit": {
         "_": "Aktivitätsprotokoll",
         "action": "Aktion",
-        "display": "Aktivitätsprotokoll",
         "downloadEvents": "Download-Ereignisse der letzten 30 Tage",
         "downloadedBy": "Heruntergeladen von",
         "events": "Ereignisse der letzten 30 Tage"
@@ -3091,17 +3407,80 @@
   "reset": "Rücksetzen",
   "rest": "Rest",
   "resubmissionOnDate": "Wiedervorlage",
+  "richTextEditor": {
+    "bold": "Fett",
+    "bulletList": "Aufzählung",
+    "color": {
+      "_": "Textfarbe",
+      "blue": "Blau",
+      "default": "Standardfarbe",
+      "green": "Grün",
+      "red": "Rot"
+    },
+    "heading1": "Überschrift 1",
+    "heading2": "Überschrift 2",
+    "heading3": "Überschrift 3",
+    "heading4": "Überschrift 4",
+    "italic": "Kursiv",
+    "link": {
+      "_": "Link",
+      "prompt": "Link-Adresse (leer, um den Link zu entfernen):"
+    },
+    "orderedList": "Nummerierte Liste",
+    "paragraph": "Normaler Text",
+    "table": {
+      "_": "Tabelle",
+      "addColumnAfter": "Spalte rechts einfügen",
+      "addRowAfter": "Zeile darunter einfügen",
+      "deleteColumn": "Spalte löschen",
+      "deleteRow": "Zeile löschen",
+      "deleteTable": "Tabelle löschen",
+      "insert": "Tabelle einfügen",
+      "toggleHeaderRow": "Kopfzeile ein/aus"
+    },
+    "textStyle": "Absatzformat",
+    "toolbar": "Formatierung",
+    "underline": "Unterstrichen",
+    "variable": "Platzhalter einfügen"
+  },
   "save": "Speichern",
   "scripting": {
+    "download": {
+      "filename": {
+        "_": "Ergebnisdatei",
+        "additional": "Download nur wenige Minuten verfügbar: bis {arg0}.",
+        "info": "Downloaddatei der letzten Scriptausführung."
+      }
+    },
+    "myScript": {
+      "list": "Meine Scripte"
+    },
     "script": {
-      "description": {
-        "tooltip": "Markdown-Format wird unterstützt."
+      "_": "Script",
+      "availableVariables": "Verfügbare Variablen",
+      "buttonLabel": {
+        "_": "Button-Beschriftung",
+        "info": "Die Beschriftung des Buttons auf den gewählten Seiten. Ohne Angabe der Name des Scripts."
+      },
+      "buttonTooltip": {
+        "_": "Button-Tooltip",
+        "info": "Der Tooltip des Buttons auf den gewählten Seiten. Ohne Angabe die Beschreibung des Scripts."
+      },
+      "code": "Code",
+      "downloadBackups": "Download Backups",
+      "downloadEffectiveScript": {
+        "_": "Download Effektivscript",
+        "info": "Das Effektivscript ist das Script mit aufgelösten Include-Dateien etc., welches so von der Scripting-Engine so ausgeführt wird."
       },
       "editForm": {
         "file": {
           "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
       },
+      "error": {
+        "notFound": "Script not found."
+      },
+      "examples": "Beispiele",
       "executableByGroups": {
         "_": "Berechtigte Gruppen",
         "info": "Angehörige dieser Gruppen dürfen dieses Script ausführen (nicht einsehen oder ändern)."
@@ -3110,12 +3489,29 @@
         "_": "Berechtigte Benutzer:innen",
         "info": "Diese dürfen dieses Script ausführen (nicht einsehen oder ändern)."
       },
+      "execute": "Script ausführen",
       "executeAsUser": {
         "_": "Als andere:r User:in ausführen",
         "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
       },
+      "execution": {
+        "log": {
+          "filePreparedForDownload": "Die Datei ''{arg0}'' ist für den Download vorbereitet und für bis zu {arg1} Minuten zum Download hier verfügbar.",
+          "preparing": "Die Skriptausführung wird vorbereitet...",
+          "successfullyCompleted": "Scriptausführung erfolgreich beendet.",
+          "terminatedWithErrors": "Scriptausführung mit Fehlern beendet."
+        },
+        "pageContext": "Gestartet von: {arg0}. Das Script erhält den aktuellen Filter dieser Seite als Variable `pageContext`."
+      },
       "includes": "Eingebundene Scripts",
       "name": "Name",
+      "output": "Ausgabe",
+      "pageButtons": "Seiten-Buttons",
+      "pageTargets": {
+        "_": "Seiten",
+        "info": "Diese Seiten zeigen oben rechts einen Button für dieses Script, für alle, die es ausführen dürfen. Das Script erhält den aktuellen Filter der Seite als Variable `pageContext`, z. B. `pageContext.list()` für die angezeigten Einträge."
+      },
+      "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
         "_": "Parametertyp",
@@ -3128,7 +3524,13 @@
         "timePeriod": "Zeitraum",
         "user": "Benutzer:in"
       },
+      "parameters": "Parameter",
+      "result": "Ergebnis",
       "type": "Typ"
+    },
+    "title": {
+      "add": "Neues Script",
+      "list": "Scripte"
     }
   },
   "search": {
@@ -3222,24 +3624,29 @@
           "all": "Alle",
           "n": "Letzte {arg0} Tage"
         },
-        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Probleme werden nicht gezählt.",
+        "disabled": "Die Log-Aggregation ist abgeschaltet (projectforge.support.logAggregation.enabled=false): neue Störungen werden nicht gezählt.",
         "distinctUsers24h": "Benutzer (24 h)",
         "downloadJson": {
           "_": "Als JSON herunterladen",
-          "tooltip": "Alle Probleme des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
+          "tooltip": "Alle Störungen des aktuellen Filters mit Meldung, Stacktrace und Verlauf als eine JSON-Datei, z. B. für eine Analyse und Klassifizierung mit einer KI. Die Meldungen können personenbezogene Daten enthalten."
         },
         "exceptionClass": "Exception",
         "explanation": "Erklärung",
         "firstSeen": "Zuerst aufgetreten",
+        "handled": {
+          "ignored": "{arg0} ignoriert",
+          "muted": "{arg0} stummgeschaltet",
+          "resolved": "{arg0} erledigt"
+        },
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
-          "newProblems": "Neue Probleme (24 h)",
+          "newProblems": "Neue Störungen (24 h)",
           "occurrences": "Fehler (24 h)",
           "open": "Noch unbearbeitet",
-          "problems": "Probleme (24 h)",
+          "problems": "Störungen (24 h)",
           "problemsOccurrences": "{arg0} Fehler",
-          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus dem häufigsten Problem",
+          "problemsTopShare": "{arg0} Fehler, davon {arg1} aus der häufigsten Störung",
           "regressions": "Regressionen"
         },
         "lastNotified": "Zuletzt gemeldet",
@@ -3253,16 +3660,19 @@
           "none": "Keine Vorkommen in den Logdateien gefunden.",
           "source": "Fundstelle",
           "title": "Logdateien: {arg0}",
-          "tooltip": "Durchsucht die Logdateien der letzten Tage des Problems (höchstens 7) nach seinen Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
+          "tooltip": "Durchsucht die Logdateien der letzten Tage der Störung (höchstens 7) nach ihren Vorkommen, auch vor dem Serverstart. Langsamer als der Logviewer.",
           "truncated": "Die Suche wurde an ihrer Grenze beendet, es kann ältere Vorkommen geben."
         },
         "logViewer": {
           "tooltip": "Nur die letzten Meldungen seit dem Serverstart, aus dem Speicher."
         },
+        "massUpdate": {
+          "done": "{arg0} Störung(en) geändert."
+        },
         "message": "Meldung",
-        "more": "Nur die ersten {arg0} von {arg1} Problemen werden angezeigt.",
+        "more": "Nur die ersten {arg0} von {arg1} Störungen werden angezeigt.",
         "mutedUntil": "Stummgeschaltet bis {arg0}",
-        "none": "Keine Probleme.",
+        "none": "Keine Störungen.",
         "notRegistered": "Kein bekanntes Ereignis: keine Erklärung vorhanden.",
         "notify": {
           "_": "Benachrichtigung",
@@ -3302,22 +3712,70 @@
           "lastRun": "Letzter Lauf",
           "none": "Kein Teilsystem und keine Schnittstelle aktiv.",
           "removeFilter": "Filter entfernen",
-          "tooltip": "Ein Klick zeigt die Probleme des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
+          "tooltip": "Ein Klick zeigt die Störungen des Teilsystems. Der Zustand ergibt sich aus dem letzten Lauf seiner Synchronisationen und aus offenen Fehlern der letzten 24 Stunden."
         },
         "tab": {
           "overview": "Übersicht",
-          "problems": "Probleme"
+          "problems": "Störungen"
         },
         "threshold": "Schwelle (pro Stunde)",
-        "title": "Problem-Dashboard",
         "totalCount": "Gesamt",
         "trend": "Verlauf (7 Tage)"
       },
       "adminLogViewer": {
+        "logFile": {
+          "after": "danach",
+          "before": "davor",
+          "context": "Kontext",
+          "contextTooltip": "Die Anzahl der Einträge vor und nach einem Treffer, die beim Öffnen seines Kontexts gezeigt werden, und die Schrittweite zum Weiterblättern.",
+          "contextTruncated": "Das Zeitlimit wurde erreicht, der Kontext ist unvollständig.",
+          "exclude": "Ausblenden",
+          "excludeTooltip": "Lässt die Einträge dieser Logger weg (das Rauschen), bei den Treffern und in ihrem Kontext. Ein Paket mit seinen Unterpaketen (org.hibernate), eine Klasse oder ein Wort des Klassennamens. Die Logger stehen abgekürzt in der Logdatei (o.h.e.j.s.SqlExceptionHelper): Ein ausgeschriebenes Paket findet sie, ein einzelnes Wort wie hibernate nicht.",
+          "hideThis": "{arg0} ausblenden",
+          "hits": "{arg0} Treffer",
+          "include": "Kategorien",
+          "includeTooltip": "Nur die Einträge dieser Logger: ein Paket mit seinen Unterpaketen (org.projectforge.business.fibu), eine Klasse oder ein Wort des Klassennamens. Ein Klick auf einen Logger in der Liste fügt ihn hinzu.",
+          "loggerPlaceholder": "Logger + Enter",
+          "newer": "{arg0} neuere",
+          "noNewer": "Keine neueren Einträge in {arg0}.",
+          "noOlder": "Keine älteren Einträge in {arg0}.",
+          "none": "Keine Einträge gefunden.",
+          "notFound": "Der Eintrag steht nicht mehr an seiner Stelle, die Logdatei wurde inzwischen archiviert. Bitte erneut suchen.",
+          "older": "{arg0} ältere",
+          "onlyThis": "Nur {arg0}",
+          "period": {
+            "custom": "Benutzerdefiniert"
+          },
+          "remove": "Entfernen",
+          "scope": {
+            "all": "Alle",
+            "logger": "Gleicher Logger",
+            "user": "Gleiche:r Benutzer:in"
+          },
+          "searchPlaceholder": "Wörter, -ausgeschlossen, \"eine Phrase\"",
+          "start": "Suchbegriffe eingeben und die Suche starten. Die Logdateien des Servers werden bei jeder Suche gelesen, daher ist sie langsamer als die Live-Ansicht.",
+          "truncated": "Die Suche wurde an ihrer Grenze beendet (200 Treffer, Zeit oder Größe), es kann ältere Einträge geben. Zeitraum, Level oder Kategorie eingrenzen."
+        },
+        "memory": {
+          "noNewer": "Noch keine neueren Einträge; später kommen neue beim Weiterblättern dazu.",
+          "noOlder": "Keine älteren Einträge im Speicher (nur die letzten 10.000 seit dem Serverstart werden gehalten).",
+          "notFound": "Der Eintrag ist nicht mehr im Speicher, es werden nur die letzten 10.000 gehalten. In den Logdateien steht er."
+        },
+        "source": {
+          "files": "Logdateien",
+          "memory": "Live (Speicher)"
+        },
+        "tab": "Protokolle",
         "title": "Adminprotokoll einsehen"
       },
       "alertMessage": {
         "copyAndPaste": {
+          "maintenance": {
+            "title": "Wartungsarbeiten"
+          },
+          "release": {
+            "title": "Neues Release"
+          },
           "title": "For copy & paste"
         }
       },
@@ -3364,10 +3822,6 @@
           "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
           "tooltip": "Verkleinert bei Bedarf zu große Adressbilder und erzeugt alle Vorschaubilder neu."
         },
-        "refreshCaches": {
-          "_": "Refresh all caches",
-          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
-        },
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
@@ -3402,7 +3856,6 @@
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "caches": "Caches",
             "configuration": "Configuration"
           }
         }
@@ -3423,6 +3876,7 @@
       "logViewer": {
         "autoRefresh": "Auto-Aktualisierung",
         "level": "Log-Level",
+        "loggerName": "Quelle",
         "message": "Meldung",
         "stacktrace": "Stacktrace",
         "subscriptionMissing": "Dieses Protokoll ist nicht mehr verfügbar: Es verfällt nach einer Stunde ohne Aktivität und bei einem Neustart des Servers. Es lässt sich über die Seite, zu der es gehört, erneut öffnen.",
@@ -3445,6 +3899,52 @@
       },
       "title": "Administration"
     },
+    "caches": {
+      "abandoned": {
+        "_": "Beendete Aktualisierungen, die noch laufen: {arg0}",
+        "tooltip": "Der Thread einer beendeten Aktualisierung reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet; sein Ergebnis wird dann verworfen und der Cache neu geladen. Nur ein Neustart beendet ihn früher."
+      },
+      "column": {
+        "cache": "Cache",
+        "duration": "Dauer",
+        "expireTime": "Verfällt nach",
+        "failures": "Fehlgeschlagen",
+        "lastError": "Letzter Fehler",
+        "lastRefresh": "Zuletzt aktualisiert",
+        "refreshes": "Aktualisierungen"
+      },
+      "refresh": {
+        "_": "Aktualisieren",
+        "started": "Die Aktualisierung des Caches wurde gestartet.",
+        "tooltip": "Lädt den Cache im Hintergrund neu."
+      },
+      "refreshAll": {
+        "_": "Alle Caches aktualisieren",
+        "running": "Eine Aktualisierung aller Caches läuft noch.",
+        "started": "Die Aktualisierung aller Caches wurde gestartet.",
+        "tooltip": "Lädt alle Caches nacheinander im Hintergrund neu."
+      },
+      "runningSince": "Wird aktualisiert seit {arg0}",
+      "state": {
+        "expired": "Abgelaufen",
+        "failed": "Fehlgeschlagen",
+        "notFilled": "Noch nicht benutzt",
+        "ok": "OK",
+        "refreshing": "Wird aktualisiert",
+        "stuck": "Hängt"
+      },
+      "tab": "Caches",
+      "terminate": {
+        "_": "Beenden",
+        "done": "Die Aktualisierung wurde beendet. Der Cache wird beim nächsten Zugriff neu geladen.",
+        "notRunning": "Es läuft keine Aktualisierung (mehr).",
+        "question": "Aktualisierung von „{arg0}“ beenden? Sie wird unterbrochen und aufgegeben, sodass der Cache sofort wieder aktualisiert werden kann. Reagiert die Aktualisierung nicht (z. B. blockiert in einem Datenbankaufruf), läuft ihr Thread im Hintergrund weiter, bis er von selbst endet; sein Ergebnis wird dann verworfen und der Cache neu geladen.",
+        "tooltip": "Beendet die laufende Aktualisierung, z. B. wenn sie an einer Datenbanksperre hängt."
+      }
+    },
+    "dashboard": {
+      "title": "System-Dashboard"
+    },
     "developmentSystem": "Development-System",
     "pluginAdmin": {
       "button": {
@@ -3456,13 +3956,94 @@
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
     },
+    "scheduler": {
+      "abandoned": {
+        "_": "Beendete Läufe, die noch laufen: {arg0}",
+        "tooltip": "Der Thread eines beendeten Laufs reagiert nicht auf die Unterbrechung (z. B. blockiert in einem Datenbankaufruf) und läuft weiter, bis er von selbst endet. Sein Ergebnis wird nicht mehr erfasst. Nur ein Neustart beendet ihn früher."
+      },
+      "column": {
+        "area": "Bereich",
+        "avgDuration7d": "Ø Dauer (7 Tage)",
+        "duration": "Dauer",
+        "errors7d": "Fehler (7 Tage)",
+        "job": "Job",
+        "lastRun": "Letzter Lauf",
+        "maxDuration7d": "Max. Dauer (7 Tage)",
+        "nextRun": "Nächster Lauf",
+        "runs7d": "Läufe (7 Tage)",
+        "schedule": "Zeitplan",
+        "skipped7d": "Übersprungen (7 Tage)",
+        "slow7d": "Langsam (7 Tage)"
+      },
+      "detail": {
+        "daily": "Läufe pro Tag (letzte {arg0} Tage)",
+        "inactiveReason": "Grund für inaktiv",
+        "info": "Fehler / Hinweise",
+        "lastError": "Letzter Fehler",
+        "manual": "Manuell",
+        "monthly": "Läufe pro Monat (ältere Tage)",
+        "noRuns": "Keine Läufe.",
+        "recentRuns": "Letzte Läufe seit dem Start",
+        "slow": "Langsam",
+        "start": "Start",
+        "storedRuns": "Gespeicherte fehlgeschlagene und langsame Läufe"
+      },
+      "hint": {
+        "notListed": "Alle Jobs des Schedulers mit ihren Läufen. Jobs abgeschalteter Funktionen (z. B. Gateway) sind nicht aufgeführt.",
+        "readySince": "Gestartet am {arg0}."
+      },
+      "overdueSince": "Fällig seit {arg0}",
+      "runNow": {
+        "_": "Jetzt starten",
+        "inactive": "Der Job ist inaktiv und wurde nicht gestartet.",
+        "notAllowed": "Nicht möglich: Der Job ist inaktiv oder läuft noch.",
+        "question": "„{arg0}“ jetzt starten? Der Job läuft so, als hätte ihn der Scheduler gestartet.",
+        "running": "Der Job läuft noch und wurde nicht erneut gestartet.",
+        "started": "Der Job wurde gestartet."
+      },
+      "runStatus": {
+        "error": "Fehler",
+        "skipped": "Übersprungen",
+        "success": "Erfolgreich"
+      },
+      "runningSince": "Läuft seit {arg0}",
+      "schedule": {
+        "disabled": "Abgeschaltet",
+        "every": "Alle {arg0}",
+        "invalid": "Ungültiger Zeitplan"
+      },
+      "status": {
+        "disabled": "Abgeschaltet",
+        "failed": "Fehlgeschlagen",
+        "inactive": "Inaktiv",
+        "ok": "OK",
+        "overdue": "Überfällig",
+        "pending": "Noch nicht gelaufen",
+        "running": "Läuft",
+        "skipped": "Übersprungen"
+      },
+      "tab": "Scheduler",
+      "terminate": {
+        "_": "Beenden",
+        "done": "Der Lauf wurde beendet und als fehlgeschlagen erfasst.",
+        "notRunning": "Der Job läuft nicht (mehr).",
+        "question": "Laufenden Job „{arg0}“ beenden? Der Lauf wird unterbrochen, aufgegeben und als fehlgeschlagen erfasst, sodass der Job sofort wieder laufen kann. Bereits vorgenommene Änderungen bleiben erhalten. Reagiert der Lauf nicht (z. B. blockiert in einem Datenbankaufruf), läuft sein Thread im Hintergrund weiter, bis er von selbst endet, sein Ergebnis wird aber nicht mehr erfasst.",
+        "tooltip": "Beendet den laufenden Job, z. B. wenn er an einer Datenbanksperre hängt."
+      }
+    },
+    "statistics": {
+      "title": "Systemstatistiken"
+    },
     "testSystem": "Testsystem"
+  },
+  "table": {
+    "showing": "Anzeige"
   },
   "task": {
     "_": "Strukturelement",
     "allowTimeOverlap": {
       "_": "Strukturelement mit geteilten Kosten",
-      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte innerhalb desselben Projekts werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
+      "tooltip": "Wenn gewählt (wird auch an Unterelemente vererbt), dürfen sich hier gebuchte Zeitberichte zeitlich mit Zeitberichten anderer Projekte überlappen (geteilte Kosten). Überlappende Zeit wird in Anwesenheits- und Monatsberichten anteilig gezählt (z. B. 1h + überlappend 1h = je 0,5h). Überlappende Zeitberichte auf derselben Kost2 oder innerhalb desselben Projekts oder derselben Überlappungsgruppe (Konfiguration) werden nicht unterstützt. Eine Einstellung der Kost2 hat Vorrang."
     },
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
@@ -3643,6 +4224,7 @@
     "workpackageCode": "Arbeitspaket-Code"
   },
   "text": "Text",
+  "time": "Uhrzeit",
   "timeNotation": {
     "_": "Uhrzeitformat",
     "12": "12 Stunden",
@@ -3803,10 +4385,17 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "assignedGroups": "Assoziierte Gruppen",
     "authenticationToken": {
       "authenticator_key": {
         "_": "Schlüssel für Zweifaktor-Authentifizierung",
         "tooltip": "Dieser Schlüssel kann für die Zweifaktor-Authentifizierung z. B. über die Apps Microsoft-, Google Authenticator oder Fortitoken benutzt werden."
+      },
+      "button": {
+        "showUsage": {
+          "_": "Info",
+          "tooltip": "Benutzung dieses Schüssels"
+        }
       },
       "calendar_rest": {
         "_": "Schlüssel für Kalenderexport",
@@ -3816,9 +4405,24 @@
         "_": "Schlüssel für CalDav/CardDAV",
         "tooltip": "Dieser persönliche Schlüssel kann zur Benutzung der CardDAV/CalDAV-Funktion verwendet werden."
       },
+      "lastChange": {
+        "_": "Letzte Änderung",
+        "tooltip": "Wann der Schlüssel erstellt oder zuletzt erneuert wurde. Leer: unbekannt (von einer älteren Version erstellt)."
+      },
+      "renew": {
+        "_": "Erneuern",
+        "securityQuestion": "Soll der Schlüssel wirklich unwiderrufbar erneuert werden?",
+        "successful": "Der Schlüssel wurde erneuert und ist ab sofort gültig.",
+        "tooltip": "Der Schlüssel kann erneuert werden, wenn der Verdacht auf einen möglichen Missbrauch vorliegt. Nach der Erneuerung sind vorher benutzte Schlüssel ungültig. Bitte beachten: Diese Operation ist unwiderruflich!"
+      },
       "rest_client": {
         "_": "Schlüssel für Rest-Clients",
         "tooltip": "Dieser persönliche Schlüssel kann zur Benutzung in Rest-Clients verwendet werden, wenn das ProjectForge-Passwort dort nicht verwendet werden soll."
+      },
+      "usage": {
+        "counter": "Zugriffe",
+        "none": "Seit dem Start des Servers gab es keinen Zugriff mit diesem Schlüssel.",
+        "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
     },
     "changePassword": {
@@ -3848,13 +4452,28 @@
     "locale": "Sprache",
     "mobilePhone": {
       "_": "Mobilnummer",
-      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden."
+      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
+      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 561 316793-0 oder 0561 316793-0"
+    },
+    "myAccount": {
+      "defaultValue": "Voreinstellung: {arg0}",
+      "saved": "Der Zugang wurde gespeichert.",
+      "section": {
+        "account": "Zugang",
+        "publicKeys": "Öffentliche Schlüssel",
+        "settings": "Einstellungen",
+        "tokens": "Zugangsschlüssel"
+      },
+      "title": {
+        "edit": "Mein Zugang"
+      }
     },
     "personalPhoneIdentifiers": {
       "_": "Telefonkennungen",
       "pleaseDefine": "Anschlüsse festlegen unter 'Mein Zugang'",
       "tooltip": {
-        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
+        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden.",
+        "title": "Direktwahl"
       }
     },
     "restrictedUser": {
@@ -3862,6 +4481,17 @@
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "sshPublicKey": "SSH public key",
+    "tooltip": {
+      "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
+      "dateFormat": "Das Format, in dem Datumsangaben angezeigt und eingegeben werden. Leer: die Voreinstellung der Installation.",
+      "excelDateFormat": "Das Format der Datumsangaben in Excel-Exporten. Leer: die Voreinstellung der Installation.",
+      "gpgPublicKey": "Der eigene öffentliche GPG-Schlüssel (ASCII-Format, beginnt mit -----BEGIN PGP PUBLIC KEY BLOCK-----). Hier nie den privaten Schlüssel eintragen.",
+      "locale": "Die Sprache der Oberfläche. Standard: die Sprache des Browsers.",
+      "sshPublicKey": "Der eigene öffentliche SSH-Schlüssel, z. B. ssh-ed25519 AAAA…. Hier nie den privaten Schlüssel eintragen.",
+      "timeNotation": "Uhrzeiten mit 12 Stunden (am/pm) oder mit 24 Stunden.",
+      "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
+      "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
+    },
     "username": "Benutzer:inname"
   },
   "username": "Benutzer:innenname",

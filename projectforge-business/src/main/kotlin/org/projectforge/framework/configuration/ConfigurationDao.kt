@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration
 
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.common.logging.PfLog
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
@@ -74,7 +75,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                 // selectAll returns the deleted rows too, so guard on !deleted: an obsolete parameter is
                 // marked (and logged) once on the transition, not again on every list load that re-runs this.
                 if (!params.contains(entry.parameter) && !entry.deleted) {
-                    log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
+                    PfLog.warn(log, ConfigurationLogEvents.UNKNOWN_ENTRY, "Unknown configuration entry. Mark as deleted: " + entry.parameter)
                     markAsDeleted(entry, checkAccess = false)
                 }
             }
@@ -144,8 +145,11 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * bypassing this method.
      *
      * SELECT and UPDATE depend on who maintains the parameter ([ConfigurationParam.getEditors]):
-     * - An admin sees every parameter, but changes only the [ConfigurationEditors.ADMIN] ones.
+     * - An admin sees every parameter except the [ConfigurationEditors.CONTROLLING] ones, but changes only the
+     *   [ConfigurationEditors.ADMIN] ones.
      * - A member of PF_Finance or PF_Controlling sees and changes only the [ConfigurationEditors.FINANCE] ones.
+     * - A member of PF_Finance or PF_Controlling sees the [ConfigurationEditors.CONTROLLING] ones, but only a member
+     *   of both groups changes them.
      * - A parameter with a page of its own ([ConfigurationParam.getEditPage]) is never updated through this
      *   check: that page validates its structured value and saves it itself, after checking the editors.
      *
@@ -159,8 +163,14 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     ): Boolean {
         val allowed = when (operationType) {
             OperationType.INSERT, OperationType.DELETE, OperationType.UNDELETE -> false
-            OperationType.SELECT -> accessChecker.isUserMemberOfAdminGroup(user) ||
-                    (isFinanceUser(user) && (obj == null || paramOf(obj)?.editors == ConfigurationEditors.FINANCE))
+            OperationType.SELECT -> {
+                if (obj == null) {
+                    accessChecker.isUserMemberOfAdminGroup(user) || isFinanceUser(user)
+                } else {
+                    val editors = paramOf(obj)?.editors ?: ConfigurationEditors.ADMIN
+                    accessChecker.isUserMemberOfGroup(user, *editors.viewers.toTypedArray())
+                }
+            }
 
             OperationType.UPDATE -> {
                 val param = paramOf(oldObj ?: obj)
@@ -178,9 +188,11 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * pages a parameter has of its own ([ConfigurationParam.getEditPage]).
      */
     fun isEditor(user: PFUserDO, param: ConfigurationParam): Boolean {
-        return when (param.editors) {
-            ConfigurationEditors.ADMIN -> accessChecker.isUserMemberOfAdminGroup(user)
-            ConfigurationEditors.FINANCE -> isFinanceUser(user)
+        val editors = param.editors
+        return if (editors.allEditorGroupsRequired) {
+            editors.editors.all { accessChecker.isUserMemberOfGroup(user, it) }
+        } else {
+            accessChecker.isUserMemberOfGroup(user, *editors.editors.toTypedArray())
         }
     }
 
@@ -241,13 +253,49 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             configuration.value = param.defaultStringValue
         }
-        if (param.type.isIn(ConfigurationType.LONG)) {
+        // A LONG parameter without a default (0) starts empty rather than with 0, e.g. a task id not yet configured.
+        if (param.type.isIn(ConfigurationType.LONG) && param.defaultLongValue != 0L) {
             configuration.longValue = param.defaultLongValue
         }
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()
         }
+        if (param is ConfigurationParam) {
+            param.legacyProperty?.let { property ->
+                takeOverLegacyProperty(configuration, param, applicationContext?.environment?.getProperty(property))
+            }
+        }
         insert(configuration, checkAccess = false)
+    }
+
+    /**
+     * Sets the value of the property the new parameter was configured by before ([ConfigurationParam.getLegacyProperty])
+     * as its initial value. Only on creating the row: afterwards the parameter alone applies, so a value cleared on the
+     * configuration page isn't taken over again.
+     *
+     * @return true if taken over.
+     */
+    internal fun takeOverLegacyProperty(configuration: ConfigurationDO, param: ConfigurationParam, value: String?): Boolean {
+        val property = param.legacyProperty ?: return false
+        val trimmed = value?.trim()?.ifEmpty { null } ?: return false
+        when (param.type) {
+            ConfigurationType.LONG -> {
+                val longValue = trimmed.toLongOrNull()
+                if (longValue == null) {
+                    log.warn("$property='$trimmed' is no number, not taken over into the configuration parameter '${param.key}'.")
+                    return false
+                }
+                configuration.longValue = longValue
+            }
+
+            ConfigurationType.STRING -> configuration.stringValue = trimmed
+            else -> throw UnsupportedOperationException("Taking over a property of type ${param.type} isn't supported.")
+        }
+        log.info(
+            "$property='$trimmed' taken over into the new configuration parameter '${param.key}', which is maintained on " +
+                    "the configuration page from now on. The property is ignored and may be removed from projectforge.properties."
+        )
+        return true
     }
 
     companion object {

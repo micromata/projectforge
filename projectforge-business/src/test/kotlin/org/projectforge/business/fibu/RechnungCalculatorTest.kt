@@ -25,12 +25,19 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.test.AbstractTestBase
 import java.math.BigDecimal
+import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
 class RechnungCalculatorTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var currencyConversionService: CurrencyConversionService
 
     @Test
     fun `test calculation of RechnungDO`() {
@@ -77,6 +84,39 @@ class RechnungCalculatorTest : AbstractTestBase() {
             assertEquals(BigDecimal("127.10"), info.grossSum, "grossSumWithDiscount")
             assertEquals(BigDecimal("124.56"), info.grossSumWithDiscount, "grossSumWithDiscount")
             assertEquals(future5Days, info.faelligkeitOrDiscountMaturity, "faelligkeitOrDiscountMaturity")
+        }
+    }
+
+    @Test
+    fun `a cancelled invoice and its cancellation count as paid and in no sum`() {
+        // Set as RechnungDao.buildStatistik does.
+        AbstractRechnungsStatistik.configurationService = configurationService
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("1", "100", "0.19"))
+            invoice.faelligkeit = LocalDate.now().minusDays(1)
+            invoice.status = RechnungStatus.STORNIERT
+            val info = RechnungCalculator.calculate(invoice)
+            assertTrue(info.isBezahlt, "cancelled")
+            assertFalse(info.isUeberfaellig, "cancelled")
+            val statistics = RechnungsStatistik()
+            statistics.add(info)
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.brutto), "brutto")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.netto), "netto")
+            assertEquals(0, statistics.counter, "counter")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.offen), "offen")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.ueberfaellig), "ueberfaellig")
+        }
+        RechnungDO().also { invoice ->
+            invoice.typ = RechnungTyp.CANCELLATION
+            invoice.status = RechnungStatus.GESTELLT
+            invoice.addPosition(createPositionInfo("-1", "100", "0.19"))
+            val info = RechnungCalculator.calculate(invoice)
+            assertTrue(info.isBezahlt, "cancellation")
+            val statistics = RechnungsStatistik()
+            statistics.add(info)
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.brutto), "brutto")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.offen), "offen")
         }
     }
 

@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
-import { useDataTable } from "@/components/data-table";
+import {
+  DataTableColumnPanel,
+  useColumnStatePersistence,
+  useDataTable,
+  useStoredColumnState,
+  useTableState,
+  type ColumnState,
+} from "@/components/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SearchInput } from "@/components/shared/list/search-input";
 import { useAttachmentMutations } from "@/hooks/use-attachments";
@@ -35,6 +42,8 @@ interface Props {
   onChanged?: () => void;
   /** See AttachmentList's `layout`. */
   layout?: "list" | "table";
+  /** See AttachmentList's `columnStates`. */
+  columnStates?: string;
 }
 
 /**
@@ -43,8 +52,19 @@ interface Props {
  *
  * Split from AttachmentList so that one keeps to the uploads and the query while this one holds the
  * selection and both dialogs.
+ *
+ * The table layout with `columnStates` is rendered once the stored column state has arrived (or failed), so
+ * the columns don't jump from the default layout to the user's one.
  */
-export function AttachmentFiles({
+export function AttachmentFiles(props: Props) {
+  const prefs = props.layout === "table" ? props.columnStates : undefined;
+  const stored = useStoredColumnState(prefs);
+  // Without prefs the query is disabled — and a disabled query stays pending.
+  if (prefs && stored.isPending) return null;
+  return <LoadedAttachmentFiles {...props} storedState={stored.data ?? {}} />;
+}
+
+function LoadedAttachmentFiles({
   attachments,
   entity,
   id,
@@ -52,7 +72,9 @@ export function AttachmentFiles({
   onFiles,
   onChanged,
   layout = "list",
-}: Props) {
+  columnStates,
+  storedState,
+}: Props & { storedState: ColumnState }) {
   const t = useTranslations();
   const { rename, remove, removeMany, encrypt, testDecryption } =
     useAttachmentMutations(entity, id);
@@ -67,10 +89,26 @@ export function AttachmentFiles({
   // searched, filtered by column and sorted — so a Shift range follows the order on screen, "select all"
   // picks what is visible, and a file a filter hides drops out of the selection instead of being deleted
   // unseen. Unpaged (manualPagination), so the row model is every displayed row.
+  const state = useTableState({ restoredState: storedState });
   const table = useDataTable<Attachment>({
     columns,
     data: searched,
+    sorting: state.sorting,
+    onSortingChange: state.setSorting,
+    columnFilters: state.columnFilters,
+    onColumnFiltersChange: state.setColumnFilters,
+    columnVisibility: state.columnVisibility,
+    onColumnVisibilityChange: state.setColumnVisibility,
+    columnPinning: state.columnPinning,
+    onColumnPinningChange: state.setColumnPinning,
+    columnSizing: state.columnSizing,
+    onColumnSizingChange: state.setColumnSizing,
+    columnOrder: state.columnOrder,
+    onColumnOrderChange: state.setColumnOrder,
+    // The checkbox leads the table whatever the stored layout says.
+    lockedColumnIds: ["select"],
     enableColumnFilters: true,
+    enableColumnResizing: asTable,
     manualPagination: true,
     getRowId: (attachment) => attachment.fileId,
     highlight: search,
@@ -80,9 +118,28 @@ export function AttachmentFiles({
     () => (asTable ? rows.map((row) => row.original) : attachments),
     [asTable, rows, attachments]
   );
+  useColumnStatePersistence(asTable ? columnStates : undefined, {
+    sorting: state.sorting,
+    columnVisibility: state.columnVisibility,
+    columnPinning: state.columnPinning,
+    columnSizing: state.columnSizing,
+    columnOrder: state.columnOrder,
+  });
+  // Back to the columns as declared; the persistence then stores the empty state.
+  const resetColumns = () => {
+    state.setSorting([]);
+    state.setColumnVisibility({});
+    state.setColumnPinning({});
+    state.setColumnSizing({});
+    state.setColumnOrder([]);
+    state.setColumnFilters([]);
+  };
   const searchField = asTable && (
-    <div className="relative w-64">
-      <SearchInput value={search} onChange={setSearch} />
+    <div className="flex items-center gap-2">
+      <div className="relative w-64">
+        <SearchInput value={search} onChange={setSearch} />
+      </div>
+      <DataTableColumnPanel table={table} onReset={resetColumns} />
     </div>
   );
   const selection = useAttachmentSelection(displayed);

@@ -112,17 +112,15 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await observe.click();
       await expect(observe).not.toBeChecked();
 
-      await page
-        .getByRole("button", { name: t("plugins.datatransfer.audit.display") })
-        .click();
-      const dialog = page.getByRole("dialog");
+      await tab(page, t("plugins.datatransfer.audit._")).click();
+      // Exact: the download events below have their own heading that contains this one.
       await expect(
-        dialog.getByText(
-          `${t("plugins.datatransfer.audit._")}: ${area.areaName}`
-        )
+        page.getByRole("heading", {
+          name: t("plugins.datatransfer.audit.events"),
+          exact: true,
+        })
       ).toBeVisible();
-      await expect(dialog.getByText(name).first()).toBeVisible();
-      await page.keyboard.press("Escape");
+      await expect(page.getByText(name).first()).toBeVisible();
 
       await tab(page, t("plugins.datatransfer.tab.files")).click();
       await removeFile(page, t, name);

@@ -28,13 +28,20 @@ test.describe("order book exports", { tag: "@lane-order" }, () => {
       .catch(() => undefined);
   });
 
-  test("offers both exports in the toolbar", async ({ loggedInPage: page }) => {
+  test("offers both exports in the toolbar's export menu", async ({
+    loggedInPage: page,
+  }) => {
     const format = await userFormat(page);
     await goto(page, "/order");
     await waitForList(page, format.t);
 
-    await expect(excelButton(page, format)).toBeVisible();
-    await expect(forecastButton(page, format)).toBeVisible();
+    // One opening of the menu shows both; a second click on the trigger would close it again.
+    await expect(await excelButton(page, format)).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", {
+        name: new RegExp(`^${format.t("fibu.auftrag.forecastExportAsXls._")}`),
+      })
+    ).toBeVisible();
   });
 
   test("exports the filtered list as an Excel file", async ({
@@ -47,7 +54,7 @@ test.describe("order book exports", { tag: "@lane-order" }, () => {
     await narrowTo(page, format, seededOrder.title);
 
     const download = page.waitForEvent("download");
-    await excelButton(page, format).click();
+    await (await excelButton(page, format)).click();
     // Named by the backend through Content-Disposition (`OrderExport` writes the legacy .xls format),
     // so the assertion is on the extension rather than on a name this side made up.
     expect((await download).suggestedFilename()).toMatch(/\.xls$/);
@@ -64,7 +71,7 @@ test.describe("order book exports", { tag: "@lane-order" }, () => {
       await waitForList(page, format.t);
       await narrowTo(page, format, seededOrder.title);
 
-      await forecastButton(page, format).click();
+      await (await forecastButton(page, format)).click();
       const dialog = page.getByRole("dialog");
       const startDate = dialog.getByLabel(
         format.t("fibu.auftrag.forecastExport.startDate._")
@@ -94,7 +101,7 @@ test.describe("order book exports", { tag: "@lane-order" }, () => {
       // in memory.
       await page.reload();
       await waitForList(page, format.t);
-      await forecastButton(page, format).click();
+      await (await forecastButton(page, format)).click();
       const reopened = page.getByRole("dialog");
       await expect(
         reopened.getByLabel(format.t("fibu.auftrag.forecastExport.startDate._"))
@@ -129,14 +136,28 @@ async function narrowTo(page: Page, format: UserFormat, title: string) {
   );
 }
 
+/**
+ * Opens the export menu of the toolbar and returns one of its entries. An entry's accessible name is its
+ * label followed by its explanation, hence the match on the start.
+ */
+async function exportMenuItem(
+  page: Page,
+  format: UserFormat,
+  labelKey: string
+) {
+  await page
+    .getByRole("button", { name: format.t("export"), exact: true })
+    .click();
+  const label = format.t(labelKey).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return page.getByRole("menuitem", { name: new RegExp(`^${label}`) });
+}
+
 function excelButton(page: Page, format: UserFormat) {
-  return page.getByRole("button", { name: format.t("exportAsXls") });
+  return exportMenuItem(page, format, "exportAsXls");
 }
 
 function forecastButton(page: Page, format: UserFormat) {
-  return page.getByRole("button", {
-    name: format.t("fibu.auftrag.forecastExportAsXls._"),
-  });
+  return exportMenuItem(page, format, "fibu.auftrag.forecastExportAsXls._");
 }
 
 /** The stored dialog answer of the account, so a case that overwrites it can put it back. */

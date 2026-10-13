@@ -64,7 +64,12 @@ export interface MonthlyReport {
   numberOfWorkingDays?: string | null;
   /** Target working hours of the month (weekly hours × working days ÷ 5), formatted, or null. */
   targetWorkingHours?: string | null;
+  /** Working days without time sheets, vacation days included. */
   formattedUnbookedDays?: string | null;
+  /** The days of formattedUnbookedDays not covered by a vacation. */
+  formattedUnbookedWorkingDays?: string | null;
+  /** The vacation days among formattedUnbookedDays. */
+  formattedUnbookedVacationDays?: string | null;
   averageWorkingTimeStats?: string | null;
   timeSavingsByAIEnabled: boolean;
   /** True only when the AI feature is on AND some non-zero saving exists — gates the AI column/row and stat. */

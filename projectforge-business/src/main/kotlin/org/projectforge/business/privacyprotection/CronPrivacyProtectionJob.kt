@@ -24,6 +24,12 @@
 package org.projectforge.business.privacyprotection
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
@@ -38,6 +44,14 @@ private val log = KotlinLogging.logger {}
 class CronPrivacyProtectionJob {
   private var jobs = mutableListOf<IPrivacyProtectionJob>()
 
+  @Autowired
+  private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+  @PostConstruct
+  private fun postConstruct() {
+    schedulerJobRunner.register(SCHEDULER_JOB, ::execute)
+  }
+
   fun register(job: IPrivacyProtectionJob) {
     synchronized(jobs) {
       log.info { "Registering job ${job::class.java}." }
@@ -50,20 +64,27 @@ class CronPrivacyProtectionJob {
    * second, minute, hour, day of month, month, day of week
    */
   //@Scheduled(cron = "0 0 4 * * *")
-  @Scheduled(cron = "\${projectforge.privacyProtection.cronDaily}")
+  @Scheduled(cron = CRON)
   fun execute() {
-    log.info { "Daily privacy protection job started." }
-    synchronized(jobs) {
-      Thread {
-        jobs.forEach {
-          try {
-            it.execute()
-          } catch (ex: Exception) {
-            log.error(ex) { "Error while executing job '${it::class.java.name}: ${ex.message}" }
-          }
+    schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+      val list = synchronized(jobs) { jobs.toList() }
+      list.forEach {
+        try {
+          it.execute()
+        } catch (ex: Exception) {
+          log.error(ex) { "Error while executing job '${it::class.java.name}: ${ex.message}" }
+          run.fail("Job '${it::class.java.simpleName}' failed: ${ex.message}", ex)
         }
-      }.start()
+      }
     }
-    log.info { "Daily privacy protection job finished." }
+  }
+
+  companion object {
+    private const val CRON = "\${projectforge.privacyProtection.cronDaily}"
+
+    val SCHEDULER_JOB = SchedulerJobDefinition(
+      "privacyProtection.daily", SchedulerJobArea.MAINTENANCE, CronPrivacyProtectionJob::class.java, "execute",
+      SchedulerSchedule.Cron(CRON),
+    )
   }
 }

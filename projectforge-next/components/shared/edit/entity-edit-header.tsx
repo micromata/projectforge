@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { ExperimentalBadge } from "@/components/shared/experimental-badge";
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useDocumentTitle } from "@/hooks/use-document-title";
@@ -31,6 +32,8 @@ export interface EntityEditHeaderProps {
    * stays visible while the user scrolls.
    */
   deleted?: boolean;
+  /** The entity belongs to an unfinished feature, see PageDef.experimental. */
+  experimental?: boolean;
 }
 
 /**
@@ -49,6 +52,7 @@ export function EntityEditHeader({
   trailing,
   crossLinks,
   deleted,
+  experimental,
 }: EntityEditHeaderProps) {
   const t = useTranslations();
   useDocumentTitle(title);
@@ -84,6 +88,7 @@ export function EntityEditHeader({
             {t("deleted")}
           </Badge>
         )}
+        {experimental && <ExperimentalBadge />}
         <span className="flex-1" />
         {trailing}
         {crossLinks}

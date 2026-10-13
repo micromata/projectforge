@@ -31,6 +31,10 @@ import org.projectforge.Constants
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.jobs.CronSanityCheckJob
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.database.TupleUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -74,9 +78,13 @@ class OrderbookSnapshotsService {
     @Autowired
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     @PostConstruct
     private fun postConstruct() {
         instance = this
+        schedulerJobRunner.register(SCHEDULER_JOB, ::createDailySnapshots)
         OrderbookSnapshotsSanityCheck(this).let {
             cronSanityCheckJob.registerJob(it)
         }
@@ -87,49 +95,46 @@ class OrderbookSnapshotsService {
      * This jobs runs hourly and check, if a snapshot for today exists. If not, it will be created.
      * For the beginning of a new month, a full backup is created. All other backups are incremental.
      */
-    @Scheduled(fixedDelay = 1 * Constants.MILLIS_PER_HOUR, initialDelay = 2 * Constants.MILLIS_PER_MINUTE)
+    @Scheduled(fixedDelay = SNAPSHOT_DELAY_MILLIS, initialDelay = SNAPSHOT_INITIAL_DELAY_MILLIS)
     fun createDailySnapshots() {
-        Thread {
-            try {
-                log.info { "Checking daily snapshots..." }
-                persistenceService.runInNewTransaction(recordCallStats = true) { context ->
-                    val today = LocalDate.now()
-                    if (auftragDao.select(deleted = false, checkAccess = false).isEmpty()) {
-                        log.debug { "No orders exist. Skipping snapshot creation." }
-                        return@runInNewTransaction
-                    }
-                    val entry = findEntry(today)
-                    if (entry != null) {
-                        log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
-                        return@runInNewTransaction
-                    }
-                    var incrementalBasedOn: LocalDate? = null
-                    if (today.dayOfMonth != 1) {
-                        // For the first day of month, full backup is created. So handle all other days as incremental:
-                        // Find the last full backup:
-                        selectRecentFullBackup()?.let {
-                            log.debug { "Found recent full backup: ${it.date}" }
-                            it.date?.let { snapshotDate ->
-                                if (snapshotDate.month == today.month) {
-                                    log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
-                                    try {
-                                        // Checking for sanity:
-                                        readSnapshot(snapshotDate)
-                                        incrementalBasedOn = it.date
-                                    } catch (e: Exception) {
-                                        log.error { "Recent full backup seems to be corrupted. Creating a full backup again: ${e.message}" }
-                                    }
+        // Exceptions are logged by the scheduler (job failed).
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) {
+            log.info { "Checking daily snapshots..." }
+            persistenceService.runInNewTransaction(recordCallStats = true) { context ->
+                val today = LocalDate.now()
+                if (auftragDao.select(deleted = false, checkAccess = false).isEmpty()) {
+                    log.debug { "No orders exist. Skipping snapshot creation." }
+                    return@runInNewTransaction
+                }
+                val entry = findEntry(today)
+                if (entry != null) {
+                    log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }
+                    return@runInNewTransaction
+                }
+                var incrementalBasedOn: LocalDate? = null
+                if (today.dayOfMonth != 1) {
+                    // For the first day of month, full backup is created. So handle all other days as incremental:
+                    // Find the last full backup:
+                    selectRecentFullBackup()?.let {
+                        log.debug { "Found recent full backup: ${it.date}" }
+                        it.date?.let { snapshotDate ->
+                            if (snapshotDate.month == today.month) {
+                                log.info { "Full backup found in the current month: ${it.date}, so store an incremental snapshot..." }
+                                try {
+                                    // Checking for sanity:
+                                    readSnapshot(snapshotDate)
+                                    incrementalBasedOn = it.date
+                                } catch (e: Exception) {
+                                    log.error { "Recent full backup seems to be corrupted. Creating a full backup again: ${e.message}" }
                                 }
                             }
                         }
                     }
-                    storeOrderbookSnapshot(incrementalBasedOn = incrementalBasedOn, date = today)
-                    log.info { "Checking daily snapshots done. ${context.formatStats()}" }
                 }
-            } catch (e: Exception) {
-                log.error(e) { "Error in createDailySnapshots: ${e.message}" }
+                storeOrderbookSnapshot(incrementalBasedOn = incrementalBasedOn, date = today)
+                log.info { "Checking daily snapshots done. ${context.formatStats()}" }
             }
-        }.start()
+        }
     }
 
     /**
@@ -369,5 +374,13 @@ class OrderbookSnapshotsService {
             private set
 
         private const val PARSED_SNAPSHOTS_MAX = 3
+
+        private const val SNAPSHOT_DELAY_MILLIS = 1 * Constants.MILLIS_PER_HOUR
+        private const val SNAPSHOT_INITIAL_DELAY_MILLIS = 2 * Constants.MILLIS_PER_MINUTE
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "orderbook.dailySnapshots", SchedulerJobArea.BUSINESS, OrderbookSnapshotsService::class.java,
+            "createDailySnapshots", SchedulerSchedule.FixedDelay(SNAPSHOT_DELAY_MILLIS, SNAPSHOT_INITIAL_DELAY_MILLIS),
+        )
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CalendarAdd02Icon } from "@hugeicons/core-free-icons";
@@ -11,16 +11,29 @@ import { BookDaysDialog, type BookDaysDialogProps } from "./book-days-dialog";
 
 /**
  * The calendar header's entry to booking several days at once. [getViewStart] is read when the dialog
- * opens, so the period starts in whatever the calendar shows at that moment.
+ * opens, so the period starts in whatever the calendar shows at that moment. With [openOnMount] the
+ * dialog opens right away once (e.g. a link from the monthly report), then [onOpened] is called.
  */
 export function BookDaysButton({
   getViewStart,
+  openOnMount,
+  onOpened,
   ...props
 }: Omit<BookDaysDialogProps, "viewStart" | "onClose"> & {
   getViewStart: () => string | null;
+  openOnMount?: boolean;
+  onOpened?: () => void;
 }) {
   const t = useTranslations();
   const [viewStart, setViewStart] = useState<string | null>(null);
+  const openedOnMount = useRef(false);
+
+  useEffect(() => {
+    if (!openOnMount || openedOnMount.current) return;
+    openedOnMount.current = true;
+    setViewStart(getViewStart() ?? todayIso());
+    onOpened?.();
+  }, [openOnMount, getViewStart, onOpened]);
 
   return (
     <>

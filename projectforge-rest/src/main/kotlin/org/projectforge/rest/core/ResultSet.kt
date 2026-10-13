@@ -62,6 +62,13 @@ class ResultSet<O : Any>(
         internal set
 
     /**
+     * A translated warning about the result of the current filter that the user must not overlook, e.g. that
+     * the filter is too vague to list anything (see `TimesheetEntityRest.needsMoreFilter`). A hand built page
+     * in projectforge-next shows it prominently above the table instead of in the [resultInfo] footer.
+     */
+    var resultWarning: String? = null
+
+    /**
      * If true, signals to the frontend that the UI should be reloaded (e.g., filter definitions changed).
      */
     var reloadUI: Boolean = false

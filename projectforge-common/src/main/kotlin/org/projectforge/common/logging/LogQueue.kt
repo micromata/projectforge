@@ -26,6 +26,19 @@ package org.projectforge.common.logging
 import org.apache.commons.lang3.StringUtils
 import java.util.*
 
+/**
+ * An event with its context in a [LogQueue], oldest first.
+ * @param moreBefore There are more accepted events before, in the queue.
+ * @param moreAfter There are more accepted events after, in the queue (so far).
+ */
+class LogContext(
+    val hit: LoggingEventData,
+    val before: List<LoggingEventData>,
+    val after: List<LoggingEventData>,
+    val moreBefore: Boolean,
+    val moreAfter: Boolean,
+)
+
 internal class LogQueue(val maxSize: Int) {
     private var queue = FiFoBuffer<LoggingEventData>(maxSize)
 
@@ -44,6 +57,39 @@ internal class LogQueue(val maxSize: Int) {
 
     fun clear() {
         queue.clear()
+    }
+
+    /**
+     * The context of the event of the given [id]: the [before] events before and the [after] events after it
+     * that are [accepted][accept] (e.g. of the same user), oldest first.
+     * @return null, if the event isn't in the queue (anymore).
+     */
+    fun context(id: Long, before: Int, after: Int, accept: (LoggingEventData, hit: LoggingEventData) -> Boolean): LogContext? {
+        val events = queue.snapshot()
+        // The ids increase with every event added.
+        val index = events.binarySearchBy(id) { it.id }.takeIf { it >= 0 } ?: return null
+        val hit = events[index]
+        val previous = ArrayList<LoggingEventData>()
+        for (i in index - 1 downTo 0) {
+            if (accept(events[i], hit)) {
+                previous.add(events[i])
+                if (previous.size > before) break
+            }
+        }
+        val following = ArrayList<LoggingEventData>()
+        for (i in index + 1 until events.size) {
+            if (accept(events[i], hit)) {
+                following.add(events[i])
+                if (following.size > after) break
+            }
+        }
+        return LogContext(
+            hit = hit,
+            before = previous.take(before).reversed(),
+            after = following.take(after),
+            moreBefore = previous.size > before,
+            moreAfter = following.size > after,
+        )
     }
 
     @Suppress("UNUSED_PARAMETER")

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -73,9 +74,27 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
           {report.numberOfWorkingDays}
         </Stat>
       )}
-      {report.formattedUnbookedDays && (
-        <Stat label={t("fibu.monthlyEmployeeReport.withoutTimesheets")} danger>
-          {report.formattedUnbookedDays}
+      {report.formattedUnbookedWorkingDays && (
+        <Stat
+          label={t("fibu.monthlyEmployeeReport.workingDaysWithoutTimesheets")}
+          danger
+        >
+          {report.formattedUnbookedWorkingDays}
+        </Stat>
+      )}
+      {report.formattedUnbookedVacationDays && (
+        <Stat
+          label={t("fibu.monthlyEmployeeReport.vacationDaysWithoutTimesheets")}
+        >
+          {/* Opens the calendar's dialog for booking several days; the vacation is chosen there. */}
+          <HintTooltip text={t("timesheet.bookDays.title")} plain>
+            <Link
+              href="/calendar?bookDays=1"
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              {report.formattedUnbookedVacationDays}
+            </Link>
+          </HintTooltip>
         </Stat>
       )}
       {report.invoicingQuota && (

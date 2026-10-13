@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { FieldError } from "@/components/ui/field";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import type { PeriodKindId } from "@/lib/date-period";
@@ -19,7 +20,8 @@ export interface DatePeriodFieldProps {
   label: string;
   begin: DatePeriodBound;
   end: DatePeriodBound;
-  hint?: string;
+  /** See BaseFieldProps.hint. */
+  hint?: ReactNode;
   /**
    * Arts offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end follows
    * it. Absent or empty means two plain dates: for most periods the two ends are unrelated. A form offers

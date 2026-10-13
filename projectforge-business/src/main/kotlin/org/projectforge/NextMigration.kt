@@ -387,6 +387,14 @@ object NextMigration {
             // OrphanedLinkFilter keeps redirecting bookmarked Wicket links.
             offerLegacyLink = false,
         ),
+        // The rules of the notification system, new in next (NotificationRuleEntityRest, no layout): there is no
+        // legacy page.
+        "notificationRule" to NextPage(
+            route = "notificationRule",
+            editRoute = "notificationRule/$ID_PLACEHOLDER",
+            newEntryRoute = "notificationRule/new",
+            legacyApp = null,
+        ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
         // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back
@@ -518,6 +526,30 @@ object NextMigration {
             route = "datatransfer",
             editRoute = "datatransfer/$ID_PLACEHOLDER/edit",
             newEntryRoute = "datatransfer/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
+        // The scripts of financial and controlling staff (ScriptEntityRest, ScriptExecuteRest), migrated from
+        // React and hand built. As in React, the row click leads to the execution (`script/:id`); the form is a
+        // sub route of it, the ad-hoc editor is `script/execute`. The React pages are gone (no UILayout served
+        // any more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links
+        // only. The links of the execution pages (react/scriptExecute/dynamic/<id>) are redirected by
+        // OrphanedLinkFilter.redirectScriptExecutePage.
+        "script" to NextPage(
+            route = "script",
+            editRoute = "script/$ID_PLACEHOLDER/edit",
+            newEntryRoute = "script/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
+        // The scripts every user may execute by the script configuration (MyScriptEntityRest,
+        // MyScriptExecuteRest): a list whose row leads to the execution (`myscript/:id`), there is no form.
+        // Migrated from React like "script", see there.
+        "myscript" to NextPage(
+            route = "myscript",
+            editRoute = "myscript/$ID_PLACEHOLDER",
+            // No form to add one: an old add link lands on the list.
+            newEntryRoute = "myscript",
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),

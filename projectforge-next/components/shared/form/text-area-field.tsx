@@ -12,6 +12,12 @@ import { useFieldErrors } from "./use-field-errors";
 
 export interface TextAreaFieldProps extends BaseFieldProps {
   rows?: number;
+  /**
+   * Classes of the textarea itself (the field's `className` goes to the shell around label and box) — a
+   * maximum height for a value that can be very long (a public key), where the box would otherwise grow
+   * with its content.
+   */
+  controlClassName?: string;
   /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
   disabled?: boolean;
   /**
@@ -28,6 +34,7 @@ export function TextAreaField({
   hint,
   className,
   rows = 4,
+  controlClassName,
   disabled,
   metadataLess,
 }: TextAreaFieldProps) {
@@ -57,6 +64,7 @@ export function TextAreaField({
             <Textarea
               id={ids.controlId}
               rows={rows}
+              className={controlClassName}
               disabled={disabled}
               // Same as InputField: the column's length.
               maxLength={maxLength}

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NumberField } from "@/components/shared/form/number-field";
+import { RichTextField } from "@/components/shared/form/rich-text-field";
 import { StringSuggestField } from "@/components/shared/form/string-suggest-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import {
@@ -45,16 +46,19 @@ export function ConfigurationValueField({ className }: { className?: string }) {
       ? t(descriptionI18nKey)
       : undefined;
 
+  const readOnly = data?.writeAccess === false || !!data?.editPage;
   const field = renderValueField(
     configurationType,
     parameter,
     label,
     hint,
-    className
+    className,
+    data?.richText === true,
+    readOnly
   );
   // A parameter the user may only look at (see ConfigurationAccessNote): the save button is gone
   // already, the disabled fieldset keeps the value from being typed into for nothing.
-  return data?.writeAccess === false || data?.editPage ? (
+  return readOnly ? (
     <fieldset disabled className="contents">
       {field}
     </fieldset>
@@ -69,7 +73,9 @@ function renderValueField(
   parameter: string | null,
   label: string,
   hint: string | undefined,
-  className?: string
+  className: string | undefined,
+  richText: boolean,
+  readOnly: boolean
 ) {
   switch (type) {
     case "JSON": {
@@ -90,6 +96,19 @@ function renderValueField(
       );
     }
     case "TEXT":
+      // The fieldset doesn't reach the editor's contenteditable, so it is disabled itself.
+      if (richText) {
+        return (
+          <RichTextField
+            name="stringValue"
+            label={label}
+            hint={hint}
+            className={className}
+            disabled={readOnly}
+            metadataLess
+          />
+        );
+      }
       return (
         <TextAreaField
           name="stringValue"

@@ -6,7 +6,9 @@
 
 # Site title and description
 title:              ProjectForge
-description:        ProjectForge Documentation.
+description:        "The open-source back office for project-driven companies: projects, time, people and money in one place. Self-hosted, made for DACH and the EU."
+# Shown after the site title in the <title> of the home page (jekyll-seo-tag)
+tagline:            Open-source back office for projects, time, people and money
 lang:               en
 
 # Site subpath, e.g. /blog
@@ -112,7 +114,7 @@ share:
 
 # Default footer image settings
 footer:
-  copyright:      <a href="https://projectforge.org/">ProjectForge&copy</a> is a registered trade mark.
+  copyright:      <a href="https://projectforge.org/">ProjectForge</a>&reg; is a registered trademark.
 
   # Disqus comments shortname, requires Disqus account https://disqus.com/
   # disqus:
@@ -147,6 +149,10 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - node_modules
+  - README.adoc
+  - fetch-binaries.sh
+  - package.json
+  - package-lock.json
 
 sass:
   style:            compressed

@@ -76,6 +76,8 @@ class OrderStatisticsCache {
     val planningDate: LocalDate? = null,
     /** The forecast variant, see [org.projectforge.business.fibu.ForecastOrderPosInfo.distributeUnusedBudget]. */
     val distributeUnusedBudget: Boolean? = null,
+    /** The order book snapshot the forecast is calculated from, null for the current order book. */
+    val snapshotDate: LocalDate? = null,
   )
 
   private class Entry(val created: Long, val value: Lazy<Any?>)

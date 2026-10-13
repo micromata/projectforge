@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookDaysButton } from "@/components/features/timesheet/book-days/book-days-button";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
@@ -30,6 +32,14 @@ export function CalendarToolbar({
 }) {
   const queryClient = useQueryClient();
   const currentUser = useCurrentUserRef();
+  const router = useRouter();
+  // `?bookDays=1` (e.g. from the vacation days without time sheets of the monthly report) opens the
+  // dialog once; the parameter is dropped then, so a reload doesn't open it again.
+  const openBookDays = useSearchParams().get("bookDays") != null;
+  const onBookDaysOpened = useCallback(
+    () => router.replace("/calendar"),
+    [router]
+  );
   const canChooseUser = init.filter?.otherTimesheetUsersEnabled === true;
   // The user whose sheets the calendar shows — a positive id is a real user only for those who may see
   // others (everyone else gets the 1/-1 on/off sentinel, see CalendarSettingsDialog).
@@ -61,6 +71,8 @@ export function CalendarToolbar({
         canChooseUser={canChooseUser}
         getViewStart={getViewStart}
         onBooked={onBooked}
+        openOnMount={openBookDays}
+        onOpened={onBookDaysOpened}
       />
       <CalendarFavoritesMenu
         favorites={init.filterFavorites ?? []}

@@ -30,9 +30,9 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.scripting.GroovyEngine
+import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
-import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -166,7 +166,7 @@ open class SendMail {
    *         for `async = true` a failure of the sending itself can only be found in the log — nobody waits
    *         for the future. Pass `async = false` where the outcome has to be reported to the user.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures, for `async = false` only.
+   * @throws MailSendException due to technical failures, for `async = false` only.
    */
   @JvmOverloads
   fun send(
@@ -259,7 +259,7 @@ open class SendMail {
     } catch (ex: Exception) {
       sendStats.recordFailure(start, ex)
       log.error(MailLogEvents.SEND_FAILED, ex) { "While creating and sending message: $composedMessage" }
-      throw InternalErrorException("mail.error.exception")
+      throw MailSendException(ex)
     }
     sendStats.recordSuccess(start)
     log.info { "E-Mail successfully sent: $composedMessage" }
@@ -551,10 +551,12 @@ open class SendMail {
       return STANDARD_SUBJECT_PREFIX + subject
     }
 
+    /** The user's name as HTML, linked to the mail address if given (both escaped). */
     fun formatUserWithMail(name: String, mail: String?): String {
+      val escapedName = HtmlHelper.escapeHtml(name)
       return if (mail == null) {
-        name
-      } else "<a href=\"mailto:$mail\">$name</a>"
+        escapedName
+      } else "<a href=\"mailto:${HtmlHelper.escapeHtml(mail)}\">$escapedName</a>"
     }
 
     private var testMode = false

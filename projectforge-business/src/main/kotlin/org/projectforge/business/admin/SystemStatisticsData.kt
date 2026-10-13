@@ -29,6 +29,17 @@ import org.projectforge.framework.utils.NumberHelper
 import java.io.File
 
 class SystemStatisticsData {
+  /**
+   * Fill level of an entry (memory, disk, connections), shown as a bar by the frontend.
+   */
+  class Gauge(
+    val used: Long,
+    val max: Long,
+    val unit: Unit = Unit.BYTES,
+  ) {
+    enum class Unit { BYTES, COUNT }
+  }
+
   class Entry(
     val id: String,
     /**
@@ -36,7 +47,8 @@ class SystemStatisticsData {
      */
     val group: String,
     val title: String,
-    val value: Any?
+    val value: Any?,
+    val gauge: Gauge? = null,
   ) {
     fun valueAsString(): String {
       return value?.toString() ?: "--"
@@ -56,8 +68,8 @@ class SystemStatisticsData {
     entries.add(entry)
   }
 
-  fun add(id: String, group: String, title: String, value: Any?): Entry {
-    val entry = Entry(id, group, title, value)
+  fun add(id: String, group: String, title: String, value: Any?, gauge: Gauge? = null): Entry {
+    val entry = Entry(id, group, title, value, gauge)
     add(entry)
     return entry
   }
@@ -67,7 +79,7 @@ class SystemStatisticsData {
   }
 
   fun add(id: String, group: String, title: String, value: MemoryStatistics) {
-    add(id, group, title, value.toString())
+    add(id, group, title, value.toString(), if (value.max > 0) Gauge(value.used, value.max) else null)
   }
 
   fun addDiskUsage(id: String, group: String, title: String, file: File?) {
@@ -79,12 +91,17 @@ class SystemStatisticsData {
   }
 
   fun addDiskUsage(id: String, group: String, title: String, diskUsage: DiskUsage) {
-    val value = "${formatBytes(diskUsage.used)}/${formatBytes(diskUsage.totalSpace)} (${diskUsage.percentage}%, ${
-      formatBytes(
-        diskUsage.freeSpace
-      )
-    } free): ${diskUsage.path?.toFile()?.absolutePath ?: "---"}"
-    add(id, group, title, value)
+    val path = diskUsage.path?.toFile()?.absolutePath ?: "---"
+    if (diskUsage.totalSpace <= 0) {
+      add(id, group, title, "${formatBytes(diskUsage.used)}: $path")
+      return
+    }
+    val diskUsed = diskUsage.totalSpace - diskUsage.freeSpace
+    // The bar shows the fill level of the whole disk, the value also the size of the directory on it.
+    val value = "${formatBytes(diskUsage.used)}: $path (disk: ${formatBytes(diskUsed)} / ${
+      formatBytes(diskUsage.totalSpace)
+    } used, ${formatBytes(diskUsage.freeSpace)} free)"
+    add(id, group, title, value, Gauge(diskUsed, diskUsage.totalSpace))
   }
 
   private fun format(number: Number, scale: Int? = null): String {

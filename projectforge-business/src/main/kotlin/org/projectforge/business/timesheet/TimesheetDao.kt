@@ -476,11 +476,18 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * update (also undelete). For time collision detection deleted time sheets are ignored.
      *
      * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two time sheets is booked on
-     * a shared cost element AND the two time sheets don't belong to the same project (booking overlapping time twice inside the same project is always a forbidden double
-     * booking). A time sheet is booked on a shared cost element if its cost unit says so ([Kost2DO.sharedCost]); if the
-     * cost unit doesn't say anything (null) or there is none, its task decides ([TaskDO.allowTimeOverlap], inherited
-     * from ancestor tasks). A cost unit's explicit setting (true or false) takes precedence over the task's one. See
-     * [TimesheetOverlapUtils] for the purpose (cost sharing between projects/customers).
+     * a shared cost element AND the two time sheets don't belong to the same project (booking overlapping time twice
+     * inside the same project is always a forbidden double booking). A time sheet is booked on a shared cost element if
+     * its cost unit says so ([Kost2DO.sharedCost]); if the cost unit doesn't say anything (null) or there is none, its
+     * task decides ([TaskDO.allowTimeOverlap], inherited from ancestor tasks). A cost unit's explicit setting (true or
+     * false) takes precedence over the task's one. See [TimesheetOverlapUtils] for the purpose (cost sharing between
+     * projects/customers).
+     *
+     * Never allowed, shared or not:
+     * - Two time sheets on the same cost unit, or on the same task if neither has a cost unit (e.g. a double vacation).
+     * - Two time sheets on cost units of the same overlap group ([TimesheetOverlapGroups],
+     *   [ConfigurationParam.TIMESHEET_OVERLAP_GROUPS], e.g. all cost units 6.*): a group counts like one
+     *   project and takes precedence over the cost unit's project.
      *
      * @return true, if at least one overlapping time sheet is a forbidden collision.
      */
@@ -520,42 +527,54 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     /**
      * @return true, if the two time sheets, overlapping in time, are a forbidden collision as [hasTimeOverlap] refuses
-     * it: none of them is booked on a shared cost element, or both belong to the same project. The time sheets
-     * themselves aren't compared, the caller knows that they overlap. Only the ids of task and cost unit are used
-     * (resolved by the caches), so detached time sheets with lazy cost units are fine.
+     * it. The time sheets themselves aren't compared, the caller knows that they overlap. Only the ids of task and
+     * cost unit are used (resolved by the caches), so detached time sheets with lazy cost units are fine.
      */
     open fun isCollision(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
-        val taskId = timesheet.taskId
-        val kost2Id = timesheet.kost2?.id
-        val otherTaskId = other.taskId
-        val otherKost2Id = other.kost2?.id
-        return !isOverlapAllowed(
-            isSharedCost(taskId, kost2Id), { projektIdOf(taskId, kost2Id) },
-            isSharedCost(otherTaskId, otherKost2Id), { projektIdOf(otherTaskId, otherKost2Id) },
-        )
+        return !isOverlapAllowed(timesheet, other)
+    }
+
+    private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        return isOverlapAllowed(timesheet.taskId, timesheet.kost2?.id, other.taskId, other.kost2?.id)
     }
 
     /**
-     * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of them is booked
-     * on a shared cost element (see [isSharedCost]) and the two time sheets don't belong to the same project.
+     * @return true, if two time sheets of the given tasks and cost units are allowed to overlap in time (see
+     * [hasTimeOverlap]): not on the same cost unit (or, without cost units, the same task), at least one of them booked
+     * on a shared cost element (see [isSharedCost]) and not in the same project or overlap group (see [overlapKeyOf]).
      */
-    private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
-        return isOverlapAllowed(
-            isSharedCost(timesheet.taskId, timesheet.kost2?.id), { getProjektId(timesheet) },
-            isSharedCost(other.taskId, other.kost2?.id), { getProjektId(other) },
-        )
-    }
-
-    private fun isOverlapAllowed(
-        sharedCost: Boolean, projektId: () -> Long?, otherSharedCost: Boolean, otherProjektId: () -> Long?,
-    ): Boolean {
-        if (!sharedCost && !otherSharedCost) {
+    private fun isOverlapAllowed(taskId: Long?, kost2Id: Long?, otherTaskId: Long?, otherKost2Id: Long?): Boolean {
+        if (kost2Id != null || otherKost2Id != null) {
+            if (kost2Id == otherKost2Id) {
+                return false // Same cost unit => forbidden double booking.
+            }
+        } else if (taskId == otherTaskId) {
+            return false // No cost units, same task => forbidden double booking.
+        }
+        if (!isSharedCost(taskId, kost2Id) && !isSharedCost(otherTaskId, otherKost2Id)) {
             return false
         }
-        val id = projektId()
-        // Same project => forbidden double booking. Time sheets without project (internal tasks) never count as the
-        // same project.
-        return id == null || id != otherProjektId()
+        // Same project or overlap group => forbidden double booking. Time sheets without project and group (internal
+        // tasks) never count as the same project.
+        val key = overlapKeyOf(taskId, kost2Id) ?: return true
+        return key != overlapKeyOf(otherTaskId, otherKost2Id)
+    }
+
+    /**
+     * The start times of the time sheets of all users (deleted ones ignored) starting within [from] (inclusive) and
+     * [to] (exclusive), by user id. One `SELECT` of two columns, no row hydration and no access check: for jobs
+     * evaluating the bookings of all employees (e.g. the notification rule for missing time sheets).
+     */
+    open fun getStartTimesByUser(from: Date, to: Date): Map<Long, List<Date>> {
+        val sql = "SELECT t.user.id AS userId, t.startTime AS startTime FROM TimesheetDO t" +
+                " WHERE t.deleted = false AND t.startTime >= :from AND t.startTime < :to"
+        val result = mutableMapOf<Long, MutableList<Date>>()
+        persistenceService.executeQuery(sql, Tuple::class.java, Pair("from", from), Pair("to", to)).forEach { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@forEach
+            val startTime = tuple.get("startTime") as Date? ?: return@forEach
+            result.getOrPut(userId) { mutableListOf() }.add(startTime)
+        }
+        return result
     }
 
     /**
@@ -597,12 +616,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             active.removeAll { it.stop <= sheet.start }
             active.forEach { other ->
                 // Strictly overlapping, as hasTimeOverlap (one ending when the other starts is no collision).
-                if (sheet.stop > other.start &&
-                    !isOverlapAllowed(
-                        isSharedCost(sheet.taskId, sheet.kost2Id), { projektIdOf(sheet) },
-                        isSharedCost(other.taskId, other.kost2Id), { projektIdOf(other) },
-                    )
-                ) {
+                if (sheet.stop > other.start && !isOverlapAllowed(sheet.taskId, sheet.kost2Id, other.taskId, other.kost2Id)) {
                     result.add(sheet.id)
                     result.add(other.id)
                 }
@@ -623,16 +637,22 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return PfCaches.instance.getKost2(kost2Id)?.sharedCost ?: taskTree.isTimeOverlapAllowed(taskId)
     }
 
-    private fun projektIdOf(sheet: CollisionCandidate): Long? {
-        return projektIdOf(sheet.taskId, sheet.kost2Id)
+    /**
+     * What "the same project" means for [isOverlapAllowed]: the overlap group of the cost unit
+     * ([TimesheetOverlapGroups]), if it belongs to one, otherwise the project of the task or cost unit.
+     *
+     * @return null, if there is neither group nor project.
+     */
+    private fun overlapKeyOf(taskId: Long?, kost2Id: Long?): OverlapKey? {
+        val kost2 = PfCaches.instance.getKost2(kost2Id)
+        TimesheetOverlapGroups.current().groupOf(kost2)?.let { return OverlapKey.Group(it) }
+        val projektId = taskTree.getProjekt(taskId)?.id ?: kost2?.projekt?.id ?: return null
+        return OverlapKey.Projekt(projektId)
     }
 
-    private fun projektIdOf(taskId: Long?, kost2Id: Long?): Long? {
-        return taskTree.getProjekt(taskId)?.id ?: PfCaches.instance.getKost2(kost2Id)?.projekt?.id
-    }
-
-    private fun getProjektId(timesheet: TimesheetDO): Long? {
-        return taskTree.getProjekt(timesheet.taskId)?.id ?: timesheet.kost2?.projekt?.id
+    private sealed interface OverlapKey {
+        data class Group(val index: Int) : OverlapKey
+        data class Projekt(val id: Long) : OverlapKey
     }
 
     /**

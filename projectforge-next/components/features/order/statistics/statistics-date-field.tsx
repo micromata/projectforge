@@ -1,7 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { DateInput } from "@/components/shared/date-input";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { FieldHint } from "@/components/shared/form/field-hint";
 import { Label } from "@/components/ui/label";
 
 /**
@@ -12,22 +13,27 @@ export function StatisticsDateField({
   id,
   label,
   tooltip,
+  tooltipContent,
   value,
   onChange,
 }: {
   id: string;
   label: string;
   tooltip: string;
+  /** A structured tooltip replacing [tooltip], e.g. [tooltip] followed by a configured hint. */
+  tooltipContent?: ReactNode;
   value: string | null;
   onChange: (value: string | null) => void;
 }) {
   return (
     <div className="flex items-center gap-2">
-      <HintTooltip text={tooltip} openOnTap>
+      <div className="flex items-center gap-1">
         <Label htmlFor={id} className="whitespace-nowrap">
-          {label}:
+          {label}
         </Label>
-      </HintTooltip>
+        <FieldHint hint={tooltip} content={tooltipContent} label={label} />
+        <span aria-hidden>:</span>
+      </div>
       <DateInput id={id} value={value} onChange={onChange} aria-label={label} />
     </div>
   );

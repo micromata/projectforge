@@ -30,18 +30,12 @@ import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.support.LogAggregationStatisticsBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.concurrent.CopyOnWriteArraySet
 
 private val log = KotlinLogging.logger {}
 
 @Service
 class SystemStatistics {
-    class DatabasePoolStatistics(
-        val total: Int,
-        val idle: Int,
-        val active: Int,
-        val threadsAwaitingConnection: Int
-    )
-
     @Autowired
     private lateinit var databaseStatisticsBuilder: DatabaseStatisticsBuilder
 
@@ -51,7 +45,8 @@ class SystemStatistics {
     @Autowired
     private lateinit var logAggregationStatisticsBuilder: LogAggregationStatisticsBuilder
 
-    private var statisticsBuilderRegistry = mutableSetOf<SystemsStatisticsBuilderInterface>()
+    // Read by parallel requests (one per section), written by plugins on startup.
+    private val statisticsBuilderRegistry = CopyOnWriteArraySet<SystemsStatisticsBuilderInterface>()
 
     @PostConstruct
     private fun postConstruct() {
@@ -71,6 +66,23 @@ class SystemStatistics {
     @Suppress("unused")
     fun registerStatisticsBuilder(statisticsBuilder: SystemsStatisticsBuilderInterface) {
         statisticsBuilderRegistry.add(statisticsBuilder)
+    }
+
+    /**
+     * All registered builders in order of their registration.
+     */
+    val builders: List<SystemsStatisticsBuilderInterface>
+        get() = statisticsBuilderRegistry.toList()
+
+    /**
+     * Builds the statistics of the given builder only.
+     * @return null, if no builder with this id is registered.
+     */
+    fun getSystemStatistics(builderId: String): SystemStatisticsData? {
+        val builder = statisticsBuilderRegistry.find { it.id == builderId } ?: return null
+        val stats = SystemStatisticsData()
+        builder.addStatisticsEntries(stats)
+        return stats
     }
 
     /**

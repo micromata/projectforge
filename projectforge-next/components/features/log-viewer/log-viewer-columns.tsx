@@ -1,12 +1,17 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import type { useTranslations } from "next-intl";
 import { StatusPill } from "@/components/shared/status-pill";
 import type { LogViewerEvent } from "@/lib/rs/log-viewer";
 import { LOG_LEVEL_KEYS, logLevelTone } from "@/components/shared/log-level";
 
 type T = ReturnType<typeof useTranslations>;
+
+/** The latest entries first, as the problems of the system dashboard. */
+export const LOG_VIEWER_SORTING: SortingState = [
+  { id: "timestamp", desc: true },
+];
 
 /**
  * The columns of the log viewer. A user sees when, how severe and what - the admin additionally who (user@ip,
@@ -19,15 +24,26 @@ export function logViewerColumns<E extends LogViewerEvent = LogViewerEvent>(
   const columns: ColumnDef<E, unknown>[] = [
     {
       id: "timestamp",
+      accessorFn: (row) => row.timestampMillis,
       header: t("timestamp"),
       size: admin ? 200 : 150,
-      enableSorting: false,
+      sortDescFirst: true,
       meta: { label: t("timestamp") },
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap tabular-nums">
-          {row.original.timestamp}
-        </span>
-      ),
+      // "5 minutes ago" above the date and time, as the problems of the system dashboard; sorted by the
+      // timestamp (accessorFn).
+      cell: ({ row }) => {
+        const { timestamp, timeAgo } = row.original;
+        return (
+          <div className="flex flex-col leading-tight">
+            <span className="whitespace-nowrap">{timeAgo || timestamp}</span>
+            {timeAgo && (
+              <span className="text-muted-foreground whitespace-nowrap text-xs tabular-nums">
+                {timestamp}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "level",

@@ -23,10 +23,16 @@
 
 package org.projectforge.rest.poll
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerRun
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.poll.excel.ExcelExport
@@ -58,19 +64,25 @@ class PollCronJobs {
     @Autowired
     private lateinit var userService: UserService
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     private val log: Logger = LoggerFactory.getLogger(PollCronJobs::class.java)
 
-    /**
-     * Cron job for daily stuff
-     */
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::dailyCronJobs)
+    }
 
-    @Scheduled(cron = "0 5 6 * * *") //Immer um 00:05
+    /**
+     * Cron job for daily stuff: daily at 06:05 (UTC).
+     */
+    @Scheduled(cron = CRON)
     fun dailyCronJobs() {
-        log.info("Start daily cron jobs")
-        Thread {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
             cronDeletePolls()
-            cronEndPolls()
-        }.start()
+            cronEndPolls(run)
+        }
     }
 
     private fun getEmailsOfUsersWhoHaventResponded(poll: Poll, pollId: Long): List<String> {
@@ -95,7 +107,7 @@ class PollCronJobs {
     /**
      * Method to end polls after deadline
      */
-    private fun cronEndPolls() {
+    private fun cronEndPolls(run: SchedulerRun) {
         val pollDOs = pollDao.selectAllNotDeleted(checkAccess = false)
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
@@ -115,14 +127,15 @@ class PollCronJobs {
                         val mailTo = pollMailService.getAllAttendeesEmails(poll)
                         val mailFrom = pollDO.owner?.email.toString()
                         val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
-                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
+                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", PollMailService.html(pollDO.title), PollMailService.html(owner?.displayName), )
 
-                        pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
+                        pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED_AND_MAIL_SENT")
                         pollDao.insertOrUpdate(pollDO, checkAccess = false)
                     } catch (e: Exception) {
                         log.error(e.message, e)
+                        run.fail("Finishing poll ${pollDO.id} failed: ${e.message}", e)
                     }
                 }
             }
@@ -138,15 +151,16 @@ class PollCronJobs {
                 val mailToFiltered = getEmailsOfUsersWhoHaventResponded(poll, pollDO.id!!)
 
                 if (mailToFiltered.isNotEmpty()) {
-                    val mailTo = pollMailService.getAllAttendeesEmails(poll)
+                    // Only those who haven't responded yet are reminded.
+                    val mailTo = mailToFiltered
                     val mailFrom = pollDO.owner?.email.toString()
                     val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                     val mailContent = translateMsg(
                         "poll.mail.endingSoon.content",
-                        pollDO.title,
-                        pollDO.owner?.displayName,
+                        PollMailService.html(pollDO.title),
+                        PollMailService.html(pollDO.owner?.displayName),
                         pollDO.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString(),
-                        pollDO.id.toString(),
+                        pollMailService.pollLink(pollDO.id),
                     )
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
                     log.info("Sent reminder mail for poll (${pollDO.id}) to ${mailToFiltered.size} users who haven't responded yet")
@@ -174,5 +188,14 @@ class PollCronJobs {
             }
             pollDao.markAsDeleted(poll, checkAccess = false)
         }
+    }
+
+    companion object {
+        private const val CRON = "0 5 6 * * *"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "poll.daily", SchedulerJobArea.BUSINESS, PollCronJobs::class.java, "dailyCronJobs",
+            SchedulerSchedule.Cron(CRON),
+        )
     }
 }

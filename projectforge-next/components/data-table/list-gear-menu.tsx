@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DescribedMenuItem } from "@/components/shared/described-menu-item";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { LegacyMenuItem } from "@/components/shared/legacy-page-link";
 import { useAuth } from "@/hooks/use-auth";
@@ -106,29 +106,15 @@ export function ListGearMenu({
   );
 }
 
-/** One standard entry: what it does, and below it what that means. */
-export function GearMenuItem({
-  label,
-  description,
-  disabled,
-  onSelect,
-}: {
+/**
+ * One standard entry: what it does, and below it what that means. A [DescribedMenuItem] that always has
+ * its explanation.
+ */
+export function GearMenuItem(props: {
   label: string;
   description: string;
   disabled?: boolean;
   onSelect: () => void;
 }) {
-  return (
-    <DropdownMenuItem
-      disabled={disabled}
-      onSelect={onSelect}
-      className="flex-col items-start gap-0.5"
-    >
-      <span>{label}</span>
-      {/* `whitespace-normal`: the menu primitive keeps its items on one line. */}
-      <span className="text-[11px] whitespace-normal text-muted-foreground">
-        {description}
-      </span>
-    </DropdownMenuItem>
-  );
+  return <DescribedMenuItem {...props} />;
 }

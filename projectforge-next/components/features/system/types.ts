@@ -8,8 +8,10 @@ export interface SystemAdminData {
   reindexNewestNEntries: number;
   /** Whether ProjectForge runs in development mode — gates the developer tools. */
   developmentMode: boolean;
-  /** The localized copy&paste maintenance-notice sample, with the current version filled in. */
-  alertMessageSample: string;
+  /** The localized copy&paste maintenance-notice sample, with the next full hour filled in. */
+  alertMessageSampleMaintenance: string;
+  /** The localized copy&paste new-release-notice sample, with the next full hour and the next release. */
+  alertMessageSampleRelease: string;
   /** True if all files are stored by the file store (`projectforge.files.store=db`), false: JCR. */
   allFilesInFileStore: boolean;
 }

@@ -8,7 +8,12 @@ import {
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useUpdateAccess } from "@/hooks/use-update-access";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import {
+  ExcelExportMenuItem,
+  ExportMenu,
+  ExportMenuItem,
+} from "@/components/shared/export-menu";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 
 /**
@@ -25,19 +30,25 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
   // whose rest class reports `update: false`), kept for finance/controlling. The plain Excel export
   // stays — exporting the rows one may already see is no more than the list itself shows.
   const updateAccess = useUpdateAccess("outgoingInvoice");
+  const excel = useExportDownload(() => downloadInvoiceExcel(filter));
+  const costAssignments = useExportDownload(() =>
+    downloadInvoiceCostAssignmentsExcel(filter)
+  );
 
   return (
     <>
-      <ExcelExportButton download={() => downloadInvoiceExcel(filter)} />
-      {updateAccess !== false && (
-        <ExcelExportButton
-          download={() => downloadInvoiceCostAssignmentsExcel(filter)}
-          tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
-          // The label is the parent of that tooltip key, so it travels as the generator's leaf.
-          label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
-        />
-      )}
       <EInvoiceCheckerButton />
+      <ExportMenu isPending={excel.isPending || costAssignments.isPending}>
+        <ExcelExportMenuItem onSelect={() => excel.mutate()} />
+        {updateAccess !== false && (
+          <ExportMenuItem
+            // The label is the parent of the tooltip key, so it travels as the generator's leaf.
+            label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
+            description={t("fibu.rechnung.kostExcelExport.tooltip")}
+            onSelect={() => costAssignments.mutate()}
+          />
+        )}
+      </ExportMenu>
     </>
   );
 }

@@ -16,8 +16,11 @@ export interface BaseFieldProps {
   /** Name of the form value, which is also the key of its entry in the entity's metadata. */
   name: string;
   label: string;
-  /** Explains the field; shown behind an ⓘ next to the label, see [FieldHint]. */
-  hint?: string;
+  /**
+   * Explains the field; shown behind an ⓘ next to the label, see [FieldHint]. Usually a translated text
+   * (markdown); a node for an explanation of its own shape, e.g. a [RichText] from the database.
+   */
+  hint?: ReactNode;
   className?: string;
 }
 
@@ -47,6 +50,7 @@ export interface FieldMetaState {
 export function FieldShell({
   name,
   label,
+  hideLabel,
   required,
   readOnly,
   hint,
@@ -68,10 +72,15 @@ export function FieldShell({
    */
   name?: string;
   label: string;
+  /**
+   * The label is read by screen readers only, where the section's heading already names the field (the
+   * code of a script under the heading "Code").
+   */
+  hideLabel?: boolean;
   required?: boolean;
   /** Shown but not fillable — suppresses the asterisk, see below. */
   readOnly?: boolean;
-  hint?: string;
+  hint?: ReactNode;
   /**
    * What the value *is*, under the box — "Posix account" below a group's GID number
    * (`UIInput.additionalLabel` of the server laid out form, see LdapGidField).
@@ -98,7 +107,9 @@ export function FieldShell({
           its control, which would open the field instead of the explanation. */}
       {/* `items-start`, so the ⓘ stays on the first line of a label that wrapped rather than centring
           itself against two lines of it. */}
-      <div className="flex min-w-0 items-start gap-1">
+      <div
+        className={cn("flex min-w-0 items-start gap-1", hideLabel && "sr-only")}
+      >
         {/* The label and its required marker share an inline box so the asterisk keeps hugging the
             label while the ⓘ stays a `gap-1` apart. The marker sits *outside* the <label> on purpose:
             inside it, it would join the control's accessible name ("Rechnungsdatum *"), which a screen

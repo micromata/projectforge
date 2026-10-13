@@ -46,6 +46,7 @@ class DiskUsageStatisticsBuilder : SystemsStatisticsBuilderInterface {
   @Autowired
   private lateinit var repoBackupService: RepoBackupService
 
+  override val group = "disk usage"
 
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     stats.addDiskUsage("jcrDiskUsage", "disk usage", "'JCR storage", repoService.fileStoreLocation)

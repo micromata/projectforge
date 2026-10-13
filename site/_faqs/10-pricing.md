@@ -1,9 +1,10 @@
 ---
-title: How much does it cost to use ProjectForge?
+title: How much does it cost?
 categories: [faq-main]
 permalink: /misc/faqs.html
 ---
 
-## ProjectForge as OpenSource software without any limitations is for free.
+Nothing. ProjectForge is open source (GPLv3) – with all features, for any number of users and without a subscription.
+There's no "enterprise edition" holding back features: we use exactly the same software to run our own company.
 
-The community edition of ProjectForge is for __free and its functioning has got no limitations__. The software is being developed further by a professional system house.
+You only pay if you want our [professional services](/services/) such as hosting, support or help with the introduction.

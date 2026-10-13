@@ -2,7 +2,7 @@
 
 import { downloadListExcel } from "@/lib/rs/list-export";
 import type { MagicFilter } from "@/lib/rs/types";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import { ExcelExportMenu } from "@/components/shared/export-menu";
 
 /**
  * The Excel export of the cost 2 list, as the legacy Wicket `Kost2ListPage` offered it
@@ -13,6 +13,6 @@ import { ExcelExportButton } from "@/components/shared/excel-export-button";
  */
 export function Cost2ListActions({ filter }: { filter: MagicFilter }) {
   return (
-    <ExcelExportButton download={() => downloadListExcel("cost2", filter)} />
+    <ExcelExportMenu download={() => downloadListExcel("cost2", filter)} />
   );
 }

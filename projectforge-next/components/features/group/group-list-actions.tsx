@@ -2,7 +2,7 @@
 
 import { downloadListExcel } from "@/lib/rs/list-export";
 import type { MagicFilter } from "@/lib/rs/types";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import { ExcelExportMenu } from "@/components/shared/export-menu";
 import { useAuth } from "@/hooks/use-auth";
 
 /**
@@ -13,14 +13,14 @@ import { useAuth } from "@/hooks/use-auth";
  * filter (see PageDef.listActions).
  *
  * Offered to administrators only, the same condition the endpoint checks itself
- * (`accessChecker.checkIsLoggedInUserMemberOfAdminGroup`) — a button that can only fail is worse than
- * no button.
+ * (`accessChecker.checkIsLoggedInUserMemberOfAdminGroup`) — a menu that can only fail is worse than
+ * no menu.
  */
 export function GroupListActions({ filter }: { filter: MagicFilter }) {
   const { isAdmin } = useAuth();
   if (!isAdmin) return null;
 
   return (
-    <ExcelExportButton download={() => downloadListExcel("group", filter)} />
+    <ExcelExportMenu download={() => downloadListExcel("group", filter)} />
   );
 }

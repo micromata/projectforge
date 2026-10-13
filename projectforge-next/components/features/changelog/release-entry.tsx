@@ -3,50 +3,100 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
+import { cn } from "@/lib/utils";
 import { ChangelogText } from "./changelog-text";
 import { ReleaseSection } from "./release-section";
 import type { ChangelogRelease } from "./types";
 
 const REPO_URL = "https://github.com/micromata/projectforge";
 
-/** One release or snapshot milestone, collapsible: title and date as the trigger, intro and sections below. */
+/** The levels of a release unfolded on request: its overview (level 2) and all its changes (level 3). */
+export type ReleaseLevel = "overview" | "all";
+
+/** The anchor of a release, the same as on the website (GenerateChangelogMain.releaseAnchor). */
+export const releaseAnchor = (release: ChangelogRelease) =>
+  `release-${release.id}`;
+
+/**
+ * One release or snapshot milestone: title, date and source, its summary (level 1) always shown, and two
+ * toggles side by side, each unfolding one more level with a single click — the overview and all changes
+ * (intro and sections). [head]: the release opening a major, set apart by its accent border.
+ */
 export function ReleaseEntry({
   release,
-  open,
-  onOpenChange,
+  isOpen,
+  onToggle,
   searching = false,
+  head = false,
 }: {
   release: ChangelogRelease;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: (level: ReleaseLevel) => boolean;
+  onToggle: (level: ReleaseLevel, open: boolean) => void;
   /** The release shows search results, see [ReleaseSection]. */
   searching?: boolean;
+  head?: boolean;
 }) {
+  const t = useTranslations();
+  const hasOverview = (release.overview?.length ?? 0) > 0;
+  const hasAll = release.sections.length > 0 || (release.intro?.length ?? 0) > 0;
+  const overviewOpen = hasOverview && isOpen("overview");
+  const allOpen = hasAll && isOpen("all");
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={onOpenChange}
-      className="overflow-hidden rounded-md border bg-card shadow-sm"
+    <article
+      id={releaseAnchor(release)}
+      className={cn(
+        "flex scroll-mt-4 flex-col gap-2 rounded-md border bg-card px-3 py-2 shadow-sm",
+        head && "border-l-4 border-l-primary"
+      )}
     >
-      <CollapsibleTrigger className="flex w-full items-baseline gap-2 px-3 py-2 text-left hover:bg-muted/40">
-        <HugeiconsIcon
-          icon={open ? ArrowDown01Icon : ArrowRight01Icon}
-          size={14}
-          className="self-center text-muted-foreground"
-        />
-        <span className="font-medium">{release.title}</span>
+      <header className="flex items-baseline gap-2">
+        <h3 className="font-medium">{release.title}</h3>
         <span className="ml-auto shrink-0 text-xs text-muted-foreground">
           {release.date}
         </span>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="flex flex-col gap-3 border-t px-3 py-3">
+      </header>
+      <ReleaseSource release={release} />
+      {release.summary && release.summary.length > 0 && (
+        <ul className="list-disc space-y-0.5 pl-5">
+          {release.summary.map((text) => (
+            <li key={text}>
+              <ChangelogText text={text} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {(hasOverview || hasAll) && (
+        <div className="flex gap-4">
+          {hasOverview && (
+            <LevelToggle
+              label={t("changelog.overview")}
+              open={overviewOpen}
+              onClick={() => onToggle("overview", !overviewOpen)}
+            />
+          )}
+          {hasAll && (
+            <LevelToggle
+              label={t("changelog.allChanges")}
+              open={allOpen}
+              onClick={() => onToggle("all", !allOpen)}
+            />
+          )}
+        </div>
+      )}
+      {overviewOpen && (
+        <ul className="list-disc space-y-0.5 border-t pl-5 pt-2">
+          {release.overview!.map((text) => (
+            <li key={text}>
+              <ChangelogText text={text} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {allOpen && (
+        <div className="flex flex-col gap-3 border-t pt-2">
           {release.intro?.map((intro) => (
             <ChangelogText key={intro} text={intro} />
           ))}
-          <ReleaseSource release={release} />
           {release.sections.map((section, index) => (
             <ReleaseSection
               key={`${section.type}-${index}`}
@@ -55,12 +105,37 @@ export function ReleaseEntry({
             />
           ))}
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </article>
   );
 }
 
-/** Where the release lives in git: its tag, or for a snapshot the end commit and the compare view. */
+function LevelToggle({
+  label,
+  open,
+  onClick,
+}: {
+  label: string;
+  open: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      onClick={onClick}
+      className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+    >
+      <HugeiconsIcon icon={open ? ArrowDown01Icon : ArrowRight01Icon} size={12} />
+      {label}
+    </button>
+  );
+}
+
+/**
+ * Where the release lives in git: its tag (and the SHA-256 of its jar, if published), or for a snapshot the end
+ * commit and the compare view.
+ */
 function ReleaseSource({ release }: { release: ChangelogRelease }) {
   const t = useTranslations();
   const linkClass = "font-mono hover:underline";
@@ -76,6 +151,12 @@ function ReleaseSource({ release }: { release: ChangelogRelease }) {
         >
           {release.tag}
         </a>
+        {release.sha256 && (
+          <span className="block break-all">
+            SHA-256 projectforge-application-{release.version}.jar:{" "}
+            <span className="font-mono">{release.sha256}</span>
+          </span>
+        )}
       </p>
     );
   }

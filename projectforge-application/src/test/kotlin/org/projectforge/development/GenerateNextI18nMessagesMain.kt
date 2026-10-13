@@ -106,6 +106,9 @@ object GenerateNextI18nMessagesMain {
     "operation.",
     // Background jobs the frontend watches (components/shared/jobs/): the status names of a JobInfo.
     "jobs.",
+    // The toolbar of the rich text editor (components/shared/rich-text-toolbar.tsx), labelled by the name of
+    // the mark or colour each button applies.
+    "richTextEditor.",
     // The labels of the three history filter fields, which the backend sends with the layout
     // (LayoutListFilterUtils.createNamedSearchFilterContainer translates them server-side). The frontend
     // shows what it is given and never names the key, so no scan can find it — but the e2e tests have to
@@ -128,6 +131,9 @@ object GenerateNextI18nMessagesMain {
     "attachment.zip.",
     // Errors an upload is refused with, reported by key.
     "file.upload.",
+    // The notification system (components/features/notification-rule/, components/shared/notifications/): the
+    // names of its enums (rule type, channel, severity, ...), picked by value.
+    "notification.",
     // Status names of the structure tree filter, sent as enum values.
     "task.status.",
     // Two factor authentication and webauthn: the code channels and the errors the browser API answers

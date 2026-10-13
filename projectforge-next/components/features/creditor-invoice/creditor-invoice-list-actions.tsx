@@ -11,7 +11,12 @@ import {
 } from "@/lib/rs/creditor-invoice";
 import type { MagicFilter } from "@/lib/rs/types";
 import { Button } from "@/components/ui/button";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import {
+  ExcelExportMenuItem,
+  ExportMenu,
+  ExportMenuItem,
+} from "@/components/shared/export-menu";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
@@ -28,6 +33,10 @@ export function CreditorInvoiceListActions({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const excel = useExportDownload(() => downloadCreditorInvoiceExcel(filter));
+  const costAssignments = useExportDownload(() =>
+    downloadCreditorInvoiceCostAssignmentsExcel(filter)
+  );
 
   return (
     <>
@@ -39,15 +48,15 @@ export function CreditorInvoiceListActions({
         <HugeiconsIcon icon={FileImportIcon} />
         {t("import._")}
       </Button>
-      <ExcelExportButton
-        download={() => downloadCreditorInvoiceExcel(filter)}
-      />
-      <ExcelExportButton
-        download={() => downloadCreditorInvoiceCostAssignmentsExcel(filter)}
-        tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
-        // The label is the parent of that tooltip key, so it travels as the generator's leaf.
-        label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
-      />
+      <ExportMenu isPending={excel.isPending || costAssignments.isPending}>
+        <ExcelExportMenuItem onSelect={() => excel.mutate()} />
+        <ExportMenuItem
+          // The label is the parent of the tooltip key, so it travels as the generator's leaf.
+          label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
+          description={t("fibu.rechnung.kostExcelExport.tooltip")}
+          onSelect={() => costAssignments.mutate()}
+        />
+      </ExportMenu>
     </>
   );
 }

@@ -24,7 +24,12 @@
 package org.projectforge.plugins.datatransfer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.Constants
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,17 +57,20 @@ class DatatransferAuditJob {
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
 
-    // Every 5 minutes, starting 5 minutes after starting.
-    @Scheduled(fixedDelay = 5 * Constants.MILLIS_PER_MINUTE, initialDelay = 5 * Constants.MILLIS_PER_MINUTE)
-    fun execute() {
-        if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-            log.info { "Plugin data transfer not activated. Don't need to send any notification." }
-            return
-        }
-        Thread {
-            log.info { "Data transfer audit job started." }
-            val startTimeInMillis = System.currentTimeMillis()
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
 
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::execute) {
+            if (pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) null else "Plugin data transfer not activated."
+        }
+    }
+
+    // Every 5 minutes, starting 5 minutes after starting.
+    @Scheduled(fixedDelay = DELAY_MILLIS, initialDelay = DELAY_MILLIS)
+    fun execute() {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) {
             var sentMailCounter = 0
             val areas = dataTransferAreaDao.selectAll(checkAccess = false)
             // Fetch all queued and download audit entries with two bulk queries instead of two queries per area
@@ -84,7 +92,18 @@ class DatatransferAuditJob {
                 PFDateTime.now().minusDays(30)
             ) // If you change this, you should change:
             // i18n: plugins.datatransfer.audit.events, plugins.datatransfer.audit.downloadEvents
-            log.info { "DataTransfer audit job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of sent mails: $sentMailCounter." }
-        }.start()
+            if (sentMailCounter > 0) {
+                log.info { "DataTransfer audit job finished. Number of sent mails: $sentMailCounter." }
+            }
+        }
+    }
+
+    companion object {
+        private const val DELAY_MILLIS = 5 * Constants.MILLIS_PER_MINUTE
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "datatransfer.audit", SchedulerJobArea.FILES, DatatransferAuditJob::class.java, "execute",
+            SchedulerSchedule.FixedDelay(DELAY_MILLIS, DELAY_MILLIS),
+        )
     }
 }

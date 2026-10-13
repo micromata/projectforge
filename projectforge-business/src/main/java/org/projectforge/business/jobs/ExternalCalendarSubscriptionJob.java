@@ -23,31 +23,40 @@
 
 package org.projectforge.business.jobs;
 
+import jakarta.annotation.PostConstruct;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
+import org.projectforge.common.scheduling.SchedulerJobArea;
+import org.projectforge.common.scheduling.SchedulerJobDefinition;
+import org.projectforge.common.scheduling.SchedulerJobRunner;
+import org.projectforge.common.scheduling.SchedulerSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ExternalCalendarSubscriptionJob {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-            .getLogger(ExternalCalendarSubscriptionJob.class);
+    private static final String CRON = "${projectforge.cron.externalCalendar}";
+
+    public static final SchedulerJobDefinition SCHEDULER_JOB = new SchedulerJobDefinition(
+            "calendar.externalSubscriptions", SchedulerJobArea.INTEGRATION, ExternalCalendarSubscriptionJob.class,
+            "execute", new SchedulerSchedule.Cron(CRON));
 
     @Autowired
     private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
+    @Autowired
+    private SchedulerJobRunner schedulerJobRunner;
+
+    @PostConstruct
+    private void postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, this::execute, null);
+    }
+
     //@Scheduled(cron = "0 */15 * * * *")
-    @Scheduled(cron = "${projectforge.cron.externalCalendar}")
+    @Scheduled(cron = CRON)
     public void execute() {
-        new Thread(() -> {
-            log.info("External calendar subscriptions job started.");
-            try {
-                teamEventExternalSubscriptionCache.updateCache();
-            } catch (final Throwable ex) {
-                log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage());
-            }
-            log.info("External calendar subscriptions job finished.");
-        }).start();
+        // Exceptions are logged by the scheduler (job failed).
+        schedulerJobRunner.runAsync(SCHEDULER_JOB, run -> teamEventExternalSubscriptionCache.updateCache());
     }
 
 }

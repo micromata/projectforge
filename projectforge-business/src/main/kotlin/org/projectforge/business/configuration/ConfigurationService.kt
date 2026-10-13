@@ -408,6 +408,16 @@ open class ConfigurationService {
     }
 
   /**
+   * Maximum number of past days the nightly job books approved vacation as time sheets for (at most
+   * [MAX_VACATION_AUTO_BOOKING_DAYS]), 0 if disabled (not configured).
+   */
+  open val vacationAutoBookingDays: Int
+    get() {
+      val days = configDao.getEntry(ConfigurationParam.TIMESHEET_VACATION_AUTO_BOOKING_DAYS)?.longValue ?: 0L
+      return days.coerceIn(0L, MAX_VACATION_AUTO_BOOKING_DAYS).toInt()
+    }
+
+  /**
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
    */
@@ -544,6 +554,9 @@ open class ConfigurationService {
   }
 
   companion object {
+    /** Upper bound of [vacationAutoBookingDays]: the job books a week back at most. */
+    const val MAX_VACATION_AUTO_BOOKING_DAYS = 7L
+
     @Transient
     private val nonExistingResources: MutableSet<String> = HashSet()
 

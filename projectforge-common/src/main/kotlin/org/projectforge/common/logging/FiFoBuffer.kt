@@ -61,6 +61,13 @@ class FiFoBuffer<T>(private val maxSize: Int) {
     }
   }
 
+  /** A copy of the entries, oldest first: read without holding the lock while new ones come in. */
+  fun snapshot(): List<T> {
+    synchronized(list) {
+      return list.toList()
+    }
+  }
+
   val size: Int
     get() {
       synchronized(list) {

@@ -138,9 +138,24 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "categories": {
+        "finance": "Finance",
+        "hr": "Human resources",
+        "regional": "Regional settings",
+        "security": "Security",
+        "system": "System",
+        "timesheet": "Time sheets"
+      },
+      "category": "Category",
       "editPage": {
         "hint": "This parameter is maintained on a page of its own.",
         "link": "Open the editor"
+      },
+      "editors": "Editable by",
+      "error": {
+        "vacationKost2NotBookable": "The cost unit {arg0} isn''t bookable on the vacation task ''{arg1}''.",
+        "vacationKost2NotFound": "No cost unit {arg0} (format #.###.##.##).",
+        "vacationTaskNotFound": "No task with the id {arg0}."
       },
       "json": {
         "invalid": "No valid JSON."
@@ -187,6 +202,10 @@
           "defaultVAT": {
             "_": "Default VAT (in %)",
             "description": "Will be used for pre-filling forms (e.g. for editing invoices)."
+          },
+          "forecast": {
+            "_": "Forecast",
+            "description": "Settings of the forecast (order statistics): the hint on the planning date shown in its tooltip."
           }
         },
         "hr": {
@@ -231,7 +250,25 @@
         "timesheet": {
           "noteSavingsByAI": {
             "_": "Note regarding AI savings",
-            "description": "Note in the time reports regarding AI savings (markdown is supported, only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+            "description": "Note in the time reports regarding AI savings (only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          },
+          "overlapGroups": {
+            "_": "Time sheet overlap groups",
+            "description": "Groups of cost 2 units whose time sheets must never overlap in time, even with shared costs: each group counts like one project. Groups are separated by semicolons, the cost 2 number prefixes of a group by commas. A prefix has one to four parts (number range, area, sub area, cost 2 type), e.g. \"6\" matches all cost 2 units 6.*. Examples: \"6\" (one group: all cost 2 units 6.*), \"6.100.00.01,6.100.00.02,6.300\" (one group of three prefixes), \"6.100,6.300;6.200\" (two groups). Time sheets on the same cost 2 never overlap, also without any group."
+          },
+          "vacation": {
+            "autoBookingDays": {
+              "_": "Book vacation as time sheets (max. days back)",
+              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on, but at most this number of days back up to yesterday (max. 7), so nights the job didn't run are caught up. A vacation time sheet deleted by hand is therefore not booked again. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
+            },
+            "kost2": {
+              "_": "Cost unit for vacation",
+              "description": "The cost unit (Kost2, format #.###.##.##, e.g. 5.000.00.03) vacation is booked on as time sheets, together with the vacation task. It must be bookable on that task."
+            },
+            "taskId": {
+              "_": "Task for vacation (id)",
+              "description": "The id of the task (structure element) vacation is booked on as time sheets, in the calendar (\"Book several days\") and by the nightly job."
+            }
           }
         },
         "timesheetTags": {
@@ -270,7 +307,8 @@
         "heading": "Configuration parameter",
         "list": "List of configuration parameters"
       },
-      "value": "Value"
+      "value": "Value",
+      "viewers": "Visible to"
     }
   },
   "akquise": "Acquisition",
@@ -376,7 +414,16 @@
   "calendar": {
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
-    "day": "day",
+    "day": {
+      "_": "day",
+      "friday": "Friday",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
+    },
     "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
@@ -466,6 +513,7 @@
     "today": "Today",
     "view": {
       "agenda": "agenda",
+      "day": "Day",
       "overview": "overview",
       "settings": {
         "tooltip": "View settings"
@@ -479,14 +527,17 @@
   },
   "cancel": "Cancel",
   "changelog": {
+    "allChanges": "All changes",
     "collapseAll": "Collapse all",
     "compare": "Changes",
     "expandAll": "Expand all",
-    "news": "News",
+    "majorLink": "What''s new in ProjectForge {arg0}:",
     "nextMatch": "Next match (Enter)",
     "noMatches": "Nothing in the changelog matches the search.",
+    "overview": "Overview",
     "previousMatch": "Previous match (Shift+Enter)",
     "snapshot": "Snapshot build",
+    "snapshots": "Development snapshots",
     "tag": "Tag",
     "title": "Changelog",
     "type": {
@@ -508,7 +559,55 @@
   "charactersLeft": "characters left.",
   "clone": "Clone",
   "close": "Close",
+  "codeEditor": {
+    "addCursor": "Add a cursor",
+    "copyLine": "Copy line up / down",
+    "deleteLine": "Delete line",
+    "indent": "Indent",
+    "key": {
+      "click": "click",
+      "ctrl": "Ctrl",
+      "drag": "drag",
+      "shift": "Shift",
+      "then": "then"
+    },
+    "leave": "Leave the editor with the keyboard",
+    "moveLine": "Move line up / down",
+    "nextMatch": "Next match",
+    "phrase": {
+      "all": "all",
+      "byWord": "by word",
+      "close": "close",
+      "currentMatch": "current match",
+      "find": "Find",
+      "matchCase": "match case",
+      "next": "next",
+      "onLine": "on line",
+      "previous": "previous",
+      "regexp": "regexp",
+      "replace": "Replace",
+      "replaceAll": "replace all",
+      "replaceOne": "replace",
+      "replacedMatches": "replaced $ matches",
+      "replacedOnLine": "replaced match on line $"
+    },
+    "previousMatch": "Previous match",
+    "rectangularSelection": "Rectangular selection",
+    "redo": "Redo",
+    "search": "Search and replace",
+    "selectAllOccurrences": "Select all occurrences",
+    "selectNextOccurrence": "Also select the next occurrence",
+    "shortcuts": "Keyboard shortcuts",
+    "toggleComment": "Comment out / in",
+    "undo": "Undo",
+    "unindent": "Unindent"
+  },
   "collapse": "Collapse",
+  "color": {
+    "error": {
+      "unknownFormat": "Color code in unsupported format. Supported hex formats: #abc or #abcdef"
+    }
+  },
   "columns": {
     "_": "Columns",
     "dragToSort": "Drag to sort",
@@ -598,7 +697,6 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
-  "day": "day(s)",
   "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
@@ -631,7 +729,9 @@
   "errorpage": {
     "title": "An error has occurred."
   },
+  "execute": "Execute",
   "expand": "Expand",
+  "experimental": "Experimental",
   "export": "Export",
   "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",
@@ -829,11 +929,23 @@
           "planningDateUsed": "Plan of order book snapshot {arg0}",
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
+          "snapshotDate": {
+            "_": "Snapshot date",
+            "tooltip": "Optional: the forecast is calculated from the order book as it was on this day (the closest available snapshot), invoices only up to the day before. Leave empty for the current order book."
+          },
+          "snapshotDateUsed": "Order book snapshot {arg0}",
           "startDate": {
             "_": "First month of the forecast",
             "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
           },
           "total": "Forecast"
+        },
+        "config": {
+          "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+          "planningDateHint": {
+            "_": "Hint on the planning date",
+            "tooltip": "Shown below the explanation in the tooltip of the planning date of the forecast statistics, e.g. which planning date to choose for which year."
+          }
         },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
@@ -1222,6 +1334,11 @@
         "_": "Reporting",
         "clearStorage": "Clear",
         "createReport": "Create report",
+        "error": {
+          "invalidXml": "The XML could not be read as report objectives (see the format description below and the log files for details).",
+          "noXml": "Please paste the XML of the report objectives.",
+          "periodRequired": "Please choose the first month of the period."
+        },
         "file": "Report objectives file",
         "help": {
           "attributes": "**Attributes:** `id` names the report (shown as column head and in the path), `title` describes it. Without `suppressOther=\"true\"` the accounting records of a report that match none of its children are shown as additional column `<id> - Other`; without `suppressDuplicates=\"true\"` the records matching more than one child are shown as column `<id> - Duplicates`. Both columns help to check that the children are complete and free of overlaps.",
@@ -1282,7 +1399,7 @@
       "sharedCost": {
         "_": "Shared costs",
         "inherited": "As structure element",
-        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets within the same project remain unsupported."
+        "tooltip": "If yes, time sheets booked on this cost 2 may overlap in time with time sheets of other projects (shared costs); if no, they may not. This setting takes precedence over the one of the structure element. If empty, the structure element decides. Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported."
       },
       "title": {
         "add": "New cost 2",
@@ -1377,7 +1494,8 @@
         "_": "Total sum",
         "tooltip": "The total sum may differ from the sum above due to cost types for which only a fraction of workhours are counting."
       },
-      "withoutTimesheets": "without time sheets"
+      "vacationDaysWithoutTimesheets": "vacation days without time sheets",
+      "workingDaysWithoutTimesheets": "working days without time sheets"
     },
     "notYetInvoiced": "not yet invoiced",
     "payment": {
@@ -1695,6 +1813,11 @@
   },
   "file": {
     "_": "file",
+    "panel": {
+      "deleteExistingFile": {
+        "heading": "Deletion of the file?"
+      }
+    },
     "upload": {
       "audit": {
         "action": {
@@ -2222,12 +2345,22 @@
       "_": "Remember my login on this computer.",
       "devices": {
         "_": "Devices staying logged in",
+        "created": "logged in since",
+        "current": "this device",
+        "ip": "IP address",
         "lastAccess": "last access",
+        "logout": {
+          "_": "Log out",
+          "question": "Log out this device? Once its current session has ended, it has to log in with the password again.",
+          "successful": "The device has been logged out."
+        },
         "none": "No device is staying logged in.",
-        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage."
+        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage.",
+        "userAgent": "Device (browser)"
       },
       "invalidateAllStayLoggedInSessions": {
         "_": "Log out all devices.",
+        "question": "Log out all devices, including this one? Each of them has to log in with the password again.",
         "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
         "tooltip": "Invalidates the marker (cookie) of every device, including the one you are using right now. Each of them will require your password again on its next visit."
       },
@@ -2285,9 +2418,12 @@
     "selectedEntries": "Selected entries"
   },
   "menu": {
+    "2FASetup": "Two-factor authentication",
     "addNewEntry": "New entry",
     "administration": "Administration",
     "calendar": "Calendar",
+    "changePassword": "Change password",
+    "changeWlanPassword": "Change WLAN/Samba password",
     "common": "Common",
     "favorites": {
       "more": "More favorites"
@@ -2368,7 +2504,8 @@
   },
   "message": {
     "successfullChanged": "Successfully changed.",
-    "successfullCompleted": "Successfully completed: {arg0}"
+    "successfullCompleted": "Successfully completed: {arg0}",
+    "title": "Message"
   },
   "modificationTime": "Time of modification",
   "modified": "modified",
@@ -2390,6 +2527,186 @@
   "nickname": "Nickname",
   "no": "No",
   "nothingFound": "Nothing found.",
+  "notification": {
+    "acknowledge": "Confirm",
+    "acknowledgedAt": "Confirmed",
+    "action": {
+      "preview": "Preview",
+      "testToMe": "Send test to me",
+      "trigger": "Trigger now",
+      "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
+    },
+    "center": "Notifications",
+    "centerEmpty": "No open notifications.",
+    "channels": {
+      "IN_APP": "In the app",
+      "MAIL": "E-mail",
+      "SMS": "SMS (not yet supported)"
+    },
+    "created": "Created",
+    "delivery": {
+      "addStep": "Add step",
+      "channel": "Channel",
+      "delay": "After",
+      "info": "The steps are delivered after the given time since the notification was created. A step \"only if not confirmed\" is skipped once the recipient has confirmed the notification or its cause is resolved.",
+      "onlyIfUnacknowledged": "Only if not confirmed",
+      "removeStep": "Remove step",
+      "unit": {
+        "days": "days",
+        "hours": "hours",
+        "minutes": "minutes"
+      }
+    },
+    "deliverySteps": "Delivery",
+    "display": "Display",
+    "displays": {
+      "BANNER": "Banner until done",
+      "TOAST": "Toast (shown once)",
+      "TOAST_CONFIRM": "Toast to be confirmed"
+    },
+    "doneAt": "Done",
+    "error": {
+      "manualDoneNotAllowed": "This notification is finished automatically as soon as its cause is resolved."
+    },
+    "log": "Sent notifications",
+    "logEmpty": "No notifications sent yet.",
+    "logEmptyFilter": "No notifications match the filter.",
+    "markDone": "Mark as done",
+    "open": "Open",
+    "params": {
+      "daysBeforeExpiry": "Days before expiry",
+      "passwordMaxAgeDays": "Password older than (days)",
+      "referredMonth": {
+        "_": "Month",
+        "CURRENT": "Current month",
+        "PREVIOUS": "Previous month"
+      },
+      "vacationExpiry": {
+        "_": "Expiring vacation days",
+        "CARRY_OVER": "Days carried over from the previous year",
+        "YEAR_END": "Days left at the end of the year"
+      }
+    },
+    "preview": {
+      "alreadyNotified": "{arg0} of them already notified for this period",
+      "none": "Nobody to notify today.",
+      "period": "Period",
+      "recipients": "{arg0} recipient(s)",
+      "sample": "Sample for you"
+    },
+    "recipient": "Recipient",
+    "recipients": {
+      "allEmployees": "All employees",
+      "employeeStatus": "Employees with status",
+      "excludedEmployeeStatus": "Except employees with status",
+      "groups": "Groups",
+      "onlyAffected": "Only those concerned",
+      "onlyAffectedInfo": "Only the recipients concerned by the rule, e.g. with missing time sheets. Without any recipients given: everybody concerned.",
+      "users": "Users"
+    },
+    "resolvedAt": "Finished",
+    "rule": {
+      "active": "Active",
+      "delivery": "Delivery",
+      "editableByGroups": "Editable by groups",
+      "editableByGroupsInfo": "Empty: by all admins and members of the finance group. Admins may always edit the rule.",
+      "error": {
+        "day": "The day must be between 0 and 15 (working days before the end of the month) or 1 and 31 (day of the month).",
+        "dayOfWeek": "A weekday is required.",
+        "daysBeforeExpiry": "The number of days must not be negative.",
+        "delay": "The time of a delivery step must not be negative.",
+        "noDeliveryStep": "At least one delivery step is required.",
+        "passwordMaxAgeDays": "The number of days must be at least 1."
+      },
+      "lastRun": "Last run",
+      "list": "Notification rules",
+      "manualDone": "The recipient may mark it as done",
+      "menuBadge": "Counter in the menu",
+      "name": "Name",
+      "newTitle": "New notification rule",
+      "params": "Settings",
+      "recipients": "Recipients",
+      "ruleType": "Trigger",
+      "schedule": "Schedule",
+      "sections": {
+        "access": "Editing",
+        "general": "Rule",
+        "message": "Message"
+      },
+      "title": "Notification rules"
+    },
+    "ruleName": "Rule",
+    "ruleTypes": {
+      "MANUAL": "Manual (no condition)",
+      "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
+      "TIMESHEETS_MISSING": "Missing time sheets",
+      "VACATION_LEFT": "Expiring vacation days"
+    },
+    "schedule": {
+      "day": "Day",
+      "dayOfWeek": "Weekday",
+      "info": "The rules are checked once a day in the morning.",
+      "mode": {
+        "DAILY": "Every working day",
+        "DAY_OF_MONTH": "Day of the month",
+        "NONE": "Manual only",
+        "WEEKLY": "Weekly",
+        "WORKING_DAYS_BEFORE_MONTH_END": "Working days before the end of the month"
+      },
+      "workingDaysInfo": "0 is the last working day of the month."
+    },
+    "severities": {
+      "IMPORTANT": "Important",
+      "INFO": "Info",
+      "URGENT": "Urgent"
+    },
+    "severity": "Severity",
+    "status": "Status",
+    "statuses": {
+      "ACKNOWLEDGED": "Confirmed",
+      "DONE": "Done",
+      "EXPIRED": "Expired",
+      "OPEN": "Open",
+      "RESOLVED": "Resolved"
+    },
+    "stepState": {
+      "failed": "Failed",
+      "pending": "Pending",
+      "retry": "Retry {arg0}",
+      "sent": "Sent",
+      "skipped": "Skipped"
+    },
+    "subject": "Subject",
+    "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
+    "testDelivered": "Test sent: {arg0}",
+    "testFailed": "Not sent: {arg0}",
+    "testMissingText": "Subject and text are required for a test.",
+    "text": "Text",
+    "triggerErrors": "{arg0} error(s): {arg1}",
+    "triggerResult": "{arg0} notification(s) created for {arg1} recipient(s).",
+    "variable": {
+      "daysLeft": "Vacation days left",
+      "expiryDate": "Expiry date",
+      "firstName": "First name",
+      "fullName": "Full name",
+      "lastName": "Last name",
+      "month": "Month",
+      "monthlyReportLink": "Link to the monthly report",
+      "nickname": "Nickname (otherwise first name)",
+      "passwordAgeDays": "Days since the last password change",
+      "passwordChangeDate": "Date of the last password change",
+      "passwordLink": "Link for changing the password",
+      "passwordMaxAgeDays": "Maximum age of the password (days)",
+      "timesheetLink": "Link to the time sheets",
+      "unbookedDays": "All days without time sheets (vacation included)",
+      "unbookedDaysCount": "Number of all days without time sheets (vacation included)",
+      "unbookedVacationDays": "Vacation days without time sheets",
+      "unbookedVacationDaysCount": "Number of vacation days without time sheets",
+      "unbookedWorkingDays": "Working days without time sheets (no vacation)",
+      "unbookedWorkingDaysCount": "Number of working days without time sheets (no vacation)",
+      "vacationLink": "Link to the vacation"
+    }
+  },
   "operation": {
     "deleted": "deleted",
     "inserted": "inserted",
@@ -2543,7 +2860,6 @@
       "audit": {
         "_": "Activities",
         "action": "Action",
-        "display": "Display activities",
         "downloadEvents": "Download events of the last 30 days",
         "downloadedBy": "Downloaded by",
         "events": "Events of the last 30 days"
@@ -3091,17 +3407,80 @@
   "reset": "Reset",
   "rest": "Rest",
   "resubmissionOnDate": "Resubmission on",
+  "richTextEditor": {
+    "bold": "Bold",
+    "bulletList": "Bulleted list",
+    "color": {
+      "_": "Text colour",
+      "blue": "Blue",
+      "default": "Default colour",
+      "green": "Green",
+      "red": "Red"
+    },
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "heading4": "Heading 4",
+    "italic": "Italic",
+    "link": {
+      "_": "Link",
+      "prompt": "Link address (empty to remove the link):"
+    },
+    "orderedList": "Numbered list",
+    "paragraph": "Normal text",
+    "table": {
+      "_": "Table",
+      "addColumnAfter": "Insert column to the right",
+      "addRowAfter": "Insert row below",
+      "deleteColumn": "Delete column",
+      "deleteRow": "Delete row",
+      "deleteTable": "Delete table",
+      "insert": "Insert table",
+      "toggleHeaderRow": "Header row on/off"
+    },
+    "textStyle": "Paragraph style",
+    "toolbar": "Formatting",
+    "underline": "Underline",
+    "variable": "Insert placeholder"
+  },
   "save": "Save",
   "scripting": {
+    "download": {
+      "filename": {
+        "_": "Result file",
+        "additional": "Download only available for a few minutes: until {arg0}.",
+        "info": "File generated by last script run."
+      }
+    },
+    "myScript": {
+      "list": "My scripts"
+    },
     "script": {
-      "description": {
-        "tooltip": "Markdown format is supported."
+      "_": "Script",
+      "availableVariables": "Available variables",
+      "buttonLabel": {
+        "_": "Button label",
+        "info": "The label of the button on the selected pages. If not given, the name of the script."
+      },
+      "buttonTooltip": {
+        "_": "Button tooltip",
+        "info": "The tooltip of the button on the selected pages. If not given, the description of the script."
+      },
+      "code": "Code",
+      "downloadBackups": "Download backups",
+      "downloadEffectiveScript": {
+        "_": "Download effective script",
+        "info": "The effective script is the script with resolved includes etc. executed by the scripting engine."
       },
       "editForm": {
         "file": {
           "tooltip": "Within the script the file is available through 'script.file' and the name of the file through 'script.filename'.\n\nThis is only for backward compatibility for older scripts, generated by classical version."
         }
       },
+      "error": {
+        "notFound": "Script not found."
+      },
+      "examples": "Examples",
       "executableByGroups": {
         "_": "Allowed groups",
         "info": "Users of these groups are allowed to execute this script (but they can't see or modify the sources of this script)."
@@ -3110,12 +3489,29 @@
         "_": "Allowed users",
         "info": "These users are allowed to execute this script (but they can't see or modify the sources of this script)."
       },
+      "execute": "Execute script",
       "executeAsUser": {
         "_": "Execute as user",
         "info": "The script is executed with all rights of the given user. Be careful!\n\nThe execute-as functionality must be enabled inside the script as well to avoid mis-configurations."
       },
+      "execution": {
+        "log": {
+          "filePreparedForDownload": "The file ''{arg0}'' is prepared for download and will be available for download here for up to {arg1} minutes.",
+          "preparing": "Preparing the script execution...",
+          "successfullyCompleted": "Script execution completed successfully.",
+          "terminatedWithErrors": "Script execution terminated with errors."
+        },
+        "pageContext": "Started from: {arg0}. The script gets the current filter of this page as variable `pageContext`."
+      },
       "includes": "Embedded scripts",
       "name": "Name",
+      "output": "Output",
+      "pageButtons": "Page buttons",
+      "pageTargets": {
+        "_": "Pages",
+        "info": "These pages show a button for this script in their top right corner, for all users allowed to execute it. The script gets the current filter of the page as variable `pageContext`, e.g. `pageContext.list()` for the shown entries."
+      },
+      "parameter": "Parameter",
       "parameterName": "Parameter",
       "parameterType": {
         "_": "Parameter type",
@@ -3128,7 +3524,13 @@
         "timePeriod": "Time period",
         "user": "User"
       },
+      "parameters": "Parameters",
+      "result": "Result",
       "type": "Type"
+    },
+    "title": {
+      "add": "New script",
+      "list": "Scripts"
     }
   },
   "search": {
@@ -3231,6 +3633,11 @@
         "exceptionClass": "Exception",
         "explanation": "Explanation",
         "firstSeen": "First seen",
+        "handled": {
+          "ignored": "{arg0} ignored",
+          "muted": "{arg0} muted",
+          "resolved": "{arg0} resolved"
+        },
         "hourly": "Last 7 days (per hour)",
         "kpi": {
           "external": "External systems failing (24 h)",
@@ -3258,6 +3665,9 @@
         },
         "logViewer": {
           "tooltip": "Only the last log events since the server's start, held in memory."
+        },
+        "massUpdate": {
+          "done": "{arg0} problem(s) changed."
         },
         "message": "Message",
         "more": "Only the first {arg0} of {arg1} problems are shown.",
@@ -3309,15 +3719,63 @@
           "problems": "Problems"
         },
         "threshold": "Threshold (per hour)",
-        "title": "Problem dashboard",
         "totalCount": "Total",
         "trend": "Trend (7 days)"
       },
       "adminLogViewer": {
+        "logFile": {
+          "after": "after",
+          "before": "before",
+          "context": "Context",
+          "contextTooltip": "The number of entries before and after a hit shown when its context is opened, and the step to page further.",
+          "contextTruncated": "The time limit was reached, the context is incomplete.",
+          "exclude": "Hide",
+          "excludeTooltip": "Leaves out the entries of these loggers (the noise), in the hits and in their context. A package with its subpackages (org.hibernate), a class or a word of the class name. The loggers in the log file are abbreviated (o.h.e.j.s.SqlExceptionHelper): a package written out matches them, a single word like hibernate does not.",
+          "hideThis": "Hide {arg0}",
+          "hits": "{arg0} hits",
+          "include": "Categories",
+          "includeTooltip": "Only the entries of these loggers: a package with its subpackages (org.projectforge.business.fibu), a class or a word of the class name. Click a logger in the list to add it.",
+          "loggerPlaceholder": "Logger + Enter",
+          "newer": "{arg0} newer",
+          "noNewer": "No newer entries in {arg0}.",
+          "noOlder": "No older entries in {arg0}.",
+          "none": "No entries found.",
+          "notFound": "The entry is no longer at its position, the log file was rolled meanwhile. Please search again.",
+          "older": "{arg0} older",
+          "onlyThis": "Only {arg0}",
+          "period": {
+            "custom": "Custom"
+          },
+          "remove": "Remove",
+          "scope": {
+            "all": "All",
+            "logger": "Same logger",
+            "user": "Same user"
+          },
+          "searchPlaceholder": "Words, -excluded, \"a phrase\"",
+          "start": "Enter what to search for and start the search. The log files of the server are read on every search, so it is slower than the live view.",
+          "truncated": "The search stopped at its limit (200 hits, time or size), older entries may exist. Narrow it down by period, level or category."
+        },
+        "memory": {
+          "noNewer": "No newer entries yet; newer ones are read by paging on later.",
+          "noOlder": "No older entries in memory (only the last 10,000 are kept since the start of the server).",
+          "notFound": "The entry is no longer in memory: only the last 10,000 are kept. The log files have it."
+        },
+        "source": {
+          "files": "Log files",
+          "memory": "Live (memory)"
+        },
+        "tab": "Logs",
         "title": "Admin log viewer"
       },
       "alertMessage": {
         "copyAndPaste": {
+          "maintenance": {
+            "title": "Maintenance"
+          },
+          "release": {
+            "title": "New release"
+          },
           "title": "For copy & paste"
         }
       },
@@ -3364,10 +3822,6 @@
           "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
           "tooltip": "Shrinks oversized address images if necessary and rebuilds all preview images."
         },
-        "refreshCaches": {
-          "_": "Refresh all caches",
-          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
-        },
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
@@ -3402,7 +3856,6 @@
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "caches": "Caches",
             "configuration": "Configuration"
           }
         }
@@ -3423,6 +3876,7 @@
       "logViewer": {
         "autoRefresh": "Auto refresh",
         "level": "Loglevel",
+        "loggerName": "Logger name",
         "message": "Message",
         "stacktrace": "Stacktrace",
         "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",
@@ -3445,6 +3899,52 @@
       },
       "title": "Administration"
     },
+    "caches": {
+      "abandoned": {
+        "_": "Terminated refreshes still running: {arg0}",
+        "tooltip": "The thread of a terminated refresh doesn't react to the interrupt (e.g. blocked in a database call) and runs on until it returns by itself; its result is then discarded and the cache refreshed again. Only a restart ends it earlier."
+      },
+      "column": {
+        "cache": "Cache",
+        "duration": "Duration",
+        "expireTime": "Expires after",
+        "failures": "Failed",
+        "lastError": "Last error",
+        "lastRefresh": "Last refresh",
+        "refreshes": "Refreshes"
+      },
+      "refresh": {
+        "_": "Refresh",
+        "started": "The refresh of the cache has been started.",
+        "tooltip": "Reloads the cache in the background."
+      },
+      "refreshAll": {
+        "_": "Refresh all caches",
+        "running": "A refresh of all caches is still running.",
+        "started": "The refresh of all caches has been started.",
+        "tooltip": "Reloads all caches one after the other in the background."
+      },
+      "runningSince": "Refreshing since {arg0}",
+      "state": {
+        "expired": "Expired",
+        "failed": "Failed",
+        "notFilled": "Not yet used",
+        "ok": "OK",
+        "refreshing": "Refreshing",
+        "stuck": "Stuck"
+      },
+      "tab": "Caches",
+      "terminate": {
+        "_": "Terminate",
+        "done": "The refresh was terminated. The cache is refreshed again on the next access.",
+        "notRunning": "No refresh is running (any more).",
+        "question": "Terminate the refresh of \"{arg0}\"? It is interrupted and abandoned, so the cache can be refreshed again at once. If the refresh does not react (e.g. blocked in a database call), its thread runs on in the background until it returns by itself; its result is then discarded and the cache refreshed again.",
+        "tooltip": "Terminates the running refresh, e.g. if it hangs on a database lock."
+      }
+    },
+    "dashboard": {
+      "title": "System dashboard"
+    },
     "developmentSystem": "Development system",
     "pluginAdmin": {
       "button": {
@@ -3456,13 +3956,94 @@
       "restartRequired": "Please note: (de)activation of plugins will take effect only after restart!",
       "title": "Plugins"
     },
+    "scheduler": {
+      "abandoned": {
+        "_": "Terminated runs still running: {arg0}",
+        "tooltip": "The thread of a terminated run doesn't react to the interrupt (e.g. blocked in a database call) and runs on until it returns by itself. Its result is no longer recorded. Only a restart ends it earlier."
+      },
+      "column": {
+        "area": "Area",
+        "avgDuration7d": "Ø duration (7 days)",
+        "duration": "Duration",
+        "errors7d": "Errors (7 days)",
+        "job": "Job",
+        "lastRun": "Last run",
+        "maxDuration7d": "Max. duration (7 days)",
+        "nextRun": "Next run",
+        "runs7d": "Runs (7 days)",
+        "schedule": "Schedule",
+        "skipped7d": "Skipped (7 days)",
+        "slow7d": "Slow (7 days)"
+      },
+      "detail": {
+        "daily": "Runs per day (last {arg0} days)",
+        "inactiveReason": "Why inactive",
+        "info": "Error / notes",
+        "lastError": "Last error",
+        "manual": "Manual",
+        "monthly": "Runs per month (older days)",
+        "noRuns": "No runs.",
+        "recentRuns": "Last runs since the start",
+        "slow": "Slow",
+        "start": "Start",
+        "storedRuns": "Stored failed and slow runs"
+      },
+      "hint": {
+        "notListed": "All jobs of the scheduler with their runs. Jobs of switched off features (e.g. gateway) are not listed.",
+        "readySince": "Up since {arg0}."
+      },
+      "overdueSince": "Due since {arg0}",
+      "runNow": {
+        "_": "Run now",
+        "inactive": "The job is inactive and wasn't started.",
+        "notAllowed": "Not possible: the job is inactive or still running.",
+        "question": "Start \"{arg0}\" now? It runs as if started by the scheduler.",
+        "running": "The job is still running and wasn't started once more.",
+        "started": "The job was started."
+      },
+      "runStatus": {
+        "error": "Error",
+        "skipped": "Skipped",
+        "success": "Successful"
+      },
+      "runningSince": "Running since {arg0}",
+      "schedule": {
+        "disabled": "Switched off",
+        "every": "Every {arg0}",
+        "invalid": "Invalid schedule"
+      },
+      "status": {
+        "disabled": "Switched off",
+        "failed": "Failed",
+        "inactive": "Inactive",
+        "ok": "OK",
+        "overdue": "Overdue",
+        "pending": "Not run yet",
+        "running": "Running",
+        "skipped": "Skipped"
+      },
+      "tab": "Scheduler",
+      "terminate": {
+        "_": "Terminate",
+        "done": "The run was terminated and recorded as failed.",
+        "notRunning": "The job is not running (any more).",
+        "question": "Terminate the running job \"{arg0}\"? The run is interrupted, abandoned and recorded as failed, so the job can run again at once. Changes already made by the run are kept. If the run does not react (e.g. blocked in a database call), its thread runs on in the background until it returns by itself, but its result is no longer recorded.",
+        "tooltip": "Terminates the running job, e.g. if it hangs on a database lock."
+      }
+    },
+    "statistics": {
+      "title": "System statistics"
+    },
     "testSystem": "Test system"
+  },
+  "table": {
+    "showing": "Showing"
   },
   "task": {
     "_": "Structure element",
     "allowTimeOverlap": {
       "_": "Shared cost element",
-      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported. A setting of the cost 2 takes precedence."
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets on the same cost 2 or within the same project or overlap group (configuration) remain unsupported. A setting of the cost 2 takes precedence."
     },
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
@@ -3643,6 +4224,7 @@
     "workpackageCode": "Work package code"
   },
   "text": "Text",
+  "time": "Time",
   "timeNotation": {
     "_": "Time notation",
     "12": "12-hour notation",
@@ -3803,10 +4385,17 @@
       },
       "title": "Two-factor authentication"
     },
+    "assignedGroups": "Assigned groups",
     "authenticationToken": {
       "authenticator_key": {
         "_": "2FA authenticator key",
         "tooltip": "This authentication token is usable for Authenticator clients for Two-factor-authentication with e.g. Microsoft-, Google-authenticator app, or Fortitoken."
+      },
+      "button": {
+        "showUsage": {
+          "_": "Usage",
+          "tooltip": "Show usage of this token by clients."
+        }
       },
       "calendar_rest": {
         "_": "Authentication token for calendars",
@@ -3816,9 +4405,24 @@
         "_": "Authentication token for CalDav/CardDAV",
         "tooltip": "This authentication token is usable the CalDAV/CardDAV functionality of ProjectForge."
       },
+      "lastChange": {
+        "_": "Last change",
+        "tooltip": "When the token was created or renewed last. Empty: unknown (created by an older version)."
+      },
+      "renew": {
+        "_": "Renew",
+        "securityQuestion": "Do you really want to renew the authentication token (this is irrevocable)?",
+        "successful": "The authentication token is renewed and is now valid.",
+        "tooltip": "You may renew this token if you are in doubt if your authentication is misused by any fraudster. If renewed any previous stored authentication key is invalid. Please note: This operation is irrevocable."
+      },
       "rest_client": {
         "_": "Authentication token for rest clients",
         "tooltip": "This authentication token is usable for rest clients if ProjectForge's password shouldn't be used there."
+      },
+      "usage": {
+        "counter": "Accesses",
+        "none": "No access with this token since the server was started.",
+        "qrCode": "QR code for setting up a client app with this token."
       }
     },
     "changePassword": {
@@ -3848,13 +4452,28 @@
     "locale": "Language",
     "mobilePhone": {
       "_": "Mobile phone",
-      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication."
+      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
+      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 561 316793-0 or 0561 316793-0"
+    },
+    "myAccount": {
+      "defaultValue": "Default: {arg0}",
+      "saved": "Your account has been saved.",
+      "section": {
+        "account": "Account",
+        "publicKeys": "Public keys",
+        "settings": "Settings",
+        "tokens": "Access tokens"
+      },
+      "title": {
+        "edit": "Edit my account"
+      }
     },
     "personalPhoneIdentifiers": {
       "_": "Phone ids",
       "pleaseDefine": "Define phone numbers under 'My account'.",
       "tooltip": {
-        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
+        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list.",
+        "title": "Direct call"
       }
     },
     "restrictedUser": {
@@ -3862,6 +4481,17 @@
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
     "sshPublicKey": "SSH public key",
+    "tooltip": {
+      "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
+      "dateFormat": "The format dates are shown and entered in. Empty: the default of the installation.",
+      "excelDateFormat": "The format of dates in Excel exports. Empty: the default of the installation.",
+      "gpgPublicKey": "The own public GPG key (ASCII armored, starting with -----BEGIN PGP PUBLIC KEY BLOCK-----). Never enter the private key here.",
+      "locale": "The language of the user interface. Default: the language of the browser.",
+      "sshPublicKey": "The own public SSH key, e.g. ssh-ed25519 AAAA…. Never enter the private key here.",
+      "timeNotation": "Times with 12 hours (am/pm) or with 24 hours.",
+      "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
+      "username": "The login name. Only the administration can change it."
+    },
     "username": "User name"
   },
   "username": "User name",

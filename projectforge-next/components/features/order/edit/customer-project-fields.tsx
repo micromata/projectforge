@@ -53,10 +53,17 @@ export function CustomerProjectFields({ className }: { className?: string }) {
    * The project's managers as further contacts, if the order has none yet: distinct, and without the
    * main contact, who is one already.
    */
-  function fillAdditionalContactsIfEmpty(managers: (EntityRef | null | undefined)[]) {
-    const current = form.getFieldValue("additionalContacts") as EntityRef[] | null | undefined;
+  function fillAdditionalContactsIfEmpty(
+    managers: (EntityRef | null | undefined)[]
+  ) {
+    const current = form.getFieldValue("additionalContacts") as
+      | EntityRef[]
+      | null
+      | undefined;
     if (current && current.length > 0) return;
-    const contactPersonId = (form.getFieldValue("contactPerson") as EntityRef | null | undefined)?.id;
+    const contactPersonId = (
+      form.getFieldValue("contactPerson") as EntityRef | null | undefined
+    )?.id;
     const contacts: EntityRef[] = [];
     for (const manager of managers) {
       if (!manager || manager.id === contactPersonId) continue;

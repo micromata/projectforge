@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { useDataTable, type UseDataTableOptions } from "./use-data-table";
@@ -164,6 +164,17 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * margin per project). Off by default; an ordinary list keeps its open look.
    */
   columnLines?: boolean;
+  /**
+   * A row of its own below a row, over the full width, where this returns something: the details of an
+   * entry opened in place, e.g. the context of a hit of the log file search (LogFileEntries). The caller
+   * keeps which rows are open and renders the control opening them (a column or [rowActions]).
+   *
+   * Not a row of the row model: it can't be selected or walked to by the keyboard, and sorting, paging and
+   * the footer don't see it. It stays as wide as the visible part of the table while that scrolls sideways.
+   */
+  renderRowDetail?: (row: TData) => React.ReactNode | null;
+  /** Without the header row, for a table embedded in another one's [renderRowDetail]. */
+  hideHeader?: boolean;
 }
 
 export function DataTable<TData>({
@@ -189,6 +200,8 @@ export function DataTable<TData>({
   dense = false,
   autoHeight = false,
   columnLines = false,
+  renderRowDetail,
+  hideHeader = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -353,7 +366,7 @@ export function DataTable<TData>({
               {rowActions && <col style={{ width: ROW_ACTIONS_WIDTH }} />}
               <col />
             </colgroup>
-            <TableHeader>
+            <TableHeader className={hideHeader ? "hidden" : undefined}>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id}>
                   {hg.headers.map((header) => (
@@ -461,35 +474,63 @@ export function DataTable<TData>({
                   </TableCell>
                 </TableRow>
               ) : (
-                table.getRowModel().rows.map((row) => (
-                  <DataTableRow
-                    key={row.id}
-                    row={row}
-                    onRowClick={
-                      onRowClick &&
-                      ((original: TData) => {
-                        // Noted here rather than in the caller's handler: the id is the table's own,
-                        // so every list that remembers its view marks the opened entry for free.
-                        rememberMarkedRow(viewScope, row.id);
-                        onRowClick(original);
-                      })
-                    }
-                    onCellClick={onCellClick}
-                    onSelectClick={selection?.onRowClick}
-                    rowActions={rowActions}
-                    suspendPinning={pinningSuspended}
-                    columnLines={columnLines}
-                    // The row's colour and the marker are two layers, so both classes apply — see
-                    // `row-highlighted` in globals.css, which is why it is no background.
-                    className={cn(
-                      rowClassName?.(row.original),
-                      row.id === markedRowId && "row-highlighted",
-                      selection && row.getIsSelected() && "row-selected",
-                      (selection?.focusedRowId ?? keyboardNav?.focusedRowId) ===
-                        row.id && "row-focused"
-                    )}
-                  />
-                ))
+                table.getRowModel().rows.map((row) => {
+                  const detail = renderRowDetail?.(row.original);
+                  return (
+                    <Fragment key={row.id}>
+                      <DataTableRow
+                        row={row}
+                        onRowClick={
+                          onRowClick &&
+                          ((original: TData) => {
+                            // Noted here rather than in the caller's handler: the id is the table's own,
+                            // so every list that remembers its view marks the opened entry for free.
+                            rememberMarkedRow(viewScope, row.id);
+                            onRowClick(original);
+                          })
+                        }
+                        onCellClick={onCellClick}
+                        onSelectClick={selection?.onRowClick}
+                        rowActions={rowActions}
+                        suspendPinning={pinningSuspended}
+                        columnLines={columnLines}
+                        // The row's colour and the marker are two layers, so both classes apply — see
+                        // `row-highlighted` in globals.css, which is why it is no background.
+                        className={cn(
+                          rowClassName?.(row.original),
+                          row.id === markedRowId && "row-highlighted",
+                          selection && row.getIsSelected() && "row-selected",
+                          (selection?.focusedRowId ??
+                            keyboardNav?.focusedRowId) === row.id &&
+                            "row-focused"
+                        )}
+                      />
+                      {detail != null && (
+                        <TableRow
+                          data-row-detail-of={row.id}
+                          // The keys and clicks of the detail (e.g. an embedded table) aren't the body's
+                          // keyboard navigation or selection.
+                          onKeyDown={(event) => event.stopPropagation()}
+                          onMouseDown={(event) => event.stopPropagation()}
+                        >
+                          <TableCell colSpan={cols} className="border-b p-0!">
+                            <div
+                              className="sticky left-0"
+                              style={{
+                                width:
+                                  containerWidth > 0
+                                    ? containerWidth
+                                    : undefined,
+                              }}
+                            >
+                              {detail}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })
               )}
             </TableBody>
             {!showSkeleton &&

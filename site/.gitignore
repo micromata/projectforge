@@ -4,3 +4,5 @@ _site
 .jekyll-metadata
 vendor
 .DS_Store
+Gemfile.lock
+_data/binaries.json

@@ -1,3 +1,5 @@
+import type { NotificationSummary } from "./notification";
+
 // Mirrors org.projectforge.framework.persistence.api.MagicFilter and
 // related Kotlin classes from projectforge-business / projectforge-rest.
 // Keep field names aligned with the Spring Boot JSON contract — the
@@ -123,6 +125,11 @@ export interface ResultSet<O> {
   paginationPageSize?: number;
   resultInfo?: string;
   /**
+   * A translated warning about the result the user must not overlook — the time sheet list's "too few
+   * filter values" (see `ResultSet.resultWarning`). Shown in the list toolbar, not under the table.
+   */
+  resultWarning?: string;
+  /**
    * Aggregates over the whole result set, in the shape the entity's rest class defines
    * (`OrderEntityRest.OrderStatistics` for the order book) — see `ResultSet.statistics` there.
    *
@@ -211,6 +218,11 @@ export interface UserStatus {
   adminUser?: boolean;
   /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
   jira?: JiraConfig;
+  /**
+   * The summary of the user's notifications visible in the app; the notification center loads them only
+   * when it changes (see components/shared/notifications).
+   */
+  notifications?: NotificationSummary;
 }
 
 export interface SystemStatus {

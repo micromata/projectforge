@@ -35,7 +35,7 @@ version exists, it is in parentheses.
 | HikariCP | 6.3.3 | 7.0.2 (7.1.0) | |
 | JUnit Jupiter / Platform | 6.0.3 | 6.0.3 (6.1.3) | Jupiter and Platform share one version from 6.0 on |
 | Kotlin | 2.3.21 | 2.3.21 (2.4.20) | **scripting engine**, see below |
-| Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts; Boot 4 manages 5.0.8, pinned to 4 via `extra["groovy.version"]` until Phase 3 |
+| Groovy | 4.0.33 | 5.0.8 (5.1.x) | user scripts, mail and PDF templates (core + datetime, dateutil, json, templates, xml; no `groovy-all`); Boot 4 manages 5.0.8, pinned to 4 via `extra["groovy.version"]` until Phase 3 |
 | Gradle | 9.8.0 | 9.x (9.8.0) | Boot 4 supports Gradle 8.14+ and 9 |
 | mockito-kotlin | 6.4.0 | 6.x | |
 | kotlin-logging | `io.github.oshai` 7.0.6 (develop) | – | out of scope, logging is addressed separately |

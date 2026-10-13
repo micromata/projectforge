@@ -45,6 +45,19 @@ object MailLogEvents {
         action = "Check whether the mail server is reachable and accepts the configured credentials and sender address (mail.session.pfmailsession.*).",
     )
 
+    /**
+     * A caller of [SendMail] logged the failure again (the [MailSendException]): already reported as [SEND_FAILED]
+     * with its cause, so it's counted only.
+     */
+    @JvmField
+    val SEND_FAILED_REPORTED = LogEvent(
+        code = "mail.sendFailed.caller",
+        category = LogCategory.EXTERNAL,
+        notify = LogNotify.NONE,
+        explanation = "The caller of a failed mail (e.g. a background job) logged the failure again. Its cause is reported as mail.sendFailed.",
+        action = "None; see mail.sendFailed for the cause. The location shows which function's mail failed.",
+    )
+
     @JvmField
     val MISSING_RECIPIENT = LogEvent(
         code = "mail.missingRecipient",

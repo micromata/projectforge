@@ -118,9 +118,6 @@ open class MenuConfiguration {
     @Value("\${projectforge.menu.visibility.vacationAccount}")
     private var vacationAccountVisibility: String? = null
 
-    @Value("\${projectforge.menu.visibility.systemStatistics}")
-    private var systemStatisticsVisibility: String? = null
-
     // *******************
     // Built-in plugins:
     // *******************
@@ -219,7 +216,6 @@ open class MenuConfiguration {
         registry.add(MenuVisibility("users", usersVisibility, MenuItemDefId.USER_LIST))
         registry.add(MenuVisibility("vacation", vacationVisibility, MenuItemDefId.VACATION))
         registry.add(MenuVisibility("vacationAccount", vacationAccountVisibility, MenuItemDefId.VACATION_ACCOUNT))
-        registry.add(MenuVisibility("systemStatistics", systemStatisticsVisibility, MenuItemDefId.SYSTEM_STATISTICS))
 
         // Built-in plugins:
         registry.add(MenuVisibility("addressCampaign", addressCampaignVisibility))

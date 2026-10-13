@@ -6,6 +6,14 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/**'
+  # The release pills of the changelog show the jars (GitHub, SourceForge) and docker images of a release once they
+  # exist (see site/fetch-binaries.sh): a new GitHub release, docker/push-release.sh (workflow_dispatch) and, as
+  # fallback and for the upload to SourceForge by hand, daily.
+  release:
+    types: [published]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
 
 permissions:
   contents: read
@@ -20,7 +28,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -28,7 +38,13 @@ jobs:
           bundler-cache: true
           working-directory: site
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
+
+      - name: Fetch the released binaries
+        run: ./fetch-binaries.sh
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Jekyll site
         run: bundle exec jekyll build --destination ../_site
@@ -36,7 +52,7 @@ jobs:
         env:
           JEKYLL_ENV: production
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
 
   deploy:
     environment:
@@ -47,4 +63,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

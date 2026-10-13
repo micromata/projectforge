@@ -24,12 +24,18 @@ export interface LogViewFilter {
 export interface LogViewerEvent {
   id: number;
   timestamp: string;
+  /** For sorting. */
+  timestampMillis: number;
+  /** The timestamp as "5 minutes ago", in the user's locale. */
+  timeAgo?: string | null;
   level: LogLevel;
   message?: string | null;
   stackTrace?: string | null;
   /** `user@ip`. */
   user?: string | null;
   userAgent?: string | null;
+  /** The logger's name. */
+  logger?: string | null;
 }
 
 /** `LogViewerRest.LogViewerData`. */
@@ -80,4 +86,40 @@ export function resetLogViewer(
     method: "POST",
     body: JSON.stringify(filter),
   });
+}
+
+/** `LogMemoryContextRequest`: the context of a log event in memory, found by its id. */
+export interface LogMemoryContextRequest {
+  id: number;
+  before: number;
+  after: number;
+  scope: LogContextScope;
+  excludeLoggers: string[];
+}
+
+/** `LogFileContextScope`: which neighbours of an entry are its context. */
+export type LogContextScope = "ALL" | "USER" | "LOGGER";
+
+/** `LogViewerContextData`: a log event in memory with its context, oldest first. */
+export interface LogViewerContextData {
+  /** False, if the event isn't in memory anymore (only the last events are kept). */
+  found: boolean;
+  before: LogViewerEvent[];
+  hit?: LogViewerEvent | null;
+  after: LogViewerEvent[];
+  moreBefore: boolean;
+  moreAfter: boolean;
+  truncated: boolean;
+}
+
+/** The context of a log event of the admin log viewer (admin group only). */
+export function fetchLogMemoryContext(
+  context: LogMemoryContextRequest,
+  signal?: AbortSignal
+): Promise<LogViewerContextData> {
+  return request<LogViewerContextData>(
+    "/rs/adminLogViewer/context",
+    { method: "POST", body: JSON.stringify(context) },
+    signal
+  );
 }

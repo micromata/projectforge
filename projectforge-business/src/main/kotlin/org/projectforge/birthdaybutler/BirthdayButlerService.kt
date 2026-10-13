@@ -27,6 +27,7 @@ import de.micromata.merlin.word.RunsProcessor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFTable
@@ -40,6 +41,10 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.StringHelper
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -86,15 +91,24 @@ class BirthdayButlerService {
     @Autowired
     private lateinit var userDao: UserDao
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::sendBirthdayButlerJob) {
+            if (birthdayButlerConfiguration.isConfigured()) null else "Organization of the birthday butler isn't configured."
+        }
+    }
+
     fun translateMonth(month: Month, locale: Locale? = ThreadLocalUserContext.locale): String {
         return translate(locale, months[month.ordinal])
     }
 
-    // Every month on the second last day at 8:00 AM
-    @Scheduled(cron = "0 0 8 L-2 * ?")
+    @Scheduled(cron = CRON)
     // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
     fun sendBirthdayButlerJob() {
-        Thread {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
             var locale = ThreadLocalUserContext.getLocale(null)
             birthdayButlerConfiguration.locale?.let {
                 if (it.isNotBlank()) {
@@ -106,7 +120,13 @@ class BirthdayButlerService {
             val response = createWord(month, locale)
             val error = response.errorMessage
             if (error != null) {
-                log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
+                if (error == NO_ENTRY) {
+                    log.info { "BirthdayButlerJob: no birthdays in ${month.name}." }
+                    run.note("No birthdays in ${month.name}.")
+                } else {
+                    log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
+                    run.fail("Aborted: ${translate(error)} ($error)")
+                }
                 sendMail(month, content = error, locale = locale)
             } else {
                 val word = response.wordDocument
@@ -116,11 +136,12 @@ class BirthdayButlerService {
                     list.add(attachment)
                     sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
                 } else {
+                    run.fail("Word document couldn't be created.")
                     sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
                 }
                 log.info { "BirthdayButlerJob finished." }
             }
-        }.start()
+        }
     }
 
     fun createFilename(month: Month, locale: Locale? = null): String {
@@ -145,7 +166,7 @@ class BirthdayButlerService {
             ?: return Response(errorMessage = "birthdayButler.organization.noMatchingUser")
         if (birthdayList.isEmpty()) {
             log.info { "No user with birthday in selected month" }
-            return Response(errorMessage = "birthdayButler.month.response.noEntry")
+            return Response(errorMessage = NO_ENTRY)
         }
         val wordDocument = createWordDocument(month, birthdayList, locale)
         if (wordDocument != null) {
@@ -320,6 +341,16 @@ class BirthdayButlerService {
     }
 
     companion object {
+        /** Every month on the second last day at 8:00 (UTC). */
+        private const val CRON = "0 0 8 L-2 * ?"
+
+        private const val NO_ENTRY = "birthdayButler.month.response.noEntry"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "birthdayButler.monthly", SchedulerJobArea.BUSINESS, BirthdayButlerService::class.java,
+            "sendBirthdayButlerJob", SchedulerSchedule.Cron(CRON),
+        )
+
         private fun format(number: Int): String {
             return StringHelper.format2DigitNumber(number)
         }

@@ -235,6 +235,8 @@ open class ForecastExport { // open needed by Wicket.
      * @param unfiltered True, if [orderList] is the whole order book: invoices without any order are then part of the
      * sums as well (for financial and controlling staff only, see [isShowAll]).
      * @param planningDate If given, the plan is calculated from the closest order book snapshot.
+     * @param snapshotDate If given, the forecast is calculated from the closest order book snapshot instead of the
+     * current order book: its versions of the orders of [orderList] (matched by id), and the invoices before it only.
      * @return null, if neither order positions nor invoices were found.
      */
     open fun chartData(
@@ -243,8 +245,9 @@ open class ForecastExport { // open needed by Wicket.
         unfiltered: Boolean,
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
+        snapshotDate: LocalDate? = null,
     ): ForecastChartData? {
-        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget)?.chart
+        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate)?.chart
     }
 
     /**
@@ -257,9 +260,11 @@ open class ForecastExport { // open needed by Wicket.
         unfiltered: Boolean,
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
+        snapshotDate: LocalDate? = null,
     ): ForecastStatistics? {
-        val result = exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = true)
-            ?: return null
+        val result = exportSelected(
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, chartsOnly = true,
+        ) ?: return null
         return ForecastStatistics(result.chartData, result.tables)
     }
 
@@ -274,8 +279,10 @@ open class ForecastExport { // open needed by Wicket.
         distributeUnusedBudget: Boolean? = null,
     ): ByteArray? {
         try {
-            return exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = false)
-                ?.xls
+            return exportSelected(
+                orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate = null,
+                chartsOnly = false,
+            )?.xls
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
             throw ex
@@ -288,14 +295,19 @@ open class ForecastExport { // open needed by Wicket.
         unfiltered: Boolean,
         planningDate: LocalDate?,
         distributeUnusedBudget: Boolean?,
+        snapshotDate: LocalDate?,
         chartsOnly: Boolean,
     ): ExportResult? {
         val orderIds = orderList.mapNotNull { it.id }.toSet()
+        val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, null, "snapshot")
+        // The snapshot's versions of the selected orders (a snapshot can't be queried, so they are matched by id).
+        // Orders created after the snapshot aren't part of it.
+        val orders = closestSnapshotDate?.let { readSnapshot(it) { order -> order.id in orderIds } } ?: orderList
         return export(
-            orderList,
+            orders,
             startDate = getStartDate(startDate),
             planningDate = getClosestSnapshotDate(planningDate, null, "planning"),
-            snapshotDate = null,
+            snapshotDate = closestSnapshotDate,
             showAll = unfiltered && isFinanceOrControllingStaff(),
             planningOrderMatcher = { { it.id in orderIds } },
             scriptLogger = null,
@@ -578,7 +590,7 @@ open class ForecastExport { // open needed by Wicket.
                 fillPlanningForecast(planningDate, ctx)
                 return ExportResult(
                     xls = null,
-                    chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+                    chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate, snapshotDate),
                     tables = buildTables(ctx, planningDate),
                 )
             }
@@ -619,7 +631,7 @@ open class ForecastExport { // open needed by Wicket.
             workbook.pOIWorkbook.setForceFormulaRecalculation(true)
             return ExportResult(
                 xls = workbook.asByteArrayOutputStream.toByteArray(),
-                chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+                chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate, snapshotDate),
                 tables = buildTables(ctx, planningDate),
             )
         }

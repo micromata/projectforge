@@ -95,7 +95,9 @@ object RechnungCalculator {
         info.grossSumWithDiscount = calculateGrossSumWithDiscount(rechnung)
 
         val zahlBetrag = info.zahlBetrag
-        info.isBezahlt = if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
+        info.isBezahlt = if (info.isSettledByCancellation) {
+            true
+        } else if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
         } else if (info.bezahlDatum != null && zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0) {
             if (rechnung is RechnungDO) {
@@ -109,8 +111,7 @@ object RechnungCalculator {
         info.isUeberfaellig = false
         // A cancelled invoice and its cancellation are settled by each other: nothing is due, so neither is
         // overdue (and neither is a candidate for a payment reminder).
-        val settledByCancellation = info.status == RechnungStatus.STORNIERT || info.typ == RechnungTyp.CANCELLATION
-        if (!settledByCancellation && !info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
+        if (!info.isSettledByCancellation &&!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
             info.isUeberfaellig = true
         }
         return info

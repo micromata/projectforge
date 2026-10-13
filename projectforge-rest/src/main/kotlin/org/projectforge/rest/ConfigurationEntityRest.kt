@@ -23,6 +23,8 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.timesheet.TimesheetVacationBookingConfig
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationJsonValidators
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -38,6 +40,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Configuration
 import org.projectforge.ui.ValidationError
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -61,6 +64,8 @@ class ConfigurationEntityRest :
         ConfigurationDao::class.java,
         "administration.configuration",
     ) {
+    @Autowired
+    private lateinit var vacationBookingConfig: TimesheetVacationBookingConfig
 
     override fun transformFromDB(obj: ConfigurationDO, editMode: Boolean): Configuration {
         val dto = Configuration()
@@ -103,6 +108,7 @@ class ConfigurationEntityRest :
             return
         }
         val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
+        validateVacationAutoBooking(validationErrors, param, dto)
         val value = dto.stringValue ?: return
         if (param?.editPage == null && value.length > ConfigurationDO.LEGACY_PARAM_LENGTH) {
             validationErrors.add(
@@ -115,6 +121,68 @@ class ConfigurationEntityRest :
                     fieldId = "stringValue",
                 )
             )
+        }
+    }
+
+    /**
+     * The days back of the vacation booking job are limited to [ConfigurationService.MAX_VACATION_AUTO_BOOKING_DAYS],
+     * see [org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob].
+     *
+     * The vacation task and cost unit must exist, and the cost unit must be bookable on the configured task. The latter
+     * is checked on saving the cost unit only: switching to another pair is done by changing the task first, then the
+     * cost unit (a problem left is logged by [TimesheetVacationBookingConfig.resolve]). Clearing a value is allowed.
+     */
+    private fun validateVacationAutoBooking(
+        validationErrors: MutableList<ValidationError>,
+        param: ConfigurationParam?,
+        dto: Configuration,
+    ) {
+        when (param) {
+            ConfigurationParam.TIMESHEET_VACATION_AUTO_BOOKING_DAYS -> {
+                val days = dto.longValue ?: return
+                if (days < 0 || days > ConfigurationService.MAX_VACATION_AUTO_BOOKING_DAYS) {
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg(
+                                "validation.error.range.integerOutOfRange",
+                                0, ConfigurationService.MAX_VACATION_AUTO_BOOKING_DAYS,
+                            ),
+                            fieldId = "longValue",
+                        )
+                    )
+                }
+            }
+
+            ConfigurationParam.TIMESHEET_VACATION_TASK_ID -> {
+                val taskId = dto.longValue ?: return
+                if (vacationBookingConfig.check(taskId.toString(), null).task == null) {
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg(TimesheetVacationBookingConfig.Problem.TASK_NOT_FOUND.i18nKey, taskId.toString()),
+                            fieldId = "longValue",
+                        )
+                    )
+                }
+            }
+
+            ConfigurationParam.TIMESHEET_VACATION_KOST2 -> {
+                val kost2 = dto.stringValue?.trim()?.ifEmpty { null } ?: return
+                val taskId = baseDao.getEntry(ConfigurationParam.TIMESHEET_VACATION_TASK_ID)?.longValue
+                val result = vacationBookingConfig.check(taskId?.toString(), kost2)
+                val message = when {
+                    result.kost2 == null ->
+                        translateMsg(TimesheetVacationBookingConfig.Problem.KOST2_NOT_FOUND.i18nKey, kost2)
+
+                    result.problem == TimesheetVacationBookingConfig.Problem.KOST2_NOT_BOOKABLE -> translateMsg(
+                        TimesheetVacationBookingConfig.Problem.KOST2_NOT_BOOKABLE.i18nKey, kost2, result.task?.title,
+                    )
+
+                    else -> null // Fine, or no task configured yet.
+                }
+                message?.let { validationErrors.add(ValidationError(it, fieldId = "stringValue")) }
+            }
+
+            else -> {}
         }
     }
 
@@ -154,6 +222,7 @@ class ConfigurationEntityRest :
                 resolvedText(element.i18nKey),
                 resolvedText(element.descriptionI18nKey),
                 element.parameter,
+                element.parameter?.let { ConfigurationParam.ofKey(it) }?.category?.let { resolvedText(it.i18nKey) },
             )
             return haystacks.any { it.lowercase().contains(needle) }
         }
@@ -175,6 +244,11 @@ class ConfigurationEntityRest :
      */
     override val computedSortProperties: Map<String, (ConfigurationDO) -> Comparable<*>?>
         get() = mapOf(
-            "parameter" to { config -> translate(config.i18nKey).lowercase() }
+            "parameter" to { config -> translate(config.i18nKey).lowercase() },
+            // By the category, within a category by the label (one comparable key, as the in-memory sort takes one).
+            "category" to { config ->
+                val category = config.parameter?.let { ConfigurationParam.ofKey(it) }?.category
+                "${category?.let { translate(it.i18nKey) } ?: ""}\u0000${translate(config.i18nKey)}".lowercase()
+            },
         )
 }

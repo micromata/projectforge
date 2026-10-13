@@ -9,185 +9,167 @@ tags: [adminguide]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2026, Last updated
+:last-update-label: Copyright (C) 2001-2026, Last updated
 
 :sectnums:
 
 == Introduction
 
-This documents describes the administration of ProjectForge®.
+This document describes the administration of ProjectForge®: configuration, security, user directories, backups and
+maintenance. For installing ProjectForge (Docker or JAR, setup wizard, reverse proxy) please refer to
+link:/docs/installation/[Installation] first.
+
+All settings mentioned here go into `projectforge.properties` in ProjectForge's home directory (written by the setup
+wizard), unless stated otherwise. The defaults with comments are listed in
+https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
+Restart ProjectForge after changing this file.
 
 == ProjectForge Setup
 
 === Database
 
-[source,shell,linenums]
+The setup wizard writes the database settings, so you usually don't have to touch them. ProjectForge uses the
+connection pool of Spring Boot (HikariCP); the `spring.datasource.hikari.*` defaults are listed in
+`application.properties`.
+
+[source,properties,linenums]
 ----
-#JDBC Java class
-spring.datasource.driver-class-name=org.hsqldb.jdbcDriver
-#spring.datasource.driver-class-name=org.postgresql.Driver
-
-#Database user
+# Embedded HSQLDB (default, for tests and small installations):
+spring.datasource.url=jdbc:hsqldb:file:${projectforge.base.dir}/database/projectforge;shutdown=true
+spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
 spring.datasource.username=sa
-
-#Database password for given user
 spring.datasource.password=
 
-#JDBC url to connect to DB
-spring.datasource.url=jdbc:hsqldb:file:projectforge;shutdown=true
-#spring.datasource.url=jdbc:hsqldb:mem:projectforge
+# PostgreSQL (recommended for productive use):
 #spring.datasource.url=jdbc:postgresql://localhost:5432/projectforge
-db.ds.projectForgeDs.extendedSettings=false
-
-#Sets the maximum number of active connections that can be allocated at the same time.
-#Use a negative value for no limit.
-spring.datasource.maxActive=8
-
-#Sets the maximum number of connections that can remain idle in the pool.
-spring.datasource.maxIdle=8
-
-# Sets the minimum number of idle connections in the pool.
-spring.datasource.minIdle=0
-
-#Max milleseconds waiting while obtaining connection. Use -1 to make the pool wait indefinitely.
-spring.datasource.maxWait=-1
-
-#Sets the initial size of the connection pool.
-spring.datasource.intialSize=0
-
-#Sets the default catalog.
-spring.datasource.default-catalog=
-
-#Sets default auto-commit state of connections returned by this datasource.
-spring.datasource.defaultAutoCommit=true
-
-#Validation query to test if connection is valid.
-spring.datasource.validation-query=
-
-#Sets the validation query timeout, the amount of time, in seconds, that connection validation will wait for a response from the database when executing a validation query.
-#Use a value less than or equal to 0 for no timeout.
-spring.datasource.validation-query-timeout=-1
+#spring.datasource.driver-class-name=org.postgresql.Driver
+#spring.datasource.username=projectforge
+#spring.datasource.password=<your-password>
 ----
+
+The schema is created and migrated automatically by Flyway on every start.
 
 === Initialization, first login and set-up dialogue
 
-After the first start of ProjectForge® you will see
-ProjectForge®'s set-up dialogue. Please configure at minimum the
-adminstrator's password and the target (empty data-base for a productive
-system or pre-filled with test data). You can configure or change all
-other settings such as time zone, e-mail addresses etc. any time later.
+After the first start, ProjectForge® shows its setup page. Choose the target (empty database for a productive system,
+or a test system with example data) and set the administrator's user name and password. All other settings such as
+time zone and e-mail addresses can be changed later under _Administration_ -> _Configuration_. See
+link:/docs/installation/#the_setup_page[Installation – The setup page] for details.
 
 === SSL / Https
 
-It's recommended to start ProjectForge on a localhost http port and to handle https over nginx or apache.
+It's recommended to run ProjectForge on a localhost http port and to handle https with a reverse proxy such as NGINX,
+see link:/docs/installation/#secure_http_connection_sslhttps[Installation – Secure http connection].
 
 For testing purposes you can use the following configuration:
 
 ==== Self-signed certificate
-Generate a self-signed certificate:`keytool -genkeypair -alias selfsigned -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 365`
+Generate a self-signed certificate: `keytool -genkeypair -alias selfsigned -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 365`
 
 ==== Configure the file `~/ProjectForge/projectforge.properties`
 
-*File:* `application.properties`:
-
-[source,shell,linenums]
+[source,properties,linenums]
 ----
-...
 # Bind to all interfaces, or localhost
 server.address=0.0.0.0
 server.port=8443
-server.ssl.key-store=file:/home/joe/keystore.p12
+server.ssl.key-store=file:/home/projectforge/keystore.p12
 server.ssl.key-store-password=<password of your certificate>
 server.ssl.key-store-type=PKCS12
-..
 ----
 
 ==== Trust the self-signed certificate
 
 . Extract: `keytool -exportcert -alias selfsigned -keystore keystore.p12 -storetype PKCS12 -file selfsigned.crt -rfc`
-. Copy it e. g. to MacOS key-chain system certificates and trust it.
+. Import it into the certificate store of your system or browser and trust it.
 
 === PostgreSQL
 
-
 ==== Setting up the database
 
-. Edit `postgresql.conf:` `max_connections =  50                   # (change requires restart)`
-. `createuser -U postgres -P projectforge` as e.g. admin user.
-. `createdb -U postgres -E UTF-8 -O projectforge projectforge` as e.g.
-admin user.
-. You can drop any existing user and database
-with: `dropdb projectforge` and `dropuser projectforge`
-. *Re-use of existing database (use a dump --> 5.5 or 5.6)*  +
-`psql -q -f projectforge_2008-04-02_02-00.sql -U postgres projectforge 2>&1 > log.txt`
+PostgreSQL 13 or newer is required: a database migration (Flyway `V8.0.24`) runs
+`CREATE EXTENSION IF NOT EXISTS pg_trgm` for the trigram indexes of the history search. `pg_trgm` is a trusted
+extension since PostgreSQL 13, so it's sufficient that the database user of ProjectForge has the `CREATE` privilege on
+the database (e.g. as its owner, see below). Otherwise a database administrator has to create the extension once
+beforehand: `psql -U postgres -d projectforge -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"`.
 
-Recommended settings in `postgresql.conf`:
-```
+The files of the file store are stored in an own schema `pf_files`, which is created by Flyway as well (so the
+database user also needs the right to create schemas, which the owner of the database has), see <<Backup>>.
+
+. Create the user (e.g. as admin user): `createuser -U postgres -P projectforge`
+. Create the database: `createdb -U postgres -E UTF-8 -O projectforge projectforge`
+. You can drop an existing user and database with: `dropdb projectforge` and `dropuser projectforge`
+. To re-use an existing database, restore a dump, see <<Restoring a backup>>.
+
+Recommended settings in `postgresql.conf` (`max_connections` must be larger than ProjectForge's connection pool,
+`spring.datasource.hikari.maximum-pool-size`, default 100). If the JCR still uses PostgreSQL as well
+(`oak.datasource.url` given), its own pool adds up to 10 more connections (`oak.datasource.hikari.maximum-pool-size`):
+
+----
+max_connections = 120
 statement_timeout =  300000 # 300s
 lock_timeout = 300000       # 300s
-```
+----
+
 == Configuration
 
 === Base directory (application's home)
 
-ProjectForge® needs a base directory which is set
-in `application.properties` of the web server. By default it
-is `${user.home}/ProjectForge` . You should prepare this directory for
-use-age of ProjectForge®. The following directories will be created
-if not exist:
+ProjectForge® needs a home directory, by default `${user.home}/ProjectForge` (`/ProjectForge` inside Docker). It's
+chosen by the setup wizard, see link:/docs/installation/#java_installation_without_docker[Installation] for how
+ProjectForge finds it. The following files and directories are created if they don't exist:
 
 [width="100%",cols="50%,50%",]
 |===
-|`ProjectForge/hibernate-search` |Here the lucene indices are stored. If
-corrupted, delete all files and directories in this directory and
-re-build data base indices via the web admin console.
+|`projectforge.properties`, `config.xml` |Configuration files, written by the setup wizard.
 
-|`ProjectForge/resources/fonts` |For additional fonts used e. g. by the
-pdf renderers.
+|`database` |The embedded database (HSQLDB), if used.
 
-|`ProjectForge/resources/images` |For images e. g. by the pdf renderers.
+|`hibernateSearch` |The search indices (Lucene). If corrupted, stop ProjectForge, delete the content of this
+directory and rebuild the indices via _Administration_ -> _System_ -> _Reindex_.
 
-|`ProjectForge/work` |For uploaded files etc. +
- +
+|`logs` |The log files, e.g. `ProjectForge.log`.
+
+|`resources` |Your own resources, overriding the built-in ones: `images` (logos), `fonts` (for the PDF renderer),
+`mail` (e-mail templates), translations.
+
+|`backup` |Default directory for backups.
+
+|`datatransfer` |The files of the data transfer areas (plugin _Data transfer_).
+
+|`jcr` |The former document repository (JCR), only for installations not yet migrated, see <<Moving the files out of the JCR>>.
+
+|`work` |Working directory for temporary files.
 |===
 
 === Configuration file application.properties
 
-ProjectForge® is a SpringBoot-Application, you can get more
-information http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html[here].
-
-The format of the file is:
-
-*File:* `application.properties`:
-https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[here]
+ProjectForge® is a Spring Boot application, so you may use any of the
+https://docs.spring.io/spring-boot/appendix/application-properties/index.html[common application properties]
+in `projectforge.properties`. All ProjectForge-specific options with their defaults are listed in
+https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
 === Customization
 
-==== Logo ant title in pdf outputs
+==== Logo and title in pdf outputs
 
-At default the pdf outputs file is not present. The logo is placed at
-the top right.  +
-Under the configuration menu of the web application you can enter your
-organization name. This name will be used as headline for the pdf
-outputs.
+Under _Administration_ -> _Configuration_ you can enter your organization name, which is used e.g. as headline of the
+pdf outputs.
 
-[source,shell,linenums]
+Logos are configured in `projectforge.properties`. The files must be located in `resources/images` of the home
+directory (or be given as absolute paths):
+
+[source,properties,linenums]
 ----
-The files must be located in the Resources/Images folder.
-----
-
-*File:* `projectforge.properties`:
-
-[source,shell,linenums]
-----
-...
-projectforge.logoFile=
-projectforge.logoFileDark=
-projectforge.export.logoFile=
-...
+# Logo of the web app:
+projectforge.logoFile=logo.png
+# Optional variant for the dark mode:
+projectforge.logoFileDark=logo-dark.png
+# Logo used in exports:
+projectforge.export.logoFile=logo-export.png
 ----
 
-==== Customizing i18n translations (since 8.2)
+==== Customizing i18n translations
 
 ProjectForge allows you to customize or override any translation text displayed in the user interface.
 This is useful if you want to adapt terminology to your organization's specific needs.
@@ -204,7 +186,7 @@ To customize translations:
 [source,properties,linenums]
 ----
 # Example: Override existing translation
-menu.addressbook.title=Contacts
+menu.addressList=Contacts
 # Example: Add custom translation
 myorganization.custom.greeting=Welcome to Acme Corp
 ----
@@ -215,7 +197,7 @@ Your custom translations will take precedence over the default translations incl
 
 To find available i18n keys that you can override, refer to:
 
-* Main application translations: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/I18nResources.properties[I18nResources.properties]
+* Main application translations: https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties[I18nResources.properties]
 * Plugin translations: Search the GitHub repository for `*I18nResources.properties` files in the plugin directories, e.g.:
 ** `plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources.properties`
 ** `plugins/org.projectforge.plugins.skillmatrix/src/main/resources/SkillMatrixI18nResources.properties`
@@ -223,43 +205,31 @@ To find available i18n keys that you can override, refer to:
 
 === Configuration settings (web interface)
 
-Please go to this page for setting different parameters of
-ProjectForge® such as default time zone etc. You'll find the
-documentation there.
+Under _Administration_ -> _Configuration_ you can set further parameters of ProjectForge® such as the default time
+zone, the country phone prefix or cost-unit accounting. Each parameter is explained there.
+
+_Administration_ -> _System_ offers among others: re-reading and exporting `config.xml`, exporting the 2FA
+configuration, re-indexing the search index and system integrity checks.
 
 === Using ttf fonts for PDF render engine
 
-FOP is used as internal render engine. For enabling True Type Fonts
-please refer the FOP documentation.
-
-[source,shell,linenums]
-----
-java -cp build/fop.jar:lib/avalon-framework-4.2.0.jar:lib/commons-logging-1.0.4.jar:lib/commons-io-1.3.1.jar \ +
-          org.apache.fop.fonts.apps.PFMReader <path>/<font>.pfm ttf<font>.xml
-----
+Apache FOP is used as internal render engine for PDF outputs. Additional fonts are placed in `resources/fonts` of the
+home directory (or the directory configured by `projectforge.fontsDirectory`). Please refer to the
+https://xmlgraphics.apache.org/fop/[FOP documentation] for details on fonts.
 
 === HTML formatted E-Mail templates
 
-ProjectForge works with Groovy templates for generating e-mails (as
-notifications). You'll find the templates inside your web archive of the
-ProjectForge
-installation: `plugins/projectforge-business-X.X.X.jar/mail/.` You can
-modify any template of this directory if needed by simply copying the
-file(s) you want to modify into your ProjectForge application dir, which
-is also the destination of `application.properties:`
+ProjectForge works with Groovy templates for generating e-mails (e.g. notifications). You'll find the built-in
+templates in the sources under
+https://github.com/micromata/projectforge/tree/master/projectforge-business/src/main/resources/mail[projectforge-business/src/main/resources/mail].
+To modify a template, copy it to the same relative path in the resources directory of your home directory,
+e.g. `~/ProjectForge/resources/mail/orderChangeNotification.html`, and edit it there. ProjectForge looks there first
+and falls back to the built-in template if the file doesn't exist.
 
-    cp projectforge-business-X.X.X.jar/mail/
-
-Afterwards you can edit this file. ProjectForge looks first in this
-ProjectForge app directory for loading templates and if not found it
-uses the resources path.
-
-The templates are internationalized with the locale of the receiving
-user.
+The templates are internationalized with the locale of the receiving user.
 
 [source,html,linenums]
 ----
-<html>
 <html>
 #INCLUDE{mail/mailHead.html}
 <body>
@@ -289,8 +259,22 @@ This is an example of using dynamic data (here a list of positions will be print
 </html>
 ----
 
-If you don't like html-formatted e-mails, you can simply remove all html
-tags (ignore the html suffix then).
+=== Sending e-mails
+
+ProjectForge sends notifications, password reset mails, 2FA codes and the error digest via SMTP:
+
+[source,properties,linenums]
+----
+mail.session.pfmailsession.emailEnabled=true
+mail.session.pfmailsession.standardEmailSender=projectforge@acme.com
+# Plain, StartTLS or SSL:
+mail.session.pfmailsession.encryption=StartTLS
+mail.session.pfmailsession.smtp.host=mail.acme.com
+mail.session.pfmailsession.smtp.port=587
+mail.session.pfmailsession.smtp.auth=true
+mail.session.pfmailsession.smtp.user=projectforge
+mail.session.pfmailsession.smtp.password=<password>
+----
 
 === Support error digest
 
@@ -309,12 +293,12 @@ version groups them more coarsely, the problems recorded before are merged short
 admin's status kept if they agree, else new). The mail lists new problems, regressions
 (problems that occurred again after being resolved) and spikes (much more often than in the last 7 days)
 first, then the 30 most frequent known problems sorted by severity (unreachable external systems first).
-Each problem links to the problem dashboard (Administration), where it can be acknowledged, resolved, ignored
+Each problem links to the _System dashboard_ (Administration), where it can be acknowledged, resolved, ignored
 or muted; ignored and muted problems are only counted. The attached text file contains up to five single
 occurrences per group with user, request and stack trace.
 
 For an analysis or classification with an AI (or any other tool), the digest also attaches everything as a
-JSON file (`format: projectforge-log-analysis`), and the problem dashboard downloads all problems of its
+JSON file (`format: projectforge-log-analysis`), and the _System dashboard_ downloads all problems of its
 current filter in the same format (_Download as JSON_), with sample message, stack trace and the occurrences
 of the last 30 days. The file explains its fields and values itself (`guide`), so it can be handed over as it
 is. It contains no user names, but messages and requests are as logged and may contain personal data: check
@@ -327,7 +311,7 @@ Each problem goes to the recipients of its audience: developers (bugs, data prob
 systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
 at `projectforge.support.mail`.
 
-*File:* `application.properties:`
+*File:* `projectforge.properties`:
 
 ----
 projectforge.support.mail=support@acme.com
@@ -339,117 +323,29 @@ projectforge.support.errorDigest.recipients.admin=ops@acme.com
 projectforge.support.errorDigest.recipients.security=security@acme.com
 ----
 
-=== Configuration of Mobile Enterprise Blogging (MEB)
+=== System dashboard and log viewer
 
-ProjectForge supports two ways of receiving SMS: e-mail and/or
-servlet-call. You can use both or at least one of the two ways:
+Administrators find the _System dashboard_ in the _Administration_ menu. It shows the problems collected for the error
+digest (see above), the runs of the scheduled jobs and offers a log viewer for searching the log files, including the
+context of a log entry. The counts are stored in the database (`projectforge.support.logAggregation.*` and
+`projectforge.scheduler.stats.*` in `application.properties`, cleaned up by the daily privacy protection job).
 
-*File:* `application.properties`
-
-[source,shell,linenums]
-----
-...
-projectforge.receiveSmsKey=*******SECRET********
-...
-----
-
-ProjectForges ensures that messages will be imported only once.
-
-
-==== Servlet-Call
-
-You can implement a servlet call whenever your system receives an
-SMS:  +
-`https://pf.acme.com/secure/SMSReceiver?key=kds8uijkqw6idg&date=20101105171233&sender=01234567&msg=Hello...`  +
-The format of the values are the same as described above. The encoding
-should be UTF-8. The key is a communication key and should be configured
-in your  (see above).  +
-Please deploy the following php script on your Asterisk web server (many
-thanks to Thomas Koch for this great work):
-
-[source,php,linenums]
-----
-#!/usr/bin/php
-<?
-# SMS2ProjectForge
-
-$SMS_DIR="/var/spool/asterisk/sms/mtrx/";
-$PF_EMAIL="projectforge@change-to-your-domain.de";
-$FROM="smsgateway@change-to-your-domain.de";
-$PF_URL="https://change-to-your-domain.de/secure/SMSReceiver?key=<change-to-your-key>&date=%s&sender=%s&msg=%s";
-
-function parseFile($file, $recipient) {
-
-  if(!$file)
-    return;
-  if(is_file($file)) {
-    $content = file($file);
-  } else {
-    print("$file is missing\n");
-    return;
-  }
-  foreach($content as $line) {
-    if(preg_match("/oa=(\d+)/", $line, $match)) {
-#print("Absender " . $match[1] . "\n");
-      $oa = $match[1];
-    }
-    if(preg_match("/ud=(.*)/", $line, $match)) {
-#print("Text " . $match[1] . "\n");
-      $text = $match[1];
-    }
-  }
-  if($recipient == "pf") {
-    $time = time();
-#$mailtext = sprintf("date=%s\nsender=%s\nmsg=%s\n", time(), $oa, utf8_encode($text));
-    $mailtext = sprintf("date=%s\nsender=%s\nmsg=%s\n", time(), $oa, $text);
-    mail($PF_EMAIL, "SMS", $mailtext, "From: smsgateway <$FROM>");
-    $url = sprintf($PF_URL),
-        $time,
-        $oa,
-        urlencode($text));
-    $pig = fopen($url, "r");
-    # XXX check answer!
-    #$ret = stream_get_contents($pig);
-  }
-  return(1);
-}
-
-function getRecipient($file) {
-  if(!$file)
-    return;
-  # pf.2010-05-04T16:46:01-11
-  if(preg_match("/(\w+)\.\d\d\d\d-\d\d-\d\d.\d\d:\d\d:\d\d-\d+/", $file, $match)) {
-    return($match[1]);
-  }
-  return;
-}
-
-##
-# Main
-#
-$content = array();
-if(is_dir($SMS_DIR)) {
-  if($dh = opendir($SMS_DIR)) {
-    while(($file = readdir($dh)) !== false) {
-      if($file != "." && $file != "..") {
-        if(parseFile($SMS_DIR . $file, getRecipient($file))) {
-          unlink($SMS_DIR . $file);
-        }
-      }
-    }
-  }
-}
-?>
-----
-
-=== phone calls and texting with ProjectForge
+=== Phone calls and texting with ProjectForge
 
 ==== Phone calls
 
-If configured the users are able to initiate phone calls directly by
-clicking on a phone number of an address or by entering a name or a
-phone number in the direct phone call
-page.
+If configured, users are able to initiate phone calls directly by clicking on a phone number of an address or by
+entering a name or a phone number on the direct call page. Calls are initiated via Sipgate:
+
+[source,properties,linenums]
+----
+projectforge.sipgate.baseUri=<base uri of the Sipgate REST API>
+projectforge.sipgate.tokenId=<token id>
+projectforge.sipgate.token=<token>
+# Device used for calls, if the user hasn't configured own Sipgate devices (e.g. "p2"):
+projectforge.sipgate.defaultDevice=
+projectforge.sipgate.basePhoneNumber=
+----
 
 image::/uploads/adminguide/directCall.png[image]
 
@@ -460,76 +356,24 @@ number of an address or by entering a name or number into the number
 field.
 |===
 
-Please deploy the following php script on your Asterisk web server (many
-thanks to Thomas Koch for this great work):
-
-*File:* `originatecall.php`:
-
-[source,php,linenums]
-----
-<?
-# originates call from ProjectForge
-# 03/09 by t.koch@micromata.de
-
-$USERNAME = "admin";
-$PASSWORD = "secret";
-
-function doCall($source, $target) {
-  global $USERNAME, $PASSWORD;
-  $socket = fsockopen("127.0.0.1","5038", $errno, $errstr, $timeout);
-  if(!$socket) {
-    return(1);
-  }
-  fputs($socket, "Action: Login\r\n");
-  fputs($socket, "UserName: $USERNAME\r\n");
-  fputs($socket, "Secret: $PASSWORD\r\n\r\n");
-  fputs($socket, sprintf("Action: Originate\r\nChannel: Local/%s@intern\r\nContext: intern\r\nExten: %s\r\nPriority: 1\r\nCallerid: %s\r\nTimeout: 8000\r\nVariable: var1=23|var2=24|var3=25\r\nActionID: ABC45678901234567890\r\n\r\nAction: Logoff\r\n\r\n", $source, $target, $source));
-  return(0);
-
-  if($debug) {
-    while (!feof($socket)) {
-      print(fread($socket, 8192));
-    }
-    fclose($socket);
-  }
-}
-
-$SOURCE = $_GET{source};
-$TARGET = $_GET{target};
-
-if(!is_numeric($SOURCE)) {
-  print(2);
-  exit(2);
-}
-if(!is_numeric($TARGET)) {
-  print(3);
-  exit(3);
-}
-if(doCall($SOURCE, $TARGET))
-  print(1);
-else
-  print(0);
-?>
-----
-
-Please check this servlet manually. It has to be available from your
-ProjectForge server. Then configure your servlet:
-
-*File:* `application.properties:`
-
-[source,shell,linenums]
-----
-...
-projectforge.telephoneSystemUrl=http://asterisk.yourserver.org/originatecall.php?source=#source&target=#target
-projectforge.telephoneSystemNumber=0123456789
-...
-----
+Don't forget to configure your default country phone prefix under _Administration_ -> _Configuration_.
 
 ==== Texting
 
-If configured the users are able to text by clicking on the SMS symbol
-of an address or by entering a name or a cell phone
-number.
+If an SMS gateway is configured, users are able to send text messages by clicking on the SMS symbol of an address or
+by entering a name or a cell phone number. ProjectForge calls your gateway by http; `#number` and `#message` are
+replaced by the user's input. The text messages are also used as second factor (2FA), if configured.
+
+[source,properties,linenums]
+----
+projectforge.sms.url=https://smsgateway.acme.com/api.php
+# GET (default) or POST:
+projectforge.sms.httpMethod=GET
+projectforge.sms.httpParameters={username:'projectforge',text:'#message',to:'#number'}
+# Patterns of the gateway's response:
+projectforge.sms.returnCodePattern.success=^OK.*
+projectforge.sms.returnCodePattern.error=^Error.*
+----
 
 image::/uploads/adminguide/texting.png[image]
 
@@ -539,184 +383,117 @@ image::/uploads/adminguide/texting.png[image]
 symbol of an address or by entering a name or cell phone number.
 |===
 
-Please deploy the following php script on your Asterisk web server (many
-thanks to Thomas Koch for this great work):
+All options are listed in `application.properties` (`projectforge.sms.*`).
 
-*File:* `sms.php`:
+==== Phone lookup
 
-[source,php,linenums]
+With the phone lookup service, a telephony system (such as Asterisk) may look up the caller of incoming phone calls:
+`https://projectforge.acme.com/rsPublic/phoneLookup?nr=<number>&key=<key>`. Wrong keys are delayed like failed logins.
+
+The service is disabled as long as no key is configured (the default is empty). For enabling it, set your own long
+random secret key in `projectforge.properties` (e.g. generated with `openssl rand -hex 32`):
+
+[source,properties,linenums]
 ----
-<?
-/*
-   Texting with ProjectForge and Asterisk
-   07.09.2009 by t.koch@micromata.de v1
-*/
-
-$NUMBER = $_REQUEST{number};
-$MESSAGE = $_REQUEST{message};
-
-if(!is_numeric($NUMBER)) {
-  print("2\nwrong destination number");
-  return(2);
-}
-if(!$MESSAGE) {
-  print("1\nmissing message");
-  return(1);
-}
-if(strlen($MESSAGE) > 160) {
-  print("3\nmessage > 160");
-  return(3);
-}
-$rand = rand(100000, 4000000);
-usleep($rand);
-
-# XXX concurrent == maximum number of b channels
-system(sprintf("/usr/sbin/smsq '--concurrent=8' '--spool-dir=/var/spool/asterisk/' '--motx-channel=DIALOGICDIVA/contr1/0193010' '--da=%s' '--motx-callerid=<callerid>' '--ud=%s' >/tmp/sms.$rand 2>/tmp/sms.$rand", $NUMBER, $MESSAGE));
-print("0\nok");
-?>
-----
-
-Please check this servlet manually. It has to be available from your
-ProjectForge server. Then configure your servlet:
-
-*File:* `application.properties:`
-
-[source,shell,linenums]
-----
-...
-projectforge.smsUrl=http://asterisk.yourserver.org/sms.php?number=#number&message=#message
-...
-----
-
-To use the full functionality of ProjectForge please configure the
-address book feature. Don't forget to configure your default country
-phone prefix in the configuration web page.
-
-==== PhoneLookupServlet
-
-With the phone lookup servlet a telephony system (such as Asterix) may
-lookup incoming phone calls:
-
-*File:* `application.properties`:
-
-[source,shell,linenums]
-----
-...
-projectforge.phoneLookupKey=*******SECRET********
-...
+projectforge.phoneLookupKey=<your-random-secret>
 ----
 
 === business assessment / BWA
 
-If you work with accounting records (DATEV) you may be want to have
-business assessments (BWA in German). The business assessments of DATEV
-consists of rows. Each row has a line number (no) and a title (for
-displaying). The `accountRange` defines which DATEV accounts matches the
-row. Please note, that a record is assigned to the first row found.  +
+If you work with accounting records (DATEV) you may want to have
+business assessments (BWA in German). They are configured in `config.xml` (element `businessAssessment`).
+The business assessments of DATEV consist of rows. Each row has a line number (no) and a title (for
+displaying). The `accountRange` defines which DATEV accounts match the
+row. Please note that a record is assigned to the first row found. +
 If the priority of a row is not high, the row will not be shown in the
 short form of business assessments. The value defines row amounts which
-are calculated (see example below).
+are calculated (see the example in the `config.xml` created by the setup wizard).
 
 === SecurityConfig
 
 ==== Secure passwords
 
-Every password is stored in the database as SHA256 hashed password. For
-reducing brute force attacks several security mechanism are implemented.
+Passwords are never stored in clear text: every password is hashed together with a random salt per user and a
+pepper (see below). The minimum password length is configured under _Administration_ -> _Configuration_.
 
 ==== Protection against brute force attacks
 
-If the user login failed (via web page or rest service) a penalty time
-is given for usernames and IP addresses. For every failed login for an
-username the penalty time is increased by one second before the next try
-of an username/password combination for that username is allowed.  +
-The same mechanism is used for failed login failures from an IP address
-(one second penalty per thousand failed logins).  +
-Please refer the source code for more information.
+If a login fails (via login page or REST service), a penalty time is set for the user name and for the client's IP
+address. With every further failed login the penalty grows, and during the penalty no new attempt is accepted. The
+penalty for IP addresses grows much slower, so many users behind the same NAT aren't locked out.
+Please refer to the source code (`LoginProtection`) for details.
 
-==== Salted passwords
-
-Since version 5.3 of ProjectForge® salted passwords are used. This
-means, that every password is first concatenated with an salt value
-(random string per user) and then hashed. Therefore so called rainbow
-tables are useless for attacking passwords. After migrating to version
-5.3 every password is salted after login of the user or if the user is
-changing his password.
+The client's IP address is taken from `X-Forwarded-For` only for requests coming from a trusted proxy
+(`projectforge.security.trustedProxies`, default: localhost and the private networks).
 
 ==== Salted passwords with pepper
 
-Since version 5.3 of ProjectForge® the administrator is able to
-configure a pepper string in the `application.properties`. Before
-hashing a password the pepper string is concatenated to the salt and
-password. Therefore no brute force attack is possible if an attacker has
-access to the database dump etc.  +
-Please configure the pepper string like this:
+A pepper string is configured in `projectforge.properties`; the setup wizard generates a random one. Before hashing a
+password, the pepper is concatenated to the salt and the password, so a database dump alone isn't enough for a brute
+force attack.
 
-*File:* `application.properties:`
-
-[source,shell,linenums]
+[source,properties,linenums]
 ----
-...
 projectforge.security.passwordPepper=*******SECRET********
-....
 ----
 
-All passwords are automatically updated after any login of an user (if
-no pepper and/or salt was yet used for the user's password) or after any
-password change.
+Keep this value safe: if you lose or change the pepper, no user with a password hashed with the former pepper can log
+in any more. The same applies to `projectforge.security.authenticationTokenEncryptionKey`, which encrypts the users'
+authentication tokens (changing it only invalidates the tokens, not the passwords).
 
 ==== 2FA (two-factor-authentication)
 
-2FA (two factor authentication) is supported:
+2FA (two factor authentication) is supported by:
 
- * by using RFC6238, used by e. g. Google or Microsoft Authenticator.
- * SMS if configured
- * Fido2/WebAuthn (e. g. Yubikey)
+ * authenticator apps (TOTP, RFC 6238), e.g. Google or Microsoft Authenticator,
+ * WebAuthn/FIDO2 (security keys such as YubiKey),
+ * codes sent by e-mail or text message (SMS, if configured).
 
-You may specify the expiry periods of 2FA for different expiry periods URL's by shortcuts for
-predefined sets of uri matchers and/or own regular expressions (as uri matchers).
-A web filter checks for every request, if a 2FA is required and if the last
-successful 2FA of the current session is not older than the specified expiry period.
-The timestamp of a successful 2FA is stored in the user's session as well as in any user's
-stay-logged-in-session.
+Each user sets up their second factors under _My account_.
 
-Recoomended example configuration:
+You specify for which URLs a second factor is required and how long a successful 2FA is valid, using shortcuts for
+predefined sets of URI matchers and/or own regular expressions.
+A web filter checks for every request whether a 2FA is required and whether the last
+successful 2FA of the current session is older than the specified expiry period.
+The timestamp of a successful 2FA is stored in the user's session as well as in the user's
+stay-logged-in session.
 
-*File:* `application.properties:`
+Recommended example configuration:
 
-[source,shell,linenums]
+*File:* `projectforge.properties`:
+
+[source,properties,linenums]
 ----
-...
-# Recommended setup
-projectforge.2fa.expiryPeriod.minutes1=PASSWORD
-projectforge.2fa.expiryPeriod.hours1=ADMIN_WRITE;MY_ACCOUNT;SCRIPT_WRITE
-projectforge.2fa.expiryPeriod.hours8=ADMIN;SCRIPT;FINANCE_WRITE;ORGA_WRITE;HR_WRITE
-projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA
+projectforge.2fa.expiryPeriod.minutes1=
+projectforge.2fa.expiryPeriod.minutes10=PASSWORD
+projectforge.2fa.expiryPeriod.hours1=ADMIN_WRITE;MY_ACCOUNT
+projectforge.2fa.expiryPeriod.hours8=ADMIN;SCRIPT_WRITE;FINANCE_WRITE;ORGA_WRITE;HR_WRITE
+projectforge.2fa.expiryPeriod.days30=HR;FINANCE;ORGA;SCRIPT
 projectforge.2fa.expiryPeriod.days90=
 # Number of days a 2FA is required, when stay-logged-in is used. Without stay-logged-in and given, a 2FA is required
 # after every login.
-projectforge.2fa.loginExpiryPeriod=30
-....
+projectforge.2fa.loginExpiryDays=30
+# Optional: no e-mail as second factor for members of these groups (comma separated):
+projectforge.2fa.disableMail2FAForGroups=PF_Admin
 ----
 
 Rules
 
-* Expression starting with `/` means absolute path of uri.
-* If expressions do start with `/` they will be replaced by their regex: `/rs/user` -> `^/rs/user.+++*+++`:
-Any uri *starting* with `/rs/user` is matching.
-* Empty entries means: no 2nd factor
-* Regular expressions and shortcuts should be separated by ';'.
-* Supported shortcuts are `ADMIN`, `HR`, `FINANCE`, `ORGA`, `SCRIPTING`, `MY_ACCOUNT`, `PASSWORD`
-containing a bunch of regex.
-* You may also use `WRITE:<entity-name>` for specifying only all write access calls of an entity (rest calls).
+* An expression starting with `/` is an absolute path of the URI and is matched as a prefix: `/rs/user` ->
+`^/rs/user.+++*+++`, so any URI *starting* with `/rs/user` matches.
+* Empty entries mean: no second factor.
+* Regular expressions and shortcuts are separated by `;`.
+* Supported shortcuts are `ALL`, `ADMIN`, `ADMIN_WRITE`, `FINANCE`, `FINANCE_WRITE`, `HR`, `HR_WRITE`, `ORGA`, `ORGA_WRITE`,
+`SCRIPT`, `SCRIPT_WRITE`, `MY_ACCOUNT` and `PASSWORD`, each containing a bunch of regular expressions.
+* You may also use `WRITE:<entity-name>` for specifying only the write access calls of an entity (REST calls).
 Reading of entities / detail view is not affected. For specifying all entity activities, use `/rs/<entity-name>` instead.
-* You may also define own regex, such as: `ADMIN;/rs/report;WRITE:user`
-* The Wicket frontend (`/wa/...`) is gone; its urls are only redirected into the new frontend, so expressions
+* You may also define own expressions, such as: `ADMIN;/rs/report;WRITE:user`
+* If an URI matches several periods, the shortest one is used.
+* The former Wicket frontend (`/wa/...`) is gone; its URLs are only redirected into the new frontend, so expressions
 with `/wa/` don't protect anything any more. Replace them by the `/rs/...` paths of the entities.
 
 ____
-Please refer the admin's web page -> configuration -> Export 2FA configuration for verifying your
-configuration.
+Please use _Administration_ -> _System_ -> _Export 2FA configuration_ for verifying your configuration.
 ____
 
 
@@ -729,8 +506,8 @@ slapd.conf of OpenLDAP):
 
 [source,shell,linenums]
 ----
-include /sw/etc/openldap/schema/cosine.schema +
-include /sw/etc/openldap/schema/inetorgperson.schema
+include /etc/openldap/schema/cosine.schema
+include /etc/openldap/schema/inetorgperson.schema
 ----
 
 ==== Configuration
@@ -738,7 +515,7 @@ include /sw/etc/openldap/schema/inetorgperson.schema
 The groupBase setting is only needed in master mode. The managerUser is
 not needed in simple slave mode. For further information see below.
 
-*File:* `application.properties:`
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -760,12 +537,11 @@ projectforge.ldap.sambaAccountsPrimaryGroupSID=
 
 ==== Local (admin) users
 
-Please login by using the stay-logged-in checkbox on the login screen as
-administrator (no LDAP should be configured). Restart ProjectForge with
-LDAP configured and use the same browser. You should be logged-in.
-Please go to the user list and select option local user for every user
-who should be authenticated against ProjectForge (instead of LDAP) and
-save them. Now the local users may log-in without LDAP credentials. This
+Please log in as administrator with the stay-logged-in option of the login page
+(no LDAP configured yet). Restart ProjectForge with
+LDAP configured and use the same browser. You should be logged in.
+Edit every user who should be authenticated against ProjectForge (instead of LDAP),
+check the option _local user_ and save. Now the local users may log-in without LDAP credentials. This
 is especially use-ful for administrator users of ProjectForge.
 
 ==== LDAP over SSL
@@ -774,20 +550,20 @@ is especially use-ful for administrator users of ProjectForge.
 the lines
 including `-----BEGIN CERTIFICATE-----` until `-----END CERTIFICATE-----` (including)
 to a file called `ldap.cert.` Now you can configure the certificate file
-in `application.properties` or you can import the certificate to your
+in `projectforge.properties` or you can import the certificate to your
 java keystore. The first solution is independent of your JAVA version
 and is recommended first.
 
 ==== ProjectForge as LDAP master
 
-The LDAP master mode is the most tested mode of ProjectForge and is used
-in production mode at the ProjectForge developer's company. In this
+The LDAP master mode is the most tested LDAP mode of ProjectForge and is used
+in production by us. In this
 mode, ProjectForge needs a LDAP user with write access to groups and
 users. The ProjectForge user's will be synchronized in LDAP. If there is
 any conflict between LDAP and ProjectForge, the ProjectForge settings
 are used. The configuration of this mode is simple:
 
-*File:* `application.properties:`
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -802,50 +578,48 @@ users and groups will be written through.
 . Any change of the LDAP server will be ignored and may be overwritten
 by ProjectForge.
 . *Passwords*  +
-After each successful login-in at ProjectForge (via LoginForm)
+After each successful login at ProjectForge (via the login page)
 ProjectForges tries to authenticate the user with the given
 username/password credentials at LDAP. If the LDAP authentication fails
 ProjectForge changes the password with the actual password of the user
-(given in the LoginForm). If the user changes his password (my account
--> change password), the LDAP password will be changed respectively. In
-LDAP master mode, the user is also able to change his "WLAN/Samba
-password" (my account -> change password). The password entered there,
+(given on the login page). If the user changes their password (_Change password_), the LDAP password will be changed respectively. In
+LDAP master mode, the user is also able to change their "WLAN/Samba
+password" (_Change WLAN/Samba password_). The password entered there,
 will be written to the LDAP attribute "sambaNTPassword".
 . *Deactivated users*  +
 Deactivated users will be moved to an sub userbase called "deactivated".
 The e-mail will be invalidated and the password will be deleted. Deleted
 and deactivated users are removed from any LDAP group. After
-reactivating the user, the password has to be reset if the user logins
-the next time via LoginForm.
+reactivating the user, the password is set again when the user logs in
+the next time via the login page.
 . *Deleted Users*  +
 Deleted users will not be synchronized and removed in LDAP if exist.
 . *New users*  +
-New users (created with ProjectForge's UserEditPage) will be created
+New users (created in ProjectForge's user edit page) will be created
 first without password in the LDAP system directly but with "WLAN/Samba
 password". Such users need to log-in first at ProjectForge, otherwise
 their LDAP passwords aren't set (no log-in at any other system
 connecting to the LDAP is possible until the first log-in at
 ProjectForge).
-. *Modifiing fields in LDAP*  +
+. *Modifying fields in LDAP*  +
 ProjectForge does only modify supported fields of known LDAP users. If
 any modification is done in LDAP of fields and users/groups known by
 ProjectForge they will be overwritten by ProjectForge during the next
 synchronization run. If any modification in other fields of LDAP users
-are done, the should be left untouched by ProjectForge.
+are done, they should be left untouched by ProjectForge.
 . *Synchronization*  +
 After any modification of any ProjectForge user or group, the
 synchronization is started for all LDAP users and groups. If no
 modification is done, the synchronization is done approximately hourly,
 but only if any user activity is detected in ProjectForge. You can force
-a synchronization by refreshing all caches (including the
-UserGroupCache) in the system web page or by restarting ProjectForge.
+a synchronization by restarting ProjectForge.
 . *Groups and assigned users*  +
 Users will be added as `uniqueMember` entries in the LDAP groups if also
 assigned in ProjectForge to the same ProjectForge group.
 
 ===== LDAP entries
 
-See figures [.external-link]#3# and [.external-link]#4# for detailed
+See figures 3 and 4 for detailed
 information of how does ProjectForge stores and expect LDAP fields and
 object classes.
 
@@ -878,9 +652,9 @@ should work.
 ProjectForge supports the management of POSIX accounts with the
 data `uidNumber,` `gidNumber,` `homeDirectory,` and `loginShell.`
 
-You can administer the POSIX account data in the UserEditPage after
-configuring the *`application.properties`* like the above example.
-Pleaser refer the tool-tips for further information:
+You can administer the POSIX account data in the user edit page after
+configuring `projectforge.properties` like the above example.
+Please refer to the tool-tips for further information:
 
 image::/uploads/adminguide/LDAP-POSIX-accounts.png[image]
 
@@ -895,16 +669,14 @@ ProjectForge will prefill all POSIX account fields:
 . The UID number will be the next free number (ProjectForge searches the
 highest used UID and increments it by one). If no such number found,
 1,000 is assumed.
-. The GID number will be preset with the defaultGidNumber configured
-in `application.properties`.
-. The home directory will be the prefix `/home/` (configured
-in `application.properties`) followed by the user-name: e. g. `/home/kai`
-. The login-shell will be preset with `/bin/bash` or any other which is
-configured in `application.properties`.
+. The GID number will be preset with `projectforge.ldap.posixAccountsDefaultGidNumber`
+configured in `projectforge.properties`.
+. The home directory will be the prefix `/home/` followed by the user-name: e. g. `/home/jdoe`
+(not configurable).
+. The login-shell will be preset with `/bin/bash` (not configurable).
 +
-Don't forge to save this user by clicking the save or update button on
-the bottom of the edit page. After changing any of these POSIX account
-fields the LDAP entries are update immediately.
+Don't forget to save the user. After changing any of these POSIX account
+fields the LDAP entries are updated immediately.
 * ProjectForge presets a new UID number automatically (see above).
 * ProjectForge assures that no UID number is given twice.
 * Every LDAP entry gets the `object-class` `posixAccount` only if the
@@ -912,7 +684,7 @@ POSIX account data were created in ProjectForge for this user.
 
 ==== Managing Samba accounts
 
-*File:* `application.properties:`
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -936,15 +708,14 @@ ProjectForge will prefill all SAMBA account fields:
 highest used UID and increments it by one). If no such number found,
 1,000 is assumed.
 . The GID number will be preset with the defaultSambaPrimaryGroupSID
-configured in `application.properties`.
+configured in `projectforge.properties`.
 . Parallel usage with *POSIX, which is recommended:*  +
 Please click the 'create' button near to the UID of the POSIX account,
 the suffix of SAMBASID will be the same UID. ProjectForge's tries first
 to get the same UID for SAMBA as for POSIX if no conflict was found.
 +
-Don't forge to save this user by clicking the save or update button on
-the bottom of the edit page. After changing any of these Samba account
-fields the LDAP entries are update immediately.
+Don't forget to save the user. After changing any of these Samba account
+fields the LDAP entries are updated immediately.
 * Every LDAP entry gets the `object-class` `sambaSamAccount` only if the
 Samba account data were created in ProjectForge for this user.
 
@@ -955,7 +726,7 @@ accessed in read-only mode. There are 3 modes
 available: `simple,` `users` and `users-groups.` The configuration of
 this mode is simple:
 
-*File:* `application.properties`:
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -967,7 +738,7 @@ projectforge.login.handlerClass=LdapSlaveLoginHandler
 ===== Simple mode
 
 The simple mode is assumed if no ldap managerUser is given in the
-application.properties.
+`projectforge.properties`.
 
 * Simple means that only username and password is checked, all other
 user settings such as assigned groups and user name etc. are managed by
@@ -983,7 +754,7 @@ mode instead.)
 ===== Users mode
 
 The normal user mode is assumed if a LDAP managerUser is given in
-the `application.properties.`
+the `projectforge.properties`.
 
 * Normal means that username and password is checked and all other user
 settings such as user name etc. are read by a given LDAP manager user.
@@ -1000,9 +771,9 @@ This mode is not yet implemented, the users-mode is used instead.
 
 ==== ProjectForge without LDAP
 
-You can also use PF without LADP.
+You can also use ProjectForge without LDAP (default).
 
-*File:* `application.properties:`
+*File:* `projectforge.properties`:
 
 [source,shell,linenums]
 ----
@@ -1019,7 +790,7 @@ The user must already exist in ProjectForge (matched by `idpExternalId` or usern
 
 ==== Configuration
 
-Add the following OAuth2/OIDC client configuration to `application.properties`:
+Add the following OAuth2/OIDC client configuration to `projectforge.properties`:
 
 [source,properties]
 ----
@@ -1031,7 +802,14 @@ spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/logi
 spring.security.oauth2.client.provider.authentik.issuer-uri=${AUTHENTIK_ISSUER_URI}
 ----
 
-Replace `authentik` with your provider's registration name (e.g. `keycloak`) and configure the issuer URI accordingly.
+The registration id must be `authentik`, also for other providers such as Keycloak: ProjectForge activates its OAuth2
+login only if `spring.security.oauth2.client.registration.authentik.client-id` is set. For Keycloak, just set the
+issuer URI of your realm (e.g. `https://auth.acme.com/realms/acme.com`) and the client of ProjectForge. The redirect
+URI to register at the provider is `https://<your-projectforge-domain>/login/oauth2/code/authentik`.
+
+The login page of ProjectForge has no button for the identity provider: users start the login via
+`https://<your-projectforge-domain>/oauth2/authorization/authentik` (e.g. as a link or bookmark, or from the
+application dashboard of your identity provider).
 
 ==== User mapping
 
@@ -1189,7 +967,7 @@ Create the following custom user attributes in the Keycloak realm:
 |`organization` |0 |255 |
 |`description` |0 |255 |
 |`nickname` |0 |255 |
-|`sambaNTWlanPassword` |0 |255 |WLAN password (Samba NT hash)
+|`sambaNTPassword` |0 |255 |WLAN password (Samba NT hash)
 |===
 
 Set the username validator minimum length to *2* (Keycloak default is 3; reduced for short usernames like `jo`).
@@ -1233,7 +1011,7 @@ projectforge.idp.groupAttributes.organization=organization
 
 [source,properties]
 ----
-projectforge.idp.wlanPasswordAttribute=sambaNTWlanPassword
+projectforge.idp.wlanPasswordAttribute=sambaNTPassword
 ----
 
 ==== Login handlers
@@ -1247,110 +1025,69 @@ projectforge.idp.wlanPasswordAttribute=sambaNTWlanPassword
 |`IdpLoginHandler` |IdP is master; users/groups are pulled IdP -> PF
 |===
 
-=== Troubleshouting
-==== NullPointerException on pages with diagrams und Linux
+=== Troubleshooting
+==== NullPointerException on pages with diagrams under Linux
 If you will receive exceptions while calling pages with diagrams such as under menu project management -> my statistics:
 ----
 Caused by: java.lang.NullPointerException
         at java.desktop/sun.awt.FontConfiguration.getVersion(FontConfiguration.java:1262)
 ----
-you probably use JDK11+ and the linux package *fontconfig* isn't installed. Please install this package and restart ProjectForge.
+the Linux package *fontconfig* probably isn't installed. Please install this package and restart ProjectForge.
 
 == Maintenance
 
-=== Updating by simple clicks
+=== Updating
 
-ProjectForge provides automatically updates as built-in scripts with every new version.
-Refer the migration guide for required, manual changes.
+Updating is easy: back up your database, stop ProjectForge and start the new version (new JAR file or
+`docker pull micromata/projectforge` and re-create the container). Database schema and data are migrated
+automatically (Flyway) on the first start. Please check the link:/docs/migration/[Migration guide] for the few
+changes that need your attention.
 
 === Re-indexing the database
 
-Should be done after setup: Use the administration menu.
+The search index is rebuilt every night (see <<Scheduler>>). You may also start it manually under _Administration_
+-> _System_ -> _Reindex_, e.g. after restoring a backup.
 
 === Analysing tools
 
-Useful commandes are:
+The log files are located in `logs` of the home directory; administrators may also search them with the log viewer of
+the _System dashboard_. For analysing a hanging or slow server, the JDK tools are useful:
 
 [source,shell,linenums]
 ----
-...
-projectforge@vprojectforge:~$ jps
-19533 Bootstrap
-2261 Jps
-projectforge@vprojectforge:~$ jstack 19533
-2008-02-14 09:58:28
-Full thread dump Java HotSpot(TM) 64-Bit Server VM (1.6.0_03-b05 mixed mode):
-
-"Attach Listener" daemon prio=10 tid=0x00002aaaf4a6e800 nid=0x8fa waiting on condition [0x0000000000000000..0x0000000000000000]
-   java.lang.Thread.State: RUNNABLE
-
-"http-8443-10" daemon prio=10 tid=0x00002aaaf4a94800 nid=0x716c in Object.wait() [0x0000000041f47000..0x0000000041f47e40]
-   java.lang.Thread.State: WAITING (on object monitor)
-  at java.lang.Object.wait(Native Method)
-  - waiting on <0x00002aaaee262530> (a org.apache.tomcat.util.net.JIoEndpoint$Worker)
-  at java.lang.Object.wait(Object.java:485)
-  at org.apache.tomcat.util.net.JIoEndpoint$Worker.await(JIoEndpoint.java:416)
-
-...
+jps -l                 # Lists the Java processes and their pids.
+jstack <pid>           # Thread dump, e.g. for finding blocked threads.
+jcmd <pid> GC.heap_info
 ----
 
-=== XML-backup and restore and data-base migration ( BUG --> We guarantee no guarantee, but work on the solution of the problem )
-
-ProjectForge supports the import and export of its whole data-base as
-XML. It's independent from the data-base (Hypersonic, PostgreSQL, MySQL,
-Oracle etc.). You can choose this method to migrate your data-base from
-one data-base to any other data-base supported by ProjectForge.
-
-==== Export
-
-It's possible to export an XML-Dump from your data-base using the system
-administration dialogue (web). This backup contains all data of
-ProjectForge in one zipped xml file.
-
-==== Import
-
-. First you need a fresh data-base (without any tables and data).
-. Afterwards start ProjectForge with the connection data to your new
-data-base.
-. Upload the XML or zipped XML file inside the setup-page (which is
-shown automatically in your web-browser for empty data-bases). Leave any
-other input fields such as password etc. untouched.
-. Press the upload button.
-. Watch the results in the log messages. ProjectForge will verify each
-single entry by comparing each object of the XML file with the imported
-data-base objects (each single field of every object is compared.) Any
-inconsistency or difference is shown in the log file.
-. Now you can login into ProjectForge.
-
-==== Limitations
-
-The limitation is the web servers memory. It's planned to support very
-large ProjectForge data-bases using different xml files. Please request
-this feature e. g. inside the help forum if needed. For migration
-without changing the data-base vendor the data-base specific dump and
-restore mechanism are recommended for large data-bases.
-
-**Hint**
-
-____
-Please note: After an import of a dump file into a new ProjectForge
-installation all primary keys are changed! ProjectForge ensures the
-integrity of all data including the history entries.
-____
+In Docker, run them inside the container (`docker exec -it projectforge bash`); the JRE image may not contain all JDK
+tools, then `kill -3 <pid>` writes a thread dump to the container's output (`docker logs projectforge`).
 
 === Backup
 
-All datasets of ProjectForge® will be stored in the underlaying
-database (e. g. PostgreSQL).  +
-You should install an Unix cron script making frequently a backup of the
+All datasets of ProjectForge® are stored in the underlying
+database (e. g. PostgreSQL).
+You should install a Unix cron script making frequently a backup of the
 database (see <<Backup script>>).
+
+==== Embedded database (HSQLDB)
+
+With the embedded database, everything is located in ProjectForge's home directory: the database (`database`), the
+configuration files, your `resources`, the data transfer files (`datatransfer`) and, if still used, the JCR (`jcr`).
+The files of the file store are part of the embedded database. For a backup, stop ProjectForge and copy the whole home
+directory (e.g. `tar czf projectforge-home_2026-10-06.tar.gz -C $HOME ProjectForge`); `logs` and `hibernateSearch`
+may be left out. For restoring, stop ProjectForge, replace the home directory by the copy and start ProjectForge
+again (rebuild the search index if you left out `hibernateSearch`).
+
+==== PostgreSQL dumps
 
 The files of the new file store (attachments of contracts, orders, invoices etc., see <<Moving the files out of the JCR>>) are stored in the own schema `pf_files`. This schema may become large, so two dumps are made:
 
 * The main dump without the files: `pg_dump -N pf_files ...` (excludes the schema `pf_files`).
 * The dump of the files only: `pg_dump -n pf_files -Fc ...` (custom format, restorable in parallel by `pg_restore -j`).
 
-Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the JCR sanity check.
+Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
+(`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
 Data transfer files (`<home>/datatransfer`) are not part of any backup: their metadata is in `pf_files`, but the content is stored in the file system and is short-lived.
 
@@ -1361,7 +1098,7 @@ Data transfer files (`<home>/datatransfer`) are not part of any backup: their me
 [source,shell,linenums]
 ----
 gunzip projectforge_2026-10-06_02-00.sql.gz
-psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge 2>&1 > log.txt
+psql -q -f projectforge_2026-10-06_02-00.sql -U postgres projectforge > log.txt 2>&1
 ----
 
 Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain it):
@@ -1371,30 +1108,22 @@ Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain
 pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
 ----
 
-Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. Run the JCR sanity check on the system page after restoring.
+Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_.
 
-For further details concerning dropping and creating a new data base.  +
-Don't forget to create indices (thru admin web page)!
+For dropping and creating a new database, see <<PostgreSQL>>.
+Don't forget to rebuild the search index afterwards (_Administration_ -> _System_ -> _Reindex_)!
 
 **Hint**
 
 ____
-If you want to use productive data in your develepment system for
-testing, it's recommended to set all e-mail addresses of the users to
-your developers e-mail. Also all passwords can be easily set
-to `test123` if you user following sql statement in your test database
-(not productive!):
+If you want to use productive data in a test system, change the users' e-mail addresses (e.g. to your own) in the
+test database first, so nobody gets notifications from the test system. Please also mind data protection.
 ____
-
-[source,sql,linenums]
-----
-update t_pf_user SET password='SHA\{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', email='m.developer@acme.com/';
-----
 
 ==== JCR repository
 
-The JCR repository contains all uploaded files (contracts, orders etc.). The file of the data transfer boxes is not included (it's normally to large for backup). The data transfer boxes are used for exchanging very large
-files between users and/or customers.
+Only relevant for installations still using the JCR (`projectforge.files.store=jcr`), see <<Moving the files out of the JCR>>.
+The JCR repository contains the uploaded files (contracts, orders etc.). Its nightly backups are written to the backup directory.
 
 For restoring a JCR backup, please refer the file `backupReadme.txt` inside the backup zip file.
 
@@ -1419,14 +1148,17 @@ After switching to `db` and restarting, ProjectForge copies all files of the JCR
 * Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
 * The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<Backup script>>), data transfer files are not backed up.
 
-Switch to `db` and wait for a successful migration before updating to the release without JCR.
+Before updating to a release without JCR, either switch to `db` and wait for a successful migration, or create a
+fresh JCR backup ZIP right before the update (system page, card "Document repository (JCR)", _Create JCR backup ZIP_):
+the next release imports the documents from this ZIP into the database. The ZIP doesn't contain the data transfer
+files.
 
 === Automatical backup
 
 ==== Backup script
 
-Install crontab entry as user projectforge on your ProjectForge®
-server starting the following script:
+Install a crontab entry as user projectforge on your ProjectForge®
+server (or the database server) starting the following script:
 
 *File:* `pforgebackup.sh:`
 
@@ -1479,15 +1211,18 @@ projectforge.cron.purgeBackupDir=/home/projectforge/backup
 
 The files dump `projectforge_files_...` is its own series, so it is purged like the main dump (also with the prefix `projectforge_`, because it starts with it).
 
-For allowing `pg_dump` without prompting password (if set), you can add
-the following line to:
+For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
+the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
 
-*File:* `pg_hba.conf:`
+*File:* `pg_hba.conf`:
 
 [source,shell,linenums]
 ----
-local projectforge projectforge ident sameuser
+local projectforge projectforge peer
 ----
+
+Alternatively, store the password in `~/.pgpass` of the user running the script (`chmod 600 ~/.pgpass`):
+`localhost:5432:projectforge:projectforge:<password>` (then add `-h localhost` to the `pg_dump` calls).
 
 ==== Adding crontab
 
@@ -1495,7 +1230,7 @@ Adding following entry to the Unix crontab:
 
 [source,shell,linenums]
 ----
-# run every day at 2:00 am +
+# run every day at 2:00 am
 0 2 * * * /home/projectforge/bin/pforgebackup.sh
 ----
 
@@ -1519,146 +1254,111 @@ ProjectForge® server with a cronjob starting e. g. one hour later:
 SERVER=projectforge.mydomain
 DIR=/home/projectforge/backup
 REMOTE_DIR=backup REMOTE_USER=projectforge
-rsync -avz -e "ssh -P" -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR
+# Add e.g. -e "ssh -p <port>" if ssh doesn't use the default port.
+rsync -avz -C $REMOTE_USER@$SERVER:$REMOTE_DIR $DIR
 ....
 
 In that case you have to generate ssh key on your backup server and to
-add it to the authorized keys on your ProjectForge® server. +
+add it to the authorized keys on your ProjectForge® server.
 Add the following entry to your crontab on the backup server:
-# run every day at 3:00 am 0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
+
+[source,shell,linenums]
+----
+# run every day at 3:00 am
+0 3 * * * /home/projectforge/bin/pforgePollBackup.sh
+----
 
 === Monitoring
 
-You may monitor the login page with your monitoring tool (such as
-Nagios). If ProjectForge® is up and running and is full available
-the following comment is included in the login page:
+You may monitor ProjectForge with your monitoring tool (such as Nagios) by calling the public system status, e.g.
+`https://projectforge.acme.com/rsPublic/systemStatus`. It answers with a small JSON object as soon as the web server
+is up. Without a login, version and build date are only placeholders (`<version>`, `<date>`), so only the application
+name (`appname`) and the start-up state are useful for monitoring: `setupRedirectUrl` is given as long as the setup
+isn't completed.
 
-[source,shell,linenums]
-----
-<-- ProjectForge is alive. -->
-----
-
-If ProjectForge® isn't full available the following html comment is
-embedded:
-
-[source,shell,linenums]
-----
-<-- ProjectForge is not full available (perhaps in maintenance mode or in start-up phase). -->
-----
+Problems at runtime (errors, unreachable external systems, failed scheduler runs) are reported by the
+<<Support error digest>> and shown on the _System dashboard_.
 
 === Scheduler
 
 ==== Data base search index
 
-The re-index job starts every night at 4 AM (UTC). If an error occurs an
-e-mail is sent to the admin e-mail addresses configured via web
-administration. If not configured, no e-mail is sent.
+The search index is rebuilt every night by the nightly job (`projectforge.cron.nightly`, default 2:30). ProjectForge runs with
+the time zone UTC (independent of the server's time zone), so the cron expressions of `projectforge.cron.*` are UTC. Errors are
+logged and therefore part of the error digest. The runs of all scheduled jobs are listed on the _System dashboard_.
 
 === Uninstalling ProjectForge
 
-You only need to delete the Jar-File and the working directory you've
-chosen / configured. If you're not sure, where ProjectForge's working
-directory is located, please restart ProjectForge and see for the
-directory in the log output or configuration tab of the standalone
-version.
+Delete the JAR file (or the Docker container and image) and ProjectForge's home directory. If you're not sure where
+the home directory is located, look at the log output of the start-up: ProjectForge logs the home directory it uses.
+If you use PostgreSQL, drop the database as well (see <<PostgreSQL>>).
 
 **Hint**
 
-Please note: If you delete the working directory, all your data base
-entries are deleted as well!
+Please note: If you delete the home directory, all data of the embedded database is deleted as well!
 
 === Security improvements
 
 ==== Fail2ban
 
-`LoginDefaultHandler   : User login failed:`
+Failed logins are logged as warnings, including the client's IP address (`<user>@<ip>` in front of the logger name):
 
-`LoginDefaultHandler[ \t]+\: User login failed\:`
+`... WARN @192.0.2.10 ... LoginDefaultHandler : User login failed: jdoe/****`
+
+A starting point for a fail2ban filter (please verify it with `fail2ban-regex` against your log file
+`logs/ProjectForge.log`):
+
+[source,ini]
+----
+[Definition]
+failregex = @<HOST>\s.*LoginDefaultHandler\s*: User login failed:
+----
 
 == Plugins
 
-Some plugins which are part of the ProjectForge web app but not
-automatically enabled are described here.
+Some features are built-in plugins which aren't enabled automatically. They are activated by an administrator under
+_Administration_ -> _Plugins_ (or via `projectforge.plugins.ensure-active` in `projectforge.properties`). Please restart
+ProjectForge after (de-)activating a plugin, see also
+link:/docs/installation/#activation_of_built_in_plugins[Installation – Activation of built-in plugins].
 
-The plugins-jar must be in another folder(plugins) next to the
-ProcetForgeJar.
+=== Data transfer
 
-The plugins are managed under Administration --> Plugins in the
-ProjectForge web app. After the activation, they have to restart
- ProjectForge.
+Data transfer areas for exchanging (large) files between users, groups and also external users. Recommended for most
+installations. The files are stored in `datatransfer` of the home directory and expire automatically.
 
 === Liquidity planning
 
-==== Description
+Supports the cash flow forecast for an easy-to-use liquidity planning. Please refer to the
+link:/docs/userguide/[User guide] for further information.
 
-This plugins supports the cash flow forecast for a very easy to use
-liquidity planning. Please refer the UserGuide for further information
+=== Banking
+
+Bank accounts and the import of bank account statements.
 
 === Software license management
 
-==== Description
-
-In most companies you've to deal with lots of Software and license keys.
+In most companies you've to deal with lots of software and license keys.
 This plugin allows administrators and users to organize license keys:
 
-* Every user is able to add a Software entry with license keys.
+* Every user is able to add a software entry with license keys.
 * The administrator is able to view and edit all license keys.
-* Only users which are assigned to a Software entry (owners) are able to
+* Only users who are assigned to a software entry (owners) are able to
 see the license key.
 * The history of every entry allows to track license usage over time by
 the users.
 * The history of changes is only visible for administrators and software
 owners.
 
-Planned features are:
+=== Merlin Word® templates
 
-* Upload of license files.
-* Restricted entries (owners are only assignable by administrators).
+Templating for Microsoft Word® documents (with variables, dependent variables as well as serial execution), useful
+for contracts, serial documents etc.
 
-=== ExtendEmployeeData
+=== Skill matrix
 
-==== Description
+Capture and represent the skills of the employees, managed by the users themselves.
 
-This plugin supports the HR processing of the employee data as well as
-in the monthly work with the employment office.
+=== Further plugins
 
-[.short_text]#The new menu items are located in the HR menu.#
-
-==== List management
-
-* Under the menu item list maintenance, you can carry out mass changes
-on all data records in your system. You only have to select one category
-and then you can change it for all records.  +
-Furthermore, an Exel export of the selected category can be used to
-change the data offline in Exel. ( [.short_text]#File format must be
-.xls# ) +
-
-* Under the menu item list maintenance import you can import the
-exported and changed data quickly and easily. +
-
-==== Paying office
-
-* You can export all available data for a month for the
-[.short_text]#paying office# in the menu
-item [.short_text]#paying-office#-export.
-* In the [.short_text]#paying-office-i#mport menu, you can import the
-columns for salary and remarks from [.short_text]#paying office# to PF.
-
-==== Configuration
-
-* Here you can create special payments and perks that apply to all
-employees. These records are always kept in time.
-* Furthermore, you can adjust the headings of
-the [.short_text]#paying-office-i#mport here.
-
-=== IHK Export
-
-==== Description
-
-Export of working hours for the IHK
-
-=== Skillmatrix
-
-==== Description
-
-Capture and represent the skills of the employees
+A few more plugins exist for compatibility with existing installations. They are listed under _Administration_ ->
+_Plugins_ as well, but we don't develop them further.

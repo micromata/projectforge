@@ -18,6 +18,7 @@ export const PF_USER_METADATA = {
       i18nKey: "dateFormat",
       required: false,
       maxLength: 20,
+      tooltipI18nKey: "user.tooltip.dateFormat",
     },
     deactivated: {
       dataType: "BOOLEAN",
@@ -46,6 +47,7 @@ export const PF_USER_METADATA = {
       i18nKey: "dateFormat.xls",
       required: false,
       maxLength: 20,
+      tooltipI18nKey: "user.tooltip.excelDateFormat",
     },
     firstname: {
       dataType: "STRING",
@@ -80,7 +82,8 @@ export const PF_USER_METADATA = {
       dataType: "STRING",
       i18nKey: "user.gpgPublicKey",
       required: false,
-      maxLength: 4096,
+      maxLength: 20000,
+      tooltipI18nKey: "user.tooltip.gpgPublicKey",
     },
     hrPlanning: {
       dataType: "BOOLEAN",
@@ -141,6 +144,7 @@ export const PF_USER_METADATA = {
       dataType: "LOCALE",
       i18nKey: "user.locale",
       required: false,
+      tooltipI18nKey: "user.tooltip.locale",
     },
     mobilePhone: {
       dataType: "STRING",
@@ -178,12 +182,14 @@ export const PF_USER_METADATA = {
       dataType: "STRING",
       i18nKey: "user.sshPublicKey",
       required: false,
-      maxLength: 4096,
+      maxLength: 20000,
+      tooltipI18nKey: "user.tooltip.sshPublicKey",
     },
     timeNotation: {
       dataType: "STRING",
       i18nKey: "timeNotation",
       required: false,
+      tooltipI18nKey: "user.tooltip.timeNotation",
       enumValues: [
         {
           value: "H12",
@@ -199,12 +205,14 @@ export const PF_USER_METADATA = {
       dataType: "TIMEZONE",
       i18nKey: "timezone",
       required: false,
+      tooltipI18nKey: "user.tooltip.timeZone",
     },
     timeZoneString: {
       dataType: "STRING",
       i18nKey: "timezone",
       required: false,
       maxLength: 255,
+      tooltipI18nKey: "user.tooltip.timeZone",
     },
     username: {
       dataType: "STRING",

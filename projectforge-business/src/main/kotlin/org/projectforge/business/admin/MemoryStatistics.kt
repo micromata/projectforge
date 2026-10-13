@@ -53,11 +53,8 @@ class MemoryStatistics(
     }
     val used = NumberHelper.formatBytes(used)
 
-    return "used=[$used$max]$percent, committed=[${NumberHelper.formatBytes(committed)}], init=[${
-      NumberHelper.formatBytes(
-        init
-      )
-    }]"
+    val init = if (init > 0) ", init=[${NumberHelper.formatBytes(init)}]" else ""
+    return "used=[$used$max]$percent, committed=[${NumberHelper.formatBytes(committed)}]$init"
   }
 
 }

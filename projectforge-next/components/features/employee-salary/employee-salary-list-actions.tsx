@@ -12,7 +12,12 @@ import {
 import type { MagicFilter } from "@/lib/rs/types";
 import { useUpdateAccess } from "@/hooks/use-update-access";
 import { Button } from "@/components/ui/button";
-import { ExcelExportButton } from "@/components/shared/excel-export-button";
+import {
+  ExcelExportMenuItem,
+  ExportMenu,
+  ExportMenuItem,
+} from "@/components/shared/export-menu";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
 
 /**
@@ -26,6 +31,10 @@ export function EmployeeSalaryListActions({ filter }: { filter: MagicFilter }) {
   // The salary import writes salaries, so its button appears only for a user who may change them
   // (HR_EMPLOYEE_SALARY write, reported as listMeta.userAccess.update). The endpoint enforces it too.
   const canImport = useUpdateAccess("employeeSalary");
+  const excel = useExportDownload(() => downloadEmployeeSalaryExcel(filter));
+  const costAssignments = useExportDownload(() =>
+    downloadEmployeeSalaryCostAssignmentsExcel(filter)
+  );
 
   return (
     <>
@@ -39,13 +48,15 @@ export function EmployeeSalaryListActions({ filter }: { filter: MagicFilter }) {
           {t("import._")}
         </Button>
       )}
-      <ExcelExportButton download={() => downloadEmployeeSalaryExcel(filter)} />
-      <ExcelExportButton
-        download={() => downloadEmployeeSalaryCostAssignmentsExcel(filter)}
-        tooltip={t("fibu.employee.salary.exportXls.tooltip")}
-        // The label is the parent of that tooltip key, so it travels as the generator's leaf.
-        label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
-      />
+      <ExportMenu isPending={excel.isPending || costAssignments.isPending}>
+        <ExcelExportMenuItem onSelect={() => excel.mutate()} />
+        <ExportMenuItem
+          // The label is the parent of a tooltip key, so it travels as the generator's leaf.
+          label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
+          description={t("fibu.employee.salary.exportXls.tooltip")}
+          onSelect={() => costAssignments.mutate()}
+        />
+      </ExportMenu>
     </>
   );
 }

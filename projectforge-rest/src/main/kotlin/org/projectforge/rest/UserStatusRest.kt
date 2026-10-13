@@ -24,10 +24,12 @@
 package org.projectforge.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.AccessChecker
@@ -52,6 +54,8 @@ import java.text.DecimalFormatSymbols
 import java.time.DayOfWeek
 import jakarta.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 /**
  * This rest service should be available without login (public).
  */
@@ -67,6 +71,9 @@ open class UserStatusRest {
 
   @Autowired
   private lateinit var employeeDao: EmployeeDao
+
+  @Autowired
+  private lateinit var notificationDao: NotificationDao
 
   @Autowired
   private lateinit var sessionCsrfService: SessionCsrfService
@@ -156,6 +163,11 @@ open class UserStatusRest {
      * category (the legacy app mounts pages under `<category>`), so the client matches on it.
      */
     val migratedCategories: Set<String> = emptySet(),
+    /**
+     * The summary of the user's notifications visible in the app. projectforge-next polls the user status (on
+     * window focus and page changes) and loads the notifications themselves (NotificationRest) only if it changed.
+     */
+    val notifications: NotificationDao.Summary? = null,
   )
 
   @GetMapping
@@ -207,6 +219,11 @@ open class UserStatusRest {
         legacyBannerText = translate("legacyVersion.banner.text"),
         legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),
         migratedCategories = NextMigration.categories,
+        notifications = user.id?.let { userId ->
+          runCatching { notificationDao.summary(userId) }
+            .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }
+            .getOrNull()
+        },
       ),
       HttpStatus.OK
     )

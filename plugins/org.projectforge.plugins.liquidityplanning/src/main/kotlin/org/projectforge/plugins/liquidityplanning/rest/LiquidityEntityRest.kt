@@ -87,6 +87,7 @@ class LiquidityEntityRest :
     AbstractDOEntityRest<LiquidityEntryDO, LiquidityEntryDao>(
         LiquidityEntryDao::class.java,
         "plugins.liquidityplanning.entry.title",
+        cloneSupport = CloneSupport.CLONE,
     ) {
 
     @Autowired
@@ -117,6 +118,18 @@ class LiquidityEntityRest :
             liquidityMaterializationService.buildPrefill(seriesId, seriesDate)?.let { return it }
         }
         return super.newBaseDO(request)
+    }
+
+    /**
+     * A clone is a plain, standalone entry: it is detached from the series of its original, otherwise saving it
+     * would claim the original's occurrence `(seriesId, seriesDate)` a second time.
+     */
+    override fun prepareClone(dto: LiquidityEntryDO): LiquidityEntryDO {
+        super.prepareClone(dto)
+        dto.seriesId = null
+        dto.seriesDate = null
+        dto.repeat = null
+        return dto
     }
 
     /**

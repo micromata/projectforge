@@ -74,6 +74,8 @@ export interface LogGroupEntry {
   message?: string | null;
   firstSeen: number;
   lastSeen: number;
+  /** The last occurrence as "5 minutes ago", in the user's locale. */
+  lastSeenTimeAgo?: string | null;
   totalCount: number;
   count24h: number;
   status: LogGroupStatus;
@@ -90,17 +92,28 @@ export interface LogGroupEntry {
   trend: number[];
 }
 
-/** `LogGroupSummary`: the key figures of all problems, whatever the filter. */
+/**
+ * `LogGroupCounts`: problems or their occurrences, split by what was done about them. [active] ones are open and
+ * not muted, so they still need a look; the others are handled.
+ */
+export interface LogGroupCounts {
+  active: number;
+  muted: number;
+  ignored: number;
+  resolved: number;
+}
+
+/** `LogGroupSummary`: the key figures of all problems, whatever the filter, split by their handling. */
 export interface LogGroupSummary {
   /** Problems with occurrences within the last 24 hours. */
-  problems24h: number;
-  occurrences24h: number;
-  /** The occurrences of the most frequent problem within the last 24 hours. */
+  problems24h: LogGroupCounts;
+  occurrences24h: LogGroupCounts;
+  /** The occurrences of the most frequent active problem within the last 24 hours. */
   topOccurrences24h: number;
-  newProblems24h: number;
-  regressions: number;
-  externalProblems24h: number;
-  open: number;
+  newProblems24h: LogGroupCounts;
+  regressions: LogGroupCounts;
+  externalProblems24h: LogGroupCounts;
+  open: LogGroupCounts;
 }
 
 /** `LogGroupList`. [total] counts all matching problems, [entries] holds the first ones only. */
@@ -159,11 +172,11 @@ export interface SubsystemEntry {
   detail?: string | null;
   state: SubsystemState;
   syncs: SubsystemSync[];
-  occurrences24h: number;
+  occurrences24h: LogGroupCounts;
   newProblems24h: number;
-  /** Its problems with status NEW or ACKNOWLEDGED. */
-  open: number;
-  /** As `LogGroupEntry.trend`, summed over its problems. */
+  /** Its problems with status NEW or ACKNOWLEDGED: active or muted. */
+  open: LogGroupCounts;
+  /** As `LogGroupEntry.trend`, summed over its active problems. */
   trend: number[];
 }
 
@@ -212,6 +225,9 @@ export interface LogFileEvent extends LogViewerEvent {
   logger: string;
   /** Where it was found: `ProjectForge.2026-10-05.log.gz:1234`. */
   source: string;
+  /** The file's name and the record's first line, to read its context (see fetchLogFileContext). */
+  file: string;
+  line: number;
 }
 
 /** `LogFileSearchData`: the occurrences of a problem in the log files of its last days. */

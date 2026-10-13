@@ -28,6 +28,10 @@ import jakarta.annotation.PostConstruct
 import org.projectforge.Constants
 import org.projectforge.business.privacyprotection.CronPrivacyProtectionJob
 import org.projectforge.business.privacyprotection.IPrivacyProtectionJob
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,6 +81,10 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
     @Autowired
     private lateinit var cronPrivacyProtectionJob: CronPrivacyProtectionJob
 
+    /** Optional: tests without Spring work without it. */
+    @Autowired(required = false)
+    internal var schedulerJobRunner: SchedulerJobRunner? = null
+
     @Value("\${projectforge.support.logAggregation.enabled:true}")
     var enabled: Boolean = true
         internal set
@@ -114,6 +122,9 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
 
     @PostConstruct
     internal fun init() {
+        schedulerJobRunner?.register(SCHEDULER_JOB, ::scheduledFlush) {
+            if (enabled) null else "projectforge.support.logAggregation.enabled=false"
+        }
         if (!enabled) {
             log.info { "Log aggregation disabled (projectforge.support.logAggregation.enabled=false)." }
             return
@@ -178,7 +189,13 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
 
     @Scheduled(fixedDelay = FLUSH_INTERVAL_MILLIS, initialDelay = FLUSH_INTERVAL_MILLIS)
     fun scheduledFlush() {
-        flush()
+        val runner = schedulerJobRunner ?: return flush()
+        runner.run(SCHEDULER_JOB) { run ->
+            flush()
+            if (lastFlushFailed) {
+                run.fail("Log aggregation couldn't write to the database (kept in memory, retried).")
+            }
+        }
     }
 
     /**
@@ -368,6 +385,11 @@ class LogAggregationService : LogGroupStates, IPrivacyProtectionJob {
 
     companion object {
         internal const val FLUSH_INTERVAL_MILLIS = 30 * Constants.MILLIS_PER_SECOND
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "support.logAggregationFlush", SchedulerJobArea.SYSTEM, LogAggregationService::class.java,
+            "scheduledFlush", SchedulerSchedule.FixedDelay(FLUSH_INTERVAL_MILLIS, FLUSH_INTERVAL_MILLIS),
+        )
 
         private const val CHUNK_SIZE = 1000
 

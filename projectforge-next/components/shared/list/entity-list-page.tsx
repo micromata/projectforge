@@ -15,6 +15,7 @@ import {
   useStoredColumnState,
   type ColumnState,
 } from "@/components/data-table";
+import { ScriptPageButtons } from "@/components/features/script/script-page-buttons";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
@@ -50,6 +51,7 @@ import { ListSelectionSection } from "./list-selection-section";
 import { ListToolbar } from "./list-toolbar";
 import { ListResultInfo } from "./list-result-info";
 import { ListTruncationNotice } from "./list-truncation-notice";
+import { ListNotice } from "./list-notice";
 import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
@@ -337,6 +339,7 @@ function DeclaredList<
           addIsLegacy={targets.legacy}
           // The button, unless this entity has demoted the way back into the gear menu below.
           legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
+          experimental={page.experimental}
           selectionToggle={
             page.massUpdate &&
             updateAccess !== false && (
@@ -346,7 +349,15 @@ function DeclaredList<
               />
             )
           }
-          actions={ListActions && <ListActions filter={list.filter} />}
+          actions={
+            <>
+              {ListActions && <ListActions filter={list.filter} />}
+              {/* Not on a transient jump: the scripts get the stored filter, which isn't this one. */}
+              {!transient && (
+                <ScriptPageButtons target={`list:${page.entity}`} />
+              )}
+            </>
+          }
           gearMenu={
             <ListGearMenu
               entity={page.entity}
@@ -358,11 +369,19 @@ function DeclaredList<
           }
           // The result hit the backend's row cap, so it is incomplete — a prominent red warning
           // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
-          // that was reached (see useMagicFilterQuery.truncated).
+          // that was reached (see useMagicFilterQuery.truncated). Beside it the backend's warning about
+          // the result (a time sheet filter too vague to list anything), in the same place.
           notice={
-            list.truncated ? (
-              <ListTruncationNotice count={list.rowCount} />
-            ) : undefined
+            (list.truncated || list.resultWarning) && (
+              <>
+                {list.truncated && (
+                  <ListTruncationNotice count={list.rowCount} />
+                )}
+                {list.resultWarning && (
+                  <ListNotice tone="warning">{list.resultWarning}</ListNotice>
+                )}
+              </>
+            )
           }
           columnPanel={
             <DataTableColumnPanel

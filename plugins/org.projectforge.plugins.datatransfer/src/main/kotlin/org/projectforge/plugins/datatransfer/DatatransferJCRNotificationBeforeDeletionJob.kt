@@ -24,9 +24,14 @@
 package org.projectforge.plugins.datatransfer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.StringHelper
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.time.PFDay
 import org.projectforge.plugins.core.PluginAdminService
@@ -59,26 +64,32 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::execute) {
+            if (pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) null else "Plugin data transfer not activated."
+        }
+    }
+
     /**
      * Runs nightly at 4:30
      * second, minute, hour
      */
-    @Scheduled(cron = "0 30 4 * * *")
+    @Scheduled(cron = CRON)
     fun execute() {
-        if (!pluginAdminService.activePlugins.any { it.id == DataTransferPlugin.ID }) {
-            log.info { "Plugin data transfer not activated. Don't need notification job." }
-            return
-        }
-        if (PFDay.now().isHolidayOrWeekend()) {
-            log.info { "Don't send notifications on files being deleted on holidays and weekends." }
-            return
-        }
-        Thread {
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            if (PFDay.now().isHolidayOrWeekend()) {
+                log.info { "Don't send notifications on files being deleted on holidays and weekends." }
+                run.note("No notifications on holidays and weekends.")
+                return@runAsync
+            }
             // key is the user id of the observer and the value is the list of observed attachments (including data transfer
             // area which will being deleted by the system.
             val notificationInfoByObserver =
                 mutableMapOf<Long, MutableList<DataTransferNotificationMailService.AttachmentNotificationInfo>>()
-            log.info { "Data transfer notification job started." }
             val startTimeInMillis = System.currentTimeMillis()
 
             // First of all, try to check all attachments of active areas:
@@ -122,8 +133,8 @@ class DatatransferJCRNotificationBeforeDeletionJob {
             notificationInfoByObserver.forEach { (userId, attachments) ->
                 dataTransferNotificationMailService.sendNotificationMail(userId, attachments)
             }
-            log.info { "JCR notification job finished after ${(System.currentTimeMillis() - startTimeInMillis) / 1000} seconds. Number of notification mails: ${notificationInfoByObserver.size}" }
-        }.start()
+            log.info { "JCR notification job finished. Number of notification mails: ${notificationInfoByObserver.size}" }
+        }
     }
 
     private fun getNotificationDaysBeforeDeletion(expiryDays: Int): Long {
@@ -134,5 +145,14 @@ class DatatransferJCRNotificationBeforeDeletionJob {
             else -> 30             // Notify 30 days before being deleted.
         }
         return notificationDays * DataTransferJCRCleanUpJob.MILLIS_PER_DAY
+    }
+
+    companion object {
+        private const val CRON = "0 30 4 * * *"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "datatransfer.notifyBeforeDeletion", SchedulerJobArea.FILES,
+            DatatransferJCRNotificationBeforeDeletionJob::class.java, "execute", SchedulerSchedule.Cron(CRON),
+        )
     }
 }

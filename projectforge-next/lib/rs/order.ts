@@ -211,6 +211,11 @@ export interface ForecastChartSettings {
    * forecast, see `ForecastOrderPosInfo.distributeUnusedBudget`.
    */
   distributeUnusedBudget: boolean;
+  /**
+   * Day of the order book snapshot the forecast is calculated from (the closest one), or null for the
+   * current order book.
+   */
+  snapshotDate: string | null;
 }
 
 /**
@@ -249,6 +254,8 @@ export interface ForecastChartData {
   plan: number[] | null;
   /** The snapshot date actually used for the plan (`yyyy-MM-dd`). */
   planningDate: string | null;
+  /** The snapshot date the forecast was actually calculated from (`yyyy-MM-dd`), null for today's. */
+  snapshotDate?: string | null;
 }
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
