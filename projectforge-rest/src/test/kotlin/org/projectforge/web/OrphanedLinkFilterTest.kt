@@ -285,6 +285,30 @@ class OrphanedLinkFilterTest {
     }
 
     /**
+     * The old React pages for changing the (WLAN) password are gone; only a numeric user id is passed on.
+     */
+    @Test
+    fun `the old react change password pages are redirected to next`() {
+        Assertions.assertEquals("/next/changePassword", redirectOf("/react/changePassword/dynamic"))
+        Assertions.assertEquals("/next/changePassword", redirectOf("/react/changePassword"))
+        Assertions.assertEquals("/next/changeWlanPassword", redirectOf("/react/changeWlanPassword/dynamic"))
+        Assertions.assertEquals(
+            "/next/changePassword?userId=42",
+            redirectOf("/react/changePassword/dynamic", mapOf("userId" to "42")),
+        )
+        Assertions.assertEquals(
+            "/next/changeWlanPassword?userId=42",
+            redirectOf("/react/changeWlanPassword/dynamic", mapOf("userId" to "42")),
+        )
+        Assertions.assertEquals(
+            "/next/changePassword",
+            redirectOf("/react/changePassword/dynamic", mapOf("userId" to "42&foo=bar")),
+        )
+        Assertions.assertNull(redirectOf("/next/changePassword"))
+        Assertions.assertNull(redirectOf("/rs/changePassword/init"))
+    }
+
+    /**
      * The Wicket user preference pages are gone without a replacement, so their links land on the next start page.
      */
     @Test

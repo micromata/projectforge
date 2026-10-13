@@ -66,7 +66,7 @@ export interface MyAccountInit {
   };
   /** False without a configured Sipgate: no personal phone identifiers then. */
   phoneIdentifiersSupported: boolean;
-  /** Menu urls of the password pages and the 2FA setup (`react/…`); absent if the menu hides them. */
+  /** Menu urls of the password pages (`next/…`) and the 2FA setup (`react/…`); absent if the menu hides them. */
   changePasswordUrl?: string | null;
   changeWlanPasswordUrl?: string | null;
   my2FASetupUrl?: string | null;

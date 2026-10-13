@@ -171,8 +171,8 @@ class MyAccountRest {
         /** False without a configured Sipgate: the personal phone identifiers are good for nothing then. */
         val phoneIdentifiersSupported: Boolean,
         /**
-         * The menu urls of the password pages and of the 2FA setup (not migrated yet, React); the WLAN password
-         * null if it can't be changed in this installation. Offered whatever the menu configuration says: an
+         * The menu urls of the password pages (next) and of the 2FA setup (not migrated yet, React); the WLAN
+         * password null if it can't be changed in this installation. Offered whatever the menu configuration says: an
          * installation hides the password entries of the menu *because* this page links them (see
          * projectforge.menu.visibility.changePassword).
          */

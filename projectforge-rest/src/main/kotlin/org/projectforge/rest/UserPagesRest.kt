@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.ldap.LdapPosixAccountsUtils
 import org.projectforge.business.ldap.LdapSambaAccountsUtils
@@ -53,7 +54,6 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.PostData
@@ -554,8 +554,9 @@ class UserPagesRest
             MenuItem(
                 "changePassword",
                 i18nKey = "menu.changePassword",
-                url = PagesResolver.getDynamicPageUrl(ChangePasswordPageRest::class.java, mapOf("userId" to dto.id)),
-                type = MenuItemTargetType.MODAL
+                // The page of projectforge-next (ChangePasswordPageRest), for the user edited here.
+                url = "${Constants.NEXT_APP_PATH}changePassword?userId=${dto.id}",
+                type = MenuItemTargetType.REDIRECT,
             )
         )
         if (Login.getInstance().isWlanPasswordChangeSupported(userDO)) {
@@ -563,11 +564,8 @@ class UserPagesRest
                 MenuItem(
                     "changeWlanPassword",
                     i18nKey = "menu.changeWlanPassword",
-                    url = PagesResolver.getDynamicPageUrl(
-                        ChangeWlanPasswordPageRest::class.java,
-                        mapOf("userId" to dto.id)
-                    ),
-                    type = MenuItemTargetType.MODAL
+                    url = "${Constants.NEXT_APP_PATH}changeWlanPassword?userId=${dto.id}",
+                    type = MenuItemTargetType.REDIRECT,
                 )
             )
         }

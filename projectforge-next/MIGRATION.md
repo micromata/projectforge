@@ -546,8 +546,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`StayLoggedInTokenDao.deleteOfUser`, das aktuelle über den Cookie markiert), Speichern bleibt auf der
   Seite und lädt `userStatus` neu (Sprache/Formate wirken sofort), die Sprache lässt sich auf „Standard"
   zurücksetzen. Eingeschränkte und Demo-Benutzer (`InitData.writeAccess = false`) sehen das Formular
-  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Passwort, WLAN-Passwort und 2FA-Einrichtung sind noch React und verlinkt (URLs aus
-  `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
+  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Die 2FA-Einrichtung ist noch React und
+  verlinkt (URLs aus `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
+- **Passwort / WLAN-Passwort ändern** (`next/changePassword`, `next/changeWlanPassword`, vorher React-UILayout
+  derselben Klassen) – layoutfrei über `ChangePasswordPageRest` / `ChangeWlanPasswordPageRest` (`GET init`,
+  `POST change`; 2FA-Kurzbefehl `PASSWORD`), eine Seite mit `variant`. Der CSRF-Token wird im Endpunkt selbst
+  geprüft (nicht nur im Filter, der nur next-Clients prüft). Fehler kommen mit `fieldId` (altes/Login-Passwort,
+  neues Passwort, Wiederholung). Neu: „Letzte (WLAN-)Passwortänderung" mit Zeitstempel und „vor …"
+  (`TimeAgo.getDateAndMessage`). Admins ändern das Passwort eines anderen Benutzers mit `?userId=` (aus der
+  React-Benutzerbearbeitung per REDIRECT verlinkt). `react/changePassword/**` und `react/changeWlanPassword/**`
+  leitet `OrphanedLinkFilter` um (eine numerische `userId` wird übernommen).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

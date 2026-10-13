@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt." ]
+      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", "Passwort ändern und WLAN-Passwort ändern sind Seiten der neuen Oberfläche und zeigen, wann das Passwort zuletzt geändert wurde." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", "Urlaubsliste: Die Sortierung nach den Spalten Status und Tage hatte keine Wirkung." ]
     } ]
   },
   "groups" : [ {

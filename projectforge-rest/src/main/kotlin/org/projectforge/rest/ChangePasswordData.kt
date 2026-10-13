@@ -44,3 +44,17 @@ class ChangePasswordData(
     }
   }
 }
+
+/**
+ * Initial data of the change (WLAN) password page.
+ */
+class ChangePasswordInit(
+  var userId: Long? = null,
+  var userDisplayName: String? = null,
+  /** True if the logged-in user changes their own password (the old/login password is required then). */
+  var changeOwn: Boolean = true,
+  /** Date and time of the last change, followed by the time ago, e.g. "2026-10-13 11:06 (2 hours ago)". */
+  var lastChangeFormatted: String? = null,
+  /** The rules a new password must follow. */
+  var passwordQualityHint: String? = null,
+)

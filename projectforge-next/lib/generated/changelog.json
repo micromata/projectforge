@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in." ]
+      "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", "Change password and change WLAN password are pages of the new user interface and show when the password was last changed." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", "Vacation list: sorting by the status or the days column had no effect." ]
     } ]
   },
   "groups" : [ {

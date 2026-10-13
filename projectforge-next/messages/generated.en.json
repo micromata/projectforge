@@ -4385,12 +4385,15 @@
         "passwordSuccessfullyChanged": "Password successfully changed."
       },
       "newPassword": "New password",
+      "oldPassword": "Old password",
       "password": {
         "lastChange": "Last change of password"
       }
     },
     "changeWlanPassword": {
-      "lastChange": "Last change of WLAN/Samba password"
+      "lastChange": "Last change of WLAN/Samba password",
+      "loginPassword": "Login password",
+      "newPassword": "New WLAN password"
     },
     "deactivated": "deactivated",
     "gpgPublicKey": "GPG public key",
