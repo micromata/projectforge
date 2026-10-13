@@ -1,67 +1,55 @@
 ---
 layout: default
 ---
+{%- capture doc_nav -%}
+{%- for section in site.data.navigation_docs %}
+<h2 class="mb-2 text-xs leading-4 font-bold tracking-wide text-muted-foreground uppercase">{{ section.title }}</h2>
+<ul class="mb-6 flex flex-col gap-0.5">
+    {%- for doc in section.docs %}
+    {%- assign doc_url = doc | prepend: "/docs/" | append: "/" -%}
+    {%- assign p = site.docs | where: "url", doc_url | first %}
+    <li><a class="web-nav block rounded-md px-3 py-2 no-underline {% if doc_url == page.url %}bg-info text-link hover:text-link{% else %}text-secondary-foreground hover:bg-muted hover:text-foreground{% endif %}" href="{{ p.url | relative_url }}"{% if doc_url == page.url %} aria-current="page"{% endif %}>{{ p.title }}</a></li>
+    {%- endfor %}
+</ul>
+{%- endfor %}
+{%- endcapture -%}
 
-<div class="uk-section">
-    <div class="uk-container">
-        <div class="uk-grid-large" data-uk-grid>
+<div class="pf-container py-12 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-12">
 
-            <div class="sidebar-fixed-width uk-visible@m">
-                <div class="sidebar-docs uk-position-fixed uk-margin-top">
-                    {% for section in site.data.navigation_docs %}
-                    <h5>{{ section.title }}</h5>
-                    <ul class="uk-nav uk-nav-default doc-nav">
-                    {% for doc in section.docs %}
-                      {% assign doc_url = doc | prepend:"/docs/" | append:"/" %}
-                      {% assign p = site.docs | where:"url", doc_url | first %}
-                      <li class="{% if doc_url == page.url %}uk-active{% endif %}"><a href="{{ p.url | relative_url }}">{{ p.title }}</a></li>
-                    {% endfor %}
-                    </ul>
-                    {% endfor %}
-                </div>
-            </div>
+    <aside class="hidden md:block">
+        <nav class="sticky top-24" aria-label="Documentation">
+            {{ doc_nav }}
+        </nav>
+    </aside>
 
-            <div class="uk-width-1-1 uk-width-expand@m">
+    <details class="mb-8 rounded-lg border border-border md:hidden">
+        <summary class="pf-chevron web-nav flex items-center justify-between gap-4 px-4 py-3">Documentation</summary>
+        <nav class="border-t border-border px-1 pt-4" aria-label="Documentation">
+            {{ doc_nav }}
+        </nav>
+    </details>
 
-                <article class="uk-article">
+    <article class="min-w-0">
+        <h1 class="web-display">{{ page.title | escape }}</h1>
+        {%- if page.subtitle %}
+        <p class="web-lead mt-4 text-secondary-foreground">{{ page.subtitle }}</p>
+        {%- endif %}
 
-                    <h1 class="uk-article-title">{{ page.title | escape }}</h1>
+        <div class="mt-6 mb-10 flex items-center gap-3 text-sm text-muted-foreground">
+            {% include post-meta.html %}
+        </div>
 
-                    {% if page.subtitle %}<p class="uk-text-lead uk-text-muted">{{ page.subtitle }}</p>{% endif %}
+        <div class="prose">
+            {{ content }}
+        </div>
 
-                    <div class="uk-article-meta uk-margin-top uk-margin-medium-bottom uk-flex uk-flex-middle">
-                        {% include post-meta.html %}
-                    </div>
+        {% include hook-post-content-doc.html %}
 
-                    <div class="article-content link-primary">
-                        {{ content }}
-                        {% if site.share.doc %}
-                            {% include share.html %}
-                        {% endif %}
-                    </div>
+        <hr class="my-10 border-border">
 
-                    {% include hook-post-content-doc.html %}
+        {% include paginate-doc.html %}
 
-                    <hr class="uk-margin-medium">
+        {% include related-docs.html %}
+    </article>
 
-                    {% include paginate-doc.html %}
-
-                    {% include related-docs.html %}
-
-                    {% if site.disqus.shortname %}
-                        {% include disqus_comments.html %}
-                    {% endif %}
-                </article>
-
-                <script>
-                    // Table of contents scroll to
-                    UIkit.scroll('#markdown-toc a', {
-                        duration: 400,
-                        offset: 120
-                    });
-                </script>
-
-            </div>
-
-    </div>
 </div>

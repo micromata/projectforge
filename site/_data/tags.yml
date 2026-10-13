@@ -9,7 +9,7 @@ admin:
 
 changed:
   text: Changed
-  color: "#3aaa55"
+  color: "#2e8a45"
 
 deprecated:
   text: Deprecated
@@ -17,15 +17,15 @@ deprecated:
 
 improved:
   text: Improved
-  color: "#68b037"
+  color: "#4d8a22"
 
 removed:
   text: Removed
-  color: "#17caf0"
+  color: "#0b7fa0"
 
 fixed:
   text: Fixed
-  color: "#ff4772"
+  color: "#d6214f"
 
 privacy:
   text: Privacy

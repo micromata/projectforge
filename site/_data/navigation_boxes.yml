@@ -2,12 +2,9 @@
 
 - title: Everything connected
   desc: Orders, tasks, timesheets, invoices and liquidity share the same data. No more copying numbers between tools and spreadsheets.
-  icon: link
 
 - title: Your server, your rules
   desc: Run it on your own infrastructure – with LDAP or single sign-on, two-factor login and a full audit trail. Your data never has to leave the house.
-  icon: lock
 
 - title: Free. Really.
   desc: All features, any number of users, no subscription. Open source under the GPLv3 – and professional services from us, if you want them.
-  icon: heart

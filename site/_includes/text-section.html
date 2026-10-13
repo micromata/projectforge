@@ -1,36 +1,47 @@
 {% comment %}
-    Text section with optional bullet list, screenshot and button, read from _data/home_sections.yml.
-    Parameters: key (entry of home_sections), background (optional UIkit section style, e.g. muted).
-    Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption,
-    button_text (default: "Learn more"), button_url.
-    Renders nothing if the key is missing in home_sections.yml.
+    Text section with optional bullet list, screenshot and button.
+    Parameters: key (entry of the data file), data (data file in _data, default: home_sections),
+    background (muted for a grey band).
+    Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption, reverse (screenshot
+    left), button_text (default: "Learn more"), button_url, button_style (default: outline).
+    Renders nothing if the key is missing.
 {% endcomment %}
-{% assign section = site.data.home_sections[include.key] %}
+{%- assign source = include.data | default: 'home_sections' -%}
+{%- assign section = site.data[source][include.key] -%}
 {% if section %}
-<div class="uk-section{% if include.background %} uk-section-{{ include.background }}{% endif %}" id="{{ include.key }}">
-    <div class="uk-container{% unless section.img %} uk-container-small{% endunless %}">
-        <div class="{% if section.img %}uk-child-width-1-2@m uk-flex-middle{% endif %}" data-uk-grid>
-            <div>
-                {% if section.title %}<h2 class="uk-h1">{{ section.title }}</h2>{% endif %}
-                {% if section.subtitle %}<p class="uk-text-lead">{{ section.subtitle }}</p>{% endif %}
-                {% if section.text %}<div class="link-primary">{{ section.text | markdownify }}</div>{% endif %}
-                {% if section.bullets %}
-                <ul class="uk-list uk-list-bullet link-primary">
-                    {% for bullet in section.bullets %}
-                    <li>{{ bullet | markdownify | remove: '<p>' | remove: '</p>' }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-                {% if section.button_url %}
-                <a class="uk-button uk-button-primary uk-margin-top" href="{% if section.button_url contains 'http' %}{{ section.button_url }}{% else %}{{ section.button_url | relative_url }}{% endif %}">{{ section.button_text | default: 'Learn more' }}</a>
-                {% endif %}
+<section class="py-16 max-sm:py-12{% if include.background == 'muted' %} border-y border-border bg-secondary{% endif %}" id="{{ include.key }}">
+    <div class="pf-container{% if section.img %} grid items-center gap-8 md:grid-cols-2 md:gap-12{% else %} pf-narrow{% endif %}">
+        <div class="{% if section.img and section.reverse %}md:order-2{% endif %}">
+            {%- if section.title %}
+            <h2 class="web-headline">{{ section.title }}</h2>
+            {%- endif %}
+            {%- if section.subtitle %}
+            <p class="web-lead mt-3 text-secondary-foreground">{{ section.subtitle }}</p>
+            {%- endif %}
+            {%- if section.text %}
+            <div class="pf-richtext web-body mt-4 text-secondary-foreground">{{ section.text | markdownify }}</div>
+            {%- endif %}
+            {%- if section.bullets %}
+            <ul class="pf-bullets pf-richtext web-body mt-6 text-secondary-foreground [&_strong]:text-foreground">
+                {%- for bullet in section.bullets %}
+                <li>{{ bullet | markdownify | remove: '<p>' | remove: '</p>' }}</li>
+                {%- endfor %}
+            </ul>
+            {%- endif %}
+            {%- if section.button_url %}
+            {%- assign button_text = section.button_text | default: 'Learn more' -%}
+            {%- assign button_style = section.button_style | default: 'outline' %}
+            <div class="mt-8 flex flex-wrap gap-3">
+                {% include button.html url=section.button_url text=button_text style=button_style %}
             </div>
-            {% if section.img %}
-            <div>
-                {% include image-col.html img=section.img lightbox="true" alt=section.title caption=section.img_caption %}
-            </div>
-            {% endif %}
+            {%- endif %}
         </div>
+        {%- if section.img %}
+        <div>
+            {%- assign img_alt = section.img_alt | default: section.title %}
+            {% include image-col.html img=section.img alt=img_alt caption=section.img_caption %}
+        </div>
+        {%- endif %}
     </div>
-</div>
+</section>
 {% endif %}

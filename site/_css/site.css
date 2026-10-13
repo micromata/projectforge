@@ -1,0 +1,780 @@
+/*
+ * Styles of the ProjectForge web site, built with Tailwind CSS (npm run build:css → assets/css/main.css).
+ * Tokens follow the app (projectforge-next): neutral surfaces, hairline borders, no shadows, teal actions.
+ */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "./tipuesearch.css";
+
+@source "../_layouts";
+@source "../_includes";
+@source "../_data";
+@source "../_docs";
+@source "../_faqs";
+@source "../misc";
+@source "../*.{adoc,md,html}";
+
+/* Self-hosted fonts (SIL Open Font License, see assets/fonts/OFL-*.txt), no requests to Google. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url(/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url(/assets/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url(/assets/fonts/plus-jakarta-sans-latin-wght-italic.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/assets/fonts/archivo-narrow-latin-700-italic.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Archivo Narrow";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/assets/fonts/archivo-narrow-latin-ext-700-italic.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-wordmark: "Archivo Narrow", "Roboto Condensed", sans-serif;
+
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-border: oklch(0.922 0 0);
+  --color-ring: #009ba3;
+  --color-action: #007480;
+  --color-action-foreground: #ffffff;
+  --color-link: #007480;
+  --color-link-hover: #005a61;
+  --color-info: rgb(0 155 163 / 0.1);
+  --color-brand-teal: #009ba3;
+  --color-brand-teal-dark: #007480;
+  --color-brand-pink: #e10057;
+  --color-brand-yellow: #ffcb00;
+  --color-brand-green: #75be01;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+
+  /* The one layout breakpoint of the design: navigation, grids and splits collapse below 900px. */
+  --breakpoint-md: 56.25rem;
+
+  --container-site: 1120px;
+  --container-narrow: 760px;
+}
+
+/* The type scale of the design (web-*). */
+@utility web-display {
+  font-size: 56px;
+  line-height: 60px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  @media (width < 40rem) {
+    font-size: 36px;
+    line-height: 40px;
+  }
+}
+@utility web-headline {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  @media (width < 40rem) {
+    font-size: 26px;
+    line-height: 34px;
+  }
+}
+@utility web-title {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+@utility web-lead {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 500;
+}
+@utility web-body {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 500;
+}
+@utility web-nav {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+/* Centered content column with the side gutter of the design. */
+@utility pf-container {
+  width: 100%;
+  max-width: var(--container-site);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+@utility pf-narrow {
+  max-width: var(--container-narrow);
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 5.5rem; /* anchors land below the sticky header */
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  a {
+    color: var(--color-link);
+  }
+  a:hover {
+    color: var(--color-link-hover);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The four-color brand stripe above the header and the footer. */
+  .pf-stripe {
+    height: 3.5px;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-teal) 0 25%,
+      var(--color-brand-pink) 25% 50%,
+      var(--color-brand-yellow) 50% 75%,
+      var(--color-brand-green) 75% 100%
+    );
+  }
+
+  /* Buttons */
+  .pf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 40px;
+    padding-inline: 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+  }
+  .pf-btn-lg {
+    height: 48px;
+    padding-inline: 1.5rem;
+    font-size: 16px;
+  }
+  .pf-btn-primary,
+  .pf-btn-primary:hover {
+    background: var(--color-action);
+    color: var(--color-action-foreground);
+  }
+  .pf-btn-primary:hover {
+    opacity: 0.9;
+  }
+  .pf-btn-outline,
+  .pf-btn-ghost {
+    background: transparent;
+    color: var(--color-foreground);
+  }
+  .pf-btn-outline {
+    border-color: var(--color-muted-foreground);
+  }
+  .pf-btn-outline:hover,
+  .pf-btn-ghost:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  /* Wordmark: "Project" over "Forge" in bold italic Archivo Narrow, the flame sheared beside it. */
+  .pf-logo-mark {
+    position: relative;
+    display: inline-flex;
+    padding: 0 2.5em 0.3em 0;
+    font-size: 18px;
+    color: var(--color-foreground);
+  }
+  .pf-wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    font-family: var(--font-wordmark);
+    font-weight: 700;
+    font-style: italic;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    padding-top: 0.9em;
+  }
+  .pf-wordmark > span:first-child {
+    transform: translateX(0.55em);
+  }
+  .pf-wordmark > span:last-child {
+    transform: translateX(1.1em);
+    padding-left: 0.8em;
+  }
+  .pf-flame {
+    position: absolute;
+    right: 0;
+    bottom: 0.75em;
+    height: 2.8em;
+    width: 2.15em;
+    transform: skewX(-12deg);
+    pointer-events: none;
+  }
+
+  /* Bullet list with a teal checkmark. */
+  .pf-bullets {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .pf-bullets > li {
+    position: relative;
+    padding-left: 2rem;
+  }
+  .pf-bullets > li::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 6px;
+    height: 12px;
+    border: solid var(--color-link);
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+
+  /* Disclosure chevron of <details> (FAQ, mobile menus). */
+  .pf-chevron {
+    list-style: none;
+    cursor: pointer;
+  }
+  .pf-chevron::-webkit-details-marker {
+    display: none;
+  }
+  .pf-chevron::after {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border: solid var(--color-muted-foreground);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    transition: transform 0.15s;
+  }
+  details[open] > .pf-chevron::after {
+    transform: rotate(-135deg);
+  }
+
+  /* Hamburger of the mobile menu. */
+  .pf-menu-btn {
+    list-style: none;
+  }
+  .pf-menu-btn::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Rendered markdown/AsciiDoc inside the design's sections (text-section, FAQ answers). */
+  .pf-richtext > * + * {
+    margin-top: 1rem;
+  }
+  .pf-richtext a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .lead,
+  .lead p {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 500;
+    color: var(--color-secondary-foreground);
+  }
+}
+
+/* Typography plugin, tuned to the tokens. */
+.prose {
+  --tw-prose-body: var(--color-secondary-foreground);
+  --tw-prose-headings: var(--color-foreground);
+  --tw-prose-links: var(--color-link);
+  --tw-prose-bold: var(--color-foreground);
+  --tw-prose-counters: var(--color-muted-foreground);
+  --tw-prose-bullets: var(--color-muted-foreground);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-muted-foreground);
+  --tw-prose-code: var(--color-foreground);
+  --tw-prose-pre-code: var(--color-foreground);
+  --tw-prose-pre-bg: var(--color-secondary);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+  max-width: none;
+}
+.prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  letter-spacing: -0.02em;
+}
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+  font-weight: 500;
+  text-underline-offset: 2px;
+}
+.prose :where(a):not(:where([class~="not-prose"] *)):hover {
+  color: var(--color-link-hover);
+}
+.prose :where(code):not(:where(pre code, [class~="not-prose"] *)) {
+  background: var(--color-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+  font-weight: 500;
+}
+.prose :where(code):not(:where(pre code, [class~="not-prose"] *))::before,
+.prose :where(code):not(:where(pre code, [class~="not-prose"] *))::after {
+  content: none;
+}
+.prose :where(pre):not(:where([class~="not-prose"] *)) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.prose :where(img):not(:where([class~="not-prose"] *)) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/*
+ * AsciiDoc output (jekyll-asciidoc) inside .prose: blocks are wrapped in divs, so the vertical rhythm of the
+ * typography plugin needs a little help.
+ */
+.prose .paragraph > p,
+.prose .ulist > ul,
+.prose .olist > ol,
+.prose .dlist > dl,
+.prose .listingblock pre,
+.prose .literalblock pre,
+.prose .imageblock,
+.prose table.tableblock {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.prose .ulist li > p,
+.prose .olist li > p,
+.prose .dlist dd > p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.prose .title {
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-top: 1.25em;
+}
+.prose .dlist dt {
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-top: 1em;
+}
+.prose .dlist dd {
+  margin-left: 0;
+  padding-left: 1.25em;
+}
+.prose .imageblock .content img,
+.prose .imageblock img {
+  margin: 0;
+}
+.prose .imageblock .title {
+  font-size: 0.875em;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  margin-top: 0.5em;
+}
+.prose table.tableblock {
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+.prose table.tableblock p {
+  margin: 0;
+}
+.prose .listingblock pre code table,
+.prose .listingblock pre code pre {
+  margin: 0;
+  border: 0;
+}
+.prose #toc,
+.prose .toc {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  background: var(--color-secondary);
+}
+.prose #toc #toctitle {
+  margin-top: 0;
+}
+.prose #toc ul {
+  margin: 0.25em 0;
+}
+
+/* Admonitions (NOTE, TIP, IMPORTANT, WARNING, CAUTION) as tinted callouts with their label. */
+.prose .admonitionblock {
+  margin: 1.5em 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-secondary);
+  padding: 0.75rem 1rem;
+}
+.prose .admonitionblock > table,
+.prose .admonitionblock > table > tbody,
+.prose .admonitionblock > table > tbody > tr,
+.prose .admonitionblock > table > tbody > tr > td {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.prose .admonitionblock td.icon {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: var(--color-link);
+  margin-bottom: 0.25rem;
+}
+.prose .admonitionblock td.icon i::after {
+  content: attr(title);
+  font-style: normal;
+}
+.prose .admonitionblock td.content > :first-child,
+.prose .admonitionblock td.content > .paragraph:first-child > p {
+  margin-top: 0;
+}
+.prose .admonitionblock td.content > :last-child,
+.prose .admonitionblock td.content > .paragraph:last-child > p {
+  margin-bottom: 0;
+}
+.prose .admonitionblock.warning,
+.prose .admonitionblock.caution,
+.prose .admonitionblock.important {
+  background: rgb(225 0 87 / 0.05);
+  border-color: rgb(225 0 87 / 0.25);
+}
+.prose .admonitionblock.warning td.icon,
+.prose .admonitionblock.caution td.icon,
+.prose .admonitionblock.important td.icon {
+  color: #b80048;
+}
+
+/* Collapsible blocks ([%collapsible] → <details>), used by the changelog. */
+.prose details {
+  margin: 0.5rem 0;
+}
+.prose details > summary,
+.prose details > summary.title {
+  margin-top: 0;
+  color: var(--color-link);
+  cursor: pointer;
+  font-weight: 600;
+}
+.prose details > .content {
+  border-left: 3px solid var(--color-border);
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}
+
+/* Red text of the changelog ({red}…{/red} in changelog/changelog.json → [red]##…## in AsciiDoc). */
+.red {
+  color: #c4001d;
+}
+
+/* Changelog: the latest release on top, the source line, checksums and the status pills of a release. */
+.changelog-latest {
+  background: var(--color-info);
+  border: 1px solid rgb(0 155 163 / 0.25);
+  border-radius: var(--radius-lg);
+  color: var(--color-foreground);
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+}
+.changelog-latest p {
+  margin: 0;
+}
+.changelog-latest .changelog-binaries {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+.changelog-major-link,
+.changelog-source {
+  color: var(--color-muted-foreground);
+  font-size: 0.875rem;
+}
+.changelog-release {
+  margin-top: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+.changelog-source {
+  margin-bottom: 0.5rem;
+}
+.changelog-checksum {
+  color: var(--color-muted-foreground);
+  font-size: 0.75rem;
+  margin-top: -6px;
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.changelog-pill {
+  background: var(--color-border);
+  border-radius: 999px;
+  color: var(--color-secondary-foreground);
+  display: inline-block;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-left: 6px;
+  padding: 0 8px;
+  text-decoration: none !important;
+  vertical-align: 1px;
+}
+a.changelog-pill:hover {
+  color: var(--color-foreground);
+}
+.changelog-pill-jar,
+a.changelog-pill-jar:hover {
+  background: #2e8a45;
+  color: #fff;
+}
+.changelog-pill-docker,
+a.changelog-pill-docker:hover {
+  background: #1d63ed;
+  color: #fff;
+}
+.prose details.changelog-snapshots {
+  margin-top: 2.5rem;
+}
+
+/* Change type tags of the changelog (_includes/tag.html, colors in _data/tags.yml). */
+.pf-tag {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  line-height: 1.5;
+  padding: 0 0.5rem;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+/*
+ * The AsciiDoc features page: every level-1 section becomes a full-width band (alternating plain/muted)
+ * with the tagline as lead, its definition list as checkmark bullets and its screenshots beside the list.
+ */
+.pf-adoc-sections {
+  --pf-gutter: max(1.5rem, calc((100% - var(--container-site)) / 2 + 1.5rem));
+}
+.pf-adoc-sections > .paragraph {
+  max-width: var(--container-narrow);
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 500;
+  color: var(--color-secondary-foreground);
+}
+.pf-adoc-sections > .paragraph + .paragraph {
+  margin-top: -3rem;
+}
+.pf-adoc-sections > .sect1 {
+  padding: 4rem var(--pf-gutter);
+}
+.pf-adoc-sections > .sect1:nth-child(odd of .sect1) {
+  background: var(--color-secondary);
+  border-block: 1px solid var(--color-border);
+}
+.pf-adoc-sections > .sect1 > h2 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.pf-adoc-sections > .sect1 > .sectionbody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 500;
+  color: var(--color-secondary-foreground);
+}
+.pf-adoc-sections > .sect1 > .sectionbody > .paragraph:first-child {
+  margin-top: 0.75rem;
+}
+.pf-adoc-sections > .sect1 > .sectionbody > .paragraph:first-child em {
+  font-style: normal;
+  font-size: 18px;
+  line-height: 28px;
+}
+.pf-adoc-sections p {
+  margin: 0;
+}
+.pf-adoc-sections > .sect1 a,
+.pf-adoc-sections > .paragraph a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.pf-adoc-sections .dlist dl,
+.pf-adoc-sections .ulist ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+.pf-adoc-sections .dlist dl {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.pf-adoc-sections .dlist dt,
+.pf-adoc-sections .ulist li {
+  position: relative;
+  padding-left: 2rem;
+}
+.pf-adoc-sections .dlist dt {
+  color: var(--color-foreground);
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+.pf-adoc-sections .dlist dt:first-child {
+  margin-top: 0;
+}
+.pf-adoc-sections .dlist dd {
+  margin: 0;
+  padding-left: 2rem;
+}
+.pf-adoc-sections .dlist dt::before,
+.pf-adoc-sections .ulist li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 6px;
+  height: 12px;
+  border: solid var(--color-link);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.pf-adoc-sections .imageblock {
+  margin: 0;
+}
+.pf-adoc-sections .imageblock .content {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-card);
+}
+.pf-adoc-sections .imageblock img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pf-adoc-sections .imageblock .title {
+  margin-top: 0.5rem;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-muted-foreground);
+}
+/* Sections without a screenshot keep a readable line length. */
+.pf-adoc-sections > .sect1:not(:has(.imageblock)) > h2,
+.pf-adoc-sections > .sect1:not(:has(.imageblock)) > .sectionbody {
+  max-width: var(--container-narrow);
+}
+@media (width >= 56.25rem) {
+  .pf-adoc-sections > .sect1:has(.imageblock) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 3rem;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > h2 {
+    grid-column: 1;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody {
+    display: contents;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > :not(.imageblock) {
+    grid-column: 1;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .dlist,
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .ulist {
+    margin-top: 1.5rem;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .imageblock {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+  }
+  .pf-adoc-sections > .sect1:has(.imageblock) > .sectionbody > .imageblock + .imageblock {
+    grid-row: 4;
+    margin-top: 1.5rem;
+  }
+  /* Every other band mirrors: screenshot left, text right. */
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > h2,
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > .sectionbody > :not(.imageblock) {
+    grid-column: 2;
+  }
+  .pf-adoc-sections > .sect1:nth-child(even of .sect1):has(.imageblock) > .sectionbody > .imageblock {
+    grid-column: 1;
+  }
+}
+
+/* Search results of the header search (_includes/search-js.html). */
+.pf-search-active {
+  background: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-btn,
+  .pf-chevron::after {
+    transition: none;
+  }
+}

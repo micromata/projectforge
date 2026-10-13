@@ -3,30 +3,30 @@
 {% for document in docs %}
   {% assign document_url = document | prepend:"/docs/" | append:"/" %}
   {% if document_url == page.url %}
-    <div class="uk-margin-large-top paginate-post">
-        <div class="uk-child-width-expand@s uk-grid-large uk-pagi" data-uk-grid>
-            <div>
-                {% if forloop.first %}
-                {% else %}
-                  {% assign previous = forloop.index0 | minus: 1 %}
-                  {% assign previous_page = docs[previous] | prepend:"/docs/" | append:"/" %}
-                  {% assign previous_doc = site.docs | where:"url", previous_page | first %}
-                    <h5>{{previous_doc.title}}</h5>
-                    <div><a class="remove-underline hvr-back" href="{{previous_page}}">&larr; {{ site.data.translation[site.lang].previous | default: "Previous" }}</a></div>
-                {% endif %}
-            </div>
-            <div>
-                {% if forloop.last %}
-                {% else %}
-                  {% assign next = forloop.index0 | plus: 1 %}
-                  {% assign next_page = docs[next] | prepend:"/docs/" | append:"/" %}
-                  {% assign next_doc = site.docs | where:"url", next_page | first %}
-                    <h5 style="float: right;">{{next_doc.title}}</h5>
-                    <div class="uk-text-right" style="clear: right;"><a class="remove-underline hvr-forward" href="{{next_page}}">{{ site.data.translation[site.lang].next | default: "Next" }} &rarr;</a></div>
-                {% endif %}
-            </div>
+    <nav class="grid gap-4 sm:grid-cols-2" aria-label="Previous and next document">
+        <div>
+            {% unless forloop.first %}
+              {% assign previous = forloop.index0 | minus: 1 %}
+              {% assign previous_page = docs[previous] | prepend:"/docs/" | append:"/" %}
+              {% assign previous_doc = site.docs | where:"url", previous_page | first %}
+              <a class="flex flex-col gap-1 rounded-lg border border-border p-4 text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ previous_page | relative_url }}">
+                  <span class="text-sm text-muted-foreground">&larr; {{ site.data.translation[site.lang].previous | default: "Previous" }}</span>
+                  <span class="web-title">{{ previous_doc.title }}</span>
+              </a>
+            {% endunless %}
         </div>
-    </div>
+        <div>
+            {% unless forloop.last %}
+              {% assign next = forloop.index0 | plus: 1 %}
+              {% assign next_page = docs[next] | prepend:"/docs/" | append:"/" %}
+              {% assign next_doc = site.docs | where:"url", next_page | first %}
+              <a class="flex flex-col items-end gap-1 rounded-lg border border-border p-4 text-right text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ next_page | relative_url }}">
+                  <span class="text-sm text-muted-foreground">{{ site.data.translation[site.lang].next | default: "Next" }} &rarr;</span>
+                  <span class="web-title">{{ next_doc.title }}</span>
+              </a>
+            {% endunless %}
+        </div>
+    </nav>
     {% break %}
   {% endif %}
 {% endfor %}

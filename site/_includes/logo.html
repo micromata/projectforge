@@ -1,0 +1,8 @@
+{%- comment -%}
+    The ProjectForge wordmark ("Project" over "Forge" with the flame), rebuilt from text like the logo of the
+    app (projectforge-next/components/shared/projectforge-logo.tsx). Parameter: size (font size, default 18px).
+{%- endcomment -%}
+<span class="pf-logo-mark"{% if include.size %} style="font-size: {{ include.size }}"{% endif %} role="img" aria-label="{{ site.title | escape }}">
+    <span class="pf-wordmark" aria-hidden="true"><span>Project</span><span>Forge</span></span>
+    <img class="pf-flame" src="{{ '/assets/img/projectforge-flame.svg' | relative_url }}" alt="">
+</span>

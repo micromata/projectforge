@@ -16,7 +16,12 @@ sudo gem install jekyll-numbered-headings
 ----
 
 === Run ProjectForge's site on your local machine
+The styles are built with https://tailwindcss.com[Tailwind CSS] from `_css/site.css` into `assets/css/main.css`
+(not committed), so Node.js is needed besides Ruby:
 ----
 cd site
-bundle exec jekyll serve
+npm ci
+npm run dev
 ----
+`npm run dev` builds the CSS, rebuilds it on every change and runs `bundle exec jekyll serve --livereload`.
+For a single build: `npm run build:css && bundle exec jekyll build`.

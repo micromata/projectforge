@@ -1,4 +1,4 @@
-# Text sections of the home page, rendered by _includes/text-section.html
+# Text sections of the home page, rendered by _includes/text-section.html (fields: see there)
 
 dach:
   title: Speaks DATEV. Knows XRechnung.
@@ -21,6 +21,7 @@ security:
     - "**Docker image or JAR**, PostgreSQL, automatic database migrations."
     - "**System dashboard** that collects problems and mails you a digest – before your users notice."
   img: screenshots/2026-SystemDashboard.png
+  reverse: true
   img_caption: The system dashboard shows problems, caches and every scheduled job.
   button_text: Installation guide
   button_url: /docs/installation/
