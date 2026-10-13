@@ -21,6 +21,15 @@
                 <h1 class="uk-heading-primary uk-text-center uk-margin-remove-top">{{ page.hero.title }}</h1>
                 {% if page.hero.subtitle %}<p class="uk-text-lead uk-text-center">{{ page.hero.subtitle }}</p>{% endif %}
 
+                {% if page.hero.buttons %}
+                <p class="hero-buttons uk-text-center uk-margin-medium-top">
+                    {% for button in page.hero.buttons %}
+                    <a class="uk-button uk-button-{{ button.style | default: 'primary' }} uk-button-large uk-margin-small-right" href="{% if button.url contains 'http' %}{{ button.url }}{% else %}{{ button.url | relative_url }}{% endif %}">{{ button.title }}</a>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if page.hero.note %}<p class="hero-note uk-text-center uk-text-muted">{{ page.hero.note }}</p>{% endif %}
+
                 {% if page.hero.search %}
                 <div class="hero-search">
 

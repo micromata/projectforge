@@ -1,3 +1,10 @@
+{% comment %}
+    Grid of cards. Parameters:
+    - data: name of the data file in _data (default: navigation_boxes)
+    - columns, title, subtitle, id (anchor of the section)
+    Items: title, desc, icon (UIkit icon), step (shown as number instead of an icon),
+    url (makes the whole card a link), img (screenshot in /uploads/).
+{% endcomment %}
 {% if include.columns %}
     {% assign columns = include.columns %}
     {% if columns == '1' %}
@@ -11,8 +18,13 @@
     {% assign columns = 3 %}
     {% assign container = '' %}
 {% endif %}
+{% if include.data %}
+    {% assign boxes = site.data[include.data] %}
+{% else %}
+    {% assign boxes = site.data.navigation_boxes %}
+{% endif %}
 
-<div class="uk-section">
+<div class="uk-section"{% if include.id %} id="{{ include.id }}"{% endif %}>
     <div class="uk-container{{container}}">
 
         {% if include.title %}
@@ -22,14 +34,18 @@
         {% if include.subtitle %}<p class="uk-text-lead uk-text-center">{{ include.subtitle | escape }}</p>{% endif %}
 
         <div class="uk-child-width-1-{{ columns }}@m uk-grid-match uk-text-center uk-margin-medium-top" data-uk-grid>
-        {% for item in site.data.navigation_boxes %}
+        {% for item in boxes %}
             {% if item.title %}
-            {% assign doc_url = item.doc | prepend:"/docs/" | append:"/" %}
-            {% assign doc = site.docs | where:"url", doc_url | first %}
             <div>
                 <div class="uk-card uk-card-default uk-box-shadow-medium uk-card-hover uk-card-body uk-inline border-radius-large border-xlight">
-                    <!-- <a class="uk-position-cover" href="{{ doc.url | relative_url }}"></a> -->
-                    {% if item.icon %}
+                    {% if item.url %}
+                    <a class="uk-position-cover" href="{% if item.url contains 'http' %}{{ item.url }}{% else %}{{ item.url | relative_url }}{% endif %}" aria-label="{{ item.title }}"></a>
+                    {% endif %}
+                    {% if item.img %}
+                    <img class="uk-margin-bottom" src="{{ site.uploads | absolute_url }}{{ item.img }}" alt="{{ item.title }}" loading="lazy">
+                    {% elsif item.step %}
+                    <span class="uk-h1 uk-text-primary">{{ item.step }}</span>
+                    {% elsif item.icon %}
                     <span data-uk-icon="icon: {{ item.icon }}; ratio: 3.4" class=""></span>
                     {% endif %}
                     <h3 class="uk-card-title uk-margin">{{ item.title }}</h3>

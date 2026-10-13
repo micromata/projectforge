@@ -42,4 +42,4 @@ It is not permitted to alter or distribute the contents of this website. Nor is 
 
 Kai Reinhard cannot be held responsible for the contents of external websites to which links have been established.
 
-Copyright 2001-2021© Kai Reinhard. All rights reserved.
+Copyright 2001-2026© Kai Reinhard. All rights reserved.

@@ -9,77 +9,125 @@ tags: [technologies]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2026, Last updated
+:last-update-label: Copyright (C) 2001-2026, Last updated
 
 :sectnums:
 
 == Supported browsers
 
-ProjectForge is mainly developed under FireFox and Apple Safari.Please refer the following table to see the status of browser interoperability of the current release:
-
-[cols=3*,options="header"]
-|===
-| Browser | Score | Description
-| Apple Safari |   ++  | Well tested, works fine.
-| Chrome       |   ++  | Well tested, works fine.
-| Firefox | ++ | Well tested, works fine.
-| Microsoft IE | + | Quickly tested, seems to work (since ProjectForge's migration to Bootstrap).
-|===
-
-
-== Professional architecture and CI (continuous integration)
-
-ProjectForge is based on a modern and professional software architecture which is commonly used in theindustry. A professional roles and right management assures that every user can only see and use those data for which he has all the required rights and roles for.
-The high quality and reliability of ProjectForge base, last but not least, on a lot of automatically test cases. The more than 250 test cases are running daily, there are part of a professional CI-system (continuous integration).
-A high value of data integrity and security is therefore assured.
-
-== Rapid Application Development Approach (RAD)
-
-ProjectForge is characterized by a rapid application development approach.
-
-This means:
-
-- Write the entity as Java beans and define the data base mapping with annotations (JPA)
-- Write simple html pages (Wicket / React)
-- Write the business logic in Java/Kotlin (not in jsp or something comparable)
-- Derive ui classes (list and edit forms) from the base classes.
-- Derive data access objects from the base objects (security, access management, persistancy).
-
-The mission:
-Develop entities of new functionalities with lists and edit screens in just a few hours!
-
-- Secure access checking
-- Fully indexed (search)
-- History of every user's modifications
-- Full data base support
-- Support of object oriented html pages and components (powered by Wicket)!
-
-An established developer should focus on the essentials!
-
-== Technological requirements for the ProjectForge server
-
-Java 8 might work also with ProjectForge 7, but OpenJDK 11 is recommended (tested in several productive environments), PostgreSQL (optional), Linux, Mac OS X, Windows.
-
-== Technologies
+ProjectForge runs in the current versions of all common browsers:
 
 [cols=2*,options="header"]
 |===
-|Technology | Usage
+| Browser | Status
+| Google Chrome | Supported (also used by the automated end-to-end tests).
+| Microsoft Edge | Supported.
+| Mozilla Firefox | Supported.
+| Apple Safari | Supported.
+| Microsoft Internet Explorer | Not supported.
+|===
 
-|Java/Kotlin |Base technology
-|Hibernate / MGC|Persisting framework O2R, R2O, JPA 2
-|Spring |Boot Application
-|React / Wicket|Web framework Wicket will be replaced by React.
-|JCR|JackRabbit for document storage (used by data transfer tool and others)
-|FOP |For the creation of PDFs, e. g. the user time sheets, monthly employee reports etc.
-|JUnit |Test framework
-|GitHub actions|CI - continuous integration system
-|Groovy/Kotlin Script |Used for scripting ProjectForge for reports (MS Excel exports, charting etc.) as well as for e-mail templating (see AdministrationGuide for further information).
-|Jasperreports|For generating reports.
-|JFreeChart|For internal graphics and diagrams as well as for usage in the groovy scriptlets by the users, e. g. for reports.
-|Maven3|Building system, testing, staging and Jar-management.
-|EasyMock / Powermock |For using mock objects in JUnit-tests
-|MPXJ |For exporting MS-Project plans: MPXJ home page
-|POI|For the creation and manipulation of Excel files (also supported in the user scripts).
-|SVG (batik)|For drawing Gantt diagrams
+The user interface is responsive and works on desktops, tablets and smartphones.
+
+== Requirements for the ProjectForge server
+
+* Java 17 or newer (the Docker image is based on Eclipse Temurin 17).
+* PostgreSQL as database for productive use. An embedded HSQLDB is available for tests and evaluation.
+* Linux, macOS or Windows -- or Docker: images for amd64 and arm64 are available as `micromata/projectforge`.
+
+How to install and run it is described in link:/docs/installation/[Installation].
+
+== Professional architecture and CI (continuous integration)
+
+ProjectForge is based on a modern software architecture commonly used in the industry. A role and rights
+management ensures that every user can only see and use the data for which they have the required rights.
+
+The quality and reliability of ProjectForge are based, last but not least, on automated tests: unit and
+integration tests of the backend (JUnit), unit tests of the frontend (Vitest) and end-to-end tests in the
+browser (Playwright). The build including the backend tests runs on GitHub Actions for every push and pull request to the development branch.
+
+== Rapid application development
+
+ProjectForge is designed for developing new functionality fast:
+
+* Write the entity in Kotlin and define its database mapping and search index with annotations (JPA,
+  Hibernate Search).
+* Derive the data access object from the base class: access checks, history and persistence are inherited.
+* Derive the REST service from the base class: list, filters, favorites, history, create, update and
+  delete are inherited.
+* Declare the list and edit page in the Next.js frontend: field types, lengths, mandatory fields and labels
+  are generated from the entity.
+
+Every entity gets:
+
+* Secure access checking.
+* Full text search.
+* A history of every user's modifications.
+* Full database support with versioned migrations.
+
+Details are described in link:/docs/development/[Development].
+
+== Technologies
+
+=== Backend
+
+[cols="2,1,4",options="header"]
+|===
+|Technology |Version |Usage
+
+|Kotlin / Java |Kotlin 2.3, Java 17 |Programming languages of the backend (compiled for Java 17).
+|Spring Boot / Spring Framework |4.1 / 7.0 |Application framework, embedded Tomcat 11.
+|Spring Security |7.1 |Security framework; two-factor authentication, e. g. with WebAuthn security keys (WebAuthn4J).
+|Hibernate ORM |7.4 |Persistence (JPA 3.2).
+|Hibernate Search / Apache Lucene |8.4 / 9.12 |Full text search.
+|Flyway |11 |Database migrations.
+|PostgreSQL / HSQLDB |driver 42.7 / 2.7 |Databases: PostgreSQL in production, HSQLDB for tests and test instances.
+|Jackson |2.21 |JSON for the REST API.
+|Apache Jackrabbit Oak |1.92 |JCR document storage for attachments.
+|Groovy / Kotlin Script |Groovy 4.0 |Scripting of reports (e. g. Excel exports) by users.
+|Apache POI |5.5 |Creation and manipulation of Excel and Word files (also in user scripts).
+|Merlin |1.1 |Excel and Word templates.
+|Apache FOP |2.11 |PDF creation, e. g. time sheets and monthly employee reports.
+|Mustang |2.26 |Electronic invoices (ZUGFeRD, XRechnung).
+|ical4j / ez-vcard |4.4 / 0.12 |Calendar (iCal) and address (vCard, CardDAV) formats.
+|JFreeChart, Apache Batik (SVG) |1.5 / 1.19 |Charts and Gantt diagrams.
+|MPXJ |16.9 |Export of MS Project plans.
+|Lanterna |3.1 |Console setup wizard.
+|===
+
+=== Frontend
+
+[cols="2,1,4",options="header"]
+|===
+|Technology |Version |Usage
+
+|Next.js (App Router) |16.3 |Frontend framework; static export served by Spring Boot, no Node.js server in production.
+|React |19.2 |UI library.
+|TypeScript |5 |Programming language of the frontend.
+|Tailwind CSS, shadcn/ui (Radix UI) |4 |Styling and UI components.
+|TanStack Table, Query, Form |8.21, 5, 1 |Data tables, server state, forms.
+|Zod |4 |Form validation.
+|next-intl |4.12 |Internationalization (texts generated from the backend's resource bundles).
+|FullCalendar |6.1 |Calendar views.
+|Tiptap |3 |Rich text editor.
+|Recharts |3 |Charts.
+|===
+
+The pages that are not yet migrated to Next.js are served by the previous React app (React 19, Vite,
+Bootstrap 5).
+
+=== Build and tests
+
+[cols="2,1,4",options="header"]
+|===
+|Technology |Version |Usage
+
+|Gradle |9.8 |Build system (Gradle wrapper, version catalog).
+|JUnit Jupiter |6.0 |Test framework of the backend.
+|Mockito, mockito-kotlin |5.24, 6.4 |Mock objects in tests.
+|Vitest |4 |Unit tests of the frontend.
+|Playwright |1.62 |End-to-end tests in the browser.
+|ESLint, Prettier |9, 3 |Code checks and formatting of the frontend.
+|GitHub Actions | |CI (continuous integration).
+|Docker | |Images for amd64 and arm64.
 |===

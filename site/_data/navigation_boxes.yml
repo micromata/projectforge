@@ -1,16 +1,13 @@
-# Boxes include navigation
+# Value boxes on the home page ("Why ProjectForge?")
 
-- title: Scalable
-  desc: A professional project management, financial and administrative controlling platform for teams from small to large.
-  icon: settings
-  #doc: installation
+- title: Everything connected
+  desc: Orders, tasks, timesheets, invoices and liquidity share the same data. No more copying numbers between tools and spreadsheets.
+  icon: link
 
-- title: Easy
-  desc: It's easy to use, convenient and multi-lingual. Users do not need to install any software.
-  icon: code
-  #doc: hero
+- title: Your server, your rules
+  desc: Run it on your own infrastructure – with LDAP or single sign-on, two-factor login and a full audit trail. Your data never has to leave the house.
+  icon: lock
 
-- title: Best of two worlds
-  desc: Protection of investments cause of open source software and professional support and services.
-  icon: world
-  #doc: customize
+- title: Free. Really.
+  desc: All features, any number of users, no subscription. Open source under the GPL – and professional services from us, if you want them.
+  icon: heart

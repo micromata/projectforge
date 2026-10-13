@@ -1,5 +1,5 @@
 ---
-title: Start-up of ProjectForge fails due to Lucene errors.partly (e. g. half)?
+title: Start-up of ProjectForge fails due to Lucene errors?
 categories: [administration,faq]
 permalink: /misc/faqs.html
 ---

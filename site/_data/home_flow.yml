@@ -1,0 +1,26 @@
+# "How it fits together" on the home page: from order to numbers
+
+- step: 1
+  title: Win the order
+  desc: Track offers and orders with budgets, payment schedules and contact persons.
+  url: /features/#projects_orders
+
+- step: 2
+  title: Plan the project
+  desc: Break it down in a task tree, plan your people and decide who may book where.
+  url: /features/#projects_orders
+
+- step: 3
+  title: Book the time
+  desc: Your team books in seconds – from templates, the calendar or several days at once.
+  url: /features/#time_tracking
+
+- step: 4
+  title: Send the invoice
+  desc: Turn order positions into invoices and export them as XRechnung or ZUGFeRD.
+  url: /features/#finance_e_invoicing
+
+- step: 5
+  title: Know your numbers
+  desc: Forecast, contribution margins, invoicing quota and liquidity – always up to date.
+  url: /features/#controlling_liquidity

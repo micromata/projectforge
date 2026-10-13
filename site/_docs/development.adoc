@@ -8,671 +8,435 @@ tags: [development]
 :toc:
 :toclevels: 4
 
-:last-update-label: Copyright (C) 2026, Last updated
+:last-update-label: Copyright (C) 2001-2026, Last updated
 
 :sectnums:
 
 == Want to see it live?
-You're welcome to run ProjectForge by simply doing:
 
-1. Download the current version 7 snapshot (beta version): https://sourceforge.net/projects/pforge/files/ProjectForge/Snapshots/projectforge-application-7.0-SNAPSHOT.jar/download[projectforge-application-7.0-SNAPSHOT.jar]
-2. Run `java -jar projectforge-application-7.0-SNAPSHOT.jar` (Java 8 is needed).
-3. Visit http://localhost:8080/next/setup
-4. Choose and enter a password for the admin and submit.
-5. ProjectForge is now creating a system with some test data in a few seconds.
-6. Enjoy it and test the REST API.
+You just want to run ProjectForge? Then take the ready-to-use jar or Docker image described in
+link:/docs/installation/[Installation]. The steps below are for developers who want to build and change it.
 
+What you need:
+
+* a JDK 17 (the code is compiled for Java 17, see link:/docs/technologies/[Technologies]),
+* git,
+* Node.js with npm, only for the Next.js dev server (`bin/pfDev.sh dev`); the Gradle build downloads its own
+  Node.js.
+
+Build and run it:
+
+1. Clone the repository: `git clone https://github.com/micromata/projectforge.git` and `cd projectforge`.
+2. Build it without tests: `./gradlew build -x test` (`gradlew.bat` on Windows). There is no Maven build.
+3. Start it, either
+  a. as the main instance: `bin/pfDev.sh run` (Spring Boot on http://localhost:8080). The first start runs
+     the setup (setup wizard, then the setup page in the browser) as described in
+     link:/docs/installation/[Installation], or
+  b. as an independent test instance with test data: `bin/pfDev.sh setup 1` (once), then `bin/pfDev.sh run 1`
+     (Spring Boot on http://localhost:8081). The first start fills an own HSQLDB with test data and prints the
+     admin login (see <<Several instances side by side (`bin/pfDev.sh`)>>).
+4. Open http://localhost:8080 (or :8081). The pages are served by Spring Boot from the static export of the
+   Next.js frontend under `/next`.
+5. For working on the frontend, start the Next.js dev server with hot reload: `bin/pfDev.sh dev` (or
+   `bin/pfDev.sh dev 1`) and open http://localhost:3000/next (or :3001/next).
+
+Instead of `bin/pfDev.sh run` you may also use `./gradlew bootRun` or run
+`java -jar projectforge-application/build/libs/projectforge-application-<version>.jar`.
 
 == Architecture
 
+=== Overview
+
+The main functionality of ProjectForge is to display and search data lists and to modify data (CRUD - create,
+read, update and delete). The goal of the architecture is not to write thousands of lines of code for the same
+base functionality again and again: an entity declares its fields once, and access checks, full text search,
+history, REST endpoints, list and edit pages build on that.
+
+ProjectForge is one Spring Boot application (`projectforge-application`), built with Gradle. The main modules:
+
+|===
+|Module |Content
+
+|`projectforge-model`, `projectforge-common`
+|Shared utilities and constants (e. g. the REST paths).
+
+|`projectforge-business`
+|Entities (`*DO`), data access objects (`*Dao`) with the access checks, services, Flyway migrations and the
+i18n bundles (`I18nResources*.properties`).
+
+|`projectforge-rest`
+|The REST layer under `/rs` (and `/rsPublic` for the few calls without login), DTOs, the server-side `UILayout`
+of the pages not yet hand-built.
+
+|`projectforge-next`
+|The frontend: Next.js 16, React 19, TypeScript, TanStack Table/Query/Form, Tailwind CSS 4. Built as a static
+export and served by Spring Boot under `/next` -- no Node.js process in production.
+
+|`projectforge-webapp`
+|The legacy React app under `/react`, still bundled for the pages that are not yet migrated to
+`projectforge-next`.
+
+|`projectforge-jcr`, `projectforge-carddav`, `projectforge-idp`
+|Attachments (Apache Jackrabbit Oak), CardDAV for addresses, user and group sync with an identity provider
+(Keycloak, authentik).
+
+|`plugins/*`
+|The built-in plugins, see <<Writing own plugins>>.
+|===
+
+The Wicket UI was removed with ProjectForge 9.0.0. Old Wicket links (`/wa/...`) are redirected to the
+corresponding Next.js pages.
+
 === The layers
 
-The main functionality of ProjectForge is to display and search data list and to modify data (CRUD - create, read, update and delete). Therefore the
-goal of the architecture is not to write thousands lines of code for same base functionality.
+==== Business layer (projectforge-business)
 
-==== Business layer (business)
+The business layer handles all entities including the access checks for CRUD operations as well as user
+services (storage of preferences etc.).
 
-The business layer handles all entities including access checking for CRUD operations as well as well as user services (storage for preferences etc.).
+==== REST layer (projectforge-rest)
 
+The REST layer provides the CRUD services of all entities and further services for the frontend. Every call
+is checked against the access rights of the logged-in user by the business layer.
 
-==== REST API and front-end support (rest)
+There are two kinds of entity REST classes:
 
-The REST layer provides CRUD services etc. and also front-end support functionality. These both parts might be separated, but regarding code efficiency both are combined.
-For using only CRUD operations (without interest in the front-end support functionality), so simply ignore some additional information in the result data (json).
+* `*EntityRest` (base classes `AbstractEntityRest`, `AbstractDTOEntityRest`): layout-free. It serves data,
+  filter metadata, favorites, history and the write operations; the page itself is hand-built in
+  `projectforge-next`. This is the pattern for every new or migrated page, e. g. `BookEntityRest`.
+* `*PagesRest` (base classes `AbstractPagesRest`, `AbstractDTOPagesRest`): additionally generates the page
+  layout on the server (`UILayout` JSON), which the legacy React app and the dynamic renderer of
+  `projectforge-next` (`components/dynamic/`) display. These pages are migrated step by step to the
+  `*EntityRest` pattern.
 
-Yes, you're totally right: Should you not separate front-end from back-end code more strictly? But, the code is separated and despite the fact, that UI layout info and CRUD services are combined, it should be allowed
-to have a server-side application support. So this REST-API is a result of efficient development without dozens of front-end and back-end developers.
+==== Frontend (projectforge-next)
 
-==== ReactJS (webapp)
+The Next.js app (App Router) lives in `projectforge-next/`; its conventions are described in
+`projectforge-next/CLAUDE.md` and `projectforge-next/docs/`. In short:
 
-The ReactJS layer handles the data and UI layout information provided by the REST API. A dynamic layout management system is used to visualize the
-html pages defined by the server. In addition customized components are provided for specialized functionality.
+* Routes in `app/(authenticated)/<entity>/`, the domain code in `components/features/<entity>/`, shared
+  components in `components/shared/` and `components/data-table/`.
+* All backend calls go through `lib/rs/` and TanStack Query.
+* An ordinary list and edit page is _declared_, not programmed: one `PageDef` per entity (`definePage()`),
+  rendered by the generic `EntityListPage` and `EntityEditPage`.
+* Field types, maximum lengths, mandatory fields and enum values are not maintained twice: they are
+  generated from the entity's `@PropertyInfo` and JPA annotations into `lib/metadata/<entity>.generated.ts`.
+* The menu and the redirects are decided by the backend (`MenuItemDefId`, `NextMigration`), so a page can
+  be switched to `projectforge-next` independently of all others.
 
-Except for the customized components and pages, the client has no clue, of what entities are provided by the server. The client gets the menu from the server and
-calls the server for how to proceed for given entities (e. g. list or edit view of users, addresses, book, time sheets etc.). The server provides both, the data
-to display (model) and the layout information of how to display (view).
-The users actions (clicking on buttons or menu entries) results in most cases in server calls, and the server responses how to proceed:
+In development the dev server (`bin/pfDev.sh dev`, port 3000) proxies `/rs/**` and `/rsPublic/**` to Spring
+Boot (port 8080, or `PF_BACKEND_URL`). In production there is only Spring Boot, serving the static export.
 
-1. The front-end supports defined state manipulations by the server (see below, e. g. selecting favorite filter etc., or list of calendar events after selecting calendars etc.)
-2. The server may respond in addition on URLs to redirect to by the front-end.
-3. The server provides also validation information (e. g. max-length of text input fields) as well as errors after complex server-side validations after submitting a form.
-4. The front-end defines customized pages and components (non standard components are not ruled by the server). Examples: Image upload for addresses or lend-out functionality for books.
+=== Generated files and i18n
 
+Some files are generated and must never be edited by hand:
+
+* `projectforge-next/lib/metadata/*.generated.ts` (field metadata of all entities),
+* `projectforge-next/messages/generated.*.json` (translations for the frontend),
+* `projectforge-application/src/main/resources/i18nKeys.json` (usage of the i18n keys),
+* the changelog pages of this website and of the app (from `changelog/changelog{,.de}.json`).
+
+All of them are produced by `bin/pfDev.sh gen` (the Gradle task
+`:projectforge-application:developmentMainForRelease`). Tests fail if a generated file differs from what the
+generator produces, so run it after changing an entity or a text.
+
+The source of truth of all texts is `projectforge-business/src/main/resources/I18nResources.properties`
+(English) and `I18nResources_de.properties` (German); plugins have their own bundles. New texts go there, not
+into `messages/*.json`. Keys named literally in the frontend sources or referenced by the entity metadata are
+exported automatically; keys built at runtime need a prefix entry in `PREFIXES` of
+`GenerateNextI18nMessagesMain`. The hand-written `messages/de.json` and `messages/en.json` only hold the few
+frontend texts without a backend counterpart.
 
 == Backend
 
-Java is the language used since the very beginning of ProjectForge in 2001.
-
-With ProjectForge 7.x Kotlin and ReactJS is introduced.
+Java is the language used since the very beginning of ProjectForge in 2001. Since ProjectForge 7 Kotlin is
+used as well, and new code is written in Kotlin.
 
 === Why Kotlin in addition to Java?
-* Kotlin is used for smarter and less code, especially for BaseDO objects as well as for easier creation of data transfer classes for the new introduced REST API.
-* Other advantages:
-  ** Smart operations on collections (map, find, sort etc.)
-  ** Immutable objects, classes and functions as default.
-  ** Null safety
-  ** Compatibility with JAVA code.
-* Java and Kotlin will both exist. Only most BaseDO classes were migrated and new functionality will mostly be written in Kotlin.
 
-Please note: Kotlin must be compiled with target 1.8 (Java version) but is fully runnable on Java 9, 10 and 11 VMs.
+* Smarter and less code, especially for entities and data transfer objects.
+* Smart operations on collections (map, find, sort etc.).
+* Immutable objects and values where possible.
+* Null safety.
+* Full interoperability with the existing Java code.
 
-==== Base entities (BaseDO)
-The BaseDO objects are the entities of ProjectForge stored in the data base. As default, all modification of entity attributes are available in a history with the information about the modification (user, timestamp, old and new value).
+Java and Kotlin sources are both compiled for Java 17 (`jvmTarget = 17`, see
+`buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 17 or
+newer.
 
-.AddressDO.kt
+=== Entities (BaseDO)
+
+Entities are the objects of ProjectForge stored in the database. By default every modification of an
+entity is recorded in a history with the information about the modification (user, timestamp, old and new
+value).
+
+.BookDO.kt (excerpt)
 [source,kotlin,linenums]
 ----
-open class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
+@Entity
+@Indexed
+@Table(name = "T_BOOK", ...)
+open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
-    @PropertyInfo(i18nKey = "address.contactStatus")
-    @Field
-    open var contactStatus = ContactStatus.ACTIVE
-
-    @PropertyInfo(i18nKey = "name", required = true)
-    @Field
+    @PropertyInfo(i18nKey = "book.title", required = true)
+    @FullTextField
     @get:Column(length = 255)
-    open var name: String? = null
+    open var title: String? = null
 
-    @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
-    @Field
-    @get:Column(length = 255)
-    open var businessPhone: String? = null
+    @PropertyInfo(i18nKey = "book.authors")
+    @FullTextField
+    @get:Column(length = 1000)
+    open var authors: String? = null
     ...
 }
-
 ----
 
 [NOTE]
 ====
-BaseDO classes must be declared as open as well as all properties. Otherwise JPA/Hibernate isn't able to proxy these objects and lazy loading isn't supported.
+Entity classes and all their properties must be declared `open`. Otherwise JPA/Hibernate isn't able to
+proxy these objects and lazy loading isn't supported.
 ====
 
-As example some parts of `AddressDO.kt` are shown and described below:
-
 |===
-|`@PropertyInfo` | The given `i18nKey` is used for translating the field label and will be served for the frontend(s).
-The optional given `additionalI18nKey` is used for having an additional translated label, in the example there are different phone numbers, categorized as business or private.
-|`@Field`|This database field will be indexed and available for a full text search as well as for specifying search values for this field by the user.
-|`@get:Column(length=255)` | JPA annotations. The JPA annotations are available as Meta information from all parts and will be served for the frontends, e. g. for
-defining the html field `max-length` of input fields.
-|Property type|The property type is also available as Meta information also for the clients. The input fields of the frontend may be autodetected (string, date picker, user selectors, drop down choices for enums etc.)
+|`@PropertyInfo` |The `i18nKey` is used for the translated field label (in lists, forms, exports etc.).
+An optional `additionalI18nKey` adds a second label, e. g. "business" for one of several phone numbers;
+`required = true` marks a mandatory field.
+|`@FullTextField`, `@GenericField`, `@KeywordField` |Hibernate Search annotations: the field is indexed and
+available for the full text search and for field-specific search values.
+|`@get:Column(length = 255)` |JPA annotations. Their information (e. g. the length) is available as metadata
+and ends up in the generated field metadata of the frontend, e. g. as `maxLength` of an input field.
+|Property type |The property type is also part of the metadata, so the frontend picks the matching input
+(text, date picker, user selector, drop down for enums etc.).
 |===
 
-.ContactStatus.java
-[source,java,linenums]
-----
-public enum ContactStatus implements I18nEnum
-{
-  ACTIVE("active"), NON_ACTIVE("nonActive"), DEPARTED("departed");
+Enumerations implementing `I18nEnum` (e. g. `BookStatus`) provide an i18n key per value, so they are
+shown as drop down fields with translated labels.
 
-  public String getI18nKey()
-  {
-    return "address.contactStatus." + key;
-  }
-  ...
-}
-----
-The enumerations of type `I18nEnum` are also designed for auto translation purposes. The field `contactStatus` will be presented as a drop down choice field with translated
-labels.
+Database changes are made by Flyway migrations, see <<Flyway migrations>>.
 
-==== BaseDao
-The BaseDao classes provide all CRUD operations for the BaseDO entities and will handle the access rights. No user is able to select or modify entities without the required access rights.
+=== Data access objects (BaseDao)
 
-The implementation of BaseDao for entities, such as users, addresses, books etc. extends the BaseDao object by defining the access rights and additional special functionality. The base CRUD functionality including access
-checks, history service etc. will be inherited.
+The `BaseDao` classes provide all CRUD operations for the entities and handle the access rights: no user is
+able to select or modify entities without the required rights.
+
+An entity's DAO (e. g. `BookDao`) extends `BaseDao` and defines the access rights and special functionality.
+The base functionality including access checks, history and search is inherited.
 
 == REST API
 
-Since version 7.0 ProjectForge provides all CRUD operations through a REST API and much more. The user's access rights will be checked. For available standard REST calls you
-may refer the REST calls described in the UI section below.
+All CRUD operations and much more are available through the REST API under `/rs`, which is used by the
+frontend. The access rights of the logged-in user are checked for every call; writing calls need the CSRF
+token of the session (header `X-PF-CSRF-Token`, provided by `GET /rs/userStatus`).
 
-== UI
-The new UI is based on REST and ReactJS. The ReactJS code includes a dynamic auto layout component for standard components, such as:
+=== Entity endpoints
 
-For developing ProjectForge's frontend, please refer: https://github.com/micromata/projectforge/tree/develop/projectforge-webapp
+Every `*EntityRest` inherits the following endpoints from `AbstractEntityRest` (example: books under
+`/rs/book`):
 
+[cols="2,4",options="header"]
 |===
-|Input | Html input fields (text, date picker with text input etc.)
-|Select boxes | For selecting values for e. g. enums (auto completion and asynchronous are calls supported.)
-|Multi select | Select field for selecting multi values (auto completion, asynchronous). This may be used for selecting values as well as of selecting entities assigned to current object, e. g. users may assigned to groups or calendars are selectable for displaying.
-|Fieldset|Fieldsets with titles and length settings (Bootstrap grid system is supported)
-|Columns|Columns with length settings (Bootstrap grid system is supported)
-|Tables|For displaying result sets etc.
-|Customized fields|You may register customized UI components which will be used for displaying and modifiing values. Refer the image upload for addresses as an example.
-|...|...
-|===
+|Call |Description
 
-=== Responsive
-Bootstrap is used and responsive layout control is fully supported.
+|`GET rs/book/listMeta`
+|Everything a list page needs beside its rows: the filter fields of the entity, the current filter of the
+user and the saved filter favorites.
 
-=== Standard list views
+|`POST rs/book/list`
+|The result set for the posted filter (`MagicFilter`, see below).
 
-Available REST calls:
+|`POST rs/book/listPage`
+|One page of the result set, for lists paged on the server.
 
-[cols=3*,options="header"]
-|===
-|Rest call|Description|Return values
+|`GET rs/book/{id}`
+|The entity with the given id.
 
-|`rs/address/initialList`
-|Initial call for displaying a list including layout, recent filter settings, result data and favorites.
-a|* UI layout (available filter options, columns of the result data, page menu items, ...)
-* Recent used filter settings by the user.
-* Available personal favorites.
-* Result set for recent filter.
+|`GET rs/book/newEntry`
+|The preset of a new entity (default values).
 
-|`rs/address/list`
-|Call with current filter settings as POST parameter after clicking the search button.
-a|* Result set matching the given filter settings.
+|`PUT rs/book/saveorupdate`
+|Inserts or updates the posted entity. Validation errors are returned with HTTP status 406.
 
-|`rs/address/filter/create`
-|For creating a new favorite filter. The current filter settings of the UI including the specified name of the new filter are required.
-a|* filter (new current filter)
+|`DELETE rs/book/markAsDeleted`, `PUT rs/book/undelete`, `DELETE rs/book/delete`
+|Marks a historizable entity as deleted, restores it, or deletes a non-historizable entity.
 
-|`rs/address/filter/select?id={filterId}`
-|For selecting a previous stored favorite filter. Same parameter as for initialList will be returned.
-a|* UI layout
-  * New filter settings from selected favorite.
-  * Result set matching the new selected filter.
+|`GET rs/book/history/{id}`
+|The history of changes of the given entity.
 
-|`rs/address/filter/update`
-|For updating the current filter with the new filter settings done by the user.
-|
+|`GET rs/book/autocomplete?property={property}&search={search}`
+|Autocompletion of values already used for a property (e. g. locations of time sheets).
 
-|`rs/address/filter/delete`
-|For deleting a favorite filter.
-a|* Modified list of available favorites.
+|`GET rs/book/autosearch?search={search}`
+|Full text search for entities matching the search string.
 
-|`rs/address/filter/reset`
-|Resets the current filter by default values.
-a|* The default filter.
+|`rs/book/filter/...`
+|Creating, selecting, renaming, updating, deleting and resetting filter favorites.
 
-
-|`rs/address/reindexFull`
-|For rebuilding the full search index for the enties (e. g. all addresses).
-|
+|`GET rs/book/reindexFull`, `GET rs/book/reindexNewest`
+|Rebuilds the search index of the entity.
 |===
 
-==== Example of json format
+Further services of an entity (e. g. lending out a book) are separate REST classes, such as
+`BookServicesRest`.
 
-.rs/address/initialList
+=== Magic filter
+
+Lists are queried with a `MagicFilter`: a full text search string plus optional field-specific entries.
+
+.MagicFilter (example)
 [source,json,linenums]
 ----
 {
-  "ui": {
-    "title": "Address list",
-    "layout": [
-      {
-        "id": "resultSet",
-        "type": "TABLE",
-        "key": "el-1",
-        "columns": [
-          {
-            "id": "address.lastUpdate",
-            "title": "modified",
-            "dataType": "DATE",
-            "sortable": true,
-            "formatter": "DATE",
-            "type": "TABLE_COLUMN",
-            "key": "el-2"
-          },
-     ...
-    "namedContainers": [
-     {
-        "id": "searchFilter",
-        "content": [
-          {
-            "id": "name",
-            "filterType": "STRING",
-            "label": "Name",
-            "type": "FILTER_ELEMENT",
-            "key": "name"
-          },
-          {
-            "id": "contactStatus",
-            "type": "SELECT",
-            "key": null,
-            "required": true,
-            "multi": true,
-            "label": "Contact status",
-            "labelProperty": "label",
-            "valueProperty": "value",
-            "values": [
-              {
-                "value": "ACTIVE",
-                "label": "active"
-              },
-              {
-                "value": "NON_ACTIVE",
-                "label": "non-active"
-              },
-              ...
-            ]
-          },
-          {
-            "id": "modifiedByUser",
-            "label": "modified by",
-            "autoCompletion": {
-              "minChars": 2,
-              "url": "user/ac"
-            },
-            "type": "FILTER_ELEMENT",
-            "key": "modifiedByUser",
-            "filterType": "OBJECT"
-          },
-          {
-            "id": "modifiedInterval",
-            "label": "Time of modification",
-            "openInterval": true,
-            "selectors": [
-              "YEAR",
-              "MONTH",
-              "WEEK",
-              "DAY",
-              "UNTIL_NOW"
-            ],
-            "type": "FILTER_ELEMENT",
-            "key": "modifiedInterval",
-            "filterType": "TIME_STAMP"
-          },
-       ...
-   "actions": [
-      {
-        "id": "reset",
-        "title": "Reset",
-        "style": "danger",
-        "type": "BUTTON",
-        "key": "el-17"
-      },
-      {
-        "id": "search",
-    ...
-    "translations": {
-      "select.placeholder": "Select...",
-      "task.title.list.select": "Select structure element",
-      "favorites": "Favorites",
-      "favorite.addNew": "Add new favorite",
-     ...
-    "pageMenu": [
-      {
-        "id": "address.writeSMS",
-        "title": "Write a text message",
-        "i18nKey": "address.tooltip.writeSMS",
-        "url": "wa/sendSms"
-      },
-      ...
-  "data": {
-    "resultSet": [
-      {
-        "address": {
-          "name": "Reinhard",
-        ...
-  "filterFavorites": [
-    {
-      "id": 3,
-      "name": "People of Kassel"
-    },
-    ...
+  "searchString": "kotlin",
+  "entries": [
+    { "field": "title", "value": { "value": "java" } },
+    { "field": "yearOfPublishing", "value": { "from": "2010" } },
+    { "field": "status", "value": { "values": ["PRESENT", "MISSED"] } }
+  ]
+}
 ----
 
-Explanation
 |===
-|`ui`|Contains the page title and the layout information for the dynamic layout render engine (ReactJS).
-|`namedContainer`|Contains containers usable by the front-end, such as search filter and filter options.
-|`actions`|The action buttons to display and handle by the front-end.
-|`translations`|All required translations usable by the front-end for i18n.
-|`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
-|`data`|Contains the result set with all result data matching the current filter settings.
-|`filterFavorites`|List of personal named filter favorites customizable by the user.
-|`key`|The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.
+|`searchString` |Full text search over all indexed fields.
+|`"value": { "value": ... }` |Search value for the given field.
+|`"value": { "from": ..., "to": ... }` |Range search (both bounds are optional).
+|`"value": { "values": [...] }` |Entries whose field has one of the given values.
 |===
 
-Visit http://localhost:8080/rs/address/initialList for a full example. Please login in your browser first: http://localhost:8080
+The filter last used is stored per user and list; named filters can be saved as favorites.
 
-=== Standard edit pages
+=== Entities vs. DTOs
 
-Available REST calls:
+For simple entities the entity itself may be used by the REST layer. Usually a DTO (data transfer object)
+is used, e. g. if the object embeds other entities (users, tasks etc.) or needs special handling
+(attachments, images). The base class `BaseDTO` copies the properties between DTO and entity; the
+`*EntityRest` implements `transformForDB` and `transformFromDB`. Examples:
+https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Book.kt[`Book.kt`],
+https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt[`User.kt`].
 
-[cols=3*,options="header"]
+== Adding a list and edit page
+
+The books are the reference implementation of a hand-built page. What it takes:
+
+[cols="2,3",options="header"]
 |===
-|Rest call|Description|Return values
-
-|`rs/address/{id}`
-|Only the entity with the given id will be returned (not used by React frontend).
-a|* The pure data object.
-
-|`rs/address/edit?id={id}`
-|Initial call for editing. If id is not given, the layout for creating a new object is returned.
-a|* UI layout including action buttons.
-* The object data (default values for new objects or all values for editing existing objects).
-
-|`rs/address/history/{id}`
-|For getting the complete history of changes of the given object.
-a|* All entries of the history of changes.
-
-|`rs/address/ac?property={property}&search={search}`
-|Autocompletion: for searching all used property values (e. g. used locations of time sheets).
-a|* All matching property values.
-
-|`rs/address/ac?&search={search}`
-|Autocompletion: for full text searching all objects matching the given search string.
-a|* All matching objects (e. g. addresses).
-
-|`rs/address/history/{id}`
-|For getting the complete history of changes of the given object.
-a|* All entries of the history of changes.
-
-|`rs/address/saveorupdate`
-|For saving or updating objects.
-a|* The new URL to redirect, if any.
-
-|`rs/address/clone`
-|For cloning the current displayed object. Returns the initial UI layout for new objects including the create button instead of delete and update.
-a|* UI layout including action buttons.
-* The object as clone without id.
-
-|`rs/address/markAsDeleted`
-|For marking historizable objects as deleted. Fails for non historizable entities.
-a|
-
-|`rs/address/delete`
-|For deleting objects from the data base without undo option. Fails for historizable entities.
-a|
-
-|`rs/address/cancel`
-|Cancel the edit page.
-a|* The new URL to redirect to.
-|===
-
-==== Example of json format
-
-.rs/address/edit?id={id}
-[source,json,linenums]
-----
-{
-  "data": {
-    "contactStatus": "ACTIVE",
-    "name": "Schmidt",
-    ...
-  },
-  "ui": {
-    "title": "Edit address",
-    "layout": [
-      {
-        "content": [
-          {
-            "length": 12,
-            "type": "FIELDSET",
-            "key": "el-2",
-            "content": [
-              ...
-            {
-              "id": "addressStatus",
-              "type": "SELECT",
-              "key": "el-9",
-              "required": true,
-              "label": "Address status",
-              "values": [
-                  {
-                     "value": "UPTODATE",
-                     ...
-                  }]
-            },
-            ...
-            {
-              "id": "name",
-              "maxLength": 255,
-              "required": true,
-              "focus": true,
-              "dataType": "STRING",
-              "label": "Name",
-              "type": "INPUT",
-              "key": "el-24"
-            },
-            ...
-    "actions": [
-      {
-        "id": "cancel",
-        "title": "Cancel",
-        "style": "danger",
-        "type": "BUTTON",
-        "key": "el-137",
-        "responseAction": {
-          "url": "address/cancel",
-          "targetType": "POST"
-        }
-      },
-      {
-        "id": "markAsDeleted",
-        "title": "Mark as deleted",
-        "style": "warning",
-        "type": "BUTTON",
-        "key": "el-138",
-        "responseAction": {
-          "url": "address/markAsDeleted",
-          "targetType": "DELETE"
-        }
-      },
-      {
-        "id": "update",
-        "title": "Save",
-        "style": "primary",
-        "default": true,
-        "type": "BUTTON",
-        "key": "el-140",
-        "responseAction": {
-          "url": "address/saveorupdate",
-          "targetType": "POST"
-        }
-      }
-      ...
-    ],
-    "pageMenu": [
-      {
-        "id": "address.printView",
-        "title": "print view",
-        "i18nKey": "printView",
-        "url": "wa/addressView?id=2",
-        "type": "REDIRECT"
-      },
-      ...
-    "translations": {
-      "file.upload.dropArea": "Select a file, or drop it here.",
-      "label.historyOfChanges": "History of changes",
-      ...
-----
-
-Explanation
-|===
-|`data`|Contains the result set with all result data matching the current filter settings.
-|`ui`|Contains the page title and the layout information for the dynamic layout render engine (ReactJS).
-|`actions`|The action buttons to display and handle by the front-end.
-|`pageMenu`|The context menu to show on the list page including the actions to execute by the front-end.
-|`translations`|All required translations usable by the front-end for i18n.
-|`key`|The key attribute is a service for the React client: a unique key for elements of a collection is needed by ReactJS.
-|===
-
-Visit http://localhost:8080/rs/address/edit?id=128 for a full example. May-be another id is needed, so refer the initilList for address id's
- (`data.resultSet.address.id`, not tenant's id)!  Please login in your browser first: http://localhost:8080
-
-
-==== Magic filter
-
-An example filter for querying a result set:
-
-image::/uploads/development/Books-magicfilter.png[]
-
-.MagicFilter.json
-[source,json,linenums]
-----
-   "entries": [
-      {
-        "search": "fin"
-      },
-      {
-        "field": "modifiedByUser",
-        "value": {
-          "id": 2,
-          "deleted": false
-        }
-      },
-      {
-        "field": "title",
-        "search": "java",
-        "matchType": "STARTS_WITH"
-      },
-      {
-        "field": "modifiedInterval",
-        "fromValue": "2019-04-28'T'10:00:05.000Z",
-        "toValue": "2019-04-28'T'17:00:05.000Z"
-      },
-      {
-        "field": "yearOfPublishing",
-        "fromValue": 2010
-      },
-      {
-        "field": "type",
-        "values": [
-          "BOOK",
-          "MAGAZINE"
-        ]
-      }
-    ]
-----
-
-Explanation for filter settings:
-|===
-|`"search": "fin"`|Full text search (for all fields) with standard `matchType=STARTS_WITH`: `fin*`
-|`"field": "modifiedByUser"`|Selects all entries modified by the given user.
-|`"field": "title"`|Selects entries with the matching title.
-|`"field": "modifiedInterval"`|Selects entries modified in the given time interval.
-|`"field": "yearOfPublishing"`|Selects entries with the `yearOfPublishing` 2010 and newer.
-|`"field": "type"`|Selects entries with the type matching one of the given values.
-|===
-
-
-==== REST-API: JPA entities vs. DTO
-For simple objects the JPA objects (BaseDO) may be used for the CRUD functionality through the REST-API. For more complex objects, especially if these objects
-are embedded by other entities (users, tasks etc.) a DTO (data transfer object) has to be used.
-
-In thanks to Kotlin, the creation of a DTO is very simple and efficient. Examples:
-
-* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[`Address.kt`]
-The DTO for addresses is needed, because addresses may contain images with a special handling.
-* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/User.kt[`User.kt`]
-The DTO for users is needed, because user objects are embedded in other JPA entities.
-* https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Task.kt[`Task.kt`]
-Task is embedded by other entities as well.
-
-The base class `BaseDTO` provides base functionality for the automatically transformation of DTO and BaseDO.
-
-==== Putting all together in Kotlin code
-
-Simple example (books)
-[cols=2*,options="header"]
-|===
-|Class (Link)|Description
+|File |Purpose
 
 |https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookDO.kt[`BookDO.kt`]
-|Defines the entity
+|The entity, including `@PropertyInfo`, JPA and search annotations.
 
 |https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/book/BookDao.java[`BookDao.java`]
-|Defines access rights and special functionality for books
+|Access rights and special functionality.
 
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookRest.kt[`BookRest.kt`]
-|Books with support of ReactJS as well as REST API for CRUD operations
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Book.kt[`Book.kt`]
+|The DTO.
 
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/book/BookStatus.kt[`BookStatus.kt`]
-|Enumeration of book status including i18n
+|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/BookEntityRest.kt[`BookEntityRest.kt`]
+|The REST endpoints (extends `AbstractDTOEntityRest`): defaults of a new book, DTO transformation, validation.
+
+|Flyway migration
+|The table of a new entity, see <<Flyway migrations>>.
+
+|`I18nResources.properties`, `I18nResources_de.properties`
+|The labels and texts.
+
+|`projectforge-next/lib/metadata/book.generated.ts`
+|Generated field metadata, created by `bin/pfDev.sh gen`.
+
+|`projectforge-next/components/features/book/book.page.tsx`
+|The page declaration (`definePage()`): list columns, edit sections, actions.
+
+|`projectforge-next/components/features/book/edit/`
+|The Zod schema and form values of the edit form, custom sections.
+
+|`projectforge-next/app/(authenticated)/book/page.tsx`, `book/[id]/page.tsx`
+|The routes of the list and the edit page (`/next/book`, `/next/book/<id>`, `/next/book/new`); they only
+render `EntityListPage` and `EntityEditPage` with the declaration.
+
+|`MenuItemDefId`, `NextMigration` (projectforge-business)
+|The menu entry and the routes of the page.
 |===
 
-Nothing more is needed to have a simple entity provided by ProjectForge!!! No HTML, no JavaScript, nothing else.
+Steps in short:
 
-Simple example (addresses) with more fields and UI layout with more fieldsets and columns (supporting different screen resolutions, responsive).
-[cols=2*,options="header"]
-|===
-|Class (Link)|Description
+1. Write the entity, the DAO, the DTO and the `*EntityRest`, and add the Flyway migration.
+2. Add the texts to `I18nResources.properties` and `I18nResources_de.properties`.
+3. Run `bin/pfDev.sh gen` to generate the field metadata and the translations of the frontend.
+4. Declare the page in `components/features/<entity>/<entity>.page.tsx` and add the two route files.
+5. Register the menu entry and the routes in the backend.
+6. Check the frontend with `bin/pfDev.sh check` (TypeScript, ESLint, Prettier) and add tests (see <<Tests>>).
 
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/kotlin/org/projectforge/business/address/AddressDO.kt[`AddressDO.kt`]
-|Defines the entity
-
-|https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/java/org/projectforge/business/address/AddressDao.java[`AddressDao.java`]
-|Defines access rights and special functionality for addresses
-
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/AddressRest.kt[`AddressRest.kt`]
-|Addresses with support of ReactJS (responsive) as well as REST API for CRUD operations
-
-|https://github.com/micromata/projectforge/blob/develop/projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/Address.kt[`Address.kt`]
-|Data transfer object for the client. For simple objects, the BaseDO object may be used for the REST-CRUD functionality. For more complex objects providing special functionality, the usage of a DTO is required/recommended.
-|===
+The declaration format is described in `projectforge-next/docs/page-declarations.md`. Pages that don't fit
+the declaration use the hooks `useEntityListPage` and `useEntityEditForm` directly or are hand-built
+completely.
 
 == Writing own plugins
-Refer https://github.com/micromata/projectforge-plugins[ProjectForge-plugins on GitHub] for examples.
 
-* KTMemo as an Kotlin plugin.
-* JMemo as an Java plugin.
+The built-in plugins live in `plugins/` as Gradle modules (e. g. `org.projectforge.plugins.memo`, a small
+example, or `org.projectforge.plugins.todo`) and are included in the application. A plugin consists of:
 
-=== Starting your plugin from command line
+* a class extending `AbstractPlugin`, registered in
+  `src/main/resources/META-INF/services/org.projectforge.plugins.core.AbstractPlugin` (Java `ServiceLoader`),
+  which registers DAOs, menu entries, access rights and i18n bundles in `initialize()`,
+* its entities, DAOs and REST classes, built like the core entities above,
+* its own i18n bundles (e. g. `MemoI18nResources.properties`),
+* its frontend pages in `projectforge-next` (`components/features/<plugin>/` and the routes in
+  `app/(authenticated)/`), if it has been migrated.
 
-1. Build jar file by calling `mvn clean install`.
-2. Copy jar file to plugins folder of ProjectForge home, e. g. `/home/kai/ProjectForge/plugins`.
-3. Tell ProjectForge where it is. You may have to options:
-   a. Run ProjectForge from command line with option `-Dloader.home=/home/kai/ProjectForge`, or
-   b. Set the environment variable before starting ProjectForge: `export LOADER_HOME=/home/kai/ProjectForge`.
-4. Start ProjectForge and activate the plugin as admin in the ProjectForge's web app under menu Admin->plugins.
-5. Restart ProjectForge.
+A new plugin module has to be added to `settings.gradle.kts` and as a dependency to
+`projectforge-application/build.gradle.kts`. Administrators activate plugins in ProjectForge under
+_Administration -> Plugins_ (see link:/docs/installation/[Installation]); `projectforge.plugins.active=all`
+activates all plugins, e. g. on test instances.
 
-=== Starting and debugging in IntelliJ
+== Tests
 
-The loader home stuff doesn't work if you start ProjectForge's main in IntelliJ.
-Following the solution described in https://stackoverflow.com/questions/37833877/intellij-spring-boot-propertieslauncher[Stack overflow]:
-1. Enable profile `intellij-properties-launcher` in maven tab.
-2. Edit launch configuration:
-  a. Main class: `org.springframework.boot.loader.PropertiesLauncher`. Please note, the configuration is marked faulty, but it works.
-  b. VM options: `-Xms2000m -Xmx2000m -Dloader.home=/home/kai/ProjectForge -Dloader.main=org.projectforge.start.ProjectForgeApplication`
-  c. Environment variables: `LOADER_HOME=/home/kai/ProjectForge`
+* *Backend:* JUnit Jupiter (JUnit 6), Mockito and mockito-kotlin. The tests run on HSQLDB, e. g.
+  `./gradlew test --tests "org.projectforge.business.book.*"` or
+  `./gradlew :projectforge-business:test`.
+* *Frontend unit tests:* Vitest, `npm test` in `projectforge-next/`.
+* *End-to-end tests:* Playwright, in `projectforge-next/e2e/`. `bin/pfDev.sh e2e` runs them against Spring
+  Boot (the static export of the last build), `bin/pfDev.sh e2e --dev` against the dev server. A running
+  instance in development mode (`projectforge.development.mode=true`) creates its test accounts itself and
+  writes their credentials into `testAccounts.txt` of its home directory. Details are in
+  `projectforge-next/CLAUDE.md`.
 
-For debugging you may attach the plugin to your IntelliJ classpath.
+[NOTE]
+====
+Gradle runs of the same checkout share their build directory: a build rewrites the jar of a running
+`bootRun` of that checkout, and two parallel test runs disturb each other.
+====
 
+== Release workflow
 
-=== Limitations in Plugins
+=== Flyway migrations
 
-* Own customized components are not yet supported in UILayout for external plugins. We're working on this issue.
+Database changes are Flyway migrations in
+`projectforge-business/src/main/resources/flyway/migrate/common` (or under the same version in both
+`postgresql` and `hsqldb`, if the SQL differs). They are versioned by the release that ships them, always with
+four segments: `V<release>.<n>__RELEASE-<Name>.sql`, e. g. `V9.0.4.1__RELEASE-Script_page_targets.sql`. The
+release is the `version` in `gradle.properties` (without `-SNAPSHOT`) at merge time.
 
-All other functionality
-seems to be available.
+A migration must never be lower than one already shipped: if a branch misses its planned release, its scripts
+are renamed to the next release before merging.
 
+=== Changelog
+
+The changelog is maintained in `changelog/changelog.json` (English) and `changelog/changelog.de.json` (German).
+A change in a branch doesn't touch these files but gets its own file
+`changelog/unreleased/yyyyMMdd-<slug>.json` with English and German text (see `changelog/unreleased/README.md`).
+`bin/pfDev.sh release` moves them into the release entry; `bin/pfDev.sh gen` generates the changelog pages of
+the website and of the app.
 
 == Misc
 
 === Code style
 
-The standard IntelliJ coding style is used, but tab width and indent with is 2 and continuation indent is 4.
+Most of the existing code follows the IntelliJ code style in `misc/IntelliJ/CodeStyle.xml` (indent 2,
+continuation indent 4); newer Kotlin code uses 4-space indentation. All source files carry the ProjectForge
+license header. The frontend is formatted with Prettier and checked with ESLint (`bin/pfDev.sh check`).
 
-Please import code style: `misc/IntelliJ/CodeStyle.xml`
-
-=== Working with different data bases for testing
+=== Working with different databases for testing
 ```
-docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge
+docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:16 psql -h postgres -U projectforge
 ```
 ```
 create user pf2 password 'secret';
@@ -680,10 +444,16 @@ CREATE DATABASE pf2;
 GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
 ```
 
+For a quick test system without PostgreSQL, use a slot instance with HSQLDB and test data (see below).
+
 === Several instances side by side (`bin/pfDev.sh`)
 
 `bin/pfDev.sh` builds and starts the backend, the Next.js dev server and the e2e tests from any working
-directory (`bin/pfDev.sh help` lists all commands). A _slot_ number (1–9) as the first argument after the
+directory (`bin/pfDev.sh help` lists all commands). Further commands: `gen` (generated files, see
+<<Generated files and i18n>>), `check` (TypeScript, ESLint, Prettier of the frontend), `build` (`next build`),
+`ps` (list the running servers of all slots), `stop [slot]` and `release`/`publish` (release workflow).
+
+A _slot_ number (1–9) as the first argument after the
 command runs a complete, independent stack beside the main instance, e.g. one per git worktree or branch:
 
 |===
@@ -713,7 +483,8 @@ bin/pfDev.sh reset 1        # deletes ~/ProjectForge-1 (asks first), then `setup
 
 Notes:
 
-* `setup` copies `projectforge.properties`, `config.xml`, `resources` and `styles` from the main home dir and
+* `setup` needs the `projectforge.properties` of the main home dir (`~/ProjectForge`). It copies
+  `projectforge.properties`, `config.xml`, `resources` and `styles` from there and
   appends a block that switches to an own HSQLDB in `~/ProjectForge-n/database` and turns off sending mails
   and the gateway push. Database, search index and JCR of the main instance are not copied.
 * Port, domain, base dir and cookie name are passed by `pfDev.sh` as system properties, so the main

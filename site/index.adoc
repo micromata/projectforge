@@ -2,29 +2,57 @@
 layout: page
 width: expand
 hero:
-    title: ProjectForge
-    subtitle: Improve your team work and keep track of budgets, deadlines, human resources and your financial management.
+    title: From order to invoice – one place for projects, time, people and money.
+    subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.
     image: Illustration_DevOps_omg.svg
     search: false
+    buttons:
+      - title: Download
+        url: /download/
+        style: primary
+      - title: See all features
+        url: /features/
+        style: default
+    note: Open source (GPL) · In daily use since 2001 · English & German
 ---
 :page-liquid:
 
 ++++
-{% include boxes.html columns="3" title="Why ProjectForge?" subtitle="ProjectForge is developed as a professional and secure Software. A lot of features make your project management and daily work much easier! ProjectForge as OpenSource software without any limitations is for free." %}
+{% include boxes.html columns="3" title="Why ProjectForge?" subtitle="Plan projects and orders, let your team book time in seconds, handle leave, write e-invoices and keep an eye on forecast and liquidity – all in one web app that runs on your own server." %}
 ++++
 
 ++++
-{% include image-block.html %}
+{% include boxes.html data="home_flow" columns="5" id="how-it-fits-together" title="How it fits together" subtitle="One flow, one database – from the first offer to the last euro on the bank account." %}
 ++++
 
 ++++
-{% include videos.html columns="2" title="Video Tutorials" subtitle="Watch screencasts to get you started fast with ProjectForge" %}
+{% include boxes.html data="home_features" columns="3" id="features" title="What's inside" subtitle="Everything a service company needs between sales and accounting." %}
 ++++
 
 ++++
-{% include faqs.html multiple="true" title="Frequently asked questions" category="faq-main" subtitle="Find quick answers to frequent questions asked by users" %}
+{% include cta.html title="" button_text="See all features" button_url="/features/" %}
 ++++
 
 ++++
-{% include team.html authors="kai, fin, wolfgang, christian, daniel, roger" title="We are here to help" subtitle="Our team is just an e-mail away ready to answer your questions" %}
+{% include text-section.html key="dach" background="muted" %}
+++++
+
+++++
+{% include text-section.html key="security" %}
+++++
+
+++++
+{% include text-section.html key="proof" background="muted" %}
+++++
+
+++++
+{% include text-section.html key="services" %}
+++++
+
+++++
+{% include faqs.html multiple="true" title="Frequently asked questions" category="faq-main" subtitle="Quick answers before you start" %}
+++++
+
+++++
+{% include cta.html background="muted" title="Ready in five minutes." subtitle="Grab the Docker image, start it, follow the setup wizard. That's it." button_text="Download ProjectForge" button_url="/download/" %}
 ++++
