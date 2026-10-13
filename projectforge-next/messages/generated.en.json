@@ -509,6 +509,7 @@
     "today": "Today",
     "view": {
       "agenda": "agenda",
+      "day": "Day",
       "overview": "overview",
       "settings": {
         "tooltip": "View settings"
@@ -692,7 +693,6 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
-  "day": "day(s)",
   "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
@@ -2300,12 +2300,22 @@
       "_": "Remember my login on this computer.",
       "devices": {
         "_": "Devices staying logged in",
+        "created": "logged in since",
+        "current": "this device",
+        "ip": "IP address",
         "lastAccess": "last access",
+        "logout": {
+          "_": "Log out",
+          "question": "Log out this device? Once its current session has ended, it has to log in with the password again.",
+          "successful": "The device has been logged out."
+        },
         "none": "No device is staying logged in.",
-        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage."
+        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage.",
+        "userAgent": "Device (browser)"
       },
       "invalidateAllStayLoggedInSessions": {
         "_": "Log out all devices.",
+        "question": "Log out all devices, including this one? Each of them has to log in with the password again.",
         "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
         "tooltip": "Invalidates the marker (cookie) of every device, including the one you are using right now. Each of them will require your password again on its next visit."
       },
@@ -2363,9 +2373,12 @@
     "selectedEntries": "Selected entries"
   },
   "menu": {
+    "2FASetup": "Two-factor authentication",
     "addNewEntry": "New entry",
     "administration": "Administration",
     "calendar": "Calendar",
+    "changePassword": "Change password",
+    "changeWlanPassword": "Change WLAN/Samba password",
     "common": "Common",
     "favorites": {
       "more": "More favorites"
@@ -3712,6 +3725,12 @@
       },
       "alertMessage": {
         "copyAndPaste": {
+          "maintenance": {
+            "title": "Maintenance"
+          },
+          "release": {
+            "title": "New release"
+          },
           "title": "For copy & paste"
         }
       },
@@ -4321,10 +4340,17 @@
       },
       "title": "Two-factor authentication"
     },
+    "assignedGroups": "Assigned groups",
     "authenticationToken": {
       "authenticator_key": {
         "_": "2FA authenticator key",
         "tooltip": "This authentication token is usable for Authenticator clients for Two-factor-authentication with e.g. Microsoft-, Google-authenticator app, or Fortitoken."
+      },
+      "button": {
+        "showUsage": {
+          "_": "Usage",
+          "tooltip": "Show usage of this token by clients."
+        }
       },
       "calendar_rest": {
         "_": "Authentication token for calendars",
@@ -4334,9 +4360,24 @@
         "_": "Authentication token for CalDav/CardDAV",
         "tooltip": "This authentication token is usable the CalDAV/CardDAV functionality of ProjectForge."
       },
+      "lastChange": {
+        "_": "Last change",
+        "tooltip": "When the token was created or renewed last. Empty: unknown (created by an older version)."
+      },
+      "renew": {
+        "_": "Renew",
+        "securityQuestion": "Do you really want to renew the authentication token (this is irrevocable)?",
+        "successful": "The authentication token is renewed and is now valid.",
+        "tooltip": "You may renew this token if you are in doubt if your authentication is misused by any fraudster. If renewed any previous stored authentication key is invalid. Please note: This operation is irrevocable."
+      },
       "rest_client": {
         "_": "Authentication token for rest clients",
         "tooltip": "This authentication token is usable for rest clients if ProjectForge's password shouldn't be used there."
+      },
+      "usage": {
+        "counter": "Accesses",
+        "none": "No access with this token since the server was started.",
+        "qrCode": "QR code for setting up a client app with this token."
       }
     },
     "changePassword": {
@@ -4366,13 +4407,28 @@
     "locale": "Language",
     "mobilePhone": {
       "_": "Mobile phone",
-      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication."
+      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication.",
+      "invalidFormat": "Valid characters for phone numbers are '+' as first char, '-', '/' and spaces. The leading country code is optional, e.g.: +49 561 316793-0 or 0561 316793-0"
+    },
+    "myAccount": {
+      "defaultValue": "Default: {arg0}",
+      "saved": "Your account has been saved.",
+      "section": {
+        "account": "Account",
+        "publicKeys": "Public keys",
+        "settings": "Settings",
+        "tokens": "Access tokens"
+      },
+      "title": {
+        "edit": "Edit my account"
+      }
     },
     "personalPhoneIdentifiers": {
       "_": "Phone ids",
       "pleaseDefine": "Define phone numbers under 'My account'.",
       "tooltip": {
-        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
+        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list.",
+        "title": "Direct call"
       }
     },
     "restrictedUser": {
@@ -4380,6 +4436,17 @@
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
     "sshPublicKey": "SSH public key",
+    "tooltip": {
+      "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
+      "dateFormat": "The format dates are shown and entered in. Empty: the default of the installation.",
+      "excelDateFormat": "The format of dates in Excel exports. Empty: the default of the installation.",
+      "gpgPublicKey": "The own public GPG key (ASCII armored, starting with -----BEGIN PGP PUBLIC KEY BLOCK-----). Never enter the private key here.",
+      "locale": "The language of the user interface. Default: the language of the browser.",
+      "sshPublicKey": "The own public SSH key, e.g. ssh-ed25519 AAAA…. Never enter the private key here.",
+      "timeNotation": "Times with 12 hours (am/pm) or with 24 hours.",
+      "timeZone": "All times (time sheets, calendar events) are shown and entered in this time zone.",
+      "username": "The login name. Only the administration can change it."
+    },
     "username": "User name"
   },
   "username": "User name",

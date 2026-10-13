@@ -509,6 +509,7 @@
     "today": "Heute",
     "view": {
       "agenda": "Agenda",
+      "day": "Tag",
       "overview": "Übersicht",
       "settings": {
         "tooltip": "Einstellungen der Ansicht"
@@ -692,7 +693,6 @@
     "_": "Datumsformat",
     "xls": "Exceldatumsformat"
   },
-  "day": "Tag(e)",
   "days": "Tage",
   "delete": "Löschen",
   "deleted": "gelöscht",
@@ -2300,12 +2300,22 @@
       "_": "An diesem Browser angemeldet bleiben.",
       "devices": {
         "_": "Angemeldet bleibende Geräte",
+        "created": "angemeldet seit",
+        "current": "dieses Gerät",
+        "ip": "IP-Adresse",
         "lastAccess": "letzter Zugriff",
+        "logout": {
+          "_": "Abmelden",
+          "question": "Dieses Gerät abmelden? Nach dem Ende seiner aktuellen Sitzung muss es sich wieder mit dem Passwort anmelden.",
+          "successful": "Das Gerät wurde abgemeldet."
+        },
         "none": "Kein Gerät bleibt angemeldet.",
-        "tooltip": "Diese Geräte können ohne Passworteingabe auf ProjectForge zugreifen. Jedes hat sein eigenes Merkmal (Cookie), das 30 Tage nach der letzten Nutzung verfällt."
+        "tooltip": "Diese Geräte können ohne Passworteingabe auf ProjectForge zugreifen. Jedes hat sein eigenes Merkmal (Cookie), das 30 Tage nach der letzten Nutzung verfällt.",
+        "userAgent": "Gerät (Browser)"
       },
       "invalidateAllStayLoggedInSessions": {
         "_": "Auf allen Geräten abmelden.",
+        "question": "Alle Geräte abmelden, auch dieses? Jedes Gerät muss sich danach wieder mit dem Passwort anmelden.",
         "successfullDeleted": "Alle Angemeldet-bleiben-Sitzungen wurden erfolgreich beendet.",
         "tooltip": "Macht das Merkmal (Cookie) aller Geräte ungültig, auch das des gerade genutzten. Jedes Gerät fragt beim nächsten Aufruf wieder nach dem Passwort."
       },
@@ -2363,9 +2373,12 @@
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
+    "2FASetup": "2. Faktor einrichten",
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
     "calendar": "Kalender",
+    "changePassword": "Passwort ändern",
+    "changeWlanPassword": "WLAN/Samba Passwort ändern",
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
@@ -3712,6 +3725,12 @@
       },
       "alertMessage": {
         "copyAndPaste": {
+          "maintenance": {
+            "title": "Wartungsarbeiten"
+          },
+          "release": {
+            "title": "Neues Release"
+          },
           "title": "For copy & paste"
         }
       },
@@ -4321,10 +4340,17 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "assignedGroups": "Assoziierte Gruppen",
     "authenticationToken": {
       "authenticator_key": {
         "_": "Schlüssel für Zweifaktor-Authentifizierung",
         "tooltip": "Dieser Schlüssel kann für die Zweifaktor-Authentifizierung z. B. über die Apps Microsoft-, Google Authenticator oder Fortitoken benutzt werden."
+      },
+      "button": {
+        "showUsage": {
+          "_": "Info",
+          "tooltip": "Benutzung dieses Schüssels"
+        }
       },
       "calendar_rest": {
         "_": "Schlüssel für Kalenderexport",
@@ -4334,9 +4360,24 @@
         "_": "Schlüssel für CalDav/CardDAV",
         "tooltip": "Dieser persönliche Schlüssel kann zur Benutzung der CardDAV/CalDAV-Funktion verwendet werden."
       },
+      "lastChange": {
+        "_": "Letzte Änderung",
+        "tooltip": "Wann der Schlüssel erstellt oder zuletzt erneuert wurde. Leer: unbekannt (von einer älteren Version erstellt)."
+      },
+      "renew": {
+        "_": "Erneuern",
+        "securityQuestion": "Soll der Schlüssel wirklich unwiderrufbar erneuert werden?",
+        "successful": "Der Schlüssel wurde erneuert und ist ab sofort gültig.",
+        "tooltip": "Der Schlüssel kann erneuert werden, wenn der Verdacht auf einen möglichen Missbrauch vorliegt. Nach der Erneuerung sind vorher benutzte Schlüssel ungültig. Bitte beachten: Diese Operation ist unwiderruflich!"
+      },
       "rest_client": {
         "_": "Schlüssel für Rest-Clients",
         "tooltip": "Dieser persönliche Schlüssel kann zur Benutzung in Rest-Clients verwendet werden, wenn das ProjectForge-Passwort dort nicht verwendet werden soll."
+      },
+      "usage": {
+        "counter": "Zugriffe",
+        "none": "Seit dem Start des Servers gab es keinen Zugriff mit diesem Schlüssel.",
+        "qrCode": "QR-Code zum Einrichten einer Client-App mit diesem Schlüssel."
       }
     },
     "changePassword": {
@@ -4366,13 +4407,28 @@
     "locale": "Sprache",
     "mobilePhone": {
       "_": "Mobilnummer",
-      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden."
+      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden.",
+      "invalidFormat": "Es sind nur Zahlen sowie '+' am Anfang, '-', '/' und Leerzeichen erlaubt. Die führende Ländervorwahl ist optional. Beispiel: +49 561 316793-0 oder 0561 316793-0"
+    },
+    "myAccount": {
+      "defaultValue": "Voreinstellung: {arg0}",
+      "saved": "Der Zugang wurde gespeichert.",
+      "section": {
+        "account": "Zugang",
+        "publicKeys": "Öffentliche Schlüssel",
+        "settings": "Einstellungen",
+        "tokens": "Zugangsschlüssel"
+      },
+      "title": {
+        "edit": "Mein Zugang"
+      }
     },
     "personalPhoneIdentifiers": {
       "_": "Telefonkennungen",
       "pleaseDefine": "Anschlüsse festlegen unter 'Mein Zugang'",
       "tooltip": {
-        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
+        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden.",
+        "title": "Direktwahl"
       }
     },
     "restrictedUser": {
@@ -4380,6 +4436,17 @@
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "sshPublicKey": "SSH public key",
+    "tooltip": {
+      "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
+      "dateFormat": "Das Format, in dem Datumsangaben angezeigt und eingegeben werden. Leer: die Voreinstellung der Installation.",
+      "excelDateFormat": "Das Format der Datumsangaben in Excel-Exporten. Leer: die Voreinstellung der Installation.",
+      "gpgPublicKey": "Der eigene öffentliche GPG-Schlüssel (ASCII-Format, beginnt mit -----BEGIN PGP PUBLIC KEY BLOCK-----). Hier nie den privaten Schlüssel eintragen.",
+      "locale": "Die Sprache der Oberfläche. Standard: die Sprache des Browsers.",
+      "sshPublicKey": "Der eigene öffentliche SSH-Schlüssel, z. B. ssh-ed25519 AAAA…. Hier nie den privaten Schlüssel eintragen.",
+      "timeNotation": "Uhrzeiten mit 12 Stunden (am/pm) oder mit 24 Stunden.",
+      "timeZone": "Alle Uhrzeiten (Zeitberichte, Kalendertermine) werden in dieser Zeitzone angezeigt und eingegeben.",
+      "username": "Der Anmeldename. Ändern kann ihn nur die Administration."
+    },
     "username": "Benutzer:inname"
   },
   "username": "Benutzer:innenname",

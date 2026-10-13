@@ -33,7 +33,9 @@ export function useViewButtons({
           // value lives under `_` (see i18n/config.ts).
           month: t("month._"),
           week: t("week"),
-          day: t("day"),
+          // Not `calendar.day`: that is also a namespace (the weekday names) and, lower-case, the
+          // unit of an event's duration ("1 day").
+          day: t("view.day"),
           workDays: t("view.workDays"),
           overview: t("view.overview"),
           agenda: t("view.agenda"),

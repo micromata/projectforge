@@ -2,30 +2,12 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.4",
+    "version" : "9.0.5",
     "date" : "2026-10-13",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
-      "type" : "added",
-      "items" : [ {
-        "title" : "Adminprotokoll",
-        "items" : [ "Suche in den Logdateien der letzten Tage nach Text, Zeitraum, Level und Logger-Kategorie (einschließen oder ausblenden), auch für die Tage vor dem Serverstart.", "Zu jedem Treffer lässt sich der Kontext direkt darunter aufklappen: die Einträge davor und danach, alle oder nur die derselben Benutzer:in bzw. desselben Loggers, mit Blättern zu älteren und neueren. Auch für die Vorkommen einer Störung des System-Dashboards." ]
-      }, {
-        "title" : "Adminprotokoll",
-        "items" : [ "Live-Ansicht: Zu jedem Eintrag lässt sich der Kontext aufklappen, die Ereignisse davor und danach im Speicher, alle oder nur die derselben Benutzer:in bzw. desselben Loggers; mit Logger-Spalte.", "Die Tabellen der Live-Ansicht und der Logdatei-Suche lassen sich anpassen (Spaltenbreite, Pinnen, Ein- und Ausblenden), pro Benutzer:in gespeichert wie bei allen anderen Listen." ]
-      }, {
-        "title" : "System-Dashboard",
-        "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
-      }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen, ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war.", "Benachrichtigungen: Eine neue Regel benachrichtigt Benutzer, deren Passwort länger als eine einstellbare Anzahl von Tagen nicht geändert wurde, mit einem Link zum Ändern. Die Benachrichtigung erledigt sich, sobald das Passwort geändert wird." ]
-    }, {
       "type" : "improved",
-      "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]
-    }, {
-      "type" : "changed",
-      "items" : [ "Das Adminprotokoll ist jetzt ein Tab des System-Dashboards; sein eigener Menüeintrag entfällt, alte Links führen auf den Tab.", "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl." ]
+      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt." ]
     } ]
   },
   "groups" : [ {
@@ -80,6 +62,38 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-5",
+      "version" : "9.0.5",
+      "date" : "2026-10-13",
+      "title" : "ProjectForge 9.0.5 veröffentlicht",
+      "tag" : "9.0.5-RELEASE",
+      "downloadLink" : true,
+      "sha256" : "044f60907c25c056a44baf6d457c6b951190ef7fd36f795359bbf044026086a0",
+      "summary" : [ "**Urlaub** automatisch als Zeitbericht gebucht", "**Adminprotokoll** mit Logdatei-Suche, jetzt im System-Dashboard", "**Mein Zugang** in der neuen Oberfläche", "Hängende Cache-Aktualisierungen und Scheduler-Läufe lassen sich beenden", "Fix: aktuelle Wechselkurse werden wieder vorgeschlagen" ],
+      "overview" : [ "**Urlaub:** Ein nächtlicher Job bucht vergangene genehmigte Urlaubstage ohne Zeitberichte, einzuschalten in der Konfiguration; ungebuchte Urlaubstage zählen im Monatsbericht und in den Benachrichtigungen wieder als Tage ohne Zeitberichte, getrennt aufgeführt und per Klick buchbar.", "**Konfiguration:** Parameter nach Kategorien gruppiert, mit Angabe, wer sie sehen und ändern darf; die bisherigen Urlaubseinstellungen aus projectforge.properties werden einmalig übernommen.", "**Adminprotokoll:** ein Tab des System-Dashboards; Suche in den Logdateien der letzten Tage, Kontext jedes Eintrags direkt darunter, anpassbare Tabellen.", "**System-Dashboard:** Hängende Cache-Aktualisierungen und Scheduler-Läufe lassen sich beenden, blockierte Datenbankabfragen brechen nach einer Zeitüberschreitung ab, eine fehlgeschlagene Cache-Aktualisierung wird frühestens nach einer Minute wiederholt; der letzte erfolgreiche Lauf eines Jobs wird angezeigt.", "**Mein Zugang:** in die neue Oberfläche umgezogen, mit den angemeldet bleibenden Geräten, der Nutzung von Zugangsschlüsseln und längeren GPG- und SSH-Schlüsseln.", "**Benachrichtigungen:** neue Regel für Passwörter, die eine einstellbare Anzahl von Tagen nicht geändert wurden.", "**Changelog:** die Releases einer Hauptversion mit dem neuesten zuerst.", "**Korrekturen:** Vorschläge für Wechselkurse, JCR-Migration in der ausgelieferten Anwendung, Sortierung der Liste der Merlin-Vorlagen." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ {
+          "title" : "Adminprotokoll",
+          "items" : [ "Live-Ansicht: Zu jedem Eintrag lässt sich der Kontext aufklappen, die Ereignisse davor und danach im Speicher, alle oder nur die derselben Benutzer:in bzw. desselben Loggers; mit Logger-Spalte.", "Suche in den Logdateien der letzten Tage nach Text, Zeitraum, Level und Logger-Kategorie (einschließen oder ausblenden), auch für die Tage vor dem Serverstart.", "Zu jedem Treffer lässt sich der Kontext direkt darunter aufklappen: die Einträge davor und danach, alle oder nur die derselben Benutzer:in bzw. desselben Loggers, mit Blättern zu älteren und neueren. Auch für die Vorkommen einer Störung des System-Dashboards.", "Die Tabellen der Live-Ansicht und der Logdatei-Suche lassen sich anpassen (Spaltenbreite, Pinnen, Ein- und Ausblenden), pro Benutzer:in gespeichert wie bei allen anderen Listen." ]
+        }, {
+          "title" : "System-Dashboard",
+          "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
+        }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen (eine danach noch gesetzte Property wird ignoriert und bei jedem Start als Störung im System-Dashboard gemeldet, damit sie entfernt werden kann), ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war.", "Benachrichtigungen: Eine neue Regel benachrichtigt Benutzer, deren Passwort länger als eine einstellbare Anzahl von Tagen nicht geändert wurde, mit einem Link zum Ändern. Die Benachrichtigung erledigt sich, sobald das Passwort geändert wird." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Das Adminprotokoll ist jetzt ein Tab des System-Dashboards; sein eigener Menüeintrag entfällt, alte Links führen auf den Tab.", "Genehmigte Urlaubstage ohne Zeitberichte zählen im Monatsbericht und in den Benachrichtigungen über fehlende Zeitberichte wieder als Tage ohne Zeitberichte. Der Monatsbericht führt Arbeitstage und Urlaubstage ohne Zeitberichte getrennt auf, ein Klick auf die Urlaubstage öffnet den Dialog zum Buchen mehrerer Tage; Benachrichtigungstexte können alle Tage, nur die Urlaubstage oder nur die übrigen Arbeitstage ohne Zeitberichte aufführen.", {
+          "title" : "Mein Zugang",
+          "items" : [ "In die neue Oberfläche umgezogen, alte Links führen auf die neue Seite. Nach dem Speichern bleibt die Seite offen, eine geänderte Sprache, Zeitzone oder ein geändertes Datumsformat wirkt sofort.", "Angemeldet bleibende Geräte werden mit Browser, IP-Adresse und letztem Zugriff aufgelistet, das aktuelle Gerät ist markiert; jedes lässt sich einzeln abmelden.", "Die Nutzung eines Zugangsschlüssels wird als Tabelle der Clients angezeigt (Browser, IP-Adresse, letzter Zugriff, Anzahl der Zugriffe).", "Die Sprache lässt sich wieder auf die Voreinstellung des Browsers zurücksetzen.", "Ein leeres Datums- oder Uhrzeitformat nennt die geltende Voreinstellung; die Mobilnummer verweist auf die Einrichtung des zweiten Faktors, wo sie geändert wird." ]
+        } ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl.", "Währungsumrechnung: Beim Anlegen eines neuen Umrechnungskurses oder Ändern des Gültig-ab-Datums werden wieder aktuelle Kurse vorgeschlagen (die Kurs-API war umgezogen).", "Merlin-Vorlagen: Die Liste lässt sich nach den Spalten Admins, Benutzer und Gruppen sortieren (sie blieb bisher unsortiert).", "Mein Zugang: Öffentliche GPG- und SSH-Schlüssel dürfen jetzt bis zu 20.000 Zeichen lang sein (bisher 4.096, ein längerer GPG-Schlüssel ließ sich nicht speichern); ein immer noch zu langer Schlüssel wird als Fehler am Feld angezeigt." ]
+      } ]
+    }, {
       "id" : "9-0-4",
       "version" : "9.0.4",
       "date" : "2026-10-11",
@@ -582,7 +596,7 @@
       "tag" : "8.0-RELEASE",
       "downloadLink" : true,
       "intro" : [ "Major Release mit einer komplett überarbeiteten Persistenzschicht und aktuellen Hauptversionen aller Bibliotheken." ],
-      "summary" : [ "**Persistenzschicht** komplett überarbeitet (Spring Data JPA)", "**Eigener CardDAV-Server** zur Kontaktsynchronisation", "**Docker-Images** für arm64 und amd64", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace" ],
+      "summary" : [ "**Persistenzschicht** komplett überarbeitet (eigene Implementierung statt MGC)", "**Eigener CardDAV-Server** zur Kontaktsynchronisation", "**Docker-Images** für arm64 und amd64", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace" ],
       "overview" : [ "Eigener CardDAV-Server zur Kontaktsynchronisation.", "Docker-Images für arm64 und amd64.", "Java 17, Spring 6, Hibernate 6, jakarta-Namespace." ],
       "sections" : [ {
         "type" : "improved",
@@ -592,7 +606,7 @@
         "items" : [ "Diverse Fehler behoben." ]
       }, {
         "type" : "technology",
-        "items" : [ "Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).", "Persistenzschicht komplett überarbeitet, MGC entfernt und durch Spring Data JPA ersetzt.", "Technische Schulden abgebaut.", "Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
+        "items" : [ "Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).", "Persistenzschicht komplett überarbeitet, MGC entfernt und durch einen eigenen Persistence-Layer ersetzt.", "Technische Schulden abgebaut.", "Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..." ]
       } ]
     },
     "updates" : [ {

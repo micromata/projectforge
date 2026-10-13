@@ -13,6 +13,36 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-13 (export 04:12, 18 problems OPEN, last 7 days, running version 9.0.4)
+
+9.0.4 went live ~2026-10-11. None of the problems fixed up to 9.0.3 occurred again after the deploys; the
+problems of 9.0.0–9.0.2 were last seen ≤ 2026-10-07 and can be resolved.
+
+### Fixed (claude-dev1)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `BaseDOPersistenceService:192/196` + `PfPersistenceService:479` "value too long for type character varying(4096)" on `update T_PF_USER`, from `MyAccountPageRest.save` (10×, 1 user, within half an hour) | The user's armored GPG public key (subkeys and signatures) is longer than the 4096 characters of `gpg_public_key`. The save failed with a 500, so the user retried. | `V9.0.5.2__RELEASE-User_public_key_length.sql` widens `gpg_public_key` and `ssh_public_key` to 20000 (`PFUserDO.PUBLIC_KEY_MAX_LENGTH`). `MyAccountPageRest.save` checks both keys with `ValidationUtils.validateFields` and answers a field error (406) instead of a 500. | |
+| `DBQueryBuilderByCriteria:125` "Can't add order for property 'MerlinTemplateDO.accessGroupsAsString'" (6×, shown as REGRESSION) | Computed column of the Merlin list, no DB property; only resolved in the dashboard before, never fixed. `adminsAsString` and `accessUsersAsString` had the same problem. | `MerlinPagesRest.computedSortProperties` sorts by the joined display names (groups without their users). | |
+
+### Already fixed before this analysis
+
+| Dashboard source | Fix |
+|---|---|
+| `RestAuthenticationUtils:579` `/rs/liquidity/cloneData` status 501 (2×, before the 9.0.4 deploy) | `10fa89920f` (9.0.4): clone support for liquidity entries. |
+| `DBFullTextResultIterator:188` `persistence.fulltextQueryInvalid` (last before the 9.0.4 deploy) | Logged as INFO without event since the fix after 9.0.3 (see 2026-10-08). |
+
+### Not a code problem
+
+| Dashboard source | Assessment |
+|---|---|
+| `rest.noCredentials` on `/rs/menu` (~1000×/24h, 1 user) | An open browser tab with an expired session, notify NONE. Noise. |
+
+### Open
+
+- **7 of 10 calendar subscriptions failing** (`integration.sync.runFailed` ical-subscriptions, 7 errors/day):
+  unchanged, muted in the dashboard. See 2026-10-08.
+
 ## 2026-10-09 (single problem from the dashboard detail, running version 9.0.4-SNAPSHOT)
 
 ### Fixed (claude-dev1)

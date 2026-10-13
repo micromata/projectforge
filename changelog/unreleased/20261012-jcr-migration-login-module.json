@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Migration of files out of the JCR failed in the packaged application with \"No LoginModule found\".",
-  "de": "Die Migration der Dateien aus dem JCR schlug in der ausgelieferten Anwendung mit \"No LoginModule found\" fehl."
-}

@@ -92,7 +92,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //
-    MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
+    // Migrated to projectforge-next (MyAccountRest); react/myAccount and react/tokenInfo are redirected by
+    // OrphanedLinkFilter.
+    MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.REACT_APP_PATH}customizeMenu"), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //

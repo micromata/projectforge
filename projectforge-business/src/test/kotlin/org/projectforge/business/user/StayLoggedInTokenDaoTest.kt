@@ -63,6 +63,31 @@ class StayLoggedInTokenDaoTest : AbstractTestBase() {
         Assertions.assertTrue(stayLoggedInTokenDao.getEntries(userId).isEmpty())
     }
 
+    /**
+     * The per device logout of the my-account page: the id comes from the client, so a device of another user
+     * must not be deleted by it.
+     */
+    @Test
+    fun deleteOfUserTest() {
+        val user = getUser(TEST_USER)
+        val otherUser = getUser(TEST_USER2)
+        stayLoggedInTokenDao.deleteAll(user.id)
+        stayLoggedInTokenDao.deleteAll(otherUser.id)
+        val token = stayLoggedInTokenDao.createToken(user, null)
+        val otherToken = stayLoggedInTokenDao.createToken(otherUser, null)
+        val entry = stayLoggedInTokenDao.getValidToken(token)!!
+        val otherEntry = stayLoggedInTokenDao.getValidToken(otherToken)!!
+        Assertions.assertTrue(stayLoggedInTokenDao.isTokenOf(entry, token))
+        Assertions.assertFalse(stayLoggedInTokenDao.isTokenOf(entry, otherToken))
+        Assertions.assertFalse(stayLoggedInTokenDao.isTokenOf(entry, null))
+
+        Assertions.assertEquals(0, stayLoggedInTokenDao.deleteOfUser(user.id, otherEntry.id), "Not the user's device.")
+        Assertions.assertNotNull(stayLoggedInTokenDao.getValidToken(otherToken))
+        Assertions.assertEquals(1, stayLoggedInTokenDao.deleteOfUser(user.id, entry.id))
+        Assertions.assertNull(stayLoggedInTokenDao.getValidToken(token))
+        stayLoggedInTokenDao.deleteAll(otherUser.id)
+    }
+
     @Test
     fun unknownTokenTest() {
         Assertions.assertNull(stayLoggedInTokenDao.getValidToken(null))

@@ -538,6 +538,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `ScriptExecuteRest` (`allowAdHoc`) Code ohne Id an; ein gespeichertes Script läuft immer wie gespeichert,
   vom Client kommen nur die Parameterwerte (`prepareScript`). Kein Rückweg (`offerLegacyLink = false`);
   `react/scriptExecute/dynamic/{id}` und `react/myScriptExecute/dynamic/{id}` leitet `OrphanedLinkFilter` um.
+- **Mein Zugang** (`next/myAccount`, vorher React-UILayout `MyAccountPageRest` + Modal `TokenInfoPageRest`,
+  beide gelöscht) – layoutfrei über `MyAccountRest` (`/rs/myAccount`: `GET` Daten + Auswahllisten, `save`,
+  `renewToken`, `tokenInfo`, `logoutDevice`, `logoutAllDevices`; 2FA-Kurzbefehl `MY_ACCOUNT`). Die
+  Auswahllisten (Sprache, Datumsformate, Zeitnotation) teilt `UserSettingsOptions` mit der React-
+  Benutzerseite. Neu gegenüber React: die angemeldet bleibenden Geräte als Liste mit Abmelden pro Gerät
+  (`StayLoggedInTokenDao.deleteOfUser`, das aktuelle über den Cookie markiert), Speichern bleibt auf der
+  Seite und lädt `userStatus` neu (Sprache/Formate wirken sofort), die Sprache lässt sich auf „Standard"
+  zurücksetzen. Eingeschränkte und Demo-Benutzer (`InitData.writeAccess = false`) sehen das Formular
+  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Passwort, WLAN-Passwort und 2FA-Einrichtung sind noch React und verlinkt (URLs aus
+  `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie
