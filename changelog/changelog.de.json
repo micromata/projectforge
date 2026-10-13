@@ -1390,7 +1390,7 @@
         "Major Release mit einer komplett überarbeiteten Persistenzschicht und aktuellen Hauptversionen aller Bibliotheken."
       ],
       "summary": [
-        "**Persistenzschicht** komplett überarbeitet (Spring Data JPA)",
+        "**Persistenzschicht** komplett überarbeitet (eigene Implementierung statt MGC)",
         "**Eigener CardDAV-Server** zur Kontaktsynchronisation",
         "**Docker-Images** für arm64 und amd64",
         "Java 17, Spring 6, Hibernate 6, jakarta-Namespace"
@@ -1424,7 +1424,7 @@
           "type": "technology",
           "items": [
             "Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).",
-            "Persistenzschicht komplett überarbeitet, MGC entfernt und durch Spring Data JPA ersetzt.",
+            "Persistenzschicht komplett überarbeitet, MGC entfernt und durch einen eigenen Persistence-Layer ersetzt.",
             "Technische Schulden abgebaut.",
             "Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ..."
           ]
