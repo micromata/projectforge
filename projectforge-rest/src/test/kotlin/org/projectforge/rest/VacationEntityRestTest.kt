@@ -44,6 +44,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.SortOrder
+import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
@@ -253,6 +256,40 @@ class VacationEntityRestTest : AbstractTestBase() {
         stats(null, nextWeek, nextWeek.plusDays(4), special = true).let {
             assertEquals(0, BigDecimal(25).compareTo(it.vacationDaysLeftAfterThis), "Special leave isn't counted.")
         }
+    }
+
+    @Test
+    fun `the list sorts by the working days and by the status as displayed`() {
+        val own = createEmployee("sort-own")
+        val manager = createEmployee("sort-manager")
+        val hr = createEmployee("sort-hr", hrAccess = true)
+        logon(hr.user!!)
+        val year = LocalDate.now().year + 7
+        fun insert(month: Int, days: Long, status: VacationStatus) = vacationDao.insert(VacationDO().also {
+            it.employee = own
+            it.manager = manager
+            it.replacement = manager
+            it.startDate = LocalDate.of(year, month, 3).let { d -> d.plusDays((8L - d.dayOfWeek.value) % 7) }
+            it.endDate = it.startDate!!.plusDays(days - 1)
+            it.status = status
+            it.special = true
+        })
+        val long = insert(3, 5, VacationStatus.REJECTED)
+        val short = insert(5, 2, VacationStatus.APPROVED)
+        val middle = insert(7, 3, VacationStatus.IN_PROGRESS)
+        fun sorted(property: String): List<Long?> {
+            val filter = MagicFilter()
+            filter.entries.add(MagicFilterEntry("employee").also { it.value.id = own.id })
+            filter.entries.add(MagicFilterEntry("period").also { it.value.fromValue = "$year-01-01"; it.value.toValue = "$year-12-31" })
+            filter.sortProperties.add(SortProperty(property, SortOrder.ASCENDING))
+            return vacationEntityRest.listPage(
+                MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+            ).resultSet.map { (it as Vacation).id }
+        }
+        assertEquals(listOf(short, middle, long), sorted("workingDaysFormatted"))
+        val byStatus = listOf(long to VacationStatus.REJECTED, short to VacationStatus.APPROVED, middle to VacationStatus.IN_PROGRESS)
+            .sortedBy { translate(it.second.i18nKey) }.map { it.first }
+        assertEquals(byStatus, sorted("status"))
     }
 
     @Test
