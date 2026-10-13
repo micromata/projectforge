@@ -77,6 +77,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   FIBU_CONTRIBUTION_MARGIN("fibu.contributionMargin", ConfigurationType.JSON), //
   /**
+   * The settings of the Lanes &amp; Planes push as JSON object (invoice profile ids, general Kost2, patterns of the
+   * user-specific Kost2, target field), see {@code LanesAndPlanesSettings}.
+   */
+  LANES_AND_PLANES("lanesAndPlanes", ConfigurationType.JSON), //
+  /**
    * The settings of the forecast as JSON object (e.g. the hint on the planning date of the forecast statistics),
    * see {@code ForecastConfig}.
    */
@@ -235,6 +240,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case TIMESHEET_VACATION_TASK_ID:
       case TIMESHEET_VACATION_KOST2:
       case CUSTOMER_GROUPS:
+      case LANES_AND_PLANES:
       case FIBU_FORECAST:
         return ConfigurationEditors.FINANCE;
       case TIMESHEET_OVERLAP_GROUPS:

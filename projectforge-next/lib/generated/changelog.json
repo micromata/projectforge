@@ -6,6 +6,12 @@
     "date" : "2026-10-13",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Employees: new field creditor account (the DATEV account of the employee, e.g. for travel expenses), also shown as a column in the list and in the Excel export.", {
+        "title" : "Lanes & Planes interface",
+        "items" : [ "The active employees are pushed with the general Kost1 as cost centers, the general Kost2 and the Kost2 they may book on (restricted by patterns like 5.*.02) as cost units, their Kost1 as reference cost center, their creditor account and their nickname as abbreviation. Numbers are sent without dots (as the DATEV export of Lanes & Planes requires). Finance maintains these settings in the configuration parameter \"Lanes & Planes\"; activation and API key are set in projectforge.lanesandplanes.*.", "Additional users who aren't employees (e.g. an external accountant) can be entered in the configuration parameter. They are sent with name and email only, so they aren't deactivated and their role and managers are kept. The service admin and guest profiles of Lanes & Planes can't be entered: the import doesn't touch them.", "Cost centers and cost units already existing in Lanes & Planes can be entered with their names in the configuration parameter (pasted from the user export). They are sent under that name, so Lanes & Planes reuses them instead of rejecting them as duplicates.", "A changed email of an employee is held back (the old one is still sent, with a hint on the problem dashboard) until it was changed in Lanes & Planes and confirmed in the configuration parameter. Otherwise Lanes & Planes would deactivate the user and create a new one.", "A suspiciously small user list isn't pushed (Lanes & Planes deactivates every user not sent): it's checked against a minimum number of users and against the last push, also after a restart of ProjectForge. A missing push state is reported on the problem dashboard." ]
+      } ]
+    }, {
       "type" : "improved",
       "items" : [ "System administration: two copy & paste samples for the alert message (maintenance, new release), with the next full hour and the next release filled in.", "Change password and change WLAN password are pages of the new user interface and show when the password was last changed.", {
         "title" : "System statistics",
@@ -22,7 +28,10 @@
       "items" : [ "Docker image: based on Java 21 (Eclipse Temurin 21 JRE) instead of Java 17. ProjectForge still runs on Java 17 or newer." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", {
+      "items" : [ {
+        "title" : "Contribution margin (order book and scripts)",
+        "items" : [ "Accounting records count in the month of their record number (booking period), not in the month of their date: an invoice of September booked into August now counts as booked in August.", "Scripts include the current month up to today as preliminary values (time sheets and unbooked invoices)." ]
+      }, "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.", {
         "title" : "Lists",
         "items" : [ "A list came back from an entry with an outdated filter when it had been paged back to a filter used shortly before (e.g. a year back and forth)." ]
       }, {

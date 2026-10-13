@@ -99,6 +99,7 @@ open class IntegrationConfig {
         const val ICAL = "ical"
         const val SMS = "sms"
         const val GATEWAY = "gateway"
+        const val LANES_AND_PLANES = "lanes-and-planes"
 
         /**
          * Used, if neither the id nor the default is configured.
@@ -118,6 +119,8 @@ open class IntegrationConfig {
         val BUILTIN = mapOf(
             // Full syncs of thousands of addresses may take a while on the gateway.
             GATEWAY to IntegrationSettings(responseTimeoutMs = 120_000),
+            // The full user import (all employees with their cost units) is one big request.
+            LANES_AND_PLANES to IntegrationSettings(responseTimeoutMs = 60_000),
             ICAL to IntegrationSettings(maxResponseBytes = 10L * 1024 * 1024),
         )
 

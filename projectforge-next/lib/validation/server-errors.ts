@@ -89,8 +89,10 @@ export function applyServerValidationErrors(
     if (!message) continue;
     if (error.fieldId && isKnown(error.fieldId, knownFields, arrayFields)) {
       // Several errors on one field: keep them all rather than let the last one win.
-      fields[error.fieldId] = fields[error.fieldId]
-        ? `${fields[error.fieldId]}. ${message}`
+      // A message ending in a full stop of its own isn't followed by a second one.
+      const previous = fields[error.fieldId];
+      fields[error.fieldId] = previous
+        ? `${previous}${/[.!?]$/.test(previous) ? "" : "."} ${message}`
         : message;
     } else {
       unassigned.push(message);
