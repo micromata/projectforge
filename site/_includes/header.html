@@ -1,0 +1,42 @@
+{%- comment -%}
+    Sticky site header: brand stripe, wordmark, main navigation and the action buttons, all from
+    _data/navigation_header.yml. Below 900px the links collapse into a <details> menu (no JavaScript).
+    A link is active if the page url equals its url or starts with its "match" prefix.
+{%- endcomment -%}
+<header class="sticky top-0 z-20 border-b border-border bg-background">
+    <div class="pf-stripe" aria-hidden="true"></div>
+    <div class="pf-container flex min-h-[68px] items-center gap-8">
+        <a class="inline-flex rounded-sm text-foreground hover:text-foreground" href="{{ '/' | relative_url }}">{% include logo.html %}</a>
+
+        <nav class="hidden flex-1 gap-1 md:flex" aria-label="Main">
+            {%- for link in site.data.navigation_header.links %}
+            {%- assign active = false -%}
+            {%- if link.url == page.url -%}{%- assign active = true -%}{%- endif -%}
+            {%- if link.match and page.url contains link.match -%}{%- assign active = true -%}{%- endif %}
+            <a class="web-nav rounded-md px-3 py-2 no-underline hover:bg-muted {% if active %}text-link hover:text-link{% else %}text-secondary-foreground hover:text-foreground{% endif %}" href="{% include link-url.html url=link.url %}"{% if active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+            {%- endfor %}
+        </nav>
+
+        <div class="hidden items-center gap-2 md:flex">
+            {%- for action in site.data.navigation_header.actions %}
+            {% include button.html url=action.url text=action.title style=action.style %}
+            {%- endfor %}
+        </div>
+
+        <details class="ml-auto md:hidden">
+            <summary class="pf-menu-btn flex size-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-muted-foreground" aria-label="Menu">
+                <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
+                <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
+                <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
+            </summary>
+            <nav class="absolute inset-x-0 top-full border-y border-border bg-background" aria-label="Main">
+                <div class="pf-container py-2">
+                    {%- assign mobile_links = site.data.navigation_header.links | concat: site.data.navigation_header.actions -%}
+                    {%- for link in mobile_links %}
+                    <a class="web-nav block border-b border-border py-3 text-foreground no-underline last:border-b-0 hover:text-link" href="{% include link-url.html url=link.url %}">{{ link.title }}</a>
+                    {%- endfor %}
+                </div>
+            </nav>
+        </details>
+    </div>
+</header>

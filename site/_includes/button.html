@@ -1,0 +1,5 @@
+{%- comment -%}
+    A button-styled link. Parameters: url, text, style (primary, outline or ghost; default primary),
+    size (lg for the larger variant of hero and call-to-action sections).
+{%- endcomment -%}
+<a class="pf-btn pf-btn-{{ include.style | default: 'primary' }}{% if include.size == 'lg' %} pf-btn-lg{% endif %}" href="{% include link-url.html url=include.url %}"{% if include.url contains '://' %} target="_blank" rel="noopener"{% endif %}>{{ include.text }}</a>

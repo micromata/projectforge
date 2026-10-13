@@ -7,7 +7,7 @@ permalink: /misc/terms-of-use.html
 
 ## Join us, do it yourself.
 
-<p class="uk-text-lead uk-text-muted">The most famous OpenSource license make sure the protection of investments and the possibility for own extensions, development and improvements.</p>
+<p class="lead">The most famous OpenSource license make sure the protection of investments and the possibility for own extensions, development and improvements.</p>
 
 ### License
 

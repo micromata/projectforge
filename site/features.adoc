@@ -2,22 +2,33 @@
 layout: page
 title: Features
 description: "Orders, projects, timesheets, leave, e-invoices, forecast and liquidity – all ProjectForge features in one open-source web app on your own server."
-hide_title: true
-width: small
+width: expand
+content_class: pf-adoc-sections
 hero:
     title: Features
     subtitle: Everything a service company needs between sales and accounting – connected in one web app on your own server.
+cta:
+    title: Ready to try it?
+    subtitle: Download ProjectForge and follow the Quick start.
+    tone: plain
+    buttons:
+      - title: Download ProjectForge
+        url: /download/
+      - title: Quick start
+        url: /docs/quickstart/
 permalink: /features/
 author: kai
 tags: [features]
 ---
 :hide-uri-scheme:
 :imagesdir: /uploads/screenshots
-
-:toc:
-:toclevels: 1
+:page-liquid:
 
 :last-update-label: Copyright (C) 2001-2026, Last updated
+
+++++
+{% include boxes.html data="features_toc" columns="4" %}
+++++
 
 ProjectForge connects orders, projects, timesheets, people, invoices and liquidity. Every feature works on the same data, so what your team books today shows up in tomorrow's forecast – without exports, imports or spreadsheets in between.
 All features are part of the free open-source edition. Your users only need a web browser.
@@ -145,10 +156,9 @@ Open source:: Kotlin, Spring Boot and Next.js. Read the code, change it, contrib
 
 image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
 
+[[requirements]]
 == Technical requirements
 
 - Server: Docker image or executable JAR (Java 17 or newer) for Linux, macOS and Windows, see link:/docs/installation/[Installation].
 - Database: PostgreSQL for production, an embedded database for evaluation.
 - Users: a current web browser – nothing to install on the client.
-
-Ready to try it? link:/download/[Download ProjectForge] and follow the link:/docs/quickstart/[Quick start].

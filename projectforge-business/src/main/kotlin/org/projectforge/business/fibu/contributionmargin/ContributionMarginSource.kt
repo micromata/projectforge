@@ -35,8 +35,10 @@ import java.time.LocalDate
  * and scripts, so both count the same amounts.
  */
 class ContributionMarginSource(
+  /** The amounts; accounting records at their booking period ([ContributionMarginCalculator.bookingDate]). */
   val entries: List<ContributionMarginEntry>,
   val from: LocalDate,
+  /** The actual end: today at the latest for scripts, the end of the previous month for the order book. */
   val until: LocalDate,
   /** The last day of the last month with imported accounting records, or null if there are none. */
   val bookingImportEnd: LocalDate?,

@@ -1,19 +1,49 @@
-# Footer navigation links
+# Navigation of the site footer (_includes/footer.html): link columns and the legal links.
 
-- title: Home
-  url: /
-  
-- title: Terms Of Use
-  url: /misc/terms-of-use
-  
-- title: Imprint
-  url: /misc/imprint
+columns:
+  - title: Product
+    links:
+      - title: Features
+        url: /features/
+      - title: Download
+        url: /download/
+      - title: Changelog
+        url: /changelog-posts/
+      - title: Search
+        url: /search/
 
-- title: Privacy Policy
-  url: /misc/privacy-policy
+  - title: Docs
+    links:
+      - title: Quick Start
+        url: /docs/quickstart/
+      - title: Installation
+        url: /docs/installation/
+      - title: Administration guide
+        url: /docs/adminguide/
+      - title: User guide
+        url: /docs/userguide/
+      - title: Development
+        url: /docs/development/
+      - title: Technologies
+        url: /docs/technologies/
+      - title: Migration
+        url: /docs/migration/
 
-# - title: Blog
-  # url: /blog/
+  - title: Project
+    links:
+      - title: Services
+        url: /services/
+      - title: FAQ
+        url: /misc/faqs.html
+      - title: About
+        url: /about/
+      - title: GitHub
+        url: https://github.com/micromata/projectforge/
 
-# - title: Contact
-  # url: /contact/
+legal:
+  - title: Imprint
+    url: /misc/imprint.html
+  - title: Privacy Policy
+    url: /misc/privacy-policy.html
+  - title: Terms Of Use
+    url: /misc/terms-of-use.html

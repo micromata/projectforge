@@ -1,65 +1,45 @@
-{% if page.header.image %}
-    {% assign image = page.header.image %}
-{% endif %}
-
-{% if page.header.align %}
-    {% assign align = page.header.align %}
-{% else %}
-    {% assign align = "center" %}
-{% endif %}
-
-<header class="uk-background-{{ align }}-center uk-background-cover" style="{% if page.header.background %}background-color: {{ page.header.background }};{% endif %}{% if page.header.image %} background-image: url({% if image contains 'http' %}{{ image }}{% else %}{{ site.uploads | absolute_url }}{{ image }}{% endif %});{% endif %}">
-    <div class="uk-overlay-header" style="{% if page.header.overlay %}background: {{ page.header.overlay }};{% endif %}">
-
-        {% include navbar.html %}
-
-        <div class="uk-section section-hero uk-position-relative" data-uk-scrollspy="cls: uk-animation-slide-bottom-medium; repeat: true">
-            <div class="uk-container uk-container-small">
-                {% if page.hero.image %}
-                <p class="hero-image uk-text-center"><img src="{{ site.uploads | absolute_url }}{{ page.hero.image }}" alt="{{ page.hero.image_alt | escape }}"></p>
-                {% endif %}
-                <h1 class="uk-heading-primary uk-text-center uk-margin-remove-top">{{ page.hero.title }}</h1>
-                {% if page.hero.subtitle %}<p class="uk-text-lead uk-text-center">{{ page.hero.subtitle }}</p>{% endif %}
-
-                {% if page.hero.buttons %}
-                <p class="hero-buttons uk-text-center uk-margin-medium-top">
-                    {% for button in page.hero.buttons %}
-                    <a class="uk-button uk-button-{{ button.style | default: 'primary' }} uk-button-large uk-margin-small-right" href="{% if button.url contains 'http' %}{{ button.url }}{% else %}{{ button.url | relative_url }}{% endif %}">{{ button.title }}</a>
-                    {% endfor %}
-                </p>
-                {% endif %}
-                {% if page.hero.note %}<p class="hero-note uk-text-center uk-text-muted">{{ page.hero.note }}</p>{% endif %}
-
-                {% if page.hero.search %}
-                <div class="hero-search">
-
-                    <!-- Html Elements for Search -->
-                    <div class="uk-position-relative">
-                        <form class="uk-search uk-search-default uk-width-1-1" name="search-hero" onsubmit="return false;">
-                            <span class="uk-search-icon-flip" data-uk-search-icon></span>
-                            <input id="search-hero" class="uk-search-input uk-box-shadow-large" type="search" placeholder="{{ site.data.translation[site.lang].search_placeholder | default: "Search for answers" }}" autocomplete="off">
-                        </form>
-                        <ul id="search-hero-results" class="uk-position-absolute uk-width-1-1 uk-list"></ul>
-                    </div>
-
-                    <script>
-                    SimpleJekyllSearch({
-                        searchInput: document.getElementById('search-hero'),
-                        resultsContainer: document.getElementById('search-hero-results'),
-                        noResultsText: '<li class="no-results">{{ site.data.translation[site.lang].search_no_results | default: "No results found" }}</li>',
-                        searchResultTemplate: '<li><a href="{url}">{title}</a></li>',
-                        json: "{{ '/search.json' | relative_url }}"
-                    });
-
-                    searchResults("search-hero");
-
-                    </script>
-
-                </div>
-                {% endif %}
-
-            </div>
+{%- comment -%}
+    Page hero from the front matter (page.hero): title, subtitle, buttons (title, url, style: primary or
+    outline), note (small print below the buttons), image (screenshot below, path in /uploads/) and image_alt, or images
+    (up to three screenshots with src and alt, shown as an overlapping collage: back left, back right, front).
+{%- endcomment -%}
+{%- assign hero = page.hero -%}
+<section class="pt-24 pb-16 text-center max-sm:pt-16 max-sm:pb-12">
+    <div class="pf-container">
+        <h1 class="web-display mx-auto mt-4 max-w-[20ch]">{{ hero.title }}</h1>
+        {%- if hero.subtitle %}
+        <p class="web-lead mx-auto mt-6 max-w-[640px] text-secondary-foreground">{{ hero.subtitle }}</p>
+        {%- endif %}
+        {%- if hero.buttons %}
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+            {%- for button in hero.buttons %}
+            {%- if button.style == 'primary' or forloop.first and button.style == nil %}{% assign style = 'primary' %}{% else %}{% assign style = 'outline' %}{% endif %}
+            {% include button.html url=button.url text=button.title style=style size='lg' %}
+            {%- endfor %}
         </div>
-
+        {%- endif %}
+        {%- if hero.note %}
+        <p class="mx-auto mt-4 max-w-[640px] text-[13px] leading-5 text-muted-foreground">{{ hero.note }}</p>
+        {%- endif %}
     </div>
-</header>
+    {%- if hero.images %}
+    <div class="pf-container">
+        <div class="relative mx-auto mt-12 aspect-[2/1] w-full max-w-[1100px]">
+            {%- for image in hero.images limit: 3 %}
+            {%- case forloop.index -%}
+            {%- when 1 -%}{%- assign pos = 'left-0 top-0' -%}
+            {%- when 2 -%}{%- assign pos = 'right-0 top-[12%]' -%}
+            {%- else -%}{%- assign pos = 'left-[21%] top-[31%] shadow-xl' -%}
+            {%- endcase %}
+            <img class="absolute {{ pos }} block h-auto w-[58%] rounded-lg border border-border bg-card shadow-lg" src="{{ site.uploads | relative_url }}{{ image.src }}" alt="{{ image.alt | escape }}">
+            {%- endfor %}
+        </div>
+    </div>
+    {%- elsif hero.image %}
+    <div class="pf-container">
+        <figure class="pf-hero-image mt-12 overflow-hidden rounded-xl border border-border bg-card">
+            <img class="block h-auto w-full" src="{{ site.uploads | relative_url }}{{ hero.image }}" alt="{{ hero.image_alt | escape }}">
+        </figure>
+    </div>
+    {%- endif %}
+</section>

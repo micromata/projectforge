@@ -23,9 +23,6 @@ url:                https://projectforge.org
 # Site logo # e.g. logo.png, upload logo image file to /uploads/ folder
 logo:               logo_projectforge.gif
 
-navbar:
-  sticky:         true
-
 tipue_search:
   include:
     pages: true
@@ -153,9 +150,7 @@ exclude:
   - fetch-binaries.sh
   - package.json
   - package-lock.json
-
-sass:
-  style:            compressed
+  - _css
 
 collections:
   docs:

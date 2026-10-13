@@ -1,0 +1,15 @@
+{
+  "name": "projectforge-site",
+  "private": true,
+  "description": "Build of the CSS of the ProjectForge web site (Jekyll + Tailwind CSS).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./_css/site.css -o ./assets/css/main.css --minify",
+    "watch:css": "tailwindcss -i ./_css/site.css -o ./assets/css/main.css --watch",
+    "dev": "npm run build:css && (npm run watch:css & bundle exec jekyll serve --livereload)"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@tailwindcss/typography": "^0.5.20",
+    "tailwindcss": "^4.3.3"
+  }
+}

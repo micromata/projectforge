@@ -4,15 +4,20 @@ width: expand
 hero:
     title: From order to invoice – one place for projects, time, people and money.
     subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.
-    image: Illustration_DevOps_omg.svg
-    search: false
+    images:
+      - src: screenshots/2026-OrderBook.png
+        alt: The order book with budgets and invoicing status
+      - src: screenshots/2026-Calendar.png
+        alt: The team calendar with appointments and leave
+      - src: screenshots/2026-Dark.png
+        alt: The revenue forecast in the dark theme
     buttons:
       - title: Download
         url: /download/
         style: primary
       - title: See all features
         url: /features/
-        style: default
+        style: outline
     note: Open source (GPLv3) · In daily use since 2001 · English & German
 ---
 :page-liquid:
@@ -22,7 +27,7 @@ hero:
 ++++
 
 ++++
-{% include boxes.html data="home_flow" columns="5" id="how-it-fits-together" title="How it fits together" subtitle="One flow, one database – from the first offer to the last euro on the bank account." %}
+{% include boxes.html data="home_flow" columns="5" tone="muted" id="how-it-fits-together" title="How it fits together" subtitle="One flow, one database – from the first offer to the last euro on the bank account." %}
 ++++
 
 ++++
@@ -30,7 +35,7 @@ hero:
 ++++
 
 ++++
-{% include cta.html button_text="See all features" button_url="/features/" %}
+{% include cta.html tone="plain" button_text="See all features" button_url="/features/" button_style="outline" %}
 ++++
 
 ++++
@@ -50,9 +55,9 @@ hero:
 ++++
 
 ++++
-{% include faqs.html multiple="true" title="Frequently asked questions" category="faq-main" subtitle="Quick answers before you start" %}
+{% include faqs.html multiple="true" id="faq" title="Frequently asked questions" category="faq-main" subtitle="Quick answers before you start" %}
 ++++
 
 ++++
-{% include cta.html background="muted" title="Ready in five minutes." subtitle="Grab the Docker image, start it, follow the setup wizard. That's it." button_text="Download ProjectForge" button_url="/download/" %}
+{% include cta.html title="Ready in five minutes." subtitle="Grab the Docker image, start it, follow the setup wizard. That's it." button_text="Download ProjectForge" button_url="/download/" %}
 ++++

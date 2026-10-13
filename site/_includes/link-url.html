@@ -1,0 +1,2 @@
+{%- comment -%}Prints include.url, relative urls with the baseurl of the site.{%- endcomment -%}
+{%- if include.url contains '://' -%}{{ include.url }}{%- else -%}{{ include.url | relative_url }}{%- endif -%}
