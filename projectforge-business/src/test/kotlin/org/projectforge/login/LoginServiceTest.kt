@@ -35,7 +35,9 @@ import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserGroupCache
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
 
 class LoginServiceTest : AbstractTestBase() {
     @Autowired
@@ -117,6 +119,32 @@ class LoginServiceTest : AbstractTestBase() {
             Assertions.assertEquals(1, stayLoggedInTokenDao.getEntries(userId).size, "... and no second device.")
         } finally {
             stayLoggedInTokenDao.deleteAll(userId)
+        }
+    }
+
+    /**
+     * A password change (here: of the cached user, as another device or an admin would cause it) ends every
+     * session that was logged in before, the session of the change itself excepted.
+     */
+    @Test
+    fun passwordChangeEndsOtherSessionsTest() {
+        val userGroupCache = UserGroupCache.getInstance()
+        try {
+            val request = mockRequest()
+            val otherRequest = mockRequest()
+            val response = Mockito.mock(HttpServletResponse::class.java)
+            for (r in listOf(request, otherRequest)) {
+                loginService.authenticate(r, response, LoginData(TEST_USER, TEST_USER_PASSWORD.copyOf()))
+                Assertions.assertNotNull(loginService.checkLogin(r, response))
+            }
+            // Fetched after the logins: they expire the cache (last login), which then holds a new user object.
+            userGroupCache.getUser(getUser(TEST_USER).id)!!.lastPasswordChange = Date()
+            // The session of the change keeps going (ChangePasswordPageRest), the other one ends:
+            LoginService.getUserContext(request)!!.acceptOwnPasswordChange()
+            Assertions.assertNotNull(loginService.checkLogin(request, response))
+            Assertions.assertNull(loginService.checkLogin(otherRequest, response))
+        } finally {
+            userGroupCache.setExpired() // Drops the faked password change.
         }
     }
 

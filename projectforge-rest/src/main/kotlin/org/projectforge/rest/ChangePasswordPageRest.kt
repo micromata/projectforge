@@ -37,6 +37,7 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AccessChecked
@@ -176,6 +177,10 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       }
       if (validationErrors.isNotEmpty()) {
         return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+      }
+      if (type == PasswordType.LOGIN && changeOwnPassword) {
+        // All other sessions of the user end with the change (LoginService.checkLogin), this one is kept.
+        LoginService.getUserContext(request)?.acceptOwnPasswordChange()
       }
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     } finally {
