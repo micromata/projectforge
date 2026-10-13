@@ -24,6 +24,7 @@
 package org.projectforge.framework.configuration
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.SystemStatus
 import org.projectforge.common.logging.warn
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,12 +49,21 @@ open class ConfigurationLegacyProperties {
     @Autowired
     private lateinit var environment: Environment
 
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
+
     /**
      * Creates the missing rows of the parameters on startup, so properties of former installations are taken over
      * right away, and reports the properties still set. Failures are logged only: startup goes on.
+     *
+     * Skipped on an empty database: the setup ([org.projectforge.business.admin.SetupService.finish]) inserts the test
+     * data with fixed ids, which would collide with rows created here, and creates the missing rows itself afterwards.
      */
     @EventListener(ApplicationReadyEvent::class)
     open fun takeOverAndCheck() {
+        if (systemStatus.setupRequiredFirst == true) {
+            return
+        }
         try {
             configurationDao.checkAndUpdateDatabaseEntries()
             ConfigurationParam.entries.forEach { param ->
