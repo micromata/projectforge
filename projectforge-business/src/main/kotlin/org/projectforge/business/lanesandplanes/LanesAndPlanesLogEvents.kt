@@ -56,4 +56,16 @@ object LanesAndPlanesLogEvents {
         action = "Change the email of the user in Lanes & Planes by hand, then add the new email to the confirmed " +
                 "email changes of the configuration parameter 'lanesAndPlanes'.",
     )
+
+    @JvmField
+    val STATE_MISSING = LogEvent(
+        code = "lanesAndPlanes.stateMissing",
+        category = LogCategory.CONFIG,
+        explanation = "The state of the last push to Lanes & Planes (lanes-and-planes-state.json in the work " +
+                "directory) is missing or not readable. Without it, a changed email of an employee isn't held " +
+                "back (L&P would deactivate the user and create a new one) and a dropped number of users isn't " +
+                "detected.",
+        action = "Expected on the very first push only. Otherwise restore the file from a backup (e.g. after " +
+                "moving the work directory) or check the emails changed since the last push in Lanes & Planes.",
+    )
 }

@@ -63,15 +63,21 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 | `first_name`, `last_name`, `email` | `PFUserDO`; employees without one of them are skipped (warning in the log), as are duplicate e-mails (case-insensitive) |
 | `middle_name` | Always sent empty (clears the middle names maintained in L&P; there is no middle name in ProjectForge) |
 | `abbreviation` | `PFUserDO.nickname`, sent empty if not set (clears the value in L&P) |
-| `personnel_number` | `EmployeeDO.staffNumber` (not sent if empty) |
-| `creditor_account` | Number of the account of the employee (`EmployeeDO.konto`, *creditor account* in the employee edit page), not sent if empty |
-| `reference_cost_center` | Kost1 of the employee, number without dots (`########`), not sent if empty |
+| `personnel_number` | `EmployeeDO.staffNumber` (not sent if empty, see below) |
+| `creditor_account` | Number of the account of the employee (`EmployeeDO.konto`, *creditor account* in the employee edit page), not sent if empty, see below |
+| `reference_cost_center` | Kost1 of the employee, number without dots (`########`), not sent if empty, see below |
 | `cost_centers` | The general Kost1 (settings), the same for all users, `ident` = number without dots (`########`), `name` = number and description (`<number> <description>`). Not sent if no general Kost1 are configured (the cost centers maintained in L&P are kept then) |
 | `cost_units` | The general Kost2 plus the bookable Kost2 matching the patterns, `ident` = number without dots (`########`), `name` = number, project and Kost2 type (`<number> <project> - <type>`, L&P convention; the description for a Kost2 without project) |
 
+| `accounting_invoice_profile_ids` | Settings, the same for all users |
+
 For a Kost1 or Kost2 whose number is in the existing names of the settings, `ident` and `name` are both the
 existing L&P name (e.g. `50123401 Project - Travel costs`), so L&P reuses the entry.
-| `accounting_invoice_profile_ids` | Settings, the same for all users |
+
+`personnel_number`, `creditor_account` and `reference_cost_center` aren't sent, if empty in ProjectForge, so the
+values maintained in L&P are kept (e.g. for employees whose creditor account isn't entered in ProjectForge yet).
+The other side: a value removed in ProjectForge stays in L&P and has to be removed there by hand. This matters
+for the creditor account in particular, as a stale one ends up in the DATEV export of L&P.
 
 Names have at most 102 characters.
 
@@ -110,13 +116,16 @@ get every Kost2).
 - `dryRun=true` by default: the payload is only written to `<work directory>/lanes-and-planes-users.json`, nothing
   is sent (the API key isn't needed). The file contains personal data (names, e-mails).
 - No push, if the API key or the invoice profile ids are missing, if fewer than `minUsers` users are found, or if
-  the number of users dropped by more than half since the last push (in memory; a restart resets it).
-- Changed e-mails are held back: the e-mails of the last successful push are stored by ident in
-  `<work directory>/lanes-and-planes-state.json`. If the e-mail of an employee changed since, the old one is
+  the number of users dropped by more than half since the last push (stored in the push state, see below, so it
+  survives a restart). To force such a push, set `users` in the push state file to `0`.
+- Changed e-mails are held back: the e-mails of the last successful push are stored by ident in the push state
+  `<work directory>/lanes-and-planes-state.json` (with the number of users sent). If the e-mail of an employee changed since, the old one is
   still sent (log event `lanesAndPlanes.emailChanged`, problem dashboard) until the new one is listed in the
   confirmed e-mail changes of the settings, see [Changing an e-mail](#changing-an-e-mail). Not if the old
-  e-mail is now used by another user (error in the log, the new one is sent). The first push has no state, so
-  nothing is held.
+  e-mail is now used by another user (error in the log, the new one is sent).
+- Without a push state (very first push, or the file was lost, e.g. by moving the work directory) changed e-mails
+  aren't held back and a dropped number of users isn't detected: log event `lanesAndPlanes.stateMissing`
+  (warning, not in dry runs). Keep the file with the backups of the work directory.
 - Only pushed, if the payload changed since the last successful push (in memory; the first run after a restart
   always pushes).
 - Errors: log events `lanesAndPlanes.push.failed` / `lanesAndPlanes.push.refused`, tile "Lanes & Planes" on the
@@ -136,6 +145,9 @@ projectforge.lanesandplanes.minUsers=1
 projectforge.lanesandplanes.syncIntervalMs=3600000
 projectforge.lanesandplanes.initialDelayMs=300000
 ```
+
+`minUsers` is the only protection against an emptied user list without a push state (see Safety): in production
+set it to about 80 % of the expected number of users (employees and additional users), not the default `1`.
 
 Content settings in the configuration parameter `lanesAndPlanes` (JSON, *Administration → Configuration*, edited
 by finance/controlling with its own editor, validated on saving, changes traced by the history). Read on every
@@ -216,7 +228,9 @@ Consequences:
    "assign all to all users" after the first push: it would undo the restriction until the next push.
 3. Guest profiles aren't employees in ProjectForge and aren't sent; the import doesn't touch them (confirmed).
 4. New employees are sent without a travel manager: not required by the company settings (confirmed).
-5. Personnel numbers in L&P are overwritten by the ones of ProjectForge (if set in ProjectForge).
+5. Personnel numbers, creditor accounts and reference cost centers in L&P are overwritten by the ones of
+   ProjectForge, if set there. If removed in ProjectForge, they are kept in L&P (see
+   [What ProjectForge sends](#what-projectforge-sends)).
 
 ## Answers of the L&P support
 
@@ -249,6 +263,9 @@ To the L&P support:
   center by its name, or does it collide?
 - Does the DATEV export of L&P work with a reused entry whose `ident` is the whole name (number and text), not
   the number only?
+- What happens if the name of a cost center/unit changes for the same `ident` (e.g. a project or Kost2 type is
+  renamed in ProjectForge, so the generated name changes)? Is the name of the entry updated, or is a new entry
+  created, or does the import of the users fail? And does the old name stay taken (as deleted names do)?
 
 To decide in ProjectForge:
 

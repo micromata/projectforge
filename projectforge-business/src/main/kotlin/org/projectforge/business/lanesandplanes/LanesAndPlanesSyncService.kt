@@ -70,8 +70,6 @@ open class LanesAndPlanesSyncService(
     /** Hash of the last payload accepted by Lanes & Planes (in memory: the first run after a restart always pushes). */
     private var lastPushedHash: Int? = null
 
-    private var lastPushedUsers: Int? = null
-
     open fun push() {
         if (!pushLock.tryLock()) {
             log.info { "Lanes & Planes push already running, skipped." }
@@ -93,8 +91,16 @@ open class LanesAndPlanesSyncService(
                 return
             }
             val stateFile = File(ConfigXml.getInstance().workingDirectory, STATE_FILENAME)
+            val state = LanesAndPlanesEmailHolds.load(stateFile)
+            if (state == null && !config.dryRun) {
+                log.warn(LanesAndPlanesLogEvents.STATE_MISSING) {
+                    "Lanes & Planes: push state ${stateFile.absolutePath} missing or not readable: changed emails " +
+                            "aren't held back and the number of users isn't compared with the last push. Expected " +
+                            "on the very first push only."
+                }
+            }
             val holds = LanesAndPlanesEmailHolds.apply(
-                result.request.users, LanesAndPlanesEmailHolds.load(stateFile), settings.confirmedEmails,
+                result.request.users, state?.emailsByIdent ?: emptyMap(), settings.confirmedEmails,
             )
             holds.holds.forEach { hold ->
                 log.warn(LanesAndPlanesLogEvents.EMAIL_CHANGED) {
@@ -104,7 +110,7 @@ open class LanesAndPlanesSyncService(
                 }
             }
             val users = holds.users
-            refuseReason(users.size, settings)?.let { reason ->
+            refuseReason(users.size, settings, state?.users)?.let { reason ->
                 log.error(LanesAndPlanesLogEvents.PUSH_REFUSED) { "Lanes & Planes push refused: $reason" }
                 run.abort(reason)
                 return
@@ -148,7 +154,6 @@ open class LanesAndPlanesSyncService(
                 return
             }
             lastPushedHash = hash
-            lastPushedUsers = users.size
             try {
                 LanesAndPlanesEmailHolds.save(stateFile, users)
             } catch (ex: Exception) {
@@ -161,9 +166,11 @@ open class LanesAndPlanesSyncService(
     }
 
     /**
+     * @param lastUsers The number of users sent by the last successful push (of the push state, so it survives a
+     * restart), null if unknown.
      * @return The reason, why the push mustn't be sent, or null.
      */
-    internal fun refuseReason(userCount: Int, settings: LanesAndPlanesSettings): String? {
+    internal fun refuseReason(userCount: Int, settings: LanesAndPlanesSettings, lastUsers: Int?): String? {
         if (config.apiKey.isBlank() && !config.dryRun) {
             return "projectforge.lanesandplanes.apiKey not configured."
         }
@@ -174,10 +181,10 @@ open class LanesAndPlanesSyncService(
             return "only $userCount users found (projectforge.lanesandplanes.minUsers=${config.minUsers}), all " +
                     "other users would be deactivated in Lanes & Planes."
         }
-        val last = lastPushedUsers
-        if (last != null && userCount < last / 2) {
-            return "only $userCount users found, $last users were sent by the last push. All other users would be " +
-                    "deactivated in Lanes & Planes. Restart ProjectForge to force the push, if this is intended."
+        if (lastUsers != null && userCount < lastUsers / 2) {
+            return "only $userCount users found, $lastUsers users were sent by the last push. All other users would " +
+                    "be deactivated in Lanes & Planes. If this is intended, set 'users' in $STATE_FILENAME of the " +
+                    "work directory to 0 to force the push."
         }
         return null
     }

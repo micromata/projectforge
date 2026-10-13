@@ -14,6 +14,10 @@
     {
       "en": "The service admin and guest profiles of Lanes & Planes can no longer be entered as additional users: the import doesn't touch them.",
       "de": "Der Service-Admin und Gastprofile von Lanes & Planes können nicht mehr als weitere User eingetragen werden: Der Import lässt sie unberührt."
+    },
+    {
+      "en": "The protection against a suspiciously small user list (Lanes & Planes deactivates every user not sent) also applies after a restart of ProjectForge. A missing push state is reported on the problem dashboard.",
+      "de": "Der Schutz vor einer verdächtig kleinen User-Liste (Lanes & Planes deaktiviert alle nicht übertragenen User) greift auch nach einem Neustart von ProjectForge. Ein fehlender Push-Status wird im Problem-Dashboard gemeldet."
     }
   ]
 }

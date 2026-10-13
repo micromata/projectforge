@@ -70,11 +70,13 @@ class LanesAndPlanesEmailHoldsTest {
     @Test
     fun loadAndSave(@TempDir dir: File) {
         val file = File(dir, "state.json")
-        Assertions.assertTrue(LanesAndPlanesEmailHolds.load(file).isEmpty(), "Missing file.")
+        Assertions.assertNull(LanesAndPlanesEmailHolds.load(file), "Missing file.")
         LanesAndPlanesEmailHolds.save(file, listOf(user("1", "a@example.org"), user(null, "b@example.org")))
-        Assertions.assertEquals(mapOf("1" to "a@example.org"), LanesAndPlanesEmailHolds.load(file))
+        val state = LanesAndPlanesEmailHolds.load(file)
+        Assertions.assertEquals(mapOf("1" to "a@example.org"), state?.emailsByIdent)
+        Assertions.assertEquals(2, state?.users, "All users are counted, the additional ones included.")
         file.writeText("no json")
-        Assertions.assertTrue(LanesAndPlanesEmailHolds.load(file).isEmpty(), "Unreadable file.")
+        Assertions.assertNull(LanesAndPlanesEmailHolds.load(file), "Unreadable file.")
     }
 
     private fun user(ident: String?, email: String) = LanesAndPlanesUser(

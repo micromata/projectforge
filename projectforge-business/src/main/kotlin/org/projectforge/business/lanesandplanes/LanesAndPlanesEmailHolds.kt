@@ -43,7 +43,7 @@ object LanesAndPlanesEmailHolds {
     class Result(val users: List<LanesAndPlanesUser>, val holds: List<Hold>)
 
     /**
-     * @param lastEmails The emails of the last successful push by ident (employees only, see [load]).
+     * @param lastEmails The emails of the last successful push by ident (employees only, see [State]).
      * @param confirmed The confirmed new emails, lower case.
      */
     fun apply(users: List<LanesAndPlanesUser>, lastEmails: Map<String, String>, confirmed: Set<String>): Result {
@@ -68,25 +68,28 @@ object LanesAndPlanesEmailHolds {
         return Result(result.sortedBy { it.email.lowercase() }, holds)
     }
 
-    /** The emails by ident of the given push state file, empty if missing or not readable. */
-    fun load(file: File): Map<String, String> {
+    /** The state of the given push state file, null if missing or not readable. */
+    fun load(file: File): State? {
         if (!file.exists()) {
-            return emptyMap()
+            return null
         }
         return try {
-            JsonUtils.fromJson(file.readText(), State::class.java, failOnUnknownProps = false)?.emailsByIdent
-                ?: emptyMap()
+            JsonUtils.fromJson(file.readText(), State::class.java, failOnUnknownProps = false)
         } catch (ex: Exception) {
             log.warn { "Lanes & Planes: push state ${file.absolutePath} not readable, ignored: ${ex.message}" }
-            emptyMap()
+            null
         }
     }
 
-    /** Stores the emails of the given (pushed) users by ident. */
+    /** Stores the emails of the given (pushed) users by ident and their number. */
     fun save(file: File, users: List<LanesAndPlanesUser>) {
         val emails = users.mapNotNull { user -> user.ident?.let { it to user.email } }.toMap()
-        file.writeText(JsonUtils.toJson(State(emails)))
+        file.writeText(JsonUtils.toJson(State(emails, users.size)))
     }
 
-    class State(var emailsByIdent: Map<String, String> = emptyMap())
+    /**
+     * The state of the last successful push.
+     * @param users The number of users sent (additional users included), see LanesAndPlanesSyncService.refuseReason.
+     */
+    class State(var emailsByIdent: Map<String, String> = emptyMap(), var users: Int? = null)
 }
