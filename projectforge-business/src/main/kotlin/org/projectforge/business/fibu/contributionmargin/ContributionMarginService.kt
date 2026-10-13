@@ -422,9 +422,13 @@ open class ContributionMarginService {
   /**
    * The accounting records of the given kost2 (of all if null) whose booking period (year and month of the
    * record number, not the record's date) lies in [from]..[until]; the records of the months of [from] and
-   * [until] are restricted to these days by [ContributionMarginCalculator.bookingDate].
+   * [until] are restricted to these days by [ContributionMarginCalculator.bookingDate]. Empty if [until] is
+   * before [from] (e.g. a period in the future), as the period query would reject that range.
    */
   private fun selectRecords(kost2Ids: Collection<Long>?, from: LocalDate, until: LocalDate): List<BuchungssatzDO> {
+    if (until < from) {
+      return emptyList()
+    }
     fun inRange(records: List<BuchungssatzDO>) = records.filter { record ->
       ContributionMarginCalculator.bookingDate(record)?.let { it in from..until } == true
     }
