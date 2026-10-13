@@ -4455,6 +4455,12 @@
     "Days": "Urlaubstage",
     "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
     "availabledays": "Verfügbare Urlaubstage",
+    "chart": {
+      "ariaLabel": "Balkengrafik dieses Urlaubs und der überlappenden Urlaube der Vertretungen",
+      "nonWorkingDay": "Wochenende oder Feiertag",
+      "own": "Dieser Urlaub",
+      "uncovered": "Keine Vertretung im Dienst"
+    },
     "conflict": {
       "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
     },

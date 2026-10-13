@@ -125,6 +125,23 @@ class VacationEntityRestTest : AbstractTestBase() {
             replacement = Employee(own.id),
         )
         val leftOfOther = vacationEntityRest.stats(PostData(form, watchFieldsTriggered = null, serverData = null)).vacationDaysLeftInYear
+        // The own week with the only substitute away all of it: charted with three days around, the five uncovered.
+        val chart = vacationEntityRest.stats(
+            PostData(
+                Vacation(
+                    employee = Employee(own.id), startDate = monday, endDate = friday,
+                    manager = Employee(manager.id), replacement = Employee(other.id),
+                ), watchFieldsTriggered = null, serverData = null
+            )
+        )
+        val days = chart.chartDays!!
+        assertEquals(monday.minusDays(3), days.first().date)
+        assertEquals(friday.plusDays(3), days.last().date)
+        assertEquals(11, days.size)
+        assertEquals((0L..4L).map { monday.plusDays(it) }, days.filter { it.uncovered }.map { it.date })
+        assertFalse(days.first { it.date == monday.minusDays(1) }.workingDay, "Sunday")
+        assertTrue(chart.conflict == true)
+        assertEquals(listOf(monday), chart.conflictingVacations!!.map { it.startDate }, "Not trimmed")
 
         logon(own.user!!)
         val stats = vacationEntityRest.stats(PostData(form, watchFieldsTriggered = null, serverData = null))

@@ -1,0 +1,150 @@
+import type {
+  EmployeeRef,
+  VacationChartDay,
+  VacationDetail,
+  VacationStatus,
+} from "./types";
+
+/** A vacation on the chart: the columns it covers (indices into the days, both inclusive). */
+export interface ChartBar {
+  key: string;
+  first: number;
+  last: number;
+  /** Half a day at a visible end: the bar begins or ends in the middle of that day's column. */
+  halfFirst: boolean;
+  halfLast: boolean;
+  status: VacationStatus | null;
+  /** A piece of the vacation being edited on days without any substitute on duty. */
+  conflict?: boolean;
+  /** The whole period, also where the bar is cut off at the edge of the chart. */
+  startDate: string;
+  endDate: string;
+}
+
+export interface ChartRow {
+  key: string;
+  name: string;
+  /** The vacation being edited, the first row. */
+  own: boolean;
+  bars: ChartBar[];
+}
+
+/** What the form holds for the vacation being edited. */
+export interface OwnVacation {
+  employee: EmployeeRef | null;
+  startDate: string | null;
+  endDate: string | null;
+  halfDayBegin: boolean;
+  halfDayEnd: boolean;
+  status: VacationStatus | null;
+}
+
+/** A period on the axis, cut off at its edges; null if it lies beside it. ISO dates compare as strings. */
+function barOf(
+  key: string,
+  days: VacationChartDay[],
+  vacation: Pick<
+    VacationDetail,
+    "startDate" | "endDate" | "halfDayBegin" | "halfDayEnd" | "status"
+  >
+): ChartBar | null {
+  const { startDate, endDate } = vacation;
+  if (!startDate || !endDate || days.length === 0) return null;
+  const firstDay = days[0].date;
+  const lastDay = days[days.length - 1].date;
+  if (endDate < firstDay || startDate > lastDay) return null;
+  const index = (date: string) => days.findIndex((d) => d.date === date);
+  const first = startDate < firstDay ? 0 : index(startDate);
+  const last = endDate > lastDay ? days.length - 1 : index(endDate);
+  if (first < 0 || last < first) return null;
+  return {
+    key,
+    first,
+    last,
+    halfFirst: vacation.halfDayBegin === true && startDate >= firstDay,
+    halfLast: vacation.halfDayEnd === true && endDate <= lastDay,
+    status: vacation.status ?? null,
+    startDate,
+    endDate,
+  };
+}
+
+/**
+ * The vacation being edited in pieces, one per run of days that are or aren't covered by a substitute, so the
+ * uncovered days stand out. A half day stays with the piece at that end.
+ */
+export function splitByConflict(
+  bar: ChartBar,
+  days: VacationChartDay[]
+): ChartBar[] {
+  const pieces: ChartBar[] = [];
+  for (let i = bar.first; i <= bar.last; i++) {
+    const conflict = days[i].uncovered === true;
+    const piece = pieces[pieces.length - 1];
+    if (piece && piece.conflict === conflict) piece.last = i;
+    else
+      pieces.push({
+        ...bar,
+        key: `${bar.key}-${i}`,
+        first: i,
+        last: i,
+        conflict,
+      });
+  }
+  return pieces.map((piece, i) => ({
+    ...piece,
+    halfFirst: i === 0 && bar.halfFirst,
+    halfLast: i === pieces.length - 1 && bar.halfLast,
+  }));
+}
+
+/**
+ * The rows of the chart: the vacation being edited first, then every substitute — the replacement and the
+ * further ones, also those without a vacation (they are on duty) — with their vacations overlapping it.
+ */
+export function buildVacationChart(
+  days: VacationChartDay[],
+  own: OwnVacation,
+  substitutes: EmployeeRef[],
+  vacations: VacationDetail[]
+): ChartRow[] {
+  const ownBar = barOf("own", days, own);
+  const rows: ChartRow[] = [
+    {
+      key: "own",
+      name: own.employee?.displayName ?? "",
+      own: true,
+      bars: ownBar ? splitByConflict(ownBar, days) : [],
+    },
+  ];
+  const people = new Map<number, string>();
+  for (const s of substitutes) people.set(s.id, s.displayName ?? "");
+  // A vacation of somebody not (or no longer) chosen still shows, under its own employee.
+  for (const v of vacations) {
+    if (v.employee && !people.has(v.employee.id)) {
+      people.set(v.employee.id, v.employee.displayName ?? "");
+    }
+  }
+  for (const [id, name] of people) {
+    const bars = vacations
+      .filter((v) => v.employee?.id === id)
+      .map((v, i) => barOf(`${id}-${v.id ?? i}`, days, v))
+      .filter((b): b is ChartBar => b != null);
+    rows.push({ key: String(id), name, own: false, bars });
+  }
+  return rows;
+}
+
+/** The months on the axis, each with the columns of its days (indices into the days, both inclusive). */
+export function monthSpans(
+  days: VacationChartDay[]
+): { month: string; first: number; last: number }[] {
+  const spans: { month: string; first: number; last: number }[] = [];
+  days.forEach((day, i) => {
+    const month = day.date.slice(0, 7);
+    const span = spans[spans.length - 1];
+    if (span?.month === month) span.last = i;
+    else spans.push({ month, first: i, last: i });
+  });
+  return spans;
+}

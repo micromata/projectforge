@@ -17,6 +17,17 @@ export type EmployeeRef = {
   displayName?: string;
 };
 
+/** A day of the chart of the overlapping vacations (`org.projectforge.rest.dto.VacationChartDay`). */
+export interface VacationChartDay {
+  /** ISO date (yyyy-MM-dd). */
+  date: string;
+  /** Neither weekend nor holiday. */
+  workingDay: boolean;
+  holiday?: string | null;
+  /** A day of the vacation on which no substitute is on duty. */
+  uncovered?: boolean;
+}
+
 /**
  * What the form shows beside its fields and the backend computes for the state being edited
  * (`VacationEntityRest.VacationFormStats`, `/rs/vacation/stats`). The loaded entry carries the same
@@ -33,6 +44,8 @@ export interface VacationFormStats {
   conflict?: boolean | null;
   /** The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). */
   allowedStatus?: VacationStatus[] | null;
+  /** The axis of the chart: the period with a margin of three days on either side. */
+  chartDays?: VacationChartDay[] | null;
 }
 
 /**

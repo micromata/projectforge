@@ -4455,6 +4455,12 @@
     "Days": "Vacation days",
     "annualleave": "Number of leave days for the year",
     "availabledays": "Available vacation days",
+    "chart": {
+      "ariaLabel": "Chart of this vacation and the overlapping vacations of the substitutes",
+      "nonWorkingDay": "Weekend or holiday",
+      "own": "This vacation",
+      "uncovered": "No substitute on duty"
+    },
     "conflict": {
       "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
     },

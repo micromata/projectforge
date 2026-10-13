@@ -17,6 +17,7 @@ import {
 } from "./vacation-stats-fields";
 import { VacationStatusField } from "./vacation-status-field";
 import { emptyVacationValues, toFormValues } from "./vacation-values";
+import { VacationOverlapChart } from "./vacation-overlap-chart";
 import { VacationsOfReplacements } from "./vacations-of-replacements";
 import type { VacationDetail, VacationListRow } from "./types";
 
@@ -143,7 +144,13 @@ export const VACATION_PAGE = definePage<
       {
         id: "vacationsOfReplacements",
         titleKey: "vacation.vacationsOfReplacements",
-        render: () => <VacationsOfReplacements />,
+        // The chart for the overview, the table for the details (and for screen readers).
+        render: () => (
+          <>
+            <VacationOverlapChart />
+            <VacationsOfReplacements />
+          </>
+        ),
       },
     ],
   },

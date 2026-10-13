@@ -100,6 +100,12 @@ test.describe("vacation", { tag: "@parallel" }, () => {
     await expect(workingDays).toHaveText(/^5([.,]0+)?$/, { timeout: 20_000 });
     await page.getByLabel(label(format, "vacation.halfDayEnd")).check();
     await expect(workingDays).toHaveText(/^4[.,]5$/, { timeout: 20_000 });
+    // The chart over the week with three days around it, the vacation itself in the first row.
+    const chart = page.getByRole("img", {
+      name: t("vacation.chart.ariaLabel"),
+    });
+    await expect(chart).toBeVisible();
+    await expect(chart.getByText(preset.employee!.displayName!)).toBeVisible();
 
     await page.getByRole("button", { name: t("save") }).click();
     // Only what the preset left empty: the user prefs hold the manager and replacement of the last save.

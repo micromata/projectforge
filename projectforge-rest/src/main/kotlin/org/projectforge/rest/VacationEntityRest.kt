@@ -33,6 +33,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -47,6 +48,7 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
+import org.projectforge.rest.dto.VacationChartDay
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UILabelledElement
@@ -61,7 +63,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.Year
+import java.time.temporal.ChronoUnit
 
 /**
  * The layout-free REST endpoint of the vacation entries (menu "Vacation"), serving the hand-built list and edit
@@ -110,6 +114,7 @@ class VacationEntityRest :
         var conflictingVacations: List<Vacation>? = null,
         var conflict: Boolean? = null,
         var allowedStatus: List<VacationStatus>? = null,
+        var chartDays: List<VacationChartDay>? = null,
     )
 
     /**
@@ -339,6 +344,9 @@ class VacationEntityRest :
         val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
         result.conflictingVacations = vacationOverlaps.otherVacations.map { Vacation(it) }
         result.conflict = vacationOverlaps.conflict
+        if (startDate != null && endDate != null) {
+            result.chartDays = chartDays(startDate, endDate, vacationOverlaps.uncoveredDays.toSet())
+        }
         result.allowedStatus = baseDao.getAllowedStatus(ThreadLocalUserContext.loggedInUser!!, vacationDO)
         return result
     }
@@ -353,11 +361,38 @@ class VacationEntityRest :
         dto.conflictingVacations = stats.conflictingVacations
         dto.conflict = stats.conflict
         dto.allowedStatus = stats.allowedStatus
+        dto.chartDays = stats.chartDays
+    }
+
+    /**
+     * The axis of the form's chart: the period with [CHART_MARGIN_DAYS] before and after, so the vacations of the
+     * substitutes show where they begin and end. None for a period beyond [CHART_MAX_DAYS] (a mistyped year).
+     */
+    private fun chartDays(startDate: LocalDate, endDate: LocalDate, uncovered: Set<LocalDate>): List<VacationChartDay>? {
+        val first = startDate.minusDays(CHART_MARGIN_DAYS)
+        val last = endDate.plusDays(CHART_MARGIN_DAYS)
+        if (last < first || ChronoUnit.DAYS.between(first, last) > CHART_MAX_DAYS) {
+            return null
+        }
+        val holidays = Holidays.instance
+        return generateSequence(first) { it.plusDays(1) }.takeWhile { it <= last }.map { date ->
+            val holiday = if (holidays.isHoliday(date.year, date.dayOfYear)) {
+                holidays.getHolidayInfo(date.year, date.dayOfYear)
+                    .let { if (it.startsWith("calendar.holiday.")) translate(it) else it }
+                    .ifBlank { null }
+            } else null
+            VacationChartDay(date, holidays.isWorkingDay(date), holiday, uncovered.contains(date))
+        }.toList()
     }
 
     private fun hasHrRights(): Boolean = baseDao.hasHrRights(ThreadLocalUserContext.loggedInUser)
 
     private fun getUserPref(): VacationDO {
         return userPrefService.ensureEntry("vacation", "newEntry", VacationDO())
+    }
+
+    companion object {
+        private const val CHART_MARGIN_DAYS = 3L
+        private const val CHART_MAX_DAYS = 400L
     }
 }
