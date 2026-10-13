@@ -1367,6 +1367,7 @@ constructor(
         request: HttpServletRequest,
         @Valid @RequestBody postData: PostData<DTO>
     ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, "Force delete")?.let { return it }
         val dbObj = transformForDB(postData.data)
         return forceDelete(request, baseDao, dbObj, postData, this)
     }

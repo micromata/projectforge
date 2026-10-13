@@ -595,14 +595,15 @@ phone prefix in the configuration web page.
 ==== PhoneLookupServlet
 
 With the phone lookup servlet a telephony system (such as Asterix) may
-lookup incoming phone calls:
+lookup incoming phone calls. The servlet is disabled as long as no key is configured; choose a long
+random key:
 
 *File:* `application.properties`:
 
 [source,shell,linenums]
 ----
 ...
-projectforge.phoneLookupKey=*******SECRET********
+projectforge.phoneLookupKey=<your-secret-key>
 ...
 ----
 
