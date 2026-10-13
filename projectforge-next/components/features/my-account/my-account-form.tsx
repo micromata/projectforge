@@ -17,7 +17,6 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
-import { PF_USER_METADATA } from "@/lib/metadata/pf-user.generated";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import {
   fetchTimeZoneSuggestions,
@@ -29,6 +28,7 @@ import { MyAccountTokens } from "./my-account-tokens";
 import {
   EMPTY_VALUES,
   MY_ACCOUNT_FIELDS,
+  MY_ACCOUNT_METADATA,
   myAccountSchema,
   toFormValues,
   type MyAccountValues,
@@ -155,7 +155,9 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
     {
       id: "devices",
       label: t("login.stayLoggedIn.devices._"),
-      content: <MyAccountDevices devices={data.devices ?? []} />,
+      content: (
+        <MyAccountDevices devices={data.devices ?? []} canLogout={!readOnly} />
+      ),
     },
     {
       id: "publicKeys",
@@ -196,7 +198,7 @@ export function MyAccountForm({ init }: { init: MyAccountInit }) {
 
   return (
     <EntityEditFormProvider
-      value={{ form, metadata: PF_USER_METADATA, readOnly, data }}
+      value={{ form, metadata: MY_ACCOUNT_METADATA, readOnly, data }}
     >
       <form
         className="flex min-h-0 flex-1 flex-col overflow-hidden"

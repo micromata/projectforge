@@ -41,6 +41,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
@@ -156,9 +157,9 @@ class MyAccountRest {
     class InitData(
         val data: MyAccountData,
         /**
-         * False for a restricted or a demo user: they may not change their account (UserDao.updateMyAccount) nor
-         * renew a token (UserAuthenticationsDao.renewToken). A hint for the page, which then offers neither; the
-         * DAOs refuse it anyway.
+         * False for a restricted or a demo user: they may not change their account (UserDao.updateMyAccount), renew
+         * a token (UserAuthenticationsDao.renewToken) nor log out devices, and get no QR code of the credentials.
+         * A hint for the page, which then offers none of it; the server refuses it anyway.
          */
         val writeAccess: Boolean,
         val options: Options,
@@ -199,9 +200,9 @@ class MyAccountRest {
     @GetMapping
     fun getInitialData(request: HttpServletRequest): InitData {
         val user = userDao.find(ThreadLocalUserContext.loggedInUserId, checkAccess = false)!!
-        val wlanSupported = Login.getInstance().isWlanPasswordChangeSupported(user)
+        val data = createData(user, request)
         return InitData(
-            data = createData(request),
+            data = data,
             writeAccess = !accessChecker.isRestrictedOrDemoUser,
             options = Options(
                 locales = UserSettingsOptions.locales(),
@@ -219,35 +220,37 @@ class MyAccountRest {
             ),
             phoneIdentifiersSupported = sipgateConfiguration.isConfigured(),
             changePasswordUrl = MenuItemDefId.CHANGE_PASSWORD.url,
-            changeWlanPasswordUrl = if (wlanSupported) MenuItemDefId.CHANGE_WLAN_PASSWORD.url else null,
+            changeWlanPasswordUrl = if (data.wlanPasswordChangeSupported) MenuItemDefId.CHANGE_WLAN_PASSWORD.url else null,
             my2FASetupUrl = MenuItemDefId.MY_2FA_SETUP.url,
         )
     }
 
     /**
-     * Saves the editable fields. A too long key is answered with 406 and the field error (it would fail in the
-     * database otherwise). The answer is a ResponseAction without target: the page stays and reloads.
+     * Saves the editable fields. A value outside the choices of the page, a missing time zone and a too long key
+     * are answered with 406 and the field errors. The answer is a ResponseAction without target: the page stays
+     * and reloads.
      */
     @AccessChecked("Own user only (logged-in user's data)")
     @PostMapping("save")
     fun save(@RequestBody postData: PostData<MyAccountData>): ResponseEntity<ResponseAction> {
         val data = postData.data
+        val locale = data.locale?.trim()?.ifEmpty { null }?.takeIf { it != UserSettingsOptions.DEFAULT_LOCALE }
+        val dateFormat = data.dateFormat?.trim()?.ifEmpty { null }
+        val excelDateFormat = data.excelDateFormat?.trim()?.ifEmpty { null }
         val timeZoneId = data.timeZone?.trim()?.ifEmpty { null }
-        if (timeZoneId != null && timeZoneId !in TimeZone.getAvailableIDs()) {
-            // TimeZone.getTimeZone would silently take GMT for an unknown id.
-            val error = ValidationError.create("validation.error.generic", fieldId = "timeZone")
-            return ResponseEntity(ResponseAction(validationErrors = listOf(error)), HttpStatus.NOT_ACCEPTABLE)
-        }
         val user = userDao.find(ThreadLocalUserContext.loggedInUserId, checkAccess = false)!!
-        user.firstname = data.firstname ?: user.firstname
-        user.lastname = data.lastname ?: user.lastname
-        user.locale = data.locale?.trim()?.ifEmpty { null }
-            ?.takeIf { it != UserSettingsOptions.DEFAULT_LOCALE }
-            ?.let { Locale.forLanguageTag(it) }
-        user.dateFormat = data.dateFormat?.ifBlank { null }
-        user.excelDateFormat = data.excelDateFormat?.ifBlank { null }
-        user.timeNotation = data.timeNotation ?: user.timeNotation
-        timeZoneId?.let { user.timeZone = TimeZone.getTimeZone(it) }
+        validate(user, locale, dateFormat, excelDateFormat, timeZoneId).takeIf { it.isNotEmpty() }?.let {
+            return ResponseEntity(ResponseAction(validationErrors = it), HttpStatus.NOT_ACCEPTABLE)
+        }
+        // An emptied name is stored as such (the entity allows it), not silently kept.
+        user.firstname = data.firstname?.trim()?.ifEmpty { null }
+        user.lastname = data.lastname?.trim()?.ifEmpty { null }
+        user.locale = locale?.let { Locale.forLanguageTag(it) }
+        user.dateFormat = dateFormat
+        user.excelDateFormat = excelDateFormat
+        // Null: the default of the installation or of the user's language (DateFormats.ensureAndGetDefaultTimeNotation).
+        user.timeNotation = data.timeNotation
+        user.timeZone = TimeZone.getTimeZone(timeZoneId)
         user.personalPhoneIdentifiers =
             SipgateDirectCallService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
         user.gpgPublicKey = data.gpgPublicKey
@@ -260,6 +263,45 @@ class MyAccountRest {
             ?.let { return ResponseEntity(ResponseAction(validationErrors = it), HttpStatus.NOT_ACCEPTABLE) }
         userService.updateMyAccount(user)
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
+    }
+
+    /**
+     * The choices come from the page's lists, but the request may carry anything: a date format that isn't a
+     * valid pattern would break every date of the user, this page included, so they can't repair it themselves.
+     * The stored value is accepted as well, even if the installation no longer offers it: saving another field
+     * mustn't fail on it.
+     */
+    private fun validate(
+        user: PFUserDO,
+        locale: String?,
+        dateFormat: String?,
+        excelDateFormat: String?,
+        timeZoneId: String?,
+    ): List<ValidationError> {
+        val errors = mutableListOf<ValidationError>()
+        fun invalid(fieldId: String) = errors.add(ValidationError.create("validation.error.generic", fieldId = fieldId))
+        if (locale != null && locale != user.locale?.toLanguageTag()
+            && UserSettingsOptions.locales().none { it.value == locale }
+        ) {
+            invalid("locale")
+        }
+        if (dateFormat != null && dateFormat != user.dateFormat
+            && UserSettingsOptions.dateFormats().none { it.value == dateFormat }
+        ) {
+            invalid("dateFormat")
+        }
+        if (excelDateFormat != null && excelDateFormat != user.excelDateFormat
+            && UserSettingsOptions.excelDateFormats().none { it.value == excelDateFormat }
+        ) {
+            invalid("excelDateFormat")
+        }
+        if (timeZoneId == null) {
+            errors.add(ValidationError.createFieldRequired(PFUserDO::class.java, "timeZone"))
+        } else if (timeZoneId !in TimeZone.getAvailableIDs()) {
+            // TimeZone.getTimeZone would silently take GMT for an unknown id.
+            invalid("timeZone")
+        }
+        return errors
     }
 
     /**
@@ -293,7 +335,8 @@ class MyAccountRest {
                 counter = it.counter,
             )
         } ?: emptyList()
-        val qrCodeUrl = if (token == UserTokenType.REST_CLIENT) {
+        // Not for a restricted or demo user: the QR code hands out the account's credentials.
+        val qrCodeUrl = if (token == UserTokenType.REST_CLIENT && !accessChecker.isRestrictedOrDemoUser) {
             BarcodeServicesRest.getBarcodeGetUrl(authenticationPublicServicesRest.createQueryURL())
         } else {
             null
@@ -310,6 +353,8 @@ class MyAccountRest {
     @AccessChecked("Own user only (deletes only the logged-in user's devices)")
     @PostMapping("logoutDevice")
     fun logoutDevice(@RequestParam("id") id: Long, request: HttpServletRequest): List<Device> {
+        // A demo account is shared: one visitor must not log out the devices of the others.
+        accessChecker.checkRestrictedOrDemoUser()
         val userId = ThreadLocalUserContext.loggedInUserId!!
         log.info { "User #$userId logs out stay-logged-in device #$id." }
         stayLoggedInTokenDao.deleteOfUser(userId, id)
@@ -324,15 +369,15 @@ class MyAccountRest {
     @AccessChecked("Own user only (logged-in user's devices)")
     @PostMapping("logoutAllDevices")
     fun logoutAllDevices(request: HttpServletRequest): List<Device> {
+        accessChecker.checkRestrictedOrDemoUser()
         val userId = ThreadLocalUserContext.loggedInUserId!!
         log.info { "User #$userId logs out all stay-logged-in devices." }
         stayLoggedInTokenDao.deleteAll(userId)
         return getDevices(userId, request)
     }
 
-    private fun createData(request: HttpServletRequest): MyAccountData {
-        val userId = ThreadLocalUserContext.loggedInUserId!!
-        val user = userDao.find(userId, checkAccess = false)!!
+    private fun createData(user: PFUserDO, request: HttpServletRequest): MyAccountData {
+        val userId = user.id!!
         return MyAccountData(
             firstname = user.firstname,
             lastname = user.lastname,

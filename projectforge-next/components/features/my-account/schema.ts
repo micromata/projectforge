@@ -1,13 +1,27 @@
 import { z } from "zod";
 import { PF_USER_METADATA } from "@/lib/metadata/pf-user.generated";
+import type { EntityMetadata } from "@/lib/metadata/types";
+import { REQUIRED } from "@/lib/validation/markers";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import type { MyAccountData } from "./types";
+
+/**
+ * PFUserDO's metadata, but with a mandatory time zone: the entity falls back to the installation's one, while
+ * this page always holds an explicit zone and `MyAccountRest.save` refuses an empty one.
+ */
+export const MY_ACCOUNT_METADATA = {
+  ...PF_USER_METADATA,
+  fields: {
+    ...PF_USER_METADATA.fields,
+    timeZone: { ...PF_USER_METADATA.fields.timeZone, required: true },
+  },
+} as const satisfies EntityMetadata;
 
 /**
  * The editable fields of the my-account page, with the rules of PFUserDO (`lib/metadata/pf-user.generated.ts`):
  * a too long key is caught here before the server answers it with 406 (`MyAccountRest.save`).
  */
-const m = fromMetadata(PF_USER_METADATA);
+const m = fromMetadata(MY_ACCOUNT_METADATA);
 
 export const myAccountSchema = z.object({
   firstname: m.nullableString("firstname"),
@@ -17,7 +31,10 @@ export const myAccountSchema = z.object({
   dateFormat: m.nullableString("dateFormat"),
   excelDateFormat: m.nullableString("excelDateFormat"),
   timeNotation: z.string().nullable(),
-  timeZone: z.string().nullable(),
+  timeZone: z
+    .string()
+    .nullable()
+    .refine((v) => !!v?.trim(), REQUIRED),
   personalPhoneIdentifiers: m.nullableString("personalPhoneIdentifiers"),
   gpgPublicKey: m.nullableString("gpgPublicKey"),
   sshPublicKey: m.nullableString("sshPublicKey"),

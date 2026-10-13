@@ -26,7 +26,14 @@ type Pending = { kind: "one"; id: number } | { kind: "all" };
  * this page was loaded on marked. Each can be logged out on its own, or all at once. Plain rows rather
  * than a DataTable: a user has a handful of devices, nothing to sort, filter or page.
  */
-export function MyAccountDevices({ devices }: { devices: MyAccountDevice[] }) {
+export function MyAccountDevices({
+  devices,
+  canLogout,
+}: {
+  devices: MyAccountDevice[];
+  /** False for a restricted or demo user (a shared account): the logout buttons are left out. */
+  canLogout: boolean;
+}) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<Pending | null>(null);
@@ -108,20 +115,24 @@ export function MyAccountDevices({ devices }: { devices: MyAccountDevice[] }) {
                     {device.createdFormatted}
                   </td>
                   <td className="py-1 text-right">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="text-destructive"
-                      disabled={busy}
-                      onClick={() => setPending({ kind: "one", id: device.id })}
-                    >
-                      <HugeiconsIcon
-                        icon={Logout01Icon}
-                        size={14}
-                        aria-hidden
-                      />
-                      {t("login.stayLoggedIn.devices.logout._")}
-                    </Button>
+                    {canLogout && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="text-destructive"
+                        disabled={busy}
+                        onClick={() =>
+                          setPending({ kind: "one", id: device.id })
+                        }
+                      >
+                        <HugeiconsIcon
+                          icon={Logout01Icon}
+                          size={14}
+                          aria-hidden
+                        />
+                        {t("login.stayLoggedIn.devices.logout._")}
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -129,7 +140,7 @@ export function MyAccountDevices({ devices }: { devices: MyAccountDevice[] }) {
           </table>
         </div>
       )}
-      {devices.length > 0 && (
+      {canLogout && devices.length > 0 && (
         <div>
           <HintTooltip
             text={t(

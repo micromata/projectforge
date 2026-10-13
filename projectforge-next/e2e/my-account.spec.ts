@@ -109,6 +109,26 @@ test.describe("my account", { tag: "@parallel" }, () => {
     );
     expect(response.status()).toBe(400);
   });
+
+  test("refuses a date format outside the choices and an empty time zone", async ({
+    loggedInPage: page,
+  }) => {
+    const init = await fetchInit(page);
+    // Refused before anything is stored: an invalid pattern would break every date of the account.
+    const response = await page.request.post("/rs/myAccount/save", {
+      headers: await writeHeaders(page),
+      data: { data: { ...init.data, dateFormat: "qqq{", timeZone: "" } },
+    });
+    expect(response.status()).toBe(406);
+    const { validationErrors } = (await response.json()) as {
+      validationErrors: { fieldId: string }[];
+    };
+    expect(validationErrors.map((it) => it.fieldId).sort()).toEqual([
+      "dateFormat",
+      "timeZone",
+    ]);
+    expect((await fetchInit(page)).data.dateFormat).toBe(init.data.dateFormat);
+  });
 });
 
 /**
@@ -145,6 +165,31 @@ test.describe("my account (writing)", () => {
     expect((await fetchInit(page)).data.excelDateFormat ?? null).toBe(original);
   });
 
+  test("resets the time notation to the default", async ({
+    loggedInPage: page,
+  }) => {
+    const init = await fetchInit(page);
+    const original = init.data.timeNotation ?? null;
+    const save = async (timeNotation: string | null) => {
+      const current = (await fetchInit(page)).data;
+      const response = await page.request.post("/rs/myAccount/save", {
+        headers: await writeHeaders(page),
+        data: { data: { ...current, timeNotation } },
+      });
+      expect(response.ok()).toBe(true);
+    };
+    try {
+      await save("H12");
+      expect((await fetchInit(page)).data.timeNotation).toBe("H12");
+      // Emptied means the default, not "keep the last one".
+      await save(null);
+      expect((await fetchInit(page)).data.timeNotation ?? null).toBeNull();
+    } finally {
+      await save(original);
+    }
+  });
+
+  // Renews the real DAV token of the test account: a DAV client set up with it loses its access.
   test("renews the DAV token", async ({ loggedInPage: page }) => {
     const format = await userFormat(page);
     const { t } = format;
