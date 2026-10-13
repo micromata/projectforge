@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   useEntityData,
   useEntityEditForm,
 } from "@/components/shared/form/form-context";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { fetchVacationStats } from "@/lib/rs/vacation";
 import type { VacationValues } from "./vacation-schema";
 import type { VacationDetail, VacationFormStats } from "./types";
+import { toFormValues } from "./vacation-values";
 
 /**
  * What the answer depends on: the period with its half days for the working days, the employee and the
@@ -36,10 +36,12 @@ function statsInput(values: VacationValues) {
 /**
  * The working days, the days left, the conflicts with the replacements and the statuses offered, as the
  * server computes them for the form while it is being edited (`/rs/vacation/stats`) — the successor of the
- * React page's watch fields. Until the first answer the loaded entry's values (computed when it was read)
- * stand in.
+ * React page's watch fields. As long as the form holds what was loaded, the loaded entry's values stand in:
+ * the backend computed them with it (`transformFromDB`, `newBaseDTO`).
  *
- * Debounced, because a date is typed rather than picked as often as not.
+ * Debounced, because a date is typed rather than picked as often as not. Nothing is asked before the first
+ * delay has passed: the fields render while the form still holds its blank defaults, which it is reset from
+ * onto the loaded entry only afterwards — a request for that blank state would answer empty values.
  */
 export function useVacationStats(): VacationFormStats | undefined {
   const form = useEntityEditForm();
@@ -51,15 +53,25 @@ export function useVacationStats(): VacationFormStats | undefined {
   ) as string;
   // The serialised slice is what is debounced and what keys the query: the selector builds a new object on
   // every render, so an object identity would never settle and the debounce would never fire.
-  const key = useDebouncedValue(values, 300);
+  const [key, setKey] = useState<string | null>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => setKey(values), 300);
+    return () => clearTimeout(timer);
+  }, [values]);
+  const loadedKey = useMemo(
+    () => (data ? JSON.stringify(statsInput(toFormValues(data))) : null),
+    [data]
+  );
+  const asLoaded = key == null || key === loadedKey;
   const query = useQuery({
     queryKey: ["vacation", "stats", key],
-    queryFn: ({ signal }) => fetchVacationStats(JSON.parse(key), signal),
+    queryFn: ({ signal }) => fetchVacationStats(JSON.parse(key!), signal),
+    enabled: !asLoaded,
     placeholderData: keepPreviousData,
     // The answer is a pure function of what was sent (and of the stored vacations, which a save refreshes).
     staleTime: 30_000,
   });
-  return query.data ?? data;
+  return (asLoaded ? undefined : query.data) ?? data;
 }
 
 /**

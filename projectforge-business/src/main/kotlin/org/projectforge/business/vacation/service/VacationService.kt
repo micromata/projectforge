@@ -259,7 +259,7 @@ open class VacationService {
             : List<VacationDO> {
         var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         result = if (status.isNotEmpty()) {
-            result.filter { VacationStatus.entries.contains(it.status) }
+            result.filter { status.contains(it.status) }
         } else {
             result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
         }

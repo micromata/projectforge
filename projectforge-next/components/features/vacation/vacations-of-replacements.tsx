@@ -33,6 +33,7 @@ export function VacationsOfReplacements() {
     employee: label("employee"),
     startDate: label("startDate"),
     endDate: label("endDate"),
+    vacationMode: t("vacation.vacationmode"),
     status: label("status"),
     replacement: label("replacement"),
     otherReplacements: t("vacation.replacement.others"),
@@ -58,6 +59,7 @@ export function VacationsOfReplacements() {
       column("employee", (r) => r.employee?.displayName),
       column("startDate", (r) => r.startDateFormatted, 100),
       column("endDate", (r) => r.endDateFormatted, 100),
+      column("vacationMode", (r) => r.vacationModeString, 110),
       column("status", (r) => r.statusString, 110),
       column("replacement", (r) => r.replacement?.displayName),
       column("otherReplacements", (r) =>

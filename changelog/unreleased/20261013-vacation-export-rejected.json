@@ -1,0 +1,11 @@
+{
+  "type": "fixed",
+  "en": "Vacation export",
+  "de": "Urlaubsexport",
+  "items": [
+    {
+      "en": "Rejected leave applications are no longer exported.",
+      "de": "Abgelehnte Urlaubsanträge werden nicht mehr exportiert."
+    }
+  ]
+}

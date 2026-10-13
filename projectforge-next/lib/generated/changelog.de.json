@@ -22,6 +22,9 @@
       "items" : [ {
         "title" : "Sicherheit",
         "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
+      }, {
+        "title" : "Urlaubsexport",
+        "items" : [ "Abgelehnte Urlaubsanträge werden nicht mehr exportiert." ]
       } ]
     } ]
   },
