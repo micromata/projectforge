@@ -25,7 +25,7 @@ The version is set only by the release script (`gradle.properties`, `version=`).
    token of `micromata`: `podman login docker.io -u micromata` (or `docker login -u micromata`), the token as
    password. A password doesn't work with 2FA. The token needs *Image Push* on `micromata/projectforge`, and
    *read public repositories* for pulling the base image `eclipse-temurin`. Without the latter, pull the base
-   image before logging in (`podman pull docker.io/eclipse-temurin:17-jre-jammy`).
+   image before logging in (`podman pull docker.io/eclipse-temurin:21-jre-jammy`).
     a. On the arm64 machine (e.g. the Mac): `docker/push-release.sh X.Y.Z arch`. It pushes
        `micromata/projectforge:X.Y.Z-arm64` and shows the commands for the other machine.
     b. On the amd64 machine (e.g. a Linux server): `git fetch --tags`, update the branch, then

@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Docker image: based on Java 21 (Eclipse Temurin 21 JRE) instead of Java 17. ProjectForge still runs on Java 17 or newer.",
+  "de": "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17."
+}
