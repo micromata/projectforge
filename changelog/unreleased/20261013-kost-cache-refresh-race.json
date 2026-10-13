@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Time sheet form: choosing a task could fail now and then with \"Session/EntityManager is closed\" while the cost unit cache was being refreshed.",
+  "de": "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde."
+}

@@ -392,35 +392,57 @@ class KostCache : AbstractCache() {
 
     fun updateKost2Arts() {
         // This method must not be synchronized because it works with a new copy of list.
-        val kost2Arts = persistenceService.executeQuery(
+        setKost2Arts(loadKost2Arts())
+    }
+
+    private fun loadKost2Arts(): List<Kost2ArtDO> {
+        return persistenceService.executeQuery(
             "from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO::class.java, lockModeType = LockModeType.NONE
         )
+    }
+
+    private fun setKost2Arts(kost2Arts: List<Kost2ArtDO>) {
         this.allKost2Arts = kost2Arts.map { Kost2ArtImpl(it) }
         kost2ArtMap = kost2Arts.associateBy { it.id!! }
     }
 
     /**
      * This method will be called by CacheHelper and is synchronized via getData();
+     *
+     * The new maps are published only after the isolated context is closed. Published earlier, a request thread
+     * could reach a lazy association of a just cached entity while the context is still open and run the lazy
+     * load on this thread's EntityManager, which isn't thread-safe and is closed under it at the end of the block
+     * ("Session/EntityManager is closed"). Once closed, a lazy access fails right away instead. kost2Art is
+     * join-fetched for the same reason: KostFormatter reads its name, and a proxy of a deleted kost2 art (not
+     * loaded by [loadKost2Arts]) would stay uninitialized.
      */
     override fun refresh() {
         log.info { "Initializing KostCache ..." }
-        persistenceService.runIsolatedReadOnly { context ->
+        val (newKost1Map, newKost2Map, kost2Arts) = persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
-            this.kost1Map = persistenceService
+            val kost1s = persistenceService
                 .executeQuery("from Kost1DO t", Kost1DO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
                 .associateBy { it.id!! }
                 .toMutableMap()
-            this.kost2Map = persistenceService
-                .executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
+            val kost2s = persistenceService
+                .executeQuery(
+                    "from Kost2DO t left join fetch t.kost2Art",
+                    Kost2DO::class.java,
+                    lockModeType = LockModeType.NONE
+                )
                 .filter { it.id != null }
                 .associateBy { it.id!! }
                 .toMutableMap()
-            kost2EntriesExists = kost2Map.values.any { !it.deleted }
-            updateKost2Arts()
+            val arts = loadKost2Arts()
             log.info { "Initializing of KostCache done. ${context.formatStats()}" }
+            Triple(kost1s, kost2s, arts)
         }
+        this.kost1Map = newKost1Map
+        this.kost2Map = newKost2Map
+        kost2EntriesExists = newKost2Map.values.any { !it.deleted }
+        setKost2Arts(kost2Arts)
     }
 
     companion object {
