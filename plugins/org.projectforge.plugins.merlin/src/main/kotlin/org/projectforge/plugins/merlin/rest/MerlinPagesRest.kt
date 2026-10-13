@@ -88,6 +88,27 @@ class MerlinPagesRest :
         return template
     }
 
+    /**
+     * The user and group columns are joined display names, there's no database column to sort on. The groups
+     * sort by their names only, without the users listed after them. See [computedSortProperties].
+     */
+    override val computedSortProperties: Map<String, (MerlinTemplateDO) -> Comparable<*>?>
+        get() = mapOf(
+            "adminsAsString" to { obj ->
+                usersAsString(User.toUserList(obj.adminIds)?.also { User.restoreDisplayNames(it) })
+            },
+            "accessUsersAsString" to { obj ->
+                usersAsString(User.toUserList(obj.accessUserIds)?.also { User.restoreDisplayNames(it) })
+            },
+            "accessGroupsAsString" to { obj ->
+                groupsAsString(Group.toGroupList(obj.accessGroupIds)?.also { Group.restoreDisplayNames(it) })
+            },
+        )
+
+    private fun usersAsString(users: List<User>?): String = users?.joinToString { it.displayName ?: "???" } ?: ""
+
+    private fun groupsAsString(groups: List<Group>?): String = groups?.joinToString { it.displayName ?: "???" } ?: ""
+
     override fun transformForDB(dto: MerlinTemplate): MerlinTemplateDO {
         val obj = MerlinTemplateDO()
         dto.copyTo(obj)
@@ -104,9 +125,9 @@ class MerlinPagesRest :
         User.restoreDisplayNames(dto.admins)
         User.restoreDisplayNames(dto.accessUsers)
 
-        dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.adminsAsString = usersAsString(dto.admins)
         buildAccessGroupAsString(dto)
-        dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.accessUsersAsString = usersAsString(dto.accessUsers)
 
         obj.id?.let { id ->
             val list =
@@ -549,7 +570,7 @@ class MerlinPagesRest :
             dto.accessGroupsAsString = "-"
             return
         }
-        dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.accessGroupsAsString = groupsAsString(dto.accessGroups)
         val accessGroupUsers =
             groupService.getGroupUsers(User.toLongArray(dto.accessGroupIds)).joinToString { it.displayName }
         dto.accessGroupsAsString += ": $accessGroupUsers"
