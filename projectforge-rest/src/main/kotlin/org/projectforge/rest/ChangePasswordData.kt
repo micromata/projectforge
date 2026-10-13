@@ -53,8 +53,13 @@ class ChangePasswordInit(
   var userDisplayName: String? = null,
   /** True if the logged-in user changes their own password (the old/login password is required then). */
   var changeOwn: Boolean = true,
+  /**
+   * False if this password of the user can't be changed here (login handler, e.g. no LDAP master for the WLAN
+   * password; the demo account). The page shows user.changePassword.notSupported instead of the fields then.
+   */
+  var supported: Boolean = true,
   /** Date and time of the last change, followed by the time ago, e.g. "2026-10-13 11:06 (2 hours ago)". */
   var lastChangeFormatted: String? = null,
-  /** The rules a new password must follow. */
+  /** The rules a new password must follow, null for the WLAN password (not checked). */
   var passwordQualityHint: String? = null,
 )

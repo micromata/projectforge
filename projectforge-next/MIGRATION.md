@@ -551,8 +551,11 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
 - **Passwort / WLAN-Passwort ändern** (`next/changePassword`, `next/changeWlanPassword`, vorher React-UILayout
   derselben Klassen) – layoutfrei über `ChangePasswordPageRest` / `ChangeWlanPasswordPageRest` (`GET init`,
   `POST change`; 2FA-Kurzbefehl `PASSWORD`), eine Seite mit `variant`. Der CSRF-Token wird im Endpunkt selbst
-  geprüft (nicht nur im Filter, der nur next-Clients prüft). Fehler kommen mit `fieldId` (altes/Login-Passwort,
-  neues Passwort, Wiederholung). Neu: „Letzte (WLAN-)Passwortänderung" mit Zeitstempel und „vor …"
+  geprüft (nicht nur im Filter, der nur next-Clients prüft); ohne Session keine Änderung. Fehler kommen mit
+  `fieldId` (altes/Login-Passwort, neues Passwort, Wiederholung). Neu gegenüber React: Ob die Änderung möglich ist
+  (`Login.isPasswordChangeSupported` / `isWlanPasswordChangeSupported`, nicht für den Demo-Zugang), prüft auch
+  das Backend – `init.supported`, sonst zeigt die Seite `user.changePassword.notSupported`; die Regeln zur
+  Passwortqualität nur beim Login-Passwort (das WLAN-Passwort prüft sie nicht). Neu: „Letzte (WLAN-)Passwortänderung" mit Zeitstempel und „vor …"
   (`TimeAgo.getDateAndMessage`). Admins ändern das Passwort eines anderen Benutzers mit `?userId=` (aus der
   React-Benutzerbearbeitung per REDIRECT verlinkt). `react/changePassword/**` und `react/changeWlanPassword/**`
   leitet `OrphanedLinkFilter` um (eine numerische `userId` wird übernommen).

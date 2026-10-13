@@ -4385,6 +4385,7 @@
         "passwordSuccessfullyChanged": "Passwort wurde erfolgreich geändert."
       },
       "newPassword": "Neues Passwort",
+      "notSupported": "Die Passwortänderung wird nicht unterstützt. Bitte wende dich an die Administration.",
       "oldPassword": "Altes Passwort",
       "password": {
         "lastChange": "Letzte Passwortänderung"

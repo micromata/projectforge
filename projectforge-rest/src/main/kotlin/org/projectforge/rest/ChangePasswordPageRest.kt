@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.login.Login
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
@@ -81,13 +82,13 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP")
   @GetMapping("init")
   fun getInit(@RequestParam("userId", required = false) userIdString: String?): ChangePasswordInit {
-    return internalGetInit(userIdString) { it.lastPasswordChange }
+    return internalGetInit(userIdString, PasswordType.LOGIN)
   }
 
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP. CSRF token required")
   @PostMapping("change")
   fun change(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>): ResponseEntity<*> {
-    return internalChange(request, postData.data, "user.changePassword.oldPassword") { data, changeOwn ->
+    return internalChange(request, postData.data, PasswordType.LOGIN) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his password." }
         userService.changePassword(data.userId, data.loginPassword, data.newPassword)
@@ -98,10 +99,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     }
   }
 
-  /**
-   * @param lastChange The date of the last change of the password the page is about.
-   */
-  internal fun internalGetInit(userIdString: String?, lastChange: (PFUserDO) -> Date?): ChangePasswordInit {
+  internal fun internalGetInit(userIdString: String?, type: PasswordType): ChangePasswordInit {
     val userId = userIdString?.toLongOrNull() ?: ThreadLocalUserContext.loggedInUserId!!
     val changeOwn = checkChangeOwn(userId)
     // Loaded, not taken from the UserGroupCache: right after a change the cache may still hold the old date.
@@ -110,29 +108,35 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       userId = userId,
       userDisplayName = user?.userDisplayName,
       changeOwn = changeOwn,
-      lastChangeFormatted = user?.let(lastChange)?.let { TimeAgo.getDateAndMessage(it) },
-      passwordQualityHint = I18nHelper.getLocalizedMessage(passwordQualityService.passwordQualityI18nKeyAndParams),
+      supported = isSupported(user, type),
+      lastChangeFormatted = user?.let { type.lastChange(it) }?.let { TimeAgo.getDateAndMessage(it) },
+      passwordQualityHint = if (type.checksQuality) {
+        I18nHelper.getLocalizedMessage(passwordQualityService.passwordQualityI18nKeyAndParams)
+      } else {
+        null
+      },
     )
   }
 
   /**
-   * Checks the csrf token, the access and the input, then changes the password. Errors are answered with 406 and
-   * validation errors, on the field they belong to if any.
+   * Checks the csrf token, the access, the support of the change and the input, then changes the password. Errors
+   * are answered with 406 and validation errors, on the field they belong to if any.
    *
    * The csrf token is checked here on purpose, although [RestCsrfProtection] does so for next clients already:
    * the filter only checks requests declaring themselves as next client, so a password change must not rely on it.
-   *
-   * @param loginPasswordI18nKey The label of the old (login) password field, used for its required message.
+   * Without a session (a client authenticated by token) there is no token to check, and no password change either.
    */
   internal fun internalChange(
     request: HttpServletRequest,
     data: ChangePasswordData,
-    loginPasswordI18nKey: String,
+    type: PasswordType,
     changePassword: (data: ChangePasswordData, changeOwnPassword: Boolean) -> List<I18nKeyAndParams>?,
   ): ResponseEntity<*> {
     try {
-      if (!sessionCsrfService.checkToken(request, request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER))) {
-        log.warn { "Password change declined: csrf token check failed." }
+      if (request.getSession(false) == null
+        || !sessionCsrfService.checkToken(request, request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER))
+      ) {
+        log.warn { "Password change declined: no session or csrf token check failed." }
         // Same answer as RestCsrfProtection.deny: the next client refreshes its token and repeats the call once.
         return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON)
           .body(mapOf("csrfTokenRequired" to true))
@@ -140,15 +144,22 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       val userId = data.userId ?: ThreadLocalUserContext.loggedInUserId!!
       data.userId = userId
       val changeOwnPassword = checkChangeOwn(userId)
+      if (!isSupported(userDao.find(userId, checkAccess = false), type)) {
+        log.warn { "Password change (${type.name}) of user with id $userId declined: not supported." }
+        return ResponseEntity(
+          ResponseAction(validationErrors = listOf(ValidationError.create(MESSAGE_KEY_NOT_SUPPORTED))),
+          HttpStatus.NOT_ACCEPTABLE,
+        )
+      }
       val validationErrors = mutableListOf<ValidationError>()
       if (changeOwnPassword && data.loginPassword.isNullOrEmpty()) {
         validationErrors.add(
-          ValidationError.createFieldRequired(FIELD_LOGIN_PASSWORD, translate(loginPasswordI18nKey))
+          ValidationError.createFieldRequired(FIELD_LOGIN_PASSWORD, translate(type.loginPasswordI18nKey))
         )
       }
       if (data.newPassword.isNullOrEmpty()) {
         validationErrors.add(
-          ValidationError.createFieldRequired(FIELD_NEW_PASSWORD, translate("user.changePassword.newPassword"))
+          ValidationError.createFieldRequired(FIELD_NEW_PASSWORD, translate(type.newPasswordI18nKey))
         )
       } else if (!Arrays.equals(data.newPassword, data.passwordRepeat)) {
         validationErrors.add(
@@ -169,6 +180,18 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     }
   }
 
+  /**
+   * The login handler decides (e.g. no WLAN password without an LDAP master, no password of an LDAP user on an LDAP
+   * slave). The shared demo account keeps its password: its users must not lock each other out.
+   */
+  private fun isSupported(user: PFUserDO?, type: PasswordType): Boolean {
+    user ?: return false
+    if (AccessChecker.isDemoUser(user)) {
+      return false
+    }
+    return type.isSupported(user)
+  }
+
   private fun checkChangeOwn(userId: Long): Boolean {
     return if (userId != ThreadLocalUserContext.loggedInUserId) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -180,7 +203,31 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
 
   private fun CharArray?.isNullOrEmpty(): Boolean = this == null || this.isEmpty()
 
+  /**
+   * The password a page is about: the login password or the WLAN (Samba) password.
+   */
+  internal enum class PasswordType(
+    /** The label of the old (login) password field, used for its required message. */
+    val loginPasswordI18nKey: String,
+    val newPasswordI18nKey: String,
+    /** Only the login password is checked by [PasswordQualityService], so only its page shows the rules. */
+    val checksQuality: Boolean,
+  ) {
+    LOGIN("user.changePassword.oldPassword", "user.changePassword.newPassword", true) {
+      override fun lastChange(user: PFUserDO) = user.lastPasswordChange
+      override fun isSupported(user: PFUserDO) = Login.getInstance().isPasswordChangeSupported(user)
+    },
+    WLAN("user.changeWlanPassword.loginPassword", "user.changeWlanPassword.newPassword", false) {
+      override fun lastChange(user: PFUserDO) = user.lastWlanPasswordChange
+      override fun isSupported(user: PFUserDO) = Login.getInstance().isWlanPasswordChangeSupported(user)
+    };
+
+    abstract fun lastChange(user: PFUserDO): Date?
+    abstract fun isSupported(user: PFUserDO): Boolean
+  }
+
   companion object {
+    internal const val MESSAGE_KEY_NOT_SUPPORTED = "user.changePassword.notSupported"
     private const val FIELD_LOGIN_PASSWORD = "loginPassword"
     private const val FIELD_NEW_PASSWORD = "newPassword"
     private const val FIELD_PASSWORD_REPEAT = "passwordRepeat"

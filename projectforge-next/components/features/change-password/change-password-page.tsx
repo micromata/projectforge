@@ -35,24 +35,22 @@ export function ChangePasswordPage({ variant }: { variant: PasswordVariant }) {
             : t("menu.changePassword")
         }
       />
-      <div className="flex flex-col gap-4 px-4 pb-6 pt-2">
-        {query.isPending && (
-          <p className="text-sm text-muted-foreground">{t("loading")}</p>
-        )}
-        {query.isError && (
-          <p className="text-sm text-destructive">
-            {t("access.exception.noAccess")}
-          </p>
-        )}
-        {query.data && (
-          // Keyed by the user: another user's page starts with empty fields.
-          <ChangePasswordForm
-            key={query.data.userId}
-            variant={variant}
-            init={query.data}
-          />
-        )}
-      </div>
+      {query.isPending && (
+        <p className="px-4 text-sm text-muted-foreground">{t("loading")}</p>
+      )}
+      {query.isError && (
+        <p className="px-4 text-sm text-destructive">
+          {t("access.exception.noAccess")}
+        </p>
+      )}
+      {query.data && (
+        // Keyed by the user: another user's page starts with empty fields.
+        <ChangePasswordForm
+          key={query.data.userId}
+          variant={variant}
+          init={query.data}
+        />
+      )}
     </PageShell>
   );
 }

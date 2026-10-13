@@ -54,14 +54,14 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP")
   @GetMapping("init")
   fun getInit(@RequestParam("userId", required = false) userIdString: String?): ChangePasswordInit {
-    return changePasswordPageRest.internalGetInit(userIdString) { it.lastWlanPasswordChange }
+    return changePasswordPageRest.internalGetInit(userIdString, ChangePasswordPageRest.PasswordType.WLAN)
   }
 
   @AccessChecked("Own user only; another user (userId): ADMIN_GROUP. CSRF token required")
   @PostMapping("change")
   fun change(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>): ResponseEntity<*> {
     return changePasswordPageRest.internalChange(
-      request, postData.data, "user.changeWlanPassword.loginPassword",
+      request, postData.data, ChangePasswordPageRest.PasswordType.WLAN,
     ) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his WLAN/Samba password." }

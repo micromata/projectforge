@@ -28,7 +28,6 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -109,8 +108,11 @@ class PasswordNotChangedRuleHandler : NotificationRuleHandler {
     }
 
     companion object {
-        /** The change password page (a page of the legacy React app). */
-        val CHANGE_PASSWORD_PATH = MenuItemDefId.CHANGE_PASSWORD.url!!
+        /**
+         * The change password page (path of the next app, see [NotificationLinks]). Not the menu url
+         * (`next/changePassword`): [NotificationLinks.absolute] would prefix it with `next/` once more.
+         */
+        const val CHANGE_PASSWORD_PATH = "/changePassword"
 
         private const val PERIOD_KEY_PREFIX = "password"
 
