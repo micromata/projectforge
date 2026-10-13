@@ -25,7 +25,9 @@ async function writeHeaders(page: Page): Promise<Record<string, string>> {
 
 /** The row of an access token: its value (a group named by the label) and the buttons beside it. */
 function tokenRow(page: Page, label: string) {
-  return page.getByRole("group", { name: label }).locator("xpath=..");
+  return page
+    .locator('[data-slot="token-row"]')
+    .filter({ has: page.getByRole("group", { name: label }) });
 }
 
 function davLabel(format: UserFormat): string {
