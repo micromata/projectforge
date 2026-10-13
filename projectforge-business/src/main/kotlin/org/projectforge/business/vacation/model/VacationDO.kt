@@ -219,11 +219,12 @@ open class VacationDO : DefaultBaseDO() {
 
         const val ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS = "VacationDO.withOtherReplacementIds"
 
+        /** Whether the two periods share at least one day (both ends inclusive). */
         private fun hasOverlap(begin1: LocalDate?, end1: LocalDate?, begin2: LocalDate?, end2: LocalDate?): Boolean {
             if (begin1 == null || end1 == null || begin2 == null || end2 == null) {
                 return false
             }
-            return begin1 <= end2 && end1 >= begin1
+            return begin1 <= end2 && end1 >= begin2
         }
     }
 }
