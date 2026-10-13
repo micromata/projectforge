@@ -509,6 +509,7 @@
     "today": "Today",
     "view": {
       "agenda": "agenda",
+      "day": "Day",
       "overview": "overview",
       "settings": {
         "tooltip": "View settings"
@@ -692,7 +693,6 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
-  "day": "day(s)",
   "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
