@@ -29,12 +29,11 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationLegacyProperties
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -51,8 +50,8 @@ private val log = KotlinLogging.logger {}
  * projectforge.timesheet.vacation.kost2=5.000.00.03
  * ```
  * A property is taken over once, as initial value of its parameter when the parameter's row is created on startup
- * ([takeOverProperties], [ConfigurationParam.getLegacyProperty]). Afterwards only the parameter applies, also if it is
- * cleared on the configuration page.
+ * ([ConfigurationLegacyProperties], [ConfigurationParam.getLegacyProperty]). Afterwards only the parameter applies, also if
+ * it is cleared on the configuration page.
  */
 @Service
 open class TimesheetVacationBookingConfig {
@@ -152,33 +151,6 @@ open class TimesheetVacationBookingConfig {
         val entry = configurationDao.getEntry(param)
             ?: return propertyValue?.trim()?.ifEmpty { null } to (param.legacyProperty ?: param.key)
         return value(entry)?.trim()?.ifEmpty { null } to param.key
-    }
-
-    /**
-     * Creates the rows of the parameters on startup, so properties of former installations are taken over into them
-     * right away (see [ConfigurationParam.getLegacyProperty]). A property still set while its parameter differs is
-     * ignored, which is logged. Failures are logged only: startup goes on.
-     */
-    @EventListener(ApplicationReadyEvent::class)
-    open fun takeOverProperties() {
-        try {
-            configurationDao.checkAndUpdateDatabaseEntries()
-            logIgnoredProperty(ConfigurationParam.TIMESHEET_VACATION_TASK_ID, taskIdProperty) { it.longValue?.toString() }
-            logIgnoredProperty(ConfigurationParam.TIMESHEET_VACATION_KOST2, kost2Property) { it.stringValue }
-        } catch (ex: Exception) {
-            log.error(ex) { "Couldn't check the configuration parameters of the vacation booking: ${ex.message}" }
-        }
-    }
-
-    private fun logIgnoredProperty(param: ConfigurationParam, propertyValue: String?, value: (ConfigurationDO) -> String?) {
-        val property = propertyValue?.trim()?.ifEmpty { null } ?: return
-        val entry = configurationDao.getEntry(param) ?: return
-        if (value(entry)?.trim() != property) {
-            log.warn {
-                "${param.legacyProperty}='$property' is ignored: the configuration parameter '${param.key}' applies " +
-                        "(currently '${value(entry) ?: ""}'). The property may be removed from projectforge.properties."
-            }
-        }
     }
 
     private fun warn(message: String): VacationBooking? {
