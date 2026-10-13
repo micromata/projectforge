@@ -2517,6 +2517,7 @@
     "open": "Open",
     "params": {
       "daysBeforeExpiry": "Days before expiry",
+      "passwordMaxAgeDays": "Password older than (days)",
       "referredMonth": {
         "_": "Month",
         "CURRENT": "Current month",
@@ -2556,7 +2557,8 @@
         "dayOfWeek": "A weekday is required.",
         "daysBeforeExpiry": "The number of days must not be negative.",
         "delay": "The time of a delivery step must not be negative.",
-        "noDeliveryStep": "At least one delivery step is required."
+        "noDeliveryStep": "At least one delivery step is required.",
+        "passwordMaxAgeDays": "The number of days must be at least 1."
       },
       "lastRun": "Last run",
       "list": "Notification rules",
@@ -2578,6 +2580,7 @@
     "ruleName": "Rule",
     "ruleTypes": {
       "MANUAL": "Manual (no condition)",
+      "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
       "VACATION_LEFT": "Expiring vacation days"
     },
@@ -2632,6 +2635,10 @@
       "month": "Month",
       "monthlyReportLink": "Link to the monthly report",
       "nickname": "Nickname (otherwise first name)",
+      "passwordAgeDays": "Days since the last password change",
+      "passwordChangeDate": "Date of the last password change",
+      "passwordLink": "Link for changing the password",
+      "passwordMaxAgeDays": "Maximum age of the password (days)",
       "timesheetLink": "Link to the time sheets",
       "unbookedDays": "All days without time sheets (vacation included)",
       "unbookedDaysCount": "Number of all days without time sheets (vacation included)",

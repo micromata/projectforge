@@ -22,6 +22,7 @@ export type NotificationChannel = "IN_APP" | "MAIL" | "SMS";
 export type NotificationRuleType =
   | "TIMESHEETS_MISSING"
   | "VACATION_LEFT"
+  | "PASSWORD_NOT_CHANGED"
   | "MANUAL";
 
 /** `NotificationDao.Summary`, sent with the user status (see useAuth). */

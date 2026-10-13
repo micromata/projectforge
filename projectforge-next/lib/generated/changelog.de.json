@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.4",
-    "date" : "2026-10-12",
+    "date" : "2026-10-13",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -16,7 +16,7 @@
       }, {
         "title" : "System-Dashboard",
         "items" : [ "Eine hängende Cache-Aktualisierung oder ein hängender Scheduler-Lauf lässt sich beenden und kann danach ohne Neustart sofort wieder laufen.", "Cache-Aktualisierungen und Scheduler-Läufe warten nicht mehr endlos auf eine Datenbanksperre: Eine blockierte Abfrage bricht nach einer Zeitüberschreitung ab (standardmäßig 60 Sekunden).", "Nach einer fehlgeschlagenen Cache-Aktualisierung liefert der Cache seine aktuellen Daten und versucht es frühestens nach einer Minute erneut, statt bei jedem Zugriff." ]
-      }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen, ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war." ]
+      }, "Genehmigter Urlaub kann automatisch als Zeitbericht gebucht werden: Ein nächtlicher Job bucht die vergangenen Urlaubstage ohne jeden Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger, nie im Voraus und nie weiter zurück als bis zu seinem letzten erfolgreichen Lauf, ein gelöschter Urlaubs-Zeitbericht wird also nicht erneut gebucht. Finance und Controlling schalten dies in der Konfiguration ein (maximale Anzahl Tage zurück, Urlaubs-Strukturelement und -Kostenträger); die bisherigen Einstellungen in projectforge.properties werden einmalig in die Konfiguration übernommen, ungültige Werte werden beim Speichern abgewiesen. Die Konfigurationsliste gruppiert die Parameter nun nach Kategorien und zeigt, wer welchen Parameter sehen und wer ihn ändern darf. Die Statistik der geplanten Jobs merkt sich zudem den letzten erfolgreichen Lauf; nach einem fehlgeschlagenen Lauf zeigt das System-Dashboard, wann der Job zuletzt erfolgreich war.", "Benachrichtigungen: Eine neue Regel benachrichtigt Benutzer, deren Passwort länger als eine einstellbare Anzahl von Tagen nicht geändert wurde, mit einem Link zum Ändern. Die Benachrichtigung erledigt sich, sobald das Passwort geändert wird." ]
     }, {
       "type" : "improved",
       "items" : [ "Changelog: Die Releases einer Hauptversion stehen mit dem neuesten zuerst, das eröffnende Release zuletzt, verlinkt oben bei der Hauptversion; auch die Release-Notes eines Updates verlinken darauf." ]

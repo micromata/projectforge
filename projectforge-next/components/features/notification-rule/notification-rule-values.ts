@@ -20,6 +20,7 @@ export function toFormValues(
     referredMonth: rule.referredMonth ?? "CURRENT",
     vacationExpiry: rule.vacationExpiry ?? "CARRY_OVER",
     daysBeforeExpiry: rule.daysBeforeExpiry ?? 30,
+    passwordMaxAgeDays: rule.passwordMaxAgeDays ?? 90,
     recipientGroups: rule.recipientGroups ?? [],
     recipientUsers: rule.recipientUsers ?? [],
     allEmployees: rule.allEmployees ?? false,

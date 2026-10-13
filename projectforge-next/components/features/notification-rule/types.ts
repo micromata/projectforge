@@ -53,6 +53,7 @@ export interface NotificationRuleDetail {
   referredMonth?: "CURRENT" | "PREVIOUS";
   vacationExpiry?: "CARRY_OVER" | "YEAR_END";
   daysBeforeExpiry?: number;
+  passwordMaxAgeDays?: number;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;

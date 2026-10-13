@@ -41,6 +41,9 @@ enum class NotificationRuleType : I18nEnum {
     /** Vacation days left which will expire soon (carry-over from the previous year or the end of the year). */
     VACATION_LEFT,
 
+    /** Passwords not changed for more than a number of days. */
+    PASSWORD_NOT_CHANGED,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -219,6 +222,8 @@ class NotificationParams(
     var vacationExpiry: VacationExpiry = VacationExpiry.CARRY_OVER,
     /** [NotificationRuleType.VACATION_LEFT]: notify within these days before the expiry. */
     var daysBeforeExpiry: Int = 30,
+    /** [NotificationRuleType.PASSWORD_NOT_CHANGED]: notify if the password is older than these days. */
+    var passwordMaxAgeDays: Int = 90,
 ) {
     enum class ReferredMonth(val offset: Long) {
         CURRENT(0),

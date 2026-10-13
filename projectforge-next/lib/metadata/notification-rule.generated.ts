@@ -113,6 +113,10 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.VACATION_LEFT",
         },
         {
+          value: "PASSWORD_NOT_CHANGED",
+          i18nKey: "notification.ruleTypes.PASSWORD_NOT_CHANGED",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },

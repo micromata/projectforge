@@ -189,7 +189,7 @@ class NotificationService {
         val evaluation = handler.evaluate(rule, today)
         val recipients = evaluation?.let { recipientsOf(rule, handler, it, today) }.orEmpty()
         val alreadyNotified = if (rule.id != null && evaluation != null) {
-            recipients.count { notificationDao.findByDedupKey(dedupKey(rule, it, evaluation.periodKey)) != null }
+            recipients.count { notificationDao.findByDedupKey(dedupKey(rule, it, evaluation.periodKeyFor(it))) != null }
         } else 0
         val variables = variablesOf(rule, handler, evaluation, today, user)
         return Preview(
@@ -260,7 +260,7 @@ class NotificationService {
         var lastError: String? = null
         recipients.forEach { user ->
             try {
-                val dedupKey = dedupKey(rule, user, evaluation.periodKey)
+                val dedupKey = dedupKey(rule, user, evaluation.periodKeyFor(user))
                 if (notificationDao.findByDedupKey(dedupKey) != null) {
                     return@forEach
                 }
@@ -400,7 +400,7 @@ class NotificationService {
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)
             it.link = evaluation?.linkFor(user)
-            it.periodKey = evaluation?.periodKey
+            it.periodKey = evaluation?.periodKeyFor(user)
             it.status = NotificationStatus.OPEN
             it.created = now
             it.delivery = JsonUtils.toJson(delivery)

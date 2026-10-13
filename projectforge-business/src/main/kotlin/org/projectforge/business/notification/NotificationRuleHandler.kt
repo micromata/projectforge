@@ -48,9 +48,17 @@ interface NotificationRuleHandler {
          * of [NotificationRecipients.onlyAffected].
          */
         val restrictsRecipients: Boolean = true,
+        /**
+         * Periods of single users by id, overriding [periodKey]: e.g. the last password change, so a user is notified
+         * again after the next change got too old.
+         */
+        val userPeriodKeys: Map<Long, String> = emptyMap(),
     ) {
         /** The link for the given recipient. */
         fun linkFor(user: PFUserDO): String? = link?.replace(USER_ID, "${user.id}")
+
+        /** The period of the given recipient. */
+        fun periodKeyFor(user: PFUserDO): String = userPeriodKeys[user.id] ?: periodKey
 
         companion object {
             /** Placeholder in [link] for the id of the recipient. */
