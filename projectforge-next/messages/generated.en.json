@@ -468,18 +468,22 @@
       "timesheets": "time sheets"
     },
     "previousYear": "Previous year",
+    "quarter": "Quarter",
     "quickselect": {
       "tooltip": {
         "selectCurrentCalendarYear": "Quick select - current calendar year",
         "selectCurrentMonth": "Quick select - current month",
+        "selectCurrentQuarter": "Quick select - current quarter",
         "selectCurrentWeek": "Quick select - current week",
         "selectCurrentYearToDate": "Quick select - year to date",
         "selectNextCalendarYear": "Quick select - next calendar year",
         "selectNextMonth": "Quick select - next month",
+        "selectNextQuarter": "Quick select - next quarter",
         "selectNextWeek": "Quick select - next week",
         "selectNextYearToDate": "Quick select - next year to date",
         "selectPreviousCalendarYear": "Quick select - previous calendar year",
         "selectPreviousMonth": "Quick select - previous month",
+        "selectPreviousQuarter": "Quick select - previous quarter",
         "selectPreviousWeek": "Quick select - previous week",
         "selectPreviousYearToDate": "Quick select - previous year to date"
       }
@@ -724,6 +728,7 @@
     "short": {
       "month": "M",
       "months": "{arg0}M",
+      "quarter": "Q",
       "week": "W",
       "year": "Y"
     }
@@ -1338,6 +1343,7 @@
       "wochenstunden": "Hours per week",
       "zipCode": "Zip code"
     },
+    "employees": "Employees",
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
     "konto": {
@@ -4643,6 +4649,18 @@
       "sendmail": "Something went wrong while sending a mail for application for leave"
     },
     "export": {
+      "dayWidth": {
+        "_": "Day width",
+        "auto": "Automatic",
+        "fit": "Fit to window",
+        "narrow": "Narrow",
+        "normal": "Normal",
+        "wide": "Wide"
+      },
+      "excel": {
+        "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
+      },
+      "selectHint": "Choose employees or groups to show their vacations.",
       "title": "Export of team vacation calendars"
     },
     "halfDay": "Half day",

@@ -13,10 +13,13 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.", "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice." ]
+      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.", "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice.", {
+        "title" : "Vacation account: days bar",
+        "items" : [ "The vacations of the vacation account show their period as a bar beside the days, as the vacation list does: working days, weekends and holidays, and the days without any replacement on duty.", "A vacation longer than four weeks is drawn with narrower days in the same width (up to 13 weeks) instead of being cut off after four weeks, in the vacation list as well." ]
+      }, "Team vacation calendar: the vacations of the chosen employees and groups are now also shown on the page, per quarter or calendar year, with an adjustable width of the days (up to fitting the whole period into the window); the Excel export starts with the period shown. Choices of employees and groups can be saved as favorites. Users without HR or finance rights choose from their own groups only and no longer see previous years. Vacations beginning before a sheet of the Excel export are now shown on it, too." ]
     }, {
       "type" : "changed",
-      "items" : [ "Calendars: the list and the form of the team calendars are migrated to the new interface. A stored calendar shows its subscription link with a switch for the reminders, the list offers the subscription of time sheets, weeks of year and holidays in its export menu." ]
+      "items" : [ "Calendars: the list and the form of the team calendars are migrated to the new interface. A stored calendar shows its subscription link with a switch for the reminders, the list offers the subscription of time sheets, weeks of year and holidays in its export menu.", "Vacation list: users without HR or finance rights see their own vacations, the ones they approve or substitute for, and the vacations of their substitutes overlapping their own ones, no longer all current vacations of their group colleagues." ]
     } ]
   },
   "groups" : [ {
