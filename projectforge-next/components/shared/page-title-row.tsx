@@ -42,7 +42,8 @@ export function PageTitleRow({
     <div className="flex items-center gap-3 px-4 pt-3">
       <div className="shrink-0">
         {category && (
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          // Not printed: where the page sits in the menu says nothing on paper.
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground print:hidden">
             {category}
           </p>
         )}
@@ -53,8 +54,9 @@ export function PageTitleRow({
           pushes the actions to the right edge. `min-w-0` lets an input here shrink instead of overflow. */}
       <div className="min-w-0 flex-1">{center}</div>
       {/* `self-start`: the actions line up with the top of the two-line title block rather than
-          with its middle. Their own row keeps them centered among themselves. */}
-      <div className="flex items-center gap-3 self-start">
+          with its middle. Their own row keeps them centered among themselves. Not printed: nothing on
+          paper can be clicked. */}
+      <div className="flex items-center gap-3 self-start print:hidden">
         {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
         <LegacyPageLink url={legacyUrl} />
         {children}

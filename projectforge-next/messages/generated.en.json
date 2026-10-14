@@ -3497,6 +3497,7 @@
     "title": "Title"
   },
   "preview": "Preview",
+  "print": "Print",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -4673,8 +4674,11 @@
       "legend": {
         "holidayOrWeekend": "Weekend or holiday"
       },
+      "print": {
+        "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
+      },
       "selectHint": "Choose employees or groups to show their vacations.",
-      "title": "Export of team vacation calendars"
+      "title": "Team vacation calendar"
     },
     "halfDay": "Half day",
     "halfDayBegin": {

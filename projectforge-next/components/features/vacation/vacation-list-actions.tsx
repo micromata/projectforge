@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 export function VacationListActions() {
   const t = useTranslations();
   return (
-    <Button asChild type="button" variant="outline">
+    <Button asChild type="button">
       <Link href="/vacationExport">
         <HugeiconsIcon icon={FileExportIcon} aria-hidden />
         {t("vacation.export.title")}

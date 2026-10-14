@@ -3497,6 +3497,7 @@
     "title": "Titel"
   },
   "preview": "Vorschau",
+  "print": "Drucken",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -4673,8 +4674,11 @@
       "legend": {
         "holidayOrWeekend": "Wochenende oder Feiertag"
       },
+      "print": {
+        "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
+      },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
-      "title": "Export von Teamurlaubskalendern"
+      "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",
     "halfDayBegin": {

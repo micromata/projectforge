@@ -40,7 +40,8 @@ export function VacationChartRow({
             GRID_CELL,
             // Stays at the left while the days scroll, above the bars (`z-10`) passing beneath it. The column
             // has a fixed width (see VacationOverlapChart); a longer name is cut, the tooltip has it whole.
-            "chart-panel-sticky sticky left-0 z-20 truncate border-b py-px pr-2",
+            // Printed larger than the 7px of the printed axis (VacationChartFrame).
+            "chart-panel-sticky sticky left-0 z-20 truncate border-b py-px pr-2 print:text-[10px]",
             row.own && "font-semibold"
           )}
           style={gridCell(gridRow, 1)}
