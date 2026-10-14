@@ -1,6 +1,78 @@
 {
   "releases": [
     {
+      "id": "9-0-7",
+      "version": "9.0.7",
+      "date": "2026-10-14",
+      "title": "ProjectForge 9.0.7 released",
+      "tag": "9.0.7-RELEASE",
+      "published": false,
+      "summary": [
+        "**Users** and **team calendars** in the new interface",
+        "**Team vacation calendar** on the page, printable",
+        "Hint and notification for time sheets without Kost2",
+        "Fix: rights changed together with groups are stored correctly",
+        "Fix: stricter access checks of vacations"
+      ],
+      "overview": [
+        "**Users:** list and form migrated to the new interface, with rights adapting to the assigned groups at once, tokens renewed and devices logged out from the form and passwords changed in a dialog; alternative e-mail addresses of other users are rejected.",
+        "**Team calendars:** list and form migrated to the new interface, with the subscription link in the form and the subscriptions of time sheets, weeks of year and holidays in the export menu.",
+        "**Team vacation calendar:** the vacations of the chosen employees and groups shown per quarter or year with adjustable day width, printable in page width, choices saved as favorites; users without HR or finance rights choose from their own groups only.",
+        "**Vacations:** days bar in the vacation account, long vacations squeezed into the bar; the vacation list of users without HR or finance rights shows only the vacations relevant to them.",
+        "**Time sheets without Kost2:** optional hint on saving and a daily notification rule, switched on by a new configuration parameter; the configuration list can be filtered by category.",
+        "**System dashboard:** muted, ignored and resolved problems can be listed from the counts of key figures and subsystem tiles.",
+        "**Fixes:** rights changed together with groups, stricter access checks, carry-over and mails of vacations, Excel export and automatic booking of vacations, contribution margin for contacts of orders, width of the calendar edit dialog."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            {
+              "title": "Time sheets without Kost2",
+              "items": [
+                "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.",
+                "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2.",
+                "New configuration parameter \"Report time sheets without Kost2?\" (default off, only shown with cost-unit accounting enabled): the hint on saving and the notification rule apply only if it is enabled. Booking without Kost2 stays possible.",
+                "Configuration: the list can be filtered by category (pills such as Finance or Time sheets)."
+              ]
+            }
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.",
+            "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice.",
+            "Users, alternative and former e-mail addresses: an address already used by another user is rejected, the primary address isn't stored twice.",
+            {
+              "title": "Vacation account: days bar",
+              "items": [
+                "The vacations of the vacation account show their period as a bar beside the days, as the vacation list does: working days, weekends and holidays, and the days without any replacement on duty.",
+                "A vacation longer than four weeks is drawn with narrower days in the same width (up to 13 weeks) instead of being cut off after four weeks, in the vacation list as well."
+              ]
+            },
+            "Team vacation calendar: the vacations of the chosen employees and groups are now also shown on the page, per quarter or calendar year, with an adjustable width of the days (up to fitting the whole period into the window); the Excel export starts with the period shown, and the calendar can be printed (or saved as PDF) in the width of the page. Choices of employees and groups can be saved as favorites. Users without HR or finance rights choose from their own groups only and no longer see previous years. Vacations beginning before a sheet of the Excel export are now shown on it, too."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Calendars: the list and the form of the team calendars are migrated to the new interface. A stored calendar shows its subscription link with a switch for the reminders, the list offers the subscription of time sheets, weeks of year and holidays in its export menu.",
+            "Users: the list and the form of the user administration are migrated to the new interface. The rights offered adapt to the assigned groups at once, and tokens can be renewed and devices logged out directly from the form; passwords are changed in a dialog, here as on the own account page.",
+            "Vacation list: users without HR or finance rights see their own vacations, the ones they approve or substitute for, and the vacations of their substitutes overlapping their own ones, no longer all current vacations of their group colleagues."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Contribution margin: contact persons and additional contacts of an order see the contribution margin of its project, as in the order book. The access check of orders no longer loads their positions and payment schedules one by one, e.g. for the forecast chart and the contribution margin.",
+            "Users: rights changed in the same save as the groups are now stored correctly. A right set together with joining a group was lost, and a right of a group the user left stayed set.",
+            "Vacations: stricter access checks (a manager can no longer be swapped in on running or past entries, deleting and restoring use the stored entry and restoring is validated again, the vacations of replacements always count as conflicts, shown with dates and status only where the user may not read them otherwise, leave account corrections need write access); the remaining leave of the previous year is credited correctly for vacations crossing the end of the carry-over period and recalculated after later changes; special leave counts in the collision check; rejected vacations no longer appear in calendars and subscriptions; the comment is no longer mailed to replacements, and removed managers and replacements are notified. Excel export: weekends and holidays inside a vacation, half days and half working days are shown correctly, approved vacations win over those in progress. Automatic vacation booking of time sheets: days no longer covered by a vacation are removed, an unbookable vacation task fails the run instead of skipping days, the next successful run books all days missed since, and days are booked by the user's time zone. The vacation account loads faster. Team vacation calendar: readable by screen readers, the stored choice is no longer overwritten by an outdated page state."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-6",
       "version": "9.0.6",
       "date": "2026-10-14",
