@@ -2281,6 +2281,10 @@
         "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
         "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
       },
+      "existingUserEmails": {
+        "_": "Bestehende User in Lanes & Planes (E-Mails)",
+        "tooltip": "Die E-Mails der User in Lanes & Planes, aus der Spalte email des User-Exports (CSV) eingefügt, da die Schnittstelle keine User lesen kann. Mitarbeitende, die noch nicht übertragen wurden und deren E-Mail hier fehlt, werden mit einer hier gelisteten alternativen oder früheren E-Mail des Users übertragen, sonst würde Lanes & Planes den User neu anlegen. Wie eine geänderte E-Mail wird sie beibehalten, bis die E-Mail in Lanes & Planes geändert und unten bestätigt wurde. Leer: keine Prüfung."
+      },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
         "tooltip": "Werden allen Usern als Kostenstellen (cost_centers) übertragen. Formatierte Nummer wie 1.005.01.00. Ohne Einträge bleiben die in Lanes & Planes gepflegten Kostenstellen erhalten."
