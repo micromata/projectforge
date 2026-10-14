@@ -1,59 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.0.5",
-    "date" : "2026-10-14",
-    "title" : "Noch nicht veröffentlicht",
-    "summary" : [ "**Urlaubsanträge** und **Urlaubskonto** in der neuen Oberfläche", "**Lanes-&-Planes-Schnittstelle** für Mitarbeitende und Kostenstellen", "Datentransfer-Dateien verschlüsselt gespeichert", "Passwortänderung: Schutz vor Durchprobieren, andere Sitzungen beendet", "Fix: Deckungsbeitrag zählt nach Buchungsperiode" ],
-    "overview" : [ "**Urlaubsanträge:** Liste und Formular in die neue Oberfläche umgezogen, mit Balken über den Kalendertagen, die die Tage ohne Vertretung zeigen, einem Jahresfilter zum Vor- und Zurückblättern und dem Resturlaub, der während der Eingabe mitläuft.", "**Urlaubskonto:** in die neue Oberfläche umgezogen, mit dem nächsten Jahr in der Statistik und rot markierten Urlaubsanträgen ohne Vertretung.", "**Lanes & Planes:** Die aktiven Mitarbeitenden werden mit ihren Kostenstellen, Kostenträgern und ihrem Kreditorenkonto übertragen, abgesichert gegen verdächtig kleine User-Listen und E-Mail-Änderungen; Mitarbeitende haben ein neues Feld Kreditorenkonto.", "**Benutzer:innen:** neue Felder alternative und frühere E-Mail-Adressen, durchsuchbar und im Excel-Export.", "**Datentransfer:** Dateien im Dateisystem werden komprimiert und können verschlüsselt gespeichert werden (AES-256).", "**Passwörter:** Passwort ändern und WLAN-Passwort ändern in der neuen Oberfläche; ein falsches altes Passwort zählt als Fehlanmeldung, und eine Passwortänderung beendet die anderen Sitzungen.", "**Systemverwaltung:** Systemstatistik lädt sofort, Kopiervorlagen für die System-Warnmeldung; das Docker-Image basiert auf Java 21.", "**Korrekturen:** Deckungsbeitrag nach Buchungsperiode, Jahresfilter der Urlaubsanträge und Verträge, Listen mit veraltetem Filter, Sortierung der Urlaubsliste, abgelehnte Urlaubsanträge im Urlaubsexport, Kostenträger-Cache im Zeitbuchungsformular, Schlüssel der Telefonnummer-Suche und CSRF-Prüfung beim endgültigen Löschen." ],
-    "sections" : [ {
-      "type" : "added",
-      "items" : [ "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten), auch als Spalte in der Liste und im Excel-Export.", {
-        "title" : "Lanes-&-Planes-Schnittstelle",
-        "items" : [ "Die aktiven Mitarbeitenden werden mit den allgemeinen Kost1 als Kostenstellen, den allgemeinen Kost2 und den Kost2, auf die sie buchen dürfen (über Muster wie 5.*.02 einschränkbar), als Kostenträger, ihrer Kost1 als Referenz-Kostenstelle, ihrem Kreditorenkonto und ihrem Spitznamen als Kürzel übertragen. Die Nummern werden ohne Punkte übertragen, wie es der DATEV-Export von Lanes & Planes braucht. Die Einstellungen pflegt die Buchhaltung im Konfigurationsparameter „Lanes & Planes“, Aktivierung und API-Key stehen in projectforge.lanesandplanes.*.", "Im Konfigurationsparameter können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten. Der Service-Admin und Gastprofile von Lanes & Planes können nicht eingetragen werden: Der Import lässt sie unberührt.", "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt, können mit ihren Namen im Konfigurationsparameter eingetragen werden (aus dem User-Export eingefügt). Sie werden unter diesem Namen übertragen, Lanes & Planes verwendet sie also weiter, statt sie als Dopplung abzulehnen.", "Eine geänderte E-Mail von Mitarbeitenden wird zurückgehalten (weiter wird die alte übertragen, mit Hinweis im Problem-Dashboard), bis sie in Lanes & Planes geändert und im Konfigurationsparameter bestätigt wurde. Sonst würde Lanes & Planes den User deaktivieren und neu anlegen.", "Eine verdächtig kleine User-Liste wird nicht übertragen (Lanes & Planes deaktiviert alle nicht übertragenen User): Geprüft wird gegen eine Mindestanzahl und gegen den letzten Push, auch nach einem Neustart von ProjectForge. Ein fehlender Push-Status wird im Problem-Dashboard gemeldet." ]
-      }, "Datentransfer: Im Dateisystem abgelegte Dateien werden komprimiert und können verschlüsselt gespeichert werden (AES-256, Schlüssel in projectforge.files.fileSystemEncryptionKey), damit Backups des Dateisystems sie nicht im Klartext enthalten.", "Benutzer:innen: neue Felder alternative und frühere E-Mail-Adressen (durch Kommas getrennt, z. B. nach einer Namensänderung), auch durchsuchbar und im Excel-Export." ]
-    }, {
-      "type" : "improved",
-      "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", "Passwort ändern und WLAN-Passwort ändern sind Seiten der neuen Oberfläche und zeigen, wann das Passwort zuletzt geändert wurde.", {
-        "title" : "Systemstatistik",
-        "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
-      }, {
-        "title" : "Urlaubskonto",
-        "items" : [ "In der neuen Oberfläche; die Statistik enthält jetzt auch das nächste Jahr.", "Urlaubsanträge mit einem Tag ohne Vertretung sind rot markiert.", "Ein aus dem Urlaubskonto geöffneter Urlaubsantrag oder Kontokorrektureintrag führt dorthin zurück." ]
-      }, {
-        "title" : "Urlaubsanträge",
-        "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen ohne Vertretung.", "Die Liste zeigt jeden Urlaubsantrag als Balken über seinen Tagen, die Tage ohne Vertretung rot.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
-      }, {
-        "title" : "Urlaubsanträge",
-        "items" : [ "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt.", "Der Zeitraum ist standardmäßig ein Kalenderjahr, die Liste beginnt mit dem laufenden: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar.", "Das Formular zeigt die verfügbaren Urlaubstage auch nach dem gerade bearbeiteten Antrag, rot, wenn sie nicht reichen." ]
-      } ]
-    }, {
-      "type" : "changed",
-      "items" : [ "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17." ]
-    }, {
-      "type" : "fixed",
-      "items" : [ {
-        "title" : "Deckungsbeitrag (Auftragsbuch und Scripte)",
-        "items" : [ "Buchungssätze zählen im Monat ihrer Satznummer (Buchungsperiode), nicht im Monat ihres Datums: Eine Rechnung vom September, die auf August gebucht ist, zählt jetzt als im August gebucht.", "Scripte berücksichtigen den laufenden Monat bis heute mit vorläufigen Werten (Zeitberichte und ungebuchte Rechnungen)." ]
-      }, "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", {
-        "title" : "Listen",
-        "items" : [ "Eine Liste kam aus einem Eintrag mit einem veralteten Filter zurück, wenn zuvor auf einen kurz davor verwendeten Filter zurückgeblättert worden war (z. B. ein Jahr zurück und wieder vor)." ]
-      }, {
-        "title" : "Sicherheit",
-        "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
-      }, {
-        "title" : "Urlaubsexport",
-        "items" : [ "Abgelehnte Urlaubsanträge werden nicht mehr exportiert." ]
-      }, "Urlaubsliste: Die Sortierung nach den Spalten Status und Tage hatte keine Wirkung.", {
-        "title" : "Jahresfilter",
-        "items" : [ "Der Jahresfilter der Urlaubsanträge und der Verträge greift wieder; in der neuen Oberfläche wurde er ignoriert." ]
-      } ]
-    }, {
-      "type" : "security",
-      "items" : [ "Eigenes Passwort oder WLAN-Passwort ändern: Ein falsches altes Passwort zählt als Fehlanmeldung und sperrt weitere Versuche für eine Weile, wie bei der Anmeldung.", "Eine Passwortänderung (selbst, durch einen Admin oder per Passwort-Zurücksetzen) beendet jetzt auch die anderen offenen Sitzungen des Benutzers, nicht nur die angemeldet gebliebenen Geräte. Die Sitzung, in der das eigene Passwort geändert wurde, bleibt angemeldet." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -106,6 +52,61 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-6",
+      "version" : "9.0.6",
+      "date" : "2026-10-14",
+      "title" : "ProjectForge 9.0.6 veröffentlicht",
+      "tag" : "9.0.6-RELEASE",
+      "published" : false,
+      "summary" : [ "**Urlaubsanträge** und **Urlaubskonto** in der neuen Oberfläche", "**Lanes-&-Planes-Schnittstelle** für Mitarbeitende und Kostenstellen", "Datentransfer-Dateien verschlüsselt gespeichert", "Passwortänderung: Schutz vor Durchprobieren, andere Sitzungen beendet", "Fix: Deckungsbeitrag zählt nach Buchungsperiode" ],
+      "overview" : [ "**Urlaubsanträge:** Liste und Formular in die neue Oberfläche umgezogen, mit Balken über den Kalendertagen, die die Tage ohne Vertretung zeigen, einem Jahresfilter zum Vor- und Zurückblättern und dem Resturlaub, der während der Eingabe mitläuft.", "**Urlaubskonto:** in die neue Oberfläche umgezogen, mit dem nächsten Jahr in der Statistik und rot markierten Urlaubsanträgen ohne Vertretung.", "**Lanes & Planes:** Die aktiven Mitarbeitenden werden mit ihren Kostenstellen, Kostenträgern und ihrem Kreditorenkonto übertragen, abgesichert gegen verdächtig kleine User-Listen und E-Mail-Änderungen; Mitarbeitende haben ein neues Feld Kreditorenkonto.", "**Benutzer:innen:** neue Felder alternative und frühere E-Mail-Adressen, durchsuchbar und im Excel-Export.", "**Datentransfer:** Dateien im Dateisystem werden komprimiert und können verschlüsselt gespeichert werden (AES-256).", "**Passwörter:** Passwort ändern und WLAN-Passwort ändern in der neuen Oberfläche; ein falsches altes Passwort zählt als Fehlanmeldung, und eine Passwortänderung beendet die anderen Sitzungen.", "**Systemverwaltung:** Systemstatistik lädt sofort, Kopiervorlagen für die System-Warnmeldung; das Docker-Image basiert auf Java 21.", "**Korrekturen:** Deckungsbeitrag nach Buchungsperiode, Jahresfilter der Urlaubsanträge und Verträge, Listen mit veraltetem Filter, Sortierung der Urlaubsliste, abgelehnte Urlaubsanträge im Urlaubsexport, Kostenträger-Cache im Zeitbuchungsformular, Schlüssel der Telefonnummer-Suche und CSRF-Prüfung beim endgültigen Löschen." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ "Mitarbeitende: neues Feld Kreditorenkonto (das DATEV-Konto der bzw. des Mitarbeitenden, z. B. für Reisekosten), auch als Spalte in der Liste und im Excel-Export.", {
+          "title" : "Lanes-&-Planes-Schnittstelle",
+          "items" : [ "Die aktiven Mitarbeitenden werden mit den allgemeinen Kost1 als Kostenstellen, den allgemeinen Kost2 und den Kost2, auf die sie buchen dürfen (über Muster wie 5.*.02 einschränkbar), als Kostenträger, ihrer Kost1 als Referenz-Kostenstelle, ihrem Kreditorenkonto und ihrem Spitznamen als Kürzel übertragen. Die Nummern werden ohne Punkte übertragen, wie es der DATEV-Export von Lanes & Planes braucht. Die Einstellungen pflegt die Buchhaltung im Konfigurationsparameter „Lanes & Planes“, Aktivierung und API-Key stehen in projectforge.lanesandplanes.*.", "Im Konfigurationsparameter können weitere User eingetragen werden, die keine Mitarbeitenden sind (z. B. eine externe Buchhaltung). Sie werden nur mit Name und E-Mail übertragen, werden also nicht deaktiviert, und ihre Rolle und Manager bleiben erhalten. Der Service-Admin und Gastprofile von Lanes & Planes können nicht eingetragen werden: Der Import lässt sie unberührt.", "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt, können mit ihren Namen im Konfigurationsparameter eingetragen werden (aus dem User-Export eingefügt). Sie werden unter diesem Namen übertragen, Lanes & Planes verwendet sie also weiter, statt sie als Dopplung abzulehnen.", "Eine geänderte E-Mail von Mitarbeitenden wird zurückgehalten (weiter wird die alte übertragen, mit Hinweis im Problem-Dashboard), bis sie in Lanes & Planes geändert und im Konfigurationsparameter bestätigt wurde. Sonst würde Lanes & Planes den User deaktivieren und neu anlegen.", "Eine verdächtig kleine User-Liste wird nicht übertragen (Lanes & Planes deaktiviert alle nicht übertragenen User): Geprüft wird gegen eine Mindestanzahl und gegen den letzten Push, auch nach einem Neustart von ProjectForge. Ein fehlender Push-Status wird im Problem-Dashboard gemeldet." ]
+        }, "Datentransfer: Im Dateisystem abgelegte Dateien werden komprimiert und können verschlüsselt gespeichert werden (AES-256, Schlüssel in projectforge.files.fileSystemEncryptionKey), damit Backups des Dateisystems sie nicht im Klartext enthalten.", "Benutzer:innen: neue Felder alternative und frühere E-Mail-Adressen (durch Kommas getrennt, z. B. nach einer Namensänderung), auch durchsuchbar und im Excel-Export." ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Systemverwaltung: zwei Kopiervorlagen für die System-Warnmeldung (Wartungsarbeiten, neues Release), mit der nächsten vollen Stunde und dem nächsten Release vorbelegt.", "Passwort ändern und WLAN-Passwort ändern sind Seiten der neuen Oberfläche und zeigen, wann das Passwort zuletzt geändert wurde.", {
+          "title" : "Systemstatistik",
+          "items" : [ "Die Datenbank-Kachel erscheint sofort: Die Zahl der Historierungseinträge und -attribute ist die Schätzung der Datenbank (~) statt einer minutenlangen Zählung.", "Noch ladende Kacheln zeigen ihre Überschrift und einen Spinner.", "CPU-Last und System-Load als Balken." ]
+        }, {
+          "title" : "Urlaubskonto",
+          "items" : [ "In der neuen Oberfläche; die Statistik enthält jetzt auch das nächste Jahr.", "Urlaubsanträge mit einem Tag ohne Vertretung sind rot markiert.", "Ein aus dem Urlaubskonto geöffneter Urlaubsantrag oder Kontokorrektureintrag führt dorthin zurück." ]
+        }, {
+          "title" : "Urlaubsanträge",
+          "items" : [ "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe.", "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen ohne Vertretung.", "Die Liste zeigt jeden Urlaubsantrag als Balken über seinen Tagen, die Tage ohne Vertretung rot.", "Angeboten werden nur die Status, die gesetzt werden dürfen.", "Ein aus dem Kalender geöffneter Urlaubsantrag führt beim Speichern dorthin zurück." ]
+        }, {
+          "title" : "Urlaubsanträge",
+          "items" : [ "Zeitraum und Mitarbeiter stehen immer in der Filterzeile der Liste; der Zeitraum findet jeden Urlaubsantrag, der ihn berührt.", "Der Zeitraum ist standardmäßig ein Kalenderjahr, die Liste beginnt mit dem laufenden: Jedes eingegebene Datum ergibt sein Jahr, und die Pfeile blättern ein Jahr zurück oder vor. Stattdessen sind auch ein Monat oder ein eigener Zeitraum wählbar.", "Das Formular zeigt die verfügbaren Urlaubstage auch nach dem gerade bearbeiteten Antrag, rot, wenn sie nicht reichen." ]
+        } ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Docker-Image: basiert auf Java 21 (Eclipse Temurin 21 JRE) statt Java 17. ProjectForge läuft weiterhin ab Java 17." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ {
+          "title" : "Deckungsbeitrag (Auftragsbuch und Scripte)",
+          "items" : [ "Buchungssätze zählen im Monat ihrer Satznummer (Buchungsperiode), nicht im Monat ihres Datums: Eine Rechnung vom September, die auf August gebucht ist, zählt jetzt als im August gebucht.", "Scripte berücksichtigen den laufenden Monat bis heute mit vorläufigen Werten (Zeitberichte und ungebuchte Rechnungen)." ]
+        }, "Zeitbuchungsformular: Die Auswahl eines Strukturelements konnte vereinzelt mit \"Session/EntityManager is closed\" scheitern, während der Kostenträger-Cache neu geladen wurde.", {
+          "title" : "Listen",
+          "items" : [ "Eine Liste kam aus einem Eintrag mit einem veralteten Filter zurück, wenn zuvor auf einen kurz davor verwendeten Filter zurückgeblättert worden war (z. B. ein Jahr zurück und wieder vor)." ]
+        }, {
+          "title" : "Sicherheit",
+          "items" : [ "Telefonnummer-Suche (/rsPublic/phoneLookup) ist deaktiviert, bis ein eigener Schlüssel in projectforge.phoneLookupKey konfiguriert ist; der bisherige Platzhalter als Vorgabe wird nicht mehr akzeptiert.", "Endgültiges Löschen prüft das CSRF-Token wie alle anderen schreibenden Aktionen." ]
+        }, {
+          "title" : "Urlaubsexport",
+          "items" : [ "Abgelehnte Urlaubsanträge werden nicht mehr exportiert." ]
+        }, "Urlaubsliste: Die Sortierung nach den Spalten Status und Tage hatte keine Wirkung.", {
+          "title" : "Jahresfilter",
+          "items" : [ "Der Jahresfilter der Urlaubsanträge und der Verträge greift wieder; in der neuen Oberfläche wurde er ignoriert." ]
+        } ]
+      }, {
+        "type" : "security",
+        "items" : [ "Eigenes Passwort oder WLAN-Passwort ändern: Ein falsches altes Passwort zählt als Fehlanmeldung und sperrt weitere Versuche für eine Weile, wie bei der Anmeldung.", "Eine Passwortänderung (selbst, durch einen Admin oder per Passwort-Zurücksetzen) beendet jetzt auch die anderen offenen Sitzungen des Benutzers, nicht nur die angemeldet gebliebenen Geräte. Die Sitzung, in der das eigene Passwort geändert wurde, bleibt angemeldet." ]
+      } ]
+    }, {
       "id" : "9-0-5",
       "version" : "9.0.5",
       "date" : "2026-10-13",

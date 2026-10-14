@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Data transfer: files stored in the file system are compressed and can be encrypted at rest (AES-256, key in projectforge.files.fileSystemEncryptionKey), so backups of the file system don't contain them in plain text.",
-  "de": "Datentransfer: Im Dateisystem abgelegte Dateien werden komprimiert und können verschlüsselt gespeichert werden (AES-256, Schlüssel in projectforge.files.fileSystemEncryptionKey), damit Backups des Dateisystems sie nicht im Klartext enthalten."
-}
