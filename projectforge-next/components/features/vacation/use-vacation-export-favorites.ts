@@ -1,29 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import {
   createVacationExportFavorite,
   deleteVacationExportFavorite,
+  fetchVacationExportInitial,
   renameVacationExportFavorite,
   selectVacationExportFavorite,
   updateVacationExportFavorite,
 } from "@/lib/rs/vacation-export";
 import { toast } from "@/lib/toast";
 import type { VacationExportFavorite, VacationExportRef } from "./types";
-
-/** Whether both hold the same ids, in whatever order. */
-function sameIds(a: number[], b: number[]): boolean {
-  const set = new Set(a);
-  return set.size === new Set(b).size && b.every((id) => set.has(id));
-}
+import {
+  favoriteIdHolding,
+  sameChoice,
+} from "./vacation-export-favorites-model";
 
 /**
  * The favorites of the team vacation calendar: named choices of employees and groups (stored by the backend with
  * the user's choice, `VacationExportRest`), bound to the presentational [FavoritesMenu].
  *
  * The favorite applied last is the current one; it reads as modified as soon as the employees or groups on screen
- * differ from it. Applying one takes only what the user may (still) pick.
+ * differ from it (as sets: the order means nothing). Applying one takes only what the user may (still) pick; the
+ * backend answers the favorites with just those ids, so a favorite of a since deactivated colleague doesn't read
+ * as modified right after applying it. A favorite gone meanwhile (deleted in another tab) or with nothing left to
+ * pick changes nothing on screen: a notice says so, and the list is fetched anew.
  */
 export function useVacationExportFavorites({
   initial,
@@ -36,27 +39,18 @@ export function useVacationExportFavorites({
   groups: EntityRef[];
   apply: (employees: VacationExportRef[], groups: VacationExportRef[]) => void;
 }) {
+  const t = useTranslations();
   const [favorites, setFavorites] = useState(initial);
   const choice = {
     employeeIds: employees.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
   };
   // Without one applied yet, the favorite holding exactly the choice on screen (e.g. the stored one).
-  const [currentId, setCurrentId] = useState<number | null>(
-    () =>
-      initial.find(
-        (f) =>
-          sameIds(f.employeeIds, choice.employeeIds) &&
-          sameIds(f.groupIds, choice.groupIds)
-      )?.id ?? null
+  const [currentId, setCurrentId] = useState<number | null>(() =>
+    favoriteIdHolding(initial, choice)
   );
   const current = favorites.find((f) => f.id === currentId) ?? null;
-  const isModified =
-    current != null &&
-    !(
-      sameIds(current.employeeIds, choice.employeeIds) &&
-      sameIds(current.groupIds, choice.groupIds)
-    );
+  const isModified = current != null && !sameChoice(current, choice);
 
   const run = async <T>(call: () => Promise<T>): Promise<T | undefined> => {
     try {
@@ -74,6 +68,19 @@ export function useVacationExportFavorites({
     select: async (id: number) => {
       const selection = await run(() => selectVacationExportFavorite(id));
       if (!selection) return;
+      if (selection.employees.length === 0 && selection.groups.length === 0) {
+        // Nothing to apply: an empty choice would only clear the pickers.
+        const fresh = await run(() => fetchVacationExportInitial());
+        const known = fresh?.favorites.some((f) => f.id === id) ?? true;
+        if (fresh) setFavorites(fresh.favorites);
+        if (!known && id === currentId) setCurrentId(null);
+        toast.warning(
+          known
+            ? t("vacation.export.favorite.nothingPickable")
+            : t("vacation.export.favorite.gone")
+        );
+        return;
+      }
       apply(selection.employees, selection.groups);
       setCurrentId(id);
     },

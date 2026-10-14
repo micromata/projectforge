@@ -27,6 +27,19 @@ export function partsOf(iso: string): DateParts {
   return { year: +match[1], month: +match[2], day: +match[3] };
 }
 
+/**
+ * Whether the text is exactly a `yyyy-MM-dd` of a day that exists — for a date from outside, such as a url
+ * parameter, before any kind computes with it: `2026-13-01` or `2026-02-30` have the shape but no day.
+ */
+export function isIsoDate(text: string | null | undefined): text is string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text ?? "");
+  if (!match) return false;
+  const [year, month, day] = [+match[1], +match[2], +match[3]];
+  return (
+    month >= 1 && month <= 12 && day >= 1 && day <= daysOfMonth(year, month)
+  );
+}
+
 export function isoOfParts(year: number, month: number, day: number): string {
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
