@@ -578,6 +578,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   vom Backend: Urlaub mit `?returnTo=/vacationAccount`, Urlaubskontokorrektur (noch React) mit
   `returnToCaller=account`, das `LeaveAccountEntryPagesRest` auf `/next/vacationAccount` abbildet.
   `react/vacationAccount/**` leitet `OrphanedLinkFilter` um (eine numerische Id wird zu `?employeeId=`).
+- **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
+  über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
+  `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne
+  Erinnerungen, QR-Code) reisen im Edit-DTO mit (`TeamCal.subscriptionInfo`, nur lesend), kein eigener Endpunkt.
+  Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
+  anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
+  Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
 - **Team-Urlaubskalender** (`/next/vacationExport`, vorher React-UILayout `VacationExportPageRest`, gelöscht) –
   eigenständige Seite auf `VacationExportRest` (`/rs/vacationExport`: `initial`, `view`, `exportExcel` und die
   Lookups `employees`/`groups`). Neu ist die Anzeige im Fenster: die Urlaube (genehmigt, in Abstimmung) der
@@ -592,13 +599,6 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Favoriten (`…/favorites/*`, `FavoritesMenu`) speichern benannte Auswahlen von Mitarbeitenden und Gruppen in
   derselben User-Pref; angewendet wird nur, was der Benutzer wählen darf. Behoben: Urlaube, die vor einem Blatt
   begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
-- **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
-  über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
-  `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne
-  Erinnerungen, QR-Code) reisen im Edit-DTO mit (`TeamCal.subscriptionInfo`, nur lesend), kein eigener Endpunkt.
-  Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
-  anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
-  Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

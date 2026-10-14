@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.contributionmargin
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungCache
@@ -68,7 +69,8 @@ private val log = KotlinLogging.logger {}
  *
  * The accounting records are readable for finance and controlling only, so the data is loaded without the
  * DAO's access checks; the access is checked here instead: finance and controlling may see all projects,
- * project managers and assistants only their own ones ([isOwnProject]).
+ * project managers and assistants only their own ones ([isOwnProject]) and those of the orders they are a
+ * contact person of ([allowedProjectIds]), as in the order book (`AuftragRight`).
  */
 @Service
 open class ContributionMarginService {
@@ -138,19 +140,26 @@ open class ContributionMarginService {
     }
   }
 
-  /** The given projects the user may see the contribution margin of. */
+  /**
+   * The projects of the given orders the user may see the contribution margin of: their own projects
+   * ([isOwnProject]) and the projects of the orders the user is a contact person of (as `AuftragRight`).
+   * The orders must be the ones the user may see (selected with access check).
+   */
   open fun allowedProjectIds(
-    projectIds: Collection<Long>,
+    orders: Collection<AuftragDO>,
     user: PFUserDO? = ThreadLocalUserContext.loggedInUser,
   ): Set<Long> {
     user ?: return emptySet()
+    val ordersByProject = orders.filter { it.projekt?.id != null }.groupBy { it.projekt!!.id!! }
     if (isFibu(user)) {
-      return projectIds.toSet()
+      return ordersByProject.keys
     }
     if (!hasAccess(user)) {
       return emptySet()
     }
-    return projectIds.filter { id -> caches.getProjekt(id)?.let { isOwnProject(user, it) } == true }.toSet()
+    return ordersByProject.filter { (id, projectOrders) ->
+      projectOrders.any { it.isContact(user.id) } || caches.getProjekt(id)?.let { isOwnProject(user, it) } == true
+    }.keys
   }
 
   /**

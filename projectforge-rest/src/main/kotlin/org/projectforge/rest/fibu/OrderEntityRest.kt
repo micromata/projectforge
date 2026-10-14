@@ -1232,8 +1232,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The contribution margin ([ContributionMarginService.calculate]) of the projects of the orders of the order
    * statistics filter, for the 12 months from the start date on and the two previous years. The orders are
-   * queried as for [forecastChart]. Project managers get only their own projects
-   * ([ContributionMarginService.allowedProjectIds]). Filter and start date are remembered for the next time.
+   * queried as for [forecastChart]. Project managers get only their own projects and those of the orders
+   * they are a contact person of ([ContributionMarginService.allowedProjectIds]). Filter and start date are remembered for the next time.
    */
   @AccessChecked("contributionMarginService.checkAccess + allowed projects + DAO select")
   @PostMapping("contributionMargin")
@@ -1269,9 +1269,10 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return orderStatisticsCache.get(key) {
       // The orders as for the forecast charts (reaching back beyond the two comparison years).
       val orders = forecastOrders(magicFilter, startDate)
-      val projectIds = contributionMarginService.allowedProjectIds(orders.mapNotNull { it.projekt?.id })
+      val projectIds = contributionMarginService.allowedProjectIds(orders)
       contributionMarginService.calculateWithDetails(projectIds, startDate).also {
         it.data.ordersWithoutProject = orders.count { order -> order.projekt == null }
+        it.data.projectsWithoutAccess = orders.mapNotNull { order -> order.projekt?.id }.toSet().size - projectIds.size
       }
     }
   }
