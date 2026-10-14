@@ -586,7 +586,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`VacationExcelExporter`, ein Blatt je Zeitraum) und beginnt mit dem angezeigten Zeitraum; das eigene
   Startdatum entfällt. Zugriff: Bisher konnte jeder alle exportieren (keine Prüfung); jetzt wählen nur HR und
   Finanzen (`VacationService.hasLoggedInUserUnrestrictedVacationView`) frei, alle anderen nur die eigenen
-  Gruppen und deren Mitarbeitende – das Backend verwirft alles andere. Behoben: Urlaube, die vor einem Blatt
+  Gruppen und deren Mitarbeitende und nichts vor dem 1.1. des laufenden Jahres (`earliestDate`; `view` und
+  `exportExcel` schneiden dort ab, ◀ endet dort: `PeriodStepper.min`) – das Backend verwirft alles andere. Die
+  Tagesbreite (Automatisch, Fensterbreite, Schmal, Normal, Breit) wird mit der Auswahl gespeichert. Behoben: Urlaube, die vor einem Blatt
   begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,

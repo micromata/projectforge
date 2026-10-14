@@ -9,13 +9,23 @@ import { VacationChartFrame } from "./vacation-chart-frame";
 import { VacationChartLegend } from "./vacation-chart-legend";
 import { VacationChartRow } from "./vacation-chart-row";
 import type { VacationExportView } from "./types";
+import {
+  resolveChartWidth,
+  type VacationChartWidth,
+} from "./vacation-chart-width";
 
 /**
  * The team vacation calendar: one row per employee with their vacations as bars over the days of the period,
  * approved ones solid, those in progress pale. The axis and rows are the vacation form's chart
- * (VacationChartFrame, VacationChartRow); a period of more than a quarter gets the narrow day columns.
+ * (VacationChartFrame, VacationChartRow), its day columns as wide as chosen (`auto`: narrow beyond a quarter).
  */
-export function VacationTeamChart({ view }: { view: VacationExportView }) {
+export function VacationTeamChart({
+  view,
+  dayWidth,
+}: {
+  view: VacationExportView;
+  dayWidth: VacationChartWidth;
+}) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const rows = useMemo(() => teamChartRows(view), [view]);
@@ -25,7 +35,7 @@ export function VacationTeamChart({ view }: { view: VacationExportView }) {
       <VacationChartFrame
         days={view.days}
         ariaLabel={t("vacation.export.title")}
-        compact={view.days.length > 92}
+        dayWidth={resolveChartWidth(dayWidth, view.days.length)}
       >
         {rows.map((row, r) => (
           <VacationChartRow

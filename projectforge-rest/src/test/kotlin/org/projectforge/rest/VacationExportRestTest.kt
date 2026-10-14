@@ -26,6 +26,7 @@ package org.projectforge.rest
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
@@ -33,11 +34,14 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.rest.dto.VacationExportRequest
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -79,7 +83,7 @@ class VacationExportRestTest : AbstractTestBase() {
 
         logon(finance.user!!)
         assertTrue(vacationExportRest.employees(PREFIX, null).map { it.id }.contains(stranger.id))
-        assertEquals(setOf(team.id, other.id), vacationExportRest.groups(PREFIX, null).map { it.id }.toSet())
+        assertTrue(vacationExportRest.groups(PREFIX, null).map { it.id }.containsAll(listOf(team.id, other.id)))
         assertEquals(
             setOf(own.id, colleague.id, stranger.id),
             ids(VacationExportRequest(employeeIds = listOf(stranger.id!!), groupIds = listOf(team.id!!))),
@@ -116,6 +120,41 @@ class VacationExportRestTest : AbstractTestBase() {
         assertFalse(initial.unrestricted)
     }
 
+    @Test
+    fun `a normal user sees nothing of previous years, HR and finance staff do`() {
+        val own = createEmployee("past-own")
+        val colleague = createEmployee("past-colleague")
+        val finance = createEmployee("past-finance", finance = true)
+        // Only HR staff may enter a vacation beginning in the past.
+        val hr = createEmployee("past-hr", hrAccess = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.past", own.user!!.username!!, colleague.user!!.username!!)
+        val year = LocalDate.now().year
+        insertVacation(
+            colleague, own, LocalDate.of(year - 1, 12, 28), LocalDate.of(year, 1, 2), VacationStatus.APPROVED, hr.user!!,
+        )
+        fun request(from: LocalDate, until: LocalDate) =
+            VacationExportRequest(employeeIds = listOf(colleague.id!!), dayWidth = "fit", from = from, until = until)
+
+        logon(own.user!!)
+        val previousQuarter = vacationExportRest.view(request(LocalDate.of(year - 1, 10, 1), LocalDate.of(year - 1, 12, 31)))
+        assertTrue(previousQuarter.days.isEmpty() && previousQuarter.rows.isEmpty(), "Previous year: nothing.")
+        // Across the turn of the year: from 1 January on, the vacation cut off there.
+        val turn = vacationExportRest.view(request(LocalDate.of(year - 1, 12, 1), LocalDate.of(year, 1, 31)))
+        assertEquals(LocalDate.of(year, 1, 1), turn.days.first().date)
+        assertEquals(31, turn.days.size)
+        assertEquals(1, turn.rows.single().vacations.size)
+        val initial = vacationExportRest.getInitial()
+        assertEquals(LocalDate.of(year, 1, 1), initial.earliestDate)
+        assertEquals("fit", initial.dayWidth)
+
+        logon(finance.user!!)
+        val financeView = vacationExportRest.view(request(LocalDate.of(year - 1, 10, 1), LocalDate.of(year - 1, 12, 31)))
+        assertEquals(LocalDate.of(year - 1, 10, 1), financeView.days.first().date)
+        assertEquals(1, financeView.rows.single().vacations.size)
+        assertNull(vacationExportRest.getInitial().earliestDate)
+    }
+
     private fun ids(request: VacationExportRequest): Set<Long?> =
         persistenceService.runReadOnly { vacationExportRest.resolveEmployees(request).map { it.id }.toSet() }
 
@@ -125,9 +164,10 @@ class VacationExportRestTest : AbstractTestBase() {
         startDate: LocalDate,
         endDate: LocalDate,
         status: VacationStatus,
+        asUser: PFUserDO? = null,
     ) {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
-        logon(TEST_ADMIN_USER)
+        asUser?.let { logon(it) } ?: logon(TEST_ADMIN_USER)
         vacationDao.insert(VacationDO().also {
             it.employee = employee
             it.manager = manager
@@ -140,16 +180,23 @@ class VacationExportRestTest : AbstractTestBase() {
         loggedInUser?.let { logon(it) }
     }
 
-    private fun createEmployee(name: String, finance: Boolean = false): EmployeeDO {
+    private fun createEmployee(name: String, finance: Boolean = false, hrAccess: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         logon(TEST_ADMIN_USER)
         val user = PFUserDO()
         user.firstname = "$PREFIX.$name"
         user.lastname = "$name.lastname"
         user.username = "$PREFIX.$name.username"
+        if (hrAccess) {
+            user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
+        }
         initTestDB.addUser(user)
-        if (finance) {
-            val group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString())
+        // The HR right is available to members of the HR group only.
+        listOfNotNull(
+            ProjectForgeGroup.HR_GROUP.takeIf { hrAccess },
+            ProjectForgeGroup.FINANCE_GROUP.takeIf { finance },
+        ).forEach {
+            val group = getGroup(it.toString())
             group.assignedUsers!!.add(user)
             groupDao.update(group)
         }

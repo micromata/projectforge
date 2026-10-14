@@ -14,30 +14,39 @@ import {
   VACATION_EXPORT_EMPLOYEES_URL,
   VACATION_EXPORT_GROUPS_URL,
 } from "@/lib/rs/vacation-export";
+import { VacationChartWidthSelect } from "./vacation-chart-width-select";
+import type { VacationChartWidth } from "./vacation-chart-width";
 
 /**
  * What the team vacation calendar shows: the employees and groups (the lookups offer only what the user may
- * pick), the period — quarter or calendar year, paged with the arrows — and the Excel export of the same choice.
+ * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
+ * columns and the Excel export of the same choice.
  */
 export function VacationExportFilterRow({
   kinds,
   employees,
   groups,
   period,
+  min,
+  dayWidth,
   exporting,
   onEmployeesChange,
   onGroupsChange,
   onPeriodChange,
+  onDayWidthChange,
   onExport,
 }: {
   kinds: readonly PeriodKind[];
   employees: EntityRef[];
   groups: EntityRef[];
   period: Period;
+  min: string | null;
+  dayWidth: VacationChartWidth;
   exporting: boolean;
   onEmployeesChange: (value: EntityRef[]) => void;
   onGroupsChange: (value: EntityRef[]) => void;
   onPeriodChange: (kind: PeriodKind, anchor: string) => void;
+  onDayWidthChange: (value: VacationChartWidth) => void;
   onExport: () => void;
 }) {
   const t = useTranslations();
@@ -75,6 +84,7 @@ export function VacationExportFilterRow({
             kinds={kinds}
             current={period}
             onSelect={onPeriodChange}
+            min={min}
             longLabel
           />
           <span className="whitespace-nowrap text-sm tabular-nums">
@@ -82,6 +92,7 @@ export function VacationExportFilterRow({
           </span>
         </div>
       </div>
+      <VacationChartWidthSelect value={dayWidth} onChange={onDayWidthChange} />
       <ExportButton
         label={t("exportAsXls")}
         tooltip={t("vacation.export.excel.tooltip")}

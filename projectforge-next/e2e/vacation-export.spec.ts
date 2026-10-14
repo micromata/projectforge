@@ -19,11 +19,13 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       employees: { id: number }[];
       groups: { id: number }[];
       periodKind?: string;
+      dayWidth?: string;
     };
     const store = (
       employeeIds: number[],
       groupIds: number[],
-      periodKind?: string
+      periodKind?: string,
+      dayWidth?: string
     ) =>
       page.request.post("/rs/vacationExport/view", {
         headers: { ...headers, "Content-Type": "application/json" },
@@ -31,6 +33,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
           employeeIds,
           groupIds,
           periodKind,
+          dayWidth,
           from: "2030-01-01",
           until: "2030-01-01",
         },
@@ -63,6 +66,22 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       await expect(page).toHaveURL(/from=2030-07-01/);
       await expect(chart.getByText(/July 2030|Juli 2030/)).toBeVisible();
 
+      // Fitted to the window, the chart no longer scrolls sideways.
+      await page
+        .getByRole("combobox", { name: t("vacation.export.dayWidth._") })
+        .click();
+      await page
+        .getByRole("option", { name: t("vacation.export.dayWidth.fit") })
+        .click();
+      await expect
+        .poll(() =>
+          chart.evaluate((el) => {
+            const scroller = el.parentElement as HTMLElement;
+            return scroller.scrollWidth <= scroller.clientWidth;
+          })
+        )
+        .toBe(true);
+
       const download = page.waitForEvent("download");
       await page.getByRole("button", { name: t("exportAsXls") }).click();
       expect((await download).suggestedFilename()).toMatch(/\.xlsx$/);
@@ -70,7 +89,8 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       await store(
         initial.employees.map((e) => e.id),
         initial.groups.map((g) => g.id),
-        initial.periodKind
+        initial.periodKind,
+        initial.dayWidth
       );
     }
   });

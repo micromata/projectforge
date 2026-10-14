@@ -108,6 +108,8 @@ export interface VacationExportRequest {
   employeeIds: number[];
   groupIds: number[];
   periodKind: string;
+  /** VacationChartWidth, only stored. */
+  dayWidth: string;
   from: string;
   until: string;
 }
@@ -117,7 +119,10 @@ export interface VacationExportInitial {
   employees: VacationExportRef[];
   groups: VacationExportRef[];
   periodKind?: string | null;
+  dayWidth?: string | null;
   unrestricted: boolean;
+  /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
+  earliestDate?: string | null;
 }
 
 /** A vacation (approved or in progress) of the team vacation calendar (`VacationExportVacation`). */

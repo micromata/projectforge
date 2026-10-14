@@ -32,6 +32,7 @@ import type {
 } from "./types";
 import { VacationExportFilterRow } from "./vacation-export-filter-row";
 import { VacationTeamChart } from "./vacation-team-chart";
+import { chartWidthOf, type VacationChartWidth } from "./vacation-chart-width";
 
 /** The arts the team calendar pages through, the quarter first (the default). */
 const KINDS = periodKindsOf(["quarter", "year"]);
@@ -80,10 +81,14 @@ function toRef(ref: VacationExportRef): EntityRef {
   return { id: ref.id, displayName: ref.displayName ?? "" };
 }
 
-/** The period of the url, else the art stored with the choice (the current period of it), else this quarter. */
+/**
+ * The period of the url, else the art stored with the choice (the current period of it), else this quarter. One
+ * ending before `min` (an old link of a user who may not look into previous years) is the current one instead.
+ */
 function initialPeriod(
   params: URLSearchParams,
   storedKind: string | null | undefined,
+  min: string | null,
   ctx: FormatContext
 ): Period {
   const offered = (id: string | null | undefined): PeriodKind | null => {
@@ -96,7 +101,17 @@ function initialPeriod(
     from && ISO_DATE.test(from)
       ? kind.beginOf(from, ctx)
       : currentAnchorOf(kind, ctx);
-  return { kind, anchor };
+  return clampPeriod({ kind, anchor }, min, ctx);
+}
+
+/** The current period of the art instead of one ending before `min`. ISO dates compare as strings. */
+function clampPeriod(
+  period: Period,
+  min: string | null,
+  ctx: FormatContext
+): Period {
+  if (!min || period.kind.endOf(period.anchor, ctx) >= min) return period;
+  return { kind: period.kind, anchor: currentAnchorOf(period.kind, ctx) };
 }
 
 function VacationExportContent({
@@ -113,10 +128,15 @@ function VacationExportContent({
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
   );
+  const min = initial.earliestDate ?? null;
+  const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>
+    chartWidthOf(initial.dayWidth)
+  );
   const [period, setPeriod] = useState<Period>(() =>
     initialPeriod(
       new URLSearchParams(params.toString()),
       initial.periodKind,
+      min,
       ctx
     )
   );
@@ -125,6 +145,7 @@ function VacationExportContent({
     employeeIds: employees.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
     periodKind: period.kind.id,
+    dayWidth,
     from: bounds.from,
     until: bounds.to,
   };
@@ -132,6 +153,7 @@ function VacationExportContent({
 
   // Also asked with nothing chosen: the backend stores the choice, an emptied one included.
   const view = useQuery({
+    // With the width, though it only changes the drawing: asked again, the backend stores it at once.
     queryKey: [...VACATION_EXPORT_QUERY_KEY, "view", body],
     queryFn: ({ signal }) => fetchVacationExportView(body, signal),
     // The calendar stays while the next period or another choice loads.
@@ -141,8 +163,9 @@ function VacationExportContent({
   const excel = useExportDownload(() => downloadVacationExportExcel(body));
 
   function selectPeriod(kind: PeriodKind, anchor: string) {
-    setPeriod({ kind, anchor });
-    updateSearchParams({ period: kind.id, from: anchor }, "replace");
+    const next = clampPeriod({ kind, anchor }, min, ctx);
+    setPeriod(next);
+    updateSearchParams({ period: next.kind.id, from: next.anchor }, "replace");
   }
 
   return (
@@ -152,12 +175,20 @@ function VacationExportContent({
         employees={employees}
         groups={groups}
         period={period}
+        min={min}
+        dayWidth={dayWidth}
         exporting={excel.isPending}
         onEmployeesChange={setEmployees}
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
+        onDayWidthChange={setDayWidth}
         onExport={() => excel.mutate()}
       />
+      {min && (
+        <p className="text-sm text-muted-foreground">
+          {t("vacation.export.restrictedHint")}
+        </p>
+      )}
       {!hasSelection && (
         <p className="text-sm text-muted-foreground">
           {t("vacation.export.selectHint")}
@@ -170,7 +201,7 @@ function VacationExportContent({
         <p className="text-sm text-muted-foreground">{t("loading")}</p>
       )}
       {hasSelection && view.data && view.data.rows.length > 0 && (
-        <VacationTeamChart view={view.data} />
+        <VacationTeamChart view={view.data} dayWidth={dayWidth} />
       )}
       {hasSelection &&
         view.data &&

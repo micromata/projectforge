@@ -71,8 +71,9 @@ private val log = KotlinLogging.logger {}
  * with a sheet per period ([exportExcel]).
  *
  * HR and finance staff ([VacationService.hasLoggedInUserUnrestrictedVacationView]) may pick any employee and group;
- * anybody else only their own groups and the employees of these groups. The endpoints drop whatever else is asked
- * for, so the restriction doesn't depend on the pickers ([employees], [groups]).
+ * anybody else only their own groups and the employees of these groups, and nothing before 1 January of the current
+ * year (no previous years). The endpoints drop whatever else is asked for, so the restriction doesn't depend on the
+ * pickers ([employees], [groups]) and the page's paging.
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")
@@ -109,7 +110,9 @@ class VacationExportRest {
                     .sortedBy { it.displayName?.lowercase() },
                 groups = pref.groupIds.orEmpty().filter { access.mayPickGroup(it) }.mapNotNull { groupRef(it) },
                 periodKind = pref.periodKind,
+                dayWidth = pref.dayWidth,
                 unrestricted = access.unrestricted,
+                earliestDate = access.earliestDate,
             )
         }
     }
@@ -149,18 +152,22 @@ class VacationExportRest {
             .take(maxResultsOf(maxResults))
     }
 
-    /** The calendar of the period asked for, at most [MAX_DAYS] days. Stores the choice for next time. */
+    /**
+     * The calendar of the period asked for, at most [MAX_DAYS] days and not before [Access.earliestDate]. Stores the
+     * choice for next time.
+     */
     @AccessChecked("Any user; only employees the user may pick (own groups unless HR/finance)")
     @PostMapping("view")
     fun view(@RequestBody request: VacationExportRequest): VacationExportView {
         storeUserPref(request)
-        val from = request.from ?: PFDay.now().beginOfYear.date
+        val access = Access()
+        val from = access.limit(request.from ?: PFDay.now().beginOfYear.date)
         val until = (request.until ?: from).let { if (ChronoUnit.DAYS.between(from, it) > MAX_DAYS) from.plusDays(MAX_DAYS) else it }
         if (until < from) {
             return VacationExportView(emptyList(), emptyList())
         }
         return persistenceService.runReadOnly { _ ->
-            val employees = resolveEmployees(request)
+            val employees = resolveEmployees(request, access)
             val vacations = if (employees.isEmpty()) emptyList() else vacationService.getVacationOfEmployees(
                 employees, from, until, withSpecial = true, trimVacations = false,
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
@@ -172,14 +179,18 @@ class VacationExportRest {
         }
     }
 
-    /** The workbook of [VacationExcelExporter], its sheets starting in the month of `from`. */
+    /**
+     * The workbook of [VacationExcelExporter], its sheets starting in the month of `from` (not before
+     * [Access.earliestDate]: then no sheet reaches into a previous year).
+     */
     @AccessChecked("Any user; only employees the user may pick (own groups unless HR/finance)")
     @PostMapping("exportExcel")
     fun exportExcel(@RequestBody request: VacationExportRequest): ResponseEntity<Resource> {
         storeUserPref(request)
-        val startDate = request.from ?: LocalDate.now()
+        val access = Access()
+        val startDate = access.limit(request.from ?: LocalDate.now())
         return persistenceService.runReadOnly { _ ->
-            val employees = resolveEmployees(request)
+            val employees = resolveEmployees(request, access)
             log.info { "Exporting Excel sheet with vacations of ${employees.size} employees (from $startDate)." }
             val periodBegin = PFDay.from(startDate).beginOfYear
             val periodEnd = periodBegin.plusYears(1).endOfYear
@@ -193,8 +204,7 @@ class VacationExportRest {
     }
 
     /** The chosen employees and the members of the chosen groups: active ones the user may pick, each once. */
-    internal fun resolveEmployees(request: VacationExportRequest): List<EmployeeDO> {
-        val access = Access()
+    internal fun resolveEmployees(request: VacationExportRequest, access: Access = Access()): List<EmployeeDO> {
         val employees = linkedMapOf<Long, EmployeeDO>()
         request.employeeIds.orEmpty().mapNotNull { employeeCache.getEmployee(it) }.forEach { employee ->
             employee.id?.let { employees[it] = employee }
@@ -209,10 +219,17 @@ class VacationExportRest {
 
     /**
      * What the logged-in user may pick: everything for HR and finance staff, otherwise their own groups and the
-     * employees of these groups (and themself).
+     * employees of these groups (and themself), from 1 January of the current year on ([earliestDate]).
      */
-    private inner class Access {
+    internal inner class Access {
         val unrestricted = vacationService.hasLoggedInUserUnrestrictedVacationView()
+
+        /** The first day the user may see; null: no limit. */
+        val earliestDate: LocalDate? = if (unrestricted) null else PFDay.now().beginOfYear.date
+
+        /** [date], or [earliestDate] if that is later. */
+        fun limit(date: LocalDate): LocalDate = earliestDate?.takeIf { it > date } ?: date
+
         private val loggedInUser: PFUserDO? = ThreadLocalUserContext.loggedInUser
         private val ownGroupIds: Set<Long> =
             if (unrestricted) emptySet() else userGroupCache.getUserGroups(loggedInUser)?.toSet().orEmpty()
@@ -248,12 +265,14 @@ class VacationExportRest {
         pref.employeeIds = request.employeeIds?.distinct()
         pref.groupIds = request.groupIds?.distinct()
         pref.periodKind = request.periodKind
+        pref.dayWidth = request.dayWidth
     }
 
     class VacationExportUserPref(
         var employeeIds: List<Long>? = null,
         var groupIds: List<Long>? = null,
         var periodKind: String? = null,
+        var dayWidth: String? = null,
     )
 
     // Not "export": the removed React page stored another class there.

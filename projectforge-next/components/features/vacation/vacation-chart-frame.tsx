@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils";
 import { monthSpans } from "./vacation-chart-model";
 import { dayClassName, GRID_CELL, gridCell } from "./vacation-chart-grid";
 import type { VacationChartDay } from "./types";
+import {
+  DAY_COLUMN_MIN_WIDTH,
+  type VacationChartDayWidth,
+} from "./vacation-chart-width";
 
 /** Rows 1–2 (months, days) of the names' column. */
 const STICKY_CORNER = {
@@ -21,33 +25,38 @@ const STICKY_CORNER = {
  * left. Shared by the chart of the vacation form (VacationOverlapChart) and the team calendar
  * (VacationTeamChart).
  *
- * @param compact Narrow day columns without the weekday, for a period of months (the team calendar's year).
+ * @param dayWidth The width of the day columns (see VacationChartWidth): `narrow` without the weekday, `fit` in
+ * the width of the window without the day numbers either (the holiday's tooltip stays).
  */
 export function VacationChartFrame({
   days,
   ariaLabel,
-  compact = false,
+  dayWidth = "normal",
   children,
 }: {
   days: VacationChartDay[];
   ariaLabel: string;
-  compact?: boolean;
+  dayWidth?: VacationChartDayWidth;
   children: ReactNode;
 }) {
   const ctx = useFormatContext();
   const columns = {
     "--chart-days": days.length,
-    "--chart-day-width": compact ? "0.875rem" : "1.25rem",
+    "--chart-day-width": DAY_COLUMN_MIN_WIDTH[dayWidth],
   } as CSSProperties;
+  const fit = dayWidth === "fit";
+  const weekday = dayWidth === "normal" || dayWidth === "wide";
   return (
     <div className="overflow-x-auto">
       <div
         role="img"
         aria-label={ariaLabel}
         // The names' column has a fixed width (`--chart-names`): the month labels stop right beside it.
+        // `fit`: as wide as the window, not as its content (the month labels clip their names then).
         className={cn(
-          "grid min-w-max [--chart-names:7rem] [grid-template-columns:var(--chart-names)_repeat(var(--chart-days),minmax(var(--chart-day-width),1fr))] leading-tight sm:[--chart-names:10rem]",
-          compact ? "text-[10px]" : "text-xs"
+          "grid [--chart-names:7rem] [grid-template-columns:var(--chart-names)_repeat(var(--chart-days),minmax(var(--chart-day-width),1fr))] leading-tight sm:[--chart-names:10rem]",
+          fit ? "w-full" : "min-w-max",
+          weekday ? "text-xs" : "text-[10px]"
         )}
         style={columns}
       >
@@ -84,8 +93,9 @@ export function VacationChartFrame({
               )}
               style={gridCell(2, i + 2)}
             >
-              <span>{Number(day.date.slice(8, 10))}</span>
-              {!compact && (
+              {/* Keeps the row's height without the number. */}
+              <span>{fit ? "\u00a0" : Number(day.date.slice(8, 10))}</span>
+              {weekday && (
                 <span className="text-[9px] text-muted-foreground">
                   {formatWeekdayShort(day.date, ctx).slice(0, 2)}
                 </span>

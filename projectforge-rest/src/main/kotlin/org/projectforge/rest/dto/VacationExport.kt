@@ -41,11 +41,13 @@ class VacationExportRef(
  * [until] (both inclusive). The Excel export ignores [until]: its sheets start in the month of [from].
  *
  * @param periodKind The kind of period the page pages through (e.g. `quarter`), only stored for next time.
+ * @param dayWidth The width of the chart's day columns (`auto`, `fit`, `narrow`, …), only stored for next time.
  */
 class VacationExportRequest(
     var employeeIds: List<Long>? = null,
     var groupIds: List<Long>? = null,
     var periodKind: String? = null,
+    var dayWidth: String? = null,
     var from: LocalDate? = null,
     var until: LocalDate? = null,
 )
@@ -54,12 +56,16 @@ class VacationExportRequest(
  * The page's initial state: the employees and groups chosen last time (only those still to be picked).
  *
  * @param unrestricted HR and finance staff, who may pick everybody; anybody else picks only from their own groups.
+ * @param earliestDate The first day shown and exported: 1 January of the current year for anybody but HR and
+ * finance staff (null: no limit), who don't see the vacations of previous years.
  */
 class VacationExportInitial(
     val employees: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
     val periodKind: String?,
+    val dayWidth: String?,
     val unrestricted: Boolean,
+    val earliestDate: LocalDate?,
 )
 
 /** The calendar of the period asked for: its [days] and one row per employee, sorted by name. */

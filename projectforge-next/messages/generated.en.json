@@ -4595,9 +4595,18 @@
     "employee": "Employee",
     "enddate": "End date",
     "export": {
+      "dayWidth": {
+        "_": "Day width",
+        "auto": "Automatic",
+        "fit": "Fit to window",
+        "narrow": "Narrow",
+        "normal": "Normal",
+        "wide": "Wide"
+      },
       "excel": {
         "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
       },
+      "restrictedHint": "Previous years are visible to HR and finance staff only.",
       "selectHint": "Choose employees or groups to show their vacations.",
       "title": "Export of team vacation calendars"
     },
