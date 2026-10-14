@@ -121,8 +121,9 @@ export function EntityMultiAutocomplete({
                 aria-label={ariaLabel}
                 // No background of its own in any state — the box behind it is the field, and the
                 // ghost variant would paint a second one over it while the search is open
-                // (`aria-expanded:bg-muted`).
-                className="h-6 min-w-24 flex-1 justify-between gap-1 px-0 text-xs font-normal text-muted-foreground hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent"
+                // (`aria-expanded:bg-muted`). As narrow as its caret: a wider minimum would push it onto a line of
+                // its own beside chips that still leave room for it, making the box two lines for nothing.
+                className="h-6 min-w-6 flex-1 justify-between gap-1 px-0 text-xs font-normal text-muted-foreground hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent"
               >
                 {/* Only while nothing is picked: with chips in the box the invitation is said twice. */}
                 <span className="truncate">
