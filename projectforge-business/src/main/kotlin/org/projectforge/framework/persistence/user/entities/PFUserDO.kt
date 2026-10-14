@@ -175,6 +175,22 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     @get:Column(length = 255)
     open var email: String? = null
 
+    /**
+     * Further e-mail addresses of the user still in use, comma separated (see [splitEmails]).
+     */
+    @PropertyInfo(i18nKey = "user.alternativeEmails", tooltip = "user.alternativeEmails.info")
+    @FullTextField
+    @get:Column(name = "alternative_emails", length = 1000)
+    open var alternativeEmails: String? = null
+
+    /**
+     * E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated (see [splitEmails]).
+     */
+    @PropertyInfo(i18nKey = "user.formerEmails", tooltip = "user.formerEmails.info")
+    @FullTextField
+    @get:Column(name = "former_emails", length = 1000)
+    open var formerEmails: String? = null
+
     @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "mobile_phone", length = 255)
@@ -462,6 +478,29 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
          */
         fun toLongList(users: List<PFUserDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Splits a list of e-mail addresses as stored in [alternativeEmails] and [formerEmails]: separated by
+         * comma, semicolon or whitespace, trimmed, without blank and duplicate (case-insensitive) entries.
+         */
+        @JvmStatic
+        fun splitEmails(value: String?): List<String> {
+            if (value.isNullOrBlank()) {
+                return emptyList()
+            }
+            return value.split(',', ';', ' ', '\t', '\n', '\r')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinctBy { it.lowercase() }
+        }
+
+        /**
+         * @return The given e-mail addresses (see [splitEmails]) joined by ", " or null, if empty.
+         */
+        @JvmStatic
+        fun normalizeEmails(value: String?): String? {
+            return splitEmails(value).takeIf { it.isNotEmpty() }?.joinToString(", ")
         }
 
         /**

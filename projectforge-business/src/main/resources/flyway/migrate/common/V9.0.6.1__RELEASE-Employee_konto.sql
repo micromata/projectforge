@@ -12,4 +12,4 @@ CREATE INDEX idx_fk_t_fibu_employee_konto_id
 -- DROP INDEX IF EXISTS idx_fk_t_fibu_employee_konto_id;
 -- ALTER TABLE t_fibu_employee DROP CONSTRAINT IF EXISTS fk_t_fibu_employee_konto;
 -- ALTER TABLE t_fibu_employee DROP COLUMN IF EXISTS konto_id;
--- DELETE FROM t_flyway_schema_version WHERE version = '9.0.2';
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.0.6.1';
