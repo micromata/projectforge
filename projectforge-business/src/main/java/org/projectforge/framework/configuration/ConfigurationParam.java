@@ -277,6 +277,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case FIBU_CONTRIBUTION_MARGIN:
       case FIBU_FORECAST:
       case CUSTOMER_GROUPS:
+      case LANES_AND_PLANES:
         return ConfigurationCategory.FINANCE;
       case TIMESHEET_TAGS:
       case TIMESHEET_OVERLAP_GROUPS:
