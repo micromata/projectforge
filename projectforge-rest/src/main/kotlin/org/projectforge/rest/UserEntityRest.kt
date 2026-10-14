@@ -218,6 +218,9 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
         // as user "anon"; the others by login, password change and the user's own settings.
         dto.id?.let { id ->
             baseDao.find(id, checkAccess = false)?.let { dbUser ->
+                // Never the client's: without it the save would take an existing user for a new one (see
+                // saveOrUpdate) and set the initial passwords of onAfterSave, bypassing the password change.
+                userDO.created = dbUser.created
                 userDO.idpExternalId = dbUser.idpExternalId
                 userDO.lastIdpPasswordSync = dbUser.lastIdpPasswordSync
                 userDO.lastLogin = dbUser.lastLogin
@@ -554,6 +557,10 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
 
     override fun onAfterSave(request: HttpServletRequest, obj: PFUserDO, postData: PostData<User>): ResponseAction {
         val dto = postData.data
+        if (dto.id != null) {
+            // Not a new user: its passwords are changed by ChangePasswordPageRest only (own checks and 2FA period).
+            return super.onAfterSave(request, obj, postData)
+        }
         val password = dto.password
         val wlanPassword = dto.wlanPassword
         if (!password.isNullOrBlank()) {

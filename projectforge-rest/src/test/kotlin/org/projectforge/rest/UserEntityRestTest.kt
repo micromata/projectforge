@@ -132,6 +132,22 @@ class UserEntityRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a save of an existing user sets no password, whatever the client posts`() {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser("UserEntityRestTest-nopassword")
+        val created = userDao.find(user.id, checkAccess = false)!!.created
+        // Posted without the creation date: the save would take the user for a new one.
+        val dto = User(id = user.id, username = user.username)
+        dto.created = null
+        dto.password = "Pf-Probe-7319-xQ!z"
+        val userDO = userEntityRest.transformForDB(dto)
+        assertEquals(created?.time, userDO.created?.time, "the creation date is the stored one")
+
+        userEntityRest.onAfterSave(MockHttpServletRequest(), userDO, PostData(dto, watchFieldsTriggered = null, serverData = null))
+        assertNull(userDao.find(user.id, checkAccess = false)!!.lastPasswordChange, "no password set")
+    }
+
+    @Test
     fun `incomplete posix values name their fields`() {
         // Posix accounts count as configured in development mode.
         SystemStatus.internalSet4JunitTests(true)
