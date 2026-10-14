@@ -44,6 +44,7 @@ export const HAND_BUILT_CATEGORIES = [
   "teamEvent",
   "timesheet",
   "todo",
+  "user",
   "vacation",
 ];
 

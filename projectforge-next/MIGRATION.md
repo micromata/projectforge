@@ -395,7 +395,7 @@ Client ist die Brücke bis dahin.
 
 Fertig: **Auftragsbuch** (`order`), **Debitorenrechnungen** (`outgoingInvoice`),
 **Kreditorenrechnungen** (`incomingInvoice`), **Strukturelemente/Aufgabenbaum** (`task`),
-**Gruppen** (`group`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`). **Offen:** **Kalenderseite** (Detailplan
+**Gruppen** (`group`), **Benutzer** (`user`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`). **Offen:** **Kalenderseite** (Detailplan
 [MIGRATION-calendar.md](MIGRATION-calendar.md), Phasen A/B/D umgesetzt, C offen).
 
 Alle handgebauten Seiten laufen über `PageDef` und die geteilten Bausteine oben. Was pro
@@ -585,6 +585,15 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
   anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
   Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
+- **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über
+  `UserEntityRest` (`/rs/user`; `/rs/user/autosearch` bleibt für alle Benutzer-Auswahlen). Die Rechte hängen an den
+  zugeordneten Gruppen: statt des Watch-Field-Re-Layouts fragt das Formular `POST user/rights` (Gruppen + aktuelle
+  Werte, `UserRightsHandler.getRightInfos`) bei jeder Gruppenänderung neu; das Edit-DTO startet mit derselben
+  Menge, sodass das Laden das Formular nicht verändert. Die Auswahllisten der Einstellungen kommen aus
+  `user/settingsOptions` (`UserSettingsOptions`, wie Mein Konto), die Lesend-Flags (posix/samba/WLAN) reisen im
+  Edit-DTO. Token-Erneuerung und „alle Geräte abmelden" sind Sofortaktionen außerhalb des Speicherns, die
+  Passwörter ändern `next/changePassword?userId=` bzw. `changeWlanPassword?userId=`. Kein Weg zurück;
+  `react/user/**` leitet `OrphanedLinkFilter` um.
 - **Team-Urlaubskalender** (`/next/vacationExport`, vorher React-UILayout `VacationExportPageRest`, gelöscht) –
   eigenständige Seite auf `VacationExportRest` (`/rs/vacationExport`: `initial`, `view`, `exportExcel` und die
   Lookups `employees`/`groups`). Neu ist die Anzeige im Fenster: die Urlaube (genehmigt, in Abstimmung) der

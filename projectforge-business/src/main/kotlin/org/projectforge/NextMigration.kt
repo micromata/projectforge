@@ -501,6 +501,17 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the users (UserEntityRest, components/features/user), migrated from React.
+        // The rights of the form depend on the assigned groups and come from user/rights (instead of the watch
+        // field re-layout of the React page). The React pages are gone (no UILayout served any more), so there is
+        // no way back; the legacy app is kept for the redirect of bookmarked React links only.
+        "user" to NextPage(
+            route = "user",
+            editRoute = "user/$ID_PLACEHOLDER",
+            newEntryRoute = "user/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -

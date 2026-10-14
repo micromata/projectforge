@@ -195,6 +195,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The users: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
+     * React link is still redirected onto next.
+     */
+    @Test
+    fun `the user pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/user", NextMigration.listUrl("user"))
+        Assertions.assertEquals("next/user/:id", NextMigration.standardEditPage("user"))
+        Assertions.assertEquals("next/user/new", NextMigration.newEntryUrl("user"))
+        Assertions.assertNull(NextMigration.legacyListUrl("user"))
+        Assertions.assertNull(NextMigration.legacyEditPage("user"))
+        val link = NextMigration.orphanedLinks().single { it.category == "user" }
+        Assertions.assertEquals("react/user", link.legacyListPath)
+        Assertions.assertEquals("react/user/edit", link.legacyEditPath)
+    }
+
+    /**
      * The vacation entries: list and form are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link or one of an old notification mail is still redirected onto next.
      */

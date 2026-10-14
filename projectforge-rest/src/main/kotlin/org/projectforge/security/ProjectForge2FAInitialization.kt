@@ -75,7 +75,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
-      UserPagesRest::class.java,
+      UserEntityRest::class.java,
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       AdminErrorsRest::class.java,

@@ -115,6 +115,26 @@ class User(
 
     var userRights: MutableList<UserRightDto>? = null
 
+    /*
+     * Read-only flags of the request for the user edit page (projectforge-next), set in edit mode for
+     * administrators only (UserEntityRest.transformFromDB). No properties of the user: copyTo finds no PFUserDO
+     * counterpart and ignores them.
+     */
+    /** Posix accounts are in use: the LDAP fieldset shows the uid/gid fields. */
+    var posixConfigured: Boolean? = null
+
+    /** Samba accounts are in use: the LDAP fieldset shows the samba SID fields. */
+    var sambaConfigured: Boolean? = null
+
+    /** An external user management system (LDAP) is in use: the local user flag means something. */
+    var externalUserManagementSystem: Boolean? = null
+
+    /** The WLAN password can be set: the initial WLAN password field and the change link are offered. */
+    var wlanPasswordSupported: Boolean? = null
+
+    /** Sipgate is configured: the personal phone identifiers are of use. */
+    var phoneIdentifiersSupported: Boolean? = null
+
     /**
      * @see copyFromMinimal
      */
