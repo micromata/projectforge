@@ -153,7 +153,7 @@ class VacationEntityRest :
         Employee.restoreDisplayNames(vacation.otherReplacements)
         if (editMode) {
             vacation.employeeEditable = hasHrRights()
-            applyStats(vacation, computeStats(vacation, updateCache = true))
+            applyStats(vacation, computeStats(vacation, updateCache = true, withDaysLeft = mayReadDaysLeft(obj)))
         } else {
             applyListDays(vacation, obj)
         }
@@ -202,7 +202,7 @@ class VacationEntityRest :
         vacation.replacement?.let { result.replacement = createEmployee(it) }
         result.status = VacationStatus.IN_PROGRESS
         result.employeeEditable = hasHrRights()
-        applyStats(result, computeStats(result, updateCache = false))
+        applyStats(result, computeStats(result, updateCache = false, withDaysLeft = true))
         return result
     }
 
@@ -336,31 +336,43 @@ class VacationEntityRest :
     /**
      * What the form shows beside its fields for the state the user is editing: the working days of the period,
      * the days left in the year of its start, the overlapping vacations of the replacements and whether a day is
-     * left without any of them, and the statuses the user may set. The successor of the React watch fields;
-     * nothing is written, the conflict cache neither.
+     * left without any of them, and the statuses the user may set. The successor of the React watch fields; the
+     * conflict cache isn't written (the carry of the current year may be, see [VacationService.getVacationStats]).
      *
-     * The days left are those of the employee of the entry as far as the user may see it: HR staff the posted
-     * one, anybody else the stored entry's employee (read-checked) or the own one for a new entry. A posted
-     * employee of somebody else would tell their remaining leave otherwise.
+     * The employee is the entry's as far as the user may see it: HR staff the posted one, anybody else the stored
+     * entry's employee (read-checked) or the own one for a new entry. Their days left only for HR staff, the
+     * employee and the manager of the stored entry ([mayReadDaysLeft]): a substitute or a colleague of the same
+     * group may read the entry, but not the remaining leave of its employee.
      */
-    @AccessChecked("DAO: select access; employee of the days left: HR the posted one, else the stored entry's (find) or the own one")
+    @AccessChecked("DAO: select access; employee: HR the posted one, else the stored entry's (find) or the own one; days left: HR, employee or manager")
     @PostMapping("stats")
     fun stats(@RequestBody postData: PostData<Vacation>): VacationFormStats {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         val dto = postData.data
+        var withDaysLeft = true
         if (!hasHrRights()) {
-            val employeeDO = dto.id?.let { baseDao.find(it)?.employee }
-                ?: employeeService.findByUserId(ThreadLocalUserContext.loggedInUserId)
+            val stored = dto.id?.let { baseDao.find(it) }
+            val employeeDO = stored?.employee ?: employeeService.findByUserId(ThreadLocalUserContext.loggedInUserId)
             dto.employee = createEmployee(employeeDO)
+            withDaysLeft = stored == null || mayReadDaysLeft(stored)
         }
-        return computeStats(dto, updateCache = false)
+        return computeStats(dto, updateCache = false, withDaysLeft = withDaysLeft)
     }
 
-    private fun computeStats(dto: Vacation, updateCache: Boolean): VacationFormStats {
+    /** HR staff, the entry's employee and its manager: who may see the remaining leave of the entry's employee. */
+    private fun mayReadDaysLeft(vacation: VacationDO): Boolean {
+        if (hasHrRights()) {
+            return true
+        }
+        val ownEmployeeId = employeeService.findByUserId(ThreadLocalUserContext.loggedInUserId)?.id ?: return false
+        return vacation.employee?.id == ownEmployeeId || vacation.manager?.id == ownEmployeeId
+    }
+
+    private fun computeStats(dto: Vacation, updateCache: Boolean, withDaysLeft: Boolean): VacationFormStats {
         val result = VacationFormStats()
         val vacationDO = VacationDO()
         dto.copyTo(vacationDO)
-        dto.employee?.id?.let { employeeId ->
+        dto.employee?.id?.takeIf { withDaysLeft }?.let { employeeId ->
             val employeeDO = EmployeeDO()
             employeeDO.id = employeeId
             val year = dto.startDate?.year ?: Year.now().value
@@ -379,7 +391,9 @@ class VacationEntityRest :
             result.workingDaysFormatted = VacationStats.format(result.workingDays)
         }
         val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
-        result.conflictingVacations = vacationOverlaps.otherVacations.map { Vacation(it) }
+        // Without their comments: the substitutes' entries are read past the DAO's privacy check (VacationDao.afterLoad),
+        // and neither the chart nor the table shows them.
+        result.conflictingVacations = vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
         result.conflict = vacationOverlaps.conflict
         if (startDate != null && endDate != null) {
             result.chartDays = chartDays(startDate, endDate, vacationOverlaps.uncoveredDays.toSet())
@@ -390,7 +404,7 @@ class VacationEntityRest :
 
     /**
      * The days left in [year] with the edited entry counted as it is in the form instead of as stored (a new one
-     * isn't stored at all), the way [org.projectforge.business.vacation.service.VacationValidator] checks them.
+     * isn't stored at all), as [VacationService.getVacationStats] counts them.
      * Null without a period: then there's nothing to count.
      */
     private fun daysLeftAfter(employeeDO: EmployeeDO, year: Int, vacationDO: VacationDO): BigDecimal? {

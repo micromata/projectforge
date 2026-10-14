@@ -47,6 +47,22 @@ describe("buildVacationChart", () => {
     ]);
   });
 
+  it("draws a single day with both half days as one half day, none on a weekend", () => {
+    const single = {
+      ...own,
+      startDate: "2030-02-05",
+      endDate: "2030-02-05",
+      halfDayBegin: true,
+    };
+    expect(buildVacationChart(days(11), single, [], [])[0].bars).toMatchObject([
+      { first: 4, last: 4, halfFirst: true, halfLast: false },
+    ]);
+    const axis = days(11).map((d, i) => ({ ...d, workingDay: i !== 7 }));
+    expect(buildVacationChart(axis, own, [], [])[0].bars).toMatchObject([
+      { first: 3, last: 7, halfFirst: false, halfLast: false },
+    ]);
+  });
+
   it("lists every substitute, those on duty without a bar", () => {
     const rows = buildVacationChart(
       days(11),

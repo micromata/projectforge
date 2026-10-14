@@ -295,7 +295,7 @@ open class VacationService {
             VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
             Pair("endDate", LocalDate.now()),
-            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
+            Pair("statusList", CONFLICT_STATUS),
             entityGraphName = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS
         )
     }
@@ -650,6 +650,9 @@ open class VacationService {
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
         private val DEFAULT_VACATION_STATUS_LIST = arrayOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
+
+        /** The statuses of the vacations [ConflictingVacationsCache] checks for conflicts. */
+        val CONFLICT_STATUS = listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
 
         @JvmStatic
         @JvmOverloads

@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -66,8 +67,13 @@ class ConflictingVacationsCache() : AbstractCache() {
         this.vacationService = applicationContext.getBean(VacationService::class.java)
     }
 
+    /**
+     * Takes the conflict of a vacation as it is stored into the cache. Only a current or future one in a status the
+     * cache holds (see [refresh]) is kept: opening an old or rejected entry must not mark it as a conflict.
+     */
     fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
         checkRefresh()
+        val conflict = conflict && isConsidered(vacationDO)
         synchronized(allConflictingVacations) {
             vacationDO.id?.let { id ->
                 if (!conflict) {
@@ -78,12 +84,17 @@ class ConflictingVacationsCache() : AbstractCache() {
             }
         }
         synchronized(conflictingVacationsByEmployee) {
-            if (!conflict) {
-                conflictingVacationsByEmployee[vacationDO.employee?.id]?.remove(vacationDO)
-            } else {
+            // By id: the list holds the instance of the last refresh, not the one given here.
+            conflictingVacationsByEmployee[vacationDO.employee?.id]?.removeIf { it.id == vacationDO.id }
+            if (conflict) {
                 ensureEmployeeList(conflictingVacationsByEmployee, vacationDO.employee?.id).add(vacationDO)
             }
         }
+    }
+
+    private fun isConsidered(vacationDO: VacationDO): Boolean {
+        val endDate = vacationDO.endDate ?: return false
+        return !vacationDO.deleted && endDate >= LocalDate.now() && vacationDO.status in VacationService.CONFLICT_STATUS
     }
 
     fun hasConflict(vacationDO: VacationDO): Boolean {

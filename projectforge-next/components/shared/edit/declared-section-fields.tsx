@@ -9,9 +9,8 @@ const GRID = "grid grid-cols-1 gap-x-6 gap-y-4";
 
 /**
  * The fields of a declared section: one grid of three columns (four, see [SectionDef.columns]), or — with an
- * [SectionDef.aside] — the main
- * fields in the left two columns and the aside stacked in the third, as two grids of their own so their
- * rows never interleave.
+ * [SectionDef.aside] — the main fields in the left two columns and the aside stacked in the third, as two
+ * grids of their own so their rows never interleave.
  */
 export function DeclaredSectionFields<M extends EntityMetadata>({
   section,

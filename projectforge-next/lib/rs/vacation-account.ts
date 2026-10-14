@@ -6,6 +6,9 @@
 import { request } from "./client";
 import type { VacationAccount } from "@/components/features/vacation-account/types";
 
+/** React Query key of the account (by employee below it), so a write from the vacation form refreshes it. */
+export const VACATION_ACCOUNT_QUERY_KEY = ["vacationAccount"] as const;
+
 /**
  * The account of the given employee (HR staff only, ignored for anybody else); without one, the one shown last
  * (HR staff) or the own one.

@@ -12,10 +12,13 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { RsError } from "@/lib/rs/client";
 import {
   fetchVacationAccount,
   recalculateRemainingLeave,
+  VACATION_ACCOUNT_QUERY_KEY,
 } from "@/lib/rs/vacation-account";
+import { toast } from "@/lib/toast";
 import { updateSearchParams } from "@/lib/search-params";
 import { LeaveAccountEntriesTable } from "./leave-account-entries-table";
 import { VacationAccountActions } from "./vacation-account-actions";
@@ -28,6 +31,9 @@ import { VacationAccountSummary } from "./vacation-account-summary";
  *
  * HR staff pick the employee (`?employeeId=`, kept in the url); without one the backend shows the one shown last,
  * at first the own one. Everybody else always sees their own account.
+ *
+ * Asked anew on every visit: a vacation saved or deleted from here changes the numbers (the vacation form
+ * invalidates the account as well, see VACATION_PAGE.extraInvalidateKeys).
  */
 export function VacationAccountPage() {
   const t = useTranslations();
@@ -36,23 +42,33 @@ export function VacationAccountPage() {
     () => Number(params.get("employeeId")) || undefined
   );
   const queryClient = useQueryClient();
-  const queryKey = ["vacationAccount", employeeId];
 
   const query = useQuery({
-    queryKey,
+    queryKey: [...VACATION_ACCOUNT_QUERY_KEY, employeeId],
     queryFn: ({ signal }) => fetchVacationAccount(employeeId, signal),
     // The tables stay while another employee's account loads instead of collapsing to "loading".
     placeholderData: keepPreviousData,
+    staleTime: 0,
   });
   const account = query.data;
   const employee = account?.employee;
 
   const recalculate = useMutation({
-    mutationFn: () => recalculateRemainingLeave(employee!.id),
-    onSuccess: (fresh) => queryClient.setQueryData(queryKey, fresh),
+    mutationFn: (id: number) => recalculateRemainingLeave(id),
+    // Asked anew rather than stored under the shown key: the employee may have been switched meanwhile.
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: VACATION_ACCOUNT_QUERY_KEY }),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : String(error)),
   });
 
   function selectEmployee(id: number) {
+    // The account without a parameter is the one shown last (the backend stores it): the way back from a
+    // vacation (`?returnTo=/vacationAccount`) has none, and must not find the one shown before in the cache.
+    queryClient.removeQueries({
+      queryKey: [...VACATION_ACCOUNT_QUERY_KEY, undefined],
+      exact: true,
+    });
     setEmployeeId(id);
     updateSearchParams({ employeeId: String(id) }, "replace");
   }
@@ -65,8 +81,9 @@ export function VacationAccountPage() {
       >
         <VacationAccountActions
           account={account}
-          recalculating={recalculate.isPending}
-          onRecalculate={() => recalculate.mutate()}
+          // Not while another employee's account loads: the button would recalculate the one still shown.
+          recalculating={recalculate.isPending || query.isPlaceholderData}
+          onRecalculate={() => employee && recalculate.mutate(employee.id)}
         />
       </PageTitleRow>
       <div className="flex flex-col gap-4 px-4 pb-6">
@@ -75,7 +92,9 @@ export function VacationAccountPage() {
         )}
         {query.isError && (
           <p className="text-sm text-destructive">
-            {t("access.exception.noAccess")}
+            {query.error instanceof RsError && query.error.status === 403
+              ? t("access.exception.noAccess")
+              : t("errorpage.title")}
           </p>
         )}
         {account && (

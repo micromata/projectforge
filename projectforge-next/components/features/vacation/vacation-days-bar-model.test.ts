@@ -21,6 +21,16 @@ describe("daysBar", () => {
     });
   });
 
+  it("draws no half day on a weekend", () => {
+    const bar = daysBar({
+      startDate: "2030-02-09",
+      endDate: "2030-02-11",
+      halfDayBegin: true,
+      nonWorkingDays: ["2030-02-09", "2030-02-10"],
+    });
+    expect(bar?.days.map((d) => d.half)).toEqual([false, false, false]);
+  });
+
   it("cuts a long vacation off at the same scale for every row", () => {
     const bar = daysBar({ startDate: "2030-01-01", endDate: "2030-12-31" });
     expect(bar?.days).toHaveLength(BAR_MAX_DAYS);
