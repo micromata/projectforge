@@ -123,6 +123,21 @@ export interface VacationExportInitial {
   unrestricted: boolean;
   /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
   earliestDate?: string | null;
+  favorites: VacationExportFavorite[];
+}
+
+/** A named choice of employees and groups (`VacationExportFavoriteInfo`). */
+export interface VacationExportFavorite {
+  id: number;
+  name: string;
+  employeeIds: number[];
+  groupIds: number[];
+}
+
+/** A favorite applied, as far as the user may pick it (`VacationExportSelection`). */
+export interface VacationExportSelection {
+  employees: VacationExportRef[];
+  groups: VacationExportRef[];
 }
 
 /** A vacation (approved or in progress) of the team vacation calendar (`VacationExportVacation`). */

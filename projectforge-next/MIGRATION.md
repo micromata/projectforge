@@ -588,7 +588,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Finanzen (`VacationService.hasLoggedInUserUnrestrictedVacationView`) frei, alle anderen nur die eigenen
   Gruppen und deren Mitarbeitende und nichts vor dem 1.1. des laufenden Jahres (`earliestDate`; `view` und
   `exportExcel` schneiden dort ab, ◀ endet dort: `PeriodStepper.min`) – das Backend verwirft alles andere. Die
-  Tagesbreite (Automatisch, Fensterbreite, Schmal, Normal, Breit) wird mit der Auswahl gespeichert. Behoben: Urlaube, die vor einem Blatt
+  Tagesbreite (Automatisch, Fensterbreite, Schmal, Normal, Breit) wird mit der Auswahl gespeichert.
+  Favoriten (`…/favorites/*`, `FavoritesMenu`) speichern benannte Auswahlen von Mitarbeitenden und Gruppen in
+  derselben User-Pref; angewendet wird nur, was der Benutzer wählen darf. Behoben: Urlaube, die vor einem Blatt
   begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,

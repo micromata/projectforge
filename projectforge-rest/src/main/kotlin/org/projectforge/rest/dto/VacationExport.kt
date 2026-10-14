@@ -66,6 +66,24 @@ class VacationExportInitial(
     val dayWidth: String?,
     val unrestricted: Boolean,
     val earliestDate: LocalDate?,
+    val favorites: List<VacationExportFavoriteInfo>,
+)
+
+/**
+ * A favorite of the team vacation calendar: a named choice of employees and groups (ids as stored; the page tells
+ * by them whether its choice is the favorite's).
+ */
+class VacationExportFavoriteInfo(
+    val id: Long,
+    val name: String,
+    val employeeIds: List<Long>,
+    val groupIds: List<Long>,
+)
+
+/** A favorite applied: its employees and groups, only those the user may (still) pick. */
+class VacationExportSelection(
+    val employees: List<VacationExportRef>,
+    val groups: List<VacationExportRef>,
 )
 
 /** The calendar of the period asked for: its [days] and one row per employee, sorted by name. */

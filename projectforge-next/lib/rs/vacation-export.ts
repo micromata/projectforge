@@ -5,8 +5,10 @@
  */
 
 import type {
+  VacationExportFavorite,
   VacationExportInitial,
   VacationExportRequest,
+  VacationExportSelection,
   VacationExportView,
 } from "@/components/features/vacation/types";
 import { request } from "./client";
@@ -47,4 +49,54 @@ export function downloadVacationExportExcel(
   body: VacationExportRequest
 ): Promise<void> {
   return downloadPost("/rs/vacationExport/exportExcel", body);
+}
+
+/** The employees and groups of a favorite (as in [VacationExportRequest]). */
+export type VacationExportChoice = Pick<
+  VacationExportRequest,
+  "employeeIds" | "groupIds"
+>;
+
+function postFavorites<T>(
+  path: string,
+  body?: VacationExportChoice
+): Promise<T> {
+  return request<T>(`/rs/vacationExport/favorites/${path}`, {
+    method: "POST",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+/** Saves the choice under `name` (a free one, if taken); answers all favorites. */
+export function createVacationExportFavorite(
+  name: string,
+  choice: VacationExportChoice
+) {
+  return postFavorites<VacationExportFavorite[]>(
+    `create?name=${encodeURIComponent(name)}`,
+    choice
+  );
+}
+
+/** Overwrites the employees and groups of the favorite `id`. */
+export function updateVacationExportFavorite(
+  id: number,
+  choice: VacationExportChoice
+) {
+  return postFavorites<VacationExportFavorite[]>(`update?id=${id}`, choice);
+}
+
+export function renameVacationExportFavorite(id: number, newName: string) {
+  return postFavorites<VacationExportFavorite[]>(
+    `rename?id=${id}&newName=${encodeURIComponent(newName)}`
+  );
+}
+
+export function deleteVacationExportFavorite(id: number) {
+  return postFavorites<VacationExportFavorite[]>(`delete?id=${id}`);
+}
+
+/** The employees and groups of the favorite `id` the user may pick. */
+export function selectVacationExportFavorite(id: number) {
+  return postFavorites<VacationExportSelection>(`select?id=${id}`);
 }

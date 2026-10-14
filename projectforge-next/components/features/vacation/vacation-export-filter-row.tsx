@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import { ExportButton } from "@/components/shared/export-button";
+import { FavoritesMenu } from "@/components/shared/favorites/favorites-menu";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useFormatContext } from "@/hooks/use-format";
 import type { Period, PeriodKind } from "@/lib/date-period";
@@ -16,11 +17,12 @@ import {
 } from "@/lib/rs/vacation-export";
 import { VacationChartWidthSelect } from "./vacation-chart-width-select";
 import type { VacationChartWidth } from "./vacation-chart-width";
+import type { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /**
  * What the team vacation calendar shows: the employees and groups (the lookups offer only what the user may
  * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
- * columns and the Excel export of the same choice.
+ * columns and the Excel export of the same choice. The favorites hold named choices of employees and groups.
  */
 export function VacationExportFilterRow({
   kinds,
@@ -29,6 +31,7 @@ export function VacationExportFilterRow({
   period,
   min,
   dayWidth,
+  favorites,
   exporting,
   onEmployeesChange,
   onGroupsChange,
@@ -42,6 +45,7 @@ export function VacationExportFilterRow({
   period: Period;
   min: string | null;
   dayWidth: VacationChartWidth;
+  favorites: ReturnType<typeof useVacationExportFavorites>;
   exporting: boolean;
   onEmployeesChange: (value: EntityRef[]) => void;
   onGroupsChange: (value: EntityRef[]) => void;
@@ -93,6 +97,18 @@ export function VacationExportFilterRow({
         </div>
       </div>
       <VacationChartWidthSelect value={dayWidth} onChange={onDayWidthChange} />
+      <FavoritesMenu
+        favorites={favorites.favorites}
+        currentId={favorites.currentId}
+        isModified={favorites.isModified}
+        onSelect={favorites.select}
+        onCreate={favorites.create}
+        onRename={favorites.rename}
+        onUpdate={favorites.update}
+        onDelete={favorites.remove}
+        label={t("favorites._")}
+        showLabel
+      />
       <ExportButton
         label={t("exportAsXls")}
         tooltip={t("vacation.export.excel.tooltip")}

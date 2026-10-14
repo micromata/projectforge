@@ -33,6 +33,8 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationExcelExporter
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.favorites.AbstractFavorite
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -44,10 +46,12 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.VacationChartDay
+import org.projectforge.rest.dto.VacationExportFavoriteInfo
 import org.projectforge.rest.dto.VacationExportInitial
 import org.projectforge.rest.dto.VacationExportRef
 import org.projectforge.rest.dto.VacationExportRequest
 import org.projectforge.rest.dto.VacationExportRow
+import org.projectforge.rest.dto.VacationExportSelection
 import org.projectforge.rest.dto.VacationExportVacation
 import org.projectforge.rest.dto.VacationExportView
 import org.springframework.beans.factory.annotation.Autowired
@@ -102,18 +106,64 @@ class VacationExportRest {
         val pref = getUserPref()
         val access = Access()
         return persistenceService.runReadOnly { _ ->
+            val selection = selection(pref.employeeIds, pref.groupIds, access)
             VacationExportInitial(
-                employees = pref.employeeIds.orEmpty()
-                    .mapNotNull { employeeCache.getEmployee(it) }
-                    .filter { isActive(it) && access.mayPick(it) }
-                    .map { ref(it) }
-                    .sortedBy { it.displayName?.lowercase() },
-                groups = pref.groupIds.orEmpty().filter { access.mayPickGroup(it) }.mapNotNull { groupRef(it) },
+                employees = selection.employees,
+                groups = selection.groups,
                 periodKind = pref.periodKind,
                 dayWidth = pref.dayWidth,
                 unrestricted = access.unrestricted,
                 earliestDate = access.earliestDate,
+                favorites = favoriteInfos(pref),
             )
+        }
+    }
+
+    /** Saves the employees and groups of [request] under [name] (a free one, if taken). */
+    @AccessChecked("Own user prefs")
+    @PostMapping("favorites/create")
+    fun createFavorite(
+        @RequestParam("name") name: String,
+        @RequestBody request: VacationExportRequest,
+    ): List<VacationExportFavoriteInfo> = changeFavorites { favorites ->
+        favorites.add(VacationExportFavorite(name, request.employeeIds?.distinct(), request.groupIds?.distinct()))
+    }
+
+    /** Overwrites the employees and groups of the favorite [id] with those of [request]. */
+    @AccessChecked("Own user prefs")
+    @PostMapping("favorites/update")
+    fun updateFavorite(
+        @RequestParam("id") id: Long,
+        @RequestBody request: VacationExportRequest,
+    ): List<VacationExportFavoriteInfo> = changeFavorites { favorites ->
+        favorites.get(id)?.let {
+            it.employeeIds = request.employeeIds?.distinct()
+            it.groupIds = request.groupIds?.distinct()
+        }
+    }
+
+    @AccessChecked("Own user prefs")
+    @PostMapping("favorites/rename")
+    fun renameFavorite(
+        @RequestParam("id") id: Long,
+        @RequestParam("newName") newName: String,
+    ): List<VacationExportFavoriteInfo> = changeFavorites { favorites -> favorites.rename(id, newName) }
+
+    @AccessChecked("Own user prefs")
+    @PostMapping("favorites/delete")
+    fun deleteFavorite(@RequestParam("id") id: Long): List<VacationExportFavoriteInfo> =
+        changeFavorites { favorites -> favorites.remove(id) }
+
+    /**
+     * The employees and groups of the favorite [id], only those the user may pick (the favorite is kept as it is:
+     * a group left meanwhile is simply not applied).
+     */
+    @AccessChecked("Own user prefs; only employees and groups the user may pick")
+    @PostMapping("favorites/select")
+    fun selectFavorite(@RequestParam("id") id: Long): VacationExportSelection {
+        val favorite = Favorites(getUserPref().favorites.orEmpty()).get(id)
+        return persistenceService.runReadOnly { _ ->
+            selection(favorite?.employeeIds, favorite?.groupIds, Access())
         }
     }
 
@@ -257,6 +307,34 @@ class VacationExportRest {
     private fun ref(employee: EmployeeDO): VacationExportRef =
         VacationExportRef(employee.id!!, employeeCache.getUser(employee)?.getFullname())
 
+    /** The employees and groups of these ids the user may pick, sorted by name. */
+    private fun selection(employeeIds: List<Long>?, groupIds: List<Long>?, access: Access) = VacationExportSelection(
+        employees = employeeIds.orEmpty()
+            .mapNotNull { employeeCache.getEmployee(it) }
+            .filter { isActive(it) && access.mayPick(it) }
+            .map { ref(it) }
+            .sortedBy { it.displayName?.lowercase() },
+        groups = groupIds.orEmpty().filter { access.mayPickGroup(it) }.mapNotNull { groupRef(it) }
+            .sortedBy { it.displayName?.lowercase() },
+    )
+
+    /** Changes the favorites (unique names and ids, see [Favorites]) and stores them. */
+    private fun changeFavorites(change: (Favorites<VacationExportFavorite>) -> Unit): List<VacationExportFavoriteInfo> {
+        val pref = getUserPref()
+        val favorites = Favorites(pref.favorites.orEmpty())
+        change(favorites)
+        // The pref is the stored object (ensureEntry), changed in place as the other fields.
+        pref.favorites = favorites.idTitleList.mapNotNull { favorites.get(it.id) }
+        return favoriteInfos(pref)
+    }
+
+    private fun favoriteInfos(pref: VacationExportUserPref): List<VacationExportFavoriteInfo> =
+        Favorites(pref.favorites.orEmpty()).idTitleList.mapNotNull { idTitle ->
+            pref.favorites?.find { it.id == idTitle.id }?.let {
+                VacationExportFavoriteInfo(idTitle.id, idTitle.name, it.employeeIds.orEmpty(), it.groupIds.orEmpty())
+            }
+        }
+
     private fun groupRef(groupId: Long): VacationExportRef? =
         userGroupCache.getGroup(groupId)?.takeIf { it.deleted != true }?.let { VacationExportRef(groupId, it.name) }
 
@@ -273,13 +351,25 @@ class VacationExportRest {
         var groupIds: List<Long>? = null,
         var periodKind: String? = null,
         var dayWidth: String? = null,
+        var favorites: List<VacationExportFavorite>? = null,
     )
 
-    // Not "export": the removed React page stored another class there.
+    /** A named choice of employees and groups. */
+    class VacationExportFavorite(
+        name: String? = null,
+        var employeeIds: List<Long>? = null,
+        var groupIds: List<Long>? = null,
+    ) : AbstractFavorite(name)
+
     private fun getUserPref(): VacationExportUserPref =
-        userPrefService.ensureEntry("vacation", "teamCalendar", VacationExportUserPref())
+        userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_NAME, VacationExportUserPref())
 
     companion object {
+        private const val USER_PREF_AREA = "vacation"
+
+        // Not "export": the removed React page stored another class there.
+        private const val USER_PREF_NAME = "teamCalendar"
+
         private const val MAX_RESULTS = 30
         private const val MAX_RESULTS_LIMIT = 500
 

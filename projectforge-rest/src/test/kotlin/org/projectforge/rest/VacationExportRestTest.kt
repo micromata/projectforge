@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserPrefDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
@@ -153,6 +154,48 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(LocalDate.of(year - 1, 10, 1), financeView.days.first().date)
         assertEquals(1, financeView.rows.single().vacations.size)
         assertNull(vacationExportRest.getInitial().earliestDate)
+    }
+
+    @Test
+    fun `favorites store a choice of employees and groups, applied as far as the user may pick it`() {
+        val own = createEmployee("fav-own")
+        val colleague = createEmployee("fav-colleague")
+        val stranger = createEmployee("fav-stranger")
+        logon(TEST_ADMIN_USER)
+        val team = initTestDB.addGroup("$PREFIX.fav", own.user!!.username!!, colleague.user!!.username!!)
+
+        logon(own.user!!)
+        var favorites = vacationExportRest.createFavorite(
+            "Team",
+            VacationExportRequest(employeeIds = listOf(colleague.id!!, stranger.id!!), groupIds = listOf(team.id!!)),
+        )
+        favorites = vacationExportRest.createFavorite("Team", VacationExportRequest(employeeIds = listOf(own.id!!)))
+        assertEquals(2, favorites.size)
+        assertEquals(2, favorites.map { it.name }.toSet().size, "Names are unique.")
+        val first = favorites.first { it.employeeIds.contains(colleague.id) }
+        assertEquals(listOf(team.id), first.groupIds)
+        assertEquals(favorites.map { it.id }, vacationExportRest.getInitial().favorites.map { it.id })
+
+        // The stranger isn't of an own group: not applied.
+        val selection = vacationExportRest.selectFavorite(first.id)
+        assertEquals(listOf(colleague.id), selection.employees.map { it.id })
+        assertEquals(listOf(team.id), selection.groups.map { it.id })
+
+        favorites = vacationExportRest.updateFavorite(first.id, VacationExportRequest(groupIds = listOf(team.id!!)))
+        assertTrue(favorites.first { it.id == first.id }.employeeIds.isEmpty())
+        favorites = vacationExportRest.renameFavorite(first.id, "Renamed")
+        assertEquals("Renamed", favorites.first { it.id == first.id }.name)
+        favorites = vacationExportRest.deleteFavorite(first.id)
+        assertEquals(1, favorites.size)
+
+        // As the user pref is stored (JSON of the fields) and read again.
+        val pref = VacationExportRest.VacationExportUserPref(
+            favorites = listOf(VacationExportRest.VacationExportFavorite("Team", listOf(1L), listOf(2L)).also { it.id = 3 }),
+        )
+        val json = UserPrefDao.objectMapper.writeValueAsString(pref)
+        val read = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
+        val favorite = read.favorites!!.single()
+        assertEquals(listOf("Team", 3L, listOf(1L), listOf(2L)), listOf(favorite.name, favorite.id, favorite.employeeIds, favorite.groupIds))
     }
 
     private fun ids(request: VacationExportRequest): Set<Long?> =

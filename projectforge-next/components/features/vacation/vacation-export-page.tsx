@@ -33,6 +33,7 @@ import type {
 import { VacationExportFilterRow } from "./vacation-export-filter-row";
 import { VacationTeamChart } from "./vacation-team-chart";
 import { chartWidthOf, type VacationChartWidth } from "./vacation-chart-width";
+import { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /** The arts the team calendar pages through, the quarter first (the default). */
 const KINDS = periodKindsOf(["quarter", "year"]);
@@ -140,6 +141,15 @@ function VacationExportContent({
       ctx
     )
   );
+  const favorites = useVacationExportFavorites({
+    initial: initial.favorites,
+    employees,
+    groups,
+    apply: (nextEmployees, nextGroups) => {
+      setEmployees(nextEmployees.map(toRef));
+      setGroups(nextGroups.map(toRef));
+    },
+  });
   const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
   const body: VacationExportRequest = {
     employeeIds: employees.map((e) => e.id),
@@ -177,6 +187,7 @@ function VacationExportContent({
         period={period}
         min={min}
         dayWidth={dayWidth}
+        favorites={favorites}
         exporting={excel.isPending}
         onEmployeesChange={setEmployees}
         onGroupsChange={setGroups}
