@@ -34,7 +34,8 @@ Commands:
                    only; its summary and overview, en+de, are in the release entry or in
                    changelog/unreleased/release.json). A missing release entry is added
                    (default titles, today, published or a mini release, asked first).
-                   Runs the tests first (unless --skip-tests), before anything is changed;
+                   Runs gen first: generated files out of date are committed after
+                   asking (otherwise the tests would fail on them late). Runs the tests (unless --skip-tests), before anything is changed;
                    then folds changelog/unreleased/ into the entry, sets the version,
                    runs gen and a clean build, commits and tags, then commits the next
                    X.Y.(Z+1)-SNAPSHOT. Nothing is pushed.
@@ -260,6 +261,18 @@ release() {
     echo "The branch is behind its upstream, pull first." >&2
     exit 1
   fi
+  # The generated files must be up to date, otherwise the tests fail on them, late in the release. Changes are
+  # committed on their own (before the release commit), e.g. a "Not yet released" entry dated today.
+  "$GRADLEW" -p "$ROOT" :projectforge-application:developmentMainForRelease --rerun
+  if [[ -n "$(git status --porcelain)" ]]; then
+    git status --short
+    if ! confirm "gen changed the files above. Commit them (chore: regenerate generated files) and go on?"; then
+      echo "Commit or revert them, then start the release again." >&2
+      exit 1
+    fi
+    git add -A
+    git commit -q -m "chore: regenerate generated files"
+  fi
   # A missing release entry is added after the confirmation below (default titles, dated today), only the
   # kind of release is asked here. An existing entry (e.g. with a title of its own) is taken as it is.
   local published="" has_entry
@@ -268,7 +281,7 @@ release() {
     console.log(releases.some((r) => r.version === process.argv[2]) ? "true" : "false");
   ' "$ROOT/changelog/changelog.json" "$version")"
   if [[ "$has_entry" == false ]]; then
-    if confirm "changelog.json has no entry of $version yet, it will be added. Publish it (GitHub release, jar, docker images)? Otherwise a mini release"; then
+    if confirm "changelog.json has no entry of $version yet, it will be added. A full release, to be published later with \"pfDev.sh publish\" (GitHub release, jar, docker images)? Otherwise a mini release (only pushed)"; then
       published=-PreleasePublished=true
     else
       published=-PreleasePublished=false
