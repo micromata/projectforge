@@ -4,8 +4,8 @@
   "de": "Zeitberichte ohne Kost2",
   "items": [
     {
-      "en": "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or Finance has to assign a Kost2.",
-      "de": "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder Finance muss eine Kost2 zuordnen."
+      "en": "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.",
+      "de": "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen."
     },
     {
       "en": "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2.",
