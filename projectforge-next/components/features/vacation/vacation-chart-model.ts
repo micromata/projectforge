@@ -161,6 +161,24 @@ export function monthSpans(
   return spans;
 }
 
+/**
+ * What a bar of the chart says to a screen reader and in its tooltip: whose vacation, its period and — besides
+ * the bar's colour and dashed border — its status, so the chart reads without seeing it.
+ *
+ * @param formatDate The date as the user writes it.
+ * @param statusLabel The status' name, or null for one without a label (the status is left out then).
+ */
+export function barLabel(
+  name: string,
+  bar: Pick<ChartBar, "startDate" | "endDate" | "status">,
+  formatDate: (iso: string) => string,
+  statusLabel: (status: VacationStatus) => string | null
+): string {
+  const period = `${name}: ${formatDate(bar.startDate)} – ${formatDate(bar.endDate)}`;
+  const status = bar.status ? statusLabel(bar.status) : null;
+  return status ? `${period} (${status})` : period;
+}
+
 /** The rows of the team calendar: every employee, also those without a vacation in the period. */
 export function teamChartRows(view: VacationExportView): ChartRow[] {
   return view.rows.map((row) => ({
