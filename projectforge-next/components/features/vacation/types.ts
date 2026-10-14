@@ -49,6 +49,8 @@ export interface VacationFormStats {
   allowedStatus?: VacationStatus[] | null;
   /** The axis of the chart: the period with a margin of three days on either side. */
   chartDays?: VacationChartDay[] | null;
+  /** Client-only: the request for the form's current values failed, so the fields above are unknown (useVacationStats). */
+  unavailable?: boolean;
 }
 
 /**

@@ -295,7 +295,7 @@ open class VacationService {
             VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
             Pair("endDate", LocalDate.now()),
-            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
+            Pair("statusList", CONFLICT_STATUS),
             entityGraphName = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS
         )
     }
@@ -505,6 +505,27 @@ open class VacationService {
     }
 
     /**
+     * The days without any substitute on duty of each of the given vacations (by id), as [getVacationOverlaps]
+     * tells them one by one, but with a single query for the vacations of all their substitutes: for a list of
+     * entries. Nothing is written to the [ConflictingVacationsCache].
+     */
+    open fun getUncoveredDays(vacations: Collection<VacationDO>): Map<Long, List<LocalDate>> {
+        val relevant = vacations.filter { it.id != null && it.startDate != null && it.endDate != null }
+        val employeeIds = relevant.flatMap { collectAllReplacements(it) }.mapNotNull { it.id }.toSet()
+        if (employeeIds.isEmpty()) {
+            return emptyMap()
+        }
+        val others = vacationDao.getVacationsOfEmployeesForPeriod(
+            employeeIds,
+            relevant.minOf { it.startDate!! },
+            relevant.maxOf { it.endDate!! },
+        ).filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
+        return relevant.associate { vacation ->
+            vacation.id!! to uncoveredDays(vacation, others.filter { vacation.hasOverlap(it) })
+        }
+    }
+
+    /**
      * Will fetch employees. (Employees will ge get by [EmployeeCache.getEmployeeIfNotInitialized].)
      * Later, caching of otherReplacements should be done.
      * Simply calls [VacationDO.allReplacements] for now.
@@ -650,6 +671,9 @@ open class VacationService {
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
         private val DEFAULT_VACATION_STATUS_LIST = arrayOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
+
+        /** The statuses of the vacations [ConflictingVacationsCache] checks for conflicts. */
+        val CONFLICT_STATUS = listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
 
         @JvmStatic
         @JvmOverloads

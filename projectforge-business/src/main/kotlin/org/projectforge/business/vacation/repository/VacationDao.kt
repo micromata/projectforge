@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.VacationFilter
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationSendMailService
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationValidator
@@ -76,6 +77,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     private lateinit var vacationService: VacationService
 
+    private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
     init {
         supportAfterUpdate = true
     }
@@ -83,6 +86,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     @PostConstruct
     private fun postConstruct() {
         vacationService = applicationContext.getBean(VacationService::class.java)
+        conflictingVacationsCache = applicationContext.getBean(ConflictingVacationsCache::class.java)
     }
 
     override val additionalSearchFields: Array<String>
@@ -351,19 +355,25 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         vacationService.validate(obj, dbObj, true)
     }
 
+    // Every write expires the conflict cache: a vacation changes not only its own conflict, but also those of the
+    // entries its employee substitutes for.
     override fun afterInsert(obj: VacationDO) {
+        conflictingVacationsCache.setExpired()
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
     override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?, isModified: Boolean) {
+        conflictingVacationsCache.setExpired()
         vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj)
     }
 
     override fun afterDelete(obj: VacationDO) {
+        conflictingVacationsCache.setExpired()
         vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE)
     }
 
     override fun afterUndelete(obj: VacationDO) {
+        conflictingVacationsCache.setExpired()
         vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE)
     }
 
@@ -383,6 +393,25 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             Pair("employeeId", employeeId),
             Pair("startDate", startVacationDate),
             Pair("endDate", endVacationDate),
+            Pair("deleted", false),
+        )
+    }
+
+    /** The vacations (special ones too) of the given employees overlapping the period, in one query. */
+    open fun getVacationsOfEmployeesForPeriod(
+        employeeIds: Collection<Long>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<VacationDO> {
+        if (employeeIds.isEmpty()) {
+            return emptyList()
+        }
+        return persistenceService.executeQuery(
+            "SELECT v FROM VacationDO v WHERE v.employee.id IN :employeeIds AND v.endDate >= :startDate AND v.startDate <= :endDate$META_SQL_WITH_SPECIAL",
+            VacationDO::class.java,
+            Pair("employeeIds", employeeIds),
+            Pair("startDate", startDate),
+            Pair("endDate", endDate),
             Pair("deleted", false),
         )
     }

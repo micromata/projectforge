@@ -4613,6 +4613,7 @@
       "_": "Vertretung",
       "others": "Weitere Vertretungen"
     },
+    "replacementVacationsUnavailable": "Die Urlaube der Vertretungen konnten nicht geladen werden.",
     "special": {
       "_": "Sonderurlaub",
       "tooltip": "Sonderurlaub wird im Urlaubskonto nicht berücksichtigt."

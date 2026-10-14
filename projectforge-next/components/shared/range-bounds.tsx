@@ -37,7 +37,7 @@ export function RangeBounds({
     <div className={cn("@container min-w-0", className)}>
       <div className={cn("flex min-w-0 flex-col gap-1", row)}>
         {children.map((bound, index) => (
-          // Not stretched: both bounds cap their own width ([DateInput] at `max-w-32`, [TimeInput]
+          // Not stretched: both bounds cap their own width ([DateInput] at `max-w-32`/`md:max-w-28`, [TimeInput]
           // at the width of its notation), so a box that grew would only put a gap before the dash.
           <div key={index} className="flex min-w-0 items-center gap-1.5">
             {index > 0 && (

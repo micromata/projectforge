@@ -24,26 +24,27 @@ test.describe("vacation account", { tag: "@lane-vacation" }, () => {
         years: { year: number; vacations: { id: number }[] }[];
       };
     const before = await account();
-    // The full access user is HR staff, often without an employee of their own on a slot database: any employee
-    // with a vacation then, as HR staff pick them.
+    // HR staff pick the employee, which the backend stores as the one shown next time; only restorable to an
+    // employee, so the search for one with a vacation runs only if the account shows one at first (a slot
+    // database's full access user has no employee of their own: the click-through is skipped there).
     let employeeId = before.employee?.id;
     let shown = before;
-    if (before.hrAccess) {
-      const employees = (await (
-        await page.request.get("/rs/employee/autosearch?search=", {
-          headers: { "X-PF-Frontend": "next" },
-        })
-      ).json()) as { id: number }[];
-      for (const employee of employees.slice(0, 20)) {
-        const candidate = await account(`?employeeId=${employee.id}`);
-        if (candidate.years.some((y) => y.vacations.length > 0)) {
-          employeeId = employee.id;
-          shown = candidate;
-          break;
+    try {
+      if (before.hrAccess && before.employee) {
+        const employees = (await (
+          await page.request.get("/rs/employee/autosearch?search=", {
+            headers: { "X-PF-Frontend": "next" },
+          })
+        ).json()) as { id: number }[];
+        for (const employee of employees.slice(0, 20)) {
+          const candidate = await account(`?employeeId=${employee.id}`);
+          if (candidate.years.some((y) => y.vacations.length > 0)) {
+            employeeId = employee.id;
+            shown = candidate;
+            break;
+          }
         }
       }
-    }
-    try {
       test.skip(!employeeId, "no employee to show the account of");
       await goto(page, `/vacationAccount?employeeId=${employeeId}`);
       await expect(

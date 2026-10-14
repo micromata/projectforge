@@ -15,14 +15,17 @@ import type { VacationAccount } from "./types";
 /**
  * The actions of the vacation account: a new vacation of the employee shown, the remaining leave recalculated
  * (HR staff, only while the stored carry differs from what was left of the previous year), the vacation list and
- * the export of the team vacation calendars.
+ * the export of the team vacation calendars. While another employee's account loads (`switching`), the two
+ * actions on the employee are disabled: they would still act on the one shown.
  */
 export function VacationAccountActions({
   account,
+  switching,
   recalculating,
   onRecalculate,
 }: {
   account: VacationAccount | undefined;
+  switching: boolean;
   recalculating: boolean;
   onRecalculate: () => void;
 }) {
@@ -36,7 +39,7 @@ export function VacationAccountActions({
           variant="destructive"
           size="sm"
           onClick={onRecalculate}
-          disabled={recalculating}
+          disabled={recalculating || switching}
         >
           <HugeiconsIcon icon={CalculatorIcon} size={14} aria-hidden />
           {t("vacation.recalculateRemainingLeave")}
@@ -58,14 +61,20 @@ export function VacationAccountActions({
           {t("vacation.export.title")}
         </MenuLink>
       </Button>
-      {account.newVacationUrl && (
-        <Button asChild size="sm" className="gap-1.5">
-          <MenuLink url={account.newVacationUrl}>
+      {account.newVacationUrl &&
+        (switching ? (
+          <Button type="button" size="sm" className="gap-1.5" disabled>
             <HugeiconsIcon icon={PlusSignIcon} size={14} aria-hidden />
             {t("vacation.title.add")}
-          </MenuLink>
-        </Button>
-      )}
+          </Button>
+        ) : (
+          <Button asChild size="sm" className="gap-1.5">
+            <MenuLink url={account.newVacationUrl}>
+              <HugeiconsIcon icon={PlusSignIcon} size={14} aria-hidden />
+              {t("vacation.title.add")}
+            </MenuLink>
+          </Button>
+        ))}
     </>
   );
 }

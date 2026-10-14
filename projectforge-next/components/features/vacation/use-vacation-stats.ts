@@ -70,9 +70,29 @@ export function useVacationStats(): VacationFormStats | undefined {
     placeholderData: keepPreviousData,
     // The answer is a pure function of what was sent (and of the stored vacations, which a save refreshes).
     staleTime: 30_000,
+    // Not asked again: until the global retries gave up (seconds), the previous answer would stand as current.
+    retry: false,
   });
-  return (asLoaded ? undefined : query.data) ?? data;
+  if (asLoaded) return data;
+  // A failed request leaves nothing computed for what the form holds now: blank rather than the stored entry's
+  // (or the previous answer's) values, which would read as current. The statuses stay the stored entry's; the
+  // backend checks the one chosen on save anyway.
+  if (query.isError) return { ...data, ...UNKNOWN_STATS };
+  return query.data ?? data;
 }
+
+const UNKNOWN_STATS: VacationFormStats = {
+  workingDays: null,
+  workingDaysFormatted: null,
+  vacationDaysLeftInYear: null,
+  vacationDaysLeftInYearString: null,
+  vacationDaysLeftAfterThis: null,
+  vacationDaysLeftAfterThisString: null,
+  conflictingVacations: null,
+  conflict: null,
+  chartDays: null,
+  unavailable: true,
+};
 
 /**
  * Keeps the period a period, as the React form did: a start after the end (or without one) moves the end
