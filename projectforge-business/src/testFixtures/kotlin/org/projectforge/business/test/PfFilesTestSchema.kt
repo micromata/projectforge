@@ -32,7 +32,7 @@ import javax.sql.DataSource
 object PfFilesTestSchema {
     private val SCRIPTS = listOf(
         "/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql",
-        "/flyway/migrate/common/V9.0.6.2__RELEASE-FileSystemEncryption.sql",
+        "/flyway/migrate/common/V9.0.6.3__RELEASE-FileSystemEncryption.sql",
     )
 
     @JvmStatic

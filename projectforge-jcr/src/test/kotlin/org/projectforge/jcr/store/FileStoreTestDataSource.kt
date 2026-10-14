@@ -43,7 +43,7 @@ object FileStoreTestDataSource {
         ds.setPassword("")
         val scripts = listOf(
             "hsqldb/V8.0.37__RELEASE-PfFiles.sql",
-            "common/V9.0.6.2__RELEASE-FileSystemEncryption.sql",
+            "common/V9.0.6.3__RELEASE-FileSystemEncryption.sql",
         ).map { File("../projectforge-business/src/main/resources/flyway/migrate/$it") }
         ds.connection.use { conn ->
             scripts.forEach { script ->

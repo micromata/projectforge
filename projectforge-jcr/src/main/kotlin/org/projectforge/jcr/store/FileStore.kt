@@ -116,7 +116,6 @@ class FileStore internal constructor(
         }
         val fileId = fileObject.fileId ?: createRandomId()
         fileObject.fileId = fileId
-        log.info { "Storing file: $fileObject" }
         val now = Date()
         if (fileObject.created == null) {
             // created should only be preset for test cases. So normally, use current date.
@@ -130,6 +129,7 @@ class FileStore internal constructor(
             fileObject.aesEncrypted = true
         }
         val meta = createMeta(fileObject, parentNodePath, relPath)
+        log.info { "Storing file: $fileObject,${storageInfo(meta)}" }
         val payload = if (encrypt) CryptStreamUtils.pipeToEncryptedInputStream(content, password) else content
         // Some checkers have no fixed limit (e. g. DataTransfer: the free capacity of the area), they throw an
         // exception here. Their limit is checked only after streaming, as the JCR did.
@@ -524,7 +524,7 @@ class FileStore internal constructor(
      * @param password Must be given for encrypted file to decrypt.
      */
     private fun openStream(meta: FileMeta, fileObject: FileObject, password: String?): InputStream? {
-        log.info { "Reading file from repository: $fileObject..." }
+        log.info { "Reading file from repository: $fileObject,${storageInfo(meta)}..." }
         if (meta.aesEncrypted && password.isNullOrBlank()) {
             log.error { "File is encrypted, but no password given to decrypt in repository: $fileObject" }
             return null
@@ -548,6 +548,13 @@ class FileStore internal constructor(
     /**
      * Copies all fields from meta to fileObject, excluding content and path settings.
      */
+    /**
+     * Where and how the content is stored, for log messages ([FileObject] only knows the password encryption).
+     */
+    private fun storageInfo(meta: FileMeta): String {
+        return "storage=[${meta.storage}],compression=[${meta.compression}],encryption=[${meta.encryption}]"
+    }
+
     private fun copyTo(meta: FileMeta, fileObject: FileObject) {
         fileObject.copyFrom(meta.toFileObject() as FileInfo)
         fileObject.fileId = meta.fileId
