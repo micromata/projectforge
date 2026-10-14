@@ -26,20 +26,29 @@ package org.projectforge.jcr.store
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.zip.Deflater
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Stores the content of files below a registered path (e. g. DataTransfer) in the file system, uncompressed:
+ * Stores the content of files below a registered path (e. g. DataTransfer) in the file system:
  * `<root>/<parent path below the registered path>/<rel path>/<file id>`. The metadata is stored in the data base as for
  * all other files ([StorageType.FS]).
  *
+ * The content is compressed as in the data base ([FileMeta.compression], but with [Deflater.BEST_SPEED], files may have
+ * 10 GB) and afterwards encrypted, if a [cipher] is given ([FileMeta.encryption]). Files stored before keep their
+ * format, both are given by the metadata of each file.
+ *
  * Files are written to a temporary file first and moved afterwards, so a file is either complete or not there.
+ * @param cipher Encrypts new files, if given (`projectforge.files.fileSystemEncryptionKey`).
  */
-internal class FsBlobStore {
+internal class FsBlobStore(private val cipher: FileSystemCipher? = null) {
     private class Root(val path: String, val dir: File)
 
     private val roots = mutableListOf<Root>()
@@ -52,7 +61,7 @@ internal class FsBlobStore {
             roots.removeIf { it.path == path }
             roots.add(Root(path, dir))
         }
-        log.info { "Files below '$path' are stored in the file system (projectforge.files.store=db only): ${dir.absolutePath}" }
+        log.info { "Files below '$path' are stored in the file system (projectforge.files.store=db only, ${if (cipher != null) "encrypted" else "not encrypted"}): ${dir.absolutePath}" }
     }
 
     val registeredPaths: List<String>
@@ -75,8 +84,14 @@ internal class FsBlobStore {
     }
 
     /**
-     * Writes the payload to a temporary file in the target directory.
-     * @return The temporary file, to be moved by [commit] or deleted by [discard].
+     * True, if new files are encrypted.
+     */
+    val encrypting: Boolean
+        get() = cipher != null
+
+    /**
+     * Writes the payload to a temporary file in the target directory, compressed and encrypted as given by the meta.
+     * @return The temporary file, to be moved by [commit] or deleted by [discard]. Its length is the stored size.
      */
     fun writeTemp(meta: FileMeta, payload: InputStream): File {
         val file = getFile(meta)
@@ -86,8 +101,24 @@ internal class FsBlobStore {
         }
         val tmpFile = File(dir, ".${meta.fileId}.tmp")
         try {
-            tmpFile.outputStream().use { out ->
-                payload.copyTo(out, BUFFER_SIZE)
+            var out: OutputStream = tmpFile.outputStream()
+            try {
+                if (meta.encryption == EncryptionType.AES_CTR) {
+                    out = requireCipher(meta).encrypt(out)
+                }
+                if (meta.compression == CompressionType.GZIP) {
+                    out = object : GZIPOutputStream(out, BUFFER_SIZE) {
+                        init {
+                            def.setLevel(Deflater.BEST_SPEED)
+                        }
+                    }
+                }
+            } catch (ex: Throwable) {
+                out.close()
+                throw ex
+            }
+            out.use {
+                payload.copyTo(it, BUFFER_SIZE)
             }
         } catch (ex: Throwable) {
             tmpFile.delete()
@@ -111,16 +142,27 @@ internal class FsBlobStore {
         }
     }
 
+    /**
+     * @return The payload (decrypted and decompressed, if so stored).
+     */
     fun read(meta: FileMeta): InputStream {
-        return getFile(meta).inputStream()
+        var istream: InputStream = getFile(meta).inputStream()
+        try {
+            if (meta.encryption == EncryptionType.AES_CTR) {
+                istream = requireCipher(meta).decrypt(istream)
+            }
+            if (meta.compression == CompressionType.GZIP) {
+                istream = GZIPInputStream(istream, BUFFER_SIZE)
+            }
+        } catch (ex: Throwable) {
+            istream.close()
+            throw ex
+        }
+        return istream
     }
 
     fun exists(meta: FileMeta): Boolean {
         return getFile(meta).exists()
-    }
-
-    fun length(meta: FileMeta): Long {
-        return getFile(meta).length()
     }
 
     fun delete(meta: FileMeta) {
@@ -153,6 +195,11 @@ internal class FsBlobStore {
             file = File(file, segment)
         }
         return file
+    }
+
+    private fun requireCipher(meta: FileMeta): FileSystemCipher {
+        return cipher
+            ?: throw IllegalStateException("File is encrypted, but projectforge.files.fileSystemEncryptionKey isn't configured: $meta")
     }
 
     private fun findRoot(parentPath: String): Root? {

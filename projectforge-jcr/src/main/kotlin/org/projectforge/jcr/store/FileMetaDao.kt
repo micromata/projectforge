@@ -66,8 +66,8 @@ internal class FileMetaDao(private val dataSource: DataSource) {
     fun insert(conn: Connection, meta: FileMeta): Long {
         conn.prepareStatement(
             "INSERT INTO $TABLE (file_id, parent_path, rel_path, file_name, description, file_size, stored_size," +
-                    " chunk_count, compression_type, storage_type, checksum, aes_encrypted, zip_mode, created, created_by," +
-                    " last_update, last_update_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    " chunk_count, compression_type, storage_type, encryption_type, checksum, aes_encrypted, zip_mode, created," +
+                    " created_by, last_update, last_update_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             Statement.RETURN_GENERATED_KEYS,
         ).use { ps ->
             var i = 0
@@ -81,6 +81,7 @@ internal class FileMetaDao(private val dataSource: DataSource) {
             ps.setInt(++i, meta.chunkCount)
             ps.setString(++i, meta.compression.name)
             ps.setString(++i, meta.storage.name)
+            ps.setString(++i, meta.encryption.name)
             ps.setString(++i, meta.checksum)
             ps.setBoolean(++i, meta.aesEncrypted)
             ps.setString(++i, meta.zipMode?.name)
@@ -169,6 +170,18 @@ internal class FileMetaDao(private val dataSource: DataSource) {
         return query(
             "SELECT $COLUMNS FROM $TABLE WHERE parent_path=? OR parent_path LIKE ? ESCAPE '!' ORDER BY pk",
             path, "${escapeLike(path)}/%",
+        )
+    }
+
+    /**
+     * The newest files below the given path (parent path is equal to or starts with "<path>/") with the given
+     * encryption, newest first.
+     */
+    fun listNewestBelow(path: String, encryption: EncryptionType, limit: Int): List<FileMeta> {
+        return query(
+            "SELECT $COLUMNS FROM $TABLE WHERE (parent_path=? OR parent_path LIKE ? ESCAPE '!') AND encryption_type=?" +
+                    " ORDER BY pk DESC FETCH FIRST $limit ROWS ONLY",
+            path, "${escapeLike(path)}/%", encryption.name,
         )
     }
 
@@ -263,6 +276,7 @@ internal class FileMetaDao(private val dataSource: DataSource) {
             chunkCount = rs.getInt("chunk_count"),
             compression = CompressionType.valueOf(rs.getString("compression_type")),
             storage = StorageType.valueOf(rs.getString("storage_type")),
+            encryption = EncryptionType.valueOf(rs.getString("encryption_type")),
             checksum = rs.getString("checksum"),
             aesEncrypted = rs.getBoolean("aes_encrypted"),
             zipMode = rs.getString("zip_mode")?.let { ZipMode.valueOf(it) },
@@ -296,7 +310,7 @@ internal class FileMetaDao(private val dataSource: DataSource) {
         private const val PAGE_SIZE = 500
         private const val COLUMNS =
             "pk, file_id, parent_path, rel_path, file_name, description, file_size, stored_size, chunk_count," +
-                    " compression_type, storage_type, checksum, aes_encrypted, zip_mode, created, created_by, last_update," +
-                    " last_update_by"
+                    " compression_type, storage_type, encryption_type, checksum, aes_encrypted, zip_mode, created, created_by," +
+                    " last_update, last_update_by"
     }
 }

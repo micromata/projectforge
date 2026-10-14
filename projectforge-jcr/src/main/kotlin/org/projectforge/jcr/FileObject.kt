@@ -147,7 +147,7 @@ class FileObject() : FileInfo() {
   var relPath: String? = null
 
   override fun toString(): String {
-    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],isCypted=[${aesEncrypted == true}]"
+    return "location=[$location],id=[$fileId],fileName=[$fileName],size=[${FormatterUtils.formatBytes(size)}],passwordEncrypted=[${aesEncrypted == true}]"
   }
 
   companion object {
