@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.VacationFilter
@@ -284,6 +285,19 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     open fun hasLoggedInUserHRVacationAccess(): Boolean {
         return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
+    }
+
+    /**
+     * HR and finance staff: the HR vacation right (read-only suffices), or member of the finance, controlling or HR
+     * group. They see the vacations of everybody in the vacation list and in the team vacation calendar; anybody
+     * else only a part of them (see VacationEntityRest and VacationExportRest).
+     */
+    open fun hasLoggedInUserUnrestrictedVacationView(): Boolean {
+        return accessChecker.hasLoggedInUserRight(
+            UserRightId.HR_VACATION, false, UserRightValue.READONLY, UserRightValue.READWRITE,
+        ) || accessChecker.isLoggedInUserMemberOfGroup(
+            false, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.HR_GROUP,
+        )
     }
 
     open fun hasHrRights(loggedInUser: PFUserDO?): Boolean {

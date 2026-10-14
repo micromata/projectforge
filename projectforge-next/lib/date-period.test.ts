@@ -9,12 +9,13 @@ import {
 
 /** The vocabulary itself: which kinds there are, and how one is looked up. What each of them computes is in ./date-period-kinds.test.ts. */
 describe("PERIOD_KINDS", () => {
-  it("offers the calendar week, month and year, the four terms and the year to date", () => {
+  it("offers the calendar week, month, quarter and year, the four terms and the year to date", () => {
     // The order a picker shows its selection in: the calendar week, month and year first, then the terms
     // rising in length, and "Jahr bis heute" after "Jahr".
     expect(PERIOD_KINDS.map((kind) => kind.id)).toEqual([
       "week",
       "month",
+      "quarter",
       "year",
       "termWeek",
       "termMonth",
@@ -70,10 +71,11 @@ describe("periodKindsOf", () => {
   });
 
   it("drops an id that is no kind", () => {
-    // "quarter" is the calendar meaning of three months and does not exist: `UIFilterTimestampElement`
-    // cannot request it, and `termThreeMonths` is the other meaning.
+    // A name that is no kind, as a stored filter of an older version could hold one.
     expect(
-      periodKindsOf(["quarter" as PeriodKindId, "month"]).map((kind) => kind.id)
+      periodKindsOf(["semester" as PeriodKindId, "month"]).map(
+        (kind) => kind.id
+      )
     ).toEqual(["month"]);
   });
 });

@@ -439,6 +439,13 @@ open class VacationService {
     }
 
     /**
+     * @see [VacationDao.hasLoggedInUserUnrestrictedVacationView]
+     */
+    open fun hasLoggedInUserUnrestrictedVacationView(): Boolean {
+        return vacationDao.hasLoggedInUserUnrestrictedVacationView()
+    }
+
+    /**
      * Method for detecting vacation overlaps between employees and their substitutes (replacement) or to get
      * an vacation list for selected employees or group of employees.
      */

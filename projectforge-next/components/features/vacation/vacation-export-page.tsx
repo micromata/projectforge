@@ -1,0 +1,185 @@
+"use client";
+
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
+import { PageShell } from "@/components/shared/page-shell";
+import { PageTitleRow } from "@/components/shared/page-title-row";
+import { useExportDownload } from "@/hooks/use-export-download";
+import { useFormatContext } from "@/hooks/use-format";
+import {
+  periodKindOf,
+  periodKindsOf,
+  type Period,
+  type PeriodKind,
+} from "@/lib/date-period";
+import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
+import type { FormatContext } from "@/lib/format";
+import { RsError } from "@/lib/rs/client";
+import {
+  downloadVacationExportExcel,
+  fetchVacationExportInitial,
+  fetchVacationExportView,
+  VACATION_EXPORT_QUERY_KEY,
+} from "@/lib/rs/vacation-export";
+import { updateSearchParams } from "@/lib/search-params";
+import type {
+  VacationExportInitial,
+  VacationExportRef,
+  VacationExportRequest,
+} from "./types";
+import { VacationExportFilterRow } from "./vacation-export-filter-row";
+import { VacationTeamChart } from "./vacation-team-chart";
+
+/** The arts the team calendar pages through, the quarter first (the default). */
+const KINDS = periodKindsOf(["quarter", "year"]);
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
+ * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
+ * with a sheet per period (VacationExcelExporter) starting with the period shown.
+ *
+ * The employees and groups chosen are stored by the backend (shown again on the next visit); the period is
+ * kept in the url (`?period=quarter&from=2026-10-01`).
+ */
+export function VacationExportPage() {
+  const t = useTranslations();
+  const initial = useQuery({
+    queryKey: [...VACATION_EXPORT_QUERY_KEY, "initial"],
+    queryFn: ({ signal }) => fetchVacationExportInitial(signal),
+    staleTime: 0,
+  });
+  return (
+    <PageShell>
+      <PageTitleRow
+        category={t("menu.vacation._")}
+        title={t("vacation.export.title")}
+      />
+      <div className="flex flex-col gap-4 px-4 pb-6">
+        {initial.isPending && (
+          <p className="text-sm text-muted-foreground">{t("loading")}</p>
+        )}
+        {initial.isError && (
+          <p className="text-sm text-destructive">
+            {initial.error instanceof RsError && initial.error.status === 403
+              ? t("access.exception.noAccess")
+              : t("errorpage.title")}
+          </p>
+        )}
+        {initial.data && <VacationExportContent initial={initial.data} />}
+      </div>
+    </PageShell>
+  );
+}
+
+function toRef(ref: VacationExportRef): EntityRef {
+  return { id: ref.id, displayName: ref.displayName ?? "" };
+}
+
+/** The period of the url, else the art stored with the choice (the current period of it), else this quarter. */
+function initialPeriod(
+  params: URLSearchParams,
+  storedKind: string | null | undefined,
+  ctx: FormatContext
+): Period {
+  const offered = (id: string | null | undefined): PeriodKind | null => {
+    const kind = periodKindOf(id);
+    return kind && KINDS.includes(kind) ? kind : null;
+  };
+  const kind = offered(params.get("period")) ?? offered(storedKind) ?? KINDS[0];
+  const from = params.get("from");
+  const anchor =
+    from && ISO_DATE.test(from)
+      ? kind.beginOf(from, ctx)
+      : currentAnchorOf(kind, ctx);
+  return { kind, anchor };
+}
+
+function VacationExportContent({
+  initial,
+}: {
+  initial: VacationExportInitial;
+}) {
+  const t = useTranslations();
+  const ctx = useFormatContext();
+  const params = useSearchParams();
+  const [employees, setEmployees] = useState<EntityRef[]>(() =>
+    initial.employees.map(toRef)
+  );
+  const [groups, setGroups] = useState<EntityRef[]>(() =>
+    initial.groups.map(toRef)
+  );
+  const [period, setPeriod] = useState<Period>(() =>
+    initialPeriod(
+      new URLSearchParams(params.toString()),
+      initial.periodKind,
+      ctx
+    )
+  );
+  const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
+  const body: VacationExportRequest = {
+    employeeIds: employees.map((e) => e.id),
+    groupIds: groups.map((g) => g.id),
+    periodKind: period.kind.id,
+    from: bounds.from,
+    until: bounds.to,
+  };
+  const hasSelection = employees.length > 0 || groups.length > 0;
+
+  // Also asked with nothing chosen: the backend stores the choice, an emptied one included.
+  const view = useQuery({
+    queryKey: [...VACATION_EXPORT_QUERY_KEY, "view", body],
+    queryFn: ({ signal }) => fetchVacationExportView(body, signal),
+    // The calendar stays while the next period or another choice loads.
+    placeholderData: keepPreviousData,
+    staleTime: 0,
+  });
+  const excel = useExportDownload(() => downloadVacationExportExcel(body));
+
+  function selectPeriod(kind: PeriodKind, anchor: string) {
+    setPeriod({ kind, anchor });
+    updateSearchParams({ period: kind.id, from: anchor }, "replace");
+  }
+
+  return (
+    <>
+      <VacationExportFilterRow
+        kinds={KINDS}
+        employees={employees}
+        groups={groups}
+        period={period}
+        exporting={excel.isPending}
+        onEmployeesChange={setEmployees}
+        onGroupsChange={setGroups}
+        onPeriodChange={selectPeriod}
+        onExport={() => excel.mutate()}
+      />
+      {!hasSelection && (
+        <p className="text-sm text-muted-foreground">
+          {t("vacation.export.selectHint")}
+        </p>
+      )}
+      {hasSelection && view.isError && (
+        <p className="text-sm text-destructive">{t("errorpage.title")}</p>
+      )}
+      {hasSelection && view.isPending && (
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
+      )}
+      {hasSelection && view.data && view.data.rows.length > 0 && (
+        <VacationTeamChart view={view.data} />
+      )}
+      {hasSelection &&
+        view.data &&
+        view.data.rows.length === 0 &&
+        !view.isPlaceholderData && (
+          <p className="text-sm text-muted-foreground">
+            {t("datatable.no-records-found")}
+          </p>
+        )}
+    </>
+  );
+}

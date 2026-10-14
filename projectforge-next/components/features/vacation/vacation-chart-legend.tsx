@@ -4,11 +4,21 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { barClassName, dayClassName } from "./vacation-chart-grid";
 
-/** What the colours of the vacation chart mean (see VacationOverlapChart). */
-export function VacationChartLegend() {
+/**
+ * What the colours of the vacation chart mean (see VacationOverlapChart). The team calendar (`team`,
+ * VacationTeamChart) has neither a vacation being edited nor uncovered days.
+ */
+export function VacationChartLegend({ team = false }: { team?: boolean }) {
   const t = useTranslations();
   const items = [
-    { className: barClassName(true, true), label: t("vacation.chart.own") },
+    ...(team
+      ? []
+      : [
+          {
+            className: barClassName(true, true),
+            label: t("vacation.chart.own"),
+          },
+        ]),
     {
       className: barClassName(false, true),
       label: t("vacation.status.approved"),
@@ -17,10 +27,14 @@ export function VacationChartLegend() {
       className: barClassName(false, false),
       label: t("vacation.status.inProgress"),
     },
-    {
-      className: barClassName(true, true, true),
-      label: t("vacation.chart.uncovered"),
-    },
+    ...(team
+      ? []
+      : [
+          {
+            className: barClassName(true, true, true),
+            label: t("vacation.chart.uncovered"),
+          },
+        ]),
     {
       className: dayClassName({ workingDay: false }),
       label: t("vacation.chart.nonWorkingDay"),

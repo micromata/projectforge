@@ -464,18 +464,22 @@
       "timesheets": "Zeitberichte"
     },
     "previousYear": "Vorheriges Jahr",
+    "quarter": "Quartal",
     "quickselect": {
       "tooltip": {
         "selectCurrentCalendarYear": "Quickselect - aktuelles Kalenderjahr",
         "selectCurrentMonth": "Quickselect - aktueller Monat",
+        "selectCurrentQuarter": "Quickselect - aktuelles Quartal",
         "selectCurrentWeek": "Quickselect - aktuelle Woche",
         "selectCurrentYearToDate": "Quickselect - Jahr bis heute",
         "selectNextCalendarYear": "Quickselect - nachfolgendes Kalenderjahr",
         "selectNextMonth": "Quickselect - nachfolgender Monat",
+        "selectNextQuarter": "Quickselect - nachfolgendes Quartal",
         "selectNextWeek": "Quickselect - nachfolgende Woche",
         "selectNextYearToDate": "Quickselect - nachfolgendes Jahr bis heute",
         "selectPreviousCalendarYear": "Quickselect - vorangehendes Kalenderjahr",
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
+        "selectPreviousQuarter": "Quickselect - vorangehendes Quartal",
         "selectPreviousWeek": "Quickselect - vorangehende Woche",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"
       }
@@ -720,6 +724,7 @@
     "short": {
       "month": "M",
       "months": "{arg0}M",
+      "quarter": "Q",
       "week": "W",
       "year": "J"
     }
@@ -1334,6 +1339,7 @@
       "wochenstunden": "Wochenstunden",
       "zipCode": "PLZ"
     },
+    "employees": "Mitarbeitende",
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
     "konto": {
@@ -4589,6 +4595,10 @@
     "employee": "Mitarbeiter",
     "enddate": "Enddatum",
     "export": {
+      "excel": {
+        "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
+      },
+      "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
       "title": "Export von Teamurlaubskalendern"
     },
     "halfDay": "Halber Tag",

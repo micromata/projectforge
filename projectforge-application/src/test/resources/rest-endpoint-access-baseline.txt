@@ -208,8 +208,5 @@ org.projectforge.rest.UserPagesRest#createUid
 org.projectforge.rest.UserPagesRest#exportAsExcel
 org.projectforge.rest.UserPagesRest#resetToken
 org.projectforge.rest.UserStatusRest#loginTest
-org.projectforge.rest.VacationExportPageRest#exportExcel
-org.projectforge.rest.VacationExportPageRest#getForm
-org.projectforge.rest.VacationExportPageRest#watchFields
 org.projectforge.security.WebAuthnServicesRest#register
 org.projectforge.security.WebAuthnServicesRest#webAuthn

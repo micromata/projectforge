@@ -578,6 +578,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   vom Backend: Urlaub mit `?returnTo=/vacationAccount`, Urlaubskontokorrektur (noch React) mit
   `returnToCaller=account`, das `LeaveAccountEntryPagesRest` auf `/next/vacationAccount` abbildet.
   `react/vacationAccount/**` leitet `OrphanedLinkFilter` um (eine numerische Id wird zu `?employeeId=`).
+- **Team-Urlaubskalender** (`/next/vacationExport`, vorher React-UILayout `VacationExportPageRest`, gelöscht) –
+  eigenständige Seite auf `VacationExportRest` (`/rs/vacationExport`: `initial`, `view`, `exportExcel` und die
+  Lookups `employees`/`groups`). Neu ist die Anzeige im Fenster: die Urlaube (genehmigt, in Abstimmung) der
+  gewählten Mitarbeitenden und Gruppen als Balken je Quartal oder Kalenderjahr (`PeriodStepper`, neue Art
+  `quarter`), gezeichnet mit dem Raster des Urlaubsformulars (`VacationChartFrame`). Der Excel-Export bleibt
+  (`VacationExcelExporter`, ein Blatt je Zeitraum) und beginnt mit dem angezeigten Zeitraum; das eigene
+  Startdatum entfällt. Zugriff: Bisher konnte jeder alle exportieren (keine Prüfung); jetzt wählen nur HR und
+  Finanzen (`VacationService.hasLoggedInUserUnrestrictedVacationView`) frei, alle anderen nur die eigenen
+  Gruppen und deren Mitarbeitende – das Backend verwirft alles andere. Behoben: Urlaube, die vor einem Blatt
+  begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie
