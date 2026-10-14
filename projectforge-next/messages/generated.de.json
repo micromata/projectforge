@@ -4509,6 +4509,9 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "add": {
+      "optionalPassword": "Hier kann optional ein Erstpasswort vergeben werden."
+    },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
       "info": "Weitere noch genutzte E-Mail-Adressen, durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
@@ -4570,6 +4573,7 @@
       "newPassword": "Neues WLAN-Passwort"
     },
     "deactivated": "Deaktiviert",
+    "defaultLocale": "Default (Browser)",
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
       "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
@@ -4583,6 +4587,7 @@
     "ldapValues": "LDAP",
     "localUser": {
       "_": "Lokale:r Benutzer:in",
+      "not": "Allgemeine:r Benutzer:in",
       "tooltip": "Lokale Benutzer:innen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
     "locale": "Sprache",
@@ -4616,7 +4621,14 @@
       "_": "Eingeschränkte:r Nutzer:in",
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
+    "rights": {
+      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar."
+    },
     "sshPublicKey": "SSH public key",
+    "title": {
+      "add": "Neue:r Benutzer:in",
+      "list": "Benutzer:in"
+    },
     "tooltip": {
       "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
       "dateFormat": "Das Format, in dem Datumsangaben angezeigt und eingegeben werden. Leer: die Voreinstellung der Installation.",

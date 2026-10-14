@@ -4509,6 +4509,9 @@
       },
       "title": "Two-factor authentication"
     },
+    "add": {
+      "optionalPassword": "You may set an initial password."
+    },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
       "info": "Further e-mail addresses of the user still in use, comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
@@ -4570,6 +4573,7 @@
       "newPassword": "New WLAN password"
     },
     "deactivated": "deactivated",
+    "defaultLocale": "Default (browser)",
     "formerEmails": {
       "_": "Former e-mail addresses",
       "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
@@ -4583,6 +4587,7 @@
     "ldapValues": "LDAP",
     "localUser": {
       "_": "Local user",
+      "not": "Common user",
       "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
     },
     "locale": "Language",
@@ -4616,7 +4621,14 @@
       "_": "Restricted user",
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
+    "rights": {
+      "none": "No right is configurable with the assigned groups."
+    },
     "sshPublicKey": "SSH public key",
+    "title": {
+      "add": "Add new user",
+      "list": "List of users"
+    },
     "tooltip": {
       "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
       "dateFormat": "The format dates are shown and entered in. Empty: the default of the installation.",
