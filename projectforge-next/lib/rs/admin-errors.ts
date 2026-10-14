@@ -29,12 +29,15 @@ export type LogAudience = "DEVELOPER" | "ADMIN" | "SECURITY";
 /** `LogGroupStatus`. */
 export type LogGroupStatus = "NEW" | "ACKNOWLEDGED" | "IGNORED" | "RESOLVED";
 
-/** `LogGroupStatusFilter`: OPEN are the new and acknowledged problems. */
+/**
+ * `LogGroupStatusFilter`: OPEN are the new and acknowledged problems, MUTED the open ones whose mute lies ahead.
+ */
 export type LogGroupStatusFilter =
   | "OPEN"
   | "ALL"
   | "NEW"
   | "ACKNOWLEDGED"
+  | "MUTED"
   | "IGNORED"
   | "RESOLVED";
 

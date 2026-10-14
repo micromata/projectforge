@@ -78,18 +78,28 @@ export function ProblemTabContents({
               [SCOPE_PARAM]: it.scope ?? null,
             });
           }}
-          onOpenSubsystem={(it) =>
+          onOpenSubsystem={(it, status) => {
+            if (status) {
+              // A handled part lists all problems of the subsystem with its status, of the scheduler and the caches
+              // too: the figure "open" counts them whenever they occurred.
+              setFilter({ status, days: 0 });
+              setSearch("");
+              setTab("problems", {
+                [SUBSYSTEM_PARAM]: it.id,
+                [SCOPE_PARAM]: null,
+              });
+              return;
+            }
             // The tiles of the scheduler and the caches show their jobs and caches rather than their problems: a
             // failed job or refresh is no log problem.
-            it.id === SCHEDULER_SUBSYSTEM
-              ? setTab("scheduler")
-              : it.id === CACHES_SUBSYSTEM
-                ? setTab("caches")
-                : setTab("problems", {
-                    [SUBSYSTEM_PARAM]: it.id,
-                    [SCOPE_PARAM]: null,
-                  })
-          }
+            if (it.id === SCHEDULER_SUBSYSTEM) setTab("scheduler");
+            else if (it.id === CACHES_SUBSYSTEM) setTab("caches");
+            else
+              setTab("problems", {
+                [SUBSYSTEM_PARAM]: it.id,
+                [SCOPE_PARAM]: null,
+              });
+          }}
         />
       </TabsContent>
       <TabsContent
@@ -112,6 +122,7 @@ export function ProblemTabContents({
           search={search}
           onSearchChange={setSearch}
           onOpen={(entry) => problems.setDetailId(entry.id)}
+          onUpdated={problems.onUpdated}
         />
       </TabsContent>
     </>

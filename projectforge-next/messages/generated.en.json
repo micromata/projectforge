@@ -3706,6 +3706,7 @@
           "muted": "{arg0} muted",
           "resolved": "{arg0} resolved"
         },
+        "hiddenByFilter": "No longer listed with this filter",
         "hourly": "Last 7 days (per hour)",
         "kpi": {
           "external": "External systems failing (24 h)",
@@ -3755,11 +3756,13 @@
         "reopenedAt": "Occurred again after resolved",
         "request": "Request",
         "sampleMessage": "Sample message",
+        "showInList": "Show",
         "stackTrace": "Stack trace",
         "status": {
           "acknowledged": "Acknowledged",
           "all": "All",
           "ignored": "Ignored",
+          "muted": "Muted",
           "new": "New",
           "open": "Open",
           "resolved": "Resolved"

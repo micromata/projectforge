@@ -13,7 +13,7 @@
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite." ]
+      "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite.", "System-Dashboard: Stummgeschaltete Probleme lassen sich mit einem eigenen Statusfilter anzeigen, ein Klick auf die Anzahl stummgeschalteter, ignorierter oder erledigter Probleme einer Kennzahl oder Subsystem-Kachel listet genau diese, und ein Problem, das nach einer Statusänderung aus der Liste fällt, lässt sich über einen Hinweis wieder anzeigen." ]
     } ]
   },
   "groups" : [ {

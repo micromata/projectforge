@@ -12,7 +12,11 @@ import type {
   SubsystemState,
 } from "@/lib/rs/admin-errors";
 import { cn } from "@/lib/utils";
-import { AdminHandledCounts } from "./admin-handled-counts";
+import {
+  AdminHandledCounts,
+  type HandledStatus,
+  TILE_BUTTON_CLASS,
+} from "./admin-handled-counts";
 
 const STATE_TONES: Record<SubsystemState, StatusTone> = {
   OK: "success",
@@ -31,14 +35,14 @@ const STATE_KEYS: Record<SubsystemState, string> = {
 /**
  * One tile per active subsystem or interface (LDAP, IdP, gateway, Sipgate, ...): its state, the statistics of its
  * active problems (the resolved, ignored and muted ones listed below) and their trend. A click shows its problems
- * ([onOpen]).
+ * ([onOpen]), a click on a handled part those of its status only.
  */
 export function AdminSubsystemTiles({
   subsystems,
   onOpen,
 }: {
   subsystems: SubsystemEntry[];
-  onOpen: (subsystem: SubsystemEntry) => void;
+  onOpen: (subsystem: SubsystemEntry, status?: HandledStatus) => void;
 }) {
   const t = useTranslations();
   if (subsystems.length === 0) {
@@ -54,7 +58,7 @@ export function AdminSubsystemTiles({
         <SubsystemTile
           key={subsystem.id}
           subsystem={subsystem}
-          onOpen={() => onOpen(subsystem)}
+          onOpen={(status) => onOpen(subsystem, status)}
         />
       ))}
     </div>
@@ -66,7 +70,7 @@ function SubsystemTile({
   onOpen,
 }: {
   subsystem: SubsystemEntry;
-  onOpen: () => void;
+  onOpen: (status?: HandledStatus) => void;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -82,19 +86,23 @@ function SubsystemTile({
       >
         {formatNumber(counts.active, ctx, 0)}
       </div>
-      <AdminHandledCounts counts={counts} />
+      <AdminHandledCounts counts={counts} onOpen={onOpen} />
     </div>
   );
   return (
     <HintTooltip content={<SyncsHint subsystem={subsystem} />}>
-      <button
-        type="button"
-        onClick={onOpen}
+      <div
         className={cn(
-          "flex flex-col gap-2 rounded-md border px-3 py-2 text-left transition-colors hover:bg-muted/50",
+          "relative flex flex-col gap-2 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50",
           subsystem.state === "DOWN" && "border-destructive"
         )}
       >
+        <button
+          type="button"
+          aria-label={subsystem.title}
+          onClick={() => onOpen()}
+          className={TILE_BUTTON_CLASS}
+        />
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="truncate font-medium">{subsystem.title}</div>
@@ -131,7 +139,7 @@ function SubsystemTile({
             {formatTimestampMinutes(lastRun, ctx)}
           </div>
         )}
-      </button>
+      </div>
     </HintTooltip>
   );
 }

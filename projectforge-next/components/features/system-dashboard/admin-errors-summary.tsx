@@ -9,12 +9,13 @@ import type {
   LogGroupSummary,
 } from "@/lib/rs/admin-errors";
 import { cn } from "@/lib/utils";
-import { AdminHandledCounts } from "./admin-handled-counts";
+import { AdminHandledCounts, TILE_BUTTON_CLASS } from "./admin-handled-counts";
 
 /**
  * The key figures of all problems, whatever the filter: what happened within the last day, what needs a look. Each
  * figure counts the active problems; the resolved, ignored and muted ones are listed below it. A click shows the
- * problems a figure counts ([onOpen] with the list's filter of the figure).
+ * problems a figure counts ([onOpen] with the list's filter of the figure), a click on a handled part those of its
+ * status only.
  */
 export function AdminErrorsSummary({
   summary,
@@ -81,12 +82,16 @@ export function AdminErrorsSummary({
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
       {tiles.map((tile) => (
-        <button
+        <div
           key={tile.label}
-          type="button"
-          onClick={() => onOpen(tile.filter)}
-          className="rounded-md border px-3 py-2 text-left transition-colors hover:bg-muted/50"
+          className="relative rounded-md border px-3 py-2 transition-colors hover:bg-muted/50"
         >
+          <button
+            type="button"
+            aria-label={tile.label}
+            onClick={() => onOpen(tile.filter)}
+            className={TILE_BUTTON_CLASS}
+          />
           <div className="text-xs text-muted-foreground">{tile.label}</div>
           <div
             className={cn(
@@ -101,8 +106,11 @@ export function AdminErrorsSummary({
               {tile.detail}
             </div>
           )}
-          <AdminHandledCounts counts={tile.value} />
-        </button>
+          <AdminHandledCounts
+            counts={tile.value}
+            onOpen={(status) => onOpen({ ...tile.filter, status })}
+          />
+        </div>
       ))}
     </div>
   );

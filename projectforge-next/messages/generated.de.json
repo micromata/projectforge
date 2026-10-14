@@ -3706,6 +3706,7 @@
           "muted": "{arg0} stummgeschaltet",
           "resolved": "{arg0} erledigt"
         },
+        "hiddenByFilter": "Mit diesem Filter nicht mehr gelistet",
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
@@ -3755,11 +3756,13 @@
         "reopenedAt": "Nach Erledigung erneut aufgetreten",
         "request": "Request",
         "sampleMessage": "Beispielmeldung",
+        "showInList": "Anzeigen",
         "stackTrace": "Stacktrace",
         "status": {
           "acknowledged": "Zur Kenntnis genommen",
           "all": "Alle",
           "ignored": "Ignoriert",
+          "muted": "Stummgeschaltet",
           "new": "Neu",
           "open": "Offen",
           "resolved": "Erledigt"

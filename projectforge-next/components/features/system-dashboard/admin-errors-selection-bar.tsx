@@ -23,12 +23,15 @@ export function AdminErrorsSelectionBar({
   onSelectAll,
   onClear,
   onLeave,
+  onUpdated,
 }: {
   ids: number[];
   onSelectAll: () => void;
   /** Also after a change: the selection is spent, the changed problems may even have left the filter. */
   onClear: () => void;
   onLeave: () => void;
+  /** After a change, with its action (see useProblemDashboard). */
+  onUpdated: (action: LogGroupAction) => void;
 }) {
   useSelectAllShortcut(true, onSelectAll);
   const t = useTranslations();
@@ -36,10 +39,11 @@ export function AdminErrorsSelectionBar({
   const update = useMutation({
     mutationFn: (change: Omit<LogGroupUpdate, "ids">) =>
       updateAdminErrors({ ...change, ids }),
-    onSuccess: (count) => {
+    onSuccess: (count, change) => {
       toast.success(
         t("system.admin.adminErrors.massUpdate.done", { arg0: count })
       );
+      if (change.action) onUpdated(change.action);
       onClear();
       return queryClient.invalidateQueries({ queryKey: ["adminErrors"] });
     },
