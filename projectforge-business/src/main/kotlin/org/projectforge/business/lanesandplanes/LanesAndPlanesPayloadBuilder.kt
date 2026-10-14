@@ -53,7 +53,15 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class LanesAndPlanesPayloadBuilder {
-    class Result(val request: LanesAndPlanesUsersRequest, val skippedUsers: Int)
+    /**
+     * @param otherEmailsByIdent The alternative and former emails of the sent employees by ident (alternative
+     * ones first), see [LanesAndPlanesEmailHolds.apply].
+     */
+    class Result(
+        val request: LanesAndPlanesUsersRequest,
+        val skippedUsers: Int,
+        val otherEmailsByIdent: Map<String, List<String>> = emptyMap(),
+    )
 
     @Autowired
     private lateinit var caches: PfCaches
@@ -115,7 +123,14 @@ open class LanesAndPlanesPayloadBuilder {
             }
             createAdditionalUser(additional, email, settings)
         }
-        return Result(LanesAndPlanesUsersRequest((users + additionalUsers).sortedBy { it.email.lowercase() }), skipped)
+        val otherEmailsByIdent = employees.associate { (_, user, _) ->
+            "${user.id}" to PFUserDO.splitEmails(user.alternativeEmails) + PFUserDO.splitEmails(user.formerEmails)
+        }.filterValues { it.isNotEmpty() }
+        return Result(
+            LanesAndPlanesUsersRequest((users + additionalUsers).sortedBy { it.email.lowercase() }),
+            skipped,
+            otherEmailsByIdent,
+        )
     }
 
     /**

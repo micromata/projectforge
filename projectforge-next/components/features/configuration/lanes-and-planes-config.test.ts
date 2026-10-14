@@ -58,6 +58,7 @@ describe("parseLanesAndPlanesConfig", () => {
     ]);
     expect(config.generalKost1).toEqual([]);
     expect(config.existingCostObjects).toEqual([]);
+    expect(config.existingUserEmails).toEqual([]);
     expect(config.confirmedEmailChanges).toEqual([]);
   });
 });
