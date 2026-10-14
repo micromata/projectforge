@@ -73,14 +73,18 @@ private val log = KotlinLogging.logger {}
  * user's rights (a closed period keeps its time sheets).
  *
  * Each day is processed once only: a run books the days from the day of the last successful run on (that run booked
- * the days before it, see [SchedulerJobStatsService.lastSuccessStart]), but at most
- * [ConfigurationService.vacationAutoBookingDays] days back (catching up nights the job didn't run). So a vacation
- * time sheet the user deleted is not booked again, and a vacation approved only after its days were processed is not
- * booked automatically either (the monthly report lists such days, they are booked in the calendar). A day failing
- * unexpectedly is logged as error and not retried either (it is booked in the calendar). Only a run failing as a whole
- * doesn't count: the next one processes its days again (days with a time sheet are skipped anyway). A run fails, if no
- * time sheet is bookable on the vacation task at all (closed task, ended project), or if every day was refused for
- * several users (a cause not of the users): the days are booked by a later run, once the cause is solved.
+ * the days before it, see [SchedulerJobStatsService.lastSuccessStart]). So a vacation time sheet the user deleted is
+ * not booked again, and a vacation approved only after its days were processed is not booked automatically either
+ * (the monthly report lists such days, they are booked in the calendar). A day refused for the user (closed period,
+ * no access) or failing unexpectedly (logged as error) is not retried either (it is booked in the calendar).
+ *
+ * The job heals itself: a run failing as a whole doesn't count, nor does a night the job didn't run. The next
+ * successful run books all days since the last successful one (days with a time sheet are skipped anyway), up to
+ * [MAX_CATCH_UP_DAYS] back, the days the job's statistics remember a run (a cut is logged as warning). A run fails
+ * only for a cause not of the users: no time sheet is bookable on the vacation task at all (closed task, ended
+ * project, see [TimesheetVacationBookingConfig.CheckResult.unbookable]). Once the finance department solved it, the
+ * next run books the days waiting meanwhile. Only the very first run (no run known) books
+ * [ConfigurationService.vacationAutoBookingDays] days back.
  *
  * The days are booked as the user would in the calendar ([TimesheetDayBookingService]): with the user's hours per day
  * (a fifth of the weekly hours valid on that day),
@@ -91,7 +95,8 @@ private val log = KotlinLogging.logger {}
 class VacationTimesheetAutoBookingJob {
     /**
      * @param removedDays The booked days marked as deleted, as their vacation no longer covers them.
-     * @param refusedDays The days refused by the booking (part of [skippedDays]), of [refusedUsers].
+     * @param refusedDays The days refused for the user by the booking (part of [skippedDays]).
+     * @param from The first day processed, null if nothing to do.
      * @param error Set, if the run is to be failed (see the class description).
      */
     class Result(
@@ -101,8 +106,7 @@ class VacationTimesheetAutoBookingJob {
         var failedDays: Int = 0,
         var removedDays: Int = 0,
         var refusedDays: Int = 0,
-        val refusedUsers: MutableSet<Long> = mutableSetOf(),
-        var firstRefusal: String? = null,
+        var from: LocalDate? = null,
         var error: String? = null,
     )
 
@@ -160,9 +164,9 @@ class VacationTimesheetAutoBookingJob {
                         (if (result.failedDays > 0) ", failed ${result.failedDays}" else "") +
                         (if (result.removedDays > 0) ", removed ${result.removedDays}" else "") + "."
             )
-            // Failed days don't fail the run (they are logged as errors): a failed run would let the next ones process
+            // Failed or refused days don't fail the run (they are logged): a failed run would let the next ones process
             // its days again and book vacation time sheets deleted meanwhile again, every night if the failure persists.
-            // A cause not of single days or users does: the days are to be processed again, once it's solved.
+            // An unbookable vacation task does: the days are to be processed again, once it's solved.
             result.error?.let { error ->
                 log.error(JobLogEvents.VACATION_AUTO_BOOKING_FAILED) { error }
                 run.fail(error)
@@ -175,6 +179,8 @@ class VacationTimesheetAutoBookingJob {
      *
      * @param today The day of the run (the days before it are booked), today in the default time zone if not given.
      * @param lastSuccessDay The day of the last successful run (the days before it are booked already), null if none.
+     * @param failedWithoutSuccess True if the job failed without any success the last [MAX_CATCH_UP_DAYS] days (so
+     * [lastSuccessDay] is null although the job ran): the days are caught up as far as possible.
      * @param now The time of the run, for the days of the users in their time zones. If only [today] is given, the
      * days are cut in the default time zone for all users.
      * @param changedSince The vacations changed since are checked for booked days they no longer cover, all if null.
@@ -182,6 +188,7 @@ class VacationTimesheetAutoBookingJob {
     fun bookVacations(
         today: LocalDate? = null,
         lastSuccessDay: LocalDate? = lastSuccessDay(),
+        failedWithoutSuccess: Boolean = lastSuccessDay == null && failedWithoutSuccess(),
         now: Instant? = null,
         changedSince: Instant? = lastSuccessStart()?.minus(1, ChronoUnit.DAYS),
     ): Result {
@@ -201,7 +208,8 @@ class VacationTimesheetAutoBookingJob {
         val instant = now ?: Instant.now()
         val refDay = today ?: LocalDate.ofInstant(instant, zoneId)
         val until = refDay.minusDays(1)
-        val from = listOfNotNull(refDay.minusDays(days.toLong()), lastSuccessDay).max()
+        val from = catchUpFrom(refDay, lastSuccessDay, failedWithoutSuccess, days)
+        result.from = from
         if (from.isAfter(until)) {
             log.info { "Vacation already booked as time sheets by the run on $lastSuccessDay, nothing to do." }
             return result
@@ -239,15 +247,46 @@ class VacationTimesheetAutoBookingJob {
                 result.bookedDays += booked
             }
         }
-        if (result.bookedDays == 0 && result.refusedUsers.size > 1) {
-            result.error = "Vacation not booked as time sheets: every day of ${result.refusedUsers.size} users refused, " +
-                    "e.g. ${result.firstRefusal}"
-        }
         log.info {
             "Vacation booked as time sheets from $from until $until: ${result.bookedDays} day(s) of ${result.users} " +
-                    "user(s), skipped ${result.skippedDays}, failed ${result.failedDays}, removed ${result.removedDays}."
+                    "user(s), skipped ${result.skippedDays} (refused ${result.refusedDays}), failed ${result.failedDays}, " +
+                    "removed ${result.removedDays}."
         }
         return result
+    }
+
+    /**
+     * The first day to book: the day of the last successful run, else (the job failed for all the days known)
+     * [MAX_CATCH_UP_DAYS] back, else (the first run) the configured [days] back. Never more than [MAX_CATCH_UP_DAYS]
+     * back, a cut is logged as warning (the days before are booked in the calendar).
+     */
+    private fun catchUpFrom(
+        refDay: LocalDate,
+        lastSuccessDay: LocalDate?,
+        failedWithoutSuccess: Boolean,
+        days: Int,
+    ): LocalDate {
+        val earliest = refDay.minusDays(MAX_CATCH_UP_DAYS)
+        val wanted = when {
+            lastSuccessDay != null -> lastSuccessDay
+            failedWithoutSuccess -> {
+                log.warn {
+                    "Vacation booking of time sheets failed for the last $MAX_CATCH_UP_DAYS days without any success: " +
+                            "catching up from $earliest, days before not booked (book them in the calendar)."
+                }
+                return earliest
+            }
+
+            else -> refDay.minusDays(days.toLong())
+        }
+        if (wanted.isBefore(earliest)) {
+            log.warn {
+                "Vacation booking of time sheets catches up from $earliest only, the last successful run on " +
+                        "$wanted is too long ago: days before not booked (book them in the calendar)."
+            }
+            return earliest
+        }
+        return wanted
     }
 
     /**
@@ -317,10 +356,6 @@ class VacationTimesheetAutoBookingJob {
             log.info { "Vacation of user '${user.username}' on ${request.startDate} not booked: $message" }
             result.skippedDays++
             result.refusedDays++
-            result.refusedUsers.add(user.id!!)
-            if (result.firstRefusal == null) {
-                result.firstRefusal = "user '${user.username}' on ${request.startDate}: $message"
-            }
         } catch (ex: Exception) {
             log.error(JobLogEvents.VACATION_AUTO_BOOKING_FAILED, ex) {
                 "Vacation of user '${user.username}' on ${request.startDate} not booked: ${ex.message}"
@@ -404,6 +439,8 @@ class VacationTimesheetAutoBookingJob {
         return schedulerJobStatsService.lastSuccessStart(SCHEDULER_JOB.id)?.let { Instant.ofEpochMilli(it) }
     }
 
+    private fun failedWithoutSuccess(): Boolean = schedulerJobStatsService.failedWithoutSuccess(SCHEDULER_JOB.id)
+
     /** The day of the last successful run of this job (in the default time zone), null if none. */
     private fun lastSuccessDay(): LocalDate? {
         return lastSuccessStart()?.atZone(zoneId)?.toLocalDate()
@@ -434,6 +471,12 @@ class VacationTimesheetAutoBookingJob {
         fun referenceOf(vacationId: Long?): String = "$REFERENCE_PREFIX$vacationId"
 
         private const val REFERENCE_PREFIX = "vacation#"
+
+        /**
+         * The days a run catches up at most: as far as the statistics of the job know its last successful run back
+         * ([SchedulerJobStatsService.lastSuccessStart]).
+         */
+        const val MAX_CATCH_UP_DAYS = SchedulerJobStatsService.LAST_RUN_SEARCH_DAYS
 
         val SCHEDULER_JOB = SchedulerJobDefinition(
             "timesheet.vacationAutoBooking", SchedulerJobArea.BUSINESS, VacationTimesheetAutoBookingJob::class.java,
