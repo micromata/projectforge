@@ -457,9 +457,10 @@ open class VacationService {
     )
             : List<VacationsByEmployee> {
         val statuses = if (status.isNotEmpty()) status.toList() else DEFAULT_VACATION_STATUS_LIST.toList()
-        // In one query per chunk of employees, not one per employee (n+1); chunked for the parameter limit of IN.
-        val byEmployeeId = employees.mapNotNull { it.id }.distinct().chunked(IN_CLAUSE_CHUNK_SIZE)
-            .flatMap { ids -> vacationDao.getVacationsOfEmployeesForPeriod(ids, periodBegin, periodEnd) }
+        // In one query for all employees, not one per employee (n+1).
+        val byEmployeeId = vacationDao.getVacationsOfEmployeesForPeriod(
+            employees.mapNotNull { it.id }.distinct(), periodBegin, periodEnd,
+        )
             .filter { withSpecial || it.special != true }
             .filter { statuses.contains(it.status) }
             .groupBy { it.employee?.id }
@@ -685,9 +686,6 @@ open class VacationService {
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
         private val DEFAULT_VACATION_STATUS_LIST = arrayOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
-
-        /** Employees per query of [getVacationOfEmployees], well below the parameter limit of the database. */
-        private const val IN_CLAUSE_CHUNK_SIZE = 1000
 
         /** The statuses of the vacations [ConflictingVacationsCache] checks for conflicts. */
         val CONFLICT_STATUS = listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)

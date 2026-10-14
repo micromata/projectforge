@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -413,19 +414,21 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         )
     }
 
-    /** The vacations (special ones too) of the given employees overlapping the period, in one query. */
+    /**
+     * The vacations (special ones too) of the given employees overlapping the period, in one query (batched for the
+     * parameter limit of `IN` by [PfPersistenceService.executeQueryBatched]). Sorted by start date descending per
+     * batch.
+     */
     open fun getVacationsOfEmployeesForPeriod(
         employeeIds: Collection<Long>,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<VacationDO> {
-        if (employeeIds.isEmpty()) {
-            return emptyList()
-        }
-        return persistenceService.executeQuery(
+        return persistenceService.executeQueryBatched(
             "SELECT v FROM VacationDO v WHERE v.employee.id IN :employeeIds AND v.endDate >= :startDate AND v.startDate <= :endDate$META_SQL_WITH_SPECIAL",
             VacationDO::class.java,
-            Pair("employeeIds", employeeIds),
+            "employeeIds",
+            employeeIds,
             Pair("startDate", startDate),
             Pair("endDate", endDate),
             Pair("deleted", false),
