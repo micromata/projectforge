@@ -113,7 +113,9 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
             return true
         }
-        return if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user) &&
+        // The employee's user from the cache: the list checks each row, a lazy employee would be loaded one by one.
+        val employeeUser = caches.getEmployeeIfNotInitialized(obj.employee)?.user
+        return if (employeeUser != null && accessChecker.areUsersInSameGroup(user, employeeUser) &&
             // Don't show vacation entries of others older than 31 days (end date):
             obj.endDate?.isAfter(LocalDate.now().minusDays(31L)) == true
         ) {

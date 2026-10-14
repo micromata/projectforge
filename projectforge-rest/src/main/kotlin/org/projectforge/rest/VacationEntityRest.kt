@@ -28,6 +28,9 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.*
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
@@ -282,6 +285,9 @@ class VacationEntityRest :
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>> {
         val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        if (!isListUnrestricted()) {
+            filters.add(createVisibilityFilter())
+        }
         source.entries.find { it.field == "assignment" }?.let { entry ->
             entry.synthetic = true
             val values = entry.value.values
@@ -323,6 +329,26 @@ class VacationEntityRest :
     }
 
     private fun employeeIdOf(id: Long?, value: String?): Long? = id ?: value?.toLongOrNull()
+
+    /**
+     * HR and finance staff (HR vacation right, or member of the finance, controlling or HR group) see in the list
+     * everything they may read; anybody else only what [VacationVisibilityFilter] lets through. Only the list is
+     * restricted: the calendar and the form of an entry keep the read right of [VacationDao].
+     */
+    private fun isListUnrestricted(): Boolean =
+        accessChecker.hasLoggedInUserRight(
+            UserRightId.HR_VACATION, false, UserRightValue.READONLY, UserRightValue.READWRITE,
+        ) || accessChecker.isLoggedInUserMemberOfGroup(
+            false, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.HR_GROUP,
+        )
+
+    /** With all vacations of the logged-in user's employee (with their substitutes), in one query. */
+    private fun createVisibilityFilter(): VacationVisibilityFilter {
+        val employeeId = ThreadLocalUserContext.userContext?.employeeId
+            ?: return VacationVisibilityFilter(null, emptyList())
+        val queryFilter = baseDao.createQueryFilter().also { it.add(QueryFilter.eq("employee.id", employeeId)) }
+        return VacationVisibilityFilter(employeeId, baseDao.select(queryFilter, checkAccess = false))
+    }
 
     /**
      * Manager and replacement are mandatory, as on the React form. Checked here, because `required` of
