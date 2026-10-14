@@ -261,8 +261,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Urlaub als Zeitberichte buchen (max. Tage zurück)",
-              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf, höchstens aber so viele Tage bis gestern zurück (max. 7), damit Nächte nachgeholt werden, in denen der Job nicht lief. Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
+              "_": "Urlaub als Zeitberichte buchen (Tage zurück beim ersten Lauf)",
+              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf bis gestern, fehlgeschlagene Läufe und Nächte, in denen der Job nicht lief, werden also nachgeholt (höchstens 62 Tage zurück); der allererste Lauf bucht so viele Tage zurück (max. 7). Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Ist auf dem Urlaubs-Strukturelement kein Zeitbericht buchbar (geschlossen, Projekt beendet), schlagen die Läufe fehl, und die Tage werden gebucht, sobald das behoben ist. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
             },
             "kost2": {
               "_": "Kostenträger für Urlaub",
@@ -2280,6 +2280,10 @@
         "_": "Bestehende Namen in Lanes & Planes",
         "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
         "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
+      },
+      "existingUserEmails": {
+        "_": "Bestehende User in Lanes & Planes (E-Mails)",
+        "tooltip": "Die E-Mails der User in Lanes & Planes, aus der Spalte email des User-Exports (CSV) eingefügt, da die Schnittstelle keine User lesen kann. Mitarbeitende, die noch nicht übertragen wurden und deren E-Mail hier fehlt, werden mit einer hier gelisteten alternativen oder früheren E-Mail des Users übertragen, sonst würde Lanes & Planes den User neu anlegen. Wie eine geänderte E-Mail wird sie beibehalten, bis die E-Mail in Lanes & Planes geändert und unten bestätigt wurde. Leer: keine Prüfung."
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",

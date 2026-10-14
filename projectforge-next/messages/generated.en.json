@@ -261,8 +261,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Book vacation as time sheets (max. days back)",
-              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on, but at most this number of days back up to yesterday (max. 7), so nights the job didn't run are caught up. A vacation time sheet deleted by hand is therefore not booked again. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
+              "_": "Book vacation as time sheets (days back on the first run)",
+              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on up to yesterday, so failed runs and nights the job didn't run are caught up (at most 62 days back); the very first run books this number of days back (max. 7). A vacation time sheet deleted by hand is therefore not booked again. If no time sheet is bookable on the vacation task (closed, project ended), the runs fail and the days are booked once that is solved. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
             },
             "kost2": {
               "_": "Cost unit for vacation",
@@ -2280,6 +2280,10 @@
         "_": "Existing names in Lanes & Planes",
         "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
         "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
+      },
+      "existingUserEmails": {
+        "_": "Existing users in Lanes & Planes (emails)",
+        "tooltip": "The emails of the users in Lanes & Planes, pasted from the column email of the user export (CSV), as the interface can't read users. An employee not sent yet whose email isn't listed, but one of the alternative or former emails of the user, is sent with that one, otherwise Lanes & Planes would create the user anew. Like a changed email it is held back until the email was changed in Lanes & Planes and confirmed below. Empty: not checked."
       },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
