@@ -4606,7 +4606,6 @@
       "excel": {
         "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
       },
-      "restrictedHint": "Frühere Jahre sehen nur HR und Finanzen.",
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
       "title": "Export von Teamurlaubskalendern"
     },

@@ -184,11 +184,6 @@ function VacationExportContent({
         onDayWidthChange={setDayWidth}
         onExport={() => excel.mutate()}
       />
-      {min && (
-        <p className="text-sm text-muted-foreground">
-          {t("vacation.export.restrictedHint")}
-        </p>
-      )}
       {!hasSelection && (
         <p className="text-sm text-muted-foreground">
           {t("vacation.export.selectHint")}
