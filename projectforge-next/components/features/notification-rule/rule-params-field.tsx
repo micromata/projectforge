@@ -60,5 +60,17 @@ export function RuleParamsField({ className }: { className?: string }) {
       />
     );
   }
+  if (ruleType === "TIMESHEETS_WITHOUT_KOST2") {
+    return (
+      <NumberField
+        name="kost2MissingMonths"
+        label={t("kost2MissingMonths")}
+        metadataLess
+        fractionDigits={0}
+        maxDigits={2}
+        className={className}
+      />
+    );
+  }
   return null;
 }

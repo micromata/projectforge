@@ -577,6 +577,28 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return result
     }
 
+    /** A time sheet without cost 2 unit, see [getTimesheetsWithoutKost2]. */
+    class TimesheetWithoutKost2(val userId: Long, val taskId: Long?, val startTime: Date, val durationMillis: Long)
+
+    /**
+     * The time sheets without cost 2 unit of all users (deleted ones ignored) starting within [from] (inclusive) and
+     * [to] (exclusive), by user id: booked on a task without cost 2 units, they are missing in the salary export. One
+     * `SELECT` of four columns, no row hydration and no access check: for jobs (e.g. the notification rule).
+     */
+    open fun getTimesheetsWithoutKost2(from: Date, to: Date): Map<Long, List<TimesheetWithoutKost2>> {
+        val sql = "SELECT t.user.id AS userId, t.task.id AS taskId, t.startTime AS startTime, t.stopTime AS stopTime" +
+                " FROM TimesheetDO t WHERE t.deleted = false AND t.kost2 IS NULL AND t.startTime >= :from AND t.startTime < :to"
+        val result = mutableMapOf<Long, MutableList<TimesheetWithoutKost2>>()
+        persistenceService.executeQuery(sql, Tuple::class.java, Pair("from", from), Pair("to", to)).forEach { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@forEach
+            val startTime = tuple.get("startTime") as Date? ?: return@forEach
+            val duration = (tuple.get("stopTime") as Date?)?.let { it.time - startTime.time }?.coerceAtLeast(0) ?: 0
+            result.getOrPut(userId) { mutableListOf() }
+                .add(TimesheetWithoutKost2(userId, tuple.get("taskId") as Long?, startTime, duration))
+        }
+        return result
+    }
+
     /**
      * The ids of the given user's time sheets (deleted ones ignored) that collide in time with another of the user's
      * time sheets — the forbidden overlaps [hasTimeOverlap] refuses on save; an overlap released by a shared cost

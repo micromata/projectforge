@@ -117,6 +117,10 @@ export const NOTIFICATION_RULE_METADATA = {
           i18nKey: "notification.ruleTypes.PASSWORD_NOT_CHANGED",
         },
         {
+          value: "TIMESHEETS_WITHOUT_KOST2",
+          i18nKey: "notification.ruleTypes.TIMESHEETS_WITHOUT_KOST2",
+        },
+        {
           value: "MANUAL",
           i18nKey: "notification.ruleTypes.MANUAL",
         },

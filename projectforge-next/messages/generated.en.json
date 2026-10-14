@@ -2629,6 +2629,7 @@
     "open": "Open",
     "params": {
       "daysBeforeExpiry": "Days before expiry",
+      "kost2MissingMonths": "Months looked at (current month included)",
       "passwordMaxAgeDays": "Password older than (days)",
       "referredMonth": {
         "_": "Month",
@@ -2669,6 +2670,7 @@
         "dayOfWeek": "A weekday is required.",
         "daysBeforeExpiry": "The number of days must not be negative.",
         "delay": "The time of a delivery step must not be negative.",
+        "kost2MissingMonths": "The number of months must be between 1 and 12.",
         "noDeliveryStep": "At least one delivery step is required.",
         "passwordMaxAgeDays": "The number of days must be at least 1."
       },
@@ -2694,6 +2696,7 @@
       "MANUAL": "Manual (no condition)",
       "PASSWORD_NOT_CHANGED": "Password not changed for a long time",
       "TIMESHEETS_MISSING": "Missing time sheets",
+      "TIMESHEETS_WITHOUT_KOST2": "Time sheets without Kost2",
       "VACATION_LEFT": "Expiring vacation days"
     },
     "schedule": {
@@ -2751,7 +2754,11 @@
       "passwordChangeDate": "Date of the last password change",
       "passwordLink": "Link for changing the password",
       "passwordMaxAgeDays": "Maximum age of the password (days)",
+      "period": "Period",
       "timesheetLink": "Link to the time sheets",
+      "timesheetsWithoutKost2Count": "Number of time sheets without Kost2",
+      "timesheetsWithoutKost2Hours": "Hours booked without Kost2",
+      "timesheetsWithoutKost2Tasks": "Structure elements booked without Kost2",
       "unbookedDays": "All days without time sheets (vacation included)",
       "unbookedDaysCount": "Number of all days without time sheets (vacation included)",
       "unbookedVacationDays": "Vacation days without time sheets",

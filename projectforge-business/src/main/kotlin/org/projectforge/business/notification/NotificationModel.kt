@@ -44,6 +44,9 @@ enum class NotificationRuleType : I18nEnum {
     /** Passwords not changed for more than a number of days. */
     PASSWORD_NOT_CHANGED,
 
+    /** Time sheets without cost 2 unit in the last months (missing in the salary export). */
+    TIMESHEETS_WITHOUT_KOST2,
+
     /** No condition: all recipients get the notification when it is triggered (by hand or by the schedule). */
     MANUAL;
 
@@ -224,6 +227,8 @@ class NotificationParams(
     var daysBeforeExpiry: Int = 30,
     /** [NotificationRuleType.PASSWORD_NOT_CHANGED]: notify if the password is older than these days. */
     var passwordMaxAgeDays: Int = 90,
+    /** [NotificationRuleType.TIMESHEETS_WITHOUT_KOST2]: the months looked at, the current month included. */
+    var kost2MissingMonths: Int = 2,
 ) {
     enum class ReferredMonth(val offset: Long) {
         CURRENT(0),

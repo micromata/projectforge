@@ -161,6 +161,9 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.ruleType == NotificationRuleType.PASSWORD_NOT_CHANGED && dto.passwordMaxAgeDays < 1) {
             validationErrors += ValidationError(translate("notification.rule.error.passwordMaxAgeDays"), fieldId = "passwordMaxAgeDays")
         }
+        if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
+            validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
+        }
     }
 
     /** The variables of the texts of the given rule type (the common ones for none). */

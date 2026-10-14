@@ -21,6 +21,7 @@ export function toFormValues(
     vacationExpiry: rule.vacationExpiry ?? "CARRY_OVER",
     daysBeforeExpiry: rule.daysBeforeExpiry ?? 30,
     passwordMaxAgeDays: rule.passwordMaxAgeDays ?? 90,
+    kost2MissingMonths: rule.kost2MissingMonths ?? 2,
     recipientGroups: rule.recipientGroups ?? [],
     recipientUsers: rule.recipientUsers ?? [],
     allEmployees: rule.allEmployees ?? false,

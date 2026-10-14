@@ -54,6 +54,7 @@ export interface NotificationRuleDetail {
   vacationExpiry?: "CARRY_OVER" | "YEAR_END";
   daysBeforeExpiry?: number;
   passwordMaxAgeDays?: number;
+  kost2MissingMonths?: number;
   recipientGroups?: Ref[];
   recipientUsers?: Ref[];
   allEmployees?: boolean;
