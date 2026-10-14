@@ -2269,6 +2269,10 @@
         "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
         "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
       },
+      "existingUserEmails": {
+        "_": "Existing users in Lanes & Planes (emails)",
+        "tooltip": "The emails of the users in Lanes & Planes, pasted from the column email of the user export (CSV), as the interface can't read users. An employee not sent yet whose email isn't listed, but one of the alternative or former emails of the user, is sent with that one, otherwise Lanes & Planes would create the user anew. Like a changed email it is held back until the email was changed in Lanes & Planes and confirmed below. Empty: not checked."
+      },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
         "tooltip": "Sent to all users as cost centers (cost_centers). Formatted number like 1.005.01.00. Without entries, the cost centers maintained in Lanes & Planes are kept."

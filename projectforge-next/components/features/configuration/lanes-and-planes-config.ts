@@ -33,6 +33,11 @@ export interface LanesAndPlanesConfig {
    * (`50123401 Project - Travel costs`): sent as ident and name, so L&P reuses them.
    */
   existingCostObjects: string[];
+  /**
+   * The emails of the users in Lanes & Planes (the email column of the user export): an employee whose email
+   * isn't listed is sent with a listed alternative or former email of the user.
+   */
+  existingUserEmails: string[];
   /** New emails of employees already changed in Lanes & Planes by hand: no longer held back. */
   confirmedEmailChanges: string[];
 }
@@ -45,6 +50,7 @@ export const LANES_AND_PLANES_DEFAULTS: LanesAndPlanesConfig = {
   kost2Patterns: [],
   additionalUsers: [],
   existingCostObjects: [],
+  existingUserEmails: [],
   confirmedEmailChanges: [],
 };
 
@@ -84,6 +90,7 @@ export function parseLanesAndPlanesConfig(json: string | null | undefined): {
           config.additionalUsers
         ).map((user) => ({ ...EMPTY_ADDITIONAL_USER, ...user })),
         existingCostObjects: arrayOf(config.existingCostObjects),
+        existingUserEmails: arrayOf(config.existingUserEmails),
         confirmedEmailChanges: arrayOf(config.confirmedEmailChanges),
       },
       invalid: false,

@@ -101,7 +101,15 @@ open class LanesAndPlanesSyncService(
             }
             val holds = LanesAndPlanesEmailHolds.apply(
                 result.request.users, state?.emailsByIdent ?: emptyMap(), settings.confirmedEmails,
+                settings.existingEmails, result.otherEmailsByIdent,
             )
+            if (holds.unknownIdents.isNotEmpty()) {
+                log.info {
+                    "Lanes & Planes: ${holds.unknownIdents.size} employees are sent with an email unknown to " +
+                            "Lanes & Planes (not in the existing user emails), so they are created anew: users " +
+                            "#${holds.unknownIdents.joinToString(", #")}."
+                }
+            }
             holds.holds.forEach { hold ->
                 log.warn(LanesAndPlanesLogEvents.EMAIL_CHANGED) {
                     "Lanes & Planes: the email of user #${hold.ident} changed from '${hold.sentEmail}' to " +

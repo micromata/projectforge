@@ -123,6 +123,13 @@ get every Kost2).
   still sent (log event `lanesAndPlanes.emailChanged`, problem dashboard) until the new one is listed in the
   confirmed e-mail changes of the settings, see [Changing an e-mail](#changing-an-e-mail). Not if the old
   e-mail is now used by another user (error in the log, the new one is sent).
+- E-mails unknown to L&P: the ExtAPI can't read users (no GET), so the e-mails of the L&P users are taken from
+  the user export (CSV) and entered in `existingUserEmails`. An employee not in the push state yet (very first
+  push, new employee) whose e-mail isn't listed, but one of the alternative or former e-mails of the user
+  (`PFUserDO.alternativeEmails`/`formerEmails`, alternative ones first), is sent with that one. It's held back
+  like a changed e-mail (`lanesAndPlanes.emailChanged`) until the e-mail was changed in L&P and confirmed, see
+  [Changing an e-mail](#changing-an-e-mail). An address already sent for another user isn't taken. Employees
+  sent with an e-mail not listed (created anew by L&P) are logged with their user ids (info). Empty: not checked.
 - Without a push state (very first push, or the file was lost, e.g. by moving the work directory) changed e-mails
   aren't held back and a dropped number of users isn't detected: log event `lanesAndPlanes.stateMissing`
   (warning, not in dry runs). Keep the file with the backups of the work directory.
@@ -161,6 +168,7 @@ run, so a change is sent by the next run (hourly by default):
   "kost2Patterns": ["5.*.02", "5.*.11"],
   "additionalUsers": [{"email": "accountant@example.org", "firstName": "First", "lastName": "Last"}],
   "existingCostObjects": ["50123401 Project - Travel costs"],
+  "existingUserEmails": ["first.last@example.org"],
   "confirmedEmailChanges": ["new.address@example.org"]
 }
 ```
@@ -175,6 +183,8 @@ run, so a change is sent by the next run (hourly by default):
   the user export can be pasted as it is (split before `, <8 digits>`). The export misses the project Kost2
   (see below): take them from the company-wide list (*Company account → Settings & policies → Manage cost
   centers*), including the deleted ones, if they are still shown there.
+- `existingUserEmails`: the e-mails of the users in L&P, the `email` column of the user export (paste it in the
+  text mode of the editor), see [Safety](#safety). Refresh it with a new export before the first push.
 - `confirmedEmailChanges`: new e-mails already changed in L&P by hand, see below.
 
 ### Changing an e-mail
@@ -284,11 +294,16 @@ To decide in ProjectForge:
 
 ## Before the first real push
 
-1. Set the invoice profile ids (from the CSV export), the general Kost1 and Kost2 and the patterns in the
+1. Make a fresh user export (CSV) in L&P (company account) first: the ExtAPI can't read users, so the export is
+   the only source of what L&P knows. Paste its `email` column into `existingUserEmails`. For every employee whose
+   L&P e-mail differs from the one in ProjectForge, enter the L&P e-mail as alternative or former e-mail of the
+   user (*Administration → Users*); otherwise L&P would deactivate the user and create a new one. Addresses used
+   by another user are rejected there.
+2. Set the invoice profile ids (from the CSV export), the general Kost1 and Kost2 and the patterns in the
    configuration parameter, enter the existing names (the `cost_centers` column of the CSV export and the
    project Kost2 of the company-wide list), set the
    creditor accounts of the employees, and run a dry run.
-2. Compare the dry-run file with a fresh CSV export of the L&P users (by e-mail, case-insensitive):
+3. Compare the dry-run file with a fresh CSV export of the L&P users (by e-mail, case-insensitive):
    - active in L&P but missing in ProjectForge → would be deactivated; if one of them has responsibilities, the
      whole push fails,
    - inactive in L&P but sent → would be reactivated,
@@ -297,9 +312,9 @@ To decide in ProjectForge:
    - number of cost centers and cost units per user,
    - every sent cost center/unit whose number exists in L&P must carry the existing name as ident (otherwise the
      import of the users fails).
-3. Make sure the L&P account owning the API key is part of the payload, and that every active L&P user with
+4. Make sure the L&P account owning the API key is part of the payload, and that every active L&P user with
    responsibilities who isn't an employee (accountants, admins, travel managers) is entered as additional user
    (not the service admin of L&P). Check that no user has the service admin as travel manager (`travel_managers`
    of the export) and change that in L&P by hand.
-4. Set `dryRun=false`, restart, check the user import log in the L&P company account (including whether roles,
+5. Set `dryRun=false`, restart, check the user import log in the L&P company account (including whether roles,
    managers and cost centers were kept).

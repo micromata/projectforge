@@ -457,6 +457,18 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
         return !deleted && !this.deactivated
     }
 
+    /**
+     * Normalizes [alternativeEmails] and [formerEmails] (see [normalizeEmails]) and removes duplicates silently
+     * (case-insensitive): the primary [email] from both lists and the alternative addresses from [formerEmails].
+     */
+    fun normalizeEmailLists() {
+        val primary = email?.trim()?.lowercase()
+        val alternatives = splitEmails(alternativeEmails).filter { it.lowercase() != primary }
+        val used = alternatives.map { it.lowercase() }.toSet() + listOfNotNull(primary)
+        alternativeEmails = joinEmails(alternatives)
+        formerEmails = joinEmails(splitEmails(formerEmails).filter { it.lowercase() !in used })
+    }
+
     companion object {
         /**
          * Room for an armored GPG key with subkeys and signatures (often more than 4096 characters) or several
@@ -500,7 +512,41 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
          */
         @JvmStatic
         fun normalizeEmails(value: String?): String? {
-            return splitEmails(value).takeIf { it.isNotEmpty() }?.joinToString(", ")
+            return joinEmails(splitEmails(value))
+        }
+
+        private fun joinEmails(emails: List<String>): String? {
+            return emails.takeIf { it.isNotEmpty() }?.joinToString(", ")
+        }
+
+        /**
+         * @return The primary, alternative and former e-mail addresses of the given user, without duplicates
+         * (case-insensitive).
+         */
+        @JvmStatic
+        fun allEmails(user: PFUserDO): List<String> {
+            return (listOfNotNull(user.email?.trim()?.takeIf { it.isNotEmpty() }) +
+                    splitEmails(user.alternativeEmails) + splitEmails(user.formerEmails)).distinctBy { it.lowercase() }
+        }
+
+        /**
+         * The alternative and former addresses of the given user, which are used by another (not deleted) user
+         * as primary, alternative or former address (case-insensitive). The primary addresses aren't compared
+         * with each other.
+         * @param others All users, the given one may be included (compared by id).
+         * @return The address of the given user mapped to the other user using it.
+         */
+        @JvmStatic
+        fun findForeignEmails(user: PFUserDO, others: Collection<PFUserDO>): Map<String, PFUserDO> {
+            val emails = splitEmails(user.alternativeEmails) + splitEmails(user.formerEmails)
+            if (emails.isEmpty()) {
+                return emptyMap()
+            }
+            val othersByEmail = mutableMapOf<String, PFUserDO>()
+            others.filter { !it.deleted && (user.id == null || it.id != user.id) }.forEach { other ->
+                allEmails(other).forEach { othersByEmail.putIfAbsent(it.lowercase(), other) }
+            }
+            return emails.mapNotNull { email -> othersByEmail[email.lowercase()]?.let { email to it } }.toMap()
         }
 
         /**

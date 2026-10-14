@@ -1,5 +1,5 @@
 {
   "type": "added",
-  "en": "Users: new fields alternative and former e-mail addresses (comma separated, e.g. after a change of name), also searchable and in the Excel export.",
-  "de": "Benutzer:innen: neue Felder alternative und frühere E-Mail-Adressen (durch Kommas getrennt, z. B. nach einer Namensänderung), auch durchsuchbar und im Excel-Export."
+  "en": "Users: new fields alternative and former e-mail addresses (comma separated, e.g. after a change of name), also searchable and in the Excel export. An address already used by another user is rejected, the primary address isn't stored twice.",
+  "de": "Benutzer:innen: neue Felder alternative und frühere E-Mail-Adressen (durch Kommas getrennt, z. B. nach einer Namensänderung), auch durchsuchbar und im Excel-Export. Eine Adresse, die schon ein anderer User verwendet, wird abgelehnt, die Hauptadresse wird nicht doppelt gespeichert."
 }
