@@ -239,6 +239,12 @@ class FileStoreTest {
             result.error?.let { otherKeyErrors.add(result.fileObject.fileId!!) }
         }
         Assertions.assertEquals(setOf(compressed.fileId, uncompressed.fileId), otherKeyErrors)
+
+        // The key is checked on start (registration of the path) by reading the newest encrypted file:
+        Assertions.assertTrue(encryptingStore.checkFileSystemEncryptionKey(DATATRANSFER_PATH))
+        Assertions.assertFalse(fileStore.checkFileSystemEncryptionKey(DATATRANSFER_PATH), "No key given.")
+        Assertions.assertFalse(createFileStore("another key").checkFileSystemEncryptionKey(DATATRANSFER_PATH))
+        Assertions.assertTrue(encryptingStore.checkFileSystemEncryptionKey("org.projectforge.unknown"), "No files.")
     }
 
     @Test

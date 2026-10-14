@@ -174,6 +174,18 @@ internal class FileMetaDao(private val dataSource: DataSource) {
     }
 
     /**
+     * The newest files below the given path (parent path is equal to or starts with "<path>/") with the given
+     * encryption, newest first.
+     */
+    fun listNewestBelow(path: String, encryption: EncryptionType, limit: Int): List<FileMeta> {
+        return query(
+            "SELECT $COLUMNS FROM $TABLE WHERE (parent_path=? OR parent_path LIKE ? ESCAPE '!') AND encryption_type=?" +
+                    " ORDER BY pk DESC FETCH FIRST $limit ROWS ONLY",
+            path, "${escapeLike(path)}/%", encryption.name,
+        )
+    }
+
+    /**
      * Distinct parent paths below the given path (parent path starts with "<path>/").
      */
     fun listParentPathsBelow(path: String): List<String> {

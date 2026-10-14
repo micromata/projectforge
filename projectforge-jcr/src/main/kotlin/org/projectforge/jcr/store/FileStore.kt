@@ -75,7 +75,30 @@ class FileStore internal constructor(
      * @param path The path (e. g. "org.projectforge.plugins.datatransfer").
      */
     fun registerFileSystemPath(path: String, dir: File) {
-        fsBlobStore.register(normalizePath(path), dir)
+        val normalizedPath = normalizePath(path)
+        fsBlobStore.register(normalizedPath, dir)
+        checkFileSystemEncryptionKey(normalizedPath)
+    }
+
+    /**
+     * Reads the header of the newest encrypted file below the given path, so a missing or changed
+     * `projectforge.files.fileSystemEncryptionKey` is reported on start and not only by failing downloads.
+     * @return false, if an encrypted file can't be decrypted, true otherwise (also if there is no encrypted file).
+     */
+    internal fun checkFileSystemEncryptionKey(path: String): Boolean {
+        val meta = try {
+            dao.listNewestBelow(path, EncryptionType.AES_CTR, 10).firstOrNull { fsBlobStore.exists(it) }
+        } catch (ex: Exception) {
+            log.warn { "Can't check the encryption key of the files below '$path': ${ex.message}" }
+            return true
+        } ?: return true
+        return try {
+            fsBlobStore.read(meta).close()
+            true
+        } catch (ex: Exception) {
+            log.error { "Encrypted files below '$path' can't be read, downloads will fail: ${ex.message}" }
+            false
+        }
     }
 
     /**
@@ -514,7 +537,7 @@ class FileStore internal constructor(
     }
 
     /**
-     * @return The stored payload (decompressed, but still encrypted, if encrypted).
+     * @return The stored payload (decompressed and decrypted at rest, but still password-encrypted, if so).
      */
     internal fun openPayload(meta: FileMeta): InputStream {
         return if (meta.storage == StorageType.DB) dbBlobStore.read(meta) else fsBlobStore.read(meta)
@@ -546,15 +569,15 @@ class FileStore internal constructor(
     }
 
     /**
-     * Copies all fields from meta to fileObject, excluding content and path settings.
-     */
-    /**
      * Where and how the content is stored, for log messages ([FileObject] only knows the password encryption).
      */
     private fun storageInfo(meta: FileMeta): String {
         return "storage=[${meta.storage}],compression=[${meta.compression}],encryption=[${meta.encryption}]"
     }
 
+    /**
+     * Copies all fields from meta to fileObject, excluding content and path settings.
+     */
     private fun copyTo(meta: FileMeta, fileObject: FileObject) {
         fileObject.copyFrom(meta.toFileObject() as FileInfo)
         fileObject.fileId = meta.fileId

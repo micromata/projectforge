@@ -1343,7 +1343,8 @@ projectforge.files.fileSystemEncryptionKey=...
 * Keep the key apart from the backups of the home directory, otherwise they contain the key too. Instead of
   `projectforge.properties`, the key may be given as environment variable `PROJECTFORGE_FILES_FILESYSTEMENCRYPTIONKEY`.
 * Keep a copy of the key in a safe place: if it's lost or changed, the encrypted files can't be read anymore (the
-  sanity check reports them).
+  sanity check reports them). A missing or changed key is also logged as error on start ("Encrypted files below …
+  can't be read").
 * Only files stored after configuring the key are encrypted, files stored before keep their format and stay readable.
   So configure the key before switching to `db`: the files copied from the JCR are encrypted right away.
 * The attachments stored in the data base (schema `pf_files`) aren't encrypted, only the data transfer files.

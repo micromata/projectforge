@@ -165,13 +165,6 @@ internal class FsBlobStore(private val cipher: FileSystemCipher? = null) {
         return getFile(meta).exists()
     }
 
-    /**
-     * The stored size (compressed and encrypted), not the size of the payload (see [FileMeta.size]).
-     */
-    fun storedLength(meta: FileMeta): Long {
-        return getFile(meta).length()
-    }
-
     fun delete(meta: FileMeta) {
         val file = getFile(meta)
         if (file.exists() && !file.delete()) {
