@@ -68,7 +68,11 @@ export function VacationExportPage() {
         category={t("menu.vacation._")}
         title={t("vacation.export.title")}
       />
-      <div className="flex flex-col gap-4 px-4 pb-6">
+      {/* Prints landscape (`@page vacation-calendar` in globals.css). */}
+      <div
+        className="flex flex-col gap-4 px-4 pb-6"
+        data-print-page="vacation-calendar"
+      >
         {initial.isPending && (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
         )}
