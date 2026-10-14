@@ -33,7 +33,9 @@ export function VacationChartRow({
         <div
           className={cn(
             GRID_CELL,
-            "truncate border-b py-px pr-2",
+            // Stays at the left while the days scroll, above the bars (`z-10`) passing beneath it. The column
+            // has a fixed width (see VacationOverlapChart); a longer name is cut, the tooltip has it whole.
+            "chart-panel-sticky sticky left-0 z-20 truncate border-b py-px pr-2",
             row.own && "font-semibold"
           )}
           style={gridCell(gridRow, 1)}

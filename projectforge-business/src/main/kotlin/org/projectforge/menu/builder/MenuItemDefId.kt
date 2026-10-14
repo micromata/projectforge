@@ -129,7 +129,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getListUrl("vacation")), //
-    VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
+    VACATION_ACCOUNT("menu.vacation.leaveaccount", "next/vacationAccount"), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
     PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //

@@ -16,13 +16,20 @@ import { VacationChartRow } from "./vacation-chart-row";
 import type { VacationValues } from "./vacation-schema";
 import { useVacationStats } from "./use-vacation-stats";
 
+/** Rows 1–2 (months, days) of the names' column. */
+const STICKY_CORNER = {
+  "--chart-row": "1 / 3",
+  "--chart-col": "1 / 2",
+} as CSSProperties;
+
 /**
  * The vacation being edited and the vacations of its substitutes overlapping it, as bars over the
  * calendar days (`chartDays`, the period with three days on either side): which substitute is away when,
  * and on which days nobody is on duty. The vacation itself follows the form as it is typed; the
- * substitutes' come with the stats. The table below holds the same vacations with all their details.
+ * substitutes' come with the stats. Shown among the form's fields, above the comment; the section "vacations of
+ * the replacements" holds the same vacations with all their details.
  */
-export function VacationOverlapChart() {
+export function VacationOverlapChart({ className }: { className?: string }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const form = useEntityEditForm();
@@ -51,24 +58,42 @@ export function VacationOverlapChart() {
     "--chart-days": days.length,
   } as CSSProperties;
   return (
-    <figure className="mb-4 space-y-2">
+    // `min-w-0`: a grid cell would otherwise grow to the chart's width instead of letting it scroll. Set off
+    // from the fields around it by a faint box — faint, so the grey of the weekends still shows in it.
+    <figure
+      className={cn(
+        "chart-panel min-w-0 space-y-2 rounded-md border p-3",
+        className
+      )}
+    >
       <div className="overflow-x-auto">
         <div
           role="img"
           aria-label={t("vacation.chart.ariaLabel")}
-          className="grid min-w-max [grid-template-columns:fit-content(10rem)_repeat(var(--chart-days),minmax(1.25rem,1fr))] text-xs leading-tight"
+          // The names' column has a fixed width (`--chart-names`): the month labels stop right beside it.
+          className="grid min-w-max [--chart-names:7rem] [grid-template-columns:var(--chart-names)_repeat(var(--chart-days),minmax(1.25rem,1fr))] text-xs leading-tight sm:[--chart-names:10rem]"
           style={columns}
         >
+          {/* The corner above the names, covering the months and days that scroll beneath it. */}
+          <div
+            className={cn(GRID_CELL, "chart-panel-sticky sticky left-0 z-20")}
+            style={STICKY_CORNER}
+          />
           {monthSpans(days).map((span) => (
             <div
               key={span.month}
+              // `overflow-clip`, not `hidden`: clipping without becoming a scroll container of its own, so
+              // the label inside still sticks to the chart's scrolling.
               className={cn(
                 GRID_CELL,
-                "truncate border-b border-l px-1 font-medium"
+                "overflow-clip text-ellipsis whitespace-nowrap border-b border-l font-medium"
               )}
               style={gridCell(1, span.first + 2, span.last + 2)}
             >
-              {formatYearMonth(span.month, ctx)}
+              {/* Stays beside the names while its month is in view; the next month pushes it away. */}
+              <span className="sticky left-[var(--chart-names)] px-1">
+                {formatYearMonth(span.month, ctx)}
+              </span>
             </div>
           ))}
           {days.map((day, i) => (

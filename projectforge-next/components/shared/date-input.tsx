@@ -124,8 +124,10 @@ export function DateInput({
         // A date is ten characters wide and never more, so the field stops growing once it fits one
         // plus the single button at its right edge instead of stretching over the whole column it sits
         // in. It still shrinks below that where the space is narrower — a filter popover, the two
-        // halves of a DatePeriodField, where two of these plus the quick access share one column.
-        "flex w-full max-w-28 items-center",
+        // halves of a DatePeriodField, where two of these plus the quick access share one column. A
+        // little wider below `md`, where the input's text is a size larger (`text-sm`, see Input) and ten
+        // digits would otherwise run under the button.
+        "flex w-full max-w-32 items-center md:max-w-28",
         className
       )}
     >

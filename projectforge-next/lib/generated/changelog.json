@@ -17,8 +17,11 @@
         "title" : "System statistics",
         "items" : [ "The database tile appears at once: the number of history entries and attributes is the estimate of the database (~) instead of a count taking minutes.", "Tiles still loading show their title and a spinner.", "CPU load and system load average as bars." ]
       }, {
+        "title" : "Leave account",
+        "items" : [ "Moved to the new interface; the statistics now include the next year as well.", "Leave applications with a day without any substitute are marked red.", "A leave application or leave account entry opened from the leave account returns to it." ]
+      }, {
         "title" : "Leave applications",
-        "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
+        "items" : [ "List and form moved to the new interface; working days, days left and the vacations of the substitutes follow the form as it is edited.", "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute.", "The list shows each leave application as a bar over its days, with the days without any substitute in red.", "Only the statuses that may be set are offered.", "A leave application opened from the calendar returns to it on save." ]
       }, {
         "title" : "Leave applications",
         "items" : [ "The period and the employee are always on the filter row of the list; the period finds every leave application overlapping it.", "The period is a calendar year by default, the list starts with the current one: any date entered gives its year, and the arrows page a year back or forth. A month or a free range can be chosen instead.", "The form shows the vacation days left once the application being edited is counted, too, in red where they are not enough." ]

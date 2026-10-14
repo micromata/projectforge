@@ -23,8 +23,6 @@ import CostNumberComponent from './components/CostNumberComponent';
 import AccessTableComponent from './components/AccessTableComponent';
 import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
-import VacationStatistics from './components/vacation/VacationStatistics';
-import VacationTable from './components/vacation/VacationTable';
 import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
 import WebAuthnRegister from './components/WebAuthnRegister';
 
@@ -100,12 +98,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecent':
             Tag = TimesheetTemplatesAndRecent;
-            break;
-        case 'vacation.entries':
-            Tag = VacationTable;
-            break;
-        case 'vacation.statistics':
-            Tag = VacationStatistics;
             break;
         case 'webauthn.authenticate':
             Tag = WebAuthnAuthenticate;

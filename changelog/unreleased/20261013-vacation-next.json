@@ -8,8 +8,12 @@
       "de": "Liste und Formular in der neuen Oberfläche; Arbeitstage, Resturlaub und die Urlaube der Vertretungen folgen dem Formular während der Eingabe."
     },
     {
-      "en": "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute on duty.",
-      "de": "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen, an denen keine Vertretung im Dienst ist."
+      "en": "The form charts the vacation and the overlapping vacations of the substitutes over the calendar days, with weekends, holidays and the days without any substitute.",
+      "de": "Das Formular zeigt den Urlaub und die überlappenden Urlaube der Vertretungen als Balken über den Kalendertagen, mit Wochenenden, Feiertagen und den Tagen ohne Vertretung."
+    },
+    {
+      "en": "The list shows each leave application as a bar over its days, with the days without any substitute in red.",
+      "de": "Die Liste zeigt jeden Urlaubsantrag als Balken über seinen Tagen, die Tage ohne Vertretung rot."
     },
     {
       "en": "Only the statuses that may be set are offered.",

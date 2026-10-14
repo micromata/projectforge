@@ -11,6 +11,8 @@ import { useVacationStats } from "./use-vacation-stats";
 
 type Row = VacationDetail & { index: number };
 
+const PINNED = { left: ["employee"] };
+
 /**
  * The vacations of the replacements overlapping this one — the React form's grid below the fields, which
  * tells why there is a conflict and whom to pick instead. Dates and days as the backend formatted them.
@@ -69,19 +71,25 @@ export function VacationsOfReplacements() {
       column("workingDays", (r) => r.workingDaysFormatted, 90),
     ];
   }, [headerKey]);
+  // Scrolls sideways in its own box, as the chart above it does: an autoHeight table leaves the scrolling to the
+  // page, which would let its columns run out of the section.
   return (
-    <DataTable
-      columns={columns}
-      data={rows}
-      enableColumnFilters={false}
-      manualSorting={false}
-      showPagination={false}
-      dense
-      autoHeight
-      getRowId={(row) => String(row.id ?? row.index)}
-      emptyState={
-        <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
-      }
-    />
+    <div className="min-w-0 overflow-x-auto">
+      <DataTable
+        columns={columns}
+        data={rows}
+        enableColumnFilters={false}
+        manualSorting={false}
+        showPagination={false}
+        dense
+        autoHeight
+        // The employee stays at the left while the other columns scroll.
+        columnPinning={PINNED}
+        getRowId={(row) => String(row.id ?? row.index)}
+        emptyState={
+          <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+        }
+      />
+    </div>
   );
 }

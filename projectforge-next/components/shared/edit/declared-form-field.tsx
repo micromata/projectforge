@@ -18,8 +18,8 @@ import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
 import { labelKeyFor } from "@/lib/page-def/define-page";
 import type { FieldDeclaration } from "@/lib/page-def/types";
 
-// Span 4 exists only in a four-column main grid, which has two columns below `lg` (see
-// SectionDef.mainColumns) — there it is the whole row, as span 2 is.
+// Span 4 exists only in a four-column grid, which has two columns below `lg` (see SectionDef.mainColumns and
+// SectionDef.columns) — there it is the whole row, as span 2 is.
 const SPAN_CLASS = {
   1: undefined,
   2: "md:col-span-2",
@@ -131,9 +131,10 @@ export function DeclaredFormField<M extends EntityMetadata>({
             "name" in member &&
             metadata.fields[member.name]?.dataType === "BOOLEAN";
           // A field bounded to a digit count is as wide as its box (see NumberField's `maxDigits`), and
-          // in a `packed` row every member sizes to its content so they sit together at the start — but
-          // a checkbox keeps growing, because its label is prose that should wrap rather than push the
-          // row wide. The rest share what is left.
+          // in a `packed` row every member sizes to its content so they sit together at the start — a
+          // checkbox too, but it may shrink, so a long label wraps rather than pushes the row wide (and a
+          // short one like "half day" stays right beside its date). Outside a packed row a checkbox
+          // grows with the rest, which share what is left.
           const sized =
             ("maxDigits" in member && member.maxDigits) ||
             (field.packed && !isCheckbox);
@@ -147,7 +148,14 @@ export function DeclaredFormField<M extends EntityMetadata>({
               // its own.
               className={cn(
                 "min-w-0",
-                sized ? "w-auto shrink-0" : "flex-1 basis-40"
+                sized
+                  ? "w-auto shrink-0"
+                  : field.packed && isCheckbox
+                    ? "w-auto"
+                    : "flex-1 basis-40",
+                // As tall as an input (`h-7`) and centred in it: aligned at the row's end alone, the
+                // lower box and label would sit on the inputs' bottom edge instead of their middle.
+                isCheckbox && "min-h-7 justify-center"
               )}
             />
           );

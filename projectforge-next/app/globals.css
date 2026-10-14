@@ -183,6 +183,8 @@
   --row-green: rgba(117, 190, 1, 0.11);
   --row-blue: rgba(0, 155, 163, 0.09);
   --row-grey: rgba(120, 120, 120, 0.07);
+  /* The tint of the vacation chart's box (.chart-panel), from the theme's own --muted. */
+  --chart-panel-tint: color-mix(in oklab, var(--muted) 20%, transparent);
 
   /*
    * The row that was edited last (ResultSet.highlightRowId). Named after its
@@ -430,6 +432,18 @@
   text-decoration-line: line-through;
   text-decoration-color: var(--destructive);
   text-decoration-thickness: 2px;
+}
+/* The box of the vacation chart (VacationOverlapChart), faintly set off from the card it sits on, and its
+ * sticky names' column: the same tint, but opaque over the card, so the bars scrolling beneath don't show. */
+.chart-panel {
+  background-color: var(--chart-panel-tint);
+}
+.chart-panel-sticky {
+  background-color: var(--card);
+  background-image: linear-gradient(
+    var(--chart-panel-tint),
+    var(--chart-panel-tint)
+  );
 }
 .row-red > td {
   background-image: linear-gradient(var(--row-red), var(--row-red));

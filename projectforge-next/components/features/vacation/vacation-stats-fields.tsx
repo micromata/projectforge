@@ -53,7 +53,8 @@ export function VacationWorkingDaysField({
     <StatsValue
       label={t("vacation.workingdays")}
       value={stats?.workingDaysFormatted}
-      className={className}
+      // A number of days, "22,0", or its label if that is wider — no wider than either.
+      className={cn(className, "min-w-24")}
     />
   );
 }
@@ -87,7 +88,8 @@ export function VacationDaysLeftField({ className }: { className?: string }) {
           (stats?.vacationDaysLeftAfterThis ?? 0) < 0 &&
           "text-destructive"
       )}
-      className={className}
+      // As wide as a number of days, growing with "…, after this application: …".
+      className={cn(className, "min-w-24")}
     />
   );
 }
