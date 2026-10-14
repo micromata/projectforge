@@ -37,6 +37,7 @@ import org.projectforge.business.login.Login
 import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.*
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.StringHelper
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
@@ -370,10 +371,27 @@ class UserPagesRest
                 )
             )
         }
+        validateEmails(validationErrors, User::alternativeEmails, dto.alternativeEmails)
+        validateEmails(validationErrors, User::formerEmails, dto.formerEmails)
         validatePosixValues(validationErrors, dto)
         validateSambaValues(validationErrors, dto)
         validatePassword(User::password, dto.password, validationErrors)
         validatePassword(User::wlanPassword, dto.wlanPassword, validationErrors)
+    }
+
+    private fun validateEmails(
+        validationErrors: MutableList<ValidationError>,
+        field: KProperty<*>,
+        emails: String?,
+    ) {
+        PFUserDO.splitEmails(emails).filterNot { StringHelper.isEmailValid(it) }.forEach { email ->
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("user.error.invalidEmail", email),
+                    fieldId = field.name,
+                )
+            )
+        }
     }
 
     private fun validatePassword(
@@ -488,6 +506,8 @@ class UserPagesRest
                 PFUserDO::gender,
                 PFUserDO::organization,
                 PFUserDO::email,
+                PFUserDO::alternativeEmails,
+                PFUserDO::formerEmails,
                 PFUserDO::mobilePhone,
                 PFUserDO::jiraUsername,
                 PFUserDO::hrPlanning,
@@ -865,7 +885,7 @@ class UserPagesRest
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     }
 
-    override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email")
+    override val autoCompleteSearchFields = arrayOf("username", "firstname", "lastname", "email", "alternativeEmails", "formerEmails")
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
         val list = super.queryAutocompleteObjects(request, filter)
@@ -930,6 +950,8 @@ class UserPagesRest
             ExcelUtils.registerColumn(sheet, PFUserDO::nickname)
             ExcelUtils.registerColumn(sheet, PFUserDO::lastname)
             ExcelUtils.registerColumn(sheet, PFUserDO::email)
+            ExcelUtils.registerColumn(sheet, PFUserDO::alternativeEmails, 30)
+            ExcelUtils.registerColumn(sheet, PFUserDO::formerEmails, 30)
             ExcelUtils.registerColumn(sheet, PFUserDO::mobilePhone)
             sheet.registerColumn(translate("user.assignedGroups"), "assignedGroups").withSize(100)
             ExcelUtils.registerColumn(sheet, PFUserDO::rights)

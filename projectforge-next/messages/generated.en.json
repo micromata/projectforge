@@ -4439,6 +4439,10 @@
       },
       "title": "Two-factor authentication"
     },
+    "alternativeEmails": {
+      "_": "Alternative e-mail addresses",
+      "info": "Further e-mail addresses of the user still in use, comma separated."
+    },
     "assignedGroups": "Assigned groups",
     "authenticationToken": {
       "authenticator_key": {
@@ -4496,6 +4500,10 @@
       "newPassword": "New WLAN password"
     },
     "deactivated": "deactivated",
+    "formerEmails": {
+      "_": "Former e-mail addresses",
+      "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated."
+    },
     "gpgPublicKey": "GPG public key",
     "hrPlanningEnabled": "HR planning",
     "jiraUsername": {
