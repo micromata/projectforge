@@ -17,6 +17,11 @@ export interface SecretFieldProps extends BaseFieldProps {
   peek?: boolean;
   /** Further controls after the copy button — a data transfer password's "renew". */
   children?: ReactNode;
+  /**
+   * A value of the DTO alone, no property of the entity (a new user's initial password): silences the
+   * missing-metadata warning, see useFieldMetadata.
+   */
+  metadataLess?: boolean;
 }
 
 /**
@@ -32,11 +37,12 @@ export function SecretField({
   disabled,
   peek,
   children,
+  metadataLess,
 }: SecretFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, maxLength } = useFieldMetadata(name);
+  const { required, maxLength } = useFieldMetadata(name, metadataLess);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

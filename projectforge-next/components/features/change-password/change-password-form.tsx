@@ -8,11 +8,8 @@ import { FormActionBar } from "@/components/shared/form-action-bar";
 import { FormAlert } from "@/components/shared/form-alert";
 import { SectionCard } from "@/components/shared/section-card";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
-import {
-  PasswordField,
-  ReadOnlyValue,
-  type PasswordProps,
-} from "./change-password-fields";
+import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
+import { PasswordField, type PasswordProps } from "./change-password-fields";
 import type {
   ChangePasswordField,
   ChangePasswordInit,

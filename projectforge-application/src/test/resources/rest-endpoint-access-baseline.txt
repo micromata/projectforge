@@ -203,10 +203,6 @@ org.projectforge.rest.TimesheetEntityRest#getReferences
 org.projectforge.rest.TimesheetEntityRest#selectRecent
 org.projectforge.rest.TimesheetEntityRest#switch2CalendarEvent
 org.projectforge.rest.TimeZoneServicesRest#getLTimeZones
-org.projectforge.rest.UserPagesRest#createSambaSID
-org.projectforge.rest.UserPagesRest#createUid
-org.projectforge.rest.UserPagesRest#exportAsExcel
-org.projectforge.rest.UserPagesRest#resetToken
 org.projectforge.rest.UserStatusRest#loginTest
 org.projectforge.rest.VacationExportPageRest#exportExcel
 org.projectforge.rest.VacationExportPageRest#getForm

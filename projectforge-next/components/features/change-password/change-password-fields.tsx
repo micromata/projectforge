@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { SecretInput } from "@/components/shared/secret-input";
 import type { ChangePasswordField } from "./types";
@@ -48,28 +47,6 @@ export function PasswordField({
         autoComplete={autoComplete}
         autoFocus={autoFocus}
       />
-    </FieldShell>
-  );
-}
-
-/** A value shown, not edited (the user, the date of the last change), with a label like the fields'. */
-export function ReadOnlyValue({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  const ids = useFieldIds();
-  return (
-    <FieldShell label={label} readOnly invalid={false} errors={[]} ids={ids}>
-      <p
-        id={ids.controlId}
-        aria-labelledby={ids.labelId}
-        className="min-h-7 py-1 text-sm break-words"
-      >
-        {children || "–"}
-      </p>
     </FieldShell>
   );
 }

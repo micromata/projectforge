@@ -237,7 +237,9 @@ function DeclaredList<
       visibleColumnsOf(page.columns, variables),
       activeFields
     );
-    const appended = auditColumnsFor(kept, page.metadata);
+    // Against every declaration, not the kept ones: a page declaring an audit column hides it with its own
+    // `visible` (the user list's for administrators), and a dropped one must not come back as an option.
+    const appended = auditColumnsFor(page.columns, page.metadata);
     const columns = appended.length ? [...kept, ...appended] : kept;
     // Over all of them, appended and declared alike: a page may hide a column of its own at first too
     // (see ColumnBase.hiddenByDefault).

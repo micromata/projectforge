@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * The choices of a user's personal settings (locale, date formats, time notation), shared by the user edit
- * page (React, [UserPagesRest.createUserSettingsCol]) and the my-account page of projectforge-next
+ * page ([UserEntityRest.settingsOptions]) and the my-account page of projectforge-next
  * ([MyAccountRest]), so both offer the same lists.
  */
 object UserSettingsOptions {

@@ -239,6 +239,14 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/teamCal/new", redirectOf("/react/teamCal/edit"))
     }
 
+    /** The React user list and form are gone: bookmarked links are bent onto the next pages. */
+    @Test
+    fun `the old react user pages are redirected to next`() {
+        Assertions.assertEquals("/next/user", redirectOf("/react/user"))
+        Assertions.assertEquals("/next/user/42", redirectOf("/react/user/edit/42"))
+        Assertions.assertEquals("/next/user/new", redirectOf("/react/user/edit"))
+    }
+
     /**
      * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
      * the next pages. The vacation account and the vacation export, whose React routes start with the same name,

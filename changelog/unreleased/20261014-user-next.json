@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Users: the list and the form of the user administration are migrated to the new interface. The rights offered adapt to the assigned groups at once, and tokens can be renewed and devices logged out directly from the form.",
+  "de": "Benutzer: Liste und Formular der Benutzerverwaltung sind in die neue Oberfläche migriert. Die angebotenen Rechte passen sich sofort an die zugeordneten Gruppen an, Tokens lassen sich direkt im Formular erneuern und Geräte abmelden."
+}

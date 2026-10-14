@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Users: rights changed in the same save as the groups are now stored correctly. A right set together with joining a group was lost, and a right of a group the user left stayed set.",
+  "de": "Benutzer: Rechte, die zusammen mit den Gruppen geändert werden, werden jetzt korrekt gespeichert. Ein beim Gruppeneintritt gesetztes Recht ging verloren, und das Recht einer verlassenen Gruppe blieb gesetzt."
+}
