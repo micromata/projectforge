@@ -118,8 +118,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: PFUserDO, operationType: OperationType) {
-        obj.alternativeEmails = PFUserDO.normalizeEmails(obj.alternativeEmails)
-        obj.formerEmails = PFUserDO.normalizeEmails(obj.formerEmails)
+        obj.normalizeEmailLists()
     }
 
     /**

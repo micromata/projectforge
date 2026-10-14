@@ -70,6 +70,13 @@ class LanesAndPlanesSettings(
      */
     var existingCostObjects: List<String> = emptyList(),
     /**
+     * The emails of the users existing in Lanes & Planes (the `email` column of the user export, the ExtAPI can't
+     * read users). An employee whose email isn't listed, but one of the alternative or former emails of the
+     * user, is sent with that one (held back like a changed email, see [LanesAndPlanesEmailHolds]), so L&P doesn't
+     * create the user anew. Empty: not checked.
+     */
+    var existingUserEmails: List<String> = emptyList(),
+    /**
      * New emails of employees which were already changed in Lanes & Planes by hand. L&P identifies users by their
      * email only, so a changed email is held back (the old one is sent) until it's listed here, see
      * [LanesAndPlanesEmailHolds].
@@ -116,6 +123,11 @@ class LanesAndPlanesSettings(
         get() = existingCostObjects.map { it.trim() }.mapNotNull { name ->
             EXISTING_NAME_REGEX.find(name)?.let { it.groupValues[1] to name }
         }.distinctBy { it.first }.toMap()
+
+    /** The emails of [existingUserEmails], lower case. */
+    @get:JsonIgnore
+    val existingEmails: Set<String>
+        get() = existingUserEmails.map { it.trim().lowercase() }.filter { it.isNotEmpty() }.toSet()
 
     /** The confirmed new emails, lower case. */
     @get:JsonIgnore
@@ -184,6 +196,12 @@ class LanesAndPlanesSettings(
                 errors += Error(EXISTING_COST_OBJECTS, "$ERROR_PREFIX.existingCostObjectLength", index, name)
             }
         }
+        existingUserEmails.forEachIndexed { index, entry ->
+            val email = entry.trim()
+            if (email.isNotEmpty() && !EMAIL_REGEX.matches(email)) {
+                errors += Error(EXISTING_USER_EMAILS, "$ERROR_PREFIX.existingUserEmail", index, email)
+            }
+        }
         confirmedEmailChanges.forEachIndexed { index, entry ->
             val email = entry.trim()
             if (email.isNotEmpty() && !EMAIL_REGEX.matches(email)) {
@@ -228,6 +246,7 @@ class LanesAndPlanesSettings(
         const val KOST2_PATTERNS = "kost2Patterns"
         const val ADDITIONAL_USERS = "additionalUsers"
         const val EXISTING_COST_OBJECTS = "existingCostObjects"
+        const val EXISTING_USER_EMAILS = "existingUserEmails"
         const val CONFIRMED_EMAIL_CHANGES = "confirmedEmailChanges"
 
         /** The i18n prefix of the labels of the fields, see [Error.field]. */

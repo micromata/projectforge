@@ -68,6 +68,59 @@ class LanesAndPlanesEmailHoldsTest {
     }
 
     @Test
+    fun applyWithExistingEmails() {
+        val users = listOf(
+            user("1", "known@example.org"),
+            user("2", "new@example.org"),
+            user("3", "unknown@example.org"),
+            user("4", "taken-new@example.org"),
+            user("5", "Confirmed@example.org"),
+            user("6", "pushed@example.org"),
+            user(null, "additional@example.org"),
+        )
+        val existing = setOf(
+            "known@example.org", "alt2@example.org", "known-former@example.org", "known@example.org",
+            "taken@example.org", "old5@example.org", "old6@example.org",
+        )
+        val others = mapOf(
+            "1" to listOf("alt1@example.org"),
+            "2" to listOf("unknown-alt@example.org", "Alt2@example.org", "known-former@example.org"),
+            "3" to listOf("other@example.org"),
+            "4" to listOf("known@example.org"),
+            "5" to listOf("old5@example.org"),
+            "6" to listOf("old6@example.org"),
+        )
+        val result = LanesAndPlanesEmailHolds.apply(
+            users, mapOf("6" to "pushed@example.org"), setOf("confirmed@example.org"), existing, others,
+        )
+        Assertions.assertEquals(
+            listOf(LanesAndPlanesEmailHolds.Hold("2", "Alt2@example.org", "new@example.org")),
+            result.holds,
+            "The first known other email is sent; known primary, used other email, confirmed email and a pushed " +
+                    "user aren't changed.",
+        )
+        Assertions.assertEquals(
+            mapOf(
+                "1" to "known@example.org",
+                "2" to "Alt2@example.org",
+                "3" to "unknown@example.org",
+                "4" to "taken-new@example.org",
+                "5" to "Confirmed@example.org",
+                "6" to "pushed@example.org",
+                null to "additional@example.org",
+            ),
+            result.users.associate { it.ident to it.email },
+        )
+        Assertions.assertEquals(listOf("3", "4", "5", "6"), result.unknownIdents.sorted())
+        Assertions.assertTrue(
+            LanesAndPlanesEmailHolds.apply(users, emptyMap(), emptySet(), emptySet(), others).let {
+                it.holds.isEmpty() && it.unknownIdents.isEmpty()
+            },
+            "Without existing emails nothing is checked.",
+        )
+    }
+
+    @Test
     fun loadAndSave(@TempDir dir: File) {
         val file = File(dir, "state.json")
         Assertions.assertNull(LanesAndPlanesEmailHolds.load(file), "Missing file.")
