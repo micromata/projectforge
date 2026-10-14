@@ -32,6 +32,7 @@ import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.rest.dto.TeamCal
 import org.springframework.beans.factory.annotation.Autowired
 
 class TeamCalEntityRestTest : AbstractTestBase() {
@@ -72,6 +73,28 @@ class TeamCalEntityRestTest : AbstractTestBase() {
             assertNull(it.externalSubscriptionUrl)
             assertNotNull(it.externalSubscriptionUrlAnonymized)
             assertEquals(CalendarAccessStatus.READONLY_ACCESS, it.accessStatus)
+        }
+    }
+
+    /** Users with access to a calendar may still not save it: only its owner (and admins) may. */
+    @Test
+    fun `the form offers save and delete to the owner only`() {
+        val owner = logon(TEST_USER)
+        val fullAccessUser = getUser(TEST_USER2)
+        val calId = teamCalDao.insert(TeamCalDO().also {
+            it.title = "Write access test"
+            it.owner = owner
+            it.fullAccessUserIds = "${fullAccessUser.id}"
+        })
+        (teamCalEntityRest.getItem(calId).body as TeamCal).let {
+            assertEquals(true, it.writeAccess)
+            assertEquals(true, it.deleteAccess)
+        }
+        logon(fullAccessUser)
+        (teamCalEntityRest.getItem(calId).body as TeamCal).let {
+            assertEquals(CalendarAccessStatus.FULL_ACCESS, it.accessStatus)
+            assertEquals(false, it.writeAccess)
+            assertEquals(false, it.deleteAccess)
         }
     }
 

@@ -66,6 +66,7 @@ export const TEAM_CAL_PAGE = definePage<
       sortable: false,
       size: 140,
     },
+    { name: "lastUpdate", size: 130 },
   ],
   listActions: TeamCalListActions,
   edit: {

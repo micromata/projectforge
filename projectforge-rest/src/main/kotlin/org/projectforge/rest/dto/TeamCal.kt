@@ -62,7 +62,10 @@ class TeamCal(
      */
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     var subscriptionInfo: CalendarSubscriptionInfo? = null,
-) : BaseDTO<TeamCalDO>() {
+    // Only owners and admins may save a calendar (BaseUserGroupRight.hasUpdateAccess), not users with full access.
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<TeamCalDO>(), EntityAccessSupport {
     // The user and group ids are stored as csv list of longs in the database.
     override fun copyFrom(src: TeamCalDO) {
         super.copyFrom(src)
