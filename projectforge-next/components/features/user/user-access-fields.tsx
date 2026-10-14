@@ -39,6 +39,26 @@ export function UserAccessFields({ className }: { className?: string }) {
   }`;
   return (
     <div className={cn("flex flex-col gap-4", className)}>
+      <div className="flex flex-wrap gap-2">
+        {/* The action an admin comes here for most: first and highlighted. */}
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setPasswordDialog("password")}
+        >
+          {t("menu.changePassword")}
+        </Button>
+        {data?.wlanPasswordSupported && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPasswordDialog("wlan")}
+          >
+            {t("menu.changeWlanPassword")}
+          </Button>
+        )}
+      </div>
       <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_max-content]">
         <ReadOnlyValue
           label={t("user.authenticationToken.calendar_rest._")}
@@ -80,26 +100,6 @@ export function UserAccessFields({ className }: { className?: string }) {
           {devices}
         </ReadOnlyValue>
         <UserAccessAction userId={userId} onDone={update} />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setPasswordDialog("password")}
-        >
-          {t("menu.changePassword")}
-        </Button>
-        {data?.wlanPasswordSupported && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setPasswordDialog("wlan")}
-          >
-            {t("menu.changeWlanPassword")}
-          </Button>
-        )}
       </div>
       {passwordDialog && (
         <ChangePasswordDialog
