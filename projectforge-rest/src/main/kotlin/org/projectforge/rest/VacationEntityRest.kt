@@ -282,6 +282,9 @@ class VacationEntityRest :
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>> {
         val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        if (!vacationService.hasLoggedInUserUnrestrictedVacationView()) {
+            filters.add(createVisibilityFilter())
+        }
         source.entries.find { it.field == "assignment" }?.let { entry ->
             entry.synthetic = true
             val values = entry.value.values
@@ -323,6 +326,14 @@ class VacationEntityRest :
     }
 
     private fun employeeIdOf(id: Long?, value: String?): Long? = id ?: value?.toLongOrNull()
+
+    /** With all vacations of the logged-in user's employee (with their substitutes), in one query. */
+    private fun createVisibilityFilter(): VacationVisibilityFilter {
+        val employeeId = ThreadLocalUserContext.userContext?.employeeId
+            ?: return VacationVisibilityFilter(null, emptyList())
+        val queryFilter = baseDao.createQueryFilter().also { it.add(QueryFilter.eq("employee.id", employeeId)) }
+        return VacationVisibilityFilter(employeeId, baseDao.select(queryFilter, checkAccess = false))
+    }
 
     /**
      * Manager and replacement are mandatory, as on the React form. Checked here, because `required` of
@@ -455,15 +466,7 @@ class VacationEntityRest :
         if (last < first || ChronoUnit.DAYS.between(first, last) > CHART_MAX_DAYS) {
             return null
         }
-        val holidays = Holidays.instance
-        return generateSequence(first) { it.plusDays(1) }.takeWhile { it <= last }.map { date ->
-            val holiday = if (holidays.isHoliday(date.year, date.dayOfYear)) {
-                holidays.getHolidayInfo(date.year, date.dayOfYear)
-                    .let { if (it.startsWith("calendar.holiday.")) translate(it) else it }
-                    .ifBlank { null }
-            } else null
-            VacationChartDay(date, holidays.isWorkingDay(date), holiday, uncovered.contains(date))
-        }.toList()
+        return VacationChartDay.listOf(first, last, uncovered)
     }
 
     /** The list starts with the vacations overlapping the current calendar year (the pinned period). */

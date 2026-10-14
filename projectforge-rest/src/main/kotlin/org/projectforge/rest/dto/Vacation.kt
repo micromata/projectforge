@@ -30,6 +30,7 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
@@ -133,4 +134,19 @@ class VacationChartDay(
     val workingDay: Boolean,
     val holiday: String? = null,
     val uncovered: Boolean = false,
-)
+) {
+    companion object {
+        /** Every day from [first] to [last] (both inclusive), with the holidays' names in the user's language. */
+        fun listOf(first: LocalDate, last: LocalDate, uncovered: Set<LocalDate> = emptySet()): List<VacationChartDay> {
+            val holidays = Holidays.instance
+            return generateSequence(first) { it.plusDays(1) }.takeWhile { it <= last }.map { date ->
+                val holiday = if (holidays.isHoliday(date.year, date.dayOfYear)) {
+                    holidays.getHolidayInfo(date.year, date.dayOfYear)
+                        .let { if (it.startsWith("calendar.holiday.")) translate(it) else it }
+                        .ifBlank { null }
+                } else null
+                VacationChartDay(date, holidays.isWorkingDay(date), holiday, uncovered.contains(date))
+            }.toList()
+        }
+    }
+}

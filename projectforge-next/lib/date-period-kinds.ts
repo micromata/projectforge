@@ -63,6 +63,28 @@ const MONTH: PeriodKind = {
 };
 
 /**
+ * Calendar-aligned quarter: 01.01.–31.03., 01.04.–30.06. and so on, paged a quarter at a time — "welches
+ * Quartal?" of the team vacation calendar, where the `termThreeMonths` term would run from whatever begin
+ * was typed.
+ */
+const QUARTER: PeriodKind = {
+  id: "quarter",
+  labelKey: "calendar.quarter",
+  shortLabelKey: "duration.short.quarter",
+  tooltipPreviousKey: "calendar.quickselect.tooltip.selectPreviousQuarter",
+  tooltipCurrentKey: "calendar.quickselect.tooltip.selectCurrentQuarter",
+  tooltipNextKey: "calendar.quickselect.tooltip.selectNextQuarter",
+  beginOf: (iso) => firstOfQuarter(iso),
+  endOf: (iso) => endOfMonth(firstOfMonth(firstOfQuarter(iso), 2)),
+  shift: (iso, steps) => firstOfMonth(firstOfQuarter(iso), 3 * steps),
+};
+
+function firstOfQuarter(iso: string): string {
+  const { year, month } = partsOf(iso);
+  return isoOfParts(year, month - ((month - 1) % 3), 1);
+}
+
+/**
  * Calendar-aligned year: 01.01.–31.12. of the year a date falls in, paged a whole year at a time — "welches
  * Jahr?" of a list, where the `termYear` term would run twelve months from whatever begin was typed.
  */
@@ -170,13 +192,14 @@ export const TERM_KINDS: readonly PeriodKind[] = [
 
 /**
  * Every kind there is, and this is the order every picker offers its own selection in (see
- * [periodKindsOf]): the calendar week, month and year, then the terms rising in length, and "Jahr bis heute"
+ * [periodKindsOf]): the calendar week, month, quarter and year, then the terms rising in length, and "Jahr bis heute"
  * last — it is the year again, only ending today, so it reads as the entry below "Jahr" rather than
  * between the lengths.
  */
 export const PERIOD_KINDS: readonly PeriodKind[] = [
   WEEK,
   MONTH,
+  QUARTER,
   // Before the terms: 01.01.–31.12. reads as the calendar year, not as twelve months from the 1st.
   YEAR,
   ...TERM_KINDS,

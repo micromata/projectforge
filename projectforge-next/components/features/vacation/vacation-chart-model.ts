@@ -2,6 +2,7 @@ import type {
   EmployeeRef,
   VacationChartDay,
   VacationDetail,
+  VacationExportView,
   VacationStatus,
 } from "./types";
 
@@ -40,7 +41,7 @@ export interface OwnVacation {
 }
 
 /** A period on the axis, cut off at its edges; null if it lies beside it. ISO dates compare as strings. */
-function barOf(
+export function barOf(
   key: string,
   days: VacationChartDay[],
   vacation: Pick<
@@ -158,4 +159,24 @@ export function monthSpans(
     else spans.push({ month, first: i, last: i });
   });
   return spans;
+}
+
+/** The rows of the team calendar: every employee, also those without a vacation in the period. */
+export function teamChartRows(view: VacationExportView): ChartRow[] {
+  return view.rows.map((row) => ({
+    key: String(row.employee.id),
+    name: row.employee.displayName ?? "",
+    own: false,
+    bars: row.vacations
+      .map((v, i) =>
+        barOf(`${row.employee.id}-${v.id ?? i}`, view.days, {
+          startDate: v.startDate ?? null,
+          endDate: v.endDate ?? null,
+          halfDayBegin: v.halfDayBegin,
+          halfDayEnd: v.halfDayEnd,
+          status: v.status ?? null,
+        })
+      )
+      .filter((bar): bar is ChartBar => bar != null),
+  }));
 }

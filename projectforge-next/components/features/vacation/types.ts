@@ -96,3 +96,65 @@ export interface VacationListRow extends VacationDetail {
   /** The days without any substitute on duty (ISO dates), only on a conflict. */
   uncoveredDays?: string[] | null;
 }
+
+/** An employee or group of the team vacation calendar (`org.projectforge.rest.dto.VacationExportRef`). */
+export interface VacationExportRef {
+  id: number;
+  displayName?: string | null;
+}
+
+/** What the team vacation calendar asks for (`VacationExportRequest`); the Excel export starts with `from`. */
+export interface VacationExportRequest {
+  employeeIds: number[];
+  groupIds: number[];
+  periodKind: string;
+  /** VacationChartWidth, only stored. */
+  dayWidth: string;
+  from: string;
+  until: string;
+}
+
+/** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
+export interface VacationExportInitial {
+  employees: VacationExportRef[];
+  groups: VacationExportRef[];
+  periodKind?: string | null;
+  dayWidth?: string | null;
+  unrestricted: boolean;
+  /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
+  earliestDate?: string | null;
+  favorites: VacationExportFavorite[];
+}
+
+/** A named choice of employees and groups (`VacationExportFavoriteInfo`). */
+export interface VacationExportFavorite {
+  id: number;
+  name: string;
+  employeeIds: number[];
+  groupIds: number[];
+}
+
+/** A favorite applied, as far as the user may pick it (`VacationExportSelection`). */
+export interface VacationExportSelection {
+  employees: VacationExportRef[];
+  groups: VacationExportRef[];
+}
+
+/** A vacation (approved or in progress) of the team vacation calendar (`VacationExportVacation`). */
+export interface VacationExportVacation {
+  id?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  halfDayBegin: boolean;
+  halfDayEnd: boolean;
+  status?: VacationStatus | null;
+}
+
+/** The calendar of a period (`VacationExportView`): one row per employee, sorted by name. */
+export interface VacationExportView {
+  days: VacationChartDay[];
+  rows: {
+    employee: VacationExportRef;
+    vacations: VacationExportVacation[];
+  }[];
+}

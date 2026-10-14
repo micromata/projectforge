@@ -63,6 +63,12 @@ export interface PeriodStepperProps {
    * does, and is offered only where that kind has a "current" (see [PeriodKind.tooltipCurrentKey]).
    */
   currentButton?: boolean;
+  /**
+   * The first day there is to see (ISO), e.g. 1 January for a user who may not look into previous years: the
+   * previous arrow is disabled once the period before would end earlier. Picking an art is the caller's to
+   * clamp.
+   */
+  min?: string | null;
 }
 
 /**
@@ -100,6 +106,7 @@ export function PeriodStepper({
   className,
   longLabel = false,
   currentButton = false,
+  min,
 }: PeriodStepperProps) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -117,6 +124,13 @@ export function PeriodStepper({
     if (kind && anchor) onSelect(kind, kind.shift(anchor, steps, ctx));
   };
 
+  // ISO dates compare as strings.
+  const atMin =
+    !!min &&
+    !!kind &&
+    !!anchor &&
+    kind.endOf(kind.shift(anchor, -1, ctx), ctx) < min;
+
   const arrow = (steps: number, icon: typeof ArrowLeft01Icon, key: string) => (
     <HintTooltip text={t(key)}>
       <Button
@@ -124,7 +138,7 @@ export function PeriodStepper({
         variant="ghost"
         size="icon-sm"
         aria-label={t(key)}
-        disabled={disabled || !canStep}
+        disabled={disabled || !canStep || (steps < 0 && atMin)}
         onClick={() => step(steps)}
       >
         <HugeiconsIcon icon={icon} />

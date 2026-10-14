@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.VacationFilter
@@ -47,6 +48,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -113,7 +115,9 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
             return true
         }
-        return if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user) &&
+        // The employee's user from the cache: the list checks each row, a lazy employee would be loaded one by one.
+        val employeeUser = caches.getEmployeeIfNotInitialized(obj.employee)?.user
+        return if (employeeUser != null && accessChecker.areUsersInSameGroup(user, employeeUser) &&
             // Don't show vacation entries of others older than 31 days (end date):
             obj.endDate?.isAfter(LocalDate.now().minusDays(31L)) == true
         ) {
@@ -284,6 +288,19 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
     }
 
+    /**
+     * HR and finance staff: the HR vacation right (read-only suffices), or member of the finance, controlling or HR
+     * group. They see the vacations of everybody in the vacation list and in the team vacation calendar; anybody
+     * else only a part of them (see VacationEntityRest and VacationExportRest).
+     */
+    open fun hasLoggedInUserUnrestrictedVacationView(): Boolean {
+        return accessChecker.hasLoggedInUserRight(
+            UserRightId.HR_VACATION, false, UserRightValue.READONLY, UserRightValue.READWRITE,
+        ) || accessChecker.isLoggedInUserMemberOfGroup(
+            false, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.HR_GROUP,
+        )
+    }
+
     open fun hasHrRights(loggedInUser: PFUserDO?): Boolean {
         return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
     }
@@ -397,19 +414,21 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         )
     }
 
-    /** The vacations (special ones too) of the given employees overlapping the period, in one query. */
+    /**
+     * The vacations (special ones too) of the given employees overlapping the period, in one query (batched for the
+     * parameter limit of `IN` by [PfPersistenceService.executeQueryBatched]). Sorted by start date descending per
+     * batch.
+     */
     open fun getVacationsOfEmployeesForPeriod(
         employeeIds: Collection<Long>,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<VacationDO> {
-        if (employeeIds.isEmpty()) {
-            return emptyList()
-        }
-        return persistenceService.executeQuery(
+        return persistenceService.executeQueryBatched(
             "SELECT v FROM VacationDO v WHERE v.employee.id IN :employeeIds AND v.endDate >= :startDate AND v.startDate <= :endDate$META_SQL_WITH_SPECIAL",
             VacationDO::class.java,
-            Pair("employeeIds", employeeIds),
+            "employeeIds",
+            employeeIds,
             Pair("startDate", startDate),
             Pair("endDate", endDate),
             Pair("deleted", false),

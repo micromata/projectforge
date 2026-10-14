@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -127,7 +128,7 @@ class VacationAccountRest {
 
     private fun build(employee: EmployeeDO?, hrAccess: Boolean): VacationAccount {
         val vacationListUrl = PagesResolver.getListPageUrl(VacationEntityRest::class.java, absolute = true)
-        val exportUrl = PagesResolver.getDynamicPageUrl(VacationExportPageRest::class.java, absolute = true)
+        val exportUrl = "/${Constants.NEXT_APP_PATH}vacationExport"
         val employeeId = employee?.id
             ?: return VacationAccount(null, hrAccess, vacationListUrl = vacationListUrl, exportUrl = exportUrl)
         val year = Year.now().value

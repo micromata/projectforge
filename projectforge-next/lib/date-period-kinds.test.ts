@@ -8,6 +8,7 @@ const berlin: FormatContext = { locale: "de-DE", timeZone: "Europe/Berlin" };
 const of = (id: string) => periodKindOf(id) as PeriodKind;
 const calWeek = of("week");
 const month = of("month");
+const quarter = of("quarter");
 const yearToDate = of("yearToDate");
 const week = of("termWeek");
 const termMonth = of("termMonth");
@@ -59,6 +60,29 @@ describe("the calendar month", () => {
 });
 
 /** A calendar-aligned week, Monday to Sunday where the user starts on Monday — what a list filter asks. */
+describe("the calendar quarter", () => {
+  it("spans the whole quarter a date lies in", () => {
+    expect(boundsOfPeriod(quarter, "2026-05-17", berlin)).toEqual({
+      from: "2026-04-01",
+      to: "2026-06-30",
+    });
+    expect(boundsOfPeriod(quarter, "2026-12-31", berlin)).toEqual({
+      from: "2026-10-01",
+      to: "2026-12-31",
+    });
+    expect(boundsOfPeriod(quarter, "2024-01-01", berlin)).toEqual({
+      from: "2024-01-01",
+      to: "2024-03-31",
+    });
+  });
+
+  it("pages a quarter at a time, across the turn of the year", () => {
+    expect(quarter.shift("2026-10-01", 1, berlin)).toBe("2027-01-01");
+    expect(quarter.shift("2026-01-01", -1, berlin)).toBe("2025-10-01");
+    expect(quarter.shift("2026-05-17", 2, berlin)).toBe("2026-10-01");
+  });
+});
+
 describe("the calendar week", () => {
   const sunday: FormatContext = { ...berlin, weekStartsOn: 0 };
 

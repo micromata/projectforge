@@ -242,7 +242,7 @@ class OrphanedLinkFilterTest {
     /**
      * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
      * the next pages. The vacation account and the vacation export, whose React routes start with the same name,
-     * are other pages: the export stays where it is, the account has its own rule (see below).
+     * are other pages with their own rules.
      */
     @Test
     fun `the old react vacation pages are redirected to next`() {
@@ -251,7 +251,14 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/vacation/42", redirectOf("/react/vacation/edit/42", mapOf("returnToCaller" to "account")))
         Assertions.assertEquals("/next/vacation/new", redirectOf("/react/vacation/edit"))
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationAccount/dynamic"))
-        Assertions.assertNull(redirectOf("/react/vacationExport/dynamic"))
+        Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
+    }
+
+    /** The old React team vacation export is gone. */
+    @Test
+    fun `the old react vacation export is redirected to next`() {
+        Assertions.assertEquals("/next/vacationExport", redirectOf("/react/vacationExport/dynamic"))
+        Assertions.assertEquals("/next/vacationExport", redirectOf("/react/vacationExport"))
     }
 
     /**
