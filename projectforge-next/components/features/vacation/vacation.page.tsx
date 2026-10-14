@@ -1,4 +1,5 @@
 import { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
+import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
 import { definePage } from "@/lib/page-def/define-page";
 import { VacationConflictNotice } from "./vacation-conflict-notice";
 import {
@@ -47,6 +48,8 @@ export const VACATION_PAGE = definePage<
   metadata: VACATION_METADATA,
   route: "/vacation",
   queryKey: VACATION_LIST_QUERY_KEY,
+  // The vacation account (its statistics and vacations) changes with every entry saved or deleted.
+  extraInvalidateKeys: [VACATION_ACCOUNT_QUERY_KEY],
   // Where the entry sits in the main menu: Common (MenuCreator, MenuItemDefId.VACATION).
   categoryKey: "menu.common",
   titleKey: "vacation.title.list",

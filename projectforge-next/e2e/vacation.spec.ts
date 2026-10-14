@@ -150,8 +150,8 @@ function februaryWeek(year: number): { monday: string; friday: string } {
 }
 
 /**
- * A date as it stands in a date box — through the box's own formatter, not `format.date`: the latter
- * renders in the user's time zone, which would move an ISO day across a zone boundary.
+ * A date as it stands in a date box — through the box's own formatter, not `format.date`: the box has a
+ * layout of its own (the locale's two-digit day and month), which the display format need not match.
  */
 function dateInput(format: UserFormat, iso: string): string {
   return formatDateInput(iso, format.context);

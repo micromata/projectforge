@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { PersonSelect } from "@/components/shared/person-select";
 import { VacationStatisticsTable } from "./vacation-statistics-table";
 import type { VacationAccount } from "./types";
@@ -13,10 +14,13 @@ import type { VacationAccount } from "./types";
  */
 export function VacationAccountSummary({
   account,
+  selected,
   onSelectEmployee,
 }: {
   account: VacationAccount;
-  onSelectEmployee: (id: number) => void;
+  /** The employee picked while their account still loads; the picker shows them instead of the account's. */
+  selected?: EntityRef | null;
+  onSelectEmployee: (employee: EntityRef) => void;
 }) {
   const t = useTranslations();
   const ids = useFieldIds();
@@ -34,11 +38,18 @@ export function VacationAccountSummary({
             kind="employee"
             required
             value={
-              employee
+              selected ??
+              (employee
                 ? { id: employee.id, displayName: employee.displayName ?? "" }
-                : null
+                : null)
             }
-            onChange={(picked) => picked?.id && onSelectEmployee(picked.id)}
+            onChange={(picked) =>
+              picked?.id &&
+              onSelectEmployee({
+                id: picked.id,
+                displayName: picked.displayName,
+              })
+            }
           />
         </div>
       )}

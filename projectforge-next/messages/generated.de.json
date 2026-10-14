@@ -3831,7 +3831,8 @@
             "title": "Neues Release"
           },
           "title": "For copy & paste"
-        }
+        },
+        "tooltip": "Die Meldung wird auf jeder Seite rot angezeigt. Sie wird nur zur Laufzeit im Speicher gehalten und bei einem Neustart von ProjectForge gelöscht."
       },
       "button": {
         "checkI18nProperties": {
@@ -4612,6 +4613,7 @@
       "_": "Vertretung",
       "others": "Weitere Vertretungen"
     },
+    "replacementVacationsUnavailable": "Die Urlaube der Vertretungen konnten nicht geladen werden.",
     "special": {
       "_": "Sonderurlaub",
       "tooltip": "Sonderurlaub wird im Urlaubskonto nicht berücksichtigt."

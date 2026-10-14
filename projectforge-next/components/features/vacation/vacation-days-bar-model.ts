@@ -16,8 +16,11 @@ export interface DaysBar {
   truncated: boolean;
 }
 
-/** Days drawn at most: the same scale for every row, so the bars compare as durations. */
-export const BAR_MAX_DAYS = 40;
+/**
+ * Days drawn at most: the same scale for every row, so the bars compare as durations. Four weeks of 5px each
+ * (segment and gap) beside the number and the "…" still fit the list's column (vacation.page.tsx, 220px).
+ */
+export const BAR_MAX_DAYS = 28;
 
 /**
  * The days of a vacation as the list's bar draws them: a day without any substitute on duty red, a weekend or
@@ -41,9 +44,11 @@ export function daysBar(vacation: {
     days.push({
       date,
       kind: uncovered.has(date) ? "uncovered" : off.has(date) ? "off" : "work",
+      // Only on a working day, as VacationService counts it.
       half:
-        (date === startDate && !!vacation.halfDayBegin) ||
-        (date === endDate && !!vacation.halfDayEnd),
+        !off.has(date) &&
+        ((date === startDate && !!vacation.halfDayBegin) ||
+          (date === endDate && !!vacation.halfDayEnd)),
     });
     date = shiftDateByDays(date, 1);
   }

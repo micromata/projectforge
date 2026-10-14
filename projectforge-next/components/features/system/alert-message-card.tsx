@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,7 +48,11 @@ export function AlertMessageCard({ data }: { data: SystemAdminData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("system.admin.group.title.alertMessage")}</CardTitle>
+        <CardTitle>
+          <HintTooltip text={t("system.admin.alertMessage.tooltip")} openOnTap>
+            <span>{t("system.admin.group.title.alertMessage")}</span>
+          </HintTooltip>
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Textarea

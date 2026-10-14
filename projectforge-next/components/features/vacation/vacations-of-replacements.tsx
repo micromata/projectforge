@@ -86,8 +86,15 @@ export function VacationsOfReplacements() {
         // The employee stays at the left while the other columns scroll.
         columnPinning={PINNED}
         getRowId={(row) => String(row.id ?? row.index)}
+        // Not "nothing found" when the stats failed: that would read as "no conflict".
         emptyState={
-          <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+          stats?.unavailable ? (
+            <p className="text-xs text-destructive">
+              {t("vacation.replacementVacationsUnavailable")}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+          )
         }
       />
     </div>

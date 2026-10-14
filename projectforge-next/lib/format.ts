@@ -97,15 +97,21 @@ function toDate(value: unknown): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-/** Date only, e.g. 17.06.2016. */
+/**
+ * Date only, e.g. 17.06.2016. A calendar day (`2016-06-17`) has no time zone: `new Date` reads it as midnight UTC,
+ * so it is formatted in UTC as well — in the user's zone west of UTC it would read a day early. A timestamp is
+ * shown on the day it falls on in the user's zone.
+ */
 export function formatDate(value: unknown, ctx: FormatContext): string {
   const date = toDate(value);
   if (!date) return "";
+  const calendarDay =
+    typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
   return new Intl.DateTimeFormat(ctx.locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    timeZone: ctx.timeZone,
+    timeZone: calendarDay ? "UTC" : ctx.timeZone,
   }).format(date);
 }
 

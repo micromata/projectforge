@@ -26,6 +26,8 @@ package org.projectforge.rest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
@@ -318,13 +320,105 @@ class VacationEntityRestTest : AbstractTestBase() {
         val otherId = vacationDao.insert(vacation(other, replacement = hr, monday.plusDays(2), monday.plusDays(4)))
         conflictingVacationsCache.forceReload()
 
-        val listed = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = false)
+        // Through the list: its rows get their uncovered days all at once (postProcessResultSet).
+        val filter = MagicFilter()
+        filter.entries.add(MagicFilterEntry("period").also {
+            it.value.fromValue = monday.toString(); it.value.toValue = monday.plusDays(6).toString()
+        })
+        val rows = vacationEntityRest.listPage(
+            MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+        ).resultSet.map { it as Vacation }.associateBy { it.id }
+        val listed = rows[ownId]!!
         assertEquals(true, listed.conflict)
         assertEquals(listOf(monday.plusDays(5), monday.plusDays(6)), listed.nonWorkingDays)
         assertEquals((2L..4L).map { monday.plusDays(it) }, listed.uncoveredDays)
-        val free = vacationEntityRest.transformFromDB(vacationDao.find(otherId)!!, editMode = false)
+        val free = rows[otherId]!!
         assertEquals(null, free.uncoveredDays, "No conflict: the substitute of the other is on duty.")
         assertEquals(emptyList<LocalDate>(), free.nonWorkingDays)
+    }
+
+    @Test
+    fun `a substitute sees neither the days left of the entry's employee nor the comments of other entries`() {
+        val own = createEmployee("privacy-own")
+        val other = createEmployee("privacy-other")
+        val hr = createEmployee("privacy-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 5, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        // The entry of the other, the own employee substituting; the hr employee, the own one's substitute, away too.
+        // The helper's manager is the replacement: the manager may see the days left, the substitute alone not.
+        val otherId = vacationDao.insert(vacation(other, replacement = own, monday, monday.plusDays(4)).also {
+            it.manager = hr
+        })
+        vacationDao.insert(vacation(hr, replacement = other, monday, monday.plusDays(1)).also {
+            it.comment = "private"
+        })
+        val asHr = vacationEntityRest.stats(PostData(Vacation(vacationDao.find(otherId)!!).also {
+            it.replacement = Employee(hr.id)
+        }, watchFieldsTriggered = null, serverData = null))
+        assertNotNull(asHr.vacationDaysLeftInYear, "HR staff see the days left.")
+        assertEquals(listOf<String?>(null), asHr.conflictingVacations!!.map { it.comment }, "No comment of the others.")
+
+        logon(own.user!!)
+        val stored = vacationDao.find(otherId)!!
+        val stats = vacationEntityRest.stats(PostData(Vacation(stored), watchFieldsTriggered = null, serverData = null))
+        assertNull(stats.vacationDaysLeftInYear, "The substitute doesn't see the remaining leave of the other.")
+        assertNull(stats.vacationDaysLeftAfterThis)
+        val opened = vacationEntityRest.transformFromDB(stored, editMode = true)
+        assertNull(opened.vacationDaysLeftInYear)
+    }
+
+    @Test
+    fun `opening a rejected entry doesn't mark it as a conflict`() {
+        val own = createEmployee("rejected-own")
+        val other = createEmployee("rejected-other")
+        val hr = createEmployee("rejected-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 6, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, monday, monday.plusDays(4)).also {
+            it.status = VacationStatus.REJECTED
+        })
+        vacationDao.insert(vacation(other, replacement = hr, monday, monday.plusDays(4)))
+        conflictingVacationsCache.forceReload()
+
+        val opened = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = true)
+        assertEquals(true, opened.conflict, "The form still tells the days without any substitute.")
+        assertFalse(conflictingVacationsCache.hasConflict(ownId), "But the cache of the current conflicts isn't touched.")
+    }
+
+    @Test
+    fun `saving and rejecting an entry update the conflicts at once`() {
+        val own = createEmployee("save-own")
+        val other = createEmployee("save-other")
+        val hr = createEmployee("save-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 7, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, monday, monday.plusDays(4)))
+        conflictingVacationsCache.forceReload()
+        assertFalse(conflictingVacationsCache.hasConflict(ownId))
+
+        // The substitute's vacation makes a conflict of the own one, without anybody opening it.
+        val otherId = vacationDao.insert(vacation(other, replacement = hr, monday, monday.plusDays(4)))
+        assertTrue(conflictingVacationsCache.hasConflict(ownId))
+
+        val rejected = vacationDao.find(otherId)!!.also { it.status = VacationStatus.REJECTED }
+        vacationDao.update(rejected)
+        assertFalse(conflictingVacationsCache.hasConflict(ownId), "The substitute is on duty again.")
+    }
+
+    @Test
+    fun `a running vacation counts its days already past as its opening does`() {
+        val own = createEmployee("running-own")
+        val other = createEmployee("running-other")
+        val hr = createEmployee("running-hr", hrAccess = true)
+        val today = LocalDate.now()
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, today.minusDays(10), today.plusDays(10)))
+        // The substitute was away in the first days only, and is back since.
+        vacationDao.insert(vacation(other, replacement = hr, today.minusDays(10), today.minusDays(5)))
+        conflictingVacationsCache.forceReload()
+        assertTrue(conflictingVacationsCache.hasConflict(ownId))
+        val opened = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = true)
+        assertEquals(true, opened.conflict)
     }
 
     private fun vacation(

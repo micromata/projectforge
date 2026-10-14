@@ -160,9 +160,10 @@ class VacationAccountRest {
                     ),
                 )
             },
-            workingHoursStatistics = vacationService.getAverageWorkingTimeStats(
-                employee.user ?: ThreadLocalUserContext.loggedInUser!!, PFDay.fromOrNull(employee.eintrittsDatum)
-            ).localizedMessage,
+            // Only of the employee's own user: an employee without one has no time sheets to average.
+            workingHoursStatistics = employee.user?.let {
+                vacationService.getAverageWorkingTimeStats(it, PFDay.fromOrNull(employee.eintrittsDatum)).localizedMessage
+            },
             newVacationUrl = vacationEditUrl(null, mapOf("employee" to employeeId)),
             vacationListUrl = vacationListUrl,
             exportUrl = exportUrl,

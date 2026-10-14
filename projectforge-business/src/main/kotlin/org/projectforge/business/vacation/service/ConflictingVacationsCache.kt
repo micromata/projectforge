@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -47,6 +48,8 @@ class ConflictingVacationsCache() : AbstractCache() {
 
     @Autowired
     private lateinit var vacationService: VacationService
+
+    private lateinit var vacationDao: VacationDao
 
     /**
      * Key is the employee id.
@@ -64,10 +67,16 @@ class ConflictingVacationsCache() : AbstractCache() {
     @PostConstruct
     private fun postConstruct() {
         this.vacationService = applicationContext.getBean(VacationService::class.java)
+        this.vacationDao = applicationContext.getBean(VacationDao::class.java)
     }
 
+    /**
+     * Takes the conflict of a vacation as it is stored into the cache. Only a current or future one in a status the
+     * cache holds (see [refresh]) is kept: opening an old or rejected entry must not mark it as a conflict.
+     */
     fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
         checkRefresh()
+        val conflict = conflict && isConsidered(vacationDO)
         synchronized(allConflictingVacations) {
             vacationDO.id?.let { id ->
                 if (!conflict) {
@@ -78,12 +87,17 @@ class ConflictingVacationsCache() : AbstractCache() {
             }
         }
         synchronized(conflictingVacationsByEmployee) {
-            if (!conflict) {
-                conflictingVacationsByEmployee[vacationDO.employee?.id]?.remove(vacationDO)
-            } else {
+            // By id: the list holds the instance of the last refresh, not the one given here.
+            conflictingVacationsByEmployee[vacationDO.employee?.id]?.removeIf { it.id == vacationDO.id }
+            if (conflict) {
                 ensureEmployeeList(conflictingVacationsByEmployee, vacationDO.employee?.id).add(vacationDO)
             }
         }
+    }
+
+    private fun isConsidered(vacationDO: VacationDO): Boolean {
+        val endDate = vacationDO.endDate ?: return false
+        return !vacationDO.deleted && endDate >= LocalDate.now() && vacationDO.status in VacationService.CONFLICT_STATUS
     }
 
     fun hasConflict(vacationDO: VacationDO): Boolean {
@@ -119,13 +133,26 @@ class ConflictingVacationsCache() : AbstractCache() {
                     ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
                 }
             }
+            // A running vacation also counts the days already past, as getVacationOverlaps does when the entry is
+            // opened: its substitutes' vacations that ended before today are needed too.
+            val running = all.filter { it.startDate?.isBefore(LocalDate.now()) == true }
+            val earlierOfReplacements = if (running.isEmpty()) {
+                emptyList()
+            } else {
+                vacationDao.getVacationsOfEmployeesForPeriod(
+                    running.flatMap { vacationService.collectAllReplacements(it) }.mapNotNull { it.id }.toSet(),
+                    running.minOf { it.startDate!! },
+                    LocalDate.now().minusDays(1),
+                ).filter { it.status in VacationService.CONFLICT_STATUS && it.endDate?.isBefore(LocalDate.now()) == true }
+            }
+            val pool = all + earlierOfReplacements
             val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
             val newAllConflictingVacations = mutableSetOf<Long>()
             // Now find conflicting entries:
             all.forEach { vacation ->
                 val vacationsOfReplacements = mutableListOf<VacationDO>()
                 vacationService.collectAllReplacements(vacation).forEach { replacementEmployee ->
-                    vacationsOfReplacements.addAll(all.filter { it.employee?.id == replacementEmployee.id })
+                    vacationsOfReplacements.addAll(pool.filter { it.employee?.id == replacementEmployee.id })
                 }
                 if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
                     ensureEmployeeList(newConflictingVacations, vacation.employee?.id).add(vacation)

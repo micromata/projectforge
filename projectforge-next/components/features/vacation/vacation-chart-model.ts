@@ -57,12 +57,23 @@ function barOf(
   const first = startDate < firstDay ? 0 : index(startDate);
   const last = endDate > lastDay ? days.length - 1 : index(endDate);
   if (first < 0 || last < first) return null;
+  // As VacationService counts them: a half day only on a working day, and a single day with both boxes checked
+  // is one half day (drawn as its first half; both halves cut off would leave no bar).
+  const halfFirst =
+    vacation.halfDayBegin === true &&
+    startDate >= firstDay &&
+    days[first].workingDay;
+  const halfLast =
+    vacation.halfDayEnd === true &&
+    endDate <= lastDay &&
+    days[last].workingDay &&
+    !(halfFirst && first === last);
   return {
     key,
     first,
     last,
-    halfFirst: vacation.halfDayBegin === true && startDate >= firstDay,
-    halfLast: vacation.halfDayEnd === true && endDate <= lastDay,
+    halfFirst,
+    halfLast,
     status: vacation.status ?? null,
     startDate,
     endDate,
