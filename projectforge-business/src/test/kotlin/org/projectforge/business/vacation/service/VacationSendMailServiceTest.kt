@@ -139,7 +139,15 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         assertContent(mail, vacationer.getFullname())
         assertContent(mail, manager.getFullname())
         assertContent(mail, replacement.getFullname())
-        assertContent(mail, vacation.comment)
+        if (vacationMode in arrayOf(VacationMode.OWN, VacationMode.MANAGER, VacationMode.HR)) {
+            assertContent(mail, vacation.comment)
+        } else {
+            // The comment is personal data, hidden from the substitutes (see VacationDao.isCommentVisibleFor).
+            Assertions.assertFalse(
+                mail.content.contains(vacation.comment!!),
+                "Comment not expected in mail to $vacationMode: ${mail.content}"
+            )
+        }
         assertContent(mail, translate("vacation"))
 
         Assertions.assertFalse(
