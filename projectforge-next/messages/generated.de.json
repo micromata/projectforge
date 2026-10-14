@@ -2629,6 +2629,7 @@
     "open": "Öffnen",
     "params": {
       "daysBeforeExpiry": "Tage vor dem Verfall",
+      "kost2MissingMonths": "Betrachtete Monate (inkl. aktuellem Monat)",
       "passwordMaxAgeDays": "Passwort älter als (Tage)",
       "referredMonth": {
         "_": "Monat",
@@ -2669,6 +2670,7 @@
         "dayOfWeek": "Ein Wochentag ist erforderlich.",
         "daysBeforeExpiry": "Die Anzahl der Tage darf nicht negativ sein.",
         "delay": "Die Zeit eines Zustellungsschritts darf nicht negativ sein.",
+        "kost2MissingMonths": "Die Anzahl der Monate muss zwischen 1 und 12 liegen.",
         "noDeliveryStep": "Mindestens ein Zustellungsschritt ist erforderlich.",
         "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
       },
@@ -2694,6 +2696,7 @@
       "MANUAL": "Manuell (ohne Bedingung)",
       "PASSWORD_NOT_CHANGED": "Passwort lange nicht geändert",
       "TIMESHEETS_MISSING": "Fehlende Zeitberichte",
+      "TIMESHEETS_WITHOUT_KOST2": "Zeitberichte ohne Kost2",
       "VACATION_LEFT": "Verfallender Resturlaub"
     },
     "schedule": {
@@ -2751,7 +2754,11 @@
       "passwordChangeDate": "Datum der letzten Passwortänderung",
       "passwordLink": "Link zum Ändern des Passworts",
       "passwordMaxAgeDays": "Maximales Alter des Passworts (Tage)",
+      "period": "Zeitraum",
       "timesheetLink": "Link zu den Zeitberichten",
+      "timesheetsWithoutKost2Count": "Anzahl der Zeitberichte ohne Kost2",
+      "timesheetsWithoutKost2Hours": "Ohne Kost2 gebuchte Stunden",
+      "timesheetsWithoutKost2Tasks": "Ohne Kost2 bebuchte Strukturelemente",
       "unbookedDays": "Alle Tage ohne Zeitberichte (inkl. Urlaub)",
       "unbookedDaysCount": "Anzahl aller Tage ohne Zeitberichte (inkl. Urlaub)",
       "unbookedVacationDays": "Urlaubstage ohne Zeitberichte",

@@ -38,6 +38,9 @@ import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,6 +50,9 @@ import java.time.ZoneId
 import java.util.Date
 
 class NotificationServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var configurationDao: ConfigurationDao
+
     @Autowired
     private lateinit var employeeDao: EmployeeDao
 
@@ -169,6 +175,48 @@ class NotificationServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun timesheetsWithoutKost2Test() {
+        val user = initTestDB.addUser("notification-kost2-user")
+        val task = initTestDB.addTask("notification-kost2-task", "root")
+        val rule = insertRule(NotificationRuleType.TIMESHEETS_WITHOUT_KOST2, user, NotificationDelivery())
+        rule.manualDone = true
+        // Wednesday, March 3rd 2032: a time sheet of 2 hours on a task without cost 2 units.
+        val today = LocalDate.of(2032, 3, 3)
+        val now = Date.from(today.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
+        val sheet = insertTimesheet(task, user, 1)
+        val costConfigured = Configuration.instance.isCostConfigured
+        setCostConfigured(false)
+        assertEquals(0, notificationService.runRule(rule, today, now).created, "Cost units not configured.")
+        setCostConfigured(true)
+        try {
+            assertEquals(1, notificationService.runRule(rule, today, now).created)
+            val first = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+            assertEquals("2032-03-03", first.periodKey)
+            assertTrue(first.body!!.contains("1 sheets, 2 hours"), first.body)
+            assertTrue(first.body!!.contains("notification-kost2-task"), first.body)
+            assertEquals(0, notificationService.runRule(rule, today, now).created, "Not twice per day.")
+            // Marked as done: back with the run of the next day.
+            notificationDao.done(first.id!!, user)
+            assertEquals(1, notificationService.runRule(rule, today.plusDays(1), now).created)
+            val second = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single { it.status == NotificationStatus.OPEN }
+            assertEquals("2032-03-04", second.periodKey)
+            // Not marked as done: the notification of the next run replaces it.
+            assertEquals(1, notificationService.runRule(rule, today.plusDays(2), now).created)
+            notificationService.resolvePending(today.plusDays(2))
+            assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(second.id)!!.status)
+            val third = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single { it.status.isPending }
+            assertEquals("2032-03-05", third.periodKey)
+            // No time sheet without cost 2 unit left: resolved.
+            timesheetDao.markAsDeleted(sheet, checkAccess = false)
+            notificationService.resolvePending(today.plusDays(2))
+            assertEquals(NotificationStatus.RESOLVED, notificationDao.findById(third.id)!!.status)
+            assertEquals(0, notificationService.runRule(rule, today.plusDays(3), now).created)
+        } finally {
+            setCostConfigured(costConfigured)
+        }
+    }
+
+    @Test
     fun expireOfDeletedRuleTest() {
         val user = initTestDB.addUser("notification-deleted-rule-user")
         val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
@@ -227,6 +275,8 @@ class NotificationServiceTest : AbstractTestBase() {
         rule.subject = "Hello {{firstName}}"
         rule.text = if (type == NotificationRuleType.TIMESHEETS_MISSING) {
             "<p>{{unbookedDaysCount}} days: {{unbookedDays}}</p>"
+        } else if (type == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2) {
+            "<p>{{timesheetsWithoutKost2Count}} sheets, {{timesheetsWithoutKost2Hours}} hours: {{timesheetsWithoutKost2Tasks}}</p>"
         } else if (type == NotificationRuleType.PASSWORD_NOT_CHANGED) {
             "<p>Changed {{passwordAgeDays}} days ago: {{passwordLink}}</p>"
         } else {
@@ -244,7 +294,13 @@ class NotificationServiceTest : AbstractTestBase() {
         return employee
     }
 
-    private fun insertTimesheet(task: TaskDO, user: PFUserDO, day: Int) {
+    private fun setCostConfigured(value: Boolean) {
+        val entry = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)!!
+        entry.booleanValue = value
+        configurationDao.update(entry, checkAccess = false)
+    }
+
+    private fun insertTimesheet(task: TaskDO, user: PFUserDO, day: Int): TimesheetDO {
         val start = LocalDateTime.of(2032, 3, day, 8, 0).atZone(ZoneId.of("UTC"))
         val sheet = TimesheetDO()
         sheet.task = task
@@ -253,5 +309,6 @@ class NotificationServiceTest : AbstractTestBase() {
         sheet.stopTime = Date.from(start.plusHours(2).toInstant())
         sheet.description = "Notification test"
         timesheetDao.insert(sheet, checkAccess = false)
+        return sheet
     }
 }

@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.6",
+    "date" : "2026-10-14",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Zeitberichte ohne Kost2",
+        "items" : [ "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen.", "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben." ]
+      } ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
