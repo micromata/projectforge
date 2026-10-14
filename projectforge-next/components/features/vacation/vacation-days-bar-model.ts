@@ -16,24 +16,33 @@ export interface DaysBar {
   truncated: boolean;
 }
 
-/**
- * Days drawn at most: the same scale for every row, so the bars compare as durations. Four weeks of 5px each
- * (segment and gap) beside the number and the "…" still fit the list's column (vacation.page.tsx, 220px).
- */
-export const BAR_MAX_DAYS = 28;
-
-/**
- * The days of a vacation as the list's bar draws them: a day without any substitute on duty red, a weekend or
- * holiday grey, any other a working day. ISO dates; null for an entry without a period.
- */
-export function daysBar(vacation: {
+/** What the bar is drawn from: a row of the vacation list or of the vacation account. ISO dates. */
+export interface DaysBarSource {
   startDate?: string | null;
   endDate?: string | null;
   halfDayBegin?: boolean | null;
   halfDayEnd?: boolean | null;
   nonWorkingDays?: string[] | null;
   uncoveredDays?: string[] | null;
-}): DaysBar | null {
+}
+
+/**
+ * Days drawn at the same scale in every row, so the bars compare as durations: four weeks of 5px each (segment
+ * and gap), which beside the number and the "…" still fit the list's column (vacation.page.tsx, 220px).
+ */
+export const BAR_SCALE_DAYS = 28;
+
+/**
+ * Days drawn at most: a longer vacation than [BAR_SCALE_DAYS] is squeezed into the same width with narrower
+ * segments (VacationDaysBar), up to 13 weeks; beyond that it is cut off.
+ */
+export const BAR_MAX_DAYS = 91;
+
+/**
+ * The days of a vacation as the list's bar draws them: a day without any substitute on duty red, a weekend or
+ * holiday grey, any other a working day. ISO dates; null for an entry without a period.
+ */
+export function daysBar(vacation: DaysBarSource): DaysBar | null {
   const { startDate, endDate } = vacation;
   if (!startDate || !endDate || endDate < startDate) return null;
   const off = new Set(vacation.nonWorkingDays ?? []);

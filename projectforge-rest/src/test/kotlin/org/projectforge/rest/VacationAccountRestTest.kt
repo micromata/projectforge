@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 /**
@@ -106,7 +107,7 @@ class VacationAccountRestTest : AbstractTestBase() {
             it.manager = manager
             it.replacement = manager
             it.startDate = LocalDate.of(year + 1, 3, 2)
-            it.endDate = LocalDate.of(year + 1, 3, 3)
+            it.endDate = LocalDate.of(year + 1, 3, 9)
             it.status = VacationStatus.IN_PROGRESS
         })
         val account = vacationAccountRest.getAccount(null)
@@ -114,6 +115,12 @@ class VacationAccountRestTest : AbstractTestBase() {
         assertEquals(listOf(year + 1, year, year - 1), account.years.map { it.year })
         val entry = account.years.first().vacations.single()
         assertEquals(vacation, entry.id)
+        // The days bar: the period and its weekends (no holiday in early March).
+        assertEquals(LocalDate.of(year + 1, 3, 2), entry.startDate)
+        assertEquals(LocalDate.of(year + 1, 3, 9), entry.endDate)
+        val weekend = (2..9).map { LocalDate.of(year + 1, 3, it) }
+            .filter { it.dayOfWeek == DayOfWeek.SATURDAY || it.dayOfWeek == DayOfWeek.SUNDAY }
+        assertEquals(weekend, entry.nonWorkingDays)
         assertEquals("/next/vacation/$vacation?returnTo=%2FvacationAccount", entry.editUrl)
         assertEquals("/next/vacation/new?employee=${own.id}&returnTo=%2FvacationAccount", account.newVacationUrl)
         assertEquals("/next/vacation", account.vacationListUrl)
