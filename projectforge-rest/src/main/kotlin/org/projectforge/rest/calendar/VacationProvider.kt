@@ -79,12 +79,12 @@ open class VacationProvider {
         val vacations =
             vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         vacations.forEach { vacation ->
+            if (vacation.status == VacationStatus.REJECTED) {
+                return@forEach // The cache leaves them out already; nobody is away.
+            }
             val employeeUser = employeeCache.getUser(vacation.employee)
             val title = "${translate("vacation")}: ${employeeUser?.getFullname()}"
-            if (!events.any {
-                    it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
-                            vacation.status != VacationStatus.REJECTED
-                }) {
+            if (!events.any { it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
                 val duration = VacationService.getVacationDays(vacation)
                 val unit = if (duration == BigDecimal.ONE) "fibu.common.workingDay" else "fibu.common.workingDays"
                 // Event doesn't yet exist:

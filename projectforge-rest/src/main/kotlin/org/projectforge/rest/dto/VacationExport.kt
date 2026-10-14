@@ -70,8 +70,8 @@ class VacationExportInitial(
 )
 
 /**
- * A favorite of the team vacation calendar: a named choice of employees and groups (ids as stored; the page tells
- * by them whether its choice is the favorite's).
+ * A favorite of the team vacation calendar: a named choice of employees and groups (the ids the user may still
+ * pick, as [VacationExportSelection] applies them; the page tells by them whether its choice is the favorite's).
  */
 class VacationExportFavoriteInfo(
     val id: Long,
@@ -105,7 +105,22 @@ class VacationExportVacation(
     val halfDayEnd: Boolean,
     val status: VacationStatus?,
 ) {
-    constructor(obj: VacationDO) : this(
-        obj.id, obj.startDate, obj.endDate, obj.halfDayBegin == true, obj.halfDayEnd == true, obj.status,
-    )
+    companion object {
+        /**
+         * The vacation cut to the period shown ([from]..[until]): its dates outside aren't sent (for a restricted
+         * user that would be a previous year), and a half day cut off is no longer one.
+         */
+        fun of(obj: VacationDO, from: LocalDate, until: LocalDate): VacationExportVacation {
+            val startDate = obj.startDate?.let { maxOf(it, from) }
+            val endDate = obj.endDate?.let { minOf(it, until) }
+            return VacationExportVacation(
+                obj.id,
+                startDate,
+                endDate,
+                obj.halfDayBegin == true && startDate == obj.startDate,
+                obj.halfDayEnd == true && endDate == obj.endDate,
+                obj.status,
+            )
+        }
+    }
 }

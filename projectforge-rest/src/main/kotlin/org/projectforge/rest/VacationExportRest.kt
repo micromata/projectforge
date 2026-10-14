@@ -114,7 +114,7 @@ class VacationExportRest {
                 dayWidth = pref.dayWidth,
                 unrestricted = access.unrestricted,
                 earliestDate = access.earliestDate,
-                favorites = favoriteInfos(pref),
+                favorites = favoriteInfos(pref, access),
             )
         }
     }
@@ -223,7 +223,7 @@ class VacationExportRest {
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
             )
             val rows = vacations.map { entry ->
-                VacationExportRow(ref(entry.employee), entry.vacations.map { VacationExportVacation(it) })
+                VacationExportRow(ref(entry.employee), entry.vacations.map { VacationExportVacation.of(it, from, until) })
             }.sortedBy { it.employee.displayName?.lowercase() }
             VacationExportView(VacationChartDay.listOf(from, until), rows)
         }
@@ -328,10 +328,20 @@ class VacationExportRest {
         return favoriteInfos(pref)
     }
 
-    private fun favoriteInfos(pref: VacationExportUserPref): List<VacationExportFavoriteInfo> =
+    /**
+     * The favorites with the employees and groups [selectFavorite] applies (those the user may still pick): the page
+     * compares them with its choice, so a favorite with an employee left meanwhile still reads as unchanged.
+     */
+    private fun favoriteInfos(pref: VacationExportUserPref, access: Access = Access()): List<VacationExportFavoriteInfo> =
         Favorites(pref.favorites.orEmpty()).idTitleList.mapNotNull { idTitle ->
-            pref.favorites?.find { it.id == idTitle.id }?.let {
-                VacationExportFavoriteInfo(idTitle.id, idTitle.name, it.employeeIds.orEmpty(), it.groupIds.orEmpty())
+            pref.favorites?.find { it.id == idTitle.id }?.let { favorite ->
+                val selection = selection(favorite.employeeIds, favorite.groupIds, access)
+                VacationExportFavoriteInfo(
+                    idTitle.id,
+                    idTitle.name,
+                    selection.employees.map { it.id },
+                    selection.groups.map { it.id },
+                )
             }
         }
 
