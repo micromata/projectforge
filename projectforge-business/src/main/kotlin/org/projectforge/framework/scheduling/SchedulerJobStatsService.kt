@@ -278,6 +278,18 @@ class SchedulerJobStatsService : SchedulerRunSink, IPrivacyProtectionJob, Shutdo
         return listOfNotNull(inMemory, stored).maxOrNull()
     }
 
+    /**
+     * True if the job failed within the last [LAST_RUN_SEARCH_DAYS] days without any successful run (so its last
+     * success, if any, is older than that): it didn't simply never run.
+     */
+    fun failedWithoutSuccess(jobId: String): Boolean {
+        if (lastSuccessStart(jobId) != null) {
+            return false
+        }
+        // The runs not yet written included.
+        return (statsSince(today().minusDays(LAST_RUN_SEARCH_DAYS), jobId)[jobId]?.errorCount ?: 0) > 0
+    }
+
     /** The stats per job since the given day (stored and not yet written). */
     fun statsSince(since: LocalDate, jobId: String? = null): Map<String, SchedulerStats> {
         val result = mutableMapOf<String, SchedulerStats>()
@@ -453,7 +465,8 @@ class SchedulerJobStatsService : SchedulerRunSink, IPrivacyProtectionJob, Shutdo
         )
 
         private const val MAX_PENDING_RUNS = 1000
-        private const val LAST_RUN_SEARCH_DAYS = 62L
+        /** The days [lastSuccessStart] and [failedWithoutSuccess] look back. */
+        const val LAST_RUN_SEARCH_DAYS = 62L
         private const val BASELINE_DAYS = 7L
         private const val MIN_BASELINE_RUNS = 10
     }

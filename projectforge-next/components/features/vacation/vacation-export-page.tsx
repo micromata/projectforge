@@ -17,7 +17,7 @@ import {
 } from "@/lib/date-period";
 import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
 import { isIsoDate } from "@/lib/date-period-math";
-import type { FormatContext } from "@/lib/format";
+import { formatDateRange, type FormatContext } from "@/lib/format";
 import { RsError } from "@/lib/rs/client";
 import {
   downloadVacationExportExcel,
@@ -46,6 +46,9 @@ const KINDS = periodKindsOf(["quarter", "year"]);
  *
  * The employees and groups chosen are stored by the backend (shown again on the next visit); the period is
  * kept in the url (`?period=quarter&from=2026-10-01`).
+ *
+ * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
+ * itself is not printed, the names are in the chart.
  */
 export function VacationExportPage() {
   const t = useTranslations();
@@ -194,12 +197,16 @@ function VacationExportContent({
         dayWidth={dayWidth}
         favorites={favorites}
         exporting={excel.isPending}
+        canPrint={hasSelection && hasRows}
         onEmployeesChange={setEmployees}
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}
         onExport={() => excel.mutate()}
       />
+      <p className="hidden text-sm tabular-nums print:block">
+        {formatDateRange(bounds.from, bounds.to, ctx)}
+      </p>
       {!hasSelection && (
         <p className="text-sm text-muted-foreground">
           {t("vacation.export.selectHint")}

@@ -156,6 +156,8 @@
       "error": {
         "vacationKost2NotBookable": "The cost unit {arg0} isn''t bookable on the vacation task ''{arg1}''.",
         "vacationKost2NotFound": "No cost unit {arg0} (format #.###.##.##).",
+        "vacationProjectEnded": "The project of the vacation task ''{arg0}'' is ended or deleted.",
+        "vacationTaskNotBookable": "No time sheets can be booked on the vacation task ''{arg0}'' (closed, deleted or closed for booking).",
         "vacationTaskNotFound": "No task with the id {arg0}."
       },
       "json": {
@@ -259,8 +261,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Book vacation as time sheets (max. days back)",
-              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on, but at most this number of days back up to yesterday (max. 7), so nights the job didn't run are caught up. A vacation time sheet deleted by hand is therefore not booked again. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
+              "_": "Book vacation as time sheets (days back on the first run)",
+              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on up to yesterday, so failed runs and nights the job didn't run are caught up (at most 62 days back); the very first run books this number of days back (max. 7). A vacation time sheet deleted by hand is therefore not booked again. If no time sheet is bookable on the vacation task (closed, project ended), the runs fail and the days are booked once that is solved. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
             },
             "kost2": {
               "_": "Cost unit for vacation",
@@ -3495,6 +3497,7 @@
     "title": "Title"
   },
   "preview": "Preview",
+  "print": "Print",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -4676,8 +4679,18 @@
       "excel": {
         "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
       },
+      "favorite": {
+        "gone": "This favorite no longer exists.",
+        "nothingPickable": "None of the employees and groups of this favorite can be chosen any more."
+      },
+      "legend": {
+        "holidayOrWeekend": "Weekend or holiday"
+      },
+      "print": {
+        "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
+      },
       "selectHint": "Choose employees or groups to show their vacations.",
-      "title": "Export of team vacation calendars"
+      "title": "Team vacation calendar"
     },
     "halfDay": "Half day",
     "halfDayBegin": {

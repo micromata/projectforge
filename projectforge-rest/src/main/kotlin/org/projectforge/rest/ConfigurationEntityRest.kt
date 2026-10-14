@@ -129,12 +129,14 @@ class ConfigurationEntityRest :
     }
 
     /**
-     * The days back of the vacation booking job are limited to [ConfigurationService.MAX_VACATION_AUTO_BOOKING_DAYS],
-     * see [org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob].
+     * The days back of the first run of the vacation booking job are limited to
+     * [ConfigurationService.MAX_VACATION_AUTO_BOOKING_DAYS], see
+     * [org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob].
      *
-     * The vacation task and cost unit must exist, and the cost unit must be bookable on the configured task. The latter
-     * is checked on saving the cost unit only: switching to another pair is done by changing the task first, then the
-     * cost unit (a problem left is logged by [TimesheetVacationBookingConfig.resolve]). Clearing a value is allowed.
+     * The vacation task and cost unit must exist, time sheets must be bookable on the task (not closed, project not
+     * ended), and the cost unit must be bookable on the configured task. The latter is checked on saving the cost
+     * unit only: switching to another pair is done by changing the task first, then the cost unit (a problem left is
+     * logged by [TimesheetVacationBookingConfig.resolve]). Clearing a value is allowed.
      */
     private fun validateVacationAutoBooking(
         validationErrors: MutableList<ValidationError>,
@@ -159,14 +161,19 @@ class ConfigurationEntityRest :
 
             ConfigurationParam.TIMESHEET_VACATION_TASK_ID -> {
                 val taskId = dto.longValue ?: return
-                if (vacationBookingConfig.check(taskId.toString(), null).task == null) {
-                    validationErrors.add(
-                        ValidationError(
-                            translateMsg(TimesheetVacationBookingConfig.Problem.TASK_NOT_FOUND.i18nKey, taskId.toString()),
-                            fieldId = "longValue",
-                        )
-                    )
+                val result = vacationBookingConfig.check(taskId.toString(), null)
+                val message = when (val problem = result.problem) {
+                    TimesheetVacationBookingConfig.Problem.TASK_NOT_FOUND ->
+                        translateMsg(problem.i18nKey, taskId.toString())
+
+                    // No time sheet would be bookable: the job's runs would fail.
+                    TimesheetVacationBookingConfig.Problem.TASK_NOT_BOOKABLE,
+                    TimesheetVacationBookingConfig.Problem.PROJECT_ENDED ->
+                        translateMsg(problem.i18nKey, result.task?.title)
+
+                    else -> null // Fine (the cost unit is checked on saving it).
                 }
+                message?.let { validationErrors.add(ValidationError(it, fieldId = "longValue")) }
             }
 
             ConfigurationParam.TIMESHEET_VACATION_KOST2 -> {
@@ -177,6 +184,7 @@ class ConfigurationEntityRest :
                     result.kost2 == null ->
                         translateMsg(TimesheetVacationBookingConfig.Problem.KOST2_NOT_FOUND.i18nKey, kost2)
 
+                    result.unbookable -> translateMsg(result.problem!!.i18nKey, result.task?.title)
                     result.problem == TimesheetVacationBookingConfig.Problem.KOST2_NOT_BOOKABLE -> translateMsg(
                         TimesheetVacationBookingConfig.Problem.KOST2_NOT_BOOKABLE.i18nKey, kost2, result.task?.title,
                     )

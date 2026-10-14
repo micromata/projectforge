@@ -156,6 +156,8 @@
       "error": {
         "vacationKost2NotBookable": "Der Kostenträger {arg0} ist auf dem Urlaubs-Strukturelement „{arg1}“ nicht buchbar.",
         "vacationKost2NotFound": "Kein Kostenträger {arg0} (Format #.###.##.##).",
+        "vacationProjectEnded": "Das Projekt des Urlaubs-Strukturelements „{arg0}“ ist beendet oder gelöscht.",
+        "vacationTaskNotBookable": "Auf dem Urlaubs-Strukturelement „{arg0}“ können keine Zeitberichte gebucht werden (geschlossen, gelöscht oder für Buchungen gesperrt).",
         "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
       "json": {
@@ -259,8 +261,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Urlaub als Zeitberichte buchen (max. Tage zurück)",
-              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf, höchstens aber so viele Tage bis gestern zurück (max. 7), damit Nächte nachgeholt werden, in denen der Job nicht lief. Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
+              "_": "Urlaub als Zeitberichte buchen (Tage zurück beim ersten Lauf)",
+              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf bis gestern, fehlgeschlagene Läufe und Nächte, in denen der Job nicht lief, werden also nachgeholt (höchstens 62 Tage zurück); der allererste Lauf bucht so viele Tage zurück (max. 7). Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Ist auf dem Urlaubs-Strukturelement kein Zeitbericht buchbar (geschlossen, Projekt beendet), schlagen die Läufe fehl, und die Tage werden gebucht, sobald das behoben ist. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
             },
             "kost2": {
               "_": "Kostenträger für Urlaub",
@@ -3495,6 +3497,7 @@
     "title": "Titel"
   },
   "preview": "Vorschau",
+  "print": "Drucken",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -4676,8 +4679,18 @@
       "excel": {
         "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
       },
+      "favorite": {
+        "gone": "Diesen Favoriten gibt es nicht mehr.",
+        "nothingPickable": "Keine der Mitarbeitenden und Gruppen dieses Favoriten ist noch wählbar."
+      },
+      "legend": {
+        "holidayOrWeekend": "Wochenende oder Feiertag"
+      },
+      "print": {
+        "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
+      },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
-      "title": "Export von Teamurlaubskalendern"
+      "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",
     "halfDayBegin": {

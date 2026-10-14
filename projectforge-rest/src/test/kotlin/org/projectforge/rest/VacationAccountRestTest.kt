@@ -23,6 +23,8 @@
 
 package org.projectforge.rest
 
+import jakarta.persistence.EntityManagerFactory
+import org.hibernate.SessionFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -48,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 /**
  * The vacation account of projectforge-next ([VacationAccountRest]): whose account is shown, what it holds and
@@ -59,6 +62,9 @@ class VacationAccountRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var entityManagerFactory: EntityManagerFactory
 
     @Autowired
     private lateinit var employeeService: EmployeeService
@@ -124,6 +130,51 @@ class VacationAccountRestTest : AbstractTestBase() {
         assertEquals("/next/vacation/$vacation?returnTo=%2FvacationAccount", entry.editUrl)
         assertEquals("/next/vacation/new?employee=${own.id}&returnTo=%2FvacationAccount", account.newVacationUrl)
         assertEquals("/next/vacation", account.vacationListUrl)
+    }
+
+    @Test
+    fun `the account costs a constant number of statements, not one per vacation`() {
+        val hr = createEmployee("statements-hr", hrAccess = true)
+        val replacement = createEmployee("statements-replacement")
+        val other = createEmployee("statements-other")
+        val single = createEmployee("statements-single")
+        val many = createEmployee("statements-many")
+        val year = LocalDate.now().year + 1
+        logon(hr.user!!)
+        fun vacation(employee: EmployeeDO, month: Int) = vacationDao.insert(VacationDO().also {
+            it.employee = employee
+            it.manager = hr
+            it.replacement = replacement
+            it.otherReplacements = mutableSetOf(other, replacement)
+            // A Tuesday and Wednesday in the middle of the month, never a weekend or a holiday.
+            val start = LocalDate.of(year, month, 8).with(TemporalAdjusters.nextOrSame(DayOfWeek.TUESDAY))
+            it.startDate = start
+            it.endDate = start.plusDays(1)
+            it.status = VacationStatus.IN_PROGRESS
+        })
+        vacation(single, 2)
+        (2..5).forEach { vacation(many, it) }
+        val statistics = entityManagerFactory.unwrap(SessionFactory::class.java).statistics
+        val wasEnabled = statistics.isStatisticsEnabled
+        statistics.isStatisticsEnabled = true
+        try {
+            fun statementsOf(employee: EmployeeDO, expectedVacations: Int): Long {
+                statistics.clear()
+                val account = vacationAccountRest.getAccount(employee.id)
+                val vacations = account.years.flatMap { it.vacations }
+                assertEquals(expectedVacations, vacations.size)
+                // The other replacements are there, read without a lazy load per vacation.
+                assertTrue(vacations.all { it.otherReplacements?.contains(other.displayName) == true })
+                return statistics.prepareStatementCount
+            }
+            // Warms up what doesn't belong to the account itself: caches (users, rights) and the carry stored by the
+            // first statistics of an employee.
+            statementsOf(single, 1)
+            statementsOf(many, 4)
+            assertEquals(statementsOf(single, 1), statementsOf(many, 4))
+        } finally {
+            statistics.isStatisticsEnabled = wasEnabled
+        }
     }
 
     @Test

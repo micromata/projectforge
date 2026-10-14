@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDateInput } from "@/lib/date-parse";
@@ -21,6 +21,10 @@ import {
  *
  * The chart is the page's content, so it is its own text alternative: a group of the employees' names and their
  * bars, each focusable and named with its period and status (barLabel), the axis hidden from screen readers.
+ *
+ * Printed — by the print button or the browser's own command — it is laid out in the width of the page (see
+ * VacationChartFrame), and always light: a dark theme would print as a black page now that the backgrounds are
+ * printed (see globals.css).
  */
 export function VacationTeamChart({
   view,
@@ -32,6 +36,24 @@ export function VacationTeamChart({
   const t = useTranslations();
   const ctx = useFormatContext();
   const rows = useMemo(() => teamChartRows(view), [view]);
+  useEffect(() => {
+    const root = document.documentElement;
+    let dark = false;
+    const beforePrint = () => {
+      dark = root.classList.contains("dark");
+      if (dark) root.classList.remove("dark");
+    };
+    const afterPrint = () => {
+      if (dark) root.classList.add("dark");
+      dark = false;
+    };
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", beforePrint);
+      window.removeEventListener("afterprint", afterPrint);
+    };
+  }, []);
   const statusLabel = (status: string) =>
     status === "APPROVED"
       ? t("vacation.status.approved")
