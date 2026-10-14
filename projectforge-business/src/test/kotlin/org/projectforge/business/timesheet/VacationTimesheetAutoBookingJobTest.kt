@@ -44,6 +44,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationValidator
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationLegacyProperties
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -64,7 +65,8 @@ import java.util.TimeZone
 
 /**
  * The nightly job books approved vacation days without time sheets afterwards, each day only once (a deleted
- * vacation time sheet is not booked again), never today or in advance, and at most the configured days back.
+ * vacation time sheet is not booked again), never today or in advance, the configured days back on the first run and
+ * all days since the last successful run afterwards.
  *
  * November 2033: Tue 08. until Thu 10. are the days before the run on Fri 11.
  */
@@ -173,14 +175,57 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
         )
     }
 
+    /** The job didn't run (or failed) for weeks: the next run catches up all days since the last successful one. */
     @Test
-    fun booksAtMostTheConfiguredDaysBack() {
+    fun catchesUpAllDaysSinceTheLastSuccessfulRun() {
         val (user, employee) = createVacationer("vacation-auto-stale")
         val manager = createVacationer("vacation-auto-stale-manager").second
         insertVacation(employee, manager, LocalDate.of(2033, 10, 3), day(11))
-        // The last successful run long ago (the job didn't run for weeks): still only 3 days back.
         job.bookVacations(today = day(11), lastSuccessDay = LocalDate.of(2033, 10, 1))
-        Assertions.assertEquals(setOf(day(8), day(9), day(10)), minutesByDay(user).keys)
+        Assertions.assertEquals(workingDays(LocalDate.of(2033, 10, 3), day(10)), minutesByDay(user).keys)
+    }
+
+    /**
+     * Caught up at most [VacationTimesheetAutoBookingJob.MAX_CATCH_UP_DAYS] back: also if the job failed for all the
+     * days its statistics know (no successful run found), not only the configured days of a first run.
+     */
+    @Test
+    fun catchesUpAtMostTheDaysTheStatisticsKnow() {
+        val (user, employee) = createVacationer("vacation-auto-capped")
+        val (other, otherEmployee) = createVacationer("vacation-auto-capped-other")
+        val manager = createVacationer("vacation-auto-capped-manager").second
+        val earliest = day(11).minusDays(VacationTimesheetAutoBookingJob.MAX_CATCH_UP_DAYS)
+        // Special leave: more days than the annual leave.
+        insertVacation(employee, manager, LocalDate.of(2033, 8, 1), day(11), special = true)
+        // The last successful run before the days known:
+        Assertions.assertEquals(
+            earliest,
+            job.bookVacations(today = day(11), lastSuccessDay = LocalDate.of(2033, 8, 1)).from,
+        )
+        Assertions.assertEquals(workingDays(earliest, day(10)), minutesByDay(user).keys)
+        // No successful run found, but failed ones (the vacation inserted afterwards, so not booked by the run above):
+        insertVacation(otherEmployee, manager, LocalDate.of(2033, 8, 1), day(11), special = true)
+        job.bookVacations(today = day(11), lastSuccessDay = null, failedWithoutSuccess = true)
+        Assertions.assertEquals(workingDays(earliest, day(10)), minutesByDay(other).keys)
+    }
+
+    /**
+     * Days refused for the users (here: no access to the vacation task) never fail the run, also if every day of
+     * several users is refused: the run succeeds, so they aren't tried again every night.
+     */
+    @Test
+    fun refusedDaysOfUsersDontFailTheRun() {
+        val manager = createVacationer("vacation-auto-refused-manager").second
+        val users = listOf("vacation-auto-refused-1", "vacation-auto-refused-2").map { username ->
+            createVacationer(username, taskAccess = false).also { (_, employee) ->
+                insertVacation(employee, manager, day(8), day(10))
+            }.first
+        }
+        val result = job.bookVacations(today = day(11), lastSuccessDay = null)
+        Assertions.assertNull(result.error)
+        Assertions.assertEquals(0, result.bookedDays)
+        Assertions.assertTrue(result.refusedDays >= 6, "Each of the 3 days of both users refused.")
+        users.forEach { Assertions.assertTrue(sheetsOf(it).isEmpty()) }
     }
 
     @Test
@@ -341,6 +386,34 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
     }
 
     /**
+     * The vacation task closed for two weeks: the runs fail (the last successful one stays on Mon 07.), so the first
+     * run after reopening it books all the days waiting meanwhile, far more than the configured days back.
+     */
+    @Test
+    fun healsAfterTheTaskIsBookableAgain() {
+        val (user, employee) = createVacationer("vacation-auto-healed")
+        val manager = createVacationer("vacation-auto-healed-manager").second
+        insertVacation(employee, manager, day(7), day(25))
+        val task = taskDao.find(vacationTask.id, checkAccess = false)!!
+        task.status = TaskStatus.C
+        taskDao.update(task, checkAccess = false)
+        try {
+            (8..21).forEach { dayOfMonth ->
+                Assertions.assertNotNull(job.bookVacations(today = day(dayOfMonth), lastSuccessDay = day(7)).error)
+            }
+            Assertions.assertTrue(sheetsOf(user).isEmpty())
+        } finally {
+            task.status = TaskStatus.N
+            taskDao.update(task, checkAccess = false)
+        }
+        val result = job.bookVacations(today = day(22), lastSuccessDay = day(7))
+        Assertions.assertNull(result.error)
+        val expected = workingDays(day(7), day(21))
+        Assertions.assertTrue(expected.size > 7, "More days than configured back: ${expected.size}")
+        Assertions.assertEquals(expected, minutesByDay(user).keys)
+    }
+
+    /**
      * The run at 03:00 in Berlin is the evening before in New York: the day isn't over there, so it's booked by the
      * next run (with its half day end).
      */
@@ -361,7 +434,11 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
     }
 
     /** A user with an employee, who may book own time sheets on the vacation task. */
-    private fun createVacationer(username: String, timeZone: String? = null): Pair<PFUserDO, EmployeeDO> {
+    private fun createVacationer(
+        username: String,
+        timeZone: String? = null,
+        taskAccess: Boolean = true,
+    ): Pair<PFUserDO, EmployeeDO> {
         val user = initTestDB.addUser(PFUserDO().also {
             it.username = username
             it.locale = Locale.ENGLISH
@@ -369,8 +446,10 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
             it.email = "devnull@localhost"
             timeZone?.let { zone -> it.timeZone = TimeZone.getTimeZone(zone) }
         })
-        val group = initTestDB.addGroup("$username-group", username)
-        initTestDB.createGroupTaskAccess(group, vacationTask, AccessType.OWN_TIMESHEETS, true, true, true, true)
+        if (taskAccess) {
+            val group = initTestDB.addGroup("$username-group", username)
+            initTestDB.createGroupTaskAccess(group, vacationTask, AccessType.OWN_TIMESHEETS, true, true, true, true)
+        }
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = LocalDate.of(2020, 1, 1)
@@ -382,6 +461,7 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
     private fun insertVacation(
         employee: EmployeeDO, manager: EmployeeDO, from: LocalDate, until: LocalDate,
         status: VacationStatus = VacationStatus.APPROVED, halfDayBegin: Boolean = false, halfDayEnd: Boolean = false,
+        special: Boolean = false,
     ): VacationDO {
         val vacation = VacationDO()
         vacation.employee = employee
@@ -391,7 +471,7 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
         vacation.endDate = until
         vacation.halfDayBegin = halfDayBegin
         vacation.halfDayEnd = halfDayEnd
-        vacation.special = false
+        vacation.special = special
         vacation.status = status
         vacationDao.insert(vacation, checkAccess = false)
         return vacation
@@ -418,6 +498,11 @@ class VacationTimesheetAutoBookingJobTest : AbstractTestBase() {
         filter.userId = user.id
         return timesheetDao.internalGetList(filter, checkAccess = false).filter { !it.deleted }
     }
+
+    /** The working days from [from] until [until], as the job books them. */
+    private fun workingDays(from: LocalDate, until: LocalDate): Set<LocalDate> =
+        generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }
+            .filter { Holidays.instance.isWorkingDay(it) }.toSet()
 
     private fun localDateOf(sheet: TimesheetDO): LocalDate =
         sheet.startTime!!.toInstant().atZone(ZoneId.of("UTC")).toLocalDate()

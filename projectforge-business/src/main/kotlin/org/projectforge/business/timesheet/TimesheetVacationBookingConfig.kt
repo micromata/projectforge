@@ -134,15 +134,16 @@ open class TimesheetVacationBookingConfig {
         val kost2DO = kost2?.trim()?.ifEmpty { null }?.let { kostCache.getKost2(it) }
         val problem = when {
             task == null -> Problem.TASK_NOT_FOUND
-            kost2DO == null -> Problem.KOST2_NOT_FOUND
             // As TimesheetDao refuses each time sheet then. Checked before the cost unit: the cost units of an ended
-            // project aren't bookable either, which would hide the cause.
+            // project aren't bookable either, which would hide the cause; and so the task alone is checkable (on
+            // saving it on the configuration page).
             taskTree.getTaskNodeById(task.id)?.let { timesheetDao.checkTaskBookable(it, false) } != true ->
                 Problem.TASK_NOT_BOOKABLE
 
             taskTree.getProjekt(task.id)?.let { it.status == ProjektStatus.ENDED || it.deleted } == true ->
                 Problem.PROJECT_ENDED
 
+            kost2DO == null -> Problem.KOST2_NOT_FOUND
             taskTree.getKost2List(task.id)?.any { it.id == kost2DO.id } != true -> Problem.KOST2_NOT_BOOKABLE
             else -> null
         }
@@ -151,7 +152,7 @@ open class TimesheetVacationBookingConfig {
     }
 
     /**
-     * @param problem The first problem found (task, cost unit, bookable), null if [booking] is given.
+     * @param problem The first problem found (task, bookable task, cost unit), null if [booking] is given.
      * @param message The problem in words for the log, set by [resolveChecked] only.
      */
     class CheckResult(
