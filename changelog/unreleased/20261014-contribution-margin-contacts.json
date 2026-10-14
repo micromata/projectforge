@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Contribution margin: contact persons and additional contacts of an order see the contribution margin of its project, as in the order book. The access check of orders no longer loads their positions and payment schedules one by one, e.g. for the forecast chart and the contribution margin.",
+  "de": "Deckungsbeitrag: Ansprechpartner und weitere Kontakte eines Auftrags sehen den Deckungsbeitrag seines Projekts, wie im Auftragsbuch. Die Zugriffsprüfung von Aufträgen lädt deren Positionen und Zahlungspläne nicht mehr einzeln nach, z. B. für die Forecast-Grafik und den Deckungsbeitrag."
+}
