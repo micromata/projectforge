@@ -61,6 +61,12 @@ class ConflictingVacationsCache() : AbstractCache() {
      */
     private var allConflictingVacations = mutableSetOf<Long>()
 
+    /**
+     * Guards both collections above: [refresh] replaces them, so locking on the instances would lock on ones that
+     * may already be gone, and an update could land in a collection no reader sees any more.
+     */
+    private val lock = Any()
+
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
@@ -77,7 +83,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
         checkRefresh()
         val conflict = conflict && isConsidered(vacationDO)
-        synchronized(allConflictingVacations) {
+        synchronized(lock) {
             vacationDO.id?.let { id ->
                 if (!conflict) {
                     allConflictingVacations.remove(id) // If given
@@ -85,8 +91,6 @@ class ConflictingVacationsCache() : AbstractCache() {
                     allConflictingVacations.add(id)
                 }
             }
-        }
-        synchronized(conflictingVacationsByEmployee) {
             // By id: the list holds the instance of the last refresh, not the one given here.
             conflictingVacationsByEmployee[vacationDO.employee?.id]?.removeIf { it.id == vacationDO.id }
             if (conflict) {
@@ -107,7 +111,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     fun hasConflict(vacationId: Long?): Boolean {
         vacationId ?: return false
         checkRefresh()
-        synchronized(allConflictingVacations) {
+        synchronized(lock) {
             return allConflictingVacations.contains(vacationId)
         }
     }
@@ -115,7 +119,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     fun numberOfConflicts(userId: Long): Int {
         checkRefresh()
         EmployeeCache.instance.getEmployeeIdByUserId(userId)?.let { employeeId ->
-            synchronized(allConflictingVacations) {
+            synchronized(lock) {
                 return conflictingVacationsByEmployee[employeeId]?.size ?: 0
             }
         }
@@ -161,10 +165,12 @@ class ConflictingVacationsCache() : AbstractCache() {
                     }
                 }
             }
-            conflictingVacationsByEmployee = newConflictingVacations
-            allConflictingVacations = newAllConflictingVacations
+            synchronized(lock) {
+                conflictingVacationsByEmployee = newConflictingVacations
+                allConflictingVacations = newAllConflictingVacations
+            }
             log.info {
-                "Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees. ${
+                "Refreshing cache of conflicting vacations done. Found ${newAllConflictingVacations.size} conflicts of ${newConflictingVacations.size} employees. ${
                     context.formatStats()
                 }"
             }
