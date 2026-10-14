@@ -9,17 +9,17 @@
       "type" : "added",
       "items" : [ {
         "title" : "Time sheets without Kost2",
-        "items" : [ "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.", "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2." ]
+        "items" : [ "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.", "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2.", "New configuration parameter \"Report time sheets without Kost2?\" (default off, only shown with cost-unit accounting enabled): the hint on saving and the notification rule apply only if it is enabled. Booking without Kost2 stays possible.", "Configuration: the list can be filtered by category (pills such as Finance or Time sheets)." ]
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.", {
+      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.", "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice.", {
         "title" : "Vacation account: days bar",
         "items" : [ "The vacations of the vacation account show their period as a bar beside the days, as the vacation list does: working days, weekends and holidays, and the days without any replacement on duty.", "A vacation longer than four weeks is drawn with narrower days in the same width (up to 13 weeks) instead of being cut off after four weeks, in the vacation list as well." ]
       }, "Team vacation calendar: the vacations of the chosen employees and groups are now also shown on the page, per quarter or calendar year, with an adjustable width of the days (up to fitting the whole period into the window); the Excel export starts with the period shown. Choices of employees and groups can be saved as favorites. Users without HR or finance rights choose from their own groups only and no longer see previous years. Vacations beginning before a sheet of the Excel export are now shown on it, too." ]
     }, {
       "type" : "changed",
-      "items" : [ "Vacation list: users without HR or finance rights see their own vacations, the ones they approve or substitute for, and the vacations of their substitutes overlapping their own ones, no longer all current vacations of their group colleagues." ]
+      "items" : [ "Calendars: the list and the form of the team calendars are migrated to the new interface. A stored calendar shows its subscription link with a switch for the reminders, the list offers the subscription of time sheets, weeks of year and holidays in its export menu.", "Vacation list: users without HR or finance rights see their own vacations, the ones they approve or substitute for, and the vacations of their substitutes overlapping their own ones, no longer all current vacations of their group colleagues." ]
     } ]
   },
   "groups" : [ {

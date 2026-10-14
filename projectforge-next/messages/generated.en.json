@@ -270,6 +270,10 @@
               "_": "Task for vacation (id)",
               "description": "The id of the task (structure element) vacation is booked on as time sheets, in the calendar (\"Book several days\") and by the nightly job."
             }
+          },
+          "warnMissingKost2": {
+            "_": "Report time sheets without Kost2?",
+            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, and the notification rule \"Time sheets without Kost2\" applies. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
           }
         },
         "timesheetTags": {
@@ -502,7 +506,7 @@
         "timesheets": "Timesheets",
         "vacations": {
           "_": "Vacations",
-          "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/react/teamCal/edit)."
+          "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/next/teamCal/new)."
         }
       },
       "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
@@ -2695,7 +2699,10 @@
         "general": "Rule",
         "message": "Message"
       },
-      "title": "Notification rules"
+      "title": "Notification rules",
+      "warning": {
+        "warnMissingKost2Off": "The configuration parameter \"Report time sheets without Kost2?\" is disabled (or cost-unit accounting is): this rule notifies nobody until it is enabled."
+      }
     },
     "ruleName": "Rule",
     "ruleTypes": {
@@ -3229,6 +3236,12 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "access": {
+        "_": "Access right",
+        "groups": "Groups",
+        "title": "Access options",
+        "users": "Users"
+      },
       "attendee": {
         "status": {
           "accepted": "accepted",
@@ -3355,6 +3368,12 @@
           "_": "Export holidays",
           "tooltip": "Download or subscribe ProjectForge's holidays. You may choose the language under 'My account'."
         },
+        "reminder": {
+          "checkbox": {
+            "_": "Export reminder",
+            "tooltip": "If selected also the reminders of the exported events are included, otherwise the reminders will be ignored."
+          }
+        },
         "timesheets": "Export timesheets",
         "weekOfYears": {
           "_": "Export week-of-years.",
@@ -3363,17 +3382,39 @@
       },
       "exportIcsButton": "Export ics",
       "externalsubscription": {
-        "label": "External subscription",
-        "updateInterval": "Update interval",
-        "url": "Calendar URL"
+        "label": {
+          "_": "External subscription",
+          "tooltip": "Subscribe external calendars (ics from Google, Apple icloud etc.)"
+        },
+        "updateInterval": {
+          "_": "Update interval",
+          "interval15Min": "15 Minutes",
+          "interval1d": "1 Day",
+          "interval1h": "1 Hour"
+        },
+        "url": {
+          "_": "Calendar URL",
+          "tooltip": "Supported urls are for example\nGoogle calendar: https://www.google.com/calendar/ical/example%40gmail.com/public/basic.ics or\nApple icloud: webcal://p06-calendarws.icloud.com/ca/subscribe/1/..."
+        }
       },
+      "fullAccess": "Full access",
       "import": {
         "ics": {
           "title": "Import Events",
           "tooltip": "Import events in ics format."
         }
       },
+      "minimalAccess": {
+        "_": "Minimal access",
+        "groups": {
+          "hint": "Members of these groups are only able to see events without any further information such as location, title, or description (only start and stop time is visible)."
+        },
+        "users": {
+          "hint": "These users are only able to see events without any further information such as location, title, or description (only start and stop time is visible)."
+        }
+      },
       "owner": "Owner",
+      "readonlyAccess": "Read-only access",
       "subscription": {
         "_": "Subscription",
         "timesheets": "You can subscribe your time sheets in your personal calendar (e.g. Apple iCal oder Microsoft Outlook).",
@@ -3381,7 +3422,12 @@
       },
       "switchToTeamEventButton": "Switch to events",
       "switchToTimesheetButton": "Switch to time sheet",
-      "title": "Title"
+      "title": {
+        "_": "Title",
+        "add": "Add calendar",
+        "heading": "Calendar",
+        "list": "List of calendars"
+      }
     },
     "todo": {
       "assignee": "Assignee",
@@ -3705,6 +3751,7 @@
           "muted": "{arg0} muted",
           "resolved": "{arg0} resolved"
         },
+        "hiddenByFilter": "No longer listed with this filter",
         "hourly": "Last 7 days (per hour)",
         "kpi": {
           "external": "External systems failing (24 h)",
@@ -3754,11 +3801,13 @@
         "reopenedAt": "Occurred again after resolved",
         "request": "Request",
         "sampleMessage": "Sample message",
+        "showInList": "Show",
         "stackTrace": "Stack trace",
         "status": {
           "acknowledged": "Acknowledged",
           "all": "All",
           "ignored": "Ignored",
+          "muted": "Muted",
           "new": "New",
           "open": "Open",
           "resolved": "Resolved"
@@ -4582,6 +4631,7 @@
     "availabledays": "Available vacation days",
     "availabledaysAfterThis": "{arg0}, after this application: {arg1}",
     "availablevacation": "Available vacation",
+    "calendar": "Calendar",
     "chart": {
       "ariaLabel": "Chart of this vacation and the overlapping vacations of the substitutes",
       "nonWorkingDay": "Weekend or holiday",
@@ -4592,8 +4642,12 @@
       "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
     },
     "conflicts": "Conflicts",
+    "countPerDay": "vacation hours per day",
     "employee": "Employee",
     "enddate": "End date",
+    "error": {
+      "sendmail": "Something went wrong while sending a mail for application for leave"
+    },
     "export": {
       "dayWidth": {
         "_": "Day width",
@@ -4620,32 +4674,71 @@
     },
     "hr": "HR",
     "leaveAccountEntry": {
-      "amount": "Correction value",
+      "amount": {
+        "_": "Correction value",
+        "formatError": "Correction value accuracy should have maximum scale of 1."
+      },
       "title": {
-        "heading": "Leave account entries"
+        "add": "New leave account correction",
+        "edit": "Edit leave account",
+        "heading": "Leave account entries",
+        "list": "Leave account entries"
       }
     },
+    "leaveOfYear": "Leave account of year {arg0}",
     "leaveaccount": {
       "title": "Leave account"
     },
+    "mail": {
+      "action": {
+        "_": "The application for leave of {arg0} for the period {arg1} was {arg2} by {arg3}.",
+        "short": "Application for leave of {arg0} for {arg1} was {arg2}"
+      },
+      "link": "See application",
+      "modType": {
+        "delete": "deleted",
+        "insert": "created",
+        "undelete": "undeleted",
+        "update": "modified"
+      },
+      "period": "{arg0}-{arg1} ({arg2} days)",
+      "reason": {
+        "hr": "You received this application for leave of {arg0}, because it''s a special vacation which needs approval by any hr staff member.",
+        "manager": "You were chosen for checking this application. Please edit this application for leave in ProjectForge or contact {arg0}.",
+        "other": "You received this application for leave of {arg0} for information.",
+        "own": "This is your application for leave ({arg0}).",
+        "replacement": "You were chosen as substitute for this leave. If you can''t substitute your colleague, please contact {arg0}."
+      }
+    },
     "manager": "Manager",
+    "neededdays": "Needed vacation days",
     "other": "Other",
     "own": "Own",
     "plandannualleave": "Number of planned leave days for the rest of the year",
     "previousyearleave": "Previous year leave",
+    "previousyearleaveunused": "Unused previous year leave until {arg0}",
+    "previousyearleaveused": "Previous year leave used",
     "recalculateRemainingLeave": "Recalculate remaining leave",
+    "remainingLeaveFromYear": "Remaining leave from {arg0}.",
+    "remainingLeaveFromYearUnused": "Unused remaining leave from {arg0}.",
     "replacement": {
       "_": "Substitution",
       "others": "Other substitutes"
     },
     "replacementVacationsUnavailable": "The vacations of the substitutes could not be loaded.",
+    "setStartAndEndFirst": "<First choose start- and end-date>",
     "special": {
       "_": "Special leave",
       "tooltip": "Special leave days will be excluded from the vacation account."
     },
     "specialApproved": "Special leave approved",
     "specialInProgress": "Special leave in progress",
+    "specialVacationInYearApproved": "Approved special leave in {arg0}",
+    "specialVacationInYearInProgress": "Special leave {arg0} in progress",
     "startdate": "Start date",
+    "stats": {
+      "averageWorkingTime": "Ø {arg4} booked hours per workday ({arg0}-{arg1}): {arg2} booked hours in {arg3} workdays."
+    },
     "status": {
       "_": "Status",
       "approved": "Approved",
@@ -4659,12 +4752,28 @@
     "subtotal": "Subtotal",
     "title": {
       "add": "Create leave application",
+      "edit": "Edit leave application",
+      "heading": "Leave_Applications",
       "list": "Leave application list"
     },
+    "usedvacation": "Used vacation",
     "vacationApproved": "Approved Vacation",
     "vacationInProgress": "Vacation in progress",
+    "vacationInYearApproved": "Approved leave in {arg0}",
+    "vacationer": "Vacationer",
     "vacationmode": "Assignment",
     "vacationsOfReplacements": "Vacations of substitutes",
+    "validate": {
+      "datenotset": "Start- and end-date are required.",
+      "daysarenull": "vacation with 0 workdays",
+      "endbeforestart": "The chosen end date is before start date",
+      "leaveapplicationexists": "A leave application already exists for this period",
+      "noCalender": "The company vacation calendar {arg0} must be selected",
+      "notAllowedToSelfApprove": "You're not allowed to approve this entry.",
+      "notEnoughVacationDaysLeft": "There are not enough free vacation days left",
+      "startDateBeforeNow": "The chosen start date is before now. Only HR employees can create data before now.",
+      "vacationBeforeJoinDate": "Vacations before joining of an employee are not allowed."
+    },
     "workingdays": "Workdays"
   },
   "validation": {

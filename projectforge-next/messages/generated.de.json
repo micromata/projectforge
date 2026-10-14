@@ -270,6 +270,10 @@
               "_": "Strukturelement für Urlaub (Id)",
               "description": "Die Id des Strukturelements, auf das Urlaub als Zeitbericht gebucht wird, im Kalender („Mehrere Tage buchen“) und durch den nächtlichen Job."
             }
+          },
+          "warnMissingKost2": {
+            "_": "Zeitberichte ohne Kost2 melden?",
+            "description": "Wenn aktiviert, zeigt ein ohne Kost2 gespeicherter Zeitbericht (auf einem Strukturelement ohne Kost2) einen Hinweis, sich an das Projektmanagement oder die Buchhaltung zu wenden, und die Benachrichtigungsregel „Zeitberichte ohne Kost2“ greift. Gebucht werden kann weiterhin. Nur wirksam bei freigeschalteter Kostenrechnung."
           }
         },
         "timesheetTags": {
@@ -502,7 +506,7 @@
         "timesheets": "Zeitberichte",
         "vacations": {
           "_": "Urlaube",
-          "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/react/teamCal/edit) eingerichtet werden."
+          "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/next/teamCal/new) eingerichtet werden."
         }
       },
       "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden.",
@@ -2695,7 +2699,10 @@
         "general": "Regel",
         "message": "Nachricht"
       },
-      "title": "Benachrichtigungsregeln"
+      "title": "Benachrichtigungsregeln",
+      "warning": {
+        "warnMissingKost2Off": "Der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (oder die Kostenrechnung) ist nicht aktiviert: Diese Regel benachrichtigt niemanden, bis er aktiviert ist."
+      }
     },
     "ruleName": "Regel",
     "ruleTypes": {
@@ -3229,6 +3236,12 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "access": {
+        "_": "Zugriffsrecht",
+        "groups": "Gruppen",
+        "title": "Zugriffsoptionen",
+        "users": "Benutzer:in"
+      },
       "attendee": {
         "status": {
           "accepted": "akzeptiert",
@@ -3355,6 +3368,12 @@
           "_": "Feiertage exportieren",
           "tooltip": "Download oder Abonnement von Feiertagen aus ProjectForge. Die Sprache kann unter 'Mein Zugang' geändert werden."
         },
+        "reminder": {
+          "checkbox": {
+            "_": "Erinnerungen exportieren",
+            "tooltip": "Wenn ausgewählt, werden auch die Erinnerungsfelder der Ereignisse exportiert, andernfalls werden sie ignoriert."
+          }
+        },
         "timesheets": "Zeitberichte exportieren",
         "weekOfYears": {
           "_": "Kalenderwochen exportieren",
@@ -3363,17 +3382,39 @@
       },
       "exportIcsButton": "Export ics",
       "externalsubscription": {
-        "label": "Externes Abonnement",
-        "updateInterval": "Aktualisierungsintervall",
-        "url": "Kalender-URL"
+        "label": {
+          "_": "Externes Abonnement",
+          "tooltip": "Externe Kalender abonnieren (im Ics-Format von Google, Apple icloud etc.)"
+        },
+        "updateInterval": {
+          "_": "Aktualisierungsintervall",
+          "interval15Min": "15 Minuten",
+          "interval1d": "1 Tag",
+          "interval1h": "1 Stunde"
+        },
+        "url": {
+          "_": "Kalender-URL",
+          "tooltip": "Unterstützte Urls sind z. B.\nGoogle-Kalender: https://www.google.com/calendar/ical/example%40gmail.com/public/basic.ics oder\nApple icloud: webcal://p06-calendarws.icloud.com/ca/subscribe/1/..."
+        }
       },
+      "fullAccess": "Vollzugriff",
       "import": {
         "ics": {
           "title": "Ereignisse importieren",
           "tooltip": "Ereignisse im ics-Format importieren."
         }
       },
+      "minimalAccess": {
+        "_": "Minimalzugriff",
+        "groups": {
+          "hint": "Mitglieder dieser Gruppen können lediglich den Zeitraum eines Eintrags sehen, jedoch keine weiteren Details, wie Ort, Titel etc."
+        },
+        "users": {
+          "hint": "Diese Benutzer:innen können lediglich den Zeitraum eines Eintrags sehen, jedoch keine weiteren Details, wie Ort, Titel etc."
+        }
+      },
       "owner": "Eigner:in",
+      "readonlyAccess": "Nur lesend",
       "subscription": {
         "_": "Abonnement",
         "timesheets": "Über diese URL können die eigenen Zeitberichte in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook).",
@@ -3381,7 +3422,12 @@
       },
       "switchToTeamEventButton": "In Termin umwandeln",
       "switchToTimesheetButton": "In Zeitbuchung umwandeln",
-      "title": "Titel"
+      "title": {
+        "_": "Titel",
+        "add": "Kalender hinzufügen",
+        "heading": "Kalender",
+        "list": "Kalenderliste"
+      }
     },
     "todo": {
       "assignee": "Bearbeiter",
@@ -3705,6 +3751,7 @@
           "muted": "{arg0} stummgeschaltet",
           "resolved": "{arg0} erledigt"
         },
+        "hiddenByFilter": "Mit diesem Filter nicht mehr gelistet",
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
@@ -3754,11 +3801,13 @@
         "reopenedAt": "Nach Erledigung erneut aufgetreten",
         "request": "Request",
         "sampleMessage": "Beispielmeldung",
+        "showInList": "Anzeigen",
         "stackTrace": "Stacktrace",
         "status": {
           "acknowledged": "Zur Kenntnis genommen",
           "all": "Alle",
           "ignored": "Ignoriert",
+          "muted": "Stummgeschaltet",
           "new": "Neu",
           "open": "Offen",
           "resolved": "Erledigt"
@@ -4582,6 +4631,7 @@
     "availabledays": "Verfügbare Urlaubstage",
     "availabledaysAfterThis": "{arg0}, nach diesem Antrag: {arg1}",
     "availablevacation": "Noch verfügbarer Urlaub",
+    "calendar": "Kalender",
     "chart": {
       "ariaLabel": "Balkengrafik dieses Urlaubs und der überlappenden Urlaube der Vertretungen",
       "nonWorkingDay": "Wochenende oder Feiertag",
@@ -4592,8 +4642,12 @@
       "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
     },
     "conflicts": "Konflikte",
+    "countPerDay": "Urlaubsstunden pro Urlaubstag",
     "employee": "Mitarbeiter",
     "enddate": "Enddatum",
+    "error": {
+      "sendmail": "Es ist ein Problem beim Senden der Urlaubseintragsmail aufgetreten."
+    },
     "export": {
       "dayWidth": {
         "_": "Tagesbreite",
@@ -4620,32 +4674,71 @@
     },
     "hr": "HR",
     "leaveAccountEntry": {
-      "amount": "Korrekturwert",
+      "amount": {
+        "_": "Korrekturwert",
+        "formatError": "Der Korrekturwert darf nur eine Nachkommastelle haben."
+      },
       "title": {
-        "heading": "Urlaubskontokorrekturen"
+        "add": "Neue Urlaubskontokorrektur",
+        "edit": "Urlaubskorrektur bearbeiten",
+        "heading": "Urlaubskontokorrekturen",
+        "list": "Urlaubskontokorrekturen"
       }
     },
+    "leaveOfYear": "Urlaubskonto im Jahr {arg0}",
     "leaveaccount": {
       "title": "Urlaubskonto"
     },
+    "mail": {
+      "action": {
+        "_": "Der Urlaubseintrag von {arg0} am {arg1} wurde {arg2} durch {arg3}.",
+        "short": "Urlaubseintrag von {arg0} am {arg1} wurde {arg2}"
+      },
+      "link": "Zum Urlaubseintrag",
+      "modType": {
+        "delete": "gelöscht",
+        "insert": "angelegt",
+        "undelete": "wiederhergestellt",
+        "update": "geändert"
+      },
+      "period": "{arg0}-{arg1} ({arg2} Tage)",
+      "reason": {
+        "hr": "Du erhählst diesen Urlaubseintrag von {arg0}, weil es ein Spezialurlaub ist, der die Freigabe von HR benötigt.",
+        "manager": "Du wurdest zur Abstimmung ausgewählt. Bitte bearbeite diesen Urlaubseintrag in ProjectForge bzw. nimm bitte Kontakt zu {arg0} auf.",
+        "other": "Du erhählst diesen Urlaubseintrag von {arg0} zur Information.",
+        "own": "Es ist dein Urlaubseintrag.",
+        "replacement": "Du wurdest als Vertretung ausgewählt. Bitte bearbeite diesen Eintrag oder nimm Kontakt zu {arg0} auf."
+      }
+    },
     "manager": "Abstimmung",
+    "neededdays": "Benötigte Urlaubstage",
     "other": "Anderer",
     "own": "Eigner:in",
     "plandannualleave": "Anzahl geplanter Urlaubstage für restliches Kalenderjahr",
     "previousyearleave": "Resturlaub aus dem Vorjahr",
+    "previousyearleaveunused": "Ungenutzer Resturlaub zum {arg0}",
+    "previousyearleaveused": "Genutzter Resturlaub aus dem Vorjahr",
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
+    "remainingLeaveFromYear": "Resturlaub aus dem Jahr {arg0}",
+    "remainingLeaveFromYearUnused": "Ungenutzer Resturlaub aus dem Jahr {arg0}",
     "replacement": {
       "_": "Vertretung",
       "others": "Weitere Vertretungen"
     },
     "replacementVacationsUnavailable": "Die Urlaube der Vertretungen konnten nicht geladen werden.",
+    "setStartAndEndFirst": "<Erst Start- und End-Datum auswählen>",
     "special": {
       "_": "Sonderurlaub",
       "tooltip": "Sonderurlaub wird im Urlaubskonto nicht berücksichtigt."
     },
     "specialApproved": "Abgestimmter Sonderurlaub",
     "specialInProgress": "Sonderurlaub in Abstimmung",
+    "specialVacationInYearApproved": "Abgestimmter Sonderurlaub in {arg0}",
+    "specialVacationInYearInProgress": "Sonderurlaub {arg0} in Abstimmung",
     "startdate": "Startdatum",
+    "stats": {
+      "averageWorkingTime": "Ø {arg4} Stunden pro Arbeitstag ({arg0}-{arg1}): {arg2} gebuchte Stunden in {arg3} Arbeitstagen."
+    },
     "status": {
       "_": "Status",
       "approved": "Abgestimmt",
@@ -4659,12 +4752,28 @@
     "subtotal": "Zwischensumme",
     "title": {
       "add": "Urlaubseintrag erstellen",
+      "edit": "Urlaubseintrag ändern",
+      "heading": "Urlaubseinträge",
       "list": "Urlaubseintragsliste"
     },
+    "usedvacation": "Bereits verwendeter Urlaub",
     "vacationApproved": "Abgestimmter Urlaub",
     "vacationInProgress": "Urlaub in Abstimmung",
+    "vacationInYearApproved": "Abgestimmter Urlaub in {arg0}",
+    "vacationer": "Urlauber",
     "vacationmode": "Zuordnung",
     "vacationsOfReplacements": "Urlaube der Vertretungen",
+    "validate": {
+      "datenotset": "Das Start- und das Enddatum müssen angegeben sein.",
+      "daysarenull": "Urlaubseintrag mit 0 Arbeitstagen",
+      "endbeforestart": "Das gewählte Enddatum liegt vor dem Startdatum",
+      "leaveapplicationexists": "Für den ausgewählten Zeitraum existiert bereits ein Urlaubseintrag",
+      "noCalender": "Der Firmenurlaubskalender {arg0} muss ausgewählt werden",
+      "notAllowedToSelfApprove": "Du kannst diesen Eintrag nicht als abgestimmt markieren.",
+      "notEnoughVacationDaysLeft": "Es stehen nicht mehr genügend Urlaubstage zur Verfügung",
+      "startDateBeforeNow": "Das gewählte Startdatum liegt vor dem aktuellen Datum. Nur HR-Mitarbeiter:innen können Daten in der Vergangenheit anlegen.",
+      "vacationBeforeJoinDate": "Der Urlaub darf nicht vor dem Eintrittsdatum des Mitarbeiters liegen."
+    },
     "workingdays": "Anzahl Urlaubstage"
   },
   "validation": {

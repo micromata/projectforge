@@ -9,17 +9,17 @@
       "type" : "added",
       "items" : [ {
         "title" : "Zeitberichte ohne Kost2",
-        "items" : [ "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen.", "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben." ]
+        "items" : [ "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen.", "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben.", "Neuer Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (standardmäßig aus, nur bei freigeschalteter Kostenrechnung sichtbar): Hinweis beim Speichern und Benachrichtigungsregel greifen nur, wenn er aktiviert ist. Buchen ohne Kost2 bleibt möglich.", "Konfiguration: Die Liste lässt sich nach Bereich filtern (Pillen wie Finanzen oder Zeitberichte)." ]
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite.", {
+      "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite.", "System-Dashboard: Stummgeschaltete Probleme lassen sich mit einem eigenen Statusfilter anzeigen, ein Klick auf die Anzahl stummgeschalteter, ignorierter oder erledigter Probleme einer Kennzahl oder Subsystem-Kachel listet genau diese, und ein Problem, das nach einer Statusänderung aus der Liste fällt, lässt sich über einen Hinweis wieder anzeigen.", {
         "title" : "Urlaubskonto: Tagesbalken",
         "items" : [ "Die Urlaube im Urlaubskonto zeigen neben den Tagen ihren Zeitraum als Balken wie in der Urlaubsliste: Arbeitstage, Wochenenden und Feiertage sowie die Tage ohne anwesende Vertretung.", "Ein Urlaub über vier Wochen wird mit schmaleren Tagen in derselben Breite gezeichnet (bis zu 13 Wochen), statt nach vier Wochen abgeschnitten zu werden, auch in der Urlaubsliste." ]
       }, "Team-Urlaubskalender: Die Urlaube der gewählten Mitarbeitenden und Gruppen werden jetzt auch direkt auf der Seite angezeigt, je Quartal oder Kalenderjahr und mit einstellbarer Tagesbreite (bis zum ganzen Zeitraum in Fensterbreite); der Excel-Export beginnt mit dem angezeigten Zeitraum. Auswahlen von Mitarbeitenden und Gruppen lassen sich als Favoriten speichern. Benutzer ohne HR- oder Finanzrechte wählen nur aus ihren eigenen Gruppen und sehen keine Vorjahre mehr. Urlaube, die vor einem Blatt des Excel-Exports beginnen, erscheinen jetzt auch darauf." ]
     }, {
       "type" : "changed",
-      "items" : [ "Urlaubsliste: Benutzer ohne HR- oder Finanzrechte sehen ihre eigenen Urlaube, die von ihnen zu genehmigenden oder zu vertretenden sowie die Urlaube ihrer Vertretungen, die sich mit den eigenen überschneiden, nicht mehr alle aktuellen Urlaube ihrer Gruppenkollegen." ]
+      "items" : [ "Kalender: Liste und Formular der Teamkalender sind in die neue Oberfläche migriert. Ein gespeicherter Kalender zeigt seinen Abonnement-Link mit einem Schalter für die Erinnerungen, die Liste bietet im Export-Menü das Abonnement von Zeitberichten, Kalenderwochen und Feiertagen an.", "Urlaubsliste: Benutzer ohne HR- oder Finanzrechte sehen ihre eigenen Urlaube, die von ihnen zu genehmigenden oder zu vertretenden sowie die Urlaube ihrer Vertretungen, die sich mit den eigenen überschneiden, nicht mehr alle aktuellen Urlaube ihrer Gruppenkollegen." ]
     } ]
   },
   "groups" : [ {
