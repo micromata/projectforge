@@ -27,10 +27,13 @@ import javax.sql.DataSource
 
 /**
  * Test cases don't run Flyway (the schema is created by hbm2ddl), but the file store tables (schema pf_files) are
- * plain JDBC without JPA entities. So the HSQLDB Flyway script is executed here.
+ * plain JDBC without JPA entities. So the HSQLDB Flyway scripts are executed here.
  */
 object PfFilesTestSchema {
-    private const val SCRIPT = "/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql"
+    private val SCRIPTS = listOf(
+        "/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql",
+        "/flyway/migrate/common/V9.0.6.2__RELEASE-FileSystemEncryption.sql",
+    )
 
     @JvmStatic
     fun ensure(dataSource: DataSource) {
@@ -45,17 +48,19 @@ object PfFilesTestSchema {
                     }
                 }
             }
-            val script = PfFilesTestSchema::class.java.getResource(SCRIPT)?.readText()
-                ?: throw IllegalStateException("Flyway script '$SCRIPT' not found in classpath.")
-            script.lines()
-                .filterNot { it.trimStart().startsWith("--") }
-                .joinToString("\n")
-                .split(';')
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .forEach { sql ->
-                    conn.createStatement().use { it.execute(sql) }
-                }
+            SCRIPTS.forEach { path ->
+                val script = PfFilesTestSchema::class.java.getResource(path)?.readText()
+                    ?: throw IllegalStateException("Flyway script '$path' not found in classpath.")
+                script.lines()
+                    .filterNot { it.trimStart().startsWith("--") }
+                    .joinToString("\n")
+                    .split(';')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .forEach { sql ->
+                        conn.createStatement().use { it.execute(sql) }
+                    }
+            }
         }
     }
 }

@@ -41,11 +41,13 @@ internal class FileMeta(
     var description: String? = null,
     /** Size of the payload (after an optional AES encryption, before compression). */
     var size: Long? = null,
-    /** Size of the stored content (after compression). */
+    /** Size of the stored content (after compression and an optional encryption at rest). */
     var storedSize: Long? = null,
     var chunkCount: Int = 0,
     var compression: CompressionType = CompressionType.NONE,
     var storage: StorageType = StorageType.DB,
+    /** Encryption at rest by the file store (file system storage only), applied after the compression. */
+    var encryption: EncryptionType = EncryptionType.NONE,
     /** SHA-256 of the payload, formatted as "SHA256: <hex>" (as before in the JCR). */
     var checksum: String? = null,
     var aesEncrypted: Boolean = false,
@@ -79,6 +81,6 @@ internal class FileMeta(
     }
 
     override fun toString(): String {
-        return "location=[$parentPath/$relPath],id=[$fileId],fileName=[$fileName],size=[$size],storedSize=[$storedSize],storage=[$storage],compression=[$compression]"
+        return "location=[$parentPath/$relPath],id=[$fileId],fileName=[$fileName],size=[$size],storedSize=[$storedSize],storage=[$storage],compression=[$compression],encryption=[$encryption]"
     }
 }

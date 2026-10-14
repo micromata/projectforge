@@ -31,6 +31,6 @@ enum class StorageType {
     /** Content is stored compressed (or not) as chunks in `pf_files.t_attachment_chunk`. */
     DB,
 
-    /** Content is stored as a plain file in the file system (e. g. data transfer files, which are big and short-lived). */
+    /** Content is stored as a file in the file system (e. g. data transfer files, which are big and short-lived), optionally encrypted. */
     FS,
 }

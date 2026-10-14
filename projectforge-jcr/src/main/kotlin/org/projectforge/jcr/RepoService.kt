@@ -27,6 +27,7 @@ import jakarta.annotation.PreDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ZipMode
 import org.projectforge.jcr.store.FileStore
+import org.projectforge.jcr.store.FileSystemCipher
 import org.projectforge.jcr.store.StorageType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -76,6 +77,12 @@ open class RepoService {
      */
     @Value("\${projectforge.files.store:}")
     internal var filesStore: String = ""
+
+    /**
+     * If given, files of the file system storage (e. g. DataTransfer) are encrypted at rest with a key derived from it.
+     */
+    @Value("\${projectforge.files.fileSystemEncryptionKey:}")
+    internal var fileSystemEncryptionKey: String = ""
 
     /**
      * True, if all files are stored by the [FileStore] (`projectforge.files.store=db`).
@@ -150,7 +157,7 @@ open class RepoService {
             }
             val ds = dataSource
             if (ds != null) {
-                val store = FileStore(ds, mainNodeName).also { store ->
+                val store = FileStore(ds, mainNodeName, FileSystemCipher.create(fileSystemEncryptionKey)).also { store ->
                     fileSystemPaths.forEach { (path, dir) -> store.registerFileSystemPath(path, dir) }
                 }
                 fileStore = store

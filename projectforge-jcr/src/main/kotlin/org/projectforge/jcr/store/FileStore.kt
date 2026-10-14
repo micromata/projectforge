@@ -49,16 +49,24 @@ private val log = KotlinLogging.logger {}
  *
  * @param mainNodeName The former JCR main node. Paths given with this prefix (e. g. "/ProjectForge/...") are
  * normalized.
+ * @param fileSystemCipher If given, new files of the file system storage are encrypted at rest.
  */
 class FileStore internal constructor(
     dataSource: DataSource,
     val mainNodeName: String = "ProjectForge",
+    fileSystemCipher: FileSystemCipher? = null,
 ) {
     private val dao = FileMetaDao(dataSource)
 
     private val dbBlobStore = DbBlobStore(dataSource)
 
-    private val fsBlobStore = FsBlobStore()
+    private val fsBlobStore = FsBlobStore(fileSystemCipher)
+
+    /**
+     * True, if new files of the file system storage are encrypted (`projectforge.files.fileSystemEncryptionKey`).
+     */
+    val fileSystemEncrypted: Boolean
+        get() = fsBlobStore.encrypting
 
     private val random = SecureRandom()
 
@@ -433,11 +441,11 @@ class FileStore internal constructor(
             fileName = fileObject.fileName,
             description = fileObject.description,
             storage = storage,
-            // Content in the file system isn't compressed: fast access and no CPU costs for large files.
-            compression = if (storage == StorageType.FS) {
-                CompressionType.NONE
+            compression = CompressionType.choose(fileObject.fileName, fileObject.aesEncrypted, fileObject.zipMode),
+            encryption = if (storage == StorageType.FS && fsBlobStore.encrypting) {
+                EncryptionType.AES_CTR
             } else {
-                CompressionType.choose(fileObject.fileName, fileObject.aesEncrypted, fileObject.zipMode)
+                EncryptionType.NONE
             },
             aesEncrypted = fileObject.aesEncrypted == true,
             zipMode = fileObject.zipMode,
@@ -475,7 +483,7 @@ class FileStore internal constructor(
             val tmpFile = fsBlobStore.writeTemp(meta, measuring)
             try {
                 meta.size = measuring.count
-                meta.storedSize = measuring.count
+                meta.storedSize = tmpFile.length()
                 meta.checksum = measuring.checksum
                 afterMeasured(meta)
                 fsBlobStore.commit(meta, tmpFile)

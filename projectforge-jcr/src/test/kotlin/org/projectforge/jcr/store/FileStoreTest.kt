@@ -36,6 +36,7 @@ import org.projectforge.jcr.FileSizeStandardChecker
 import java.io.File
 import java.security.MessageDigest
 import java.util.*
+import java.util.zip.GZIPInputStream
 import javax.sql.DataSource
 import kotlin.random.Random
 
@@ -177,7 +178,9 @@ class FileStoreTest {
         Assertions.assertTrue(fileStore.isFileSystemPath("/ProjectForge/$DATATRANSFER_PATH/1"))
         Assertions.assertFalse(fileStore.isFileSystemPath("org.projectforge.fibu.RechnungDO"))
         val diskFile = File(fsDir, "1/attachments/${file1.fileId}")
-        Assertions.assertArrayEquals(content, diskFile.readBytes(), "File system content is stored uncompressed.")
+        Assertions.assertTrue(diskFile.length() < content.size / 10, "File system content should be gzipped.")
+        Assertions.assertArrayEquals(content, GZIPInputStream(diskFile.inputStream()).use { it.readBytes() })
+        Assertions.assertFalse(fileStore.fileSystemEncrypted)
         Assertions.assertEquals(setOf("1", "2"), fileStore.getChildNames(DATATRANSFER_PATH))
 
         val retrieved = FileObject(file2.parentNodePath, file2.relPath, fileId = file2.fileId)
@@ -189,6 +192,53 @@ class FileStoreTest {
         Assertions.assertFalse(File(fsDir, "1").exists(), "Empty directories should be removed.")
         Assertions.assertEquals(setOf("2"), fileStore.getChildNames(DATATRANSFER_PATH))
         Assertions.assertTrue(fileStore.exists(file3))
+    }
+
+    @Test
+    fun `files of the file system storage are encrypted, if a key is given`() {
+        val content = "DataTransfer secret".repeat(1000).toByteArray()
+        val plain = store("$DATATRANSFER_PATH/1", "attachments", "plain.txt", content)
+
+        val encryptingStore = createFileStore(KEY)
+        Assertions.assertTrue(encryptingStore.fileSystemEncrypted)
+        val compressed = store("$DATATRANSFER_PATH/1", "attachments", "a.txt", content, encryptingStore)
+        val random = Random(42).nextBytes(DbBlobStore.CHUNK_SIZE + 4711)
+        val uncompressed = store("$DATATRANSFER_PATH/1", "attachments", "b.zip", random, encryptingStore)
+        // Files of the data base aren't affected:
+        val dbFile = store("org.projectforge.fibu.RechnungDO/42", "attachments", "invoice.txt", content, encryptingStore)
+
+        val compressedDiskFile = File(fsDir, "1/attachments/${compressed.fileId}")
+        val compressedBytes = compressedDiskFile.readBytes()
+        Assertions.assertEquals("PFE1", String(compressedBytes, 0, 4))
+        Assertions.assertTrue(compressedBytes.size < content.size / 10, "Content should be gzipped before encryption.")
+        val uncompressedBytes = File(fsDir, "1/attachments/${uncompressed.fileId}").readBytes()
+        Assertions.assertEquals(random.size + FileSystemCipher.headerLength, uncompressedBytes.size)
+        Assertions.assertFalse(
+            uncompressedBytes.copyOfRange(FileSystemCipher.headerLength, uncompressedBytes.size).contentEquals(random),
+            "Content shouldn't be stored in plain text.",
+        )
+        Assertions.assertEquals(sha256(random), uncompressed.checksum, "Checksum of the plain content.")
+        Assertions.assertEquals(random.size.toLong(), uncompressed.size)
+
+        // All files are readable by the store with the key, the plain file of former times too:
+        listOf(plain to content, compressed to content, uncompressed to random, dbFile to content).forEach { (file, expected) ->
+            encryptingStore.retrieveFileInputStream(file)!!.use {
+                Assertions.assertArrayEquals(expected, it.readBytes(), "${file.fileName}")
+            }
+        }
+        var errors = 0
+        encryptingStore.checkSanity { if (it.error != null) errors++ }
+        Assertions.assertEquals(0, errors)
+
+        // Without the key or with another key, encrypted files can't be read:
+        Assertions.assertThrows(IllegalStateException::class.java) {
+            fileStore.retrieveFileInputStream(compressed)
+        }
+        val otherKeyErrors = mutableSetOf<String>()
+        createFileStore("another key").checkSanity { result ->
+            result.error?.let { otherKeyErrors.add(result.fileObject.fileId!!) }
+        }
+        Assertions.assertEquals(setOf(compressed.fileId, uncompressed.fileId), otherKeyErrors)
     }
 
     @Test
@@ -235,10 +285,22 @@ class FileStoreTest {
         Assertions.assertEquals("Imported file", info.description)
     }
 
-    private fun store(parentNodePath: String, relPath: String, fileName: String, content: ByteArray): FileObject {
+    private fun store(
+        parentNodePath: String,
+        relPath: String,
+        fileName: String,
+        content: ByteArray,
+        store: FileStore = fileStore,
+    ): FileObject {
         val file = fileObject(parentNodePath, relPath, fileName)
-        fileStore.storeFile(file, content.inputStream(), FileSizeStandardChecker(10_000_000), "kai")
+        store.storeFile(file, content.inputStream(), FileSizeStandardChecker(10_000_000), "kai")
         return file
+    }
+
+    private fun createFileStore(key: String): FileStore {
+        return FileStore(dataSource, fileSystemCipher = FileSystemCipher.create(key)).also {
+            it.registerFileSystemPath(DATATRANSFER_PATH, fsDir)
+        }
     }
 
     private fun fileObject(parentNodePath: String, relPath: String, fileName: String): FileObject {
@@ -251,6 +313,7 @@ class FileStoreTest {
 
     companion object {
         private const val DATATRANSFER_PATH = "org.projectforge.plugins.datatransfer"
+        private const val KEY = "Some long random key of the installation"
 
         private val dataSource: DataSource
             get() = FileStoreTestDataSource.dataSource

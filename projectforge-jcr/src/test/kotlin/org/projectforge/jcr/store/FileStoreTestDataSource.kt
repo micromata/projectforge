@@ -30,7 +30,7 @@ import javax.sql.DataSource
 
 /**
  * In-memory HSQLDB with the schema pf_files for the tests of the file store. The schema is created by the Flyway
- * script of projectforge-business (Flyway doesn't run in projectforge-jcr).
+ * scripts of projectforge-business (Flyway doesn't run in projectforge-jcr).
  *
  * Its connections don't auto-commit, as the pooled ones of the application (`spring.datasource.hikari.auto-commit=false`):
  * a write outside of a transaction would be lost there, and must be lost here too.
@@ -41,11 +41,16 @@ object FileStoreTestDataSource {
         ds.setURL("jdbc:hsqldb:mem:fileStoreTest")
         ds.user = "sa"
         ds.setPassword("")
-        val script = File("../projectforge-business/src/main/resources/flyway/migrate/hsqldb/V8.0.37__RELEASE-PfFiles.sql")
+        val scripts = listOf(
+            "hsqldb/V8.0.37__RELEASE-PfFiles.sql",
+            "common/V9.0.6.2__RELEASE-FileSystemEncryption.sql",
+        ).map { File("../projectforge-business/src/main/resources/flyway/migrate/$it") }
         ds.connection.use { conn ->
-            script.readLines().filterNot { it.trimStart().startsWith("--") }.joinToString("\n")
-                .split(';').map { it.trim() }.filter { it.isNotEmpty() }
-                .forEach { sql -> conn.createStatement().use { it.execute(sql) } }
+            scripts.forEach { script ->
+                script.readLines().filterNot { it.trimStart().startsWith("--") }.joinToString("\n")
+                    .split(';').map { it.trim() }.filter { it.isNotEmpty() }
+                    .forEach { sql -> conn.createStatement().use { it.execute(sql) } }
+            }
         }
         object : DataSource by ds {
             override fun getConnection(): Connection = ds.connection.also { it.autoCommit = false }
