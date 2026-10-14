@@ -3831,7 +3831,8 @@
             "title": "New release"
           },
           "title": "For copy & paste"
-        }
+        },
+        "tooltip": "The message is shown in red on every page. It is only kept in memory at runtime and is deleted when ProjectForge restarts."
       },
       "button": {
         "checkI18nProperties": {

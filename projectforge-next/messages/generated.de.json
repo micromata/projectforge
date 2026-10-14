@@ -3831,7 +3831,8 @@
             "title": "Neues Release"
           },
           "title": "For copy & paste"
-        }
+        },
+        "tooltip": "Die Meldung wird auf jeder Seite rot angezeigt. Sie wird nur zur Laufzeit im Speicher gehalten und bei einem Neustart von ProjectForge gelöscht."
       },
       "button": {
         "checkI18nProperties": {
