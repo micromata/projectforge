@@ -22,6 +22,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `projectforge-application/src/main/resources/i18nKeys.json` by hand. They are produced only by the
   generator (`bin/pfDev.sh gen`, i.e. `developmentMainForRelease`), which may be run after an i18n change;
   a manual change would be overwritten on the next run anyway.
+- Merges and rebases don't conflict on the generated files (`.gitattributes`: merge driver `pf-generated`, which
+  keeps the own side; registered by any `bin/pfDev.sh` call). Afterwards, run `bin/pfDev.sh gen` and commit the
+  regenerated files.
 - The changelog is written only in `changelog/changelog.json` (English, published — no names of persons,
   customers or internal teams), its German translation for the app in `changelog/changelog.de.json` (same
   structure, texts only, by version/id; every entry must be translated). A new change in a branch goes into
