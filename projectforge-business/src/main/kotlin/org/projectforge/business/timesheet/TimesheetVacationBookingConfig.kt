@@ -24,6 +24,7 @@
 package org.projectforge.business.timesheet
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.task.TaskDO
@@ -72,6 +73,9 @@ open class TimesheetVacationBookingConfig {
     @Autowired
     private lateinit var kostCache: KostCache
 
+    @Autowired
+    private lateinit var timesheetDao: TimesheetDao
+
     /** The reason of the last failed resolution, so it is logged once rather than on every call. */
     private var lastWarning: String? = null
 
@@ -79,10 +83,25 @@ open class TimesheetVacationBookingConfig {
      * Resolved on every call rather than at startup: the task tree and the cost cache aren't ready when this bean is
      * created, and a task or cost unit may be changed while the system runs.
      *
-     * @return null if not configured, or if the configuration names no task, no cost unit, or a cost unit not
-     * bookable on the task (a warning is logged once in the last two cases).
+     * @return null if not configured, or if the configuration names no task, no cost unit, a task no time sheet is
+     * bookable on (also of an ended project), or a cost unit not bookable on the task (a warning is logged once in
+     * these cases).
      */
     open fun resolve(): VacationBooking? {
+        val result = resolveChecked() ?: return null
+        if (result.problem != null) {
+            return warn(result.message!!)
+        }
+        lastWarning = null
+        return result.booking
+    }
+
+    /**
+     * As [resolve], but with the problem of a configuration that doesn't resolve (and without logging it).
+     *
+     * @return null if not configured at all.
+     */
+    open fun resolveChecked(): CheckResult? {
         val (taskIdString, taskIdName) = valueOf(ConfigurationParam.TIMESHEET_VACATION_TASK_ID, taskIdProperty) {
             it.longValue?.takeIf { id -> id > 0 }?.toString()
         }
@@ -93,18 +112,17 @@ open class TimesheetVacationBookingConfig {
             return null
         }
         val result = check(taskIdString, kost2String)
-        return when (result.problem) {
-            null -> {
-                lastWarning = null
-                result.booking
-            }
-
-            Problem.TASK_NOT_FOUND -> warn("$taskIdName='${taskIdString ?: ""}' names no task")
-            Problem.KOST2_NOT_FOUND -> warn("$kost2Name='${kost2String ?: ""}' names no cost unit (format #.###.##.##)")
-            Problem.KOST2_NOT_BOOKABLE -> warn(
-                "$kost2Name='$kost2String' is not bookable on task $taskIdName=${result.task?.id} ('${result.task?.title}')"
-            )
+        val task = "task $taskIdName=${result.task?.id} ('${result.task?.title}')"
+        result.message = when (result.problem) {
+            null -> null
+            Problem.TASK_NOT_FOUND -> "$taskIdName='${taskIdString ?: ""}' names no task"
+            Problem.KOST2_NOT_FOUND -> "$kost2Name='${kost2String ?: ""}' names no cost unit (format #.###.##.##)"
+            Problem.TASK_NOT_BOOKABLE ->
+                "no time sheet is bookable on $task: it or an ancestor is closed, deleted or closed for booking"
+            Problem.PROJECT_ENDED -> "the project of $task is ended or deleted"
+            Problem.KOST2_NOT_BOOKABLE -> "$kost2Name='$kost2String' is not bookable on $task"
         }
+        return result
     }
 
     /**
@@ -117,6 +135,14 @@ open class TimesheetVacationBookingConfig {
         val problem = when {
             task == null -> Problem.TASK_NOT_FOUND
             kost2DO == null -> Problem.KOST2_NOT_FOUND
+            // As TimesheetDao refuses each time sheet then. Checked before the cost unit: the cost units of an ended
+            // project aren't bookable either, which would hide the cause.
+            taskTree.getTaskNodeById(task.id)?.let { timesheetDao.checkTaskBookable(it, false) } != true ->
+                Problem.TASK_NOT_BOOKABLE
+
+            taskTree.getProjekt(task.id)?.let { it.status == ProjektStatus.ENDED || it.deleted } == true ->
+                Problem.PROJECT_ENDED
+
             taskTree.getKost2List(task.id)?.any { it.id == kost2DO.id } != true -> Problem.KOST2_NOT_BOOKABLE
             else -> null
         }
@@ -124,17 +150,30 @@ open class TimesheetVacationBookingConfig {
         return CheckResult(booking = booking, problem = problem, task = task, kost2 = kost2DO)
     }
 
-    /** @param problem The first problem found (task, cost unit, bookable), null if [booking] is given. */
+    /**
+     * @param problem The first problem found (task, cost unit, bookable), null if [booking] is given.
+     * @param message The problem in words for the log, set by [resolveChecked] only.
+     */
     class CheckResult(
         val booking: VacationBooking?,
         val problem: Problem?,
         val task: TaskDO?,
         val kost2: Kost2DO?,
-    )
+        var message: String? = null,
+    ) {
+        /**
+         * Task and cost unit exist, but no time sheet is bookable on the task (closed, ended project): an error to be
+         * solved by the finance department, while the vacation days wait for being booked.
+         */
+        val unbookable: Boolean
+            get() = problem == Problem.TASK_NOT_BOOKABLE || problem == Problem.PROJECT_ENDED
+    }
 
     enum class Problem(val i18nKey: String) {
         TASK_NOT_FOUND("administration.configuration.error.vacationTaskNotFound"),
         KOST2_NOT_FOUND("administration.configuration.error.vacationKost2NotFound"),
+        TASK_NOT_BOOKABLE("administration.configuration.error.vacationTaskNotBookable"),
+        PROJECT_ENDED("administration.configuration.error.vacationProjectEnded"),
         KOST2_NOT_BOOKABLE("administration.configuration.error.vacationKost2NotBookable"),
     }
 
