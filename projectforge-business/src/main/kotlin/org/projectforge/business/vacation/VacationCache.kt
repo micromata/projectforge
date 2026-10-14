@@ -210,6 +210,20 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     }
 
     /**
+     * Hydrates the employee graph of the given vacations read outside this cache (e.g. trimmed to a period), as
+     * [hydrate] does for the cached ones: the other replacements of all of them are read in one query instead of
+     * one lazy collection init per vacation (N+1), all employees come from [EmployeeCache].
+     */
+    fun hydrate(vacations: Collection<VacationDO>) {
+        val ids = vacations.mapNotNull { it.id }
+        if (ids.isEmpty()) {
+            return
+        }
+        val otherReplacementIds = runReadOnlyForCacheMaintenance { context -> loadOtherReplacementIds(context, ids) }
+        vacations.forEach { hydrate(it, otherReplacementIds[it.id]) }
+    }
+
+    /**
      * Replaces the lazy [EmployeeDO] proxies of the given vacation (employee, manager, replacement and the
      * other replacements) by the fully initialized instances held in [EmployeeCache]. The proxy ids are read
      * without initializing them (a proxy always knows its id), so this is safe on a detached entity and adds
@@ -238,21 +252,39 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         context: PfPersistenceContext,
         vacationId: Long? = null,
     ): Map<Long, MutableSet<Long>> {
-        val sql = StringBuilder("SELECT vacation_id, employee_id FROM t_employee_vacation_other_replacements")
-        if (vacationId != null) {
-            sql.append(" WHERE vacation_id = :vacationId")
-        }
-        val query = context.em.createNativeQuery(sql.toString())
-        if (vacationId != null) {
-            query.setParameter("vacationId", vacationId)
-        }
+        return loadOtherReplacementIds(context, vacationId?.let { listOf(it) })
+    }
+
+    /**
+     * @param vacationIds When given, only the rows of these vacations are read (in chunks, as an IN clause has a
+     * limited number of parameters).
+     */
+    private fun loadOtherReplacementIds(
+        context: PfPersistenceContext,
+        vacationIds: Collection<Long>?,
+    ): Map<Long, MutableSet<Long>> {
+        val sql = "SELECT vacation_id, employee_id FROM t_employee_vacation_other_replacements"
         val result = mutableMapOf<Long, MutableSet<Long>>()
-        @Suppress("UNCHECKED_CAST")
-        (query.resultList as List<Array<Any?>>).forEach { row ->
-            val vId = (row[0] as Number).toLong()
-            val employeeId = (row[1] as Number).toLong()
-            result.getOrPut(vId) { mutableSetOf() }.add(employeeId)
+        val queries = if (vacationIds == null) {
+            listOf(context.em.createNativeQuery(sql))
+        } else {
+            vacationIds.distinct().chunked(IN_CLAUSE_CHUNK_SIZE).map { chunk ->
+                context.em.createNativeQuery("$sql WHERE vacation_id IN (:vacationIds)")
+                    .setParameter("vacationIds", chunk)
+            }
+        }
+        queries.forEach { query ->
+            @Suppress("UNCHECKED_CAST")
+            (query.resultList as List<Array<Any?>>).forEach { row ->
+                val vId = (row[0] as Number).toLong()
+                val employeeId = (row[1] as Number).toLong()
+                result.getOrPut(vId) { mutableSetOf() }.add(employeeId)
+            }
         }
         return result
+    }
+
+    companion object {
+        private const val IN_CLAUSE_CHUNK_SIZE = 1000
     }
 }

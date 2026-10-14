@@ -24,10 +24,10 @@
 package org.projectforge.rest
 
 import org.projectforge.Constants
-import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
@@ -73,9 +73,6 @@ import java.time.Year
 @RequestMapping("${Rest.URL}/vacationAccount")
 class VacationAccountRest {
     @Autowired
-    private lateinit var caches: PfCaches
-
-    @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
     @Autowired
@@ -89,6 +86,9 @@ class VacationAccountRest {
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var vacationCache: VacationCache
 
     @Autowired
     private lateinit var vacationService: VacationService
@@ -175,7 +175,8 @@ class VacationAccountRest {
         val begin = PFDay.of(year, Month.JANUARY, 1)
         val vacations =
             vacationService.getVacationsListForPeriod(employeeId, begin.localDate, begin.endOfYear.localDate, true, true)
-                .map { caches.initialize(it) }
+                // Employees from the caches, the other replacements of all entries in one query (no N+1).
+                .also { vacationCache.hydrate(it) }
         // The days bar's red days, of all flagged entries of the year at once (as the vacation list does).
         val uncovered = vacations
             .filter { conflictingVacationsCache.hasConflict(it.id) && VacationEntityRest.inBarRange(it) }
