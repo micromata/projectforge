@@ -102,6 +102,16 @@ open class VacationSendMailService {
         replacements.forEach { user ->
             sendMail(vacationInfo, operationType, VacationMode.REPLACEMENT, user)
         }
+        if (operationType == OperationType.UPDATE && dbObj != null) {
+            // The manager and the substitutes taken off the entry are told too (for information), otherwise they
+            // would still count on it.
+            val involvedIds = (replacements + listOfNotNull(vacationer, manager)).map { it.id }.toSet()
+            val dbInfo = VacationInfo(employeeDao, dbObj)
+            (listOfNotNull(dbInfo.managerUser, dbInfo.replacementUser) + dbInfo.otherReplacementUsers)
+                .distinctBy { it.id }
+                .filter { it.id !in involvedIds && it.id != ThreadLocalUserContext.loggedInUserId }
+                .forEach { user -> sendMail(vacationInfo, operationType, VacationMode.OTHER, user) }
+        }
     }
 
     private fun sendMail(
@@ -151,7 +161,10 @@ open class VacationSendMailService {
         val subject = translate(recipient, "vacation.mail.action.short", *i18nArgs)
         val operation = translate(recipient, "vacation.mail.modType.${operationType.name.lowercase()}")
         val mode = vacationMode.name.lowercase()
-        val mailInfo = MailInfo(subject, operation, mode)
+        // The comment is personal data (see VacationDao.isCommentVisibleFor): the substitutes and anybody else only
+        // informed don't see it in ProjectForge, so they don't get it by mail either.
+        val showComment = vacationMode in COMMENT_RECIPIENT_MODES
+        val mailInfo = MailInfo(subject, operation, mode, showComment)
         val mail = Mail()
         mail.subject = subject
         mail.contentType = Mail.CONTENTTYPE_HTML
@@ -279,9 +292,11 @@ open class VacationSendMailService {
     }
 
     @Suppress("unused")
-    private class MailInfo(val subject: String, val operation: String, val mode: String)
+    private class MailInfo(val subject: String, val operation: String, val mode: String, val showComment: Boolean)
 
     companion object {
+        private val COMMENT_RECIPIENT_MODES = setOf(VacationMode.OWN, VacationMode.MANAGER, VacationMode.HR)
+
         private val sendMail: SendMail by lazy {
             ApplicationContextProvider.getApplicationContext().getBean(SendMail::class.java)
         }
