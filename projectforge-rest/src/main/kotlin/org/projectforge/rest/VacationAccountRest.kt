@@ -172,23 +172,38 @@ class VacationAccountRest {
 
     private fun readVacations(employeeId: Long, year: Int): List<VacationAccountVacation> {
         val begin = PFDay.of(year, Month.JANUARY, 1)
-        return vacationService.getVacationsListForPeriod(employeeId, begin.localDate, begin.endOfYear.localDate, true, true)
-            .map { Vacation(caches.initialize(it)) }
-            .map {
+        val vacations =
+            vacationService.getVacationsListForPeriod(employeeId, begin.localDate, begin.endOfYear.localDate, true, true)
+                .map { caches.initialize(it) }
+        // The days bar's red days, of all flagged entries of the year at once (as the vacation list does).
+        val uncovered = vacations
+            .filter { conflictingVacationsCache.hasConflict(it.id) && VacationEntityRest.inBarRange(it) }
+            .takeIf { it.isNotEmpty() }
+            ?.let { vacationService.getUncoveredDays(it) }
+            .orEmpty()
+        return vacations
+            .map { obj ->
+                val vacation = Vacation(obj)
                 VacationAccountVacation(
-                    id = it.id,
-                    startDateFormatted = it.startDateFormatted,
-                    endDateFormatted = it.endDateFormatted,
-                    statusString = it.statusString,
-                    workingDaysFormatted = it.workingDaysFormatted,
-                    specialFormatted = it.specialFormatted,
-                    replacement = it.replacement?.displayName,
-                    otherReplacements = it.otherReplacementsAsString,
-                    manager = it.manager?.displayName,
-                    vacationModeString = it.vacationModeString,
-                    comment = it.comment,
-                    conflict = conflictingVacationsCache.hasConflict(it.id),
-                    editUrl = vacationEditUrl(it.id),
+                    id = vacation.id,
+                    startDateFormatted = vacation.startDateFormatted,
+                    endDateFormatted = vacation.endDateFormatted,
+                    statusString = vacation.statusString,
+                    workingDaysFormatted = vacation.workingDaysFormatted,
+                    specialFormatted = vacation.specialFormatted,
+                    replacement = vacation.replacement?.displayName,
+                    otherReplacements = vacation.otherReplacementsAsString,
+                    manager = vacation.manager?.displayName,
+                    vacationModeString = vacation.vacationModeString,
+                    comment = vacation.comment,
+                    conflict = conflictingVacationsCache.hasConflict(vacation.id),
+                    startDate = vacation.startDate,
+                    endDate = vacation.endDate,
+                    halfDayBegin = vacation.halfDayBegin,
+                    halfDayEnd = vacation.halfDayEnd,
+                    nonWorkingDays = VacationEntityRest.barNonWorkingDays(obj),
+                    uncoveredDays = uncovered[vacation.id],
+                    editUrl = vacationEditUrl(vacation.id),
                 )
             }
     }

@@ -7,11 +7,15 @@ import { formatDate, formatDateRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { barClassName, dayClassName } from "./vacation-chart-grid";
 import {
+  BAR_SCALE_DAYS,
   dateRanges,
   daysBar,
   type BarDayKind,
+  type DaysBarSource,
 } from "./vacation-days-bar-model";
-import type { VacationListRow } from "./types";
+
+/** Days of a squeezed bar still drawn with gaps: segments of at least 2px in its 139px. */
+const SQUEEZED_GAP_MAX_DAYS = 46;
 
 /** The colours of the form's chart (vacation-chart-grid.ts), so list and form read alike. */
 function segmentClassName(kind: BarDayKind): string | undefined {
@@ -21,15 +25,17 @@ function segmentClassName(kind: BarDayKind): string | undefined {
 }
 
 /**
- * The list's bar of a vacation: a segment per calendar day at the same scale in every row (cut off after
- * [BAR_MAX_DAYS]), working days in the primary colour, weekends and holidays grey, the days without any
- * substitute on duty red. The tooltip names those days. Hidden on small screens, where the red row remains.
+ * The bar of a vacation (its list and the vacation account): a segment per calendar day, at the same scale in
+ * every row up to [BAR_SCALE_DAYS], a longer one squeezed into that width (cut off after [BAR_MAX_DAYS]); working
+ * days in the primary colour, weekends and holidays grey, the days without any substitute on duty red. The
+ * tooltip names those days. Hidden on small screens, where the red row remains.
  */
-export function VacationDaysBar({ row }: { row: VacationListRow }) {
+export function VacationDaysBar({ row }: { row: DaysBarSource }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const bar = daysBar(row);
   if (!bar) return null;
+  const squeezed = bar.days.length > BAR_SCALE_DAYS;
   const uncovered = dateRanges(row.uncoveredDays ?? []).map(({ from, to }) =>
     from === to ? formatDate(from, ctx) : formatDateRange(from, to, ctx)
   );
@@ -47,13 +53,22 @@ export function VacationDaysBar({ row }: { row: VacationListRow }) {
       <div
         role="img"
         aria-label={text}
-        className="hidden h-2.5 items-stretch gap-px sm:flex"
+        className={cn(
+          "hidden h-2.5 items-stretch sm:flex",
+          // Squeezed into the width of [BAR_SCALE_DAYS] days; without gaps once a segment would get thinner than 2px.
+          squeezed && "w-[139px]",
+          !squeezed || bar.days.length <= SQUEEZED_GAP_MAX_DAYS
+            ? "gap-px"
+            : undefined
+        )}
       >
         {bar.days.map((day) => (
           <span
             key={day.date}
             className={cn(
-              "w-1 shrink-0 rounded-[1px]",
+              squeezed
+                ? "min-w-0 flex-1 rounded-[0.5px]"
+                : "w-1 shrink-0 rounded-[1px]",
               segmentClassName(day.kind),
               day.half && "my-auto h-1/2"
             )}

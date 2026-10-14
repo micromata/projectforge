@@ -182,24 +182,12 @@ class VacationEntityRest :
         return result
     }
 
-    /** A period the list's bar draws: not beyond [CHART_MAX_DAYS] (a mistyped year). */
-    private fun inBarRange(obj: VacationDO): Boolean {
-        val startDate = obj.startDate ?: return false
-        val endDate = obj.endDate ?: return false
-        return endDate >= startDate && ChronoUnit.DAYS.between(startDate, endDate) <= CHART_MAX_DAYS
-    }
-
     /**
      * The days the list's bar draws the vacation with: its weekends and holidays. Its days without any substitute
      * on duty are added for all rows at once ([postProcessResultSet]).
      */
     private fun applyListDays(vacation: Vacation, obj: VacationDO) {
-        if (!inBarRange(obj)) {
-            return
-        }
-        val holidays = Holidays.instance
-        vacation.nonWorkingDays = generateSequence(obj.startDate!!) { it.plusDays(1) }.takeWhile { it <= obj.endDate!! }
-            .filter { !holidays.isWorkingDay(it) }.toList()
+        vacation.nonWorkingDays = barNonWorkingDays(obj)
     }
 
     override fun newBaseDTO(request: HttpServletRequest?): Vacation {
@@ -499,5 +487,22 @@ class VacationEntityRest :
     companion object {
         private const val CHART_MARGIN_DAYS = 3L
         private const val CHART_MAX_DAYS = 400L
+
+        /** A period the days bar draws (list and vacation account): not beyond [CHART_MAX_DAYS] (a mistyped year). */
+        internal fun inBarRange(obj: VacationDO): Boolean {
+            val startDate = obj.startDate ?: return false
+            val endDate = obj.endDate ?: return false
+            return endDate >= startDate && ChronoUnit.DAYS.between(startDate, endDate) <= CHART_MAX_DAYS
+        }
+
+        /** The weekends and holidays of the vacation for the days bar; null for a period it doesn't draw. */
+        internal fun barNonWorkingDays(obj: VacationDO): List<LocalDate>? {
+            if (!inBarRange(obj)) {
+                return null
+            }
+            val holidays = Holidays.instance
+            return generateSequence(obj.startDate!!) { it.plusDays(1) }.takeWhile { it <= obj.endDate!! }
+                .filter { !holidays.isWorkingDay(it) }.toList()
+        }
     }
 }

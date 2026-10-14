@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.vacation.service.VacationStatsFormatted
+import java.time.LocalDate
 
 /**
  * The vacation account ("Urlaubskonto") of an employee, for the page of projectforge-next
@@ -79,6 +80,15 @@ class VacationAccountVacation(
     val comment: String?,
     /** At least one day of it without any replacement on duty (`ConflictingVacationsCache`). */
     val conflict: Boolean,
+    /** The period and its days for the days bar, as in the vacation list. */
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+    val halfDayBegin: Boolean?,
+    val halfDayEnd: Boolean?,
+    /** Its weekends and holidays; null for a period the bar doesn't draw. */
+    val nonWorkingDays: List<LocalDate>?,
+    /** Its days without any replacement on duty, only on a conflict. */
+    val uncoveredDays: List<LocalDate>?,
     /** Its form, which returns here. */
     val editUrl: String,
 )

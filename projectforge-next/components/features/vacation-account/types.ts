@@ -57,6 +57,15 @@ export interface VacationAccountVacation {
   comment?: string;
   /** A day of it without any replacement on duty. */
   conflict: boolean;
+  /** For the days bar (VacationDaysBar), ISO dates. */
+  startDate?: string | null;
+  endDate?: string | null;
+  halfDayBegin?: boolean | null;
+  halfDayEnd?: boolean | null;
+  /** Weekends and holidays; null for a period the bar doesn't draw. */
+  nonWorkingDays?: string[] | null;
+  /** The days without any replacement on duty, only on a conflict. */
+  uncoveredDays?: string[] | null;
   editUrl: string;
 }
 

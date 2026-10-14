@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuLink } from "@/components/shared/menu-link";
+import { VacationDaysBar } from "@/components/features/vacation/vacation-days-bar";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
@@ -36,7 +37,7 @@ export function VacationEntriesTable({
             <TableHead>{t("vacation.startdate")}</TableHead>
             <TableHead>{t("vacation.enddate")}</TableHead>
             <TableHead>{t("vacation.status._")}</TableHead>
-            <TableHead className="text-right">{t("vacation.Days")}</TableHead>
+            <TableHead>{t("vacation.Days")}</TableHead>
             <TableHead>{t("vacation.special._")}</TableHead>
             <TableHead>{t("vacation.replacement._")}</TableHead>
             <TableHead>{t("vacation.replacement.others")}</TableHead>
@@ -72,8 +73,14 @@ export function VacationEntriesTable({
                   {vacation.endDateFormatted}
                 </TableCell>
                 <TableCell>{vacation.statusString}</TableCell>
-                <TableCell className="text-right tabular-nums">
-                  {vacation.workingDaysFormatted}
+                <TableCell>
+                  {/* As in the vacation list: beside the number the period as a bar (VacationDaysBar). */}
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 shrink-0 text-right tabular-nums">
+                      {vacation.workingDaysFormatted}
+                    </span>
+                    <VacationDaysBar row={vacation} />
+                  </div>
                 </TableCell>
                 <TableCell>{vacation.specialFormatted}</TableCell>
                 <TableCell>{vacation.replacement}</TableCell>
