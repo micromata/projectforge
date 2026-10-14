@@ -84,7 +84,7 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     // heading for collapsed it is aria-hidden, which the assertion below would then fail on.
     await expect
       .poll(() =>
-        scrollToTop(column).then(() => row.getAttribute("data-collapsed"))
+        scrollToTop(page, column).then(() => row.getAttribute("data-collapsed"))
       )
       .toBe("false");
     await expect(byRole(page, t("logo.projectforge"))).toBeVisible();
@@ -106,7 +106,7 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     await expect(page.locator("thead th").first()).toBeInViewport();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
-    await scrollToTop(column);
+    await scrollToTop(page, column);
     await expect.poll(() => height(row)).toBe(LOGO_ROW_HEIGHT);
     await expect(byRole(page, t("logo.projectforge"))).toBeVisible();
   });
@@ -156,7 +156,16 @@ function tableColumn(page: Page): Locator {
   return page.locator("table").locator("..");
 }
 
-async function scrollToTop(column: Locator): Promise<void> {
+/**
+ * Puts the table's column and <main> around it at the top. <main> as well: in this short window it
+ * overflows too (the table area keeps a minimum height, see ListPageShell), and a click on the pager
+ * scrolls it to bring the button into view - which collapses the row through <main>'s own handler,
+ * and a column already at the top fires no scroll event that could bring it back.
+ */
+async function scrollToTop(page: Page, column: Locator): Promise<void> {
+  await page.locator("main").evaluate((el) => {
+    el.scrollTop = 0;
+  });
   await column.evaluate((el) => {
     el.scrollTop = 0;
   });
