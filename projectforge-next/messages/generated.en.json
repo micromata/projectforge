@@ -468,18 +468,22 @@
       "timesheets": "time sheets"
     },
     "previousYear": "Previous year",
+    "quarter": "Quarter",
     "quickselect": {
       "tooltip": {
         "selectCurrentCalendarYear": "Quick select - current calendar year",
         "selectCurrentMonth": "Quick select - current month",
+        "selectCurrentQuarter": "Quick select - current quarter",
         "selectCurrentWeek": "Quick select - current week",
         "selectCurrentYearToDate": "Quick select - year to date",
         "selectNextCalendarYear": "Quick select - next calendar year",
         "selectNextMonth": "Quick select - next month",
+        "selectNextQuarter": "Quick select - next quarter",
         "selectNextWeek": "Quick select - next week",
         "selectNextYearToDate": "Quick select - next year to date",
         "selectPreviousCalendarYear": "Quick select - previous calendar year",
         "selectPreviousMonth": "Quick select - previous month",
+        "selectPreviousQuarter": "Quick select - previous quarter",
         "selectPreviousWeek": "Quick select - previous week",
         "selectPreviousYearToDate": "Quick select - previous year to date"
       }
@@ -724,6 +728,7 @@
     "short": {
       "month": "M",
       "months": "{arg0}M",
+      "quarter": "Q",
       "week": "W",
       "year": "Y"
     }
@@ -1338,6 +1343,7 @@
       "wochenstunden": "Hours per week",
       "zipCode": "Zip code"
     },
+    "employees": "Employees",
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
     "konto": {
@@ -2272,6 +2278,10 @@
         "_": "Existing names in Lanes & Planes",
         "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
         "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
+      },
+      "existingUserEmails": {
+        "_": "Existing users in Lanes & Planes (emails)",
+        "tooltip": "The emails of the users in Lanes & Planes, pasted from the column email of the user export (CSV), as the interface can't read users. An employee not sent yet whose email isn't listed, but one of the alternative or former emails of the user, is sent with that one, otherwise Lanes & Planes would create the user anew. Like a changed email it is held back until the email was changed in Lanes & Planes and confirmed below. Empty: not checked."
       },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
@@ -4655,6 +4665,18 @@
       "sendmail": "Something went wrong while sending a mail for application for leave"
     },
     "export": {
+      "dayWidth": {
+        "_": "Day width",
+        "auto": "Automatic",
+        "fit": "Fit to window",
+        "narrow": "Narrow",
+        "normal": "Normal",
+        "wide": "Wide"
+      },
+      "excel": {
+        "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
+      },
+      "selectHint": "Choose employees or groups to show their vacations.",
       "title": "Export of team vacation calendars"
     },
     "halfDay": "Half day",

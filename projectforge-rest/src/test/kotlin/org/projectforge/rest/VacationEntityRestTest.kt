@@ -225,6 +225,62 @@ class VacationEntityRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the list shows a normal user the own vacations and the overlapping ones of their substitutes only`() {
+        val own = createEmployee("visible-own")
+        val substitute = createEmployee("visible-substitute")
+        val colleague = createEmployee("visible-colleague")
+        val manager = createEmployee("visible-manager")
+        val finance = createEmployee("visible-finance", finance = true)
+        val hr = createEmployee("visible-hr", hrAccess = true)
+        logon(TEST_ADMIN_USER)
+        // One group: the read right alone would let everybody see the others' current vacations.
+        initTestDB.addGroup(
+            "${javaClass.simpleName}.visible",
+            *listOf(own, substitute, colleague, manager, finance).map { it.user!!.username!! }.toTypedArray(),
+        )
+        logon(hr.user!!)
+        val year = LocalDate.now().year + 2
+        fun insert(
+            employee: EmployeeDO,
+            replacement: EmployeeDO,
+            start: LocalDate,
+            end: LocalDate,
+            manager: EmployeeDO = replacement,
+            status: VacationStatus = VacationStatus.APPROVED,
+        ) = vacationDao.insert(vacation(employee, replacement, start, end).also {
+            it.manager = manager
+            it.status = status
+        })
+        val mine = insert(own, substitute, LocalDate.of(year, 12, 1), LocalDate.of(year, 12, 5), manager)
+        val substituteOverlapping = insert(substitute, colleague, LocalDate.of(year, 12, 4), LocalDate.of(year, 12, 8))
+        val substituteOther = insert(substitute, colleague, LocalDate.of(year, 12, 15), LocalDate.of(year, 12, 16))
+        val colleagueReplacedByMe = insert(colleague, own, LocalDate.of(year, 12, 10), LocalDate.of(year, 12, 11))
+        val colleagueManagedByMe =
+            insert(colleague, substitute, LocalDate.of(year, 12, 20), LocalDate.of(year, 12, 21), own)
+        val colleagueOther = insert(colleague, manager, LocalDate.of(year, 12, 8), LocalDate.of(year, 12, 9))
+        // Rejected: doesn't reveal the leave of its substitute (the colleague) overlapping it.
+        val rejected =
+            insert(own, colleague, LocalDate.of(year, 12, 8), LocalDate.of(year, 12, 9), status = VacationStatus.REJECTED)
+        fun ids(user: EmployeeDO): Set<Long?> {
+            logon(user.user!!)
+            val filter = MagicFilter()
+            filter.entries.add(MagicFilterEntry("period").also {
+                it.value.fromValue = "$year-12-01"
+                it.value.toValue = "$year-12-31"
+            })
+            return vacationEntityRest.listPage(
+                MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+            ).resultSet.map { (it as Vacation).id }.toSet()
+        }
+        // Not the substitute's vacation after the own one, nor the colleague's of the same group only.
+        assertEquals(
+            setOf(mine, rejected, substituteOverlapping, colleagueReplacedByMe, colleagueManagedByMe),
+            ids(own),
+        )
+        assertTrue(ids(finance).containsAll(listOf(substituteOther, colleagueOther)), "Finance staff see the group.")
+    }
+
+    @Test
     fun `the days left after this entry count it as edited instead of as stored`() {
         val own = createEmployee("after-own")
         val manager = createEmployee("after-manager")
@@ -436,7 +492,7 @@ class VacationEntityRestTest : AbstractTestBase() {
         it.special = true
     }
 
-    private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
+    private fun createEmployee(name: String, hrAccess: Boolean = false, finance: Boolean = false): EmployeeDO {
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         logon(TEST_ADMIN_USER)
         val user = PFUserDO()
@@ -447,8 +503,11 @@ class VacationEntityRestTest : AbstractTestBase() {
             user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
         }
         initTestDB.addUser(user)
-        if (hrAccess) {
-            val group = getGroup(ProjectForgeGroup.HR_GROUP.toString())
+        listOfNotNull(
+            ProjectForgeGroup.HR_GROUP.takeIf { hrAccess },
+            ProjectForgeGroup.FINANCE_GROUP.takeIf { finance },
+        ).forEach {
+            val group = getGroup(it.toString())
             group.assignedUsers!!.add(user)
             groupDao.update(group)
         }

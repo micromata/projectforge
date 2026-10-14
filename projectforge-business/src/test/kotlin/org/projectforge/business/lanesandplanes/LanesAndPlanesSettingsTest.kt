@@ -102,6 +102,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 " 50123401 Project - Travel costs ", "", "5012340 Too short", "501234011 Too long",
                 "50123401 Duplicate", "10050100", "x".repeat(103),
             ),
+            existingUserEmails = listOf(" Known@Example.org", "", "no email"),
             confirmedEmailChanges = listOf(" New@Example.org", "", "no email"),
         )
         Assertions.assertEquals(
@@ -110,6 +111,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
             "The first name of a number wins.",
         )
         Assertions.assertEquals(setOf("new@example.org", "no email"), settings.confirmedEmails)
+        Assertions.assertEquals(setOf("known@example.org", "no email"), settings.existingEmails)
         Assertions.assertEquals(
             listOf(
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:2:5012340 Too short",
@@ -117,6 +119,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectDuplicate:4:50123401",
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:6:${"x".repeat(103)}",
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectLength:6:${"x".repeat(103)}",
+                "existingUserEmails:lanesAndPlanes.config.error.existingUserEmail:2:no email",
                 "confirmedEmailChanges:lanesAndPlanes.config.error.confirmedEmail:2:no email",
             ),
             settings.validate({ null }, { null }).map(::format).filter { !it.startsWith("accountingInvoiceProfileIds") },

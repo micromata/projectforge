@@ -468,18 +468,22 @@
       "timesheets": "Zeitberichte"
     },
     "previousYear": "Vorheriges Jahr",
+    "quarter": "Quartal",
     "quickselect": {
       "tooltip": {
         "selectCurrentCalendarYear": "Quickselect - aktuelles Kalenderjahr",
         "selectCurrentMonth": "Quickselect - aktueller Monat",
+        "selectCurrentQuarter": "Quickselect - aktuelles Quartal",
         "selectCurrentWeek": "Quickselect - aktuelle Woche",
         "selectCurrentYearToDate": "Quickselect - Jahr bis heute",
         "selectNextCalendarYear": "Quickselect - nachfolgendes Kalenderjahr",
         "selectNextMonth": "Quickselect - nachfolgender Monat",
+        "selectNextQuarter": "Quickselect - nachfolgendes Quartal",
         "selectNextWeek": "Quickselect - nachfolgende Woche",
         "selectNextYearToDate": "Quickselect - nachfolgendes Jahr bis heute",
         "selectPreviousCalendarYear": "Quickselect - vorangehendes Kalenderjahr",
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
+        "selectPreviousQuarter": "Quickselect - vorangehendes Quartal",
         "selectPreviousWeek": "Quickselect - vorangehende Woche",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"
       }
@@ -724,6 +728,7 @@
     "short": {
       "month": "M",
       "months": "{arg0}M",
+      "quarter": "Q",
       "week": "W",
       "year": "J"
     }
@@ -1338,6 +1343,7 @@
       "wochenstunden": "Wochenstunden",
       "zipCode": "PLZ"
     },
+    "employees": "Mitarbeitende",
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
     "konto": {
@@ -2272,6 +2278,10 @@
         "_": "Bestehende Namen in Lanes & Planes",
         "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
         "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
+      },
+      "existingUserEmails": {
+        "_": "Bestehende User in Lanes & Planes (E-Mails)",
+        "tooltip": "Die E-Mails der User in Lanes & Planes, aus der Spalte email des User-Exports (CSV) eingefügt, da die Schnittstelle keine User lesen kann. Mitarbeitende, die noch nicht übertragen wurden und deren E-Mail hier fehlt, werden mit einer hier gelisteten alternativen oder früheren E-Mail des Users übertragen, sonst würde Lanes & Planes den User neu anlegen. Wie eine geänderte E-Mail wird sie beibehalten, bis die E-Mail in Lanes & Planes geändert und unten bestätigt wurde. Leer: keine Prüfung."
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
@@ -4655,6 +4665,18 @@
       "sendmail": "Es ist ein Problem beim Senden der Urlaubseintragsmail aufgetreten."
     },
     "export": {
+      "dayWidth": {
+        "_": "Tagesbreite",
+        "auto": "Automatisch",
+        "fit": "An Fensterbreite anpassen",
+        "narrow": "Schmal",
+        "normal": "Normal",
+        "wide": "Breit"
+      },
+      "excel": {
+        "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
+      },
+      "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
       "title": "Export von Teamurlaubskalendern"
     },
     "halfDay": "Halber Tag",

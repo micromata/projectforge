@@ -439,6 +439,13 @@ open class VacationService {
     }
 
     /**
+     * @see [VacationDao.hasLoggedInUserUnrestrictedVacationView]
+     */
+    open fun hasLoggedInUserUnrestrictedVacationView(): Boolean {
+        return vacationDao.hasLoggedInUserUnrestrictedVacationView()
+    }
+
+    /**
      * Method for detecting vacation overlaps between employees and their substitutes (replacement) or to get
      * an vacation list for selected employees or group of employees.
      */
@@ -449,20 +456,28 @@ open class VacationService {
         vararg status: VacationStatus,
     )
             : List<VacationsByEmployee> {
-        val result = mutableListOf<VacationsByEmployee>()
-        employees.forEach { employee ->
-            val vacations =
-                getVacationsListForPeriod(
-                    employee.id,
-                    periodBegin,
-                    periodEnd,
-                    withSpecial,
-                    trimVacations,
-                    *status
-                )
-            result.add(VacationsByEmployee(employee, vacations))
+        val statuses = if (status.isNotEmpty()) status.toList() else DEFAULT_VACATION_STATUS_LIST.toList()
+        // In one query for all employees, not one per employee (n+1).
+        val byEmployeeId = vacationDao.getVacationsOfEmployeesForPeriod(
+            employees.mapNotNull { it.id }.distinct(), periodBegin, periodEnd,
+        )
+            .filter { withSpecial || it.special != true }
+            .filter { statuses.contains(it.status) }
+            .groupBy { it.employee?.id }
+        return employees.map { employee ->
+            val vacations = byEmployeeId[employee.id].orEmpty()
+            if (trimVacations) {
+                vacations.forEach {
+                    if (periodBegin.isAfter(it.startDate)) {
+                        it.startDate = periodBegin
+                    }
+                    if (periodEnd.isBefore(it.endDate)) {
+                        it.endDate = periodEnd
+                    }
+                }
+            }
+            VacationsByEmployee(employee, vacations)
         }
-        return result
     }
 
     /**

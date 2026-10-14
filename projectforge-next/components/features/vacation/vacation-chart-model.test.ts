@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildVacationChart,
   monthSpans,
+  teamChartRows,
   type OwnVacation,
 } from "./vacation-chart-model";
 import type { VacationChartDay } from "./types";
@@ -122,5 +123,54 @@ describe("monthSpans", () => {
       { month: "2030-01", first: 0, last: 1 },
       { month: "2030-02", first: 2, last: 2 },
     ]);
+  });
+});
+
+describe("teamChartRows", () => {
+  it("draws every employee, also one without a vacation, cutting a vacation off at the period's edges", () => {
+    const rows = teamChartRows({
+      days: days(10),
+      rows: [
+        {
+          employee: { id: 7, displayName: "Away" },
+          vacations: [
+            {
+              id: 70,
+              startDate: "2030-01-28",
+              endDate: "2030-02-03",
+              halfDayBegin: true,
+              halfDayEnd: true,
+              status: "APPROVED",
+            },
+            {
+              id: 71,
+              startDate: "2030-02-09",
+              endDate: "2030-02-09",
+              halfDayBegin: false,
+              halfDayEnd: false,
+              status: "IN_PROGRESS",
+            },
+          ],
+        },
+        { employee: { id: 8, displayName: "On duty" }, vacations: [] },
+      ],
+    });
+    expect(rows.map((r) => [r.name, r.own, r.bars.length])).toEqual([
+      ["Away", false, 2],
+      ["On duty", false, 0],
+    ]);
+    // Begins before the period: no half day at its cut-off begin, but at its visible end.
+    expect(rows[0].bars[0]).toMatchObject({
+      first: 0,
+      last: 2,
+      halfFirst: false,
+      halfLast: true,
+      status: "APPROVED",
+    });
+    expect(rows[0].bars[1]).toMatchObject({
+      first: 8,
+      last: 8,
+      status: "IN_PROGRESS",
+    });
   });
 });

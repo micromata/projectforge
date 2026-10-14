@@ -398,6 +398,16 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
         }
         validateEmails(validationErrors, User::alternativeEmails, dto.alternativeEmails)
         validateEmails(validationErrors, User::formerEmails, dto.formerEmails)
+        val alternativeEmails = PFUserDO.splitEmails(dto.alternativeEmails).map { it.lowercase() }.toSet()
+        PFUserDO.findForeignEmails(user, userGroupCache.allUsers).forEach { (email, other) ->
+            val field = if (email.lowercase() in alternativeEmails) User::alternativeEmails else User::formerEmails
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("user.error.emailUsedByOtherUser", email, other.userDisplayName),
+                    fieldId = field.name,
+                )
+            )
+        }
         validatePosixValues(validationErrors, dto)
         validateSambaValues(validationErrors, dto)
         validatePassword(User::password, dto.password, validationErrors)

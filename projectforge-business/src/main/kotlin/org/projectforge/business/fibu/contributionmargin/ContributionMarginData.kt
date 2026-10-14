@@ -88,6 +88,9 @@ class ContributionMarginData(
 ) {
   /** Number of the filtered orders without a project, which can't be taken into account. */
   var ordersWithoutProject: Int = 0
+
+  /** Number of the projects of the filtered orders the user may not see the contribution margin of. */
+  var projectsWithoutAccess: Int = 0
 }
 
 /**

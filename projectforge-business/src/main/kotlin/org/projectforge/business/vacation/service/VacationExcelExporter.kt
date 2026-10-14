@@ -210,15 +210,17 @@ object VacationExcelExporter {
             context.unapprovedVacationStyle
           }
           paranoiaCounter = 0
-          var current: PFDay = vacationStart
+          // A vacation beginning before the sheet is painted from the sheet's first day on.
+          var current: PFDay = if (vacationStart < startDate) startDate else vacationStart
           while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
-            val col = columnIndexMap[current.date] ?: continue
-            if (!firstRowWritten) {
-              // Mark row as user with vacation entries:
-              firstRowWritten = true
-              employeeRow.getCell(1).setCellValue("X")
+            columnIndexMap[current.date]?.let { col ->
+              if (!firstRowWritten) {
+                // Mark row as user with vacation entries:
+                firstRowWritten = true
+                employeeRow.getCell(1).setCellValue("X")
+              }
+              employeeRow.getCell(col).setCellStyle(style)
             }
-            employeeRow.getCell(col).setCellStyle(style)
             current = current.plusDays(1)
           }
         }
@@ -269,7 +271,6 @@ object VacationExcelExporter {
    */
   internal fun getSheetsData(startDate: PFDay): List<SheetData> {
     val list = mutableListOf<SheetData>()
-    list.add(getSheetData(startDate, startDate.plusMonths(2)))
     // Create 3 month sheet:
     list.add(getSheetData(startDate, startDate.plusMonths(2)))
     // Create sheet for rest of year:

@@ -238,6 +238,37 @@ export function LanesAndPlanesConfigEditor({
                   </div>
                 )}
               />
+              <ListOrTextSetting
+                label={t("existingUserEmails._")}
+                hint={t("existingUserEmails.tooltip")}
+                invalid={hasError(t("existingUserEmails._"))}
+                entries={config.existingUserEmails}
+                placeholder={t("additionalUsers.email")}
+                onChange={(existingUserEmails) =>
+                  update({ existingUserEmails })
+                }
+                onBlur={field.handleBlur}
+                list={
+                  <LanesAndPlanesRows<string>
+                    rows={config.existingUserEmails}
+                    empty=""
+                    onChange={(existingUserEmails) =>
+                      update({ existingUserEmails })
+                    }
+                    ariaLabel={t("existingUserEmails._")}
+                    renderInput={(value, set, ariaLabel) => (
+                      <Input
+                        value={value}
+                        type="email"
+                        placeholder={t("additionalUsers.email")}
+                        aria-label={ariaLabel}
+                        onChange={(e) => set(e.target.value)}
+                        onBlur={field.handleBlur}
+                      />
+                    )}
+                  />
+                }
+              />
               <LanesAndPlanesRows<string>
                 label={t("confirmedEmailChanges._")}
                 hint={t("confirmedEmailChanges.tooltip")}
