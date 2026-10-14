@@ -412,16 +412,44 @@ class VacationEntityRest :
             result.workingDays = VacationService.getVacationDays(startDate, endDate, dto.halfDayBegin, dto.halfDayEnd)
             result.workingDaysFormatted = VacationStats.format(result.workingDays)
         }
-        val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
-        // Without their comments: the substitutes' entries are read past the DAO's privacy check (VacationDao.afterLoad),
-        // and neither the chart nor the table shows them.
-        result.conflictingVacations = vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
-        result.conflict = vacationOverlaps.conflict
-        if (startDate != null && endDate != null) {
-            result.chartDays = chartDays(startDate, endDate, vacationOverlaps.uncoveredDays.toSet())
+        val user = ThreadLocalUserContext.loggedInUser!!
+        // A period the chart draws only: the overlaps of a mistyped (or crafted) decade aren't searched for.
+        if (startDate != null && endDate != null && inBarRange(vacationDO)) {
+            val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
+            var others = vacationOverlaps.otherVacations
+            var uncoveredDays = vacationOverlaps.uncoveredDays
+            if (!baseDao.hasHrRights(user)) {
+                // The substitutes are posted, so anybody could name anybody: only the vacations the user may read
+                // anyway (VacationDao.hasUserSelectAccess) are shown, and a day counts as uncovered only if those
+                // say so. The conflict cache above is updated with all of them.
+                others = others.filter { baseDao.hasUserSelectAccess(user, it, false) }
+                uncoveredDays = visibleUncoveredDays(vacationDO, uncoveredDays, others)
+            }
+            // Without their comments: the substitutes' entries are read past the DAO's privacy check (VacationDao.afterLoad),
+            // and neither the chart nor the table shows them.
+            result.conflictingVacations = others.map { other -> Vacation(other).also { it.comment = null } }
+            result.conflict = uncoveredDays.isNotEmpty()
+            result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
         }
-        result.allowedStatus = baseDao.getAllowedStatus(ThreadLocalUserContext.loggedInUser!!, vacationDO)
+        result.allowedStatus = baseDao.getAllowedStatus(user, vacationDO)
         return result
+    }
+
+    /**
+     * The [uncovered] days (all substitutes away) that the [visible] vacations alone tell: those on which every
+     * substitute has one of them. As [VacationService.getVacationOverlaps] counts, restricted to what is shown.
+     */
+    private fun visibleUncoveredDays(
+        vacation: VacationDO,
+        uncovered: List<LocalDate>,
+        visible: List<VacationDO>,
+    ): List<LocalDate> {
+        val replacements = vacationService.collectAllReplacements(vacation)
+        return uncovered.filter { date ->
+            replacements.all { replacement ->
+                visible.any { it.employee?.id == replacement.id && it.isInBetween(date) }
+            }
+        }
     }
 
     /**
