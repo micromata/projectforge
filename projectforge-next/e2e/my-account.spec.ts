@@ -67,6 +67,27 @@ test.describe("my account", { tag: "@parallel" }, () => {
     ).toBeVisible();
   });
 
+  test("opens the password change as a dialog", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/myAccount");
+    await page
+      .getByRole("button", { name: t("menu.changePassword"), exact: true })
+      .click();
+
+    const dialog = page.getByRole("dialog");
+    // The own password: the old one is asked as well.
+    await expect(
+      dialog.getByLabel(t("user.changePassword.oldPassword"), { exact: true })
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/myAccount$/);
+    await dialog
+      .getByRole("button", { name: t("cancel"), exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+  });
+
   test("asks before renewing a token and shows its usage", async ({
     loggedInPage: page,
   }) => {

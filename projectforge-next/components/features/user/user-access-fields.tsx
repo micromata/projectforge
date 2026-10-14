@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useEntityData } from "@/components/shared/form/form-context";
 import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
+import { ChangePasswordDialog } from "@/components/features/change-password/change-password-dialog";
+import type { PasswordVariant } from "@/components/features/change-password/types";
 import type { UserAccessInfo } from "@/lib/rs/user";
 import { cn } from "@/lib/utils";
 import { UserAccessAction } from "./user-access-action";
@@ -23,6 +24,9 @@ export function UserAccessFields({ className }: { className?: string }) {
   const t = useTranslations();
   const data = useEntityData<UserDetail>();
   const [info, setInfo] = useState<UserAccessInfo>({});
+  const [passwordDialog, setPasswordDialog] = useState<PasswordVariant | null>(
+    null
+  );
   const userId = data?.id;
   if (userId == null) return null;
   const merged = { ...data, ...info };
@@ -78,19 +82,32 @@ export function UserAccessFields({ className }: { className?: string }) {
         <UserAccessAction userId={userId} onDone={update} />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/changePassword?userId=${userId}`}>
-            {t("menu.changePassword")}
-          </Link>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setPasswordDialog("password")}
+        >
+          {t("menu.changePassword")}
         </Button>
         {data?.wlanPasswordSupported && (
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/changeWlanPassword?userId=${userId}`}>
-              {t("menu.changeWlanPassword")}
-            </Link>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPasswordDialog("wlan")}
+          >
+            {t("menu.changeWlanPassword")}
           </Button>
         )}
       </div>
+      {passwordDialog && (
+        <ChangePasswordDialog
+          variant={passwordDialog}
+          userId={userId}
+          onClose={() => setPasswordDialog(null)}
+        />
+      )}
     </div>
   );
 }

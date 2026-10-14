@@ -212,13 +212,19 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     override fun transformForDB(dto: User): PFUserDO {
         val userDO = PFUserDO()
         dto.copyTo(userDO)
-        // The User DTO doesn't carry these IdP related fields (they are managed by the IdP sync, not by the
-        // edit form). Restore them from the DB on update, otherwise the merge would overwrite the existing
-        // values with null and the background IdP sync would re-populate them later as user "anon".
+        // Fields the edit form doesn't maintain: restore them from the DB on update, otherwise the merge would
+        // overwrite the existing values with null (the form posts its own fields only, the timestamps as
+        // formatted text). The IdP related ones are managed by the IdP sync, which would re-populate them later
+        // as user "anon"; the others by login, password change and the user's own settings.
         dto.id?.let { id ->
             baseDao.find(id, checkAccess = false)?.let { dbUser ->
                 userDO.idpExternalId = dbUser.idpExternalId
                 userDO.lastIdpPasswordSync = dbUser.lastIdpPasswordSync
+                userDO.lastLogin = dbUser.lastLogin
+                userDO.loginFailures = dbUser.loginFailures
+                userDO.lastPasswordChange = dbUser.lastPasswordChange
+                userDO.lastWlanPasswordChange = dbUser.lastWlanPasswordChange
+                userDO.firstDayOfWeekValue = dbUser.firstDayOfWeekValue
             }
         }
         // As the my-account page stores them (MyAccountRest): normalized, so the Sipgate lookup finds them.
@@ -386,6 +392,11 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: User) {
         super.validate(validationErrors, dto)
+        if (!accessChecker.isLoggedInUserMemberOfAdminGroup) {
+            // Only an administrator may save a user (the save refuses everyone else after validating). The checks
+            // below would answer anyone whether a username is taken and whose an email address is.
+            return
+        }
         val user = PFUserDO()
         dto.copyTo(user)
         if (userService.doesUsernameAlreadyExist(user)) {

@@ -103,6 +103,49 @@ test.describe("user page", { tag: "@parallel" }, () => {
     ).toBeDisabled();
   });
 
+  test("changes the password in a dialog over the form", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const id = await userIdOf(page.request, username);
+    let userSaved = false;
+    page.on("request", (request) => {
+      if (request.url().includes("/rs/user/saveorupdate")) userSaved = true;
+    });
+    await goto(page, `/user/${id}`);
+    await expect(usernameField(page, format)).toHaveValue(username, {
+      timeout: 30_000,
+    });
+
+    await page
+      .getByRole("button", {
+        name: format.t("menu.changePassword"),
+        exact: true,
+      })
+      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    // Two different passwords: the backend refuses them, so the account keeps its password.
+    await dialog
+      .getByLabel(format.t("user.changePassword.newPassword"), { exact: true })
+      .fill("pf-E2e-first-9731!");
+    await dialog
+      .getByLabel(format.t("passwordRepeat"), { exact: true })
+      .fill("pf-E2e-second-9731!");
+    await dialog
+      .getByRole("button", { name: format.t("update"), exact: true })
+      .click();
+
+    // The refusal shows in the dialog, which stays open over the unchanged form.
+    await expect(dialog.locator("[aria-invalid=true]").first()).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/user/${id}$`));
+    await dialog
+      .getByRole("button", { name: format.t("cancel"), exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+    expect(userSaved).toBe(false);
+  });
+
   test("saves a change and returns to the list", async ({
     loggedInPage: page,
   }) => {
@@ -136,6 +179,8 @@ test.describe("user page", { tag: "@parallel" }, () => {
         stored.assignedGroups?.map((group) => group.id)
       );
       expect(after.userRights).toEqual(stored.userRights);
+      // Nor do the values the form doesn't carry (UserEntityRest.transformForDB).
+      expect(after.lastLogin).toBe(stored.lastLogin);
     } finally {
       await restoreDescription(page.request, id, stored.description);
     }
@@ -202,6 +247,7 @@ interface StoredUser {
   description?: string;
   assignedGroups?: { id: number }[];
   userRights?: unknown[];
+  lastLogin?: string;
 }
 
 /**

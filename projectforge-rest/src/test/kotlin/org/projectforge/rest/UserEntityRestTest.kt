@@ -38,6 +38,7 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.UserLdapValues
 import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.business.user.UserRightId
@@ -46,6 +47,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.api.UserRightService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
+import java.util.Date
 
 class UserEntityRestTest : AbstractTestBase() {
     @Autowired
@@ -53,6 +55,9 @@ class UserEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var groupDao: GroupDao
+
+    @Autowired
+    private lateinit var userDao: UserDao
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -64,7 +69,10 @@ class UserEntityRestTest : AbstractTestBase() {
     private lateinit var userRightService: UserRightService
 
     private fun validate(dto: User) =
-        userEntityRest.validate(PFUserDO(), PostData(dto, watchFieldsTriggered = null, serverData = null))
+        userEntityRest.validate(
+            PFUserDO().also { dto.copyTo(it) },
+            PostData(dto, watchFieldsTriggered = null, serverData = null),
+        )
             ?.map { it.fieldId }
 
     @Test
@@ -75,6 +83,52 @@ class UserEntityRestTest : AbstractTestBase() {
         assertTrue(fields!!.contains("username"), "$fields")
         assertTrue(fields.contains("alternativeEmails"), "$fields")
         assertEquals(1, fields.count { it == "alternativeEmails" }, "only the invalid address: $fields")
+    }
+
+    @Test
+    fun `an email address of another user is refused with its owner`() {
+        logon(TEST_ADMIN_USER)
+        val other = initTestDB.addUser(PFUserDO().also {
+            it.username = "UserEntityRestTest-owner"
+            it.alternativeEmails = "owner-alt@example.org"
+        })
+        userGroupCache.forceReload()
+        val fields = validate(User(username = "UserEntityRestTest-foreign", alternativeEmails = "Owner-Alt@example.org"))
+        assertTrue(fields!!.contains("alternativeEmails"), "${other.username}: $fields")
+    }
+
+    @Test
+    fun `a non administrator learns nothing about other users by validation`() {
+        logon(TEST_USER)
+        // A taken username and an invalid address: both would be named to an administrator.
+        val fields = validate(User(username = TEST_ADMIN_USER, alternativeEmails = "not-an-email"))
+        assertTrue(fields.isNullOrEmpty(), "$fields")
+    }
+
+    @Test
+    fun `a save keeps the values the form doesn't carry`() {
+        logon(TEST_ADMIN_USER)
+        val lastLogin = Date(1_700_000_000_000)
+        val lastPasswordChange = Date(1_700_000_100_000)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "UserEntityRestTest-keep"
+            it.lastLogin = lastLogin
+            it.loginFailures = 2
+            it.lastPasswordChange = lastPasswordChange
+            it.lastWlanPasswordChange = lastPasswordChange
+            it.firstDayOfWeekValue = 7
+        })
+        // What the next form posts: its own fields only, the timestamps not at all.
+        val dto = User(id = user.id, username = user.username, description = "changed")
+        userDao.update(userEntityRest.transformForDB(dto), checkAccess = false)
+
+        val saved = userDao.find(user.id, checkAccess = false)!!
+        assertEquals("changed", saved.description)
+        assertEquals(lastLogin.time, saved.lastLogin?.time)
+        assertEquals(2, saved.loginFailures)
+        assertEquals(lastPasswordChange.time, saved.lastPasswordChange?.time)
+        assertEquals(lastPasswordChange.time, saved.lastWlanPasswordChange?.time)
+        assertEquals(7, saved.firstDayOfWeekValue)
     }
 
     @Test
