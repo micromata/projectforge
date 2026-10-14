@@ -144,12 +144,12 @@ class OrphanedLinkFilterTest {
             "/next/teamEvent/new",
             redirectOf("$web.teamcal.event.TeamEventEditPage", mapOf("id" to "42&x=y")),
         )
-        Assertions.assertEquals("/react/teamCal", redirectOf("$web.teamcal.admin.TeamCalListPage"))
+        Assertions.assertEquals("/next/teamCal", redirectOf("$web.teamcal.admin.TeamCalListPage"))
         Assertions.assertEquals(
-            "/react/teamCal/edit/7",
+            "/next/teamCal/7",
             redirectOf("$web.teamcal.admin.TeamCalEditPage", mapOf("id" to "7")),
         )
-        Assertions.assertEquals("/react/teamCal/edit", redirectOf("$web.teamcal.admin.TeamCalEditPage"))
+        Assertions.assertEquals("/next/teamCal/new", redirectOf("$web.teamcal.admin.TeamCalEditPage"))
         Assertions.assertEquals(
             "/next/teamCalImport?teamCalId=7",
             redirectOf("$web.teamcal.event.importics.TeamCalImportPage", mapOf("teamCalId" to "7")),
@@ -231,6 +231,14 @@ class OrphanedLinkFilterTest {
     }
 
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
+    /** The React team calendar list and form are gone: bookmarked links are bent onto the next pages. */
+    @Test
+    fun `the old react team calendar pages are redirected to next`() {
+        Assertions.assertEquals("/next/teamCal", redirectOf("/react/teamCal"))
+        Assertions.assertEquals("/next/teamCal/42", redirectOf("/react/teamCal/edit/42"))
+        Assertions.assertEquals("/next/teamCal/new", redirectOf("/react/teamCal/edit"))
+    }
+
     /**
      * The React vacation list and form are gone: bookmarked links and those of old notification mails are bent onto
      * the next pages. The vacation account and the vacation export, whose React routes start with the same name,

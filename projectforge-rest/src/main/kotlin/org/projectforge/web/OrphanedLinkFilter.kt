@@ -183,7 +183,7 @@ class OrphanedLinkFilter : Filter {
     /**
      * The removed Wicket calendar pages: the old calendars (wa/oldCalendar, wa/oldTeamCalendar), the team event
      * list (dropped, the events are reached through the calendar) and edit page, the team calendar
-     * administration (React) and the ICS import (next). All but the old calendars were bookmarkable pages only
+     * administration and the ICS import (both next). All but the old calendars were bookmarkable pages only
      * (wa/wicket/bookmarkable/<class>), taking their id as the parameter `id` (the import: `teamCalId`). Ids are
      * interpolated into the Location header, so only numbers are accepted.
      *
@@ -209,9 +209,13 @@ class OrphanedLinkFilter : Filter {
                     NextMigration.newEntryUrl("teamEvent")
                 }
 
-            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalListPage") -> "${Constants.REACT_APP_PATH}teamCal"
+            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalListPage") -> NextMigration.listUrl("teamCal")
             uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalEditPage") ->
-                "${Constants.REACT_APP_PATH}teamCal/edit" + (id?.let { "/$it" } ?: "")
+                if (id != null) {
+                    NextMigration.standardEditPage("teamCal").replace(NextMigration.ID_PLACEHOLDER, "$id")
+                } else {
+                    NextMigration.newEntryUrl("teamCal")
+                }
 
             uri.contains("$BOOKMARKABLE.teamcal.event.importics.TeamCalImportPage") -> {
                 val teamCalId = request.getParameter("teamCalId")?.toLongOrNull()

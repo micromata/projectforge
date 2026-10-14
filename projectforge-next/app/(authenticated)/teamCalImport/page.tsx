@@ -9,7 +9,7 @@ import { TeamCalImport } from "@/components/features/teamcal-import/teamcal-impo
 
 /**
  * The ICS import of team events (`/next/teamCalImport`), reached from the calendar's more menu and the
- * calendar administration (`react/teamCal`). `?teamCalId=` preselects the target calendar.
+ * calendar administration (`/teamCal`). `?teamCalId=` preselects the target calendar.
  */
 export default function TeamCalImportPage() {
   const t = useTranslations();

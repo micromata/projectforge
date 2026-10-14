@@ -20,6 +20,13 @@ export interface CalendarSubscriptionInfo {
   barcodeUrl?: string;
   securityAdviseHeadline?: string;
   securityAdvise?: string;
+  /**
+   * The same feed without the reminders of its events — only for a team calendar (`TeamCal.subscriptionInfo`),
+   * where [url] includes them.
+   */
+  urlWithoutExportedReminders?: string;
+  /** Whether the reminders are exported by default (owner, full and read-only access). */
+  remindersExportDefaultValue?: boolean;
 }
 
 export function fetchCalendarSubscriptionInfo(

@@ -54,7 +54,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
-    CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
+    CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //
     // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); the react pages are
     // redirected by OrphanedLinkFilter.
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //

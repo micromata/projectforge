@@ -179,6 +179,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The team calendars: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the team calendar pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/teamCal", NextMigration.listUrl("teamCal"))
+        Assertions.assertEquals("next/teamCal/:id", NextMigration.standardEditPage("teamCal"))
+        Assertions.assertEquals("next/teamCal/new", NextMigration.newEntryUrl("teamCal"))
+        Assertions.assertNull(NextMigration.legacyListUrl("teamCal"))
+        Assertions.assertNull(NextMigration.legacyEditPage("teamCal"))
+        val link = NextMigration.orphanedLinks().single { it.category == "teamCal" }
+        Assertions.assertEquals("react/teamCal", link.legacyListPath)
+        Assertions.assertEquals("react/teamCal/edit", link.legacyEditPath)
+    }
+
+    /**
      * The vacation entries: list and form are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link or one of an old notification mail is still redirected onto next.
      */
