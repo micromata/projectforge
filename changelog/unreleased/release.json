@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "en": [
+      "**Leave applications** and **leave account** in the new interface",
+      "**Lanes & Planes** interface for employees and cost centers",
+      "Data transfer files encrypted at rest",
+      "Password change: brute force protection, other sessions ended",
+      "Fix: contribution margin counts by booking period"
+    ],
+    "de": [
+      "**Urlaubsanträge** und **Urlaubskonto** in der neuen Oberfläche",
+      "**Lanes-&-Planes-Schnittstelle** für Mitarbeitende und Kostenstellen",
+      "Datentransfer-Dateien verschlüsselt gespeichert",
+      "Passwortänderung: Schutz vor Durchprobieren, andere Sitzungen beendet",
+      "Fix: Deckungsbeitrag zählt nach Buchungsperiode"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Leave applications:** list and form migrated to the new interface, with bars over the calendar days showing the days without any substitute, a year filter paging back and forth and the days left updated while editing.",
+      "**Leave account:** migrated to the new interface, with the next year in the statistics and leave applications without any substitute marked red.",
+      "**Lanes & Planes:** the active employees are pushed with their cost centers, cost units and creditor account, safeguarded against suspiciously small user lists and email changes; employees have a new field creditor account.",
+      "**Users:** new fields alternative and former e-mail addresses, searchable and in the Excel export.",
+      "**Data transfer:** files in the file system are compressed and can be encrypted at rest (AES-256).",
+      "**Passwords:** change password and change WLAN password in the new interface; a wrong old password counts as failed login attempt, and a password change ends the user's other sessions.",
+      "**System administration:** system statistics load at once, copy & paste samples for the alert message; the Docker image is based on Java 21.",
+      "**Fixes:** contribution margin by booking period, year filter of leave applications and contracts, lists returning with an outdated filter, sorting of the vacation list, rejected leave applications in the vacation export, cost unit cache refresh in the time sheet form, phone lookup key and CSRF check of force delete."
+    ],
+    "de": [
+      "**Urlaubsanträge:** Liste und Formular in die neue Oberfläche umgezogen, mit Balken über den Kalendertagen, die die Tage ohne Vertretung zeigen, einem Jahresfilter zum Vor- und Zurückblättern und dem Resturlaub, der während der Eingabe mitläuft.",
+      "**Urlaubskonto:** in die neue Oberfläche umgezogen, mit dem nächsten Jahr in der Statistik und rot markierten Urlaubsanträgen ohne Vertretung.",
+      "**Lanes & Planes:** Die aktiven Mitarbeitenden werden mit ihren Kostenstellen, Kostenträgern und ihrem Kreditorenkonto übertragen, abgesichert gegen verdächtig kleine User-Listen und E-Mail-Änderungen; Mitarbeitende haben ein neues Feld Kreditorenkonto.",
+      "**Benutzer:innen:** neue Felder alternative und frühere E-Mail-Adressen, durchsuchbar und im Excel-Export.",
+      "**Datentransfer:** Dateien im Dateisystem werden komprimiert und können verschlüsselt gespeichert werden (AES-256).",
+      "**Passwörter:** Passwort ändern und WLAN-Passwort ändern in der neuen Oberfläche; ein falsches altes Passwort zählt als Fehlanmeldung, und eine Passwortänderung beendet die anderen Sitzungen.",
+      "**Systemverwaltung:** Systemstatistik lädt sofort, Kopiervorlagen für die System-Warnmeldung; das Docker-Image basiert auf Java 21.",
+      "**Korrekturen:** Deckungsbeitrag nach Buchungsperiode, Jahresfilter der Urlaubsanträge und Verträge, Listen mit veraltetem Filter, Sortierung der Urlaubsliste, abgelehnte Urlaubsanträge im Urlaubsexport, Kostenträger-Cache im Zeitbuchungsformular, Schlüssel der Telefonnummer-Suche und CSRF-Prüfung beim endgültigen Löschen."
+    ]
+  }
+}
