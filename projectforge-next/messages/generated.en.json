@@ -4442,7 +4442,7 @@
     },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
-      "info": "Further e-mail addresses of the user still in use, comma separated."
+      "info": "Further e-mail addresses of the user still in use, comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
     },
     "assignedGroups": "Assigned groups",
     "authenticationToken": {
@@ -4503,7 +4503,7 @@
     "deactivated": "deactivated",
     "formerEmails": {
       "_": "Former e-mail addresses",
-      "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated."
+      "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
     },
     "gpgPublicKey": "GPG public key",
     "hrPlanningEnabled": "HR planning",

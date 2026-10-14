@@ -4442,7 +4442,7 @@
     },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
-      "info": "Weitere noch genutzte E-Mail-Adressen, durch Kommas getrennt."
+      "info": "Weitere noch genutzte E-Mail-Adressen, durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
     },
     "assignedGroups": "Assoziierte Gruppen",
     "authenticationToken": {
@@ -4503,7 +4503,7 @@
     "deactivated": "Deaktiviert",
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
-      "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt."
+      "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
     },
     "gpgPublicKey": "GPG-Public-Key",
     "hrPlanningEnabled": "Personalplanung",
