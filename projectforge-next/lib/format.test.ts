@@ -21,6 +21,13 @@ describe("formatDateRange", () => {
     );
   });
 
+  it("reads a calendar day as it is in a time zone west of UTC", () => {
+    const west = { ...CTX, timeZone: "America/New_York" };
+    expect(formatDateRange("2026-03-01", "2026-03-02", west)).toBe(
+      "01.03.2026 – 02.03.2026"
+    );
+  });
+
   it("stands an ellipsis in for the open end of a half-open period", () => {
     expect(formatDateRange("2026-01-01", null, CTX)).toBe("01.01.2026 – …");
     expect(formatDateRange(undefined, "2026-12-31", CTX)).toBe(

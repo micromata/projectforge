@@ -48,6 +48,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
@@ -161,22 +162,44 @@ class VacationEntityRest :
     }
 
     /**
-     * The days the list's bar draws the vacation with: its weekends and holidays and, for an entry the conflict cache
-     * flags, its days without any substitute on duty. Only the flagged entries are checked against the vacations of
-     * their substitutes — few, as the cache holds current and future ones only — and nothing is written to the cache.
+     * The list's rows with the days without any substitute on duty of the entries the conflict cache flags (few, as
+     * it holds current and future ones only): checked against the vacations of all their substitutes at once
+     * ([VacationService.getUncoveredDays]), nothing is written to the cache.
+     */
+    override fun postProcessResultSet(
+        resultSet: ResultSet<VacationDO>,
+        request: HttpServletRequest,
+        magicFilter: MagicFilter,
+    ): ResultSet<*> {
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        val conflicting = resultSet.resultSet.filter { conflictingVacationsCache.hasConflict(it.id) && inBarRange(it) }
+        if (conflicting.isNotEmpty()) {
+            val uncovered = vacationService.getUncoveredDays(conflicting)
+            result.resultSet.forEach { row ->
+                (row as? Vacation)?.let { dto -> dto.uncoveredDays = uncovered[dto.id] }
+            }
+        }
+        return result
+    }
+
+    /** A period the list's bar draws: not beyond [CHART_MAX_DAYS] (a mistyped year). */
+    private fun inBarRange(obj: VacationDO): Boolean {
+        val startDate = obj.startDate ?: return false
+        val endDate = obj.endDate ?: return false
+        return endDate >= startDate && ChronoUnit.DAYS.between(startDate, endDate) <= CHART_MAX_DAYS
+    }
+
+    /**
+     * The days the list's bar draws the vacation with: its weekends and holidays. Its days without any substitute
+     * on duty are added for all rows at once ([postProcessResultSet]).
      */
     private fun applyListDays(vacation: Vacation, obj: VacationDO) {
-        val startDate = obj.startDate ?: return
-        val endDate = obj.endDate ?: return
-        if (endDate < startDate || ChronoUnit.DAYS.between(startDate, endDate) > CHART_MAX_DAYS) {
+        if (!inBarRange(obj)) {
             return
         }
         val holidays = Holidays.instance
-        vacation.nonWorkingDays = generateSequence(startDate) { it.plusDays(1) }.takeWhile { it <= endDate }
+        vacation.nonWorkingDays = generateSequence(obj.startDate!!) { it.plusDays(1) }.takeWhile { it <= obj.endDate!! }
             .filter { !holidays.isWorkingDay(it) }.toList()
-        if (vacation.conflict == true) {
-            vacation.uncoveredDays = vacationService.getVacationOverlaps(obj, updateCache = false).uncoveredDays
-        }
     }
 
     override fun newBaseDTO(request: HttpServletRequest?): Vacation {

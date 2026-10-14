@@ -320,11 +320,19 @@ class VacationEntityRestTest : AbstractTestBase() {
         val otherId = vacationDao.insert(vacation(other, replacement = hr, monday.plusDays(2), monday.plusDays(4)))
         conflictingVacationsCache.forceReload()
 
-        val listed = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = false)
+        // Through the list: its rows get their uncovered days all at once (postProcessResultSet).
+        val filter = MagicFilter()
+        filter.entries.add(MagicFilterEntry("period").also {
+            it.value.fromValue = monday.toString(); it.value.toValue = monday.plusDays(6).toString()
+        })
+        val rows = vacationEntityRest.listPage(
+            MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+        ).resultSet.map { it as Vacation }.associateBy { it.id }
+        val listed = rows[ownId]!!
         assertEquals(true, listed.conflict)
         assertEquals(listOf(monday.plusDays(5), monday.plusDays(6)), listed.nonWorkingDays)
         assertEquals((2L..4L).map { monday.plusDays(it) }, listed.uncoveredDays)
-        val free = vacationEntityRest.transformFromDB(vacationDao.find(otherId)!!, editMode = false)
+        val free = rows[otherId]!!
         assertEquals(null, free.uncoveredDays, "No conflict: the substitute of the other is on duty.")
         assertEquals(emptyList<LocalDate>(), free.nonWorkingDays)
     }
