@@ -112,6 +112,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   TIMESHEET_OVERLAP_GROUPS("timesheet.overlapGroups", ConfigurationType.STRING), //
   /**
+   * If true, time sheets without cost 2 unit are reported (default false): one saved without (on a task without cost 2
+   * units) gets a warning, and the notification rule of these time sheets applies. Booking stays allowed. Applies only if cost units are configured at all, see {@link #isCostDependent()}.
+   */
+  TIMESHEET_WARN_MISSING_KOST2("timesheet.warnMissingKost2", ConfigurationType.BOOLEAN, false), //
+  /**
    * Maximum number of past days (up to yesterday, at most 7) the nightly job books approved vacation as time sheets
    * for, on days without any time sheet; never further back than its last successful run. 0 (default) disables the
    * job. See org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob.
@@ -239,6 +244,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case TIMESHEET_VACATION_AUTO_BOOKING_DAYS:
       case TIMESHEET_VACATION_TASK_ID:
       case TIMESHEET_VACATION_KOST2:
+      case TIMESHEET_WARN_MISSING_KOST2:
       case CUSTOMER_GROUPS:
       case LANES_AND_PLANES:
       case FIBU_FORECAST:
@@ -281,6 +287,7 @@ public enum ConfigurationParam implements IConfigurationParam
         return ConfigurationCategory.FINANCE;
       case TIMESHEET_TAGS:
       case TIMESHEET_OVERLAP_GROUPS:
+      case TIMESHEET_WARN_MISSING_KOST2:
       case TIMESHEET_NOTE_SAVINGS_BY_AI:
       case TIMESHEET_VACATION_AUTO_BOOKING_DAYS:
       case TIMESHEET_VACATION_TASK_ID:
@@ -318,6 +325,15 @@ public enum ConfigurationParam implements IConfigurationParam
   public String getEditPage()
   {
     return this == CUSTOMER_GROUPS ? "customerGroups" : null;
+  }
+
+  /**
+   * @return True for a parameter that only applies if cost units are configured ({@link #COST_CONFIGURED}): the
+   * configuration list doesn't show it otherwise.
+   */
+  public boolean isCostDependent()
+  {
+    return this == TIMESHEET_WARN_MISSING_KOST2;
   }
 
   /**

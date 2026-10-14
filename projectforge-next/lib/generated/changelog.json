@@ -9,11 +9,11 @@
       "type" : "added",
       "items" : [ {
         "title" : "Time sheets without Kost2",
-        "items" : [ "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.", "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2." ]
+        "items" : [ "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.", "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2.", "New configuration parameter \"Report time sheets without Kost2?\" (default off, only shown with cost-unit accounting enabled): the hint on saving and the notification rule apply only if it is enabled. Booking without Kost2 stays possible.", "Configuration: the list can be filtered by category (pills such as Finance or Time sheets)." ]
       } ]
     }, {
       "type" : "improved",
-      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens." ]
+      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens.", "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice." ]
     } ]
   },
   "groups" : [ {

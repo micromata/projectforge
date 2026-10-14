@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "System dashboard: muted problems can be listed with their own status filter, a click on the muted, ignored or resolved count of a key figure or subsystem tile lists exactly these problems, and a problem leaving the list after a status change can be shown again from a notice.",
+  "de": "System-Dashboard: Stummgeschaltete Probleme lassen sich mit einem eigenen Statusfilter anzeigen, ein Klick auf die Anzahl stummgeschalteter, ignorierter oder erledigter Probleme einer Kennzahl oder Subsystem-Kachel listet genau diese, und ein Problem, das nach einer Statusänderung aus der Liste fällt, lässt sich über einen Hinweis wieder anzeigen."
+}

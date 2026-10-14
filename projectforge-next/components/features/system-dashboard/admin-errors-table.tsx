@@ -16,7 +16,7 @@ import {
 import { SearchInput } from "@/components/shared/list/search-input";
 import { SelectionModeToggle } from "@/components/shared/list/selection-mode-toggle";
 import { useFormatContext } from "@/hooks/use-format";
-import type { LogGroupEntry } from "@/lib/rs/admin-errors";
+import type { LogGroupAction, LogGroupEntry } from "@/lib/rs/admin-errors";
 import { adminErrorsColumns } from "./admin-errors-columns";
 import { AdminErrorsSelectionBar } from "./admin-errors-selection-bar";
 import { searchAdminErrors } from "./admin-errors-search";
@@ -33,6 +33,8 @@ interface Props {
   search: string;
   onSearchChange: (search: string) => void;
   onOpen: (entry: LogGroupEntry) => void;
+  /** After a status action of the selection bar. */
+  onUpdated: (action: LogGroupAction) => void;
 }
 
 /**
@@ -53,6 +55,7 @@ function LoadedTable({
   search,
   onSearchChange,
   onOpen,
+  onUpdated,
   storedState,
 }: Props & { storedState: ColumnState }) {
   const t = useTranslations();
@@ -139,6 +142,7 @@ function LoadedTable({
           onSelectAll={picking.selectAll}
           onClear={picking.selection.clear}
           onLeave={picking.leave}
+          onUpdated={onUpdated}
         />
       )}
       <DataTable<LogGroupEntry>

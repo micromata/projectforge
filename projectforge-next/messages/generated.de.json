@@ -270,6 +270,10 @@
               "_": "Strukturelement für Urlaub (Id)",
               "description": "Die Id des Strukturelements, auf das Urlaub als Zeitbericht gebucht wird, im Kalender („Mehrere Tage buchen“) und durch den nächtlichen Job."
             }
+          },
+          "warnMissingKost2": {
+            "_": "Zeitberichte ohne Kost2 melden?",
+            "description": "Wenn aktiviert, zeigt ein ohne Kost2 gespeicherter Zeitbericht (auf einem Strukturelement ohne Kost2) einen Hinweis, sich an das Projektmanagement oder die Buchhaltung zu wenden, und die Benachrichtigungsregel „Zeitberichte ohne Kost2“ greift. Gebucht werden kann weiterhin. Nur wirksam bei freigeschalteter Kostenrechnung."
           }
         },
         "timesheetTags": {
@@ -2689,7 +2693,10 @@
         "general": "Regel",
         "message": "Nachricht"
       },
-      "title": "Benachrichtigungsregeln"
+      "title": "Benachrichtigungsregeln",
+      "warning": {
+        "warnMissingKost2Off": "Der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (oder die Kostenrechnung) ist nicht aktiviert: Diese Regel benachrichtigt niemanden, bis er aktiviert ist."
+      }
     },
     "ruleName": "Regel",
     "ruleTypes": {
@@ -3699,6 +3706,7 @@
           "muted": "{arg0} stummgeschaltet",
           "resolved": "{arg0} erledigt"
         },
+        "hiddenByFilter": "Mit diesem Filter nicht mehr gelistet",
         "hourly": "Letzte 7 Tage (pro Stunde)",
         "kpi": {
           "external": "Gestörte externe Systeme (24 h)",
@@ -3748,11 +3756,13 @@
         "reopenedAt": "Nach Erledigung erneut aufgetreten",
         "request": "Request",
         "sampleMessage": "Beispielmeldung",
+        "showInList": "Anzeigen",
         "stackTrace": "Stacktrace",
         "status": {
           "acknowledged": "Zur Kenntnis genommen",
           "all": "Alle",
           "ignored": "Ignoriert",
+          "muted": "Stummgeschaltet",
           "new": "Neu",
           "open": "Offen",
           "resolved": "Erledigt"

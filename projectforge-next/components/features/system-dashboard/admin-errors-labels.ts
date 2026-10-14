@@ -2,6 +2,7 @@ import type { StatusTone } from "@/components/shared/status-pill";
 import type {
   LogAudience,
   LogCategory,
+  LogGroupAction,
   LogGroupEntry,
   LogGroupScope,
   LogGroupStatus,
@@ -35,10 +36,44 @@ export const STATUS_FILTER_KEYS: Record<LogGroupStatusFilter, string> = {
   OPEN: "system.admin.adminErrors.status.open",
   NEW: "system.admin.adminErrors.status.new",
   ACKNOWLEDGED: "system.admin.adminErrors.status.acknowledged",
+  MUTED: "system.admin.adminErrors.status.muted",
   IGNORED: "system.admin.adminErrors.status.ignored",
   RESOLVED: "system.admin.adminErrors.status.resolved",
   ALL: "system.admin.adminErrors.status.all",
 };
+
+/**
+ * The status filter listing a problem after [action], if the filter [filter] doesn't list it anymore; null, if it
+ * still does. So a status action can point to the problem it removed from the list (see useProblemDashboard).
+ */
+export function statusFilterAfter(
+  filter: LogGroupStatusFilter,
+  action: LogGroupAction
+): LogGroupStatusFilter | null {
+  const status: LogGroupStatus | null =
+    action === "ACKNOWLEDGE"
+      ? "ACKNOWLEDGED"
+      : action === "RESOLVE"
+        ? "RESOLVED"
+        : action === "IGNORE"
+          ? "IGNORED"
+          : action === "REOPEN"
+            ? "NEW"
+            : null;
+  if (status === null) {
+    // A mute changes no status: only the muted ones lose an unmuted problem.
+    return action === "UNMUTE" && filter === "MUTED" ? "OPEN" : null;
+  }
+  switch (filter) {
+    case "ALL":
+      return null;
+    case "OPEN":
+    case "MUTED":
+      return status === "NEW" || status === "ACKNOWLEDGED" ? null : status;
+    default:
+      return filter === status ? null : status;
+  }
+}
 
 /** The scope's chip shows the title of its key figure. */
 export const SCOPE_KEYS: Record<LogGroupScope, string> = {

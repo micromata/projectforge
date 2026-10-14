@@ -42,8 +42,9 @@ import java.util.Date
 
 /**
  * Time sheets without cost 2 unit within the last months ([NotificationParams.kost2MissingMonths], the current month
- * included), only if cost units are configured at all. Booked on a task without cost 2 units (e.g. not yet assigned
- * to its project), their hours are missing in the salary export and end up as correction there.
+ * included), only if these are to be reported at all ([Configuration.isWarnMissingKost2]). Booked on a task without
+ * cost 2 units (e.g. not yet assigned to its project), their hours are missing in the salary export and end up as
+ * correction there.
  *
  * Meant to run daily: the period key is the day of the run, so a notification marked as done comes back with the next
  * run as long as such time sheets are left. An older pending notification of the same recipient expires once a newer
@@ -71,7 +72,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     )
 
     override fun evaluate(rule: NotificationRuleDO, today: LocalDate): NotificationRuleHandler.Evaluation? {
-        if (!Configuration.instance.isCostConfigured) {
+        if (!Configuration.instance.isWarnMissingKost2) {
             return null
         }
         val months = rule.readParams().kost2MissingMonths
@@ -89,8 +90,8 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
     }
 
     /**
-     * Resolved if the recipient has no time sheet without cost 2 unit in the period any more (or cost units aren't
-     * configured any more); expired if a newer notification of the recipient is pending (the one of a later run).
+     * Resolved if the recipient has no time sheet without cost 2 unit in the period any more (or they aren't reported
+     * any more); expired if a newer notification of the recipient is pending (the one of a later run).
      */
     override fun resolve(
         rule: NotificationRuleDO,
@@ -98,7 +99,7 @@ class TimesheetsWithoutKost2RuleHandler : NotificationRuleHandler {
         today: LocalDate,
     ): Map<Long, NotificationStatus> {
         val result = mutableMapOf<Long, NotificationStatus>()
-        val sheets = if (Configuration.instance.isCostConfigured) {
+        val sheets = if (Configuration.instance.isWarnMissingKost2) {
             timesheetsWithoutKost2(rule.readParams().kost2MissingMonths, today)
         } else emptyMap()
         notifications.groupBy { it.recipientId }.forEach { (recipientId, list) ->
