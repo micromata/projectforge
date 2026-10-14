@@ -49,6 +49,8 @@ class ConflictingVacationsCache() : AbstractCache() {
     @Autowired
     private lateinit var vacationService: VacationService
 
+    private lateinit var vacationDao: VacationDao
+
     /**
      * Key is the employee id.
      */
@@ -65,6 +67,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     @PostConstruct
     private fun postConstruct() {
         this.vacationService = applicationContext.getBean(VacationService::class.java)
+        this.vacationDao = applicationContext.getBean(VacationDao::class.java)
     }
 
     /**
@@ -130,13 +133,26 @@ class ConflictingVacationsCache() : AbstractCache() {
                     ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
                 }
             }
+            // A running vacation also counts the days already past, as getVacationOverlaps does when the entry is
+            // opened: its substitutes' vacations that ended before today are needed too.
+            val running = all.filter { it.startDate?.isBefore(LocalDate.now()) == true }
+            val earlierOfReplacements = if (running.isEmpty()) {
+                emptyList()
+            } else {
+                vacationDao.getVacationsOfEmployeesForPeriod(
+                    running.flatMap { vacationService.collectAllReplacements(it) }.mapNotNull { it.id }.toSet(),
+                    running.minOf { it.startDate!! },
+                    LocalDate.now().minusDays(1),
+                ).filter { it.status in VacationService.CONFLICT_STATUS && it.endDate?.isBefore(LocalDate.now()) == true }
+            }
+            val pool = all + earlierOfReplacements
             val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
             val newAllConflictingVacations = mutableSetOf<Long>()
             // Now find conflicting entries:
             all.forEach { vacation ->
                 val vacationsOfReplacements = mutableListOf<VacationDO>()
                 vacationService.collectAllReplacements(vacation).forEach { replacementEmployee ->
-                    vacationsOfReplacements.addAll(all.filter { it.employee?.id == replacementEmployee.id })
+                    vacationsOfReplacements.addAll(pool.filter { it.employee?.id == replacementEmployee.id })
                 }
                 if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
                     ensureEmployeeList(newConflictingVacations, vacation.employee?.id).add(vacation)

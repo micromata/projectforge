@@ -4604,6 +4604,7 @@
       "_": "Substitution",
       "others": "Other substitutes"
     },
+    "replacementVacationsUnavailable": "The vacations of the substitutes could not be loaded.",
     "special": {
       "_": "Special leave",
       "tooltip": "Special leave days will be excluded from the vacation account."

@@ -70,6 +70,8 @@ export function useVacationStats(): VacationFormStats | undefined {
     placeholderData: keepPreviousData,
     // The answer is a pure function of what was sent (and of the stored vacations, which a save refreshes).
     staleTime: 30_000,
+    // Not asked again: until the global retries gave up (seconds), the previous answer would stand as current.
+    retry: false,
   });
   if (asLoaded) return data;
   // A failed request leaves nothing computed for what the form holds now: blank rather than the stored entry's
@@ -89,6 +91,7 @@ const UNKNOWN_STATS: VacationFormStats = {
   conflictingVacations: null,
   conflict: null,
   chartDays: null,
+  unavailable: true,
 };
 
 /**

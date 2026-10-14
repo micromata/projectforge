@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -10,6 +10,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { RsError } from "@/lib/rs/client";
@@ -41,6 +42,9 @@ export function VacationAccountPage() {
   const [employeeId, setEmployeeId] = useState<number | undefined>(
     () => Number(params.get("employeeId")) || undefined
   );
+  // The employee just picked, shown in the picker until their account arrives (the one still shown is the
+  // previous employee's).
+  const [picked, setPicked] = useState<EntityRef | null>(null);
   const queryClient = useQueryClient();
 
   const query = useQuery({
@@ -52,6 +56,18 @@ export function VacationAccountPage() {
   });
   const account = query.data;
   const employee = account?.employee;
+  const switching = query.isPlaceholderData;
+
+  // The account without a parameter is the one shown last (the backend stores it, for a picked employee and
+  // for one given by `?employeeId=` alike): the way back from a vacation (`?returnTo=/vacationAccount`) has
+  // none, and must not find the one shown before in the cache.
+  useEffect(() => {
+    if (employeeId == null) return;
+    queryClient.removeQueries({
+      queryKey: [...VACATION_ACCOUNT_QUERY_KEY, undefined],
+      exact: true,
+    });
+  }, [employeeId, queryClient]);
 
   const recalculate = useMutation({
     mutationFn: (id: number) => recalculateRemainingLeave(id),
@@ -62,15 +78,10 @@ export function VacationAccountPage() {
       toast.error(error instanceof Error ? error.message : String(error)),
   });
 
-  function selectEmployee(id: number) {
-    // The account without a parameter is the one shown last (the backend stores it): the way back from a
-    // vacation (`?returnTo=/vacationAccount`) has none, and must not find the one shown before in the cache.
-    queryClient.removeQueries({
-      queryKey: [...VACATION_ACCOUNT_QUERY_KEY, undefined],
-      exact: true,
-    });
-    setEmployeeId(id);
-    updateSearchParams({ employeeId: String(id) }, "replace");
+  function selectEmployee(ref: EntityRef) {
+    setPicked(ref);
+    setEmployeeId(ref.id);
+    updateSearchParams({ employeeId: String(ref.id) }, "replace");
   }
 
   return (
@@ -81,8 +92,9 @@ export function VacationAccountPage() {
       >
         <VacationAccountActions
           account={account}
-          // Not while another employee's account loads: the button would recalculate the one still shown.
-          recalculating={recalculate.isPending || query.isPlaceholderData}
+          // Not while another employee's account loads: the buttons would act on the one still shown.
+          switching={switching}
+          recalculating={recalculate.isPending}
           onRecalculate={() => employee && recalculate.mutate(employee.id)}
         />
       </PageTitleRow>
@@ -100,6 +112,7 @@ export function VacationAccountPage() {
         {account && (
           <VacationAccountSummary
             account={account}
+            selected={switching ? picked : undefined}
             onSelectEmployee={selectEmployee}
           />
         )}

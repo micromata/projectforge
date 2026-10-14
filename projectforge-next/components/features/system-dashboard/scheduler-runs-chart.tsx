@@ -52,8 +52,8 @@ export function SchedulerRunsChart({
   const formatPeriod = (value: unknown) =>
     months
       ? formatYearMonth(value, ctx)
-      : // An ISO date without time: read in UTC, so no time zone shifts the day.
-        formatDate(value, { ...ctx, timeZone: "UTC" });
+      : // An ISO date without time: formatDate reads it in UTC, so no time zone shifts the day.
+        formatDate(value, ctx);
   return (
     <div className="space-y-1">
       <div className="text-xs font-medium text-muted-foreground">{title}</div>
