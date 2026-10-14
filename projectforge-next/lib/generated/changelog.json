@@ -20,6 +20,9 @@
     }, {
       "type" : "changed",
       "items" : [ "Calendars: the list and the form of the team calendars are migrated to the new interface. A stored calendar shows its subscription link with a switch for the reminders, the list offers the subscription of time sheets, weeks of year and holidays in its export menu.", "Vacation list: users without HR or finance rights see their own vacations, the ones they approve or substitute for, and the vacations of their substitutes overlapping their own ones, no longer all current vacations of their group colleagues." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Vacations: stricter access checks (a manager can no longer be swapped in on running or past entries, deleting and restoring use the stored entry and restoring is validated again, the form's overlaps only show vacations the user may see, leave account corrections need write access); the remaining leave of the previous year is credited correctly for vacations crossing the end of the carry-over period and recalculated after later changes; special leave counts in the collision check; rejected vacations no longer appear in calendars and subscriptions; the comment is no longer mailed to replacements, and removed managers and replacements are notified. Excel export: weekends and holidays inside a vacation, half days and half working days are shown correctly, approved vacations win over those in progress. Automatic vacation booking of time sheets: days no longer covered by a vacation are removed, an unbookable vacation task fails the run instead of skipping days, and days are booked by the user's time zone. Team vacation calendar: readable by screen readers, the stored choice is no longer overwritten by an outdated page state." ]
     } ]
   },
   "groups" : [ {

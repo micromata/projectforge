@@ -156,6 +156,8 @@
       "error": {
         "vacationKost2NotBookable": "Der Kostenträger {arg0} ist auf dem Urlaubs-Strukturelement „{arg1}“ nicht buchbar.",
         "vacationKost2NotFound": "Kein Kostenträger {arg0} (Format #.###.##.##).",
+        "vacationProjectEnded": "Das Projekt des Urlaubs-Strukturelements „{arg0}“ ist beendet oder gelöscht.",
+        "vacationTaskNotBookable": "Auf dem Urlaubs-Strukturelement „{arg0}“ können keine Zeitberichte gebucht werden (geschlossen, gelöscht oder für Buchungen gesperrt).",
         "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
       "json": {
@@ -4659,6 +4661,13 @@
       },
       "excel": {
         "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
+      },
+      "favorite": {
+        "gone": "Diesen Favoriten gibt es nicht mehr.",
+        "nothingPickable": "Keine der Mitarbeitenden und Gruppen dieses Favoriten ist noch wählbar."
+      },
+      "legend": {
+        "holidayOrWeekend": "Wochenende oder Feiertag"
       },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
       "title": "Export von Teamurlaubskalendern"

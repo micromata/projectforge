@@ -156,6 +156,8 @@
       "error": {
         "vacationKost2NotBookable": "The cost unit {arg0} isn''t bookable on the vacation task ''{arg1}''.",
         "vacationKost2NotFound": "No cost unit {arg0} (format #.###.##.##).",
+        "vacationProjectEnded": "The project of the vacation task ''{arg0}'' is ended or deleted.",
+        "vacationTaskNotBookable": "No time sheets can be booked on the vacation task ''{arg0}'' (closed, deleted or closed for booking).",
         "vacationTaskNotFound": "No task with the id {arg0}."
       },
       "json": {
@@ -4659,6 +4661,13 @@
       },
       "excel": {
         "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
+      },
+      "favorite": {
+        "gone": "This favorite no longer exists.",
+        "nothingPickable": "None of the employees and groups of this favorite can be chosen any more."
+      },
+      "legend": {
+        "holidayOrWeekend": "Weekend or holiday"
       },
       "selectHint": "Choose employees or groups to show their vacations.",
       "title": "Export of team vacation calendars"

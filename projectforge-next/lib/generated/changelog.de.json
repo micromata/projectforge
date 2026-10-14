@@ -20,6 +20,9 @@
     }, {
       "type" : "changed",
       "items" : [ "Kalender: Liste und Formular der Teamkalender sind in die neue Oberfläche migriert. Ein gespeicherter Kalender zeigt seinen Abonnement-Link mit einem Schalter für die Erinnerungen, die Liste bietet im Export-Menü das Abonnement von Zeitberichten, Kalenderwochen und Feiertagen an.", "Urlaubsliste: Benutzer ohne HR- oder Finanzrechte sehen ihre eigenen Urlaube, die von ihnen zu genehmigenden oder zu vertretenden sowie die Urlaube ihrer Vertretungen, die sich mit den eigenen überschneiden, nicht mehr alle aktuellen Urlaube ihrer Gruppenkollegen." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Urlaub: strengere Zugriffsprüfungen (bei laufenden oder vergangenen Einträgen lässt sich kein anderer Manager mehr eintragen, Löschen und Wiederherstellen richten sich nach dem gespeicherten Eintrag und Wiederherstellen wird wieder geprüft, die Überschneidungen im Formular zeigen nur sichtbare Urlaube, Urlaubskontokorrekturen erfordern Schreibrecht); der Resturlaub des Vorjahres wird bei Urlauben über das Ende der Übertragsfrist richtig angerechnet und nach späteren Änderungen neu berechnet; Sonderurlaub zählt bei der Kollisionsprüfung mit; abgelehnte Urlaube erscheinen nicht mehr in Kalendern und Abos; der Kommentar geht nicht mehr per Mail an Vertretungen, entfernte Manager und Vertretungen werden benachrichtigt. Excel-Export: Wochenenden und Feiertage im Urlaub, Halbtage und halbe Arbeitstage werden richtig dargestellt, genehmigte Urlaube haben Vorrang vor solchen in Abstimmung. Automatische Urlaubsbuchung der Zeitberichte: nicht mehr vom Urlaub abgedeckte Tage werden entfernt, eine nicht buchbare Urlaubsaufgabe lässt den Lauf fehlschlagen statt Tage zu überspringen, gebucht wird nach der Zeitzone des Benutzers. Team-Urlaubskalender: für Screenreader lesbar, die gespeicherte Auswahl wird nicht mehr durch einen veralteten Seitenstand überschrieben." ]
     } ]
   },
   "groups" : [ {
