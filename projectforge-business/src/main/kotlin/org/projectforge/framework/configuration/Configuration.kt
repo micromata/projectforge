@@ -147,6 +147,14 @@ class Configuration(
     val isCostConfigured: Boolean
         get() = getBooleanValue(ConfigurationParam.COST_CONFIGURED)
 
+    /**
+     * Time sheets without cost 2 unit are reported ([ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2], cost units
+     * configured): one saved without gets a warning and the notification rule of these time sheets applies. Booking
+     * stays allowed.
+     */
+    val isWarnMissingKost2: Boolean
+        get() = isCostConfigured && getBooleanValue(ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2)
+
     protected fun getValue(parameter: IConfigurationParam?): Any? {
         checkRefresh()
         synchronized(this) {

@@ -287,7 +287,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         timesheetRecentService.addRecentTimesheet(transformForDB(timesheet))
         val responseAction = CalendarServicesRest.redirectToCalendarWithDate(obj.startTime, event)
         if ((event == RestButtonEvent.SAVE || event == RestButtonEvent.UPDATE)
-            && obj.kost2 == null && Configuration.instance.isCostConfigured
+            && obj.kost2 == null && Configuration.instance.isWarnMissingKost2
         ) {
             // Allowed (the task has no cost 2 units yet), but missing in the salary export: the user should get one.
             responseAction.message = ResponseAction.Message("timesheet.warning.kost2Missing", color = UIColor.WARNING)

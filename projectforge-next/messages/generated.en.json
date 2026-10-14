@@ -270,6 +270,10 @@
               "_": "Task for vacation (id)",
               "description": "The id of the task (structure element) vacation is booked on as time sheets, in the calendar (\"Book several days\") and by the nightly job."
             }
+          },
+          "warnMissingKost2": {
+            "_": "Report time sheets without Kost2?",
+            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, and the notification rule \"Time sheets without Kost2\" applies. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
           }
         },
         "timesheetTags": {
@@ -2689,7 +2693,10 @@
         "general": "Rule",
         "message": "Message"
       },
-      "title": "Notification rules"
+      "title": "Notification rules",
+      "warning": {
+        "warnMissingKost2Off": "The configuration parameter \"Report time sheets without Kost2?\" is disabled (or cost-unit accounting is): this rule notifies nobody until it is enabled."
+      }
     },
     "ruleName": "Rule",
     "ruleTypes": {

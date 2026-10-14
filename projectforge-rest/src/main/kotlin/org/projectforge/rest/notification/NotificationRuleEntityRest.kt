@@ -24,6 +24,7 @@
 
 package org.projectforge.rest.notification
 
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.notification.NotificationChannel
 import org.projectforge.business.notification.NotificationDO
@@ -34,6 +35,7 @@ import org.projectforge.business.notification.NotificationRuleType
 import org.projectforge.business.notification.NotificationService
 import org.projectforge.business.notification.NotificationStatus
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -41,6 +43,10 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.RestButtonEvent
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.UIColor
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -50,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.Date
 import java.util.Date
 
 /**
@@ -164,6 +171,21 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && dto.kost2MissingMonths !in 1..12) {
             validationErrors += ValidationError(translate("notification.rule.error.kost2MissingMonths"), fieldId = "kost2MissingMonths")
         }
+    }
+
+    /** A rule of time sheets without cost 2 unit notifies nobody, as long as these aren't reported at all. */
+    override fun onAfterEdit(
+        request: HttpServletRequest,
+        obj: NotificationRuleDO,
+        postData: PostData<NotificationRule>,
+        event: RestButtonEvent,
+    ): ResponseAction {
+        val responseAction = super.onAfterEdit(request, obj, postData, event)
+        if (obj.ruleType == NotificationRuleType.TIMESHEETS_WITHOUT_KOST2 && !Configuration.instance.isWarnMissingKost2) {
+            responseAction.message =
+                ResponseAction.Message("notification.rule.warning.warnMissingKost2Off", color = UIColor.WARNING)
+        }
+        return responseAction
     }
 
     /** The variables of the texts of the given rule type (the common ones for none). */

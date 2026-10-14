@@ -185,10 +185,13 @@ class NotificationServiceTest : AbstractTestBase() {
         val now = Date.from(today.atTime(12, 0).atZone(ZoneId.of("UTC")).toInstant())
         val sheet = insertTimesheet(task, user, 1)
         val costConfigured = Configuration.instance.isCostConfigured
-        setCostConfigured(false)
-        assertEquals(0, notificationService.runRule(rule, today, now).created, "Cost units not configured.")
-        setCostConfigured(true)
         try {
+            setBoolean(ConfigurationParam.COST_CONFIGURED, true)
+            assertEquals(0, notificationService.runRule(rule, today, now).created, "Kost2 not required (default).")
+            setBoolean(ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2, true)
+            setBoolean(ConfigurationParam.COST_CONFIGURED, false)
+            assertEquals(0, notificationService.runRule(rule, today, now).created, "Cost units not configured.")
+            setBoolean(ConfigurationParam.COST_CONFIGURED, true)
             assertEquals(1, notificationService.runRule(rule, today, now).created)
             val first = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
             assertEquals("2032-03-03", first.periodKey)
@@ -212,7 +215,8 @@ class NotificationServiceTest : AbstractTestBase() {
             assertEquals(NotificationStatus.RESOLVED, notificationDao.findById(third.id)!!.status)
             assertEquals(0, notificationService.runRule(rule, today.plusDays(3), now).created)
         } finally {
-            setCostConfigured(costConfigured)
+            setBoolean(ConfigurationParam.COST_CONFIGURED, costConfigured)
+            setBoolean(ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2, false)
         }
     }
 
@@ -294,8 +298,9 @@ class NotificationServiceTest : AbstractTestBase() {
         return employee
     }
 
-    private fun setCostConfigured(value: Boolean) {
-        val entry = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)!!
+    private fun setBoolean(param: ConfigurationParam, value: Boolean) {
+        val entry = configurationDao.getEntry(param)
+            ?: configurationDao.checkAndUpdateDatabaseEntries().let { configurationDao.getEntry(param)!! }
         entry.booleanValue = value
         configurationDao.update(entry, checkAccess = false)
     }

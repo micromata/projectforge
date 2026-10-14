@@ -25,6 +25,8 @@ package org.projectforge.rest
 
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.timesheet.TimesheetVacationBookingConfig
+import org.projectforge.framework.configuration.Configuration as ConfigurationValues
+import org.projectforge.framework.configuration.ConfigurationCategory
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationJsonValidators
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -39,7 +41,9 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Configuration
+import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -186,6 +190,14 @@ class ConfigurationEntityRest :
         }
     }
 
+    /** The categories as pills, see [preProcessMagicFilter]. */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement(CATEGORY_FILTER, label = translate("administration.configuration.category"), defaultFilter = true)
+                .buildValues(ConfigurationCategory::class.java)
+        )
+    }
+
     /**
      * Ensures every parameter of the enum has a DB row before the list is built - the next equivalent of
      * `ConfigurationListPage.init()`, so a fresh database still lists all parameters. This is the only `open`
@@ -199,15 +211,35 @@ class ConfigurationEntityRest :
         // The housekeeping below writes unchecked, so the list's read access is checked before it.
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         baseDao.checkAndUpdateDatabaseEntries()
+        val filters = mutableListOf<CustomResultFilter<ConfigurationDO>>()
+        // A parameter only applying with cost units configured isn't listed without (see ConfigurationParam.isCostDependent).
+        if (!ConfigurationValues.instance.isCostConfigured) {
+            filters.add(ParamFilter { it?.isCostDependent != true })
+        }
+        // The chosen categories (pills): synthetic, as the category is no property of the DO, but of its parameter.
+        source.entries.find { it.field == CATEGORY_FILTER }?.let { entry ->
+            entry.synthetic = true
+            val categories = entry.value.values?.toSet()
+            if (!categories.isNullOrEmpty()) {
+                filters.add(ParamFilter { it?.category?.name in categories })
+            }
+        }
         // The user searches the parameter as it is *shown* - its translated label and description, runtime
         // texts no database index carries. So we take the term over, clear it from the filter (otherwise
         // MagicFilterProcessor builds a DB predicate that would drop every non-matching row before this
         // filter runs, and a CustomResultFilter can only remove rows, never add them), and match it in
         // memory over the whole (small, fixed) set - label, description and raw parameter name alike.
         val term = source.searchString?.trim()?.removeSuffix("*")?.takeIf { it.isNotBlank() }
-            ?: return emptyList()
+            ?: return filters
         source.searchString = null
-        return listOf(ConfigurationSearchFilter(term.lowercase()))
+        filters.add(ConfigurationSearchFilter(term.lowercase()))
+        return filters
+    }
+
+    /** Keeps an entry whose parameter (null if unknown) matches the given predicate. */
+    private class ParamFilter(private val predicate: (ConfigurationParam?) -> Boolean) : CustomResultFilter<ConfigurationDO> {
+        override fun match(list: MutableList<ConfigurationDO>, element: ConfigurationDO): Boolean =
+            predicate(element.parameter?.let { ConfigurationParam.ofKey(it) })
     }
 
     /**
@@ -251,4 +283,9 @@ class ConfigurationEntityRest :
                 "${category?.let { translate(it.i18nKey) } ?: ""}\u0000${translate(config.i18nKey)}".lowercase()
             },
         )
+
+    companion object {
+        /** The filter field of the category pills, see [addMagicFilterElements]. */
+        private const val CATEGORY_FILTER = "category"
+    }
 }

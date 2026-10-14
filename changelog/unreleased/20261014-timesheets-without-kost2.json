@@ -10,6 +10,14 @@
     {
       "en": "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2.",
       "de": "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben."
+    },
+    {
+      "en": "New configuration parameter \"Report time sheets without Kost2?\" (default off, only shown with cost-unit accounting enabled): the hint on saving and the notification rule apply only if it is enabled. Booking without Kost2 stays possible.",
+      "de": "Neuer Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (standardmäßig aus, nur bei freigeschalteter Kostenrechnung sichtbar): Hinweis beim Speichern und Benachrichtigungsregel greifen nur, wenn er aktiviert ist. Buchen ohne Kost2 bleibt möglich."
+    },
+    {
+      "en": "Configuration: the list can be filtered by category (pills such as Finance or Time sheets).",
+      "de": "Konfiguration: Die Liste lässt sich nach Bereich filtern (Pillen wie Finanzen oder Zeitberichte)."
     }
   ]
 }
