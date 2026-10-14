@@ -160,7 +160,7 @@ export function EntityEditModal<
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="flex max-h-[90vh] w-[95vw] flex-col gap-0 overflow-hidden p-0 !max-w-[95vw]"
+        className="flex max-h-[90vh] w-[95vw] flex-col gap-0 overflow-hidden p-0 !max-w-6xl"
         // Radix would focus the dialog itself; let useFocusFirstField place the caret in the first
         // field instead (see EntityEditBody).
         onOpenAutoFocus={(e) => e.preventDefault()}

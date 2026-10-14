@@ -11,6 +11,9 @@
         "title" : "Time sheets without Kost2",
         "items" : [ "A time sheet saved without Kost2 (none assigned to the structure element yet) shows a hint: it is missing in the salary export, the project management or accounting has to assign a Kost2.", "Notifications: new rule type for time sheets without Kost2 in the last months. Run daily, a notification marked as done comes back the next day and disappears by itself, once all of these time sheets have a Kost2." ]
       } ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Calendar: the edit dialog of time sheets and events is no longer stretched over the whole width of large screens." ]
     } ]
   },
   "groups" : [ {
