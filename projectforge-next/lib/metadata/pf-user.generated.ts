@@ -8,6 +8,13 @@ export const PF_USER_METADATA = {
   entity: "PFUserDO",
   historizable: true,
   fields: {
+    alternativeEmails: {
+      dataType: "STRING",
+      i18nKey: "user.alternativeEmails",
+      required: false,
+      maxLength: 1000,
+      tooltipI18nKey: "user.alternativeEmails.info",
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",
@@ -54,6 +61,13 @@ export const PF_USER_METADATA = {
       i18nKey: "firstName",
       required: false,
       maxLength: 255,
+    },
+    formerEmails: {
+      dataType: "STRING",
+      i18nKey: "user.formerEmails",
+      required: false,
+      maxLength: 1000,
+      tooltipI18nKey: "user.formerEmails.info",
     },
     gender: {
       dataType: "STRING",

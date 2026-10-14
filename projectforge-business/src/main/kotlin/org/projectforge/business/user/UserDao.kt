@@ -117,6 +117,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return userGroupCache.getUserRights(userId)
     }
 
+    override fun onInsertOrModify(obj: PFUserDO, operationType: OperationType) {
+        obj.alternativeEmails = PFUserDO.normalizeEmails(obj.alternativeEmails)
+        obj.formerEmails = PFUserDO.normalizeEmails(obj.formerEmails)
+    }
+
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      */
