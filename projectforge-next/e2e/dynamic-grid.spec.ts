@@ -28,9 +28,6 @@ const FIRST_NAME_KEY = "firstName";
 const JOIN_DATE_KEY = "fibu.employee.eintrittsdatum";
 const COMMENT_KEY = "comment";
 
-/** Position of the join date among the columns (EmployeePagesRest.createListLayout), 1-based. */
-const JOIN_DATE_COLUMN = 8;
-
 /**
  * Skips the case when the list has no row, and answers the rows otherwise.
  *
@@ -54,6 +51,22 @@ async function headerCell(page: Page, label: string) {
   const cell = page.locator("th").filter({ hasText: label }).first();
   await expect(cell).toBeVisible({ timeout: 20_000 });
   return cell;
+}
+
+/**
+ * The 1-based position (for `nth-child`) of the first column whose header holds `label`, matched as
+ * headerCell matches it.
+ */
+async function columnIndex(page: Page, label: string) {
+  const index = await page
+    .locator("thead th")
+    .evaluateAll(
+      (cells, text) =>
+        cells.findIndex((cell) => cell.textContent?.includes(text)),
+      label
+    );
+  expect(index, `column "${label}"`).toBeGreaterThanOrEqual(0);
+  return index + 1;
 }
 
 /**
@@ -102,9 +115,10 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
 
     // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every join date is a
     // German date and never an ISO string — or empty, an employee may have none.
-    const joinDates = listRows(page).locator(
-      `td:nth-child(${JOIN_DATE_COLUMN})`
-    );
+    // Located by its header rather than by a fixed position: EmployeePagesRest.createListLayout gains a
+    // column now and then, and a stale index reads another column's text.
+    const joinDateColumn = await columnIndex(page, t(JOIN_DATE_KEY));
+    const joinDates = listRows(page).locator(`td:nth-child(${joinDateColumn})`);
     for (const text of await joinDates.allInnerTexts()) {
       expect(text.trim()).toMatch(/^(\d{2}\.\d{2}\.\d{4})?$/);
     }
