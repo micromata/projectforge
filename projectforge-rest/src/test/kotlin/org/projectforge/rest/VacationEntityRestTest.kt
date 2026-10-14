@@ -424,6 +424,50 @@ class VacationEntityRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the stats show a normal user only the vacations of substitutes they may read`() {
+        val own = createEmployee("leak-own")
+        val colleague = createEmployee("leak-colleague")
+        val stranger = createEmployee("leak-stranger")
+        val hr = createEmployee("leak-hr", hrAccess = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("VacationEntityRestTest.leak", own.user!!.username!!, colleague.user!!.username!!)
+        val monday = LocalDate.of(LocalDate.now().year + 8, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val friday = monday.plusDays(4)
+        logon(hr.user!!)
+        vacationDao.insert(vacation(colleague, replacement = hr, monday, friday))
+        vacationDao.insert(vacation(stranger, replacement = hr, monday, friday))
+        fun stats(replacement: EmployeeDO, start: LocalDate = monday, end: LocalDate = friday) = vacationEntityRest.stats(
+            PostData(
+                Vacation(
+                    employee = Employee(own.id), startDate = start, endDate = end,
+                    manager = Employee(hr.id), replacement = Employee(replacement.id),
+                ), watchFieldsTriggered = null, serverData = null
+            )
+        )
+        // HR staff see all of them.
+        assertEquals(1, stats(stranger).conflictingVacations!!.size)
+
+        logon(own.user!!)
+        // The colleague of an own group, away in the coming week: shown.
+        stats(colleague).let {
+            assertEquals(1, it.conflictingVacations!!.size)
+            assertEquals(true, it.conflict)
+            assertEquals(5, it.chartDays!!.count { day -> day.uncovered })
+        }
+        // Anybody else named as substitute tells nothing about their vacations.
+        stats(stranger).let {
+            assertTrue(it.conflictingVacations!!.isEmpty())
+            assertEquals(false, it.conflict)
+            assertEquals(0, it.chartDays!!.count { day -> day.uncovered })
+        }
+        // Nor does a period longer than the chart draws.
+        stats(colleague, monday.minusDays(500), friday).let {
+            assertNull(it.conflictingVacations)
+            assertNull(it.chartDays)
+        }
+    }
+
+    @Test
     fun `opening a rejected entry doesn't mark it as a conflict`() {
         val own = createEmployee("rejected-own")
         val other = createEmployee("rejected-other")

@@ -70,12 +70,14 @@
             <span class="value"><%= pf.getString(vacation.status) %></span>
           </td>
         </tr>
+        <% if (mailInfo.showComment) { %>
         <tr>
           <td colspan="2">
             <span class="title"><%= pf.getI18nString("comment") %></span>
             <span class="value"><%= pf.getString(vacation.comment) %></span>
           </td>
         </tr>
+        <% } %>
       </table>
       <a
               href="${vacationInfo.link}"

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  barLabel,
   buildVacationChart,
   monthSpans,
   teamChartRows,
@@ -172,5 +173,36 @@ describe("teamChartRows", () => {
       last: 8,
       status: "IN_PROGRESS",
     });
+  });
+});
+
+describe("barLabel", () => {
+  const formatDate = (iso: string) => iso.split("-").reverse().join(".");
+  const statusLabel = (status: string) =>
+    status === "APPROVED"
+      ? "approved"
+      : status === "IN_PROGRESS"
+        ? "in progress"
+        : null;
+  const bar = { startDate: "2030-02-04", endDate: "2030-02-08" };
+
+  it("names whose vacation it is, its period and its status", () => {
+    expect(
+      barLabel(
+        "Ann",
+        { ...bar, status: "IN_PROGRESS" },
+        formatDate,
+        statusLabel
+      )
+    ).toBe("Ann: 04.02.2030 – 08.02.2030 (in progress)");
+  });
+
+  it("leaves out a status without a label, and a missing one", () => {
+    expect(
+      barLabel("Ann", { ...bar, status: "REJECTED" }, formatDate, statusLabel)
+    ).toBe("Ann: 04.02.2030 – 08.02.2030");
+    expect(
+      barLabel("Ann", { ...bar, status: null }, formatDate, statusLabel)
+    ).toBe("Ann: 04.02.2030 – 08.02.2030");
   });
 });

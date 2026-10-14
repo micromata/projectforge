@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.repository
 
+import org.projectforge.business.PfCaches
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
@@ -35,12 +36,22 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.Month
 
 @Service
 open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
+    @Autowired
+    private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
+
+    init {
+        supportAfterUpdate = true
+    }
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -88,22 +99,32 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
         throwException: Boolean
     ): Boolean {
         return if (operationType == OperationType.SELECT) {
-            (accessChecker.isLoggedInUserMemberOfGroup(
-                throwException,
-                ProjectForgeGroup.CONTROLLING_GROUP,
-                ProjectForgeGroup.FINANCE_GROUP,
-                ProjectForgeGroup.HR_GROUP,
-                ProjectForgeGroup.ORGA_TEAM
-            )
-                    || (user.id != null && user.id == obj?.employee?.user?.id)) // User has select access to his own entries.
+            // The own entries first: the group check throws (if throwException) before they would be considered.
+            if (obj != null && user.id != null && user.id == caches.getEmployeeIfNotInitialized(obj.employee)?.user?.id) {
+                true // User has select access to his own entries.
+            } else {
+                accessChecker.isUserMemberOfGroup(
+                    user,
+                    throwException,
+                    ProjectForgeGroup.CONTROLLING_GROUP,
+                    ProjectForgeGroup.FINANCE_GROUP,
+                    ProjectForgeGroup.HR_GROUP,
+                    ProjectForgeGroup.ORGA_TEAM
+                )
+            }
         } else {
-            accessChecker.hasLoggedInUserRight(
-                UserRightId.HR_VACATION,
-                throwException,
-                UserRightValue.READONLY,
-                UserRightValue.READWRITE
-            )
+            // A correction changes the leave of the employee: HR staff only, read-only access isn't enough.
+            accessChecker.hasRight(user, UserRightId.HR_VACATION, throwException, UserRightValue.READWRITE)
         }
+    }
+
+    // A correction of the previous year changes its left days, i.e. the stored carry into the current year:
+    override fun afterInsertOrModify(obj: LeaveAccountEntryDO, operationType: OperationType) {
+        remainingLeaveDao.invalidateCarry(obj.employee?.id, obj.date)
+    }
+
+    override fun afterUpdate(obj: LeaveAccountEntryDO, dbObj: LeaveAccountEntryDO?, isModified: Boolean) {
+        dbObj?.let { remainingLeaveDao.invalidateCarry(it.employee?.id, it.date) } // The date may have been moved.
     }
 
     companion object {

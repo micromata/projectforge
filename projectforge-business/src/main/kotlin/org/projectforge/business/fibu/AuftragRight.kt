@@ -90,7 +90,11 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
                 return false
             }
         }
-        if (obj != null && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+        // Only inserts and updates (oldObj given) can change the flag: checking it on select would touch the lazy
+        // positions and payment schedules of every order of a list (N+1 selects).
+        if (obj != null && (operationType == OperationType.INSERT || oldObj != null)
+            && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
+        ) {
             // Special field check for non finance administrative staff members:
             if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
                 if (operationType == OperationType.INSERT) {

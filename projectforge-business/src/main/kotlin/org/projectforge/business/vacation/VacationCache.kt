@@ -28,6 +28,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -60,6 +61,18 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
 
     private var vacations = listOf<VacationDO>() // Thread safe
 
+    /**
+     * Guards [vacationMap], [vacations] and [changedWhileRefreshing]. Not the map itself: [refresh] replaces it.
+     */
+    private val lock = Any()
+
+    /**
+     * The entries [afterInsertOrModify] took while a [refresh] was reading (null value: removed), or null while no
+     * refresh runs. The refresh read them before or after their change, so they're applied again to its result:
+     * otherwise a change saved meanwhile vanished from the cache until the next refresh.
+     */
+    private var changedWhileRefreshing: MutableMap<Long, VacationDO?>? = null
+
     @PostConstruct
     private fun postConstruct() {
         vacationDao.register(this)
@@ -85,6 +98,9 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
                 vacation.startDate?.isAfter(endVacationDate) == true
             ) {
                 continue
+            }
+            if (vacation.status == VacationStatus.REJECTED) {
+                continue // Nobody is away: not shown in the calendar nor in its subscriptions.
             }
             if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
                 continue
@@ -121,12 +137,15 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         runReadOnlyForCacheMaintenance { context ->
             hydrate(obj, loadOtherReplacementIds(context, id)[id])
         }
-        synchronized(vacationMap) {
+        // Called within the write transaction, so a change that is rolled back afterwards stays in the cache until
+        // the next refresh: the persistence layer offers no after-commit hook for the listeners.
+        synchronized(lock) {
             if (obj.deleted) {
                 vacationMap.remove(id)
             } else {
                 vacationMap[id] = obj
             }
+            changedWhileRefreshing?.put(id, obj.takeUnless { it.deleted })
             vacations = vacationMap.values.toList()
         }
     }
@@ -139,10 +158,27 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         // runReadOnlyForCacheMaintenance guards against the same self-deadlock as afterInsertOrModify: a refresh
         // triggered from within a write transaction (e.g. a cache getter called mid-insert) must not open a second
         // connection. Outside a transaction it stays isolated, as a refresh normally is.
+        synchronized(lock) {
+            changedWhileRefreshing = mutableMapOf()
+        }
+        try {
+            refreshVacations()
+        } finally {
+            synchronized(lock) {
+                changedWhileRefreshing = null
+            }
+        }
+        log.info { "Refreshing of VacationCache done." }
+    }
+
+    private fun refreshVacations() {
         runReadOnlyForCacheMaintenance { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long?, VacationDO>()
-            vacationDao.selectAll(checkAccess = false).forEach {
+            // Read without a logged-in user: the first fill runs on the thread of whoever asks first, and
+            // VacationDao.afterLoad would mask the comments that user may not see - for everybody, as the cache is
+            // shared. The consumers check the comment per user (VacationProvider).
+            withoutLoggedInUser { vacationDao.selectAll(checkAccess = false) }.forEach {
                 if (!it.deleted) {
                     map[it.id] = it
                 }
@@ -153,10 +189,24 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
             // lazy collection init per vacation — the N+1 the calendar suffered from.
             val otherReplacementIds = loadOtherReplacementIds(context)
             map.values.forEach { hydrate(it, otherReplacementIds[it.id]) }
-            vacationMap = map
-            vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
+            synchronized(lock) {
+                changedWhileRefreshing?.forEach { (id, changed) ->
+                    if (changed == null) map.remove(id) else map[id] = changed
+                }
+                vacationMap = map
+                vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
+            }
         }
-        log.info { "Refreshing of VacationCache done." }
+    }
+
+    private fun <T> withoutLoggedInUser(block: () -> T): T {
+        val userContext = ThreadLocalUserContext.userContext ?: return block()
+        ThreadLocalUserContext.clear()
+        try {
+            return block()
+        } finally {
+            ThreadLocalUserContext.userContext = userContext
+        }
     }
 
     /**

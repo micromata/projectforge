@@ -607,7 +607,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Tagesbreite (Automatisch, Fensterbreite, Schmal, Normal, Breit) wird mit der Auswahl gespeichert.
   Favoriten (`…/favorites/*`, `FavoritesMenu`) speichern benannte Auswahlen von Mitarbeitenden und Gruppen in
   derselben User-Pref; angewendet wird nur, was der Benutzer wählen darf. Behoben: Urlaube, die vor einem Blatt
-  begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
+  begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um. Nach dem Review: `view`
+  schneidet die Urlaube auf den angezeigten Zeitraum, `favorites` liefert nur die wählbaren Ids; die Grafik ist
+  `role="group"` mit fokussierbaren, benannten Balken; `initial` wird nie aus dem Cache übernommen (`gcTime: 0`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

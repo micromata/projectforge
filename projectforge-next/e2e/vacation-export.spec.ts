@@ -6,6 +6,11 @@ import { userFormat } from "./fixtures/format";
  *
  * Nothing is written but the choice of employees and groups, which the backend stores per user: the one stored
  * before is put back at the end. In the vacation lane, as it reads the vacation entries.
+ *
+ * Put back is the choice as `initial` answers it, i.e. without the ids the user may no longer pick (deactivated
+ * colleagues, groups left). No endpoint answers the raw stored ids, and none is added for a test: those ids are
+ * neither shown nor applied by the page anyway (VacationExportRest filters them on every read), so dropping them
+ * changes nothing the user could see. The favorites are not touched.
  */
 test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
   test("shows the vacations per quarter, pages and exports them as Excel", async ({
@@ -53,9 +58,18 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
         page.getByRole("heading", { name: t("vacation.export.title") })
       ).toBeVisible();
       // The stored choice is shown again, and the chart has a row for the employee.
-      const chart = page.getByRole("img", { name: t("vacation.export.title") });
+      // A group of names and labelled bars (its own text alternative), not one image.
+      const chart = page.getByRole("group", {
+        name: t("vacation.export.title"),
+      });
       await expect(chart).toBeVisible();
       await expect(chart.getByText(employee.displayName).first()).toBeVisible();
+      // Every bar is reached by the keyboard and names its period and status.
+      const bars = chart.getByRole("img");
+      if ((await bars.count()) > 0) {
+        await expect(bars.first()).toHaveAttribute("tabindex", "0");
+        await expect(bars.first()).toHaveAccessibleName(/–/);
+      }
       await expect(chart.getByText(/April 2030/)).toBeVisible();
 
       await page

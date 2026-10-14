@@ -122,8 +122,10 @@ object VacationValidator {
             // No further validations for deleted or REJECTED vacations required.
             return null
         }
-        if (vacationService.getVacationsListForPeriod(employee, startDate, endDate).any { it.id != vacation.id }) {
-            // Any other entry exist with overlapping time period.
+        if (vacationService.getVacationsListForPeriod(employee, startDate, endDate, withSpecial = true)
+                .any { it.id != vacation.id }
+        ) {
+            // Any other entry (special leave too) exist with overlapping time period.
             return returnOrThrow(Error.COLLISION, throwException)
         }
         var numberOfWorkingDays = VacationService.getVacationDays(vacation)
@@ -181,22 +183,10 @@ object VacationValidator {
 
                 val endOfVacationYear = vacationService.getEndOfCarryVacationOfPreviousYear(endDate.year)
                 if (modifiedStartDate.isBefore(endOfVacationYear)) {
-                    val overlapDays = if (endDate > endOfVacationYear) {
-                        // Part of the vacation is in the overlap period.
-                        VacationService.getVacationDays(
-                            modifiedStartDate,
-                            endOfVacationYear,
-                            halfDayBegin = vacation.halfDayBegin,
-                            halfDayEnd = vacation.halfDayEnd,
-                        )
-                    } else {
-                        // The whole vacation is in the overlap period.
-                        BigDecimal.ZERO
-                    }
-                    // Additional carry days from previous year:
-                    // The remaining leave from previous year can be used in the overlap period.
-                    val additionalCarryDays =
-                        maxOf(stats.remainingLeaveFromPreviousYearUnused!! - overlapDays, BigDecimal.ZERO)
+                    // The unused carry from the previous year may only be used for the days of this vacation up to the
+                    // end of the vacation year (the overlap period), the days after it need days of the new year:
+                    val overlapDays = VacationService.getVacationDays(vacation, modifiedStartDate, endOfVacationYear)
+                    val additionalCarryDays = minOf(stats.remainingLeaveFromPreviousYearUnused!!, overlapDays)
                     if (numberOfWorkingDays <= stats.vacationDaysLeftInYearWithoutCarry!! + additionalCarryDays) {
                         // Including unused carry days, it's now enough:
                         enoughDaysLeft = true
