@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber } from "@/lib/format";
 import type {
+  LogGroupAction,
   LogGroupEntry,
   LogGroupFilter,
   LogGroupList,
@@ -23,6 +24,7 @@ export function AdminErrorsProblems({
   search,
   onSearchChange,
   onOpen,
+  onUpdated,
 }: {
   data: LogGroupList;
   isFetching: boolean;
@@ -34,6 +36,7 @@ export function AdminErrorsProblems({
   search: string;
   onSearchChange: (search: string) => void;
   onOpen: (entry: LogGroupEntry) => void;
+  onUpdated: (action: LogGroupAction) => void;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -65,6 +68,7 @@ export function AdminErrorsProblems({
           search={search}
           onSearchChange={onSearchChange}
           onOpen={onOpen}
+          onUpdated={onUpdated}
         />
       )}
     </>

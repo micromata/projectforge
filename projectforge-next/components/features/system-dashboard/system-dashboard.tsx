@@ -143,6 +143,7 @@ export function SystemDashboard({
         <AdminErrorDetailDialog
           id={problems.detailId}
           onClose={problems.closeDetail}
+          onUpdated={problems.onUpdated}
         />
       )}
     </PageShell>

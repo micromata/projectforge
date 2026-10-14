@@ -154,6 +154,37 @@ class LogGroupAdminServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `status filter muted`() {
+        val now = System.currentTimeMillis()
+        val events = listOf("muted", "expired", "active", "ignored").associateWith {
+            LogEvent("test.muted.$it", LogCategory.BUG).also { event -> logAggregationService.add(occurrence(event, now)) }
+        }
+        val idOf = { name: String ->
+            logGroupAdminService.list(LogGroupFilter(search = events[name]!!.code, days = 0), now).entries.single().id
+        }
+        val mute = { name: String, days: Int ->
+            logGroupAdminService.update(LogGroupUpdate(listOf(idOf(name)), LogGroupAction.MUTE, muteDays = days), now)
+        }
+        mute("muted", 7)
+        mute("expired", 1)
+        val ignoredId = idOf("ignored")
+        mute("ignored", 7)
+        logGroupAdminService.update(LogGroupUpdate(listOf(ignoredId), LogGroupAction.IGNORE), now)
+        // Two days later: the mute of a day has expired.
+        val later = now + 2 * Constants.MILLIS_PER_DAY
+        val codes = { status: LogGroupStatusFilter ->
+            logGroupAdminService.list(LogGroupFilter(status = status, search = "test.muted.", days = 0), later)
+                .entries.map { it.code }.sorted()
+        }
+        Assertions.assertEquals(listOf(events["muted"]!!.code), codes(LogGroupStatusFilter.MUTED))
+        Assertions.assertEquals(
+            listOf("active", "expired", "muted").map { events[it]!!.code },
+            codes(LogGroupStatusFilter.OPEN),
+            "Open ones include the muted.",
+        )
+    }
+
+    @Test
     fun `counts split by handling`() {
         val now = 1_000 * Constants.MILLIS_PER_DAY
         val row = { id: Long, status: LogGroupStatus, mutedUntil: Long? ->

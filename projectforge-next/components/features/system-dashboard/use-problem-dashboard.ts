@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useExportDownload } from "@/hooks/use-export-download";
@@ -11,9 +12,12 @@ import {
   downloadAdminErrors,
   fetchAdminErrors,
   fetchAdminSubsystems,
+  type LogGroupAction,
   type LogGroupFilter,
   type LogGroupScope,
 } from "@/lib/rs/admin-errors";
+import { toast } from "@/lib/toast";
+import { statusFilterAfter } from "./admin-errors-labels";
 
 const START_FILTER: LogGroupFilter = { status: "OPEN", days: 7 };
 
@@ -31,6 +35,7 @@ const SCOPES: readonly LogGroupScope[] = ["NEW_24H", "REGRESSION"];
  * digest links a problem as `?id=<id>`, which opens its detail at once ([linkedId]).
  */
 export function useProblemDashboard() {
+  const t = useTranslations();
   const { isAdmin, isLoading } = useAuth();
   const params = useSearchParams();
   const linkedId = Number(params.get("id")) || null;
@@ -68,6 +73,28 @@ export function useProblemDashboard() {
   const download = useExportDownload(() =>
     downloadAdminErrors({ ...filter, search })
   );
+  // A status action may remove the changed problems from the list: rather than letting them vanish, a toast points
+  // to the status filter listing them. A regression is one while it's new: any other status leaves its scope too.
+  const onUpdated = (action: LogGroupAction) => {
+    const leavesScope =
+      scope === "REGRESSION" &&
+      (action === "ACKNOWLEDGE" || action === "RESOLVE" || action === "IGNORE");
+    const status =
+      statusFilterAfter(filter.status, action) ??
+      (leavesScope ? filter.status : null);
+    if (!status) return;
+    toast(t("system.admin.adminErrors.hiddenByFilter"), {
+      action: {
+        label: t("system.admin.adminErrors.showInList"),
+        onClick: () => {
+          setFilter((it) => ({ ...it, status }));
+          if (leavesScope) {
+            updateSearchParams({ [SCOPE_PARAM]: null }, "push");
+          }
+        },
+      },
+    });
+  };
   const denied = (!isLoading && !isAdmin) || isAccessDenied(list.error);
 
   return {
@@ -77,6 +104,7 @@ export function useProblemDashboard() {
     closeDetail,
     filter,
     setFilter,
+    onUpdated,
     search,
     setSearch,
     list,

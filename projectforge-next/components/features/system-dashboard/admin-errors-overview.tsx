@@ -7,11 +7,13 @@ import type {
   SubsystemEntry,
 } from "@/lib/rs/admin-errors";
 import { AdminErrorsSummary } from "./admin-errors-summary";
+import type { HandledStatus } from "./admin-handled-counts";
 import { AdminSubsystemTiles } from "./admin-subsystem-tiles";
 
 /**
  * The overview tab of the system dashboard: the key figures of all problems and a tile per active subsystem or
- * interface. A click on a key figure or a tile shows its problems ([onOpenSummary], [onOpenSubsystem]).
+ * interface. A click on a key figure or a tile shows its problems ([onOpenSummary], [onOpenSubsystem]), a click on
+ * a handled part below a figure those of its status only.
  */
 export function AdminErrorsOverview({
   summary,
@@ -24,7 +26,7 @@ export function AdminErrorsOverview({
   subsystems: SubsystemEntry[] | undefined;
   subsystemsError: boolean;
   onOpenSummary: (filter: LogGroupFilter) => void;
-  onOpenSubsystem: (subsystem: SubsystemEntry) => void;
+  onOpenSubsystem: (subsystem: SubsystemEntry, status?: HandledStatus) => void;
 }) {
   const t = useTranslations();
   return (

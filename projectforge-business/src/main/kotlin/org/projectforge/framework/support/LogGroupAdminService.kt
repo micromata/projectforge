@@ -53,6 +53,9 @@ enum class LogGroupStatusFilter(val statuses: Set<LogGroupStatus>?) {
     ALL(null),
     NEW(setOf(LogGroupStatus.NEW)),
     ACKNOWLEDGED(setOf(LogGroupStatus.ACKNOWLEDGED)),
+
+    /** Open ones whose mute lies ahead ([LogGroupHandling.MUTED]). */
+    MUTED(setOf(LogGroupStatus.NEW, LogGroupStatus.ACKNOWLEDGED)),
     IGNORED(setOf(LogGroupStatus.IGNORED)),
     RESOLVED(setOf(LogGroupStatus.RESOLVED)),
 }
@@ -489,6 +492,9 @@ class LogGroupAdminService {
     /** @param subsystem The match of [LogGroupFilter.subsystem], see [subsystemMatchOf]. */
     private fun matches(row: LogGroupRow, filter: LogGroupFilter, now: Long, subsystem: SubsystemProblemMatch?): Boolean {
         if (filter.status.statuses?.contains(row.status) == false) {
+            return false
+        }
+        if (filter.status == LogGroupStatusFilter.MUTED && handlingOf(row, now) != LogGroupHandling.MUTED) {
             return false
         }
         if (subsystem != null && !subsystem.matches(row.code, row.location, row.message)) {

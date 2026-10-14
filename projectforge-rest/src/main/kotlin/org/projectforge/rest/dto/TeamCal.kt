@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.common.BaseUserGroupRightService
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -33,6 +34,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.calendar.CalendarSubscriptionInfo
 
 class TeamCal(
     var title: String? = null,
@@ -55,9 +57,15 @@ class TeamCal(
      */
     var externalSubscriptionUpdateInterval: Int? = null,
     var externalSubscriptionUrlAnonymized: String? = null,
-    var vacation4Groups: List<Long>? = null,
-    var vacation4Users: List<Long>? = null
-) : BaseDTO<TeamCalDO>() {
+    /**
+     * Feed urls of an existing calendar, set in edit mode only (see TeamCalEntityRest). Never read from a client.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    var subscriptionInfo: CalendarSubscriptionInfo? = null,
+    // Only owners and admins may save a calendar (BaseUserGroupRight.hasUpdateAccess), not users with full access.
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<TeamCalDO>(), EntityAccessSupport {
     // The user and group ids are stored as csv list of longs in the database.
     override fun copyFrom(src: TeamCalDO) {
         super.copyFrom(src)

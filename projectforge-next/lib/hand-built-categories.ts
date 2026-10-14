@@ -40,6 +40,7 @@ export const HAND_BUILT_CATEGORIES = [
   "project",
   "script",
   "task",
+  "teamCal",
   "teamEvent",
   "timesheet",
   "todo",

@@ -20,7 +20,6 @@ import {
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { CalendarSubscriptionDialog } from "@/components/shared/calendar-subscription/calendar-subscription-dialog";
 import type { CalendarSubscriptionType } from "@/lib/rs/calendar-subscription";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { CalendarSubscriptionSubmenu } from "./calendar-subscription-submenu";
 
 interface CalendarMoreMenuProps {
@@ -30,8 +29,7 @@ interface CalendarMoreMenuProps {
 }
 
 /**
- * The overflow menu: a manual refresh in place of the legacy page reload, and the list of team
- * calendars — still a legacy page (`teamCal` is not migrated), so a plain anchor that leaves the app —
+ * The overflow menu: a manual refresh in place of the legacy page reload, the list of team calendars,
  * the ICS import, into the default calendar unless another one is picked there, and the subscription
  * links of ProjectForge's own feeds.
  * The colour settings now live in the gear dialog (CalendarColorSettings), not on a separate page.
@@ -43,7 +41,6 @@ export function CalendarMoreMenu({
   const t = useTranslations();
   const [subscription, setSubscription] =
     useState<CalendarSubscriptionType | null>(null);
-  const teamCalList = toAbsoluteUrl(resolveMenuUrl("react/teamCal"));
   const subscriptionDescription = (type: CalendarSubscriptionType) =>
     type === "HOLIDAYS"
       ? t("plugins.teamcal.export.holidays.tooltip")
@@ -80,10 +77,10 @@ export function CalendarMoreMenu({
             </DropdownMenuItem>
           </HintTooltip>
           <DropdownMenuItem asChild>
-            <a href={teamCalList}>
+            <GuardedLink href="/teamCal">
               <HugeiconsIcon icon={Calendar03Icon} size={14} />
               {t("menu.plugins.teamcal")}
-            </a>
+            </GuardedLink>
           </DropdownMenuItem>
           <HintTooltip
             side="left"

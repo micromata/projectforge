@@ -14,6 +14,7 @@ import {
 import {
   fetchAdminErrorDetail,
   updateAdminErrors,
+  type LogGroupAction,
   type LogGroupDetail,
   type LogGroupUpdate,
 } from "@/lib/rs/admin-errors";
@@ -28,15 +29,17 @@ import { OccurrenceChart } from "./occurrence-chart";
 /**
  * Everything known about a problem of the system dashboard: what it means and what to do (the texts of its
  * event), how often it occurred over the last week and month, a sample occurrence with its stack trace, and the
- * status actions. A change refreshes the dashboard's list as well.
+ * status actions. A change refreshes the dashboard's list as well ([onUpdated] after it).
  */
 export function AdminErrorDetailDialog({
   id,
   onClose,
+  onUpdated,
 }: {
   /** The problem shown, null for a closed dialog. */
   id: number | null;
   onClose: () => void;
+  onUpdated: (action: LogGroupAction) => void;
 }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -48,8 +51,10 @@ export function AdminErrorDetailDialog({
   const update = useMutation({
     mutationFn: (change: Omit<LogGroupUpdate, "ids">) =>
       updateAdminErrors({ ...change, ids: [id!] }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["adminErrors"] }),
+    onSuccess: (_count, change) => {
+      if (change.action) onUpdated(change.action);
+      return queryClient.invalidateQueries({ queryKey: ["adminErrors"] });
+    },
     onError: (err) =>
       toast.error(err instanceof Error ? err.message : String(err)),
   });

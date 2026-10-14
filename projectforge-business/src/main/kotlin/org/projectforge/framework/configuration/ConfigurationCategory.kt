@@ -24,12 +24,14 @@
 
 package org.projectforge.framework.configuration
 
+import org.projectforge.common.i18n.I18nEnum
+
 /**
  * The category of a configuration parameter (see [ConfigurationParam.getCategory]), by which the configuration
  * list groups and sorts the parameters. It is for display only; who sees and changes a parameter is given by
  * [ConfigurationEditors].
  */
-enum class ConfigurationCategory {
+enum class ConfigurationCategory : I18nEnum {
     /** Technical settings of the installation: mail addresses, plugins, message of the day, calendar domain. */
     SYSTEM,
 
@@ -48,6 +50,6 @@ enum class ConfigurationCategory {
     /** Human resources and vacation. */
     HR;
 
-    val i18nKey: String
+    override val i18nKey: String
         get() = "administration.configuration.categories.${name.lowercase()}"
 }

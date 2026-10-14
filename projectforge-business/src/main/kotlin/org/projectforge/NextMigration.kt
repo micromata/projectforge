@@ -489,6 +489,18 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the team calendars (TeamCalEntityRest, components/features/teamCal),
+        // migrated from React. The subscription info of a calendar (feed url, QR code) travels with the edit DTO,
+        // the export feeds of the list (time sheets, week of years, holidays) come from calendarSubscription/info.
+        // The React pages are gone (no UILayout served any more), so there is no way back; the legacy app is kept
+        // for the redirect of bookmarked React links only.
+        "teamCal" to NextPage(
+            route = "teamCal",
+            editRoute = "teamCal/$ID_PLACEHOLDER",
+            newEntryRoute = "teamCal/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
