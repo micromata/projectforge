@@ -91,13 +91,24 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             Assertions.assertNull(result[withoutAccess.id], "No task access, no Kost2.")
             Assertions.assertEquals(
                 listOf(kost2b.formattedNumber),
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.02")))[withAccess.id]
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.02"))))[withAccess.id]
                     ?.map { it.formattedNumber },
                 "Filtered by pattern.",
             )
             Assertions.assertNull(
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.03")))[withAccess.id],
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.03"))))[withAccess.id],
                 "Kost2 3 matches, but isn't bookable.",
+            )
+            val otherProject = addKost2(2, teilbereich = 6)
+            val alternatives = initTestDB.addTask("lpAlternatives", "root")
+            alternatives.kost2BlackWhiteList = otherProject.formattedNumber
+            taskDao.update(alternatives)
+            initTestDB.createGroupTaskAccess(group, alternatives, AccessType.OWN_TIMESHEETS, true, true, true, true)
+            val groups = listOf(listOf("1.*.01", "1.*.02").map { LanesAndPlanesSettings.globToRegex(it) })
+            Assertions.assertEquals(
+                listOf(kost2a.formattedNumber, otherProject.formattedNumber),
+                payloadBuilder.getBookableKost2(listOf(withAccess), groups)[withAccess.id]?.map { it.formattedNumber }?.sorted(),
+                "Per project only the Kost2 of the first matching alternative.",
             )
             Assertions.assertEquals(
                 listOf(kost2c.formattedNumber),
@@ -258,11 +269,11 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
         it.description = description
     }
 
-    private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null): Kost2DO {
+    private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null, teilbereich: Int = 5): Kost2DO {
         val kost2 = Kost2DO()
         kost2.nummernkreis = 1
         kost2.bereich = 731
-        kost2.teilbereich = 5
+        kost2.teilbereich = teilbereich
         kost2.kost2Art = Kost2ArtDO().withId(kost2ArtId)
         kost2.kostentraegerStatus = status
         return kost2Dao.find(kost2Dao.insert(kost2))!!

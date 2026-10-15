@@ -106,6 +106,10 @@ Bookable Kost2 of a user: the active Kost2 (`effectiveKostentraegerStatus` activ
 - with the Kost2 of the task (`TaskTree.getKost2List`, including the black/white list of the task),
 - restricted to the configured patterns (glob on the formatted number: `*` any characters including dots, `?` a
   single one, the whole number must match, e.g. `5.*.02`). Without patterns, all bookable Kost2 are sent.
+- An entry may contain alternatives separated by comma, e.g. `5.*.19, 5.*.20, 5.*.50, 5.*.60` for the travel time
+  types (invoiced, not invoiced, funding, R&D): of the user's Kost2 of the same project (formatted number without the
+  Kost2 type) matching the entry, only the ones of the first matching alternative are sent. A user who may book
+  only 20 on a project gets 20; general Kost2 aren't affected.
 
 General Kost1 and Kost2: configured lists of formatted numbers sent to every user, independent of the booking
 rights (the Kost1 as cost centers, e.g. the internal 1.* range; the Kost2 as cost units in addition to the bookable
@@ -169,7 +173,8 @@ run, so a change is sent by the next run (hourly by default):
 - `accountingInvoiceProfileIds`: required, provided by L&P (also needed for the dry run).
 - `generalKost1`: sent to all users as cost centers. Empty: `cost_centers` isn't sent.
 - `generalKost2`: sent to all users as cost units.
-- `kost2Patterns`: restricts the bookable Kost2 per user (cost units). Empty: all.
+- `kost2Patterns`: restricts the bookable Kost2 per user (cost units). Empty: all. Alternatives separated by comma:
+  only the first matching one per project.
 - `additionalUsers`: L&P users who aren't employees, see above.
 - `existingCostObjects`: the names of the cost centers and cost units already existing in L&P, exactly as there,
   starting with the number without dots (8 digits). In the text mode of the editor the `cost_centers` column of

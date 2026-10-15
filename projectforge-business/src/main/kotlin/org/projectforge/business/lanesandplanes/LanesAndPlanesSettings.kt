@@ -53,7 +53,9 @@ class LanesAndPlanesSettings(
     var generalKost2: List<String> = emptyList(),
     /**
      * Glob patterns of the formatted numbers (e.g. `5.*.02`): the Kost2 a user may book are only sent, if they
-     * match one of them. Empty: all bookable Kost2.
+     * match one of them. Empty: all bookable Kost2. An entry may contain alternatives separated by comma (e.g.
+     * `5.*.19, 5.*.20`): of the Kost2 of the same project (number without the Kost2 type) matching them, only the
+     * ones of the first matching alternative are sent, see [kost2PatternGroups].
      */
     var kost2Patterns: List<String> = emptyList(),
     /**
@@ -139,9 +141,10 @@ class LanesAndPlanesSettings(
             userId to email
         }.distinctBy { it.first }.toMap()
 
+    /** The entries of [kost2Patterns] as regexes, each with its alternatives, without the empty rows of the editor. */
     @get:JsonIgnore
-    val kost2Regexes: List<Regex>
-        get() = kost2Patterns.map { it.trim() }.filter { it.isNotEmpty() }.map { globToRegex(it) }
+    val kost2PatternGroups: List<List<Regex>>
+        get() = kost2Patterns.map { splitPattern(it).map { part -> globToRegex(part) } }.filter { it.isNotEmpty() }
 
     /**
      * @param findKost1 The Kost1 of the given formatted number (or null, if unknown).
@@ -164,8 +167,8 @@ class LanesAndPlanesSettings(
             findKost2(number)?.let { it.id!! to isActive(it) }
         }
         kost2Patterns.forEachIndexed { index, pattern ->
-            if (pattern.isNotBlank() && !PATTERN_REGEX.matches(pattern.trim())) {
-                errors += Error(KOST2_PATTERNS, "$ERROR_PREFIX.pattern", index, pattern)
+            splitPattern(pattern).filter { !PATTERN_REGEX.matches(it) }.forEach {
+                errors += Error(KOST2_PATTERNS, "$ERROR_PREFIX.pattern", index, it)
             }
         }
         val emails = mutableSetOf<String>()
@@ -301,6 +304,11 @@ class LanesAndPlanesSettings(
         fun isActive(kost2: Kost2DO): Boolean {
             return !kost2.deleted &&
                     (kost2.effectiveKostentraegerStatus ?: KostentraegerStatus.ACTIVE) == KostentraegerStatus.ACTIVE
+        }
+
+        /** The alternatives of an entry of [kost2Patterns], trimmed, without empty ones. */
+        private fun splitPattern(pattern: String): List<String> {
+            return pattern.split(',').map { it.trim() }.filter { it.isNotEmpty() }
         }
 
         /**

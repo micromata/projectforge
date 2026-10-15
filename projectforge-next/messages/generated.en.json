@@ -26,7 +26,9 @@
       "leader": "Leader"
     },
     "title": {
+      "_": "Accessoptions",
       "add": "Add new group structure element access",
+      "edit": "Edit group structure element access",
       "heading": "Group structure element access",
       "list": "List of group structure element access's"
     },
@@ -133,8 +135,23 @@
   },
   "addressbook": {
     "description": "Description",
+    "fullAccess": {
+      "groups": "Full access (groups)",
+      "tooltip": "Users have write and read access to all addresses assigned to this address book.",
+      "users": "Full access (users)"
+    },
     "owner": "Owner",
-    "title": "Title"
+    "readonlyAccess": {
+      "groups": "Read-only access (groups)",
+      "tooltip": "Users have only read access to all addresses assigned to this address book.",
+      "users": "Read-only access (users)"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add Addressbook",
+      "heading": "Addressbook",
+      "list": "List of addressbooks"
+    }
   },
   "administration": {
     "configuration": {
@@ -156,6 +173,8 @@
       "error": {
         "vacationKost2NotBookable": "The cost unit {arg0} isn''t bookable on the vacation task ''{arg1}''.",
         "vacationKost2NotFound": "No cost unit {arg0} (format #.###.##.##).",
+        "vacationProjectEnded": "The project of the vacation task ''{arg0}'' is ended or deleted.",
+        "vacationTaskNotBookable": "No time sheets can be booked on the vacation task ''{arg0}'' (closed, deleted or closed for booking).",
         "vacationTaskNotFound": "No task with the id {arg0}."
       },
       "json": {
@@ -259,8 +278,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Book vacation as time sheets (max. days back)",
-              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on, but at most this number of days back up to yesterday (max. 7), so nights the job didn't run are caught up. A vacation time sheet deleted by hand is therefore not booked again. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
+              "_": "Book vacation as time sheets (days back on the first run)",
+              "description": "Approved vacation (special leave included) is booked as time sheets by a nightly job, on the configured vacation task and cost unit. Only past days are booked, never in advance, and only working days without any time sheet of the user (half days with half the hours). Each day is processed once only: a run books the days from the last successful run on up to yesterday, so failed runs and nights the job didn't run are caught up (at most 62 days back); the very first run books this number of days back (max. 7). A vacation time sheet deleted by hand is therefore not booked again. If no time sheet is bookable on the vacation task (closed, project ended), the runs fail and the days are booked once that is solved. A vacation approved only after its days were processed is not booked automatically (book it in the calendar). 0 disables the job."
             },
             "kost2": {
               "_": "Cost unit for vacation",
@@ -2286,7 +2305,7 @@
       "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
       "kost2Patterns": {
         "_": "Patterns of the bookable Kost2",
-        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent."
+        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent. Several patterns in one row, separated by comma (e.g. 5.*.19, 5.*.20): per project only the Kost2 of the first matching pattern is sent."
       },
       "kostNotFound": "not found",
       "mode": {
@@ -2547,7 +2566,8 @@
     "reindexAllDatabaseEntries": {
       "_": "Re-build whole search index",
       "tooltip": {
-        "content": "The whole index will be rebuilt. This may take a while (several minute for e.g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators."
+        "content": "The whole index will be rebuilt. With many entries this may take several minutes and affect the system performance. Therefore this feature is only enabled for administrators from {arg0} entries on.",
+        "contentSmall": "The whole search index of this list will be rebuilt. With its manageable number of entries this is usually a matter of seconds."
       }
     },
     "reindexNewestDatabaseEntries": {
@@ -2599,6 +2619,7 @@
     "action": {
       "preview": "Preview",
       "testToMe": "Send test to me",
+      "testToMeInfo": "Sends the rule to yourself only, at once through all channels of its delivery (e-mail too), regardless of their delays.",
       "trigger": "Trigger now",
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
@@ -2687,6 +2708,14 @@
         "passwordMaxAgeDays": "The number of days must be at least 1."
       },
       "lastRun": "Last run",
+      "legend": {
+        "inactive": "Inactive (or deleted)"
+      },
+      "link": "\"Open\" button",
+      "linkMode": {
+        "DEFAULT": "Default of the trigger",
+        "NONE": "No button"
+      },
       "list": "Notification rules",
       "manualDone": "The recipient may mark it as done",
       "menuBadge": "Counter in the menu",
@@ -2702,6 +2731,9 @@
         "message": "Message"
       },
       "title": "Notification rules",
+      "trigger": {
+        "inactive": "The rule is inactive: activate and save it first."
+      },
       "warning": {
         "warnMissingKost2Off": "The configuration parameter \"Report time sheets without Kost2?\" is disabled (or cost-unit accounting is): this rule notifies nobody until it is enabled."
       }
@@ -2750,7 +2782,7 @@
     },
     "subject": "Subject",
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
-    "testDelivered": "Test sent: {arg0}",
+    "testDelivered": "Test sent at once (regardless of the delays): {arg0}",
     "testFailed": "Not sent: {arg0}",
     "testMissingText": "Subject and text are required for a test.",
     "text": "Text",
@@ -3493,6 +3525,7 @@
     "title": "Title"
   },
   "preview": "Preview",
+  "print": "Print",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -4504,6 +4537,9 @@
       },
       "title": "Two-factor authentication"
     },
+    "add": {
+      "optionalPassword": "You may set an initial password."
+    },
     "alternativeEmails": {
       "_": "Alternative e-mail addresses",
       "info": "Further e-mail addresses of the user still in use, comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
@@ -4565,6 +4601,7 @@
       "newPassword": "New WLAN password"
     },
     "deactivated": "deactivated",
+    "defaultLocale": "Default (browser)",
     "formerEmails": {
       "_": "Former e-mail addresses",
       "info": "E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated. They may be needed by the synchronization runs of external systems (e.g. Lanes & Planes)."
@@ -4578,6 +4615,7 @@
     "ldapValues": "LDAP",
     "localUser": {
       "_": "Local user",
+      "not": "Common user",
       "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
     },
     "locale": "Language",
@@ -4611,7 +4649,14 @@
       "_": "Restricted user",
       "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
     },
+    "rights": {
+      "none": "No right is configurable with the assigned groups."
+    },
     "sshPublicKey": "SSH public key",
+    "title": {
+      "add": "Add new user",
+      "list": "List of users"
+    },
     "tooltip": {
       "assignedGroups": "The groups determine the rights. They are assigned by the administration.",
       "dateFormat": "The format dates are shown and entered in. Empty: the default of the installation.",
@@ -4662,8 +4707,18 @@
       "excel": {
         "tooltip": "Excel workbook with a sheet per period (three months, rest of the year, quarters, calendar years), starting with the period shown."
       },
+      "favorite": {
+        "gone": "This favorite no longer exists.",
+        "nothingPickable": "None of the employees and groups of this favorite can be chosen any more."
+      },
+      "legend": {
+        "holidayOrWeekend": "Weekend or holiday"
+      },
+      "print": {
+        "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
+      },
       "selectHint": "Choose employees or groups to show their vacations.",
-      "title": "Export of team vacation calendars"
+      "title": "Team vacation calendar"
     },
     "halfDay": "Half day",
     "halfDayBegin": {

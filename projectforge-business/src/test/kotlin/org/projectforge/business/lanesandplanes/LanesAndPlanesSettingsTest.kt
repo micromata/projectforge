@@ -41,13 +41,14 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
         Assertions.assertTrue(LanesAndPlanesSettings.parse("no json").generalKost2.isEmpty())
         val settings = LanesAndPlanesSettings.parse(
             """{"accountingInvoiceProfileIds":[12,null],"generalKost1":["1.005.01.00"],"generalKost2":["1.010.01.00"," "],""" +
-                    """"kost2Patterns":["5.*.02"],"costObjectField":"COST_UNITS","unknown":1,""" +
+                    """"kost2Patterns":["5.*.02"," 5.*.19, ,5.*.20 "," "],"costObjectField":"COST_UNITS","unknown":1,""" +
                     """"additionalUsers":[{"email":"a@example.org","firstName":"A","lastName":"B"},{"email":" "}]}"""
         )
         Assertions.assertEquals(listOf(12L), settings.invoiceProfileIds)
         Assertions.assertEquals(listOf("1.010.01.00"), settings.generalKost2Numbers)
         Assertions.assertEquals(listOf("1.005.01.00"), settings.generalKost1Numbers, "Old JSON with costObjectField still parses.")
-        Assertions.assertEquals(1, settings.kost2Regexes.size)
+        Assertions.assertEquals(listOf(1, 2), settings.kost2PatternGroups.map { it.size }, "Alternatives separated by comma.")
+        Assertions.assertTrue(settings.kost2PatternGroups[1][1].matches("5.123.01.20"))
         Assertions.assertEquals(listOf("a@example.org"), settings.additionalUserList.map { it.email }, "Empty rows are ignored.")
     }
 
@@ -67,7 +68,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
             accountingInvoiceProfileIds = listOf(12L, null, 0L),
             generalKost1 = listOf("1.005.01.00", "1.005.02.00", "1.000.00.00", "1.005.01.00"),
             generalKost2 = listOf("1.010.01.00", "", "9.999.99.99", "1.010.02.00", "1010.01.00"),
-            kost2Patterns = listOf("5.*.02", "", "5.[0-9]"),
+            kost2Patterns = listOf("5.*.02", "", "5.[0-9]", "5.*.19, 5.[0], 5.*.20"),
             additionalUsers = listOf(
                 LanesAndPlanesSettings.AdditionalUser("a@example.org", "A", "B"),
                 LanesAndPlanesSettings.AdditionalUser(),
@@ -86,6 +87,7 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 "generalKost2:lanesAndPlanes.config.error.kost2NotActive:3:1.010.02.00",
                 "generalKost2:lanesAndPlanes.config.error.kost2Duplicate:4:1010.01.00",
                 "kost2Patterns:lanesAndPlanes.config.error.pattern:2:5.[0-9]",
+                "kost2Patterns:lanesAndPlanes.config.error.pattern:3:5.[0]",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserEmail:2:no email",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserDuplicate:3:A@example.org",
                 "additionalUsers:lanesAndPlanes.config.error.additionalUserName:3:null",

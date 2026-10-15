@@ -122,7 +122,7 @@ open class LanesAndPlanesPayloadBuilder {
             }
         val generalKost1 = getGeneralKost1(settings.generalKost1Numbers)
         val generalKost2 = getGeneralKost2(settings.generalKost2Numbers)
-        val kost2ByUser = getBookableKost2(employees.map { it.second }, settings.kost2Regexes)
+        val kost2ByUser = getBookableKost2(employees.map { it.second }, settings.kost2PatternGroups)
         val users = employees.map { (employee, user, email) ->
             val kost2List = (generalKost2 + (kost2ByUser[user.id] ?: emptyList())).distinctBy { it.id }
             createUser(employee, user, email, generalKost1, kost2List, settings)
@@ -272,10 +272,15 @@ open class LanesAndPlanesPayloadBuilder {
      * The active Kost2 of all bookable tasks, the user may book own time sheets on (by the access rights of the
      * user's groups). Unlike the time sheet access check, membership of the admin group doesn't grant all tasks:
      * otherwise admins would get every Kost2 of the company.
-     * @param patterns Only Kost2 whose formatted number matches one of them. Empty: all.
+     * @param patternGroups Only Kost2 whose formatted number matches one of them, see
+     * [LanesAndPlanesSettings.kost2PatternGroups]. Empty: all.
      * @return Map of user id to the bookable Kost2 (users without any Kost2 are missing).
      */
-    open fun getBookableKost2(users: Collection<PFUserDO>, patterns: List<Regex>): Map<Long, Collection<Kost2DO>> {
+    open fun getBookableKost2(
+        users: Collection<PFUserDO>,
+        patternGroups: List<List<Regex>>,
+    ): Map<Long, Collection<Kost2DO>> {
+        val patterns = patternGroups.flatten()
         val groupsByUser = users.associate { it.id!! to (userGroupCache.getUserGroups(it) ?: emptySet()) }
         val groupIds = groupsByUser.values.flatten().toSet()
         // Kost2 by Kost2 id, bookable for the members of the group.
@@ -296,8 +301,28 @@ open class LanesAndPlanesPayloadBuilder {
         }
         return groupsByUser.mapNotNull { (userId, userGroupIds) ->
             val kost2List = userGroupIds.mapNotNull { kost2ByGroup[it] }.flatMap { it.values }.distinctBy { it.id }
+                .let { selectAlternatives(it, patternGroups) }
             if (kost2List.isEmpty()) null else userId to kost2List
         }.toMap()
+    }
+
+    /**
+     * Of the Kost2 of the same project (formatted number without the Kost2 type) matching a group with
+     * alternatives, only the ones of the first matching alternative are kept (e.g. travel time invoiced instead
+     * of not invoiced).
+     */
+    internal fun selectAlternatives(kost2List: List<Kost2DO>, patternGroups: List<List<Regex>>): List<Kost2DO> {
+        var result = kost2List
+        patternGroups.filter { it.size > 1 }.forEach { alternatives ->
+            val removed = result.filter { kost2 -> alternatives.any { it.matches(kost2.formattedNumber) } }
+                .groupBy { it.formattedNumber.substringBeforeLast('.') }
+                .values.flatMap { sameProject ->
+                    val first = alternatives.first { regex -> sameProject.any { regex.matches(it.formattedNumber) } }
+                    sameProject.filter { !first.matches(it.formattedNumber) }
+                }.map { it.id }.toSet()
+            result = result.filter { it.id !in removed }
+        }
+        return result
     }
 
     private fun isSendable(kost2: Kost2DO, patterns: List<Regex>): Boolean {

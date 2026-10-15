@@ -26,7 +26,9 @@
       "leader": "Projektmanagement"
     },
     "title": {
+      "_": "Zugriffsoptionen",
       "add": "Neues Zugriffsrecht",
+      "edit": "Zugriff bearbeiten",
       "heading": "Zugriffsrechte",
       "list": "Liste der Zugriffsrechte"
     },
@@ -133,8 +135,23 @@
   },
   "addressbook": {
     "description": "Beschreibung",
+    "fullAccess": {
+      "groups": "Vollzugriff (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben Schreib- und Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Vollzugriff (Benutzer:innen)"
+    },
     "owner": "Eigner:in",
-    "title": "Titel"
+    "readonlyAccess": {
+      "groups": "Nur lesend (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben einen reinen Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Nur lesend (Benutzer:innen)"
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Adressbuch hinzufügen",
+      "heading": "Adressbuch",
+      "list": "Adressbücherliste"
+    }
   },
   "administration": {
     "configuration": {
@@ -156,6 +173,8 @@
       "error": {
         "vacationKost2NotBookable": "Der Kostenträger {arg0} ist auf dem Urlaubs-Strukturelement „{arg1}“ nicht buchbar.",
         "vacationKost2NotFound": "Kein Kostenträger {arg0} (Format #.###.##.##).",
+        "vacationProjectEnded": "Das Projekt des Urlaubs-Strukturelements „{arg0}“ ist beendet oder gelöscht.",
+        "vacationTaskNotBookable": "Auf dem Urlaubs-Strukturelement „{arg0}“ können keine Zeitberichte gebucht werden (geschlossen, gelöscht oder für Buchungen gesperrt).",
         "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
       "json": {
@@ -259,8 +278,8 @@
           },
           "vacation": {
             "autoBookingDays": {
-              "_": "Urlaub als Zeitberichte buchen (max. Tage zurück)",
-              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf, höchstens aber so viele Tage bis gestern zurück (max. 7), damit Nächte nachgeholt werden, in denen der Job nicht lief. Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
+              "_": "Urlaub als Zeitberichte buchen (Tage zurück beim ersten Lauf)",
+              "description": "Genehmigter Urlaub (inkl. Sonderurlaub) wird von einem nächtlichen Job als Zeitbericht auf das eingestellte Urlaubs-Strukturelement und den Urlaubs-Kostenträger gebucht. Gebucht werden nur vergangene Tage, nie im Voraus, und nur Arbeitstage ohne jeden Zeitbericht der Person (halbe Tage mit halber Stundenzahl). Jeder Tag wird nur einmal verarbeitet: Ein Lauf bucht die Tage ab dem letzten erfolgreichen Lauf bis gestern, fehlgeschlagene Läufe und Nächte, in denen der Job nicht lief, werden also nachgeholt (höchstens 62 Tage zurück); der allererste Lauf bucht so viele Tage zurück (max. 7). Ein von Hand gelöschter Urlaubs-Zeitbericht wird daher nicht erneut gebucht. Ist auf dem Urlaubs-Strukturelement kein Zeitbericht buchbar (geschlossen, Projekt beendet), schlagen die Läufe fehl, und die Tage werden gebucht, sobald das behoben ist. Urlaub, der erst nach der Verarbeitung seiner Tage genehmigt wird, wird nicht mehr automatisch gebucht (im Kalender buchen). 0 schaltet den Job ab."
             },
             "kost2": {
               "_": "Kostenträger für Urlaub",
@@ -2286,7 +2305,7 @@
       "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
       "kost2Patterns": {
         "_": "Muster der bebuchbaren Kost2",
-        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen."
+        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen. Mehrere Muster in einer Zeile, durch Komma getrennt (z. B. 5.*.19, 5.*.20): pro Projekt wird nur die Kost2 des ersten passenden Musters übertragen."
       },
       "kostNotFound": "nicht gefunden",
       "mode": {
@@ -2547,7 +2566,8 @@
     "reindexAllDatabaseEntries": {
       "_": "Suchindex voll indizieren",
       "tooltip": {
-        "content": "Der Suchindex wird komplett neu aufgebaut. Bei vielen Einträgen (z. B. 100.000) kann das einige Minuten dauern und die Systemperformance beinträchtigt werden. Deshalb steht diese Funktion nur Administratoren zur Verfügung."
+        "content": "Der Suchindex wird komplett neu aufgebaut. Bei vielen Einträgen kann das einige Minuten dauern und die Systemperformance beeinträchtigen. Deshalb steht diese Funktion ab {arg0} Einträgen nur Administratoren zur Verfügung.",
+        "contentSmall": "Der Suchindex dieser Liste wird komplett neu aufgebaut. Bei der überschaubaren Anzahl an Einträgen dauert das in der Regel nur wenige Sekunden."
       }
     },
     "reindexNewestDatabaseEntries": {
@@ -2599,6 +2619,7 @@
     "action": {
       "preview": "Vorschau",
       "testToMe": "Test an mich",
+      "testToMeInfo": "Sendet die Regel nur an mich, sofort über alle Kanäle der Zustellung (auch per E-Mail), unabhängig von deren Verzögerungen.",
       "trigger": "Jetzt auslösen",
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
@@ -2687,6 +2708,14 @@
         "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
       },
       "lastRun": "Letzter Lauf",
+      "legend": {
+        "inactive": "Inaktiv (oder gelöscht)"
+      },
+      "link": "Button „Öffnen“",
+      "linkMode": {
+        "DEFAULT": "Standard des Auslösers",
+        "NONE": "Kein Button"
+      },
       "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
       "menuBadge": "Zähler im Menü",
@@ -2702,6 +2731,9 @@
         "message": "Nachricht"
       },
       "title": "Benachrichtigungsregeln",
+      "trigger": {
+        "inactive": "Die Regel ist inaktiv: zuerst aktivieren und speichern."
+      },
       "warning": {
         "warnMissingKost2Off": "Der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (oder die Kostenrechnung) ist nicht aktiviert: Diese Regel benachrichtigt niemanden, bis er aktiviert ist."
       }
@@ -2750,7 +2782,7 @@
     },
     "subject": "Betreff",
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
-    "testDelivered": "Test gesendet: {arg0}",
+    "testDelivered": "Test sofort gesendet (unabhängig von den Verzögerungen): {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
     "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
     "text": "Text",
@@ -3493,6 +3525,7 @@
     "title": "Titel"
   },
   "preview": "Vorschau",
+  "print": "Drucken",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -4504,6 +4537,9 @@
       },
       "title": "Zweifaktor-Authentifizierung"
     },
+    "add": {
+      "optionalPassword": "Hier kann optional ein Erstpasswort vergeben werden."
+    },
     "alternativeEmails": {
       "_": "Alternative E-Mail-Adressen",
       "info": "Weitere noch genutzte E-Mail-Adressen, durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
@@ -4565,6 +4601,7 @@
       "newPassword": "Neues WLAN-Passwort"
     },
     "deactivated": "Deaktiviert",
+    "defaultLocale": "Default (Browser)",
     "formerEmails": {
       "_": "Frühere E-Mail-Adressen",
       "info": "Nicht mehr genutzte E-Mail-Adressen (z. B. nach einer Namensänderung), durch Kommas getrennt. Diese Adressen werden ggf. für die Synchronisationsläufe von Fremdsystemen (z. B. Lanes & Planes) benötigt."
@@ -4578,6 +4615,7 @@
     "ldapValues": "LDAP",
     "localUser": {
       "_": "Lokale:r Benutzer:in",
+      "not": "Allgemeine:r Benutzer:in",
       "tooltip": "Lokale Benutzer:innen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
     "locale": "Sprache",
@@ -4611,7 +4649,14 @@
       "_": "Eingeschränkte:r Nutzer:in",
       "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
+    "rights": {
+      "none": "Mit den zugeordneten Gruppen ist kein Recht konfigurierbar."
+    },
     "sshPublicKey": "SSH public key",
+    "title": {
+      "add": "Neue:r Benutzer:in",
+      "list": "Benutzer:in"
+    },
     "tooltip": {
       "assignedGroups": "Die Gruppen bestimmen die Rechte. Zugeordnet werden sie von der Administration.",
       "dateFormat": "Das Format, in dem Datumsangaben angezeigt und eingegeben werden. Leer: die Voreinstellung der Installation.",
@@ -4662,8 +4707,18 @@
       "excel": {
         "tooltip": "Excel-Arbeitsmappe mit einem Blatt je Zeitraum (drei Monate, Rest des Jahres, Quartale, Kalenderjahre), beginnend mit dem angezeigten Zeitraum."
       },
+      "favorite": {
+        "gone": "Diesen Favoriten gibt es nicht mehr.",
+        "nothingPickable": "Keine der Mitarbeitenden und Gruppen dieses Favoriten ist noch wählbar."
+      },
+      "legend": {
+        "holidayOrWeekend": "Wochenende oder Feiertag"
+      },
+      "print": {
+        "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
+      },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
-      "title": "Export von Teamurlaubskalendern"
+      "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",
     "halfDayBegin": {
