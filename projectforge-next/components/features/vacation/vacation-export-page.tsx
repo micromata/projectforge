@@ -141,8 +141,10 @@ function VacationExportContent({
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
   );
+  // `?showAvailabilities=true` (the availability list) turns them on, otherwise the stored choice.
   const [showAvailabilities, setShowAvailabilities] = useState(
-    initial.showAvailabilities
+    () =>
+      params.get("showAvailabilities") === "true" || initial.showAvailabilities
   );
   const min = initial.earliestDate ?? null;
   const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>

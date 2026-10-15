@@ -58,8 +58,11 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         if (hasHrRights(user) || isOwnEntry(user, obj)) {
             return true
         }
-        // Allow select access if users are in the same group.
-        if (obj.user != null && accessChecker.areUsersInSameGroup(user, obj.user)) {
+        // The members of the user's groups, as for vacations (VacationDao): not the entries of others that ended
+        // more than VISIBLE_PAST_DAYS ago.
+        if (obj.user != null && accessChecker.areUsersInSameGroup(user, obj.user) &&
+            obj.endDate?.isAfter(LocalDate.now().minusDays(VISIBLE_PAST_DAYS)) == true
+        ) {
             return true
         }
         return throwOrReturnFalse(throwException)
@@ -203,6 +206,9 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         const val ERROR_DATE_NOT_SET = "availability.validate.dateNotSet"
         const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
         const val ERROR_COLLISION = "availability.validate.collision"
+
+        /** How long the entries of others stay visible to the members of their groups after their end date. */
+        const val VISIBLE_PAST_DAYS = 31L
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("user.firstname", "user.lastname", "user.username")
         private val DEFAULT_SORT_PROPERTIES = arrayOf(

@@ -33,6 +33,22 @@ test.describe("availability", () => {
     }
   });
 
+  test("opens the team vacation calendar with the availability entries shown", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, "/availability");
+    await page
+      .getByRole("link", { name: format.t("vacation.export.title") })
+      .click();
+    await expect(page).toHaveURL(/\/vacationExport\?showAvailabilities=true/);
+    await expect(
+      page.getByRole("checkbox", {
+        name: format.t("vacation.export.showAvailabilities._"),
+      })
+    ).toBeChecked();
+  });
+
   test("offers the configured types and the internal comment, and refuses an end before the start", async ({
     loggedInPage: page,
   }) => {

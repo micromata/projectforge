@@ -131,6 +131,26 @@ class AvailabilityDaoTest : AbstractTestBase() {
         Assertions.assertEquals(listOf(AvailabilityStatus.NOT_AVAILABLE), AvailabilityStatus.entries.filter { it.absent })
     }
 
+    @Test
+    fun `members of the user's groups see the entries as vacations, not those ended more than 31 days ago`() {
+        val user = createUser("past-user")
+        val colleague = createUser("past-colleague")
+        val stranger = createUser("past-stranger")
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("${this.javaClass.simpleName}.past", user.username!!, colleague.username!!)
+        val today = LocalDate.now()
+        val recent = create(user, today.minusDays(40), today.minusDays(30))
+        val old = create(user, today.minusDays(40), today.minusDays(31))
+        val future = create(user, today.plusDays(10), today.plusDays(20))
+        listOf(recent, future).forEach { Assertions.assertTrue(availabilityDao.hasUserSelectAccess(colleague, it, false)) }
+        Assertions.assertFalse(availabilityDao.hasUserSelectAccess(colleague, old, false), "Ended 31 days ago.")
+        listOf(recent, old, future).forEach {
+            Assertions.assertFalse(availabilityDao.hasUserSelectAccess(stranger, it, false), "Not of the same group.")
+            Assertions.assertTrue(availabilityDao.hasUserSelectAccess(user, it, false), "The own entries.")
+            Assertions.assertTrue(availabilityDao.hasUserSelectAccess(getUser(TEST_HR_USER), it, false), "HR staff.")
+        }
+    }
+
     private fun assertError(expectedKey: String, block: () -> Unit) {
         val ex = assertThrows<UserException> { block() }
         Assertions.assertEquals(expectedKey, ex.i18nKey)

@@ -84,8 +84,8 @@ private val log = KotlinLogging.logger {}
  * pickers ([employees], [groups]) and the page's paging.
  *
  * With [VacationExportRequest.showAvailabilities], the availability entries of the same employees are shown and
- * exported, too: only those the user may see ([org.projectforge.business.availability.AvailabilityDao] select access:
- * HR staff, the employee and the members of the employee's groups), so finance staff don't see them all.
+ * exported, too: as their vacations, for the same employees and period. Their type is shown to the user and HR staff
+ * only, anybody else gets the neutral title ([AvailabilityDao.labelFor]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")
@@ -281,8 +281,9 @@ class VacationExportRest {
     }
 
     /**
-     * The availability entries of [employees] overlapping the period, those the user may see; empty unless
-     * [VacationExportRequest.showAvailabilities].
+     * The availability entries of [employees] overlapping the period; empty unless
+     * [VacationExportRequest.showAvailabilities]. Visible as the vacations: [employees] and the period are already
+     * restricted by [Access].
      */
     private fun availabilitiesByEmployee(
         request: VacationExportRequest,
@@ -298,7 +299,7 @@ class VacationExportRest {
             val userId = employeeCache.getUser(employee)?.id ?: return@mapNotNull null
             employee.id?.let { userId to it }
         }.toMap()
-        return availabilityCache.getAvailabilityForPeriodAndUserIds(from, until, employeeIdByUserId.keys)
+        return availabilityCache.getEntriesOfUsers(employeeIdByUserId.keys, from, until)
             .sortedBy { it.startDate }
             .groupBy { employeeIdByUserId.getValue(it.user!!.id!!) }
     }

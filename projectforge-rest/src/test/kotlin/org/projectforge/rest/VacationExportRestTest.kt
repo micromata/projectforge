@@ -130,7 +130,7 @@ class VacationExportRestTest : AbstractTestBase() {
     }
 
     @Test
-    fun `availabilities are shown only if asked for and only those the user may see`() {
+    fun `availabilities are shown only if asked for, as the vacations of the same employees`() {
         val own = createEmployee("avail-own")
         val colleague = createEmployee("avail-colleague")
         val finance = createEmployee("avail-finance", finance = true)
@@ -167,9 +167,12 @@ class VacationExportRestTest : AbstractTestBase() {
         assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
         logon(own.user!!)
 
-        // Finance staff may pick everybody, but see availability entries of their own groups only (none here).
+        // Finance staff may pick everybody and see their availability entries as their vacations, but not the type.
         logon(finance.user!!)
-        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty())
+        assertEquals(
+            translate("availability.status.reachableIfNeeded"),
+            vacationExportRest.view(request).rows.single().availabilities.single().label,
+        )
     }
 
     @Test

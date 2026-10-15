@@ -5,6 +5,7 @@ import {
   AvailabilityTypeField,
   AvailabilityUserField,
 } from "./availability-fields";
+import { AvailabilityListActions } from "./availability-list-actions";
 import {
   availabilitySchema,
   AVAILABILITY_FIELDS,
@@ -54,6 +55,8 @@ export const AVAILABILITY_PAGE = definePage<
   // free range is picked.
   filterPeriodKinds: ["month", "year"],
   filterDefaultPeriodKind: "year",
+  // The team vacation calendar, with the availability entries shown.
+  listActions: AvailabilityListActions,
   edit: {
     schema: availabilitySchema,
     fieldNames: AVAILABILITY_FIELDS,
