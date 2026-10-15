@@ -42,6 +42,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -229,6 +230,58 @@ class NotificationServiceTest : AbstractTestBase() {
         notificationRuleDao.markAsDeleted(rule, checkAccess = false)
         notificationService.resolvePending(LocalDate.now())
         assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(notification.id)!!.status)
+    }
+
+    @Test
+    fun expireOfDeactivatedRuleTest() {
+        val user = initTestDB.addUser("notification-deactivated-rule-user")
+        val delivery = NotificationDelivery(
+            listOf(
+                NotificationDeliveryStep(NotificationChannel.IN_APP, 0),
+                NotificationDeliveryStep(NotificationChannel.MAIL, 60),
+            )
+        )
+        val rule = insertRule(NotificationRuleType.MANUAL, user, delivery)
+        notificationService.trigger(rule)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+        rule.active = false
+        notificationRuleDao.update(rule, checkAccess = false)
+        // The delivery job sends no mail of a deactivated rule, even before the next rule job:
+        notificationService.runDeliveryJob(Date(notification.created!!.time + 120 * 60_000L))
+        val expired = notificationDao.findById(notification.id)!!
+        assertEquals(NotificationStatus.EXPIRED, expired.status)
+        assertNull(expired.readDeliveryState().steps[1].sentAt, "No mail of a deactivated rule.")
+        assertNull(expired.nextDeliveryAt)
+
+        // The rule job expires them as well:
+        rule.active = true
+        notificationRuleDao.update(rule, checkAccess = false)
+        notificationService.trigger(rule)
+        val second = notificationDao.select(NotificationDao.Filter(ruleId = rule.id))
+            .single { it.status == NotificationStatus.OPEN }
+        rule.active = false
+        notificationRuleDao.update(rule, checkAccess = false)
+        notificationService.resolvePending(LocalDate.now())
+        assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(second.id)!!.status)
+    }
+
+    @Test
+    fun linkTest() {
+        val user = initTestDB.addUser("notification-link-user")
+        val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery())
+        fun linkOfNextTrigger(params: NotificationParams): String? {
+            rule.params = JsonUtils.toJson(params)
+            notificationRuleDao.update(rule, checkAccess = false)
+            notificationService.trigger(rule)
+            return notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).maxBy { it.id!! }.link
+        }
+        assertNull(linkOfNextTrigger(NotificationParams()), "A manual rule has no default link.")
+        val menuItem = NotificationParams(
+            linkMode = NotificationParams.LinkMode.MENU_ITEM,
+            linkMenuItem = MenuItemDefId.MONTHLY_EMPLOYEE_REPORT.id,
+        )
+        assertEquals(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT.url, linkOfNextTrigger(menuItem))
+        assertNull(linkOfNextTrigger(NotificationParams(linkMode = NotificationParams.LinkMode.NONE)))
     }
 
     @Test

@@ -31,6 +31,7 @@ import org.projectforge.common.logging.warn
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.menu.builder.MenuItemDefId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -156,7 +157,13 @@ class NotificationService {
         try {
             var errors = 0
             var lastError: String? = null
+            // A rule deactivated since the last rule job sends nothing more (that job expires its notifications).
+            val activeRuleIds = notificationRuleDao.selectActive().mapNotNull { it.id }.toSet()
             notificationDao.findDueDeliveries(now).forEach { notification ->
+                if (notification.ruleId != null && notification.ruleId !in activeRuleIds) {
+                    notificationDao.finish(notification, NotificationStatus.EXPIRED)
+                    return@forEach
+                }
                 val result = deliverDueSteps(notification, now)
                 errors += result.errors
                 result.lastError?.let { lastError = it }
@@ -280,7 +287,10 @@ class NotificationService {
         return RunResult(recipients = recipients.size, created = created, errors = errors, lastError = lastError)
     }
 
-    /** Checks the pending notifications of all rules: finished by the rule, or expired with a deleted rule. */
+    /**
+     * Checks the pending notifications of all rules: finished by the rule, or expired with a deactivated or deleted
+     * rule.
+     */
     internal fun resolvePending(today: LocalDate): RunResult {
         var errors = 0
         var lastError: String? = null
@@ -289,6 +299,10 @@ class NotificationService {
             try {
                 val pending = notificationDao.findPendingByRules(listOf(rule.id!!))
                 if (pending.isEmpty()) {
+                    return@forEach
+                }
+                if (!rule.active) {
+                    pending.forEach { notificationDao.finish(it, NotificationStatus.EXPIRED) }
                     return@forEach
                 }
                 handler(rule).resolve(rule, pending, today).forEach { (id, status) ->
@@ -399,12 +413,22 @@ class NotificationService {
             it.menuBadge = rule.menuBadge?.takeIf { badge -> badge.isNotBlank() }
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)
-            it.link = evaluation?.linkFor(user)
+            it.link = linkOf(rule, evaluation, user)
             it.periodKey = evaluation?.periodKeyFor(user)
             it.status = NotificationStatus.OPEN
             it.created = now
             it.delivery = JsonUtils.toJson(delivery)
             it.writeDeliveryState(NotificationDeliveryState.of(delivery, now))
+        }
+    }
+
+    /** The link chosen by the rule: the one of its rule type, none or the url of a menu item. */
+    private fun linkOf(rule: NotificationRuleDO, evaluation: NotificationRuleHandler.Evaluation?, user: PFUserDO): String? {
+        val params = rule.readParams()
+        return when (params.linkMode) {
+            NotificationParams.LinkMode.DEFAULT -> evaluation?.linkFor(user)
+            NotificationParams.LinkMode.NONE -> null
+            NotificationParams.LinkMode.MENU_ITEM -> MenuItemDefId.entries.find { it.id == params.linkMenuItem }?.url
         }
     }
 

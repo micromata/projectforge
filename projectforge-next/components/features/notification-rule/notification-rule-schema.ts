@@ -71,6 +71,8 @@ export const notificationRuleSchema = z.object({
   display: m.enumField("display"),
   manualDone: m.booleanField("manualDone"),
   menuBadge: m.nullableString("menuBadge"),
+  linkMode: z.enum(["DEFAULT", "NONE", "MENU_ITEM"]),
+  linkMenuItem: z.string().nullable(),
   subject: m.requiredString("subject"),
   // The editor writes "" for an empty text, so a required string catches it.
   text: m.requiredString("text"),

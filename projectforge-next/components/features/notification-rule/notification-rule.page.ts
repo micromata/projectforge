@@ -1,6 +1,7 @@
 import { NOTIFICATION_RULE_METADATA } from "@/lib/metadata/notification-rule.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { DeliveryStepsField } from "./delivery-steps-field";
+import { LinkField } from "./link-field";
 import { MenuBadgeField } from "./menu-badge-field";
 import { NotificationRuleListActions } from "./notification-rule-list-actions";
 import {
@@ -66,6 +67,10 @@ export const NOTIFICATION_RULE_PAGE = definePage<
     { name: "description", size: 300 },
     { name: "lastUpdate", size: 130 },
   ],
+  // An inactive rule reads struck through like a deleted one, so it isn't taken for a running one. The
+  // always-present struck-through legend entry is relabelled to cover both.
+  deletedLabelKey: "notification.rule.legend.inactive",
+  rowClassName: (row) => (row.active === false ? "row-deleted" : undefined),
   edit: {
     schema: notificationRuleSchema,
     fieldNames: NOTIFICATION_RULE_FIELDS,
@@ -109,6 +114,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
           { name: "severity" },
           { name: "display" },
           { custom: MenuBadgeField, span: 2 },
+          { custom: LinkField, span: 2 },
           { name: "manualDone", span: 4 },
         ],
       },

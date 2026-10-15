@@ -29,6 +29,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.notification.NotificationChannel
 import org.projectforge.business.notification.NotificationDO
 import org.projectforge.business.notification.NotificationDao
+import org.projectforge.business.notification.NotificationParams
 import org.projectforge.business.notification.NotificationRuleDO
 import org.projectforge.business.notification.NotificationRuleDao
 import org.projectforge.business.notification.NotificationRuleType
@@ -161,6 +162,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         if (dto.deliverySteps.any { it.delayMinutes < 0 }) {
             validationErrors += ValidationError(translate("notification.rule.error.delay"), fieldId = "deliverySteps")
         }
+        if (dto.linkMode == NotificationParams.LinkMode.MENU_ITEM &&
+            MenuItemDefId.entries.none { it.id == dto.linkMenuItem && it.url != null }
+        ) {
+            validationErrors += required("linkMenuItem", "notification.rule.link")
+        }
         if (dto.daysBeforeExpiry < 0) {
             validationErrors += ValidationError(translate("notification.rule.error.daysBeforeExpiry"), fieldId = "daysBeforeExpiry")
         }
@@ -232,12 +238,18 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         return TestResult(result.delivered, result.failed)
     }
 
-    /** Runs the saved rule now, regardless of its schedule (recipients already notified aren't notified twice). */
+    /**
+     * Runs the saved rule now, regardless of its schedule (recipients already notified aren't notified twice).
+     * An inactive rule isn't run: its refusal is reported as the error of the result (shown by the client).
+     */
     @AccessChecked("DAO: NotificationRuleDao.find (select access) + isEditor of the rule + not restricted/demo")
     @PostMapping("{id}/trigger")
     fun trigger(@PathVariable("id") id: Long): TriggerResult {
         val rule = findAsEditor(id)
         accessChecker.checkRestrictedOrDemoUser()
+        if (!rule.active) {
+            return TriggerResult(0, 0, 1, translate("notification.rule.trigger.inactive"))
+        }
         val result = notificationService.trigger(rule)
         return TriggerResult(result.recipients, result.created, result.errors, result.lastError)
     }

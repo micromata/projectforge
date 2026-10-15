@@ -8,8 +8,8 @@ import { NotificationCloseButton } from "./notification-close-button";
 import { SEVERITY_CLASSES } from "./severity";
 
 /**
- * A notification as an entry of the bell and as a toast, so both look the same: title, text, link and
- * the actions below, marked by the colour of its severity.
+ * A notification as an entry of the bell and as a toast, so both look the same: title, text and the
+ * actions below (the link among them), marked by the colour of its severity.
  */
 export function NotificationCard({
   notification,
@@ -19,7 +19,7 @@ export function NotificationCard({
   className,
 }: {
   notification: AppNotification;
-  /** False for a toast that counts as confirmed by being shown (`TOAST`). */
+  /** False for a toast that counts as confirmed by being shown (`TOAST`): "Open" only. */
   withActions?: boolean;
   /** Called when the link is followed, e.g. to close the toast or menu it is shown in. */
   onOpen?: () => void;
@@ -50,8 +50,12 @@ export function NotificationCard({
           )}
         </div>
       )}
-      <NotificationBody notification={notification} onOpen={onOpen} />
-      {withActions && <NotificationActions notification={notification} />}
+      <NotificationBody notification={notification} />
+      <NotificationActions
+        notification={notification}
+        confirmable={withActions}
+        onOpen={onOpen}
+      />
     </div>
   );
 }

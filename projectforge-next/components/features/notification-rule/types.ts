@@ -8,6 +8,9 @@ import type {
   NotificationSeverity,
 } from "@/lib/rs/notification";
 
+/** Where "Open" of a notification leads: the page of the rule type, nowhere or a menu item. */
+export type LinkMode = "DEFAULT" | "NONE" | "MENU_ITEM";
+
 export type ScheduleMode =
   | "NONE"
   | "WORKING_DAYS_BEFORE_MONTH_END"
@@ -66,6 +69,8 @@ export interface NotificationRuleDetail {
   display?: NotificationDisplay;
   manualDone?: boolean;
   menuBadge?: string | null;
+  linkMode?: LinkMode;
+  linkMenuItem?: string | null;
   subject?: string | null;
   text?: string | null;
   editableByGroups?: Ref[];
