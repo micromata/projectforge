@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The team vacation calendar against the live backend (see VacationExportRest).
@@ -26,14 +27,15 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       periodKind?: string;
       dayWidth?: string;
     };
-    const store = (
+    const store = async (
       employeeIds: number[],
       groupIds: number[],
       periodKind?: string,
       dayWidth?: string
     ) =>
+      // A POST of the next client needs the session's CSRF token (RestCsrfProtection).
       page.request.post("/rs/vacationExport/view", {
-        headers: { ...headers, "Content-Type": "application/json" },
+        headers: await writeHeaders(page.request),
         data: {
           employeeIds,
           groupIds,
