@@ -95,7 +95,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     open var nummer: Int = 0
 
     @PropertyInfo(i18nKey = "fibu.projekt.name")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
 
@@ -103,7 +103,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      * The identifier is used e. g. for display the project as short name in human resources planning tables.
      */
     @PropertyInfo(i18nKey = "fibu.projekt.identifier")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = 20)
     open var identifier: String? = null
 

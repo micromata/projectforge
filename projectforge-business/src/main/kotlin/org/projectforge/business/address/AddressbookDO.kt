@@ -55,7 +55,7 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
         get() = "$title"
 
     @PropertyInfo(i18nKey = "addressbook.title", required = true)
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 

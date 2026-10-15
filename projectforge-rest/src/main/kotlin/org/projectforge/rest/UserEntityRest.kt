@@ -581,6 +581,9 @@ class UserEntityRest : AbstractDTOEntityRest<PFUserDO, User, UserDao>(
     override val autoCompleteSearchFields =
         arrayOf("username", "firstname", "lastname", "email", "alternativeEmails", "formerEmails")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("username", "firstname", "lastname")
+
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<PFUserDO> {
         val list = super.queryAutocompleteObjects(request, filter)
         if (filter.searchString.isNullOrBlank() || request.getParameter(AutoCompletion.SHOW_ALL_PARAM) != "true") {

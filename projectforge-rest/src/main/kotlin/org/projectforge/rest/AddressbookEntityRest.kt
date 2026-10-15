@@ -63,4 +63,7 @@ class AddressbookEntityRest :
     }
 
     override val autoCompleteSearchFields = arrayOf("title", "description")
+
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("title")
 }
