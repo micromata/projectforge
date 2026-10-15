@@ -27,10 +27,15 @@ package org.projectforge.business.testdata
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.FormOfAddress
+import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
+import org.projectforge.business.user.UserPrefCacheDataKey
+import org.projectforge.business.user.UserPrefDao
+import org.projectforge.favorites.Favorites
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
@@ -38,8 +43,9 @@ import java.time.LocalTime
 import java.util.Date
 
 /**
- * The team calendar with appointments of this and the next week (and the leave days of the team), and the
- * contacts at the customers.
+ * The team calendar with appointments of this and the next week (and the leave days of the team), a calendar of
+ * the administrator, and the contacts at the customers. The administrator's calendar filter shows both calendars and
+ * the own time sheets, so the calendar isn't empty after the first login.
  */
 @Service
 open class CalendarAddressTestDataContributor : TestDataContributor {
@@ -51,6 +57,9 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
 
     @Autowired
     private lateinit var teamEventDao: TeamEventDao
+
+    @Autowired
+    private lateinit var userPrefDao: UserPrefDao
 
     override val order = 60
 
@@ -68,28 +77,34 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
 
     override fun seed(ctx: TestDataContext) {
         val laura = ctx.user("laura")
+        val admin = ctx.user("admin")
         val calendar = TeamCalDO().also {
             it.title = "Delivery team"
             it.owner = laura
             it.description = "Workshops, reviews and customer appointments"
             it.fullAccessGroupIds = ctx.groups[UserTestDataContributor.ORGANIZATION]?.id?.toString()
+            it.fullAccessUserIds = admin.id.toString()
             it.includeLeaveDaysForUsers = UserTestDataContributor.EMPLOYEES.map { (username, _) -> ctx.user(username).id }
                 .joinToString(",")
         }
         teamCalDao.insert(calendar, checkAccess = false)
-        val monday = ctx.today.with(DayOfWeek.MONDAY)
-        EVENTS.forEach { e ->
-            val day = monday.plusDays(e.dayOffset)
-            val event = TeamEventDO().also {
-                it.calendar = calendar
-                it.subject = e.subject
-                it.location = e.location
-                it.creator = laura
-                it.startDate = Date.from(day.atTime(LocalTime.parse(e.from)).atZone(ctx.zone).toInstant())
-                it.endDate = Date.from(day.atTime(LocalTime.parse(e.to)).atZone(ctx.zone).toInstant())
-            }
-            teamEventDao.insert(event, checkAccess = false)
+        insertEvents(ctx, calendar, laura, EVENTS)
+        val adminCalendar = TeamCalDO().also {
+            it.title = "Administration"
+            it.owner = admin
+            it.description = "Maintenance windows and operations"
         }
+        teamCalDao.insert(adminCalendar, checkAccess = false)
+        insertEvents(ctx, adminCalendar, admin, ADMIN_EVENTS)
+        val filter = CalendarFilter(defaultCalendarId = adminCalendar.id, timesheetUserId = admin.id).also {
+            it.addCalendarId(adminCalendar.id!!)
+            it.addCalendarId(calendar.id!!)
+        }
+        // Same key as CalendarFilterServicesRest.getCurrentFilter (area "calendar"), written directly, because the
+        // administrator isn't logged in.
+        userPrefDao.insertOrUpdate(
+            admin.id!!, UserPrefCacheDataKey("calendar", Favorites.PREF_NAME_CURRENT), filter, checkAccess = false,
+        )
         CONTACTS.forEach { c ->
             val address = AddressDO().also {
                 it.form = c.form
@@ -107,6 +122,23 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
         }
     }
 
+    /** The events relative to the Monday of this week. */
+    private fun insertEvents(ctx: TestDataContext, calendar: TeamCalDO, creator: PFUserDO, events: List<Event>) {
+        val monday = ctx.today.with(DayOfWeek.MONDAY)
+        events.forEach { e ->
+            val day = monday.plusDays(e.dayOffset)
+            val event = TeamEventDO().also {
+                it.calendar = calendar
+                it.subject = e.subject
+                it.location = e.location
+                it.creator = creator
+                it.startDate = Date.from(day.atTime(LocalTime.parse(e.from)).atZone(ctx.zone).toInstant())
+                it.endDate = Date.from(day.atTime(LocalTime.parse(e.to)).atZone(ctx.zone).toInstant())
+            }
+            teamEventDao.insert(event, checkAccess = false)
+        }
+    }
+
     companion object {
         private val EVENTS = listOf(
             Event(0, "09:00", "09:30", "Weekly planning", "Office"),
@@ -121,6 +153,14 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
             Event(8, "13:00", "15:00", "Patient Scheduling: acceptance test", "Harbor Medical"),
             Event(9, "10:00", "11:30", "Customer App: kick-off", "Alpine Insurance, Innsbruck"),
             Event(11, "15:00", "16:00", "Release planning Fleet Tracking", "Remote"),
+        )
+
+        private val ADMIN_EVENTS = listOf(
+            Event(0, "07:00", "08:00", "Maintenance window: database update", "Remote"),
+            Event(2, "16:00", "17:00", "Access review with the team leads", "Office"),
+            Event(3, "08:00", "08:30", "Backup restore test", "Remote"),
+            Event(8, "07:00", "08:30", "Security updates rollout", "Remote"),
+            Event(10, "14:00", "15:00", "Onboarding of new employees", "Office"),
         )
 
         private val CONTACTS = listOf(

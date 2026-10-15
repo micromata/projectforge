@@ -26,8 +26,11 @@ package org.projectforge.business.testdata
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +45,9 @@ class TestDataSeederTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userDao: UserDao
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
 
     /** The seeder needs an empty database, as the setup does. */
     override fun initDb() {
@@ -78,6 +84,13 @@ class TestDataSeederTest : AbstractTestBase() {
         Assertions.assertEquals(9L, count("VacationDO"), "vacations (refused ones are logged)")
         Assertions.assertTrue(count("TeamEventDO") >= 10, "calendar events")
         Assertions.assertEquals(8L, count("AddressDO"))
+        // The administrator's calendar shows own time sheets and events right after the setup.
+        val adminId = ctx.users[DatabaseService.DEFAULT_ADMIN_USER]!!.id
+        Assertions.assertTrue(count("TimesheetDO", "e.user.id = $adminId") > 100, "admin time sheets")
+        Assertions.assertEquals(5L, count("TeamEventDO", "e.calendar.owner.id = $adminId"), "admin events")
+        val filter = userPrefService.getEntry("calendar", Favorites.PREF_NAME_CURRENT, CalendarFilter::class.java, adminId)
+        Assertions.assertEquals(adminId, filter?.timesheetUserId, "admin calendar filter")
+        Assertions.assertEquals(2, filter?.calendarIds?.size)
         // Every invoice position refers to its order position.
         Assertions.assertEquals(
             0L,
@@ -90,7 +103,9 @@ class TestDataSeederTest : AbstractTestBase() {
         )
     }
 
-    private fun count(entity: String): Long = persistenceService.runReadOnly { context ->
-        context.em.createQuery("select count(e) from $entity e", java.lang.Long::class.java).singleResult.toLong()
+    private fun count(entity: String, where: String? = null): Long = persistenceService.runReadOnly { context ->
+        val condition = where?.let { " where $it" } ?: ""
+        context.em.createQuery("select count(e) from $entity e$condition", java.lang.Long::class.java)
+            .singleResult.toLong()
     }
 }

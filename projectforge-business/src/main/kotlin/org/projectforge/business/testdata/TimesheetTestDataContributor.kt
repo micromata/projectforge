@@ -134,6 +134,8 @@ open class TimesheetTestDataContributor : TestDataContributor {
         private val RATIOS = listOf(0.42, 0.68, 0.83, 0.94, 1.07, 0.55, 0.77)
 
         private val PLANS = listOf(
+            // The administrator of the setup gets time sheets too, so their calendar isn't empty after the first login.
+            Plan("admin", "Fleet Tracking Platform" to "Go-live", "Customer App" to "Testing"),
             Plan("laura", "Claims Portal" to "Specification", "Fleet Tracking Platform" to "Go-live"),
             Plan("alex", "Fleet Tracking Platform" to "Development", "Fleet Tracking Platform" to "Testing"),
             Plan("ann", "Customer App" to "Design", "Shop Relaunch" to "Design"),
