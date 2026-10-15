@@ -85,6 +85,10 @@ export function FilterPill({
   const content = filterPillContent(value, resolved, label, ctx);
   const isTask =
     element.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
+  // A list fetched from the data (customers, projects) names entities, often long ones ("5.110.10: DHL
+  // PLG (Paketlabelgenerierung)"), which the default width would cut off. Lists shipped with the element
+  // are short enum labels (states) and keep the narrow popover.
+  const isEntityList = element.filterType === "LIST" && !!element.valuesUrl;
 
   return (
     <FilterPillShell
@@ -115,7 +119,15 @@ export function FilterPill({
         onOpenChange(false);
       }}
       onDelete={onDelete}
-      contentClassName={isPeriod ? "w-80" : isTask ? "w-96" : undefined}
+      contentClassName={
+        isPeriod
+          ? "w-80"
+          : isTask
+            ? "w-96"
+            : isEntityList
+              ? "w-[32rem] max-w-[calc(100vw-1rem)]"
+              : undefined
+      }
       onToggle={
         isBoolean
           ? () =>
