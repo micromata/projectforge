@@ -16,7 +16,8 @@ type Row = ScriptLogEntry & { index: number };
 
 /**
  * What the script logged while running: when, how severe and what, oldest first — as the backend keeps
- * it for the user's running or last execution. Errors tint their row.
+ * it for the user's running or last execution. Errors tint their row. The columns can be resized; the widths
+ * aren't stored.
  */
 export function ScriptLogTable({
   entries,
@@ -35,7 +36,7 @@ export function ScriptLogTable({
       {
         id: "timestamp",
         header: t("time"),
-        size: 110,
+        size: 160,
         enableSorting: false,
         meta: { label: t("time") },
         cell: ({ row }) => (
@@ -81,6 +82,7 @@ export function ScriptLogTable({
       manualSorting={false}
       showPagination={false}
       dense
+      enableColumnResizing
       getRowId={(row) => String(row.index)}
       rowClassName={(row) => logLevelRowClass(row.level)}
     />
