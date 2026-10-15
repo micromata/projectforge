@@ -167,9 +167,23 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             val mapped = addEmployee("lpMapped", "new.name@example.org")
             val unmapped = addEmployee("lpUnmapped", "unmapped@example.org")
             val collision = addEmployee("lpCollision", "lp.name@example.org")
+            // No employee (any more), but known to L&P by the email of the settings.
+            val former = PFUserDO().also {
+                it.username = "lpFormer"
+                it.firstname = "First"
+                it.lastname = "lpFormer"
+                it.email = "former.new@example.org"
+            }
+            initTestDB.addUser(former)
+            val formerCollision = addEmployee("lpFormerCollision", "Former@example.org")
+            val additionalCollision = addEmployee("lpAdditionalCollision", "extern@example.org")
             val settings = LanesAndPlanesSettings(
                 accountingInvoiceProfileIds = listOf(1L),
-                userEmails = listOf(LanesAndPlanesSettings.UserEmail(mapped.id, "LP.Name@example.org")),
+                additionalUsers = listOf(LanesAndPlanesSettings.AdditionalUser("Extern@example.org", "Ext", "Ern")),
+                userEmails = listOf(
+                    LanesAndPlanesSettings.UserEmail(mapped.id, "LP.Name@example.org"),
+                    LanesAndPlanesSettings.UserEmail(former.id, "former@example.org"),
+                ),
             )
             val result = payloadBuilder.build(settings)
             val emailsByIdent = result.request.users.associate { it.ident to it.email }
@@ -179,6 +193,16 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
                 emailsByIdent.containsKey("${collision.id}"),
                 "The email of the user is sent for another one (case-insensitive): skipped.",
             )
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${formerCollision.id}"),
+                "The email of a former employee in the settings isn't taken over by another one.",
+            )
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${additionalCollision.id}"),
+                "The email of an additional user isn't taken over by an employee.",
+            )
+            Assertions.assertTrue(result.request.users.any { it.ident == null && it.email == "Extern@example.org" })
+            Assertions.assertEquals(setOf(unmapped.id), result.newUserEmails.keys)
             Assertions.assertEquals("unmapped@example.org", result.newUserEmails[unmapped.id])
             Assertions.assertFalse(result.newUserEmails.containsKey(mapped.id), "Already in the settings.")
             Assertions.assertFalse(result.newUserEmails.containsKey(collision.id), "Not sent.")

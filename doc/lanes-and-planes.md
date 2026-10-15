@@ -64,7 +64,7 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 |---|---|
 | `ident` | `PFUserDO.id` |
 | `first_name`, `last_name` | `PFUserDO`; employees without one of them are skipped (warning in the log) |
-| `email` | The e-mail of the user in L&P (`userEmails` of the settings), otherwise `PFUserDO.email`, see [E-mails in L&P](#e-mails-in-lp). Employees without one are skipped, as are duplicate e-mails (case-insensitive; employees with an entry in `userEmails` first) |
+| `email` | The e-mail of the user in L&P (`userEmails` of the settings), otherwise `PFUserDO.email`, see [E-mails in L&P](#e-mails-in-lp). Employees without one are skipped, as are duplicate e-mails (case-insensitive) and employees with an e-mail of another user in `userEmails` (e.g. a former employee) or of an additional user: L&P would match them with that user |
 | `middle_name` | Always sent empty (clears the middle names maintained in L&P; there is no middle name in ProjectForge) |
 | `abbreviation` | `PFUserDO.nickname`, sent empty if not set (clears the value in L&P) |
 | `personnel_number` | `EmployeeDO.staffNumber` (not sent if empty, see below) |
@@ -94,8 +94,8 @@ without any bookable Kost2 are sent nevertheless (otherwise they would be deacti
 
 Additional users (settings): L&P users who aren't employees, e.g. an external accountant. They are sent with `first_name`, `last_name`, `email` and `accounting_invoice_profile_ids` only (no `ident`,
 no cost centers etc.), so everything else is kept as maintained in L&P. Without them, the full replace would
-deactivate them, and a missing user with responsibilities lets the whole push fail. An additional user with the
-e-mail of an employee is skipped (warning in the log). The service admin of L&P and guest profiles aren't
+deactivate them, and a missing user with responsibilities lets the whole push fail. An employee with the e-mail
+of an additional user is skipped (warning in the log): the additional user keeps the L&P user. The service admin of L&P and guest profiles aren't
 additional users: the import doesn't touch them, and e-mails `@lanes-planes.com` are rejected on saving the
 settings.
 

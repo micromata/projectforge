@@ -91,10 +91,12 @@ open class LanesAndPlanesPayloadBuilder {
         var skipped = 0
         val emails = mutableSetOf<String>()
         val emailsByUserId = settings.emailsByUserId
-        // Employees with an email of the settings first: that's the one L&P knows, so it isn't taken by another
-        // employee who happens to have it in ProjectForge.
+        // The emails of the settings belong to their users (sent or not, e.g. a former employee) and the ones of the
+        // additional users to these: otherwise another employee having one in ProjectForge would take over that
+        // user in L&P (and be stored with it in the settings).
+        val reservedEmails = emailsByUserId.entries.associate { (userId, email) -> email.lowercase() to userId } +
+                settings.additionalUserList.mapNotNull { it.email?.trim()?.lowercase() }.associateWith { null }
         val employees = employeeService.selectAllActive(checkAccess = false)
-            .sortedBy { it.user?.id !in emailsByUserId }
             .mapNotNull { employee ->
                 val user = employee.user?.takeIf { !it.deactivated && !it.deleted } ?: return@mapNotNull null
                 // The email known to L&P wins: L&P identifies users by their email only.
@@ -104,7 +106,14 @@ open class LanesAndPlanesPayloadBuilder {
                     skipped++
                     return@mapNotNull null
                 }
-                if (!emails.add(email.lowercase())) {
+                val lowerEmail = email.lowercase()
+                if (lowerEmail in reservedEmails && reservedEmails[lowerEmail] != user.id) {
+                    val owner = reservedEmails[lowerEmail]?.let { "user #$it" } ?: "an additional user"
+                    log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: email '$email' is the one of $owner in the configuration 'lanesAndPlanes'." }
+                    skipped++
+                    return@mapNotNull null
+                }
+                if (!emails.add(lowerEmail)) {
                     log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: email '$email' is used by another employee." }
                     skipped++
                     return@mapNotNull null
