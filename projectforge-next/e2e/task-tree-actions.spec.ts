@@ -153,6 +153,13 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
     });
     const isAdmin = ((await status.json()) as { adminUser?: boolean })
       .adminUser;
+    // A small entity offers the full rebuild as its only re-index, to everybody (ListMetaData.fullReindexOnly).
+    const meta = await page.request.get("/rs/task/listMeta", {
+      headers: { "X-PF-Frontend": "next" },
+    });
+    const fullOnly =
+      ((await meta.json()) as { fullReindexOnly?: boolean }).fullReindexOnly ===
+      true;
 
     await goto(page, PAGE);
     await gear(page, format).click();
@@ -162,14 +169,14 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
       menu.getByRole("menuitem", {
         name: format.t("menu.reindexNewestDatabaseEntries._"),
       })
-    ).toBeVisible();
-    // The full rebuild includes the history and hits the whole system, so it is an admin's entry — the
-    // request says whether this account is one, which is not the test's business to decide.
+    ).toHaveCount(fullOnly ? 0 : 1);
+    // The full rebuild of a large entity hits the whole system, so there it is an admin's entry — the
+    // requests say whether this account is one, which is not the test's business to decide.
     await expect(
       menu.getByRole("menuitem", {
         name: format.t("menu.reindexAllDatabaseEntries._"),
       })
-    ).toHaveCount(isAdmin ? 1 : 0);
+    ).toHaveCount(fullOnly || isAdmin ? 1 : 0);
     // There is no filter reset in it: that is the filter row's button instead (see TaskTreeFilterBar).
     // Not asserted by its label — no code of this app uses `menu.resetFilter` any more, so the
     // generator no longer exports it.

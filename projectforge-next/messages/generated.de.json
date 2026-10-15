@@ -2551,7 +2551,8 @@
     "reindexAllDatabaseEntries": {
       "_": "Suchindex voll indizieren",
       "tooltip": {
-        "content": "Der Suchindex wird komplett neu aufgebaut. Bei vielen Einträgen (z. B. 100.000) kann das einige Minuten dauern und die Systemperformance beinträchtigt werden. Deshalb steht diese Funktion nur Administratoren zur Verfügung."
+        "content": "Der Suchindex wird komplett neu aufgebaut. Bei vielen Einträgen kann das einige Minuten dauern und die Systemperformance beeinträchtigen. Deshalb steht diese Funktion ab {arg0} Einträgen nur Administratoren zur Verfügung.",
+        "contentSmall": "Der Suchindex dieser Liste wird komplett neu aufgebaut. Bei der überschaubaren Anzahl an Einträgen dauert das in der Regel nur wenige Sekunden."
       }
     },
     "reindexNewestDatabaseEntries": {

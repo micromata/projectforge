@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators.",
+  "de": "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren."
+}

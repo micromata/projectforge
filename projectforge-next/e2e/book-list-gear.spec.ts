@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 
@@ -15,6 +16,7 @@ test.describe("book list gear menu", { tag: "@lane-book" }, () => {
     // Every text through the catalogs the menu itself reads, never spelled out: an assertion on
     // "Suchindex reindizieren" passes only for a German account (see projectforge-next/CLAUDE.md).
     const { t } = await userFormat(page);
+    const fullOnly = await fullReindexOnly(page);
     await goto(page, "/book");
 
     await page
@@ -22,30 +24,35 @@ test.describe("book list gear menu", { tag: "@lane-book" }, () => {
       .click();
 
     const menu = page.getByRole("menu");
-    const reindexNewest = menu.getByRole("menuitem", {
-      name: t("menu.reindexNewestDatabaseEntries._"),
-    });
-    await expect(reindexNewest).toBeVisible();
+    // A small entity offers the full re-index as its only one, a large one the newest entries.
+    const key = fullOnly
+      ? "menu.reindexAllDatabaseEntries"
+      : "menu.reindexNewestDatabaseEntries";
+    const reindex = menu.getByRole("menuitem", { name: t(`${key}._`) });
+    await expect(reindex).toBeVisible();
     // The legacy menu's filter reset is deliberately not offered. Not asserted by its label: no code
     // of this app uses `menu.resetFilter` any more, so the generator no longer exports it.
 
     // The explanation stands in the entry instead of in a tooltip, so it needs no hover — same bundle
     // keys the legacy gear menu used for its tooltips.
-    await expect(reindexNewest).toContainText(
-      t("menu.reindexNewestDatabaseEntries.tooltip.content")
+    await expect(reindex).toContainText(
+      fullOnly
+        ? t("menu.reindexAllDatabaseEntries.tooltip.contentSmall")
+        : t("menu.reindexNewestDatabaseEntries.tooltip.content")
     );
   });
 
-  test("shows the full reindex only to an admin", async ({
+  test("shows the full reindex to an admin or for a small entity", async ({
     loggedInPage: page,
   }) => {
-    // The entry hangs off `userStatus.adminUser`, so the request tells the test what to expect —
-    // whether the account running it is an admin isn't the test's business.
+    // The entry hangs off `userStatus.adminUser` and `listMeta.fullReindexOnly`, so the requests tell
+    // the test what to expect — whether the account running it is an admin isn't the test's business.
     const status = await page.request.get("/rs/userStatus", {
       headers: { "X-PF-Frontend": "next" },
     });
     const isAdmin = ((await status.json()) as { adminUser?: boolean })
       .adminUser;
+    const fullOnly = await fullReindexOnly(page);
 
     const { t } = await userFormat(page);
     await goto(page, "/book");
@@ -57,6 +64,22 @@ test.describe("book list gear menu", { tag: "@lane-book" }, () => {
       page.getByRole("menuitem", {
         name: t("menu.reindexAllDatabaseEntries._"),
       })
-    ).toHaveCount(isAdmin ? 1 : 0);
+    ).toHaveCount(isAdmin || fullOnly ? 1 : 0);
+    await expect(
+      page.getByRole("menuitem", {
+        name: t("menu.reindexNewestDatabaseEntries._"),
+      })
+    ).toHaveCount(fullOnly ? 0 : 1);
   });
 });
+
+/** Whether the book list offers the full re-index as its only one (see ListMetaData.fullReindexOnly). */
+async function fullReindexOnly(page: Page): Promise<boolean> {
+  const meta = await page.request.get("/rs/book/listMeta", {
+    headers: { "X-PF-Frontend": "next" },
+  });
+  return (
+    ((await meta.json()) as { fullReindexOnly?: boolean }).fullReindexOnly ===
+    true
+  );
+}

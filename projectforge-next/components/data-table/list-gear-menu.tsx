@@ -15,7 +15,10 @@ import { DescribedMenuItem } from "@/components/shared/described-menu-item";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { LegacyMenuItem } from "@/components/shared/legacy-page-link";
 import { useAuth } from "@/hooks/use-auth";
+import { useFormatContext } from "@/hooks/use-format";
+import { useListMeta } from "@/hooks/use-list-meta";
 import { useReindex } from "@/hooks/use-reindex";
+import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export interface ListGearMenuProps {
@@ -36,7 +39,8 @@ export interface ListGearMenuProps {
 }
 
 /**
- * Maintenance menu of a list page: re-index the search index.
+ * Maintenance menu of a list page: re-index the search index — in full for a small entity, else the
+ * newest entries (and in full for admins).
  *
  * The entries are the ones the backend put into the gear menu of the legacy list pages
  * (AbstractPagesRest.createListLayout), but declared here instead of read from `UILayout.pageMenu`:
@@ -53,6 +57,11 @@ export function ListGearMenu({
   const tMenu = useTranslations("menu");
   const { isAdmin } = useAuth();
   const reindex = useReindex(entity);
+  // A cache read on a list page, which loads `listMeta` for its filter anyway. Until it is there, the
+  // menu offers what a large entity offers — the safe side, since the endpoint checks the admin itself.
+  const listMeta = useListMeta(entity).data;
+  const fullReindexOnly = listMeta?.fullReindexOnly === true;
+  const format = useFormatContext();
 
   return (
     <DropdownMenu>
@@ -76,17 +85,33 @@ export function ListGearMenu({
             The explanation stands in the entry instead of in a tooltip: a tooltip inside a dropdown
             competes with the menu for hover and focus, and these entries do something that is worth
             reading about *before* clicking — one of them re-indexes the whole database. */}
-        <GearMenuItem
-          label={tMenu("reindexNewestDatabaseEntries._")}
-          description={tMenu("reindexNewestDatabaseEntries.tooltip.content")}
-          onSelect={() => void reindex.start(false)}
-        />
-        {/* Rebuilding everything includes the history and hits the whole system, so it is for admins
-            only — the endpoint checks that as well, this merely hides a dead entry. */}
-        {isAdmin && (
+        {/* A small entity is rebuilt as a whole within seconds, so that is its only re-index, offered
+            to everybody (see ListMetaData.fullReindexOnly). */}
+        {fullReindexOnly && (
           <GearMenuItem
             label={tMenu("reindexAllDatabaseEntries._")}
-            description={tMenu("reindexAllDatabaseEntries.tooltip.content")}
+            description={tMenu(
+              "reindexAllDatabaseEntries.tooltip.contentSmall"
+            )}
+            onSelect={() => void reindex.start(true)}
+          />
+        )}
+        {!fullReindexOnly && (
+          <GearMenuItem
+            label={tMenu("reindexNewestDatabaseEntries._")}
+            description={tMenu("reindexNewestDatabaseEntries.tooltip.content")}
+            onSelect={() => void reindex.start(false)}
+          />
+        )}
+        {/* Rebuilding a large entity as a whole hits the whole system, so it is for admins only — the
+            endpoint checks that as well, this merely hides a dead entry. Shown once listMeta is
+            there, which names the limit its explanation states. */}
+        {listMeta && !fullReindexOnly && isAdmin && (
+          <GearMenuItem
+            label={tMenu("reindexAllDatabaseEntries._")}
+            description={tMenu("reindexAllDatabaseEntries.tooltip.content", {
+              arg0: formatNumber(listMeta.fullReindexMaxEntries, format, 0),
+            })}
             onSelect={() => void reindex.start(true)}
           />
         )}

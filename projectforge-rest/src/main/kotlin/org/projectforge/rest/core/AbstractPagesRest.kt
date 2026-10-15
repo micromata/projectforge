@@ -34,6 +34,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -151,22 +152,42 @@ constructor(
         val layout = UILayout("$i18nKeyPrefix.list")
         if (!isMultiSelectionMode(request, magicFilter)) {
             val gearMenu = layout.ensureGearMenu()
-            gearMenu.add(
-                MenuItem(
-                    "reindexNewestDatabaseEntries",
-                    i18nKey = "menu.reindexNewestDatabaseEntries",
-                    tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
-                    tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                    url = getRestPath("reindexNewest"),
-                    type = MenuItemTargetType.RESTCALL
-                )
-            )
-            if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+            val fullReindexOnly = baseDao.isFullReindexSmall()
+            if (fullReindexOnly) {
+                // Small entity: the full run takes seconds, so it is the only re-index and offered to everybody.
                 gearMenu.add(
                     MenuItem(
                         "reindexAllDatabaseEntries",
                         i18nKey = "menu.reindexAllDatabaseEntries",
-                        tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
+                        tooltip = "menu.reindexAllDatabaseEntries.tooltip.contentSmall",
+                        tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
+                        url = getRestPath("reindexFull"),
+                        type = MenuItemTargetType.RESTCALL
+                    )
+                )
+            } else {
+                gearMenu.add(
+                    MenuItem(
+                        "reindexNewestDatabaseEntries",
+                        i18nKey = "menu.reindexNewestDatabaseEntries",
+                        tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
+                        tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
+                        url = getRestPath("reindexNewest"),
+                        type = MenuItemTargetType.RESTCALL
+                    )
+                )
+            }
+            if (!fullReindexOnly && accessChecker.isLoggedInUserMemberOfAdminGroup)
+                gearMenu.add(
+                    MenuItem(
+                        "reindexAllDatabaseEntries",
+                        i18nKey = "menu.reindexAllDatabaseEntries",
+                        // Translated here for its parameter: the leading ' keeps MenuItem.postProcess from
+                        // translating it again (see autoTranslate).
+                        tooltip = "'" + translateMsg(
+                            "menu.reindexAllDatabaseEntries.tooltip.content",
+                            NumberFormatter.format(BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS),
+                        ),
                         tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
                         url = getRestPath("reindexFull"),
                         type = MenuItemTargetType.RESTCALL

@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
+import org.projectforge.framework.persistence.database.EntityCountCache
 import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
@@ -88,6 +89,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
 
     @Autowired
     lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    lateinit var entityCountCache: EntityCountCache
 
     @Autowired
     protected lateinit var baseDOPersistenceService: BaseDOPersistenceService
@@ -1076,6 +1080,32 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         get() = listOf(doClass)
 
     /**
+     * Number of rows a full re-index processes: the sum over [reindexClasses], from [EntityCountCache] (so possibly
+     * some days old). A class that isn't available (entity of an inactive plugin) counts 0, as
+     * [org.projectforge.framework.persistence.search.HibernateSearchReindexer] skips it, too.
+     */
+    open fun countReindexEntries(): Long {
+        return reindexClasses.sumOf { entityCountCache.count(it) }
+    }
+
+    /**
+     * Whether the logged-in user may start a full re-index ([rebuildDatabaseIndex]) of this entity: admins always,
+     * everybody else only for an entity with less than [FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS] entries — a run
+     * of that size takes seconds, a larger one minutes and system performance.
+     */
+    open fun isFullReindexAllowedForLoggedInUser(): Boolean {
+        // Admin first: they never have to pay for the count.
+        return accessChecker.isLoggedInUserMemberOfAdminGroup || isFullReindexSmall()
+    }
+
+    /**
+     * Whether a full re-index of this entity is small enough for everybody, see [isFullReindexAllowedForLoggedInUser].
+     */
+    open fun isFullReindexSmall(): Boolean {
+        return countReindexEntries() < FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS
+    }
+
+    /**
      * Re-indexes the entries of the last day.
      *
      * @see DatabaseDao.createReindexSettings
@@ -1144,5 +1174,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
          * blows past it.
          */
         const val IN_CLAUSE_CHUNK_SIZE: Int = 1000
+
+        /**
+         * Below this number of entries every user may start a full re-index of an entity, from here on admins only
+         * (see [isFullReindexAllowedForLoggedInUser]).
+         */
+        const val FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS: Long = 100_000
     }
 }

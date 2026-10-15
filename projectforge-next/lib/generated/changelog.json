@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.7",
+    "date" : "2026-10-15",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

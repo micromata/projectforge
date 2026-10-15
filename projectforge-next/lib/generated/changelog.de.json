@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.7",
+    "date" : "2026-10-15",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
