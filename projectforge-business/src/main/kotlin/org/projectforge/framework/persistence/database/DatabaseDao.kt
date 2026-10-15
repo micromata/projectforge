@@ -56,6 +56,9 @@ open class DatabaseDao {
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
 
+    @Autowired
+    private lateinit var entityCountCache: EntityCountCache
+
     @JvmOverloads
     fun <T> rebuildDatabaseSearchIndices(clazz: Class<T>, settings: ReindexSettings = ReindexSettings()): String {
         if (currentReindexRun != null) {
@@ -94,6 +97,7 @@ open class DatabaseDao {
             try {
                 createMassIndexer(em, clazz, settings, IndexProgressMonitor(clazz))
                     .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
+                invalidateCountAfterFullRun(clazz, settings)
             } catch (ex: InterruptedException) {
                 log.error(ex) { ex.message }
             }
@@ -115,6 +119,16 @@ open class DatabaseDao {
         // The EntityManager has to stay open until the indexer is done, so await() happens inside use { }.
         entityManagerFactory.createEntityManager().use { em ->
             createMassIndexer(em, clazz, settings, monitor).start().await()
+        }
+        invalidateCountAfterFullRun(clazz, settings)
+    }
+
+    /**
+     * A full run is the occasion to recount: whoever re-indexes everything may well have imported or purged rows.
+     */
+    private fun invalidateCountAfterFullRun(clazz: Class<*>, settings: ReindexSettings) {
+        if (settings.fromDate == null) {
+            entityCountCache.invalidate(clazz)
         }
     }
 

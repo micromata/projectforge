@@ -5,6 +5,7 @@ import { USER_COLUMNS } from "./user-columns";
 import { UserGroupsField } from "./user-groups-field";
 import { UserLdapFields } from "./user-ldap-fields";
 import { UserListActions } from "./user-list-actions";
+import { UserPasswordActions } from "./user-password-actions";
 import { UserPasswordFields } from "./user-password-fields";
 import { UserRightsField } from "./user-rights-field";
 import { userSchema, USER_FIELDS, type UserValues } from "./user-schema";
@@ -52,6 +53,8 @@ export const USER_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     autoFocus: "username",
     clone: true,
+    // The password change, which an administrator comes here for most, at the very top.
+    headerTrailing: (user) => <UserPasswordActions user={user} />,
     sections: [
       {
         id: "account",
@@ -81,7 +84,7 @@ export const USER_PAGE = definePage<
         fields: [{ custom: UserSettingsFields, span: 3 }],
       },
       {
-        // Tokens, devices and passwords belong to an existing user only.
+        // Tokens and devices belong to an existing user only.
         id: "tokens",
         titleKey: "user.myAccount.section.tokens",
         visible: ({ data }) => data?.id != null,

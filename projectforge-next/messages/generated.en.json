@@ -2551,7 +2551,8 @@
     "reindexAllDatabaseEntries": {
       "_": "Re-build whole search index",
       "tooltip": {
-        "content": "The whole index will be rebuilt. This may take a while (several minute for e.g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators."
+        "content": "The whole index will be rebuilt. With many entries this may take several minutes and affect the system performance. Therefore this feature is only enabled for administrators from {arg0} entries on.",
+        "contentSmall": "The whole search index of this list will be rebuilt. With its manageable number of entries this is usually a matter of seconds."
       }
     },
     "reindexNewestDatabaseEntries": {
