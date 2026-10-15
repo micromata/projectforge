@@ -152,10 +152,9 @@ class User(
     override fun copyFromMinimal(src: PFUserDO) {
         this.displayName = src.displayName
         this.username = src.username
-        this.id = src.id
-        if (userGroupCache.isUserMemberOfAdminGroup) {
-            super.copyFromMinimal(src)
-        }
+        // id, deleted and deactivated, for every user (not only admins): a no longer active user is struck through
+        // wherever shown as a reference.
+        super.copyFromMinimal(src)
     }
 
     override fun copyFrom(src: PFUserDO) {
@@ -277,12 +276,18 @@ class User(
         }
 
         /**
-         * Set display names of any existing user in the given list.
+         * Set display names of any existing user in the given list, and whether it is still active (deleted,
+         * deactivated): a no longer active user is struck through wherever shown as a reference.
          * @see UserService.getUser
          */
         fun restoreDisplayNames(users: List<User>?) {
             val caches = PfCaches.instance
-            users?.forEach { it.displayName = caches.getUser(it.id)?.displayName ?: "???" }
+            users?.forEach { user ->
+                val userDO = caches.getUser(user.id)
+                user.displayName = userDO?.displayName ?: "???"
+                user.deleted = userDO?.deleted == true
+                user.deactivated = userDO?.deactivated == true
+            }
         }
 
         fun restoreEmails(users: List<User>?) {

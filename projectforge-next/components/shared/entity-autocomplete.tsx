@@ -13,13 +13,22 @@ import {
   COPYABLE_TRIGGER_CLASS,
   useCopyableTrigger,
 } from "@/lib/text-selection";
+import {
+  INACTIVE_REF_CLASS,
+  isInactiveRef,
+  type InactiveFlags,
+} from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
 import { useTypeToOpen } from "./use-type-to-open";
 
-/** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
-export interface EntityRef {
+/**
+ * What `{entity}/autosearch` answers with (AbstractEntityRest.DisplayObject), and what a DTO carries as a
+ * reference. The flags say whether the entry is still live (a deactivated user, a deleted group): a no
+ * longer live one is shown struck through (see isInactiveRef).
+ */
+export interface EntityRef extends InactiveFlags {
   id: number;
   displayName: string;
 }
@@ -143,7 +152,8 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
               className={cn(
                 "truncate",
                 !value && "text-muted-foreground",
-                value && emphasized && "font-semibold text-primary"
+                value && emphasized && "font-semibold text-primary",
+                isInactiveRef(value) && INACTIVE_REF_CLASS
               )}
             >
               {value?.displayName ?? t("filter.chooseEntity")}

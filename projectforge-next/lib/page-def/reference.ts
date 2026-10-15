@@ -17,3 +17,10 @@ export interface InactiveFlags {
 export function isInactiveRef(ref?: InactiveFlags | null): boolean {
   return !!ref && (ref.deleted === true || ref.deactivated === true);
 }
+
+/**
+ * How a no longer live reference reads: struck through — in a list cell as in a selection box, its chips,
+ * its picked value and its hits alike.
+ */
+export const INACTIVE_REF_CLASS =
+  "line-through decoration-destructive decoration-2";

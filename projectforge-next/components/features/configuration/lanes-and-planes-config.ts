@@ -17,6 +17,17 @@ export const EMPTY_ADDITIONAL_USER: LanesAndPlanesAdditionalUser = {
   lastName: "",
 };
 
+/** The email of a user (by id) in Lanes & Planes; an empty row is ignored by the backend. */
+export interface LanesAndPlanesUserEmail {
+  userId: number | null;
+  email: string;
+}
+
+export const EMPTY_USER_EMAIL: LanesAndPlanesUserEmail = {
+  userId: null,
+  email: "",
+};
+
 export interface LanesAndPlanesConfig {
   /** Provided by Lanes & Planes; an empty row is posted as null and ignored by the backend. */
   accountingInvoiceProfileIds: (number | null)[];
@@ -34,12 +45,10 @@ export interface LanesAndPlanesConfig {
    */
   existingCostObjects: string[];
   /**
-   * The emails of the users in Lanes & Planes (the email column of the user export): an employee whose email
-   * isn't listed is sent with a listed alternative or former email of the user.
+   * The emails of the employees in Lanes & Planes, which identifies users by their email only: always sent,
+   * even if the email in ProjectForge changes. Every push adds the employees sent without an entry.
    */
-  existingUserEmails: string[];
-  /** New emails of employees already changed in Lanes & Planes by hand: no longer held back. */
-  confirmedEmailChanges: string[];
+  userEmails: LanesAndPlanesUserEmail[];
 }
 
 /** The backend's defaults (`LanesAndPlanesSettings`), for a parameter not set yet. */
@@ -50,8 +59,7 @@ export const LANES_AND_PLANES_DEFAULTS: LanesAndPlanesConfig = {
   kost2Patterns: [],
   additionalUsers: [],
   existingCostObjects: [],
-  existingUserEmails: [],
-  confirmedEmailChanges: [],
+  userEmails: [],
 };
 
 function arrayOf<T>(value: unknown): T[] {
@@ -90,8 +98,9 @@ export function parseLanesAndPlanesConfig(json: string | null | undefined): {
           config.additionalUsers
         ).map((user) => ({ ...EMPTY_ADDITIONAL_USER, ...user })),
         existingCostObjects: arrayOf(config.existingCostObjects),
-        existingUserEmails: arrayOf(config.existingUserEmails),
-        confirmedEmailChanges: arrayOf(config.confirmedEmailChanges),
+        userEmails: arrayOf<Partial<LanesAndPlanesUserEmail>>(
+          config.userEmails
+        ).map((entry) => ({ ...EMPTY_USER_EMAIL, ...entry })),
       },
       invalid: false,
     };

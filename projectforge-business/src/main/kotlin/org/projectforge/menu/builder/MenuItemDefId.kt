@@ -47,7 +47,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
     // Migrated to projectforge-next; wa/accountingRecordList is redirected by OrphanedLinkFilter.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
-    ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
+    ADDRESSBOOK_LIST("menu.addressbookList", getListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     AVAILABILITY("menu.availability", getListUrl("availability")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //

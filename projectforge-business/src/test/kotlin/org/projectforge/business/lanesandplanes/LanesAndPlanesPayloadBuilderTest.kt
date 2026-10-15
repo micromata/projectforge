@@ -26,6 +26,7 @@ package org.projectforge.business.lanesandplanes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
@@ -45,6 +46,9 @@ import java.util.zip.GZIPInputStream
 class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
     @Autowired
     private lateinit var payloadBuilder: LanesAndPlanesPayloadBuilder
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
 
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
@@ -87,13 +91,24 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             Assertions.assertNull(result[withoutAccess.id], "No task access, no Kost2.")
             Assertions.assertEquals(
                 listOf(kost2b.formattedNumber),
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.02")))[withAccess.id]
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.02"))))[withAccess.id]
                     ?.map { it.formattedNumber },
                 "Filtered by pattern.",
             )
             Assertions.assertNull(
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(LanesAndPlanesSettings.globToRegex("1.*.03")))[withAccess.id],
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.03"))))[withAccess.id],
                 "Kost2 3 matches, but isn't bookable.",
+            )
+            val otherProject = addKost2(2, teilbereich = 6)
+            val alternatives = initTestDB.addTask("lpAlternatives", "root")
+            alternatives.kost2BlackWhiteList = otherProject.formattedNumber
+            taskDao.update(alternatives)
+            initTestDB.createGroupTaskAccess(group, alternatives, AccessType.OWN_TIMESHEETS, true, true, true, true)
+            val groups = listOf(listOf("1.*.01", "1.*.02").map { LanesAndPlanesSettings.globToRegex(it) })
+            Assertions.assertEquals(
+                listOf(kost2a.formattedNumber, otherProject.formattedNumber),
+                payloadBuilder.getBookableKost2(listOf(withAccess), groups)[withAccess.id]?.map { it.formattedNumber }?.sorted(),
+                "Per project only the Kost2 of the first matching alternative.",
             )
             Assertions.assertEquals(
                 listOf(kost2c.formattedNumber),
@@ -157,6 +172,57 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
     }
 
     @Test
+    fun userEmails() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val mapped = addEmployee("lpMapped", "new.name@example.org")
+            val unmapped = addEmployee("lpUnmapped", "unmapped@example.org")
+            val collision = addEmployee("lpCollision", "lp.name@example.org")
+            // No employee (any more), but known to L&P by the email of the settings.
+            val former = PFUserDO().also {
+                it.username = "lpFormer"
+                it.firstname = "First"
+                it.lastname = "lpFormer"
+                it.email = "former.new@example.org"
+            }
+            initTestDB.addUser(former)
+            val formerCollision = addEmployee("lpFormerCollision", "Former@example.org")
+            val additionalCollision = addEmployee("lpAdditionalCollision", "extern@example.org")
+            val settings = LanesAndPlanesSettings(
+                accountingInvoiceProfileIds = listOf(1L),
+                additionalUsers = listOf(LanesAndPlanesSettings.AdditionalUser("Extern@example.org", "Ext", "Ern")),
+                userEmails = listOf(
+                    LanesAndPlanesSettings.UserEmail(mapped.id, "LP.Name@example.org"),
+                    LanesAndPlanesSettings.UserEmail(former.id, "former@example.org"),
+                ),
+            )
+            val result = payloadBuilder.build(settings)
+            val emailsByIdent = result.request.users.associate { it.ident to it.email }
+            Assertions.assertEquals("LP.Name@example.org", emailsByIdent["${mapped.id}"], "The email known to L&P wins.")
+            Assertions.assertEquals("unmapped@example.org", emailsByIdent["${unmapped.id}"])
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${collision.id}"),
+                "The email of the user is sent for another one (case-insensitive): skipped.",
+            )
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${formerCollision.id}"),
+                "The email of a former employee in the settings isn't taken over by another one.",
+            )
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${additionalCollision.id}"),
+                "The email of an additional user isn't taken over by an employee.",
+            )
+            Assertions.assertTrue(result.request.users.any { it.ident == null && it.email == "Extern@example.org" })
+            Assertions.assertEquals(setOf(unmapped.id), result.newUserEmails.keys)
+            Assertions.assertEquals("unmapped@example.org", result.newUserEmails[unmapped.id])
+            Assertions.assertFalse(result.newUserEmails.containsKey(mapped.id), "Already in the settings.")
+            Assertions.assertFalse(result.newUserEmails.containsKey(collision.id), "Not sent.")
+            Assertions.assertEquals(1, result.differingEmails)
+            null
+        }
+    }
+
+    @Test
     fun json() {
         val user = LanesAndPlanesUser(
             ident = "42",
@@ -184,6 +250,18 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
         Assertions.assertEquals(json, unzipped)
     }
 
+    private fun addEmployee(username: String, email: String): PFUserDO {
+        val user = PFUserDO().also {
+            it.username = username
+            it.firstname = "First"
+            it.lastname = username
+            it.email = email
+        }
+        initTestDB.addUser(user)
+        employeeDao.insert(EmployeeDO().also { it.user = user }, checkAccess = false)
+        return user
+    }
+
     private fun kost1(nummernkreis: Int, bereich: Int, teilbereich: Int, description: String?) = Kost1DO().also {
         it.nummernkreis = nummernkreis
         it.bereich = bereich
@@ -191,11 +269,11 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
         it.description = description
     }
 
-    private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null): Kost2DO {
+    private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null, teilbereich: Int = 5): Kost2DO {
         val kost2 = Kost2DO()
         kost2.nummernkreis = 1
         kost2.bereich = 731
-        kost2.teilbereich = 5
+        kost2.teilbereich = teilbereich
         kost2.kost2Art = Kost2ArtDO().withId(kost2ArtId)
         kost2.kostentraegerStatus = status
         return kost2Dao.find(kost2Dao.insert(kost2))!!

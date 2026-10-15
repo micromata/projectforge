@@ -22,7 +22,9 @@ users), cost center names or numbers of a real installation. Describe findings g
 Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Documentation-User-Import-via-ExtAPI
 
 - `POST https://api.lanes-planes.com/ext/users`, JSON body `{"users": [...]}`, header
-  `Authorization: Token token=<APIKEY>`; gzip (`Content-Encoding: gzip`) recommended. No GET/PUT/DELETE.
+  `Authorization: Token token=<APIKEY>`; gzip (`Content-Encoding: gzip`) recommended. No GET/PUT/DELETE:
+  checked again in October 2026, `GET`/`OPTIONS /ext/users` (also `/ext/users.json`, `/ext/v1/users`) answer 404
+  with a valid, an invalid and without a token, so the route doesn't exist at all.
 - API key: created by an L&P user in *User account → Personal settings → Create*. Shown only once, doesn't
   expire, revoked by deleting it. It belongs to that L&P account, so use an admin account that stays active (and
   is part of the push, see below).
@@ -31,7 +33,8 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
   deactivated** in L&P. Guest profiles and the service admin of L&P aren't touched by the import.
 - **The e-mail address is the only key of a user**, the `ident` can't be used to match one. A changed e-mail has
   to be changed by hand in L&P before the next push; otherwise the old user is deactivated and a new one is
-  created (with the default role). ProjectForge holds changed e-mails back, see [Safety](#safety).
+  created (with the default role). ProjectForge therefore sends the e-mail L&P knows, see
+  [E-mails in L&P](#e-mails-in-lp).
 - Processed asynchronously: the HTTP answer only says, whether the request was accepted (200, 400 malformed, 401
   token, 403 not allowed, 422 invalid data, 429 too many requests, 500). The result per user is shown in the
   *user import log* of the L&P company account.
@@ -60,7 +63,8 @@ Documentation: https://support.lanes-planes.com/hc/de/articles/31245986692370-Do
 | L&P field | Source |
 |---|---|
 | `ident` | `PFUserDO.id` |
-| `first_name`, `last_name`, `email` | `PFUserDO`; employees without one of them are skipped (warning in the log), as are duplicate e-mails (case-insensitive) |
+| `first_name`, `last_name` | `PFUserDO`; employees without one of them are skipped (warning in the log) |
+| `email` | The e-mail of the user in L&P (`userEmails` of the settings), otherwise `PFUserDO.email`, see [E-mails in L&P](#e-mails-in-lp). Employees without one are skipped, as are duplicate e-mails (case-insensitive) and employees with an e-mail of another user in `userEmails` (e.g. a former employee) or of an additional user: L&P would match them with that user |
 | `middle_name` | Always sent empty (clears the middle names maintained in L&P; there is no middle name in ProjectForge) |
 | `abbreviation` | `PFUserDO.nickname`, sent empty if not set (clears the value in L&P) |
 | `personnel_number` | `EmployeeDO.staffNumber` (not sent if empty, see below) |
@@ -90,8 +94,8 @@ without any bookable Kost2 are sent nevertheless (otherwise they would be deacti
 
 Additional users (settings): L&P users who aren't employees, e.g. an external accountant. They are sent with `first_name`, `last_name`, `email` and `accounting_invoice_profile_ids` only (no `ident`,
 no cost centers etc.), so everything else is kept as maintained in L&P. Without them, the full replace would
-deactivate them, and a missing user with responsibilities lets the whole push fail. An additional user with the
-e-mail of an employee is skipped (warning in the log). The service admin of L&P and guest profiles aren't
+deactivate them, and a missing user with responsibilities lets the whole push fail. An employee with the e-mail
+of an additional user is skipped (warning in the log): the additional user keeps the L&P user. The service admin of L&P and guest profiles aren't
 additional users: the import doesn't touch them, and e-mails `@lanes-planes.com` are rejected on saving the
 settings.
 
@@ -102,6 +106,10 @@ Bookable Kost2 of a user: the active Kost2 (`effectiveKostentraegerStatus` activ
 - with the Kost2 of the task (`TaskTree.getKost2List`, including the black/white list of the task),
 - restricted to the configured patterns (glob on the formatted number: `*` any characters including dots, `?` a
   single one, the whole number must match, e.g. `5.*.02`). Without patterns, all bookable Kost2 are sent.
+- An entry may contain alternatives separated by comma, e.g. `5.*.19, 5.*.20, 5.*.50, 5.*.60` for the travel time
+  types (invoiced, not invoiced, funding, R&D): of the user's Kost2 of the same project (formatted number without the
+  Kost2 type) matching the entry, only the ones of the first matching alternative are sent. A user who may book
+  only 20 on a project gets 20; general Kost2 aren't affected.
 
 General Kost1 and Kost2: configured lists of formatted numbers sent to every user, independent of the booking
 rights (the Kost1 as cost centers, e.g. the internal 1.* range; the Kost2 as cost units in addition to the bookable
@@ -118,21 +126,11 @@ get every Kost2).
 - No push, if the API key or the invoice profile ids are missing, if fewer than `minUsers` users are found, or if
   the number of users dropped by more than half since the last push (stored in the push state, see below, so it
   survives a restart). To force such a push, set `users` in the push state file to `0`.
-- Changed e-mails are held back: the e-mails of the last successful push are stored by ident in the push state
-  `<work directory>/lanes-and-planes-state.json` (with the number of users sent). If the e-mail of an employee changed since, the old one is
-  still sent (log event `lanesAndPlanes.emailChanged`, problem dashboard) until the new one is listed in the
-  confirmed e-mail changes of the settings, see [Changing an e-mail](#changing-an-e-mail). Not if the old
-  e-mail is now used by another user (error in the log, the new one is sent).
-- E-mails unknown to L&P: the ExtAPI can't read users (no GET), so the e-mails of the L&P users are taken from
-  the user export (CSV) and entered in `existingUserEmails`. An employee not in the push state yet (very first
-  push, new employee) whose e-mail isn't listed, but one of the alternative or former e-mails of the user
-  (`PFUserDO.alternativeEmails`/`formerEmails`, alternative ones first), is sent with that one. It's held back
-  like a changed e-mail (`lanesAndPlanes.emailChanged`) until the e-mail was changed in L&P and confirmed, see
-  [Changing an e-mail](#changing-an-e-mail). An address already sent for another user isn't taken. Employees
-  sent with an e-mail not listed (created anew by L&P) are logged with their user ids (info). Empty: not checked.
-- Without a push state (very first push, or the file was lost, e.g. by moving the work directory) changed e-mails
-  aren't held back and a dropped number of users isn't detected: log event `lanesAndPlanes.stateMissing`
-  (warning, not in dry runs). Keep the file with the backups of the work directory.
+- The number of users of the last successful push is stored in the push state
+  `<work directory>/lanes-and-planes-state.json`. Without it (very first push, or the file was lost, e.g. by
+  moving the work directory) a dropped number of users isn't detected: log event `lanesAndPlanes.stateMissing`
+  (warning, not in dry runs). Keep the file with the backups of the work directory. Older files with the e-mails
+  of the last push are still read; the e-mails are ignored.
 - Only pushed, if the payload changed since the last successful push (in memory; the first run after a restart
   always pushes).
 - Errors: log events `lanesAndPlanes.push.failed` / `lanesAndPlanes.push.refused`, tile "Lanes & Planes" on the
@@ -168,31 +166,39 @@ run, so a change is sent by the next run (hourly by default):
   "kost2Patterns": ["5.*.02", "5.*.11"],
   "additionalUsers": [{"email": "accountant@example.org", "firstName": "First", "lastName": "Last"}],
   "existingCostObjects": ["50123401 Project - Travel costs"],
-  "existingUserEmails": ["first.last@example.org"],
-  "confirmedEmailChanges": ["new.address@example.org"]
+  "userEmails": [{"userId": 42, "email": "first.maiden-name@example.org"}]
 }
 ```
 
 - `accountingInvoiceProfileIds`: required, provided by L&P (also needed for the dry run).
 - `generalKost1`: sent to all users as cost centers. Empty: `cost_centers` isn't sent.
 - `generalKost2`: sent to all users as cost units.
-- `kost2Patterns`: restricts the bookable Kost2 per user (cost units). Empty: all.
+- `kost2Patterns`: restricts the bookable Kost2 per user (cost units). Empty: all. Alternatives separated by comma:
+  only the first matching one per project.
 - `additionalUsers`: L&P users who aren't employees, see above.
 - `existingCostObjects`: the names of the cost centers and cost units already existing in L&P, exactly as there,
   starting with the number without dots (8 digits). In the text mode of the editor the `cost_centers` column of
   the user export can be pasted as it is (split before `, <8 digits>`). The export misses the project Kost2
   (see below): take them from the company-wide list (*Company account → Settings & policies → Manage cost
   centers*), including the deleted ones, if they are still shown there.
-- `existingUserEmails`: the e-mails of the users in L&P, the `email` column of the user export (paste it in the
-  text mode of the editor), see [Safety](#safety). Refresh it with a new export before the first push.
-- `confirmedEmailChanges`: new e-mails already changed in L&P by hand, see below.
+- `userEmails`: the e-mail of an employee in L&P by user id (user picker in the editor), see below.
 
-### Changing an e-mail
+### E-mails in L&P
 
-1. Change the e-mail in ProjectForge. The next push still sends the old one and reports
-   `lanesAndPlanes.emailChanged` on the problem dashboard.
-2. Change the e-mail of the user in L&P by hand.
-3. Add the new e-mail to the confirmed e-mail changes. The next push sends it; then the entry can be removed.
+L&P identifies users by their e-mail only, and the ExtAPI can't read users. So the e-mail L&P knows is stored per
+user in `userEmails`, and an employee is always sent with it, even if the e-mail in ProjectForge changes later
+(e.g. after a marriage): otherwise L&P would deactivate the user and create a new one with the default role.
+
+- Before the first push: compare the `email` column of the L&P user export with ProjectForge and enter only the
+  employees whose L&P e-mail differs. All others are sent with their ProjectForge e-mail.
+- After every successful push (not in dry runs) ProjectForge adds the employees sent without an entry, with the
+  e-mail sent (info in the log, a change in the history of the parameter). Existing entries aren't touched, so
+  an entry edited meanwhile isn't overwritten. From then on, a change of the e-mail in ProjectForge doesn't reach
+  L&P. If the entries can't be stored, the next run pushes again and retries.
+- To change an e-mail in L&P: change it in L&P by hand first, then the entry in `userEmails`.
+- Entries of former employees stay (harmless; a returning employee is sent with the known e-mail again).
+- The dry run reports the number of employees with an L&P e-mail differing from ProjectForge and the number of
+  entries a push would add.
 
 The creditor account is maintained per employee (*HR → Employees*, field *creditor account*, a DATEV account).
 
@@ -261,7 +267,7 @@ Answers to our questions (October 2026), in short:
 7. **No test environment.** As long as all existing users are in the payload, none is deactivated. In the worst
    case the import fails and leaves all users untouched.
 
-Consequences in ProjectForge: existing names in the settings (5), holding back changed e-mails (6), e-mails
+Consequences in ProjectForge: existing names in the settings (5), the e-mails in L&P stored per user (6), e-mails
 `@lanes-planes.com` rejected as additional users (3, 4). 1 and 2 confirm the implementation.
 
 ## Open questions
@@ -295,10 +301,8 @@ To decide in ProjectForge:
 ## Before the first real push
 
 1. Make a fresh user export (CSV) in L&P (company account) first: the ExtAPI can't read users, so the export is
-   the only source of what L&P knows. Paste its `email` column into `existingUserEmails`. For every employee whose
-   L&P e-mail differs from the one in ProjectForge, enter the L&P e-mail as alternative or former e-mail of the
-   user (*Administration → Users*); otherwise L&P would deactivate the user and create a new one. Addresses used
-   by another user are rejected there.
+   the only source of what L&P knows. For every employee whose L&P e-mail differs from the one in ProjectForge,
+   enter the L&P e-mail in `userEmails`; otherwise L&P would deactivate the user and create a new one.
 2. Set the invoice profile ids (from the CSV export), the general Kost1 and Kost2 and the patterns in the
    configuration parameter, enter the existing names (the `cost_centers` column of the CSV export and the
    project Kost2 of the company-wide list), set the

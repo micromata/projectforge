@@ -179,6 +179,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The address books: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the address book pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/addressBook", NextMigration.listUrl("addressBook"))
+        Assertions.assertEquals("next/addressBook/:id", NextMigration.standardEditPage("addressBook"))
+        Assertions.assertEquals("next/addressBook/new", NextMigration.newEntryUrl("addressBook"))
+        Assertions.assertNull(NextMigration.legacyListUrl("addressBook"))
+        Assertions.assertNull(NextMigration.legacyEditPage("addressBook"))
+        val link = NextMigration.orphanedLinks().single { it.category == "addressBook" }
+        Assertions.assertEquals("react/addressBook", link.legacyListPath)
+        Assertions.assertEquals("react/addressBook/edit", link.legacyEditPath)
+    }
+
+    /**
      * The team calendars: list and form are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link is still redirected onto next.
      */
