@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}
@@ -33,12 +33,7 @@ class AuftragsPositionsPaymentTypeFilter(val values: List<AuftragsPositionsPayme
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach { pos ->
-            if (values.contains(pos.paymentType)) {
-                return true
-            }
-        }
-        return false
+        return AuftragsCache.instance.anyPositionMatches(element) { _, _, paymentType -> values.contains(paymentType) }
     }
 
     companion object {

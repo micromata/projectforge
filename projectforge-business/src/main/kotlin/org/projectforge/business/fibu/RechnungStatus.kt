@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class RechnungStatus(key: String) : I18nEnum {
     GEPLANT("geplant"), GESTELLT("gestellt"), ZAHLUNGSERINNERUNG1("zahlungserinnerung1"), ZAHLUNGSERINNERUNG2("zahlungserinnerung2"), GEMAHNT(

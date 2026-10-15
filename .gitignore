@@ -13,7 +13,6 @@ target.tgz
 *.pydevproject
 .project
 .metadata
-/bin/
 tmp/
 test-output
 /work/
@@ -44,6 +43,7 @@ projectforge-caldav/src/main/resources/milton.license.sig
 derby.log
 projectforge-repository/jackrabbit
 projectforge-jcr/test/out
+projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
 .DS_Store
 projectforge-application/src/main/kotlin/local
@@ -54,5 +54,25 @@ projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
 .claude
 
+# graphify: generated knowledge graph and its local venv (rebuild with `graphify update .`)
+graphify-out
+venv
+.venv
+
 # MCP Server Configuration (contains secrets)
 .mcp.json
+
+# projectforge-next (Next.js) artifacts. Also ignored by projectforge-next/.gitignore,
+# but that file only exists in nextjs-migration, so repeat them here to keep the
+# artifacts ignored on branches without it.
+/projectforge-next/node_modules
+/projectforge-next/node
+/projectforge-next/.next
+/projectforge-next/out
+/projectforge-next/next-env.d.ts
+/projectforge-next/tsconfig.tsbuildinfo
+
+# Playwright's output, when the e2e tests are started from the repository root rather than
+# from projectforge-next (whose own .gitignore covers the same directories).
+/test-results/
+/playwright-report/

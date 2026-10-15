@@ -23,9 +23,10 @@
 
 package org.projectforge.ui.filter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.ui.UISelectValue
 
 private val log = KotlinLogging.logger {}
@@ -43,14 +44,30 @@ open class UIFilterListElement(
         defaultFilter: Boolean? = null)
     : UIFilterElement(id, FilterType.LIST, label = label, additionalLabel = additionalLabel, tooltip = tooltip, defaultFilter = defaultFilter) {
 
-    fun buildValues(i18nEnum: Class<out Enum<*>>): UIFilterListElement {
+    /**
+     * Endpoint (relative to `/rs/`) answering the values to choose from as a list of [UIFilterListValue], for a
+     * value set too big or too costly to ship with every `listMeta` (e.g. the customers of the order book). The
+     * frontend fetches it when the filter is opened; [values] stays empty then.
+     */
+    var valuesUrl: String? = null
+
+    /**
+     * @param addNullValue Offer "no value set" as one more value, for a field that may be null. It filters
+     *   for entries without any value (see [MagicFilterEntry.NULL_VALUE]).
+     */
+    @JvmOverloads
+    fun buildValues(i18nEnum: Class<out Enum<*>>, addNullValue: Boolean = false): UIFilterListElement {
         val newValues = mutableListOf<UISelectValue<String>>()
         i18nEnum.enumConstants.forEach { enum ->
             if (enum is I18nEnum) {
                 newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
             } else {
-                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+                log.error { "UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'" }
             }
+        }
+        if (addNullValue) {
+            // Last: it is not a value of the field, but the absence of one.
+            newValues.add(UISelectValue(MagicFilterEntry.NULL_VALUE, translate("filter.valueNotSet")))
         }
         values = newValues
         return this
@@ -62,7 +79,7 @@ open class UIFilterListElement(
             if (enum is I18nEnum) {
                 newValues.add(UISelectValue(enum.name, translate(enum.i18nKey)))
             } else {
-                log.error("UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'")
+                log.error { "UIFilterSelectElement supports only enums of type I18nEnum, not '$enum': '${this}'" }
             }
         }
         values = newValues

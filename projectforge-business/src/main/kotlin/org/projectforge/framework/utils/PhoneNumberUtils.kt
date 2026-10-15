@@ -29,7 +29,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 /**
  * Utility functions for phone number normalization and formatting.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object PhoneNumberUtils {
 

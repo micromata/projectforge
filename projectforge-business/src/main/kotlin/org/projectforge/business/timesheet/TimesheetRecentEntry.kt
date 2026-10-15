@@ -30,7 +30,7 @@ import java.math.BigDecimal
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("timesheetPrefEntry")
 data class TimesheetRecentEntry

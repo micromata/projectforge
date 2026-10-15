@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.common.props.PropUtils
+
 /**
  * You may register history adapters for customizing conversion of history entries before displaying.
  */
@@ -96,8 +98,21 @@ open class HistoryFormatAdapter {
             displayAttr.newValue =
                 context.historyValueService.format(historyAttr.value, propertyType = historyAttr.propertyTypeClass)
         }
-
+        if ((oldObjectValue != null || newObjectValue != null) && isCollection(context, historyAttr.propertyName)) {
+            // Entity collection: provide the removed and added entries.
+            displayAttr.setListValues(
+                context.historyValueService.toDisplayNameList(oldObjectValue),
+                context.historyValueService.toDisplayNameList(newObjectValue),
+            )
+        }
         return displayAttr
+    }
+
+    private fun isCollection(context: HistoryLoadContext, propertyName: String?): Boolean {
+        propertyName ?: return false
+        val entityClass = context.getClass(context.requiredHistoryEntry.entityName) ?: return false
+        val field = PropUtils.getField(entityClass, propertyName, true) ?: return false
+        return Collection::class.java.isAssignableFrom(field.type)
     }
 
     /**

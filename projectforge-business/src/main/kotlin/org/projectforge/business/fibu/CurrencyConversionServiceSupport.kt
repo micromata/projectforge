@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Support class for currency conversion service providing database query methods.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 internal class CurrencyConversionServiceSupport {

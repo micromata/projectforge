@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
 import org.projectforge.common.DatabaseDialect
@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * @param pluginId See. [PluginInfo]
  * @param pluginName See. [PluginInfo]
  * @param pluginDescription See. [PluginInfo]
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescription: String): Serializable {
     val id: String
@@ -65,12 +65,12 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     fun init() {
         synchronized(initializedPlugins) {
             if (initializedPlugins.contains(this.javaClass) || this.initialized) {
-                log.warn("Ignoring multiple initialization of plugin.")
+                log.warn { "Ignoring multiple initialization of plugin." }
                 return
             }
             this.initialized = true
             initializedPlugins.add(this.javaClass)
-            log.info("Initializing plugin: $javaClass")
+            log.info { "Initializing plugin: $javaClass" }
             initialize()
             if (!internalJunitTestMode) { // Don't init flyway: schema-update is auto on test cases.
                 flywayInit()
@@ -155,14 +155,14 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutClasses(shortCut, *restClasses)
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java)
@@ -170,7 +170,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutMethods(shortCut, *methods)
@@ -187,7 +187,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
                 log.info { "No flyway scripts found, so no automatically database initialization and migration is done by plugin '$id' (might be OK)." }
             return
         }
-        log.info("Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}")
+        log.info { "Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}" }
         val flyway = Flyway.configure()
             .dataSource(WicketSupport.get(DataSource::class.java))
             .table("t_flyway_${id.lowercase()}_schema_version")
@@ -209,8 +209,9 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * '/${plugin.package}/flyway/dbmigration'
      */
     protected open fun buildFlywayClasspath(): Array<String> {
-        val vendor =
-            DatabaseDialect.getFlywayVendorName(WicketSupport.get(DataSource::class.java).connection.metaData.databaseProductName)
+        val vendor = WicketSupport.get(DataSource::class.java).connection.use { connection ->
+            DatabaseDialect.getFlywayVendorName(connection.metaData.databaseProductName)
+        }
         // Class.packageName since java 9, but want to be compatible with Java 8:
         val packageLocation = this::class.java.`package`.name.replace('.', '/')
         return arrayOf(

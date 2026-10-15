@@ -31,7 +31,7 @@ import java.io.Serializable;
 /**
  * Bean used for serialization and deserialization of the ldap values as xml string in {@link GroupDO#getLdapValues()} ConfigXML
  * (config.xml).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XmlObject(alias = "values")
 public class LdapGroupValues implements Serializable

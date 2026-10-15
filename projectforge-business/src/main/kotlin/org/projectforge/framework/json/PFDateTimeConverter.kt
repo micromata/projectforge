@@ -40,7 +40,7 @@ import java.text.ParseException
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class PFDateTimeSerializer : StdSerializer<PFDateTime>(PFDateTime::class.java) {
 
@@ -56,7 +56,7 @@ class PFDateTimeSerializer : StdSerializer<PFDateTime>(PFDateTime::class.java) {
 
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class PFDateTimeDeserializer : StdDeserializer<PFDateTime>(PFDateTime::class.java) {
 

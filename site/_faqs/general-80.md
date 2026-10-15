@@ -1,7 +1,8 @@
 ---
-title: How can I create a structure element in the drop down box of a structure element field?
+title: Can I create a new structure element right in the structure element selection field?
 categories: [general,faq]
 permalink: /misc/faqs.html
 ---
 
-It's not possible. Here you can only add existing structure elements as favorites for often usage. You can create new structure elements in the structure tree menu. Click e. g. on the parent structure element and choose "create structure sub element" or click "add structure element" and select the parent structure element in the edit dialogue.
+No. The selection field only lets you pick existing structure elements – and mark frequently used ones as favorites.
+New structure elements are created in the *Structure tree*: open the parent element and add a new child element, or create a new structure element and choose its parent in the edit dialog.

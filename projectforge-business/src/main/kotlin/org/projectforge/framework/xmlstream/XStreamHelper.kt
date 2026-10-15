@@ -27,14 +27,14 @@ import com.thoughtworks.xstream.XStream
 import com.thoughtworks.xstream.security.AnyTypePermission
 import com.thoughtworks.xstream.security.NullPermission
 import com.thoughtworks.xstream.security.PrimitiveTypePermission
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
 /**
  * Some helpers for using XStream (with proper UTF-8 encoding).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object XStreamHelper {
   /**

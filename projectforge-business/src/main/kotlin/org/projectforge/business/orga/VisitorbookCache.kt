@@ -23,7 +23,7 @@
 
 package org.projectforge.business.orga
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Caches employees with actual status and annual leave days for faster access.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class VisitorbookCache : AbstractCache() {
@@ -75,7 +75,7 @@ open class VisitorbookCache : AbstractCache() {
      */
     public override fun refresh() {
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            log.info("Initializing VisitorbookCache...")
+            log.info { "Initializing VisitorbookCache..." }
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long, VisitorbookInfo>()
             persistenceService.executeQuery(

@@ -1,0 +1,180 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.dto
+
+import java.math.BigDecimal
+
+/**
+ * The next-facing DTO of a monthly employee report ("Monatsbericht"), the successor of Wicket's
+ * `MonthlyEmployeeReportPage`. It carries the already-computed and already-formatted report so the next
+ * frontend renders it as a matrix (rows = cost units / tasks, columns = calendar weeks) plus the header
+ * block of statistics. The heavy lifting stays in `org.projectforge.business.fibu.MonthlyEmployeeReport`;
+ * this only reshapes it into plain data.
+ *
+ * All durations, percentages and dates arrive **formatted in the user's locale** (the business class's own
+ * formatters), so the frontend takes them as-is (see projectforge-next CLAUDE.md: backend-formatted values
+ * are not reformatted).
+ */
+class MonthlyEmployeeReportData(
+    /** The user the report is about (defaults to the logged-in user). */
+    val userId: Long?,
+    val userName: String,
+    /** True if the logged-in user may pick another user (access to other users' time sheets). */
+    val maySelectOtherUsers: Boolean,
+    val year: Int,
+    /** 1-based: 1 = January, ..., 12 = December. */
+    val month: Int,
+    /** Years that have time sheets for [userId], for the year dropdown (descending). */
+    val availableYears: List<Int>,
+    /** Whether cost accounting is configured (adds the Kost1 header field and Kost2 columns). */
+    val costConfigured: Boolean,
+    /** Formatted Kost1 number of the employee, or null. */
+    val kost1: String?,
+    /** Number of working days in the month (formatted). */
+    val numberOfWorkingDays: String?,
+    /** Target working hours of the month (weekly hours × working days ÷ 5), formatted, or null. */
+    val targetWorkingHours: String?,
+    /** Working days without time sheets (vacation days included), e.g. "03.11., 08.11." or null. */
+    val formattedUnbookedDays: String?,
+    /** The days of [formattedUnbookedDays] not covered by a vacation, e.g. "08.11." or null. */
+    val formattedUnbookedWorkingDays: String?,
+    /** The vacation days of [formattedUnbookedDays], e.g. "03.11." or null. */
+    val formattedUnbookedVacationDays: String?,
+    /** The localized average-working-time statistics line, or null. */
+    val averageWorkingTimeStats: String?,
+    /** Whether the "time saved by AI" feature is enabled at all. */
+    val timeSavingsByAIEnabled: Boolean,
+    /** True only if the feature is enabled AND some non-zero AI time saving exists (drives showing the column/row). */
+    val hasTimeSavingsByAI: Boolean,
+    /** True if at least one Kost2 row exists (drives the four-column head vs. the single task head). */
+    val hasKost2Rows: Boolean,
+    val weeks: List<MonthlyEmployeeReportWeekDto>,
+    val rows: List<MonthlyEmployeeReportRow>,
+    /** Net total (working-time fraction applied), the red bold sum. */
+    val totalNetDuration: String,
+    /** Whether the gross-sum row is shown (gross differs from net). */
+    val showGrossRow: Boolean,
+    val totalGrossDuration: String,
+    val totalTimeSavedByAI: String,
+    /** Percentage of gross time saved by AI (only meaningful when [timeSavingsByAIEnabled]). */
+    val timeSavedByAIPercentage: String,
+    /** Whether the vacation figures may be shown to the logged-in user. */
+    val vacationAvailable: Boolean,
+    val vacationCount: String?,
+    val vacationPlannedCount: String?,
+    /**
+     * Whether the invoicing quota is enabled by configuration and the logged-in user may see it for this report's
+     * user (own report, or member of a configured group); drives showing the user's switch.
+     */
+    val invoicingQuotaAvailable: Boolean,
+    /** The user's choice whether to see the invoicing quota (persisted, default off). */
+    val showInvoicingQuota: Boolean,
+    /** Fakturaquote (invoicing quota), formatted as a percentage, or null if not enabled or not shown. */
+    val invoicingQuota: String?,
+    /** Localized tooltip explaining how [invoicingQuota] was computed, or null. */
+    val invoicingQuotaTooltip: String?,
+    /**
+     * Configured explanation why the invoicing quota is shown and why it matters (markdown), or null. Sent whenever
+     * [invoicingQuotaAvailable] (not only while shown), as it also explains the user's switch.
+     */
+    val invoicingQuotaInfo: String?,
+    /** Drill-down window: first day of the month as `yyyy-MM-dd` (the timesheet-list period seed). */
+    val startDate: String,
+    /** Drill-down window: last day of the month as `yyyy-MM-dd`. */
+    val endDate: String,
+)
+
+/** One calendar week bucket of the month (a matrix column). */
+class MonthlyEmployeeReportWeekDto(
+    /** Two-digit first day of month covered by the week, e.g. "01". */
+    val fromDay: String,
+    /** Two-digit last day of month covered by the week, e.g. "07". */
+    val toDay: String,
+    /** Weekly net total (formatted). */
+    val totalDuration: String,
+    /** Weekly gross total (formatted). */
+    val grossDuration: String,
+    /** Weekly time saved by AI (formatted). */
+    val timeSavedByAI: String,
+    /** Drill-down window: first day of the week (clipped to the month) as `yyyy-MM-dd`. */
+    val startDate: String,
+    /** Drill-down window: last day of the week (clipped to the month) as `yyyy-MM-dd`. */
+    val endDate: String,
+)
+
+/** One matrix row: a Kost2 cost unit, a task, or the pseudo task ("******") for foreign, unreadable sheets. */
+class MonthlyEmployeeReportRow(
+    /** "kost2", "task" or "pseudoTask". */
+    val type: String,
+    val kost2Id: Long? = null,
+    val taskId: Long? = null,
+    /** Kost2 formatted number, or the task path (plain). */
+    val label: String,
+    val customer: String? = null,
+    val project: String? = null,
+    /** Kost2 description shown instead of customer/project when the cost unit has no project. */
+    val description: String? = null,
+    val kost2Art: String? = null,
+    /** Per-week cell, in [MonthlyEmployeeReportData.weeks] order (an empty cell for a week without hours). */
+    val perWeek: List<MonthlyEmployeeReportCell>,
+    /** Monthly sum for this row (formatted). */
+    val sum: String,
+    /** Monthly time saved by AI for this row (formatted). */
+    val aiTimeSavings: String,
+)
+
+/**
+ * One week cell of a data row. Normally only [value] (the counted, net hours) is set. When the counted hours
+ * are reduced — a working time fraction below 1 and/or the proportional shared-cost split of overlapping time
+ * sheets — [gross] carries the raw booked hours (shown in parentheses), [factor] the effective factor
+ * (`value / gross`, formatted) and [sharedCosts] whether the split was involved, so the frontend can build the
+ * tooltip explaining the reduction.
+ */
+class MonthlyEmployeeReportCell(
+    /** Counted (net) hours, formatted; "" for an empty cell or purely non-working (factor 0) time. */
+    val value: String,
+    /** Raw booked (gross) hours, formatted; set only when it differs from [value]. */
+    val gross: String? = null,
+    /** Effective factor `value / gross`, formatted (e.g. "0,5"); set together with [gross]. */
+    val factor: String? = null,
+    /** True when the reduction involves the shared-cost overlap split (not only the working time fraction). */
+    val sharedCosts: Boolean = false,
+)
+
+/** The invoicing quota of the last months, oldest first (the chart tab of the monthly report). */
+class InvoicingQuotaHistory(
+    val months: List<InvoicingQuotaHistoryMonth>,
+)
+
+/** The invoicing quota of one month. */
+class InvoicingQuotaHistoryMonth(
+    /** The month as `yyyy-MM`. */
+    val month: String,
+    /** The quota as fraction (0..1), or null if the month has no (non-ignored) work time. */
+    val quota: BigDecimal?,
+    /** Billed work time in hours (formatted), or null together with [quota]. */
+    val billedHours: String?,
+    /** Non-ignored work time in hours (formatted), or null together with [quota]. */
+    val totalHours: String?,
+)

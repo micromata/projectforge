@@ -28,7 +28,7 @@ import java.math.BigDecimal
 
 /**
  * Defines different constants (typical length of string columns) usable by plugins and core package.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object Constants {
   /** The default length of comment strings in the data base. Used by data base definition and front-end validation.  */
@@ -81,8 +81,28 @@ object Constants {
   const val RESOURCE_BUNDLE_NAME = "I18nResources"
   const val REACT = "react"
   const val REACT_APP_PATH = "react/"
+
+  /**
+   * Base path of the Next.js frontend (projectforge-next), served side-by-side
+   * with the legacy React app ([REACT_APP_PATH]) during the migration.
+   */
+  const val NEXT = "next"
+  const val NEXT_APP_PATH = "next/"
+
+  /**
+   * The only login page of the application, served by projectforge-next. Both frontends (next and the legacy
+   * React app) redirect unauthenticated users here.
+   *
+   * The name of the query parameter for the url to return to after the login is [NEXT_LOGIN_RETURN_URL_PARAM].
+   */
+  const val NEXT_LOGIN_URL = "/${NEXT_APP_PATH}login"
+
+  /**
+   * Query parameter of [NEXT_LOGIN_URL] carrying the url to return to after the login, e.g.
+   * `/next/login?returnUrl=%2Fwa%2Fscripting`. Read by `app/login/page.tsx` of projectforge-next.
+   */
+  const val NEXT_LOGIN_RETURN_URL_PARAM = "returnUrl"
   const val WICKET_APPLICATION_PATH = "wa/"
-  const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
 
   /**
    * Building directory of used building tool: maven (target) or gradle (build).

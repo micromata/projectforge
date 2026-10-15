@@ -23,7 +23,7 @@
 
 package org.projectforge.business.admin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.framework.calendar.DurationUtils
 import org.projectforge.framework.i18n.TimeAgo
@@ -36,6 +36,16 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
+  init {
+    // The cpu loads are measured since the previous call, the very first call answers 0.
+    (ManagementFactory.getOperatingSystemMXBean() as? com.sun.management.OperatingSystemMXBean)?.let {
+      it.cpuLoad
+      it.processCpuLoad
+    }
+  }
+
+  override val group = "system"
+
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
     // First: Get the system load average (don't measure gc run ;-)
     val osBean = ManagementFactory.getOperatingSystemMXBean()
@@ -43,13 +53,11 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
     val processUptime = ManagementFactory.getRuntimeMXBean().uptime
     val processStartTime = PFDateTime.from(ManagementFactory.getRuntimeMXBean().startTime)
     val numberOfActiveThreads = Thread.activeCount()
-    log.info(
-      "System load average: $systemLoadAverage, active threads: $numberOfActiveThreads, process start time: ${processStartTime.isoString}, process uptime: ${
+    log.info { "System load average: $systemLoadAverage, active threads: $numberOfActiveThreads, process start time: ${processStartTime.isoString}, process uptime: ${
         DurationUtils.getFormattedDaysHoursAndMinutes(
           processUptime
         )
-      } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}"
-    )
+      } [h:mm], ${TimeAgo.getMessage(processStartTime.utilDate, Locale.ENGLISH)}" }
     stats.add(
       "version", "system", "'ProjectForge® version",
       "${ProjectForgeVersion.APP_ID} ${ProjectForgeVersion.VERSION_NUMBER}: build date=${ProjectForgeVersion.BUILD_TIMESTAMP}",
@@ -58,8 +66,37 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "scm", "system", "'SCM",
       "${ProjectForgeVersion.SCM}=${ProjectForgeVersion.SCM_ID}"
     )
-    stats.add("systemLoadAverage", "system", "'System load average", format(systemLoadAverage))
-    stats.add("activeThreads", "system", "'Number of active threads", format(numberOfActiveThreads))
+    val processors = osBean.availableProcessors
+    // Load per processor, a load above the number of processors is shown as a full bar (negative if unavailable).
+    stats.add(
+      "systemLoadAverage", "system", "'System load average", format(systemLoadAverage),
+      if (osBean.systemLoadAverage >= 0 && processors > 0) {
+        gauge(osBean.systemLoadAverage, processors.toDouble())
+      } else null,
+    )
+    stats.add("availableProcessors", "system", "'Available processors", format(processors))
+    (osBean as? com.sun.management.OperatingSystemMXBean)?.let { sunBean ->
+      // The bar shows the system load (0..1, negative if unavailable), the process load is part of it.
+      stats.add(
+        "cpuLoad", "system", "'CPU load (system/process)",
+        "${percent(sunBean.cpuLoad)} / ${percent(sunBean.processCpuLoad)}",
+        if (sunBean.cpuLoad >= 0) gauge(sunBean.cpuLoad, 1.0) else null,
+      )
+      val total = sunBean.totalMemorySize
+      if (total > 0) {
+        val free = sunBean.freeMemorySize
+        stats.add(
+          "physicalMemory", "system", "'Physical memory",
+          // No gauge: the os counts its file cache as used, so the memory always looks full.
+          "total=[${formatBytes(total)}], free=[${formatBytes(free)}]",
+        )
+      }
+    }
+    val threadBean = ManagementFactory.getThreadMXBean()
+    stats.add(
+      "activeThreads", "system", "'Number of active threads",
+      "${format(threadBean.threadCount)} (peak=${format(threadBean.peakThreadCount)}, daemon=${format(threadBean.daemonThreadCount)})"
+    )
     stats.add(
       "processStartTime", "system", "'Process start time",
       "${processStartTime.isoString} (UTC), ${TimeAgo.getMessage(processStartTime.utilDate)}"
@@ -73,5 +110,21 @@ class SystemsStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "java", "system", "'Java version",
       "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}"
     )
+    stats.add("os", "system", "'Operating system", "${osBean.name} ${osBean.version} (${osBean.arch})")
+    stats.add("timeZone", "system", "'Default time zone and locale", "${TimeZone.getDefault().id}, ${Locale.getDefault()}")
+  }
+
+  /**
+   * @param load 0..1 or negative, if not available.
+   */
+  /** Gauges count integers, the loads are scaled to per mille. */
+  private fun gauge(used: Double, max: Double): SystemStatisticsData.Gauge {
+    return SystemStatisticsData.Gauge(
+      (used * 1000).toLong(), (max * 1000).toLong(), SystemStatisticsData.Gauge.Unit.COUNT,
+    )
+  }
+
+  private fun percent(load: Double): String {
+    return if (load < 0) "--" else "${format(BigDecimal(load * 100).setScale(0, RoundingMode.HALF_UP))}%"
   }
 }

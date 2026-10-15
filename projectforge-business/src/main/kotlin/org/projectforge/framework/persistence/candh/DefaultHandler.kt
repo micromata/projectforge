@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.candh
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.isEqualsTo
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified

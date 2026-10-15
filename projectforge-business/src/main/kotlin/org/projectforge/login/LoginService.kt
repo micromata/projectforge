@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapSlaveLoginHandler
 import org.projectforge.business.login.*
@@ -35,7 +35,6 @@ import org.springframework.util.ClassUtils
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.TimeAgo
@@ -77,9 +76,6 @@ open class LoginService {
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
 
-    @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
-
     /**
      * If given then this login handler will be used instead of [LoginDefaultHandler]. For ldap please use e. g.
      * org.projectforge.ldap.LdapLoginHandler.
@@ -90,13 +86,17 @@ open class LoginService {
     lateinit var loginHandler: LoginHandler
         private set
 
+    /** The simple class name of the [loginHandler] (of a proxied one too), e.g. `LdapMasterLoginHandler`. */
+    open val loginHandlerName: String
+        get() = ClassUtils.getUserClass(loginHandler.javaClass).simpleName
+
     @PostConstruct
     fun init() {
         loginHandler = when (loginHandlerClass) {
             "LdapMasterLoginHandler" -> applicationContext.getBean(LdapMasterLoginHandler::class.java)
             "LdapSlaveLoginHandler" -> applicationContext.getBean(LdapSlaveLoginHandler::class.java)
             else -> {
-                // For extensibility (e.g. KeycloakLoginHandler in projectforge-keycloak module):
+                // For extensibility (e.g. IdpLoginHandler in projectforge-idp module):
                 // discover handler by simple class name to avoid circular module dependencies.
                 if (!loginHandlerClass.isNullOrBlank() && loginHandlerClass != "LoginDefaultHandler") {
                     applicationContext.getBeansOfType(LoginHandler::class.java).values
@@ -127,8 +127,8 @@ open class LoginService {
                 // User has no access or the user has to do a 2FA check first.
                 return null
             }
-            if (log.isDebugEnabled) {
-                log.debug("User found in session: ${request.requestURI}")
+            if (log.isDebugEnabled()) {
+                log.debug { "User found in session: ${request.requestURI}" }
             }
             return userContext
         }
@@ -152,6 +152,11 @@ open class LoginService {
             logout(request, response)
             return false
         }
+        if (userContext.isPasswordChangedSinceLogin()) {
+            log.info { "Password of user #${userContext.user?.id} was changed after the login of this session: logged out." }
+            logout(request, response)
+            return false
+        }
         return !userContext.new2FARequired
     }
 
@@ -171,17 +176,42 @@ open class LoginService {
         if (user == null || loginResult.loginResultStatus != LoginResultStatus.SUCCESS || userId == null) {
             return loginResult.loginResultStatus
         }
-        log.info("User successfully logged in: " + user.userDisplayName)
-        if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService.find(user.id, false)
-            val stayLoggedInKey = userAuthenticationsService.internalGetToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
-            cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
-        }
+        log.info { "User successfully logged in: " + user.userDisplayName }
         // Execute login:
         val userContext = UserContext(user)
         handle2FARequiredAfterLogin(request, userContext)
         internalLogin(request, userContext)
+        if (loginData.stayLoggedIn == true) {
+            if (userContext.new2FARequired) {
+                // The password alone doesn't earn a 30 day cookie: whoever aborts the second factor must not
+                // walk away with one. Park the wish and redeem it in onSecondFactorSucceeded.
+                // After internalLogin, because that one starts a new session (session fixation).
+                request.getSession(false)?.setAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED, true)
+                log.info { "Stay-logged-in requested by ${user.userDisplayName}, but 2FA is pending: the cookie is issued after the second factor." }
+            } else {
+                cookieService.addStayLoggedInCookie(request, response, userService.find(userId, false))
+            }
+        }
         return LoginResultStatus.SUCCESS
+    }
+
+    /**
+     * To be called whenever a second factor was checked successfully, right where the last2FA cookie is
+     * written ([org.projectforge.rest.my2fa.My2FAServicesRest] and the WebAuthn endpoints). Issues the
+     * stay-logged-in cookie the user asked for at login time, if any.
+     */
+    fun onSecondFactorSucceeded(request: HttpServletRequest, response: HttpServletResponse) {
+        val session = request.getSession(false) ?: return
+        // Consume it in any case: a later in-session 2FA check must not inherit a cookie the user asked for
+        // at login time.
+        val requested = session.getAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED) as? Boolean
+        session.removeAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED)
+        if (requested != true) {
+            return
+        }
+        val userId = getUserContext(request)?.user?.id ?: return
+        cookieService.addStayLoggedInCookie(request, response, userService.find(userId, false))
+        log.info { "Stay-logged-in cookie issued for user #$userId after a successful second factor." }
     }
 
     private fun authenticate(request: HttpServletRequest, loginData: LoginData): LoginResult {
@@ -193,7 +223,7 @@ open class LoginService {
         val offset = loginProtection.getFailedLoginTimeOffsetIfExists(loginData.username, clientIpAddress)
         if (offset > 0) {
             val seconds = (offset / 1000).toString()
-            log.warn("The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later.")
+            log.warn { "The account for '${loginData.username}' is locked for $seconds seconds due to failed login attempts. Please try again later." }
 
             val numberOfFailedAttempts =
                 loginProtection.getNumberOfFailedLoginAttempts(loginData.username, clientIpAddress)
@@ -227,15 +257,19 @@ open class LoginService {
         }
         request.getSession(false)?.let { session ->
             session.removeAttribute(SESSION_KEY_USER)
+            session.removeAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED)
             session.invalidate()
         }
+        // Before clearing the cookies: this needs the token from the request. Invalidates the token of *this*
+        // device only, the user's other devices stay logged in - that's the point of one token per device.
+        // Deleting the row as well as the cookie, because a copied cookie would otherwise stay valid for 30
+        // days.
+        cookieService.invalidateStayLoggedInToken(request)
         cookieService.clearAllCookies(request, response)
         user?.id?.let { userId ->
-            userXmlPreferencesCache.flushToDB(userId)
-            userXmlPreferencesCache.clear(userId)
             userPrefCache.flushToDB(userId)
             userPrefCache.clear(userId)
-            log.info("User '${user.username}' (#$userId) logged out.")
+            log.info { "User '${user.username}' (#$userId) logged out." }
         }
     }
 
@@ -257,10 +291,10 @@ open class LoginService {
             if (timeOfLastSuccessful2FA != null) ", last successful 2FA: ${timeOfLastSuccessful2FA.isoString} UTC (${
                 TimeAgo.getMessage(timeOfLastSuccessful2FA)
             })" else ""
-        log.info("User's stay logged-in cookie found: ${request.requestURI}$last2FAText")
-        if (log.isDebugEnabled) {
+        log.info { "User's stay logged-in cookie found: ${request.requestURI}$last2FAText" }
+        if (log.isDebugEnabled()) {
             request.cookies?.forEach { cookie ->
-                log.debug("Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.secure}, maxAge=${cookie.maxAge}, domain=${cookie.domain}")
+                log.debug { "Cookie found: ${cookie.name}, path=${cookie.path}, value=${cookie.value}, secure=${cookie.secure}, maxAge=${cookie.maxAge}, domain=${cookie.domain}" }
             }
         }
         internalLogin(request, userContext)
@@ -320,6 +354,12 @@ open class LoginService {
         private const val SESSION_KEY_USER = "LoginService.user"
         private const val SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK = "LoginService.last2FALoginCheck"
 
+        /**
+         * The user ticked "stay logged in" at login, but a second factor was still pending, see
+         * [LoginService.onSecondFactorSucceeded].
+         */
+        private const val SESSION_KEY_STAY_LOGGED_IN_REQUESTED = "LoginService.stayLoggedInRequested"
+
         // Check hourly
         private const val CHECK_2FA_AFTER_LOGIN_INTERVAL_MS = 3_600_000
 
@@ -342,6 +382,16 @@ open class LoginService {
             session.setAttribute(SESSION_KEY_USER, userContext)
         }
 
+        /**
+         * Stores the given userContext in the current session without renewing it. Only for logins whose session
+         * id was already renewed by the authentication itself, e. g. the OAuth2 login of the gateway via Spring
+         * Security: [internalLogin] would invalidate the session together with Spring's security context.
+         */
+        @JvmStatic
+        fun internalLoginInCurrentSession(request: HttpServletRequest, userContext: UserContext) {
+            request.getSession(true).setAttribute(SESSION_KEY_USER, userContext)
+        }
+
         @JvmStatic
         fun getUser(request: HttpServletRequest): PFUserDO? {
             return getUserContext(request)?.user
@@ -357,8 +407,8 @@ open class LoginService {
             val session = request.getSession(createSession) ?: return null
             val userContext = session.getAttribute(SESSION_KEY_USER) as? UserContext?
             userContext?.refreshUser() // Refresh user from cache: might be deactivated or changed in the meantime.
-            if (log.isDebugEnabled) {
-                log.debug("User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI}).")
+            if (log.isDebugEnabled()) {
+                log.debug { "User '${userContext?.user?.username}' successfully restored from http session (request=${request.requestURI})." }
             }
             return userContext
         }

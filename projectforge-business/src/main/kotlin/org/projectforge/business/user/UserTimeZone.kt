@@ -31,7 +31,7 @@ import java.util.*
 /**
  * Helper method for getting the best fitting user's timezone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 object UserTimeZone {

@@ -24,9 +24,14 @@
 package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.NextMigration
 import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 
 class PageResolverTest {
@@ -57,5 +62,62 @@ class PageResolverTest {
         assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
         assertEquals("react/calendarSubscription/dynamic/", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java))
         assertEquals("react/calendarSubscription/dynamic/123", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, id = 123))
+    }
+
+    /**
+     * Pages migrated to projectforge-next must resolve to `next/<route>`, so that server side
+     * redirects don't throw the user back into the legacy React app. The route may differ from the
+     * rest category; the hand built pages deliberately keep it equal (`book` -> `book`).
+     */
+    @Test
+    fun migratedToNextTest() {
+        assertEquals("next/book", PagesResolver.getListPageUrl(BookEntityRest::class.java))
+        assertEquals("/next/book", PagesResolver.getListPageUrl(BookEntityRest::class.java, absolute = true))
+        assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookEntityRest::class.java, mapOf("str" to "test")))
+        // book is hand built in projectforge-next, so its edit route is /book/<id>, not /book/edit/<id>:
+        assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookEntityRest::class.java, 42))
+        assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
+        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
+        // Not migrated: unchanged, and the category is used as the route.
+        assertFalse(NextMigration.isMigrated("address"))
+        assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
+        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+    }
+
+    /**
+     * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
+     * entry* url with an id appended, which is what it used to be built from. For the generic React
+     * shape both happen to be the same (`react/address/edit` + `/id`), so the difference only shows
+     * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
+     * form.
+     */
+    @Test
+    fun rowClickUrlTest() {
+        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
+        assertNotEquals(
+            "${NextMigration.newEntryUrl("book")}/:id",
+            NextMigration.standardEditPage("book"),
+            "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
+        )
+        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        // group has been hand built in projectforge-next since, and follows book's shape.
+        assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
+    }
+
+    /**
+     * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
+     * derivable from the next url: the app it leads back to isn't (React or Wicket), and a
+     * route need not name its category.
+     */
+    @Test
+    fun legacyPageTest() {
+        // book has no way back: its React page is gone (BookEntityRest serves no layout), so
+        // projectforge-next offers no legacy link for it.
+        assertNull(NextMigration.legacyListUrl("book"))
+        assertNull(NextMigration.legacyEditPage("book"))
+        assertNull(NextMigration.legacyNewEntryUrl("book"))
+        // Not migrated: the legacy page is the page itself.
+        assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
+        assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))
     }
 }

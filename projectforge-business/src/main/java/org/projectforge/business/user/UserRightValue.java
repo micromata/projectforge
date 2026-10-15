@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Every task has a task status: N - not opened, O - opened, C - closed.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum UserRightValue implements I18nEnum

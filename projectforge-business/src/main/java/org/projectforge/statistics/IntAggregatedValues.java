@@ -26,7 +26,7 @@ package org.projectforge.statistics;
 import java.io.Serializable;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class IntAggregatedValues extends AbstractAggregatedValues<Integer> implements Serializable

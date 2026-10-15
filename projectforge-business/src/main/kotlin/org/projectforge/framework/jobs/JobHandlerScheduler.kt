@@ -23,7 +23,12 @@
 
 package org.projectforge.framework.jobs
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.Constants
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -33,11 +38,24 @@ class JobHandlerScheduler {
   @Autowired
   private lateinit var jobHandler: JobHandler
 
+  @Autowired
+  private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+  @PostConstruct
+  private fun postConstruct() {
+    schedulerJobRunner.register(SCHEDULER_JOB, ::execute)
+  }
+
   // Runs every minute
   @Scheduled(fixedDelay = Constants.MILLIS_PER_MINUTE, initialDelay = Constants.MILLIS_PER_MINUTE)
   fun execute() {
-    Thread {
-      jobHandler.tidyUp()
-    }.start()
+    schedulerJobRunner.runAsync(SCHEDULER_JOB) { jobHandler.tidyUp() }
+  }
+
+  companion object {
+    val SCHEDULER_JOB = SchedulerJobDefinition(
+      "jobs.tidyUp", SchedulerJobArea.SYSTEM, JobHandlerScheduler::class.java, "execute",
+      SchedulerSchedule.FixedDelay(Constants.MILLIS_PER_MINUTE, Constants.MILLIS_PER_MINUTE),
+    )
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.jpa
 
 import jakarta.persistence.TypedQuery
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 
 private val log = KotlinLogging.logger {}

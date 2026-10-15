@@ -23,7 +23,7 @@
 
 package org.projectforge.start
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.SystemUtils
 import org.projectforge.ProjectForgeApp
@@ -143,7 +143,9 @@ class ProjectForgeHomeFinder {
    */
   private fun proceedForced(appHomeDir: String?, logMessage: String): File? {
     return if (StringUtils.isNotBlank(appHomeDir)) {
-      proceed(File(appHomeDir), logMessage, true)
+      // An explicitly given dir is a choice for this start only (e.g. a second dev instance of
+      // bin/pfDev.sh), so it doesn't replace the remembered default of later starts without it.
+      proceed(File(appHomeDir), logMessage, true, rememberAsDefault = false)
     } else null
   }
 
@@ -155,12 +157,20 @@ class ProjectForgeHomeFinder {
     return proceed(appHomeDir, logMessage, forceDirectory)
   }
 
-  private fun proceed(paramAppHomeDir: File, logMessage: String, forceDirectory: Boolean): File? {
+  private fun proceed(
+    paramAppHomeDir: File,
+    logMessage: String,
+    forceDirectory: Boolean,
+    rememberAsDefault: Boolean = true,
+  ): File? {
     var appHomeDir: File? = paramAppHomeDir
     if (appHomeDir != null) {
       if (isProjectForgeConfigured(appHomeDir)) {
-        log.info(logMessage.replace("\$APP_HOME_DIR", appHomeDir.path))
-        saveUserPrefHomeDir(appHomeDir)
+        val path = appHomeDir.path
+        log.info { logMessage.replace("\$APP_HOME_DIR", path) }
+        if (rememberAsDefault) {
+          saveUserPrefHomeDir(appHomeDir)
+        }
         return appHomeDir
       }
       if (!forceDirectory) {
@@ -183,14 +193,14 @@ class ProjectForgeHomeFinder {
             "1"
           ) {
             override fun answerValid(answer: String): Boolean {
-              return StringUtils.equalsAny(answer, "1", "2", "3")
+              return answer in arrayOf("1", "2", "3")
             }
           }.ask()
         }
         userAcceptsGraphicalTerminal =
-          if (StringUtils.startsWithIgnoreCase(answer, "y") || StringUtils.equals(answer, "2")) {
+          if (answer?.startsWith("y", ignoreCase = true) == true || answer == "2") {
             WizardMode.CONSOLE
-          } else if (StringUtils.equals(answer, "1")) {
+          } else if (answer == "1") {
             WizardMode.DESKTOP
           } else {
             WizardMode.NONE
@@ -207,7 +217,7 @@ class ProjectForgeHomeFinder {
           saveUserPrefHomeDir(appHomeDir!!)
           return appHomeDir
         } catch (ex: Exception) {
-          log.error("Error while initializing new ProjectForge home: " + ex.message, ex)
+          log.error(ex) { "Error while initializing new ProjectForge home: " + ex.message }
           ProjectForgeApplication.giveUpAndSystemExit(
             "Error while initializing new ProjectForge home: " + CanonicalFileUtils.absolutePath(
               appHomeDir
@@ -239,7 +249,7 @@ class ProjectForgeHomeFinder {
       // Value is unchanged, not needed to save.
       return
     }
-    log.info("Saving ProjectForge's home dir as user preferences (for next start): $absolutePath")
+    log.info { "Saving ProjectForge's home dir as user preferences (for next start): $absolutePath" }
     preferences.put(ENV_PROJECTFORGE_HOME, absolutePath)
   }
 
@@ -286,7 +296,13 @@ class ProjectForgeHomeFinder {
         if (location.indexOf('!') > 0) {
           location = location.substring(0, location.indexOf('!'))
         }
-        var file: File? = File(URI(location))
+        // Since Spring Boot 3.2 nested jar entries use the 'nested:' scheme, e. g.
+        // jar:nested:/app/application.jar/!BOOT-INF/classes/. File(URI) only accepts 'file:',
+        // so strip the scheme and use the plain path:
+        if (location.startsWith("nested:")) {
+          location = location.substring(7)
+        }
+        var file: File? = if (location.startsWith("file:")) File(URI(location)) else File(location)
         for (i in 0..99) { // Paranoi counter for endless loops (circular file system links)
           if (file == null) {
             return null
@@ -298,7 +314,10 @@ class ProjectForgeHomeFinder {
         }
         null
       } catch (ex: URISyntaxException) {
-        log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
+        log.error(ex) { "Internal error while trying to get the location of ProjectForge's running code: " + ex.message }
+        null
+      } catch (ex: IllegalArgumentException) {
+        log.error(ex) { "Internal error while trying to get the location of ProjectForge's running code: " + ex.message }
         null
       }
     }
@@ -337,19 +356,17 @@ class ProjectForgeHomeFinder {
      */
     fun checkDirectory(baseDir: File, logWarning: Boolean): Boolean {
       if (!baseDir.exists()) {
-        if (logWarning) log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' doesn't exist. Ignoring it.")
+        if (logWarning) log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' doesn't exist. Ignoring it." }
         return false
       }
       if (!baseDir.isDirectory) {
-        if (logWarning) log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' is not a directory. Ignoring it.") else log.warn(
-          "'" + CanonicalFileUtils.absolutePath(baseDir) + "' found, but isn't a directory, ignoring..."
-        )
+        if (logWarning) log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' is not a directory. Ignoring it." } else log.warn { "'" + CanonicalFileUtils.absolutePath(baseDir) + "' found, but isn't a directory, ignoring..." }
         return false
       }
       // Check for ProjectForge as source code repository:
       if (isProjectForgeSourceCodeRepository(baseDir)) {
         if (logWarning) {
-          log.warn("Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' seems to be the source code repository and shouldn't be used. Ignoring it.")
+          log.warn { "Configured base dir '" + CanonicalFileUtils.absolutePath(baseDir) + "' seems to be the source code repository and shouldn't be used. Ignoring it." }
         }
         return false
       }

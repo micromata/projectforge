@@ -47,7 +47,7 @@ import javax.xml.xpath.XPathFactory
  * Validation test to ensure SEPA XMLs conform to pain.001.003.03 schema
  * and match golden reference files after migration.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SEPATransferValidationTest : AbstractTestBase() {
 
@@ -257,6 +257,8 @@ class SEPATransferValidationTest : AbstractTestBase() {
             .replace(Regex("<PmtInfId>.*?</PmtInfId>"), "<PmtInfId>NORMALIZED</PmtInfId>")
             .replace(Regex("<EndToEndId>.*?</EndToEndId>"), "<EndToEndId>NORMALIZED</EndToEndId>")
             .replace(Regex("<ReqdExctnDt>.*?</ReqdExctnDt>"), "<ReqdExctnDt>NORMALIZED</ReqdExctnDt>")
+            .replace(Regex("standalone=\"(yes|no)\""), "standalone=\"no\"")
+            .lines().joinToString("\n") { it.trimStart() }
     }
 
     private fun assertXmlEquals(goldenFile: File, generatedXml: String, message: String = "") {

@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -37,10 +38,11 @@ import java.util.List;
  * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts
  * call them in static context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ProjectUtils {
   private static ProjektDao projektDao;
+  private static PfCaches pfCaches;
 
   /**
    * @param username
@@ -84,19 +86,41 @@ public class ProjectUtils {
       }
       result.add(project);
     }
-    return result;
+    return initialize(result);
   }
 
   public static Collection<ProjektDO> getAllProjects() {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setDeleted(false);
     ensureProjectDao();
-    return projektDao.select(filter);
+    return initialize(projektDao.select(filter));
+  }
+
+  /**
+   * Resolves the lazy kunde/task (and other) proxies of the given projects from the in-memory caches. Callers (mostly
+   * scripts) typically read {@code project.getKunde()} / {@code project.getTask()} afterwards; without this, each such
+   * read would trigger a separate SELECT (n+1). The identifier reads inside {@link PfCaches#initialize(ProjektDO)} are
+   * free, so this stays load-free.
+   */
+  private static Collection<ProjektDO> initialize(final Collection<ProjektDO> projects) {
+    if (CollectionUtils.isNotEmpty(projects)) {
+      ensurePfCaches();
+      for (final ProjektDO project : projects) {
+        pfCaches.initialize(project);
+      }
+    }
+    return projects;
   }
 
   private static void ensureProjectDao() {
     if (projektDao == null) {
       projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
+    }
+  }
+
+  private static void ensurePfCaches() {
+    if (pfCaches == null) {
+      pfCaches = ApplicationContextProvider.getApplicationContext().getBean(PfCaches.class);
     }
   }
 }

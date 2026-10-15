@@ -37,19 +37,19 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 /**
  * A marketing campaign for addresses (eg. mailings).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN")
 open class AddressCampaignDO : DefaultBaseDO() {
 
-    @PropertyInfo(i18nKey = "title")
+    @PropertyInfo(i18nKey = "title", required = true)
     @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
-    @PropertyInfo(i18nKey = "values")
+    @PropertyInfo(i18nKey = "values", required = true)
     @FullTextField
     @get:Column(length = 1000, name = "s_values")
     open var values: String? = null

@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
@@ -609,7 +609,7 @@ class AddressPagesRest
             userAccess,
             legendText = translate("address.list.legend")
         ).withGetRowClass(
-            """if (params.node.data.address.isFavoriteCard) { return 'ag-row-blue'; }"""
+            """if (params.node.data.address.isFavoriteCard) { return 'row-blue'; }"""
         )
 
 
@@ -1073,7 +1073,7 @@ class AddressPagesRest
                 MenuItem(
                     "address.directCall",
                     i18nKey = "address.directCall.call",
-                    url = "wa/phoneCall?addressId=${dto.id}&callerPage=addressList",
+                    url = "next/phoneCall?addressId=${dto.id}&callerPage=addressList",
                     type = MenuItemTargetType.REDIRECT
                 )
             )
@@ -1129,7 +1129,7 @@ class AddressPagesRest
      */
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
-        log.info("Exporting addresses as Excel file.")
+        log.info { "Exporting addresses as Excel file." }
         @Suppress("UNCHECKED_CAST")
         val list = getObjectList(this, baseDao, filter)
         val personalAddressMap = personalAddressDao.personalAddressByAddressId

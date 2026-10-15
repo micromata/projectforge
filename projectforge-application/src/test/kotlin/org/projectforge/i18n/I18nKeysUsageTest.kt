@@ -23,7 +23,7 @@
 
 package org.projectforge.i18n
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.common.EmphasizedLogSupport

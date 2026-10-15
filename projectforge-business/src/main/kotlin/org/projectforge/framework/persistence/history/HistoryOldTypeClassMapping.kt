@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object HistoryOldTypeClassMapping {
     internal fun getMappedClass(className: String): String {
@@ -98,6 +98,7 @@ object HistoryOldTypeClassMapping {
     internal val removedClasses = arrayOf(
         "org.projectforge.business.fibu.AuftragsPositionsStatus",
         "org.projectforge.business.teamcal.event.model.CalEventDO",
+        "org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO",
         "org.projectforge.business.vacation.model.VacationCalendarDO",
         "org.projectforge.framework.persistence.user.entities.TenantDO",
         "org.projectforge.gantt.GanttDependencyType",

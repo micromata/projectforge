@@ -2,11 +2,18 @@
   padding: 1em 2em;
   text-align: right;
   background-color: #fff;
+  // Contains the floated customer logo, so it can't overlap the content below.
+  display: flow-root;
 }
 
 .logo {
   &.left {
     float: left;
+    // Bounds an arbitrary customer image to the height of the ProjectForge logo (43px), otherwise a
+    // tall logo would cover parts of the application. width: auto keeps the aspect ratio.
+    max-height: 43px;
+    max-width: 50%;
+    width: auto;
   }
 
   &.right {

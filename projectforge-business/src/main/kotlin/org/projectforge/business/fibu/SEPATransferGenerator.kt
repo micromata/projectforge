@@ -48,7 +48,7 @@ import javax.xml.validation.SchemaFactory
  * Migrated from JAXB to manual XML generation using javax.xml APIs.
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de) - JAXB migration
+ * @author Kai Reinhard - JAXB migration
  */
 @Component
 class SEPATransferGenerator {

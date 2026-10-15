@@ -34,7 +34,7 @@ import java.time.LocalDate
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LiquidityForecast() : Serializable {
     private val entries = mutableListOf<LiquidityEntry>()
@@ -134,7 +134,7 @@ class LiquidityForecast() : Serializable {
             if (ignorePaidStatus) {
                 entry.isPaid = liquiEntry.dateOfPayment!!.isBefore(baseDate)
             } else {
-                entry.isPaid = liquiEntry.paid
+                entry.isPaid = liquiEntry.effectivePaid
             }
             entry.subject = liquiEntry.subject
             entry.type = LiquidityEntryType.LIQUIDITY
@@ -373,7 +373,9 @@ class LiquidityForecast() : Serializable {
             }
             entry.amount = invoice.info.grossSum
             if (ignorePaidStatus) {
-                entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
+                // Fall back to the invoice date when no due date is set, mirroring handleHistoricalInvoices;
+                // an invoice without either date is treated as not yet paid.
+                entry.isPaid = (invoice.faelligkeit ?: invoice.datum)?.isBefore(baseDate) == true
             } else {
                 entry.isPaid = invoice.info.isBezahlt
             }
@@ -401,7 +403,9 @@ class LiquidityForecast() : Serializable {
             }
             entry.amount = invoice.info.grossSum.negate()
             if (ignorePaidStatus) {
-                entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
+                // Fall back to the invoice date when no due date is set, mirroring handleHistoricalInvoices;
+                // an invoice without either date is treated as not yet paid.
+                entry.isPaid = (invoice.faelligkeit ?: invoice.datum)?.isBefore(baseDate) == true
             } else {
                 entry.isPaid = invoice.info.isBezahlt
             }

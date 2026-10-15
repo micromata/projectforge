@@ -1,0 +1,78 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+
+package org.projectforge.plugins.todo
+
+import org.projectforge.NextMigration
+import org.projectforge.menu.builder.MenuCreator
+import org.projectforge.menu.builder.MenuItemDef
+import org.projectforge.menu.builder.MenuItemDefId
+import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.registry.RegistryEntry
+import org.projectforge.web.WicketSupport
+
+/**
+ * @author Kai Reinhard
+ */
+class ToDoPlugin : AbstractPlugin(
+    PluginAdminService.PLUGIN_TODO_ID,
+    "To-do",
+    "To-do's may shared by users, groups etc. with notification per e-mail on changes."
+) {
+    /**
+     * @see org.projectforge.plugins.core.AbstractPlugin.initialize
+     */
+    override fun initialize() {
+        val toDoDao = WicketSupport.get(ToDoDao::class.java)
+        val entry = RegistryEntry(ID, ToDoDao::class.java, toDoDao, "plugins.todo")
+        // The ToDoDao is automatically available by the scripting engine!
+        register(entry)
+
+        // Register the menu entry as sub menu entry of the misc menu. The to-dos are migrated to projectforge-next
+        // (see NextMigration.MIGRATED), their Wicket pages are removed. The badge counts the recent to-dos of the
+        // logged-in user.
+        WicketSupport.get(MenuCreator::class.java).register(
+            MenuItemDefId.MISC,
+            MenuItemDef(ID, "plugins.todo.menu", NextMigration.listUrl(CATEGORY)).also {
+                it.badgeCounter = { toDoDao.getOpenToDoEntries(null) }
+            }
+        )
+
+        // Define the access management:
+        registerRight(ToDoRight())
+
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME)
+    }
+
+    companion object {
+        const val ID: String = "toDo"
+
+        /** The category of the next page and the REST endpoints (/rs/todo). */
+        const val CATEGORY: String = "todo"
+
+        const val RESOURCE_BUNDLE_NAME: String = "ToDoI18nResources"
+    }
+}

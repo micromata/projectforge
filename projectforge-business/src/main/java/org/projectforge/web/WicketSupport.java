@@ -28,7 +28,6 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.*;
-import org.projectforge.business.fibu.datev.DatevImportService;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2Dao;
@@ -61,7 +60,7 @@ import java.util.Map;
  *
  * I didn't want to declare all Kotlin components as open, so I use this workaround. Wicket will be removed in the future.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 public class WicketSupport {
@@ -180,7 +179,6 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(ConfigurationService.class));
         registerBean(applicationContext.getBean(DatabaseDao.class));
         registerBean(applicationContext.getBean(DatabaseInitTestDataService.class));
-        registerBean(applicationContext.getBean(DatevImportService.class));
         registerBean(applicationContext.getBean(EingangsrechnungDao.class));
         registerBean(applicationContext.getBean(EmployeeDao.class));
         registerBean(applicationContext.getBean(EmployeeSalaryDao.class));
@@ -207,6 +205,5 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(UserRightDao.class));
         registerBean(applicationContext.getBean(UserService.class));
         registerBean(applicationContext.getBean(UserXmlPreferencesDao.class));
-        registerBean(applicationContext.getBean(UserXmlPreferencesMigrationDao.class));
     }
 }

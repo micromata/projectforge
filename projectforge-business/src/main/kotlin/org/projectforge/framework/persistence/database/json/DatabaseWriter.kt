@@ -50,7 +50,7 @@ import java.sql.Timestamp
 /**
  * WIP: Trying to export and import whole database as json (for db migration and for creating test data).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
     private val log = LoggerFactory.getLogger(DatabaseWriter::class.java)
@@ -98,8 +98,8 @@ class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
         val mapper = ObjectMapper()
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_DEFAULT)
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
         mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
         val module = MyJacksonModule()
@@ -114,7 +114,7 @@ class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
 
     private fun dump(entityClass: Class<*>, session: Session, jgen: JsonGenerator) {
         val sql = "select o from ${entityClass.name} o"
-        val list = session.createQuery(sql).setReadOnly(true).list()
+        val list = session.createQuery(sql, Any::class.java).setReadOnly(true).list()
         if (list.isEmpty()) return
         jgen.writeStartObject();
         jgen.writeArrayFieldStart("${entityClass.simpleName}")

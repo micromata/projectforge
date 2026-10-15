@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as
  * xml (compressed (gzip and base64) for larger xml content).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class UserXmlPreferencesDao {
@@ -134,6 +134,28 @@ class UserXmlPreferencesDao {
     }
 
     /**
+     * Read-only access to a legacy XML preference without any access check, used for the lazy XML-&gt;JSON migration
+     * (see [UserPrefCache.migrateLegacyEntryOnCacheMiss]).
+     *
+     * Never throws: any deserialization problem (removed/incompatible legacy class) is logged and results in null,
+     * so the preferences load path is never broken by an undeserializable legacy row.
+     *
+     * @param userId The owner of the preference.
+     * @param key The flat legacy key (equals the JSON `name` of the migrated entry).
+     * @return The deserialized value, or null if no legacy row exists or it can't be deserialized.
+     */
+    fun internalGetDeserialized(userId: Long, key: String?): Any? {
+        key ?: return null
+        return try {
+            val userPref = selectUserPreferencesByUserId(userId, key, checkAccess = false) ?: return null
+            deserialize(userPref)
+        } catch (ex: Throwable) {
+            log.warn { "Can't deserialize legacy xml user preference for lazy migration (ignored): userId=$userId, key=$key: ${ex.message}" }
+            null
+        }
+    }
+
+    /**
      * Throws AccessException if the context user is not admin user and not owner of the UserXmlPreferences, meaning the
      * given userId must be the id of the context user.
      *
@@ -163,13 +185,10 @@ class UserXmlPreferencesDao {
     }
 
     /**
-     * Here you can update user preferences formats by manipulation the stored xml string.
-     *
-     * @param userPrefs
+     * Deserializes the stored (possibly compressed) xml string of a legacy user preference.
      */
     fun deserialize(userPrefs: UserXmlPreferencesDO): Any? {
         val userId = userPrefs.user?.id
-        UserXmlPreferencesMigrationDao.migrate(userPrefs)
         var xml = userPrefs.serializedValue
         if (xml.isNullOrEmpty()) {
             return null

@@ -51,6 +51,31 @@ class VacationService2Test {
     Assertions.assertFalse(VacationService().checkConflict(vacation, listOf(substitute1Vacation1)), "Substitute 2 has no vacations, so no conflict.")
   }
 
+  @Test
+  fun uncoveredDaysTest() {
+    val employee = createEmployee(1)
+    val substitute1 = createEmployee(2)
+    val substitute2 = createEmployee(3)
+    val vacation = createJuneVacation(employee, 1, 30)
+    vacation.replacement = substitute1
+    vacation.otherReplacements = mutableSetOf(substitute2)
+    val service = VacationService()
+    // Substitute 1 away 5th-10th, substitute 2 away 1st-6th and 9th-12th: nobody on duty on 5th, 6th, 9th and 10th.
+    val days = service.uncoveredDays(
+      vacation, listOf(
+        createJuneVacation(substitute1, 5, 10),
+        createJuneVacation(substitute2, 1, 6),
+        createJuneVacation(substitute2, 9, 12),
+      )
+    )
+    Assertions.assertEquals(listOf(5, 6, 9, 10), days.map { it.dayOfMonth })
+    Assertions.assertTrue(
+      service.checkConflict(vacation, listOf(createJuneVacation(substitute1, 20, 21), createJuneVacation(substitute1, 1, 3),
+        createJuneVacation(substitute2, 2, 2))),
+      "A second vacation of a substitute doesn't put them on duty on the days of the first one."
+    )
+  }
+
   private fun createJuneVacation(employee: EmployeeDO, fromDay: Int, toDay: Int): VacationDO {
     val vacation = VacationDO()
     vacation.employee = employee

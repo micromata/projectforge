@@ -24,6 +24,7 @@
 package org.projectforge.menu.builder
 
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 
 private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
 
@@ -40,74 +41,100 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORTING("menu.reporting"), //
 
     // Sub menus in alphabetical order:
-    ACCESS_LIST("menu.accessList", "wa/accessList"), //
-    ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
-    ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
+    // Migrated to projectforge-next (hand built, GroupAccessEntityRest); wa/accessList is redirected by
+    // OrphanedLinkFilter.
+    ACCESS_LIST("menu.accessList", getListUrl("access")), //
+    ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
+    // Migrated to projectforge-next; wa/accountingRecordList is redirected by OrphanedLinkFilter.
+    ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     AVAILABILITY("menu.availability", getReactListUrl("availability")), //
-    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
+    ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
-    BOOK_LIST("menu.bookList", getReactListUrl("book")), //
-    CALENDAR("menu.calendar", getReactListUrl("calendar")), //
-    CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
-    CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
-    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
-    CONFIGURATION("menu.configuration", "wa/configuration"), //
+    BOOK_LIST("menu.bookList", getListUrl("book")), //
+    CALENDAR("menu.calendar", getListUrl("calendar")), //
+    CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //
+    // Migrated to projectforge-next (ChangePasswordPageRest, ChangeWlanPasswordPageRest); the react pages are
+    // redirected by OrphanedLinkFilter.
+    CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
+    CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
+    CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
-    COST1_LIST("menu.fibu.kost1", "wa/cost1List"), // getReactListUrl("cost1")), //
-    COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
-    COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
+    // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.
+    COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
+    COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
+    COST2_TYPE_LIST("menu.fibu.kost2arten", getListUrl("cost2Type")), //
     COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
 
-    CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
-    //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
+    // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
+    CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
+    CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
-    DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
+    DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
+    E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
-    EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
-    EMPLOYEE_SALARY_IMPORT("menu.fibu.employeeSalariesImport", "wa/wicket/bookmarkable/org.projectforge.web.fibu.EmployeeSalaryImportPage"), //
+    // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
+    // The import is reached as a button in the salary list.
+    EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
-    FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
-    GANTT("menu.gantt", "wa/ganttList"), //
-    GROUP_LIST("menu.groupList", getReactListUrl("group")), //
-    HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
-    HR_VIEW("menu.hrList", "wa/hrList"), //
+    // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
+    FEEDBACK("menu.gear.feedback", "next/feedback"), //
+    GANTT("menu.gantt", getListUrl("gantt")), //
+    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
+    // see NextMigration.legacyListUrl.
+    GROUP_LIST("menu.groupList", getListUrl("group")), //
+    HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
+    HR_VIEW("menu.hrList", "next/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
-    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
+    // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
+    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //
-    MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
-    MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
+    MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //
+    // Migrated to projectforge-next (MyAccountRest); react/myAccount and react/tokenInfo are redirected by
+    // OrphanedLinkFilter.
+    MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.REACT_APP_PATH}customizeMenu"), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
-    MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
-    MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
-    ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
+    MY_SCRIPT_LIST("menu.myScriptList", getListUrl("myscript")), //
+    // Next only: the rules of the notification system (NotificationRuleEntityRest).
+    NOTIFICATION_RULE_LIST("menu.notificationRules", getListUrl("notificationRule")), //
+    // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
+    ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
+    // Next only: forecast and contribution margin of the order book, with a filter of their own.
+    ORDER_STATISTICS("menu.fibu.orderStatistics", "next/finance/statistics"), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
-    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
-    PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
-    PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
+    // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
+    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
+    PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
+    // Migrated to projectforge-next (PhoneCallRest); wa/phoneCall is redirected by OrphanedLinkFilter.
+    PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
-    PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //
-    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
-    SEND_SMS("menu.sendSms", "wa/sendSms"), //
-    SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
-    SEARCH("menu.search", "wa/search"), //
-    TASK_TREE("menu.taskTree", "wa/taskTree"), //
-    TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
-    USER_LIST("menu.userList", getReactListUrl("user")), //
-    VACATION("menu.vacation", getReactListUrl("vacation")), //
-    VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
+    PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
+    // Migrated to projectforge-next (ReportObjectivesPageRest); the Wicket page (wa/reportObjectives) was removed.
+    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "next/reportObjectives"), //
+    // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
+    SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
+    SCRIPT_LIST("menu.scriptList", getListUrl("script")), //
+    // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
+    // /wa/search is still redirected to next by OrphanedLinkFilter.
+    SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
+    // Migrated to projectforge-next; wa/taskTree is redirected by OrphanedLinkFilter. The tree and not the
+    // category's list (next/task, NextMigration.listUrl): the entity has two perspectives in projectforge-next.
+    TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
+    TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
+    USER_LIST("menu.userList", getListUrl("user")), //
+    VACATION("menu.vacation", getListUrl("vacation")), //
+    VACATION_ACCOUNT("menu.vacation.leaveaccount", "next/vacationAccount"), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
-    PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
-    SYSTEM("menu.system", "wa/admin"), //
-    SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));
+    PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //
+    SYSTEM("menu.system", "next/system");
 
     /**
      * @return name().
@@ -118,6 +145,19 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     companion object {
         const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV
     }
+}
+
+/**
+ * Url of a list page, pointing at whichever frontend currently serves it. [NextMigration] decides:
+ * migrated pages resolve to `next/<route>`, all others to `react/<category>`. Switching a page is
+ * therefore an entry in [NextMigration], not an edit here - that keeps the menu url and the server
+ * side redirect targets (see `PagesResolver`) from drifting apart.
+ *
+ * @param category The REST category (derived from the `@RequestMapping` of the `*PagesRest` class),
+ * e.g. `book` - *not* the route of the next page, which may differ.
+ */
+private fun getListUrl(category: String): String {
+    return NextMigration.listUrl(category)
 }
 
 private fun getReactListUrl(name: String): String {

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.licensemanagement
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuVisibility
 import org.springframework.beans.factory.annotation.Autowired

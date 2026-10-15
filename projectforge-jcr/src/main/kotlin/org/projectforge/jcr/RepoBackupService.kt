@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.common.FormatterUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -90,6 +91,31 @@ open class RepoBackupService {
     }
     this.backupDirectory = file
     log.info { "Using '${file.absolutePath}' as JCR backup directory." }
+  }
+
+  /**
+   * Creates a backup zip file of the whole repository (excluding the ignored paths such as data transfer) in the
+   * [backupDirectory]. The file is written with a temporary name and renamed after completion, so a file with the
+   * final name is always complete.
+   * @return The created backup file.
+   */
+  open fun createBackupFile(): File {
+    val backupDirectory = this.backupDirectory ?: throw IllegalStateException("Backup directory not initialized.")
+    val zipFile = File(backupDirectory, backupFilename)
+    val tmpFile = File(backupDirectory, "${zipFile.name}.tmp")
+    try {
+      ZipOutputStream(FileOutputStream(tmpFile)).use {
+        backupAsZipArchive(zipFile.name, it)
+      }
+      if (!tmpFile.renameTo(zipFile)) {
+        throw IllegalStateException("Can't rename '${tmpFile.absolutePath}' to '${zipFile.name}'.")
+      }
+    } catch (ex: Throwable) {
+      tmpFile.delete()
+      throw ex
+    }
+    log.info { "JCR backup written to '${zipFile.absolutePath}' (${FormatterUtils.formatBytes(zipFile.length())})." }
+    return zipFile
   }
 
   /**
@@ -157,12 +183,13 @@ open class RepoBackupService {
           log.info { "Ignore path=${fileNode.path} as configured." }
           return
         }
-        val content = repoService.getFileContent(fileNode, fileObject, useEncryptedFile = true)
-        if (content != null) {
-          val fileName = PFJcrUtils.createSafeFilename(fileObject)
-          zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, fileNode.path, fileName))
-          zipOut.write(content)
-        }
+        // Streamed, because files may be large (reading them completely into memory caused memory problems):
+        repoService.getFileInputStream(fileNode, fileObject, suppressLogInfo = true, useEncryptedFile = true)
+          ?.use { istream ->
+            val fileName = PFJcrUtils.createSafeFilename(fileObject)
+            zipOut.putNextEntry(createZipEntry(archivNameWithoutExtension, fileNode.path, fileName))
+            istream.copyTo(zipOut)
+          }
       }
     }
     walker.walk()
@@ -211,7 +238,7 @@ open class RepoBackupService {
         }
         val filesPath = getFilesPath(zipEntry.name)
         if (!filesPath.isNullOrBlank() && !IGNORE_FILES.contains(fileName)) {
-          if (log.isDebugEnabled) {
+          if (log.isDebugEnabled()) {
             log.debug { "Restoring file content (binary) '${zipEntry?.name}', $fileName..." }
           }
           val filesNode = repoService.getNodeOrNull(session, filesPath)

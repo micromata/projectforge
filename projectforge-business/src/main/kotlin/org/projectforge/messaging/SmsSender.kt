@@ -23,7 +23,7 @@
 
 package org.projectforge.messaging
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
@@ -32,12 +32,13 @@ import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
-import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.HttpStatus
 import org.apache.hc.core5.http.NameValuePair
 import org.apache.hc.core5.http.message.BasicNameValuePair
 import org.apache.hc.core5.net.URIBuilder
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.sms.SmsSenderConfig
 import java.io.IOException
 import java.io.UnsupportedEncodingException
@@ -59,34 +60,29 @@ class SmsSender(private var config: SmsSenderConfig) {
    */
   fun send(phoneNumber: String?, message: String?): HttpResponseCode {
     if (message == null || phoneNumber == null) {
-      log.error(
-        "Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
-            + ". Message is null!"
-      )
+      log.error { "Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3) +
+            ". Message is null!" }
       return HttpResponseCode.MESSAGE_ERROR
     }
     if (message.length > config.smsMaxMessageLength) {
-      log.error(
-        "Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
-            + ". Message is to large, max length is " + config.smsMaxMessageLength + ", but current message size is " + message.length
-      )
+      log.error { "Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3) +
+            ". Message is to large, max length is " + config.smsMaxMessageLength + ", but current message size is " + message.length }
       return HttpResponseCode.MESSAGE_TO_LARGE
     }
     val proceededUrl = replaceVariables(config.url, phoneNumber, message, true)
     val method = createHttpMethod(proceededUrl, phoneNumber, message)
-    createHttpClient().use { client ->
+    // The pooled client is shared and must not be closed.
+    createHttpClient().let { client ->
       return try {
-        client.execute(method).use { httpResponse ->
+        client.execute(method) { httpResponse ->
           val statusCode = httpResponse.code
           var response: String? = null
           if (statusCode == HttpStatus.SC_OK) {
             val stream = httpResponse.entity.content
             response = IOUtils.toString(stream, StandardCharsets.UTF_8)
           }
-          log.info(
-            "Tried to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
-                + ". Response from service: " + response
-          )
+          log.info { "Tried to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3) +
+                ". Response from service: " + response }
           val responseCode = if (response == null) {
             HttpResponseCode.UNKNOWN_ERROR
           } else if (matches(response, config.smsReturnPatternNumberError)) {
@@ -103,16 +99,14 @@ class SmsSender(private var config: SmsSenderConfig) {
             HttpResponseCode.UNKNOWN_ERROR
           }
           if (responseCode != HttpResponseCode.SUCCESS) {
-            log.error("Unexpected response from sms gateway: $statusCode: $response (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?).")
+            log.error { "Unexpected response from sms gateway: $statusCode: $response (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?)." }
           }
           responseCode
         }
       } catch (ex: IOException) {
         val errorKey = "Call failed. Please contact administrator."
-        log.error(
-          errorKey + ": " + proceededUrl + " for number "
-              + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
-        )
+        log.error { errorKey + ": " + proceededUrl + " for number " +
+              StringHelper.hideStringEnding(phoneNumber, 'x', 3) + ": " + ex.message }
         HttpResponseCode.UNKNOWN_ERROR
       }
     }
@@ -150,8 +144,8 @@ class SmsSender(private var config: SmsSenderConfig) {
   private fun replaceVariables(str: String?, number: String?, message: String, urlEncode: Boolean): String? {
     var str = str
     if (number == null) return ""
-    str = StringUtils.replaceOnce(str, "#number", if (urlEncode) encode(number) else number)
-    str = StringUtils.replaceOnce(str, "#message", if (urlEncode) encode(message) else message)
+    str = str?.replaceFirst("#number", if (urlEncode) encode(number) else number)
+    str = str?.replaceFirst("#message", if (urlEncode) encode(message) else message)
     return str
   }
 
@@ -177,7 +171,7 @@ class SmsSender(private var config: SmsSenderConfig) {
         }
         HttpGet(uriBuilder.build())
       } catch (ex: URISyntaxException) {
-        log.error("Configuration error, can't build url: " + ex.message, ex)
+        log.error(ex) { "Configuration error, can't build url: " + ex.message }
         throw RuntimeException(ex)
       }
     }
@@ -196,8 +190,11 @@ class SmsSender(private var config: SmsSenderConfig) {
     return post
   }
 
+  /**
+   * Shared pooled client with timeouts (IntegrationConfig "sms"), so a hanging sms gateway can't block the caller.
+   */
   protected fun createHttpClient(): CloseableHttpClient {
-    return HttpClients.createDefault()
+    return PooledHttpClients.get(IntegrationConfig.SMS)
   }
 
   fun setConfig(config: SmsSenderConfig): SmsSender {
@@ -218,7 +215,7 @@ class SmsSender(private var config: SmsSenderConfig) {
       } else try {
         URLEncoder.encode(str, "UTF-8")
       } catch (ex: UnsupportedEncodingException) {
-        log.info("Can't URL-encode '" + str + "': " + ex.message)
+        log.info { "Can't URL-encode '" + str + "': " + ex.message }
         ""
       }
     }

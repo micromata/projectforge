@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.NoResultException
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
@@ -85,9 +85,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         userId ?: return null
         return persistenceService.selectNamedSingleResult(
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Pair("userId", userId),
-        )?.toLong()
+        )
     }
 
 
@@ -99,7 +99,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     open fun findByName(fullname: String): EmployeeDO? {
         val tokenizer = StringTokenizer(fullname, ",")
         if (tokenizer.countTokens() != 2) {
-            log.error("EmployeeDao.getByName: Token '$fullname' not supported.")
+            log.error { "EmployeeDao.getByName: Token '$fullname' not supported." }
         }
         Validate.isTrue(tokenizer.countTokens() == 2)
         val lastname = tokenizer.nextToken().trim { it <= ' ' }
@@ -194,7 +194,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 "staffNumber" to staffnumber,
             )
         } catch (ex: NoResultException) {
-            log.warn("No employee found for staffnumber: $staffnumber: ${ex.message}", ex)
+            log.warn(ex) { "No employee found for staffnumber: $staffnumber: ${ex.message}" }
         }
         employeeCache.setTimeDependentAttrs(result)
         return result
@@ -208,10 +208,15 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun addOwnHistoryEntries(obj: EmployeeDO, context: HistoryLoadContext) {
-        employeeService.selectAllValidSinceAttrs(obj, deleted = null).forEach { validityAttr ->
-            historyService.loadAndMergeHistory(validityAttr, context)
-        }
+        // Batch the children's history (one query) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...).
+        employeeService.selectAllValidSinceAttrs(obj, deleted = null).mapNotNull { it.id }.takeIf { it.isNotEmpty() }
+            ?.let { ids ->
+                historyService.loadAndMergeHistory(EmployeeValidSinceAttrDO::class.java, ids, context)
+            }
     }
+
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(EmployeeValidSinceAttrDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID

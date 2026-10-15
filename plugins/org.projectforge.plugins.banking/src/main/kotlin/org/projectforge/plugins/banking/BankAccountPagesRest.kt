@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.BankAccount
@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController
 class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, BankAccountDao>(
     BankAccountDao::class.java,
     "plugins.banking.account.title",
-    cloneSupport = AbstractPagesRest.CloneSupport.CLONE
+    cloneSupport = AbstractEntityRest.CloneSupport.CLONE
 ) {
     override val autoCompleteSearchFields = arrayOf("name", "iban", "bic", "bank", "description")
 

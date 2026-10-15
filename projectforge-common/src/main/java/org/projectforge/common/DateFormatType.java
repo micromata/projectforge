@@ -27,7 +27,7 @@ package org.projectforge.common;
 /**
  * Date formats.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum DateFormatType

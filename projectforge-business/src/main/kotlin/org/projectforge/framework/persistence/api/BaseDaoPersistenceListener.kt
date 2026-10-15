@@ -27,7 +27,7 @@ import org.projectforge.framework.access.OperationType
 
 /**
  * BaseDOPostChangedListener may be registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface BaseDaoPersistenceListener<O : ExtendedBaseDO<Long>> : BaseDOModifiedListener<O> {
     /**

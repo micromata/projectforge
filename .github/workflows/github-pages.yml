@@ -1,35 +1,78 @@
-name: GitHub Pages publication
+name: GitHub Pages
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
     paths:
       - 'site/**'
       - '.github/workflows/**'
+  # The release pills of the changelog show the jars (GitHub, SourceForge) and docker images of a release once they
+  # exist (see site/fetch-binaries.sh): a new GitHub release, docker/push-release.sh (workflow_dispatch) and, as
+  # fallback and for the upload to SourceForge by hand, daily.
+  release:
+    types: [published]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  jekyll:
-    runs-on: ubuntu-22.04
+  build:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
 
-    # Use GitHub Actions' cache to shorten build times and decrease load on servers
-    - uses: actions/cache@v3
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile') }}
-        restore-keys: |
-          ${{ runner.os }}-gems-
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: site
 
-    # Specify the Jekyll source location as a parameter
-    - uses: helaili/jekyll-action@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        jekyll_src: 'site'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
 
-    # Specify the target branch (optional)
-    - uses: helaili/jekyll-action@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        target_branch: 'gh-pages'
-        jekyll_src: 'site'
+      - name: Build CSS (Tailwind)
+        run: |
+          npm ci
+          npm run build:css
+        working-directory: site
+
+      - uses: actions/configure-pages@v6
+
+      - name: Fetch the released binaries
+        run: ./fetch-binaries.sh
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --destination ../_site
+        working-directory: site
+        env:
+          JEKYLL_ENV: production
+
+      - uses: actions/upload-pages-artifact@v5
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

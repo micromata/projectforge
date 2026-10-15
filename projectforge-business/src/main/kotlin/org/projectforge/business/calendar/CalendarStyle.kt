@@ -36,9 +36,13 @@ class CalendarStyle(
 
   /**
    * Color will be calculated from bgColor.
+   * @param darkMode The text color is computed for the client's page background. In the transparent
+   * (STANDARD) scheme the background is the base color at ~20% alpha, so it composites pale over a light
+   * page (dark text reads) but dark over a dark page (dark text is invisible). In dark mode the base color
+   * is therefore lightened instead of darkened. The client sends its resolved theme with the events request.
    */
-  fun getTextColor(colorScheme: CalendarEventColorScheme?): String {
-    return colorCache.getTextColor(bgColor, colorScheme)
+  fun getTextColor(colorScheme: CalendarEventColorScheme?, darkMode: Boolean = false): String {
+    return colorCache.getTextColor(bgColor, colorScheme, darkMode)
   }
 
   /**
@@ -64,16 +68,23 @@ class CalendarStyle(
 
     private class ColorCache : AbstractCache() { // 1 hour expire time
       private var standardColorsMap: MutableMap<String, String> = mutableMapOf()
+      private var standardDarkColorsMap: MutableMap<String, String> = mutableMapOf()
       private var classicColorsMap: MutableMap<String, String> = mutableMapOf()
 
-      fun getTextColor(bgColor: String, colorScheme: CalendarEventColorScheme?): String {
+      fun getTextColor(bgColor: String, colorScheme: CalendarEventColorScheme?, darkMode: Boolean): String {
         checkRefresh()
-        val map = if (colorScheme == CalendarEventColorScheme.CLASSIC) classicColorsMap else standardColorsMap
+        // The classic scheme's colors are theme-independent (solid backgrounds, #fff/#444 text), so dark mode
+        // only splits the transparent (STANDARD) scheme into its own cache.
+        val map = when {
+          colorScheme == CalendarEventColorScheme.CLASSIC -> classicColorsMap
+          darkMode -> standardDarkColorsMap
+          else -> standardColorsMap
+        }
         synchronized(map) {
           // if (!SystemStatus.isDevelopmentMode()) {
           map[bgColor]?.let { return it }
           // }
-          val color = calculateTextColor(bgColor, colorScheme)
+          val color = calculateTextColor(bgColor, colorScheme, darkMode)
           map[bgColor] = color
           return color
         }
@@ -81,6 +92,7 @@ class CalendarStyle(
 
       override fun refresh() {
         standardColorsMap = mutableMapOf()
+        standardDarkColorsMap = mutableMapOf()
         classicColorsMap = mutableMapOf()
       }
     }
@@ -123,11 +135,15 @@ class CalendarStyle(
       }
     }
 
-    fun getTextColor(backgroundColor: String?, colorScheme: CalendarEventColorScheme?): String {
-      return colorCache.getTextColor(backgroundColor ?: "#000", colorScheme)
+    fun getTextColor(backgroundColor: String?, colorScheme: CalendarEventColorScheme?, darkMode: Boolean = false): String {
+      return colorCache.getTextColor(backgroundColor ?: "#000", colorScheme, darkMode)
     }
 
-    private fun calculateTextColor(backgroundColor: String?, colorScheme: CalendarEventColorScheme?): String {
+    private fun calculateTextColor(
+      backgroundColor: String?,
+      colorScheme: CalendarEventColorScheme?,
+      darkMode: Boolean,
+    ): String {
       if (colorScheme == CalendarEventColorScheme.CLASSIC) {
         return if (dark(backgroundColor)) "#fff" else "#444"
       }
@@ -135,8 +151,13 @@ class CalendarStyle(
       val hsbColor = Color.RGBtoHSB(bgColor.red, bgColor.green, bgColor.blue, null)
       val hue = hsbColor[0]
       val saturation = hsbColor[1]
-      var brightness = hsbColor[2] - 0.6f
-      if (brightness < 0.3f) {
+      // Light page: darken the base color so it reads on the pale (alpha-composited over white) tint. Dark
+      // page: lighten it by the same amount so it reads on the dark (composited over near-black) tint.
+      var brightness = if (darkMode) hsbColor[2] + 0.6f else hsbColor[2] - 0.6f
+      if (darkMode) {
+        if (brightness > 1.0f) brightness = 1.0f
+        if (brightness < 0.7f) brightness = 0.7f
+      } else if (brightness < 0.3f) {
         brightness = 0.3f
       }
       // if (hue > 0.0001 && saturation < 0.5) { // hue > 0.0001: Preserve gray colors for white.

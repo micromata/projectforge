@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Service for currency conversion and currency pair management.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class CurrencyConversionService {

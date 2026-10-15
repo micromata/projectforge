@@ -24,15 +24,21 @@
 package org.projectforge.rest.core
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogLevel
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.support.SupportErrorDigest
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
+import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.ui.UIToast
+import org.projectforge.web.rest.RestAuthenticationUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -45,6 +51,9 @@ private val log = KotlinLogging.logger {}
 
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
+    @Autowired
+    internal lateinit var supportErrorDigest: SupportErrorDigest
+
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
     fun defaultErrorHandler(request: HttpServletRequest, ex: Throwable): Any {
@@ -60,14 +69,34 @@ internal class GlobalDefaultExceptionHandler {
                     -1,
                     maxFileSizeSpringProperty = "spring.servlet.multipart.max-file-size|spring.servlet.multipart.max-request-size"
                 )
-            log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
+            log.error { "${translateMsg(userEx)} ${userEx.logHintMessage}" }
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
+        }
+        if (ex is AccessException && RestAuthenticationUtils.isNextClient(request)) {
+            // A denied read escapes the controller as an AccessException (BaseDao.select and friends check
+            // and throw). The UserException branch below would answer it with HTTP *200* and nothing but a
+            // toast - the shape the UILayout clients read - which a client fetching plain JSON cannot tell
+            // from a successful empty result: projectforge-next used to render the whole list page with an
+            // empty table (see useReadAccessGuard).
+            //
+            // Only for projectforge-next, because the legacy clients depend on that 200: the legacy React
+            // app throws away every non-ok answer of `{entity}/list` and displays the error nowhere
+            // (utilities/rest.js handleHTTPErrors -> fetchFailure), so an unconditional 403 would leave it
+            // with a blank list instead of today's toast. isNextClient is explicitly not a trust boundary,
+            // which is fine here: the request is denied either way, this only picks the shape of the answer.
+            //
+            // RestError rather than a toast: it is the body the other next-only denials use
+            // (RestAuthenticationUtils.sendError), and it carries neither twoFactorRequired nor
+            // csrfTokenRequired, so rawRequest finds no recovery flag and does not retry (lib/rs/client.ts).
+            log.info { "Access denied: ${translateMsg(ex)} ${RequestLog.asJson(request)}" }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(RestError(status = HttpStatus.FORBIDDEN.value(), message = translateMsg(ex)))
         }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {
-                log.error(translateMsg(ex))
+                log.error { translateMsg(ex) }
             } else {
-                log.error("${translateMsg(ex)} ${ex.logHintMessage}")
+                log.error { "${translateMsg(ex)} ${ex.logHintMessage}" }
             }
             return if (ex.displayUserMessage) {
                 ResponseEntity.ok().body(UIToast.createExceptionToast(ex))
@@ -75,31 +104,57 @@ internal class GlobalDefaultExceptionHandler {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
         }
+        reportToSupport(request, ex)
         GlobalExceptionRegistry.findExInfo(ex)?.let {
-            return handleKnownException(ex, it)
+            return handleKnownException(request, ex, it)
         }
         val additionalExcptionMessage =
             if (ex is TechnicalException && ex.technicalMessage != null) " technical=${ex.technicalMessage}" else ""
         val exceptionMessage = "${ex::class.java.name}: ${ex.message}$additionalExcptionMessage"
-        log.error(
-            "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
+        log.error { "Exception while processing request: ${ex.message} Request: ${RequestLog.asJson(request)},\nexception=$exceptionMessage\n${
                 ExceptionStackTracePrinter.toString(
                     ex,
                     showExceptionMessage = false,
                     stopBeforeForeignPackages = false,
                     depth = 15
                 )
-            }"
-        )
-        log.error(ex.message, ex)
+            }" }
+        log.error(ex) { ex.message }
         return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
     }
 
-    private fun handleKnownException(ex: Throwable, exInfo: GlobalExceptionRegistry.ExInfo): Any {
-        val msg = if (exInfo.message.isNullOrBlank()) exInfo.message else "${exInfo.message}: ${ex.message}"
+    /**
+     * Hands a server problem to the support error digest (see SupportErrorFilter): an unreachable remote system
+     * always, an unexpected error only of a logged-in user, as Wicket's error page was only shown to one (a bot's
+     * garbage request on a public endpoint is nothing to report).
+     */
+    private fun reportToSupport(request: HttpServletRequest, ex: Throwable) {
+        val kind = SupportErrorFilter.classify(ex) ?: return
+        if (kind == SupportErrorFilter.Kind.REQUEST && ThreadLocalUserContext.loggedInUser == null) {
+            return
+        }
+        supportErrorDigest.recordRequestError(
+            ex,
+            "${request.method} ${request.requestURI}",
+            external = kind == SupportErrorFilter.Kind.EXTERNAL,
+            logEvent = GlobalExceptionRegistry.findExInfo(ex)?.logEvent,
+        )
+    }
+
+    /**
+     * Logged with the request's uri, which the error dashboard's link into the log viewer searches for (the
+     * location of a request's problem is the root cause's frame, not this class).
+     */
+    private fun handleKnownException(
+        request: HttpServletRequest,
+        ex: Throwable,
+        exInfo: GlobalExceptionRegistry.ExInfo,
+    ): Any {
+        val msg = if (exInfo.message.isNullOrBlank()) ex.message else "${exInfo.message}: ${ex.message}"
+        val logMsg = "$msg (${request.method} ${request.requestURI})"
         when (exInfo.logLevel) {
-            LogLevel.INFO -> log.info(msg)
-            else -> log.error(msg)
+            LogLevel.INFO -> log.info { logMsg }
+            else -> log.error { logMsg }
         }
         return ResponseEntity(msg, exInfo.status)
     }

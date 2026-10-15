@@ -23,13 +23,17 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeScriptingService
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.ForecastExport
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotScriptingService
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
 import org.projectforge.framework.configuration.ApplicationContextProvider
@@ -100,8 +104,15 @@ abstract class ScriptExecutor(
         variables["caches"] = PfCaches.instance
         variables["forecastExport"] =
             ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
+        variables["contributionMarginService"] =
+            ApplicationContextProvider.getApplicationContext().getBean(ContributionMarginService::class.java)
+        variables["customerGroupService"] =
+            ApplicationContextProvider.getApplicationContext().getBean(CustomerGroupService::class.java)
         variables["employeeService"] = EmployeeScriptingService(
             ApplicationContextProvider.getApplicationContext().getBean(EmployeeService::class.java)
+        )
+        variables["orderbookSnapshotService"] = OrderbookSnapshotScriptingService(
+            ApplicationContextProvider.getApplicationContext().getBean(OrderbookSnapshotsService::class.java)
         )
         for (entry in Registry.getInstance().orderedList) {
             val scriptingDao = entry.scriptingDao

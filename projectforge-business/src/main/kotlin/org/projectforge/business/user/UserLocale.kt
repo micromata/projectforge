@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletRequest
 /**
  * Helper method for getting the best fitting user locale.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 object UserLocale {

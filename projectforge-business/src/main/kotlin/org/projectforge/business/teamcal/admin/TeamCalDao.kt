@@ -35,24 +35,20 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
+import java.util.Date
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Service
 class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var historyFormatUtils: HistoryFormatUtils
 
     @Autowired
     private lateinit var teamCalCache: TeamCalCache
@@ -133,6 +129,33 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
         }
     }
 
+    override fun onUpdate(obj: TeamCalDO, dbObj: TeamCalDO) {
+        // Technical field, written only by updateExternalSubscriptionFailingSince. Reset, if the subscription
+        // is switched off, (re-)enabled or gets a new url, so the user gets a fresh start.
+        obj.externalSubscriptionFailingSince =
+            if (obj.externalSubscription && dbObj.externalSubscription
+                && obj.externalSubscriptionUrl == dbObj.externalSubscriptionUrl
+            ) {
+                dbObj.externalSubscriptionFailingSince
+            } else {
+                null
+            }
+    }
+
+    /**
+     * Persists only the start of the failure series of a subscribed calendar: no history entry, no new
+     * last-update timestamp and no re-indexing, because this is a technical state.
+     */
+    fun updateExternalSubscriptionFailingSince(calendarId: Long, failingSince: Date?) {
+        persistenceService.runInTransaction { context ->
+            context.executeUpdate(
+                "update ${TeamCalDO::class.java.simpleName} set externalSubscriptionFailingSince = :failingSince where id = :id",
+                "failingSince" to failingSince,
+                "id" to calendarId,
+            )
+        }
+    }
+
     val allCalendarsWithFullAccess: List<TeamCalDO>
         /**
          * Gets a list of all calendars with full access of the current logged-in user as well as the calendars owned by the
@@ -147,9 +170,12 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
             return select(filter)
         }
 
-    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
-        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
-    }
+    /**
+     * The calendars the logged-in user may write events into: [allCalendarsWithFullAccess] without the external
+     * subscriptions, whose events are read-only.
+     */
+    val writableCalendars: List<TeamCalDO>
+        get() = allCalendarsWithFullAccess.filter { !it.externalSubscription }
 
     /**
      * Calls [TeamCalCache.setExpired].
@@ -168,7 +194,7 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
 
     override fun afterUpdate(obj: TeamCalDO, dbObj: TeamCalDO?, isModified: Boolean) {
         if (dbObj != null && obj.externalSubscription
-            && !StringUtils.equals(obj.externalSubscriptionUrl, dbObj.externalSubscriptionUrl)
+            && obj.externalSubscriptionUrl != dbObj.externalSubscriptionUrl
         ) {
             // only update if the url has changed!
             teamEventExternalSubscriptionCache.updateCache(obj)

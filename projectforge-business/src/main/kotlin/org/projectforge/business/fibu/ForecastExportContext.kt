@@ -45,22 +45,47 @@ internal class ForecastExportContext(
     val forecastSheet: ExcelSheet,
     val invoicesSheet: ExcelSheet,
     val invoicesPrevYearSheet: ExcelSheet,
+    val invoicesPrevPrevYearSheet: ExcelSheet,
     val planningSheet: ExcelSheet,
     val planningInvoicesSheet: ExcelSheet,
+    /**
+     * Optional sheet with one row per project (see [ForecastExport.fillProjectOverviewSheet]). The user creates this
+     * sheet (with header row and autofilter) in the template; the code only fills the value rows. Null if the template
+     * doesn't contain it.
+     */
+    val projectOverviewSheet: ExcelSheet?,
     val startDate: PFDay,
     val invoices: List<RechnungDO>,
     val baseDate: PFDay = PFDay.now(),
     val planningDate: LocalDate? = null,
     val snapshot: Boolean = false,
     val fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
+    /**
+     * If true (default), unused budget is booked as future revenue in the last month of the performance period.
+     * If false, it is shown as a negative difference (more conservative). See [ForecastOrderPosInfo.distributeUnusedBudget].
+     */
+    val distributeUnusedBudget: Boolean = true,
 ) {
     enum class Sheet(val title: String) {
         FORECAST("Forecast_Data"),
         INVOICES("Rechnungen"),
         INVOICES_PREV_YEAR("Rechnungen Vorjahr"),
+        INVOICES_PREV_PREV_YEAR("Rechnungen Vorvorjahr"),
         PLANNING("Planning_Data"),
         PLANNING_INVOICES("Planning_Invoices"),
+        PROJECT_OVERVIEW("Projektübersicht"),
         INFO("Info")
+    }
+
+    /**
+     * Columns of the [Sheet.PROJECT_OVERVIEW] sheet. The header texts are fixed in the template (including the fixed
+     * year labels for previous/pre-previous year). All access is by header name only, so the user may reorder the
+     * columns in the template freely.
+     */
+    enum class ProjectOverviewCol(val header: String) {
+        UNIT("Unit"), CUSTOMER("Kunde"), PROJECT("Projekt"), PLAN("Plan"), FORECAST("Forecast"),
+        PREV_YEAR("Vorjahr"), PREV_PREV_YEAR("Vorvorjahr"), DIFF_PLAN("Differenz Plan"),
+        DIFF_PREV_YEAR("Differenz Vorjahr"), DIFF_PREV_PREV_YEAR("Differenz Vorvorjahr")
     }
 
     enum class ForecastCol(val header: String) {
@@ -74,7 +99,7 @@ internal class ForecastExportContext(
         EINTRITTSWAHRSCHEINLICHKEIT("Eintrittswahrsch. in %"), ANSPRECHPARTNER("Ansprechpartner"),
         STRUKTUR_ELEMENT("Strukturelement"), BEMERKUNG("Bemerkung"), PROBABILITY_NETSUM("gewichtete Nettosumme"),
         ANZAHL_MONATE("Anzahl Monate"), FORECAST_TYPE("Forecasttyp"), PAYMENT_SCHEDULE("Zahlplan"),
-        REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung"),
+        STATUS_BESCHREIBUNG("Beschreibung Status"), REMAINING("Rest"), DIFFERENCE("Abweichung"), WARNING("Warnung"),
         PROJECT_ID("ProjectID"), VISIBLE("visible"), VISIBLE_PROJECT_ID("visibleID")
     }
 
@@ -147,15 +172,50 @@ internal class ForecastExportContext(
     val projectIds = mutableSetOf<Long>()
     // All projects for which invoices have been issued.
     val invoicedProjectIds = mutableSetOf<Long>()
-    // All projects with orders in the forecast.
-    // For all projects that have been invoiced but for which no
-    // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
-    // visible in the forecast.
-    val orderProjectIds = mutableSetOf<Long>()
+    // All projects that actually got a real row on the forecast sheet (Forecast_Data), i.e. carry a visibleID entry.
+    // For all projects that have been invoiced but for which no such forecast row exists, pseudo orders are entered
+    // in the forecast in order to have all projects visible in the forecast (see missedProjectIds). This set must be
+    // fed from the forecast sheet only (never from the planning sheet, which writes no visibleID), otherwise an
+    // invoiced project could be excluded from missedProjectIds without having a visible row, dropping all its
+    // invoices from the IST sums.
+    val forecastRowProjectIds = mutableSetOf<Long>()
     var showAll: Boolean =
         false // showAll is true, if no filter is given and for financial and controlling staff only.
     val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
     val orderMapByPositionId = mutableMapOf<Long, OrderInfo>()
 
     var hasUnitColEntries = false
+
+    // Excel row (1-based) of the last data row written to the forecast sheet, set by ForecastExport.fillOrderPositions.
+    // The visible-column COUNTIF formulas of the invoice and planning sheets bound their Forecast_Data!visibleID range
+    // to this row (instead of a fixed 100000), so POI/Excel only scan the rows that actually exist. Defaults to the
+    // first data row so an unset value still yields a valid (empty) range.
+    var forecastDataLastExcelRow = 11
+
+    // Cells (sheet + 0-based row number) of the invoice sheets whose visible-column COUNTIF formula must be written
+    // once the forecast sheet is complete (see ForecastExportInvoices.fillInvoiceVisibleColumn). Collected during
+    // fillInvoices, because the range they reference only exists after fillOrderPositions has run.
+    val invoiceVisibleCells = mutableListOf<Pair<ExcelSheet, Int>>()
+
+    /**
+     * True, if at least one invoice was exported for which neither the invoice itself nor its order references a
+     * project. Such invoices get [PROJECT_ID_NONE] as project id and are represented by a single pseudo order row
+     * in the forecast sheet, so they are part of the unfiltered sums, but drop out as soon as the user filters by
+     * unit, customer or project.
+     */
+    var hasInvoicesWithoutProject = false
+
+    // Month totals for the web charts (see ForecastExport.chartData), summed up while the sheets are filled.
+    val chartTotals = ForecastChartTotals()
+
+    // The detail rows for the web tables (see ForecastExport.statistics), collected while the forecast sheet is filled.
+    val tables = ForecastTablesCollector()
+
+    companion object {
+        /**
+         * Pseudo project id for invoices without any assignable project. Needed because the filter selection of the
+         * forecast sheet is propagated to the invoice sheets by project id only (see visible/visibleID columns).
+         */
+        const val PROJECT_ID_NONE = -1L
+    }
 }

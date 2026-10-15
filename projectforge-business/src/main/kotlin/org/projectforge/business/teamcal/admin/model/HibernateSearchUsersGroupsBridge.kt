@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.model
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
@@ -62,8 +62,8 @@ class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
             appendUsers(getSortedUsers(userGroupCache, bridgedElement.minimalAccessUserIds), sb)
         }
 
-        if (log.isDebugEnabled) {
-            log.debug(sb.toString())
+        if (log.isDebugEnabled()) {
+            log.debug { sb.toString() }
         }
         target.addValue("usersgroups", sb.toString())
     }
@@ -82,7 +82,7 @@ class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
             if (group != null) {
                 sortedGroups.add(group)
             } else {
-                log.warn("Group with id '$id' not found in UserGroupCache. groupIds string was: $groupIds")
+                log.warn { "Group with id '$id' not found in UserGroupCache. groupIds string was: $groupIds" }
             }
         }
         return sortedGroups
@@ -102,7 +102,7 @@ class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
             if (user != null) {
                 sortedUsers.add(user)
             } else {
-                log.warn("User with id '$id' not found in UserGroupCache. userIds string was: $userIds")
+                log.warn { "User with id '$id' not found in UserGroupCache. userIds string was: $userIds" }
             }
         }
         return sortedUsers

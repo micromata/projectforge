@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.banking
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.importer.AbstractImportPageRest
 import org.springframework.beans.factory.annotation.Autowired

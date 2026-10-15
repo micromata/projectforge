@@ -30,7 +30,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
@@ -70,6 +70,42 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 10)
     open var status: KontoStatus? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.vatId")
+    @get:Column(name = "vat_id", length = 20)
+    open var vatId: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.street")
+    @get:Column(length = 255)
+    open var street: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.zipCode")
+    @get:Column(name = "zip_code", length = 10)
+    open var zipCode: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.city")
+    @get:Column(length = 100)
+    open var city: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.country")
+    @get:Column(length = 2)
+    open var country: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.leitwegId")
+    @get:Column(name = "leitweg_id", length = 50)
+    open var leitwegId: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.eInvoiceEmail")
+    @get:Column(name = "e_invoice_email", length = 255)
+    open var eInvoiceEmail: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.contactPerson")
+    @get:Column(name = "contact_person", length = 255)
+    open var contactPerson: String? = null
+
+    @PropertyInfo(i18nKey = "fibu.konto.sellerBankAccountName")
+    @get:Column(name = "seller_bank_account_name", length = 100)
+    open var sellerBankAccountName: String? = null
 
     /**
      * Formats the account as string: "[nummer] [title]", e. g. "11000 Micromata GmbH"

@@ -1,0 +1,325 @@
+import { test, expect, goto, login } from "./fixtures/auth";
+import { hasRole } from "./fixtures/credentials";
+import { userFormat, type UserFormat } from "./fixtures/format";
+import { resetFilter } from "./fixtures/filter-pill";
+import { listRows, waitForRows } from "./fixtures/list-table";
+import { ORDER_PAGE } from "../components/features/order/order.page";
+import type { MagicFilter } from "../lib/rs/types";
+import type { OrderStatisticsMeta } from "../lib/rs/order-statistics";
+import type { Page } from "@playwright/test";
+
+/**
+ * The order statistics (`/finance/statistics`): forecast and contribution margin over a filter of their own.
+ *
+ * What has to hold across the modules: the order book's buttons hand its business units, customers and
+ * projects over once (`?fromOrderBook=1`, `OrderStatisticsRest.getMeta`), every other criterion stays
+ * behind, and nothing done on the statistics page reaches the order book's filter. The favorites are the
+ * page's own. A user without the order right gets neither the menu entry nor the page.
+ *
+ * In this lane because it reads and writes the order book's stored filter.
+ */
+
+// The charts run the forecast pipeline on a real database, and the dev server compiles the route on top.
+test.describe.configure({ timeout: 180_000 });
+
+const HEADERS = { "X-PF-Frontend": "next" };
+
+test.describe("order statistics", { tag: "@lane-order" }, () => {
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    await resetFilter(page, "order");
+  });
+
+  test("takes over the order book's customer once, and keeps its own filter", async ({
+    loggedInPage: page,
+    seededCustomer,
+  }) => {
+    const format = await userFormat(page);
+    const customerKey = `k:${seededCustomer.nummer}`;
+    // The order book's filter: a customer, which is handed over, and a search term, which is not.
+    await storeOrderFilter(page, {
+      entries: [{ field: "customers", value: { values: [customerKey] } }],
+      sortProperties: [],
+      searchString: "statistics-e2e",
+    });
+
+    await goto(page, "/order");
+    await expect(
+      page.getByRole("heading", { name: format.t(ORDER_PAGE.titleKey) })
+    ).toBeVisible({ timeout: 60_000 });
+    await page
+      .getByRole("link", {
+        name: format.t("fibu.auftrag.statistics.forecast"),
+        exact: true,
+      })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
+    ).toBeVisible({ timeout: 60_000 });
+    // Taken over once: the parameter is gone, so a reload doesn't take it over again.
+    await expect(page).not.toHaveURL(/fromOrderBook/);
+    const meta = await statisticsMeta(page);
+    expect(meta.filter.entries).toEqual([
+      expect.objectContaining({
+        field: "customers",
+        value: expect.objectContaining({ values: [customerKey] }),
+      }),
+    ]);
+    expect(meta.filter.searchString ?? null).toBeNull();
+
+    // A favorite of the page's own, then gone again: it must not show up among the order book's.
+    const name = `e2e statistics ${Date.now()}`;
+    await page
+      .getByRole("button", { name: format.t("favorites._") })
+      .first()
+      .click();
+    await page.getByPlaceholder(format.t("favorite.addNew")).fill(name);
+    await page.keyboard.press("Enter");
+    await expect
+      .poll(async () =>
+        (await statisticsMeta(page)).filterFavorites.map((it) => it.name)
+      )
+      .toContain(name);
+    const favorite = (await statisticsMeta(page)).filterFavorites.find(
+      (it) => it.name === name
+    )!;
+    try {
+      const orderBook = await orderBookMeta(page);
+      expect(orderBook.filterFavorites?.map((it) => it.name)).not.toContain(
+        name
+      );
+      // The order book's own filter is untouched, search term included.
+      expect(orderBook.filter?.searchString).toBe("statistics-e2e");
+    } finally {
+      await page.request.post(
+        `/rs/orderStatistics/filter/delete?id=${favorite.id}`,
+        { headers: await writeHeaders(page) }
+      );
+    }
+  });
+
+  test("shows the data behind the charts in sub-tabs", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await openForecastTables(page, format);
+    for (const key of [
+      "fibu.projekt.projekte",
+      "fibu.auftrag.positions",
+      "fibu.rechnung.rechnungen",
+      "fibu.auftrag.statistics.tables.invoicesPrevYear",
+      "fibu.auftrag.statistics.tables.invoicesPrevPrevYear",
+    ]) {
+      await expect(
+        page.getByRole("tab", { name: new RegExp(`^${escape(format.t(key))}`) })
+      ).toBeVisible();
+    }
+    await page
+      .getByRole("tab", {
+        name: new RegExp(`^${escape(format.t("fibu.auftrag.positions"))}`),
+      })
+      .click();
+    await expect(
+      page.getByRole("columnheader", {
+        name: format.t("fibu.auftrag.forecastType._"),
+      })
+    ).toBeVisible();
+    // The table scrolls in its own box, the first columns pinned: scrolled to its right end, the order
+    // column stands where it stood and the page has not moved.
+    // The header also holds the filter button, whose label is part of the cell's name.
+    const orderHeader = page.getByRole("columnheader", {
+      name: new RegExp(`^${escape(format.t("fibu.auftrag._"))}\\b`),
+    });
+    const before = await orderHeader.boundingBox();
+    const scrolled = await orderHeader.evaluate((cell) => {
+      let box = cell.parentElement;
+      while (box && getComputedStyle(box).overflowX !== "auto")
+        box = box.parentElement;
+      if (!box || box.scrollWidth <= box.clientWidth) return false;
+      box.scrollLeft = box.scrollWidth;
+      return true;
+    });
+    if (scrolled) {
+      await expect
+        .poll(async () => (await orderHeader.boundingBox())?.x)
+        .toBe(before?.x);
+      expect(await page.evaluate(() => window.scrollX)).toBe(0);
+    }
+    // Sorting on the header click, filtering in the header's popover; the sum row follows the filter.
+    // The rows of the result set: neither the skeletons nor the empty state's single row (see listRows).
+    const positions = await waitForRows(page);
+    const total = await positions.count();
+    await orderHeader.click();
+    await expect(
+      orderHeader.locator(
+        `[data-tooltip="${format.t("columns.sortAscending")}"]`
+      )
+    ).toBeVisible();
+    await orderHeader
+      .getByRole("button", { name: format.t("filter.title") })
+      .click();
+    // The popover opens in the selection mode only for a column of at most 20 distinct values
+    // (SELECTION_PREFERRED_MAX); a production-sized instance has more orders than that.
+    await page.getByRole("dialog").getByRole("combobox").first().click();
+    await page
+      .getByRole("option", {
+        name: new RegExp(`^${escape(format.t("filter.selection"))}`),
+      })
+      .click();
+    await page
+      .getByRole("button", { name: format.t("filter.selectNone") })
+      .click();
+    await expect(positions).toHaveCount(0);
+    await page
+      .getByRole("button", { name: format.t("filter.selectAll") })
+      .click();
+    await expect(positions).toHaveCount(total);
+  });
+
+  test("opens the forecast analysis of an order from its position", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await openForecastTables(page, format);
+    const positionsTab = page.getByRole("tab", {
+      name: new RegExp(`^${escape(format.t("fibu.auftrag.positions"))}`),
+    });
+    await positionsTab.click();
+    const open = page.getByRole("button", {
+      name: format.t("fibu.auftrag.statistics.tables.forecastDetails"),
+    });
+    // A loaded table, a row or its empty state - a skeleton row would decide the skip too early.
+    await expect(
+      open.or(listRows(page)).or(page.locator("tbody td[colspan]")).first()
+    ).toBeVisible();
+    test.skip(
+      (await open.count()) === 0,
+      "no position with an order in the forecast"
+    );
+    await open.first().click();
+
+    // The analysis of the whole order, the backend's HTML, in a dialog above the tables.
+    const dialog = page.getByRole("dialog");
+    // The dialog's own title: the backend's HTML below brings headings starting alike.
+    await expect(dialog.locator('[data-slot="dialog-title"]')).toHaveText(
+      new RegExp(`^${escape(format.t("fibu.auftrag.forecast._"))}`)
+    );
+    await expect(dialog.locator(".order-forecast")).toBeVisible({
+      timeout: 60_000,
+    });
+    // The order number in the title opens the order at its Forecast tab.
+    await expect(
+      dialog.locator('[data-slot="dialog-title"]').getByRole("link")
+    ).toHaveAttribute("href", /\/order\/\d+\?tab=forecast$/);
+    // Closed again, the tables are where they were.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(positionsTab).toHaveAttribute("aria-selected", "true");
+  });
+
+  test.describe("for a user without the order right", () => {
+    test.skip(
+      !hasRole("normalo-user"),
+      "no normalo-user in this instance's testAccounts.txt"
+    );
+
+    test("offers neither the menu entry nor the page", async ({ page }) => {
+      await login(page, "normalo-user");
+      const menu = await page.request.get("/rs/menu", { headers: HEADERS });
+      expect(JSON.stringify(await menu.json())).not.toContain(
+        "next/finance/statistics"
+      );
+      const meta = await page.request.get("/rs/orderStatistics/meta", {
+        headers: HEADERS,
+      });
+      expect(meta.ok()).toBe(false);
+      // Neither the charts' tables nor the rows behind the contribution margin, despite the cache.
+      for (const path of [
+        "/rs/order/forecastChart/tables",
+        "/rs/order/contributionMargin/details",
+      ]) {
+        const res = await page.request.post(path, {
+          headers: await writeHeaders(page),
+          data: { filter: { entries: [], sortProperties: [] } },
+        });
+        expect(res.ok(), path).toBe(false);
+      }
+
+      const format = await userFormat(page);
+      await goto(page, "/finance/statistics");
+      await expect(
+        page.getByText(format.t("access.exception.noAccess"))
+      ).toBeVisible({ timeout: 60_000 });
+    });
+  });
+});
+
+/**
+ * Opens the forecast statistics over an empty filter and waits for the tables below the charts; skips the
+ * test if this instance has no forecast data.
+ */
+async function openForecastTables(page: Page, format: UserFormat) {
+  // The page's own filter (left by another case, e.g. a customer) is stored by the chart call.
+  const reset = await page.request.post("/rs/order/forecastChart", {
+    headers: await writeHeaders(page),
+    data: { filter: { entries: [], sortProperties: [] } },
+  });
+  expect(reset.ok()).toBe(true);
+  await goto(page, "/finance/statistics");
+  await expect(
+    page.getByRole("heading", { name: format.t("menu.fibu.orderStatistics") })
+  ).toBeVisible({ timeout: 60_000 });
+  const heading = page.getByRole("heading", {
+    name: format.t("fibu.auftrag.statistics.tables.heading"),
+  });
+  const empty = page.getByText(format.t("fibu.auftrag.forecast.chart.empty"));
+  await expect(heading.or(empty)).toBeVisible({ timeout: 120_000 });
+  test.skip(
+    await empty.isVisible(),
+    "no forecast data in this instance (the tables only exist with charts)"
+  );
+}
+
+/** `text` as a literal part of a regular expression. */
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The headers a state changing call needs — the CSRF token is read per call. */
+async function writeHeaders(page: Page): Promise<Record<string, string>> {
+  const status = await page.request.get("/rs/userStatus", { headers: HEADERS });
+  const { csrfToken } = (await status.json()) as { csrfToken: string };
+  return {
+    ...HEADERS,
+    "X-PF-CSRF-Token": csrfToken,
+    "Content-Type": "application/json",
+  };
+}
+
+/** Stores `filter` as the order book's current one, as a list request does. */
+async function storeOrderFilter(page: Page, filter: MagicFilter) {
+  const res = await page.request.post("/rs/order/list", {
+    headers: await writeHeaders(page),
+    data: filter,
+  });
+  expect(res.ok()).toBe(true);
+}
+
+async function statisticsMeta(page: Page): Promise<OrderStatisticsMeta> {
+  const res = await page.request.get("/rs/orderStatistics/meta", {
+    headers: HEADERS,
+  });
+  expect(res.ok()).toBe(true);
+  return (await res.json()) as OrderStatisticsMeta;
+}
+
+async function orderBookMeta(page: Page) {
+  const res = await page.request.get("/rs/order/listMeta", {
+    headers: HEADERS,
+  });
+  expect(res.ok()).toBe(true);
+  return (await res.json()) as {
+    filter?: MagicFilter;
+    filterFavorites?: { id: number; name: string }[];
+  };
+}

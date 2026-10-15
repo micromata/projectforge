@@ -23,7 +23,7 @@
 
 package org.projectforge.menu.builder
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.dvelop.DvelopConfiguration
@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.business.login.Login
+import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
@@ -50,6 +51,7 @@ import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
+import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuConfiguration
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
@@ -76,12 +78,17 @@ open class MenuCreator {
         }
     }
 
+    private data class PluginMenuRegistration(val parentId: String, val menuItemDef: MenuItemDef)
+
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
     private var menuItemDefHolder = MenuItemDefHolder()
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var notificationDao: NotificationDao
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
@@ -109,6 +116,8 @@ open class MenuCreator {
 
     private var initialized = false
 
+    private val pluginMenuRegistrations = mutableListOf<PluginMenuRegistration>()
+
     /**
      * Plugins may register entries for the user's personal menu at the top right.
      */
@@ -129,6 +138,14 @@ open class MenuCreator {
         initialized = false
         menuItemDefHolder = MenuItemDefHolder()
         initialize()
+        pluginMenuRegistrations.forEach { registration ->
+            findById(registration.parentId)?.let {
+                if (it.children?.any { child -> child.id == registration.menuItemDef.id } != true) {
+                    it.add(registration.menuItemDef)
+                }
+            } ?: log.error { "Can't re-register plugin menu '${registration.menuItemDef.id}': parentId=${registration.parentId} not found." }
+        }
+        log.info { "Menu refreshed including ${pluginMenuRegistrations.size} plugin menu entries." }
     }
 
     /**
@@ -142,9 +159,8 @@ open class MenuCreator {
         synchronized(menuItemDefHolder) {
             findById(parentId)?.let {
                 it.add(menuItemDef)
-            } ?: {
-                log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
-            }
+            } ?: log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
+            pluginMenuRegistrations.add(PluginMenuRegistration(parentId, menuItemDef))
         }
     }
 
@@ -236,7 +252,7 @@ open class MenuCreator {
                 menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 return // This should only occur in test cases.
             }
-            log.error("Oups, shouldn't occur. Spring bean not correctly initialized.")
+            log.error { "Oups, shouldn't occur. Spring bean not correctly initialized." }
         }
         //////////////////////////////////////
         //
@@ -292,6 +308,15 @@ open class MenuCreator {
                             0
                     })
             )
+            // Requires what the order book requires: the statistics show nothing but the orders the user may see.
+            .add(
+                MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                    checkAccess =
+                    {
+                        hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
+                                !isInGroup(*FIBU_ORGA_GROUPS) // Shown under menu FiBu for FiBu users
+                    })
+            )
             .add(MenuItemDef(MenuItemDefId.MY_SCRIPT_LIST))
 
 
@@ -329,13 +354,21 @@ open class MenuCreator {
         //
         val fibuMenu = menuItemDefHolder.add(
             MenuItemDef(MenuItemDefId.FIBU,
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) })
+                // Order book users (PM_ORDER_BOOK) also reach this submenu - only for the read-only,
+                // order-filtered outgoing invoice list below; every other entry keeps its own check.
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_GROUPS) ||
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
+                })
         )
             .add(
                 MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST,
                     checkAccess = {
                         hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP) ||
+                                // Read-only list of the invoices linked to orders the user may see
+                                // (see RechnungDao's per-row select access for order book users).
+                                hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
                     })
             )
             .add(
@@ -365,6 +398,11 @@ open class MenuCreator {
                         })
                 )
         }
+        // Not tied to isCostConfigured: groups of free-text customers make sense without customer entities.
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.CUSTOMER_GROUPS,
+                checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+        )
         if (dvelopConfiguration.isConfigured()) {
             fibuMenu.add(
                 MenuItemDef(MenuItemDefId.DVELOP,
@@ -378,6 +416,20 @@ open class MenuCreator {
                 requiredGroups = FIBU_ORGA_GROUPS,
                 badgeCounter =
                 { auftragsCache.getToBeInvoicedCounter() })
+        )
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.ORDER_STATISTICS,
+                requiredGroups = FIBU_ORGA_GROUPS,
+                checkAccess = { hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) })
+        )
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
+                // Also open to order-book users: the checker only parses an uploaded file and exposes
+                // no ProjectForge data (see EInvoiceCheckerPageRest.checkAccess).
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_GROUPS) ||
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
+                })
         )
 
         //////////////////////////////////////
@@ -466,13 +518,6 @@ open class MenuCreator {
                     checkAccess =
                     { Configuration.instance.isCostConfigured })
             )
-            .add(
-                MenuItemDef(
-                    MenuItemDefId.EMPLOYEE_SALARY_IMPORT,
-                    requiredUserRightId = EmployeeDao.USER_RIGHT_ID,
-                    requiredUserRightValues = arrayOf(UserRightValue.READWRITE),
-                )
-            )
 
         //////////////////////////////////////
         //
@@ -529,7 +574,6 @@ open class MenuCreator {
             .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
             .add(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU))
             .add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP))
-            .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
             .add(
                 MenuItemDef(MenuItemDefId.VACATION_ACCOUNT,
                     badgeCounter = {
@@ -561,9 +605,26 @@ open class MenuCreator {
             .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
         adminMenu
-            .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
-            .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
-            .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            // The admin log viewer is a tab of the system dashboard (?tab=logs).
+            .add(MenuItemDef(MenuItemDefId.ADMIN_ERRORS, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            // The rules of the notification system (NotificationRuleDao: admins and finance).
+            .add(
+                MenuItemDef(
+                    MenuItemDefId.NOTIFICATION_RULE_LIST,
+                    requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP),
+                )
+            )
+            // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
+            .add(
+                MenuItemDef(
+                    MenuItemDefId.CONFIGURATION,
+                    requiredGroups = arrayOf(
+                        ProjectForgeGroup.ADMIN_GROUP,
+                        ProjectForgeGroup.FINANCE_GROUP,
+                        ProjectForgeGroup.CONTROLLING_GROUP,
+                    )
+                )
+            )
             .add(
                 MenuItemDef(
                     MenuItemDefId.PLUGIN_ADMIN,
@@ -592,14 +653,21 @@ open class MenuCreator {
     fun build(menuCreatorContext: MenuCreatorContext): Menu {
         initialize()
         val menu = Menu()
+        // The pending notifications of the user, counted at the menu items of their rules (NotificationRuleDO.menuBadge).
+        val notificationCounts = menuCreatorContext.user.id?.let { notificationDao.countByMenuBadge(it) }.orEmpty()
         menuItemDefHolder.menuItems.forEach { menuItemDef ->
-            menu.add(build(null, menuItemDef, menuCreatorContext))
+            menu.add(build(null, menuItemDef, menuCreatorContext, notificationCounts))
         }
         menu.postProcess()
         return menu
     }
 
-    private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
+    private fun build(
+        parent: MenuItem?,
+        menuItemDef: MenuItemDef,
+        menuCreatorContext: MenuCreatorContext,
+        notificationCounts: Map<String, Int>,
+    ): MenuItem? {
         if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
             // Not visible for the user (groups customized in projectforge.properties).
             return null
@@ -607,10 +675,14 @@ open class MenuCreator {
         if (!checkAccess(menuCreatorContext, menuItemDef))
             return null // No access
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
+        notificationCounts[menuItemDef.id]?.takeIf { it > 0 }?.let { count ->
+            val badge = menuItem.badge ?: MenuBadge(0, style = "danger").also { menuItem.badge = it }
+            badge.counter = (badge.counter ?: 0) + count
+        }
 
         parent?.add(menuItem)
         menuItemDef.children?.forEach { childMenuItemDef ->
-            build(menuItem, childMenuItemDef, menuCreatorContext)
+            build(menuItem, childMenuItemDef, menuCreatorContext, notificationCounts)
         }
         return menuItem
     }
@@ -640,7 +712,7 @@ open class MenuCreator {
         values: Array<UserRightValue>?
     ): Boolean {
         if (values.isNullOrEmpty()) {
-            log.warn("Can't check user right '$rightId' against null values.")
+            log.warn { "Can't check user right '$rightId' against null values." }
             return false
         }
         return accessChecker.hasRight(menuBuilderContext.user, rightId, false, *values)

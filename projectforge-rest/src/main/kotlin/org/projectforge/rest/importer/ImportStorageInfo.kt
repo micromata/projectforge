@@ -33,9 +33,22 @@ class ImportStorageInfo() {
   var numberOfFaultyEntries: Int = 0
 
   var detectedColumns: List<String>? = null
+
+  /**
+   * The detected columns as field-label to matched-CSV-header pairs, in the file's column order (what the
+   * classic import page renders as its "Erkannte Spalten" table). A field may appear more than once when
+   * several aliases matched (e.g. a remark mapped from both "Freier Text" and "Notiz").
+   */
+  var detectedColumnMappings: List<ColumnMapping>? = null
   var unknownColumns: List<String>? = null
 
   var displayOptions = ImportStorage.DisplayOptions()
+
+  /** One detected column: the target field's label and the CSV header that matched it. */
+  class ColumnMapping(
+    var field: String? = null,
+    var header: String? = null,
+  )
 
   constructor(importStorage: ImportStorage<*>) : this() {
     totalNumber = importStorage.pairEntries.size
@@ -51,6 +64,10 @@ class ImportStorageInfo() {
       }
     }
     detectedColumns = importStorage.detectedColumns.keys.sorted()
+    // Insertion order of detectedColumns is the file's column order — kept, so the table reads like the file.
+    detectedColumnMappings = importStorage.detectedColumns.map { (header, settings) ->
+      ColumnMapping(field = settings.label, header = header)
+    }
     unknownColumns = importStorage.unknownColumns
   }
 }

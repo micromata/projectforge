@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "contractType")

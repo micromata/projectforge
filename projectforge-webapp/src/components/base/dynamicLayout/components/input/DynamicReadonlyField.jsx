@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import ReadonlyField from '../../../../design/input/ReadonlyField';
+import formatterFormat from '../../../FormatterFormat';
 import { DynamicLayoutContext } from '../../context';
 import DynamicValidationManager from './DynamicValidationManager';
 
@@ -12,12 +14,20 @@ function DynamicReadonlyField(
         id,
         dataType,
         value,
+        locale,
         ...props
     },
 ) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const dataValue = value || Object.getByString(data, id) || '';
+    let dataValue = value || Object.getByString(data, id) || '';
+
+    if (dataType && dataType !== 'STRING' && dataType !== 'BOOLEAN' && dataValue !== '') {
+        const formatted = formatterFormat(dataValue, dataType, null, null, null, locale, null);
+        if (formatted !== undefined && formatted !== null) {
+            dataValue = formatted;
+        }
+    }
 
     return React.useMemo(() => (
         <DynamicValidationManager id={id}>
@@ -34,6 +44,11 @@ function DynamicReadonlyField(
 DynamicReadonlyField.propTypes = {
     id: PropTypes.string.isRequired,
     dataType: PropTypes.string,
+    locale: PropTypes.string,
 };
 
-export default DynamicReadonlyField;
+const mapStateToProps = ({ authentication }) => ({
+    locale: authentication?.user?.locale,
+});
+
+export default connect(mapStateToProps)(DynamicReadonlyField);

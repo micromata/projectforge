@@ -23,8 +23,9 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.login.LoginService
+import org.projectforge.web.WebUtils
 import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -35,7 +36,7 @@ private val securityLog = KotlinLogging.logger("de.micromata.projectforge.securi
 object SecurityLogging {
   /**
    * Writes info message to accessLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @return The build message including request infos.
    */
@@ -46,7 +47,7 @@ object SecurityLogging {
 
   /**
    * Writes info message to accessLog and/or securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param logAccess If true, the log info message will be written to accessLog.
    * @param logSecurity If true, the log info message will be written to securityLog.
@@ -62,10 +63,10 @@ object SecurityLogging {
   ): String {
     val msg = "${getLogInfo(request)}, ${getMessagePart(caller)}"
     if (logAccess) {
-      accessLog.info(msg)
+      accessLog.info { msg }
     }
     if (logSecurity) {
-      securityLog.info(msg)
+      securityLog.info { msg }
       log.info { "logSecurity: $msg" }
     }
     return msg
@@ -73,7 +74,7 @@ object SecurityLogging {
 
   /**
    * Writes warn message to securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
    * @param message Optional message attached to the end of the logging message.
@@ -99,14 +100,14 @@ object SecurityLogging {
   @JvmStatic
   fun logSecurityWarn(caller: Class<*>, title: String, message: String? = null): String {
     val msg = "*** $title *** ${getMessagePart(caller, message)}"
-    securityLog.warn(msg)
+    securityLog.warn { msg }
     log.warn { "logSecurity: $msg" }
     return msg
   }
 
   /**
    * Writes warn message to accessLog and/or securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
    * @param logAccess If true, the log warn message will be written to accessLog.
@@ -126,11 +127,11 @@ object SecurityLogging {
   ): String {
     val msg = "*** $title *** ${getLogInfo(request)} ${getMessagePart(caller, message)}"
     if (logAccess) {
-      accessLog.warn(msg)
+      accessLog.warn { msg }
       log.warn { "logAccess: $msg" }
     }
     if (logSecurity) {
-      securityLog.warn(msg)
+      securityLog.warn { msg }
       log.warn { "logSecurity: $msg" }
     }
     return msg
@@ -146,7 +147,7 @@ object SecurityLogging {
     } else {
       ""
     }
-    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
+    return "ip=[${WebUtils.getClientIp(request)}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
       request.getHeader(
         "User-Agent"
       )

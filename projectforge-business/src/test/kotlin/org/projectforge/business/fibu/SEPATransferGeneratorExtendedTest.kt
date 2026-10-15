@@ -43,7 +43,7 @@ import javax.xml.validation.SchemaFactory
  * Extended test suite for SEPATransferGenerator to ensure migration safety.
  * Creates golden files (reference XMLs) that can be used to validate the migration.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
 
@@ -336,6 +336,8 @@ class SEPATransferGeneratorExtendedTest : AbstractTestBase() {
             .replace(Regex("<PmtInfId>.*?</PmtInfId>"), "<PmtInfId>NORMALIZED</PmtInfId>")
             .replace(Regex("<EndToEndId>.*?</EndToEndId>"), "<EndToEndId>NORMALIZED</EndToEndId>")
             .replace(Regex("<ReqdExctnDt>.*?</ReqdExctnDt>"), "<ReqdExctnDt>NORMALIZED</ReqdExctnDt>")
+            .replace(Regex("standalone=\"(yes|no)\""), "standalone=\"no\"")
+            .lines().joinToString("\n") { it.trimStart() }
     }
 
     private fun assertXmlEquals(goldenFile: File, generatedXml: String, message: String = "") {

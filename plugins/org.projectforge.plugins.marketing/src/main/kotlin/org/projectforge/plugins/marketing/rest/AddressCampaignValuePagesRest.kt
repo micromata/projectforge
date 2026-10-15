@@ -24,10 +24,9 @@
 package org.projectforge.plugins.marketing.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -35,7 +34,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.utils.FileHelper
+import org.projectforge.common.FilenameUtils
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.marketing.*
@@ -84,9 +83,6 @@ class AddressCampaignValuePagesRest :
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
 
     companion object {
         private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
@@ -462,7 +458,7 @@ class AddressCampaignValuePagesRest :
         campaignValues.add(UISelectValue("", "--")) // Empty option
 
         // Add campaign values from the DTO (already parsed)
-        dto.addressCampaign?.values?.forEach { value ->
+        dto.addressCampaign?.valuesArray?.forEach { value ->
             campaignValues.add(UISelectValue(value, value))
         }
 
@@ -823,7 +819,7 @@ class AddressCampaignValuePagesRest :
         }
 
         // Create filename with campaign name and date
-        val campaignName = FileHelper.createSafeFilename(campaign.title ?: "Campaign", 200)
+        val campaignName = FilenameUtils.createSafeFilename(campaign.title ?: "Campaign", maxlength = 200)
         val filename = "ProjectForge-AddressCampaignExport_${campaignName}_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
         return RestUtils.downloadFile(filename, xls)
     }

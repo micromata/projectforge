@@ -54,7 +54,7 @@ class CurrencyConversionServiceTest : AbstractTestBase() {
 
             // Add rate for 2025-01-01: 1 USD = 0.85 EUR, 1 EUR = 1.1765 USD
             addConversionRate(
-                usdToEurPairId!!,
+                usdToEurPairId,
                 LocalDate.of(2025, 1, 1),
                 BigDecimal("0.85"),
                 BigDecimal("1.1765")
@@ -77,7 +77,7 @@ class CurrencyConversionServiceTest : AbstractTestBase() {
 
             // Add rate for 2025-01-01: 1 EUR = 0.87 GBP, 1 GBP = 1.1494 EUR
             addConversionRate(
-                eurToGbpPairId!!,
+                eurToGbpPairId,
                 LocalDate.of(2025, 1, 1),
                 BigDecimal("0.87"),
                 BigDecimal("1.1494")

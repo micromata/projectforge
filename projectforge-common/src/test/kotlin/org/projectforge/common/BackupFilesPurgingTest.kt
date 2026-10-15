@@ -118,6 +118,30 @@ class BackupFilesPurgingTest {
         }
     }
 
+    @Test
+    fun `each backup series matching the prefix is purged on its own`() {
+        val tmpDir = createTempDirectory("BackupFilesPurgingTest").toFile()
+        try {
+            val baseDate = LocalDate.of(2020, Month.MAY, 3)
+            // Main dump and dump of the files (schema pf_files):
+            createTempFiles(tmpDir, baseDate, "projectforge", "projectforge_files")
+            BackupFilesPurging.purgeDirectory(
+                tmpDir,
+                baseDate = baseDate,
+                filePrefix = "projectforge",
+                keepDailyBackups = 30,
+                keepWeeklyBackups = 0
+            )
+            val files = tmpDir.listFiles()!!
+            Assertions.assertEquals(36, files.count { it.name.startsWith("projectforge-") })
+            Assertions.assertEquals(36, files.count { it.name.startsWith("projectforge_files-") })
+            Assertions.assertTrue(files.any { it.name == "projectforge_files-2020-04-01$SUFFIX" }, "First of month kept.")
+            Assertions.assertFalse(files.any { it.name == "projectforge_files-2020-04-02$SUFFIX" })
+        } finally {
+            tmpDir.deleteRecursively()
+        }
+    }
+
     private fun createTempFiles(tmpDir: File, baseDate: LocalDate, vararg basenames: String) {
         var current = baseDate.minusMonths(5)
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")

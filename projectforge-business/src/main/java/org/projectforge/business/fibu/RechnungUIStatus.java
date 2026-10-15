@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  * Stores the user interface status of an invoice (such as opened/closed invoice positions). This class will be marshalled and unmarshalled
  * as XML.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "rechnungUIStatus")

@@ -23,7 +23,7 @@
 
 package org.projectforge.ui.filter
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -31,7 +31,8 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.AttachmentsFilterSupport
 import org.projectforge.ui.*
 
 private val log = KotlinLogging.logger {}
@@ -43,7 +44,7 @@ val PAGINATION_PAGE_SIZES = intArrayOf(25, 50, 100, 200, 500, 1000)
  */
 object LayoutListFilterUtils {
     fun createNamedSearchFilterContainer(
-        pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
+        pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
         lc: LayoutContext
     ): UINamedContainer {
         val container = UINamedContainer("searchFilter")
@@ -76,19 +77,30 @@ object LayoutListFilterUtils {
             )
         )
         elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+        if (AttachmentsFilterSupport.supported(pagesRest)) {
+            AttachmentsFilterSupport.addFilterElement(elements)
+        }
 
         val baseDao = pagesRest.baseDao
         val searchFields = baseDao.searchFields
         searchFields.forEach {
+            if (AttachmentsFilterSupport.isHiddenSearchField(it)) {
+                return@forEach
+            }
             val elInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elInfo == null) {
-                log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
+                log.warn { "Search field '${baseDao.doClass}.$it' not found. Ignoring it." }
             } else {
                 val element: UIElement
                 if (elInfo.propertyClass.isEnum) {
                     @Suppress("UNCHECKED_CAST")
                     element = UIFilterListElement(it)
-                        .buildValues(i18nEnum = elInfo.propertyClass as Class<out Enum<*>>)
+                        .buildValues(
+                            i18nEnum = elInfo.propertyClass as Class<out Enum<*>>,
+                            // Only where the column allows null: for a mandatory field the option would
+                            // be an option that never matches (see ElementsRegistry.getElementInfo).
+                            addNullValue = elInfo.required != true,
+                        )
                     element.label = element.id // Default label if no translation will be found below.
                 } else {
                     element = UIFilterElement(it)
@@ -97,30 +109,108 @@ object LayoutListFilterUtils {
                 }
                 element as UILabelledElement
                 element.label = getLabel(elInfo)
+                // Nested fields carry their parents in the label ("Kunde - Name"), which is what the
+                // client groups them by; it shows the leaf alone under the group's heading.
+                groupLabel(elInfo)?.let { group ->
+                    element.group = group
+                    element.shortLabel = leafLabel(elInfo)
+                }
+                val attachmentsLabel = AttachmentsFilterSupport.searchFieldLabel(it)
+                if (attachmentsLabel != null) {
+                    element.label = attachmentsLabel
+                } else if (elInfo.i18nKey.isNullOrBlank()) {
+                    // No @PropertyInfo, so no translation: getLabel fell back to the property name above.
+                    // Indexed plumbing, searchable but not a field a user looks for.
+                    element.technical = true
+                }
                 elements.add(element)
             }
         }
         pagesRest.addMagicFilterElements(elements)
 
-        elements.sortWith(compareBy(ThreadLocalUserContext.localeComparator) { it.label })
+        // A page may pin (or otherwise refine) a filter field that is also an indexed search field of
+        // the entity: an enum property such as KundeDO.status is derived above from searchFields and then
+        // added again, with defaultFilter = true, by addMagicFilterElements. Two elements of the same id
+        // reach the client as two pills for one field (see CustomerPagesRest). Keep the last one per id,
+        // so the page's explicit element wins over the auto-derived one.
+        dedupById(elements)
+
+        sortElements(elements, ThreadLocalUserContext.localeComparator)
         elements.forEach { container.add(it as UIElement) }
         return container
     }
 
+    /**
+     * The [UIFilterElement.leading] fields first, in the order added, then the others by label. Stable, so
+     * fields of the same label keep their order as well.
+     */
+    internal fun sortElements(elements: MutableList<UILabelledElement>, comparator: Comparator<Any?>) {
+        elements.sortWith(
+            compareBy<UILabelledElement> { (it as? UIFilterElement)?.leading != true }
+                .thenComparator { a, b ->
+                    // Leading fields keep their order; the others by label (the collator takes no null).
+                    if ((a as? UIFilterElement)?.leading == true) 0
+                    else comparator.compare(a.label ?: "", b.label ?: "")
+                }
+        )
+    }
+
+    /**
+     * Removes filter elements whose id already occurs earlier in the list, keeping the last one (the
+     * element a page added via [AbstractEntityRest.addMagicFilterElements] wins over the one derived
+     * from the entity's search fields). Elements without an id (none of the current UIFilterElement
+     * subclasses) are left untouched.
+     */
+    private fun dedupById(elements: MutableList<UILabelledElement>) {
+        val seen = HashSet<String>()
+        // Walk from the end so the last element of a duplicated id is the one kept.
+        for (i in elements.indices.reversed()) {
+            val id = (elements[i] as? UIFilterElement)?.id ?: continue
+            if (!seen.add(id)) elements.removeAt(i)
+        }
+    }
+
+    /**
+     * The full label of a field, its parents first: "Projekt - Kunde - Name".
+     */
     fun getLabel(elInfo: ElementInfo): String {
         val sb = StringBuilder()
         addLabel(sb, elInfo)
         return sb.toString()
     }
 
+    /**
+     * The parents of a field alone ("Projekt - Kunde"), or null for a field of the entity itself.
+     *
+     * Together with [leafLabel] this is [getLabel] split in two, for a client that shows the parents once
+     * as a group heading instead of in every field's label (see [UIFilterElement.group]).
+     */
+    fun groupLabel(elInfo: ElementInfo): String? {
+        val parent = elInfo.parent ?: return null
+        val sb = StringBuilder()
+        addLabel(sb, parent)
+        return sb.toString()
+    }
+
+    /** The field's own label, without its parents: "Name". */
+    fun leafLabel(elInfo: ElementInfo): String {
+        val sb = StringBuilder()
+        addOwnLabel(sb, elInfo)
+        return sb.toString()
+    }
+
     private fun addLabel(sb: StringBuilder, elInfo: ElementInfo?) {
         if (elInfo == null) return
         if (sb.length > 1000) { // Paranoia test for endless loops
-            log.error("Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!")
+            log.error { "Oups, paranoia test detects endless loop in ElementInfo.parent '$sb'!" }
             return
         }
         addLabel(sb, elInfo.parent)
         if (elInfo.parent != null) sb.append(" - ")
+        addOwnLabel(sb, elInfo)
+    }
+
+    private fun addOwnLabel(sb: StringBuilder, elInfo: ElementInfo) {
         if (!elInfo.i18nKey.isNullOrBlank()) {
             sb.append(translate(elInfo.i18nKey))
         } else {

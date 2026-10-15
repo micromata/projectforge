@@ -40,7 +40,7 @@ import java.util.*
 /**
  * Some helper methods ...
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object RoundUtils {
     /**

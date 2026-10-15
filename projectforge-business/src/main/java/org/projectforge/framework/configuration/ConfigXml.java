@@ -53,7 +53,7 @@ import java.util.List;
  * Configure ProjectForge via config.xml in the application's base dir.<br/>
  * The config.xml will never re-read automatically. Please call the web admin page to force a re-read.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XmlObject(alias = "config")
 public class ConfigXml {

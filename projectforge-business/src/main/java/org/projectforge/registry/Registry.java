@@ -58,7 +58,7 @@ import java.util.*;
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class Registry {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Registry.class);

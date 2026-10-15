@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.SystemStatus
 import org.projectforge.rest.ChangePasswordPageRest
 import org.projectforge.rest.ChangeWlanPasswordPageRest
-import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.ui.AutoCompletion
 
 class ProjectForge2FAInitializationTest {
@@ -56,14 +56,31 @@ class ProjectForge2FAInitializationTest {
     }
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST2, ChangePasswordPageRest::class.java)
     Assertions.assertEquals("/rs/abc;/rs/cde;/rs/changePassword;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.INTERNAL_TEST2))
-    initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST3, AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
-    Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved(
+    initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST3, AdminLogViewerRest::class.java, AdminLogViewerRest::query, AdminLogViewerRest::reset)
+    Assertions.assertEquals("/rs/adminLogViewer/query;/rs/adminLogViewer/reset;", my2FARequestHandler.getShortCutResolved(
       My2FAShortCut.INTERNAL_TEST3
     ))
 
-    Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved(
+    // The error dashboard (next/systemDashboard), as a whole:
+    Assertions.assertTrue(my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN)?.contains("/rs/adminErrors;") == true)
+    Assertions.assertTrue(my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN)?.contains("/rs/adminScheduler;") == true)
+
+    // The my-account page (tokens, devices) as a whole:
+    Assertions.assertEquals("/rs/myAccount;", my2FARequestHandler.getShortCutResolved(
       My2FAShortCut.MY_ACCOUNT
     ))
+    // ... logging *other* users out of their devices is not:
+    Assertions.assertTrue(
+      my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN_WRITE)
+        ?.contains("/rs/user/logoutAllDevicesOfUser") == true,
+      "logoutAllDevicesOfUser has to be registered for ADMIN_WRITE.",
+    )
+    // ... nor renewing their tokens:
+    Assertions.assertTrue(
+      my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN_WRITE)
+        ?.contains("/rs/user/resetToken") == true,
+      "resetToken has to be registered for ADMIN_WRITE.",
+    )
 
     Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_TEXT}"))
     Assertions.assertEquals(0L, my2FARequestHandler.getRemainingPeriod("/rs/user/notautosearch"), "New 2FA requested for /rs/user*.")

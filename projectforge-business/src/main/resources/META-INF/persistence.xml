@@ -19,6 +19,11 @@
             <property name="hibernate.connection.handling_mode" value="DELAYED_ACQUISITION_AND_HOLD"/>
             <property name="hibernate.search.lucene_version" value="LUCENE_CURRENT"/>
 
+            <!-- Batch-load lazy @ManyToOne associations instead of one row at a time. Removes the N+1 select storm
+                 during Hibernate Search mass reindexing (LAZY @IndexedEmbedded chains like Kost2 -> Projekt -> Kunde)
+                 and also benefits normal list/detail loading. Keep aligned with MassIndexer.batchSizeToLoadObjects. -->
+            <property name="hibernate.default_batch_fetch_size" value="128"/>
+
             <property name="hibernate.archive.scanner"
                       value="org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner"/>
 

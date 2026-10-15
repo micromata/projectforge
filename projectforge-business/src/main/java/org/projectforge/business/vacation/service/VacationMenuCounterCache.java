@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Access to ffp event.
@@ -45,19 +45,16 @@ public class VacationMenuCounterCache extends AbstractCache {
   @Autowired
   private VacationService vacationService;
 
-  // Key is employee id
-  private Map<Long, Integer> openMenuCounter = new HashMap<>();
+  // Key is the user id. Concurrent, as the menus of all users are built in parallel request threads. Expired by
+  // VacationDao on every vacation change, so a badge doesn't count already handled applications.
+  private final Map<Long, Integer> openMenuCounter = new ConcurrentHashMap<>();
 
   public Integer getOpenLeaveApplicationsForUser(PFUserDO employeeUser) {
     if (employeeUser == null)
       return 0;
     checkRefresh();
-    Integer value = openMenuCounter.get(employeeUser.getId());
-    if (value == null) {
-      value = vacationService.getOpenLeaveApplicationsForUser(employeeUser);
-      openMenuCounter.put(employeeUser.getId(), value);
-    }
-    return value;
+    return openMenuCounter.computeIfAbsent(employeeUser.getId(),
+        id -> vacationService.getOpenLeaveApplicationsForUser(employeeUser));
   }
 
   /**
@@ -65,7 +62,7 @@ public class VacationMenuCounterCache extends AbstractCache {
    */
   @Override
   protected void refresh() {
-    log.info("VacationMenuCounterCache set as expired.");
+    log.debug("VacationMenuCounterCache set as expired.");
     openMenuCounter.clear();
   }
 }

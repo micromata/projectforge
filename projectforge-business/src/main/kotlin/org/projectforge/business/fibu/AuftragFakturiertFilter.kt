@@ -23,18 +23,29 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}
 
 class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) : CustomResultFilter<AuftragDO> {
+    private val cutoff = OrderInfo.invoiceCutoff()
+
     override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
         if (values.isEmpty() || values.contains(AuftragFakturiertFilterStatus.ALL)) {
             return true
         }
-        log.error { "Not yet implemented." }
-        return true
+        val orderInfo = AuftragsCache.instance.getOrderInfo(element)
+        return values.any { status ->
+            when (status) {
+                AuftragFakturiertFilterStatus.FAKTURIERT -> orderInfo.isVollstaendigFakturiert
+                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN -> orderInfo.isToBeInvoicedBy(cutoff)
+                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE -> orderInfo.isToBeInvoicedAfter(cutoff)
+                AuftragFakturiertFilterStatus.NICHT_FAKTURIERT -> !orderInfo.isVollstaendigFakturiert
+                AuftragFakturiertFilterStatus.FAKTURIERT_MIT_RESTBETRAG -> orderInfo.vollstaendigFakturiertMitRestbetrag
+                AuftragFakturiertFilterStatus.ALL -> true
+            }
+        }
     }
 
     companion object {

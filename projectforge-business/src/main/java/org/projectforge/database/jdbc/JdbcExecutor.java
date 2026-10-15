@@ -29,7 +29,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public abstract class JdbcExecutor

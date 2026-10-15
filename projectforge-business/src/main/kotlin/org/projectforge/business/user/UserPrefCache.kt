@@ -24,8 +24,9 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ShutdownService
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
@@ -37,7 +38,7 @@ private val log = KotlinLogging.logger {}
  * A cache for UserPrefDO, if preferences are modified and accessed very often by the user's normal work
  * (such as current filters in Calendar and list pages etc.)
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 @DependsOn("entityManagerFactory")
@@ -48,9 +49,35 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
     @Autowired
     private lateinit var userPrefDao: UserPrefDao
 
+    /**
+     * Read-only access to the legacy XML store for the lazy XML-&gt;JSON migration (see [migrateLegacyEntryOnCacheMiss]).
+     */
+    @Autowired
+    private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
+
     @PostConstruct
     private fun postConstruct() {
         shutdownService.registerListener(this)
+    }
+
+    /**
+     * On a cache miss, tries to read a possibly existing legacy XML preference (see [UserPrefService.LEGACY_XML_AREA]).
+     * The legacy row is looked up by its flat key, which equals the migrated entry's [UserPrefCacheDataKey.identifier].
+     * Never throws: any deserialization problem yields null so the load path is unaffected. The returned value is
+     * cached as a persistent entry by the caller and thus written as JSON on the next flush.
+     *
+     * The legacy XML store is a flat, per-user key namespace and was only ever reached through
+     * [UserPrefService.LEGACY_XML_AREA] (all legacy callers pass that area). The lookup must therefore be restricted to
+     * that area: otherwise a flat legacy key bleeds into an unrelated modern area whose identifier happens to collide
+     * (e.g. `"timesheetTemplateFavorites"/"favorites.list"` vs. the ancient XML `"favorites.list"`), resurrecting
+     * years-old data and overwriting the user's current preferences on the next flush.
+     */
+    override fun migrateLegacyEntryOnCacheMiss(userId: Long, key: UserPrefCacheDataKey): Any? {
+        if (key.area != UserPrefService.LEGACY_XML_AREA) {
+            return null
+        }
+        val legacyKey = key.identifier ?: return null
+        return userXmlPreferencesDao.internalGetDeserialized(userId, legacyKey)
     }
 
     override fun newEntry(): UserPrefDO {
@@ -66,7 +93,7 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
     }
 
     override fun remove(userId: Long, key: UserPrefCacheDataKey) {
-        throw UnsupportedOperationException("Not implemented yet.")
+        userPrefDao.delete(userId, key, checkAccess = false)
     }
 
     override fun deserialize(userPref: UserPrefDO): Any? {
@@ -88,7 +115,6 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
          * This is a static variable, because the preDestroy method is called by the Spring container and the test
          * In test cases the database connections may be closed before [preDestroy] is called.
          * This is a workaround for this problem.
-         * This variable is also used by [UserXmlPreferencesCache].
          */
         @JvmStatic
         var dontCallShutdownInTestMode = false

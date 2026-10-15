@@ -43,13 +43,13 @@ class MagicFilterEntry(
             /**
              * Find entries where the given field is equals or higher than the given fromValue (range search).
              */
-            @JsonProperty("from")
+            @param:JsonProperty("from")
             var fromValue: String? = null,
 
             /**
              * Find entries where the given field is equals or lower than the given toValue (range search).
              */
-            @JsonProperty("to")
+            @param:JsonProperty("to")
             var toValue: String? = null,
 
             /**
@@ -69,6 +69,15 @@ class MagicFilterEntry(
              * Sent by client for history search: changed by user (displayName and id).
              */
             var id: Long? = null,
+
+            /**
+             * The kind of period the two bounds were given as, sent and used by the client only (e. g.
+             * "month" or "yearToDate"). Stored and returned unchanged: the search itself is always built
+             * from [fromValue]/[toValue] (see MagicFilterProcessor), but a period meaning "up to today"
+             * has to be recomputed by the client when the filter is restored, and its two dates alone
+             * don't say that it is one.
+             */
+            var periodKind: String? = null,
     )
 
     var value: Value
@@ -95,6 +104,15 @@ class MagicFilterEntry(
             return false
         }
 
+    /**
+     * The typed value without the wildcards the client wraps a text filter's term in for a LIKE search ("*2026*",
+     * see filter-field-inputs.tsx of projectforge-next): for a synthetic entry the backend parses itself, e.g. a year.
+     */
+    @get:JsonIgnore
+    @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
+    val plainValue: String?
+        get() = if (value == null) null else value.value?.trim()?.trim('*')?.trim()?.ifEmpty { null }
+
     @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
     val isNoValueGiven: Boolean
         get() = value == null || (value.value.isNullOrBlank() && value.fromValue.isNullOrBlank() && value.toValue.isNullOrBlank() && value.values.isNullOrEmpty())
@@ -104,6 +122,16 @@ class MagicFilterEntry(
      */
     val isEmpty: Boolean
         get() = isNoValueGiven && this.field.isNullOrBlank()
+
+    /**
+     * True, if this entry narrows the result: a field with a value. A user picker carries only the id, which
+     * [isNoValueGiven] doesn't look at; the page size travels as an entry but is no criterion.
+     */
+    @get:JsonIgnore
+    val isCriterion: Boolean
+        @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
+        get() = !this.field.isNullOrBlank() && this.field != MagicFilter.PAGINATION_PAGE_SIZE &&
+                (!isNoValueGiven || (value != null && value.id != null))
 
     @JsonIgnore
     var isNew: Boolean? = false
@@ -116,5 +144,17 @@ class MagicFilterEntry(
         if (this.field != other.field) return true
         if (this.value != other.value) return true
         return false
+    }
+
+    companion object {
+        /**
+         * The value a LIST filter sends for "no value is set": it selects the entries whose field is null,
+         * next to the values the field may have (see [MagicFilterProcessor.createFieldSearchEntry]).
+         *
+         * A pseudo value rather than a flag of its own, because that is what makes it one more option of
+         * the same combobox — client and stored filter treat it like any other. The name is no legal
+         * enum constant, so it cannot collide with one.
+         */
+        const val NULL_VALUE = "__NULL__"
     }
 }

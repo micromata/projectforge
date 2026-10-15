@@ -187,8 +187,8 @@ object PFDayUtils {
      */
     @JvmStatic
     fun <T : IPFDate<T>> getNumberOfWorkingDays(from: T, to: T): BigDecimal {
-        Validate.notNull(from)
-        Validate.notNull(to)
+        requireNotNull(from)
+        requireNotNull(to)
         val holidays = Holidays.instance
         if (to.isBefore(from)) {
             return BigDecimal.ZERO

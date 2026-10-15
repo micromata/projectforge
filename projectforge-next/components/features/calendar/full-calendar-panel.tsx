@@ -1,0 +1,228 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar01Icon } from "@hugeicons/core-free-icons";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
+import interactionPlugin from "@fullcalendar/interaction";
+import type {
+  CalendarApi,
+  CalendarOptions,
+  DateSelectArg,
+  DatesSetArg,
+  EventInput,
+} from "@fullcalendar/core";
+import type { EventDropArg } from "@fullcalendar/core";
+import type { EventResizeDoneArg } from "@fullcalendar/interaction";
+import { useFormatContext } from "@/hooks/use-format";
+import type {
+  CalendarViewKey,
+  FullCalendarEventDto,
+} from "@/lib/rs/calendar-types";
+import { cn } from "@/lib/utils";
+import { CalendarDateJump } from "./calendar-date-jump";
+import { CalendarEventContent } from "./calendar-event-content";
+import { useAllDayResizer } from "./use-allday-resizer";
+import { useCalendarAction } from "./use-calendar-action";
+import { useViewButtons } from "./use-view-buttons";
+import { clampVisibleEnd, EVENT_ORDER } from "./view-config";
+import type { CalendarRange } from "./types";
+
+interface FullCalendarPanelProps {
+  events: FullCalendarEventDto[];
+  initialView: CalendarViewKey;
+  initialDate?: Date;
+  gridSize: number;
+  firstHour: number;
+  /** Shades alternate hours in the time-grid views (the user's `alternateHoursBackground` setting). */
+  alternateHoursBackground?: boolean;
+  /** Reports the visible span on every navigation; the page turns it into the events request. */
+  onRangeChange: (range: CalendarRange) => void;
+  /** The page sets its FullCalendar API handle here for `use-goto-date`. */
+  apiRef?: RefObject<CalendarApi | null>;
+}
+
+const str = (value: unknown): string | undefined =>
+  value == null ? undefined : String(value);
+
+/**
+ * The FullCalendar itself. Presentational: the events arrive as an array from the query cache (not the
+ * `fetchEvents` callback the legacy panel used, which forced the mirror refs and manual `refetchEvents`
+ * calls), the view config is memoised rather than frozen into a stale subtree, and interactions are
+ * resolved by `use-calendar-action`. The grid size rides a `data-grid-size` attribute the CSS reads.
+ */
+export function FullCalendarPanel({
+  events,
+  initialView,
+  initialDate,
+  gridSize,
+  firstHour,
+  alternateHoursBackground,
+  onRangeChange,
+  apiRef,
+}: FullCalendarPanelProps) {
+  const calendarRef = useRef<FullCalendar>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("calendar");
+  const { locale, weekStartsOn, hour12 } = useFormatContext();
+  const { handleEventClick, requestAction } = useCalendarAction();
+  useAllDayResizer(containerRef);
+
+  const { views, headerToolbar, buttonText } = useViewButtons({
+    gridSize,
+    firstHour,
+  });
+
+  // The jump-to-date control is a custom toolbar button next to "today" (see HEADER_TOOLBAR).
+  // FullCalendar buttons are plain DOM and take only a text/icon label, so the Hugeicons icon is
+  // portaled into the button node and the popover anchors to it. `getApi()` moves the calendar the
+  // same way the prev/next buttons do; the resulting `datesSet` drives the events refetch.
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const [jumpButton, setJumpButton] = useState<HTMLElement | null>(null);
+  const jumpAnchor = useRef<HTMLElement | null>(null);
+  const chooseDateLabel = t("chooseDate");
+
+  const getApi = useCallback(() => calendarRef.current?.getApi() ?? null, []);
+  const handleGoto = useCallback(
+    (date: Date) => getApi()?.gotoDate(date),
+    [getApi]
+  );
+  const getCurrentDate = useCallback(
+    () => getApi()?.getDate() ?? null,
+    [getApi]
+  );
+
+  const customButtons = useMemo<CalendarOptions["customButtons"]>(
+    () => ({ gotoDate: { text: "", click: () => setJumpOpen((o) => !o) } }),
+    []
+  );
+
+  // Locate the button FullCalendar rendered for `gotoDate` so the icon can be portaled into it and
+  // the popover can anchor to it. Re-run when the toolbar config changes, in case the node is rebuilt.
+  useEffect(() => {
+    const el =
+      containerRef.current?.querySelector<HTMLElement>(".fc-gotoDate-button") ??
+      null;
+    jumpAnchor.current = el;
+    setJumpButton(el);
+    if (el) el.setAttribute("aria-label", chooseDateLabel);
+  }, [headerToolbar, buttonText, views, chooseDateLabel]);
+
+  const handleDatesSet = useCallback(
+    (arg: DatesSetArg) => {
+      // From the event, not `calendarRef.current?.getApi()`: FullCalendar fires the first `datesSet`
+      // before React has assigned the ref, so reading the ref here yields null on the initial mount
+      // and `use-goto-date` would never get an api (see its KDoc). `arg.view.calendar` is always set.
+      if (apiRef) apiRef.current = arg.view.calendar;
+      const clampedEnd = clampVisibleEnd(arg.start, arg.end);
+      onRangeChange({
+        start: arg.startStr,
+        end: clampedEnd === arg.end ? arg.endStr : clampedEnd.toISOString(),
+        view: arg.view.type as CalendarViewKey,
+      });
+    },
+    [apiRef, onRangeChange]
+  );
+
+  const handleSelect = useCallback(
+    (arg: DateSelectArg) =>
+      void requestAction({
+        action: "slotSelected",
+        startDate: arg.start.toISOString(),
+        endDate: arg.end.toISOString(),
+        firstHour,
+      }),
+    [requestAction, firstHour]
+  );
+
+  const handleEventChange = useCallback(
+    (
+      action: "resize" | "dragAndDrop",
+      info: EventResizeDoneArg | EventDropArg
+    ) => {
+      // Always undo: the refetch after the edit is saved shows the authoritative position.
+      info.revert();
+      const { event, oldEvent } = info;
+      const category = event.extendedProps.category as string | undefined;
+      const id = event.extendedProps.uid ?? event.extendedProps.dbId;
+      if (!category || id == null || event.startEditable !== true) return;
+      void requestAction({
+        action,
+        startDate: event.start?.toISOString(),
+        endDate: event.end?.toISOString(),
+        category,
+        dbId: str(oldEvent.extendedProps.dbId),
+        uid: str(oldEvent.extendedProps.uid),
+        origStartDate: oldEvent.start?.toISOString(),
+        origEndDate: oldEvent.end?.toISOString(),
+        firstHour,
+      });
+    },
+    [requestAction, firstHour]
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "pf-calendar h-full",
+        alternateHoursBackground && "pf-calendar-alt"
+      )}
+      data-grid-size={gridSize}
+    >
+      <FullCalendar
+        ref={calendarRef}
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        initialView={initialView}
+        initialDate={initialDate}
+        headerToolbar={headerToolbar}
+        buttonText={buttonText}
+        customButtons={customButtons}
+        views={views}
+        events={events as unknown as EventInput[]}
+        // All-day row order: calendar weeks, birthdays, holidays, vacations, then the rest (see view-config).
+        eventOrder={EVENT_ORDER}
+        eventContent={(arg) => <CalendarEventContent arg={arg} />}
+        eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12 }}
+        locale={locale}
+        firstDay={weekStartsOn}
+        height="100%"
+        // Pin the weekday column headers and the all-day row while the hours scroll, so the column a
+        // scrolled-to event belongs to stays labelled.
+        stickyHeaderDates
+        nowIndicator
+        editable
+        selectable
+        datesSet={handleDatesSet}
+        eventClick={handleEventClick}
+        select={handleSelect}
+        eventResize={(info) => handleEventChange("resize", info)}
+        eventDrop={(info) => handleEventChange("dragAndDrop", info)}
+      />
+      {jumpButton &&
+        createPortal(
+          <HugeiconsIcon icon={Calendar01Icon} size={16} />,
+          jumpButton
+        )}
+      <CalendarDateJump
+        open={jumpOpen}
+        onOpenChange={setJumpOpen}
+        anchorRef={jumpAnchor}
+        onGoto={handleGoto}
+        getCurrentDate={getCurrentDate}
+      />
+    </div>
+  );
+}

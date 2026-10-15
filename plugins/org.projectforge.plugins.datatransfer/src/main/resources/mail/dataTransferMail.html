@@ -6,7 +6,7 @@
         <div class="content">
             #INCLUDE{mail/mailOpening.html}
             <p>
-                <%= message %>
+                <%= pf.getString(message) %>
             </p>
             <table>
                 <tr>
@@ -19,10 +19,10 @@
                 <% for (audit in auditEntries) { %>
                 <tr>
                     <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
-                    <td><%= audit.filenameAsString %></td>
-                    <td><%= audit.descriptionAsString %></td>
+                    <td class="wrap"><%= pf.getString(audit.filenameAsString) %></td>
+                    <td class="wrap"><%= pf.getString(audit.descriptionAsString) %></td>
                     <td><%= pf.getString(audit.eventType) %></td>
-                    <td><%= audit.byUserAsString %></td>
+                    <td><%= pf.getString(audit.byUserAsString) %></td>
                 </tr>
                 <% } %>
             </table>
@@ -48,9 +48,9 @@
                 <% for (audit in downloadAuditEntries) { %>
                 <tr>
                     <td class="no-wrap"><%= pf.getString(audit.timestamp) %></td>
-                    <td><%= audit.filenameAsString %></td>
+                    <td class="wrap"><%= pf.getString(audit.filenameAsString) %></td>
                     <td><%= pf.getString(audit.eventType) %></td>
-                    <td><%= audit.byUserAsString %></td>
+                    <td><%= pf.getString(audit.byUserAsString) %></td>
                 </tr>
                 <% } %>
             </table>

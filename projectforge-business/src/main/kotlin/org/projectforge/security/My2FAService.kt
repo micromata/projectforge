@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserAuthenticationsService
@@ -116,7 +116,7 @@ open class My2FAService {
       }
       mail2FADisabledGroupIds = list
     }
-    log.info("2FA by e-mail is disabled for users of group(s): ${foundGroupNames.joinToString()} ")
+    log.info { "2FA by e-mail is disabled for users of group(s): ${foundGroupNames.joinToString()} " }
   }
 
   /**

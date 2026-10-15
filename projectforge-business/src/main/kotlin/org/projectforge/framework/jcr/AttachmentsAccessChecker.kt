@@ -81,4 +81,20 @@ interface AttachmentsAccessChecker {
     operationType: OperationType,
     attachment: Attachment
   ): Boolean
+
+  /**
+   * The given attachments of one object the user has access to, see [hasAccess]. Override this where [hasAccess]
+   * has to look something up (e. g. the data transfer area), so it's looked up once per list instead of once per
+   * attachment.
+   */
+  fun filterAccessible(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachments: List<Attachment>
+  ): List<Attachment> {
+    return attachments.filter { hasAccess(user, path, id, subPath, operationType, it) }
+  }
 }

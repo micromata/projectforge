@@ -38,7 +38,7 @@ import java.util.ResourceBundle;
 /**
  * This class will be thrown by AccessChecker, if no access is given for the demanded action by an user.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AccessException extends UserException {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessException.class);

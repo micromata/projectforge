@@ -24,7 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.rest.utils.ResponseUtils
 import org.springframework.http.HttpStatus
 

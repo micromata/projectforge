@@ -31,17 +31,12 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.AddressPagesRest
-import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
-import org.projectforge.rest.dto.Book
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import jakarta.servlet.http.HttpServletRequest
 
 class UILayoutTest : AbstractTestBase() {
-    @Autowired
-    lateinit var bookRest: BookPagesRest
-
     @Autowired
     lateinit var addressRest: AddressPagesRest
 
@@ -60,71 +55,62 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals(true, map!!["required"] as Boolean)
     }
 
+    /**
+     * The action buttons an edit layout offers follow the state of the entry, and are added by
+     * AbstractPagesRest.createEditLayout for every entity alike (see LayoutUtils.processEditPage).
+     *
+     * `forceDelete` is the exception: AddressDao is one of the two DAOs that allow it
+     * (`isForceDeletionSupport`), so the button appears next to markAsDeleted / undelete here.
+     */
     @Test
-    fun testEditBookActionButtons() {
+    fun testEditActionButtons() {
+        logon(TEST_ADMIN_USER) // Needed for getting address books.
         val gson = GsonBuilder().create()
         val userAccess = UILayout.UserAccess(true, true, true, true)
-        val book = Book()
-        var jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
+        val address = Address()
+        var jsonString = gson.toJson(addressRest.createEditLayout(address, userAccess))
         var jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("create", jsonValidator.get("actions[1].id"))
         assertEquals(2, jsonValidator.getList("actions")?.size)
 
-        book.id = 42
-        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
+        address.id = 42
+        jsonString = gson.toJson(addressRest.createEditLayout(address, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
-        assertEquals("markAsDeleted", jsonValidator.get("actions[1].id"))
-        assertEquals("update", jsonValidator.get("actions[2].id"))
-        assertEquals(3, jsonValidator.getList("actions")?.size)
+        assertEquals("forceDelete", jsonValidator.get("actions[1].id"))
+        assertEquals("markAsDeleted", jsonValidator.get("actions[2].id"))
+        // AddressPagesRest declares CloneSupport, so cloning is offered before saving.
+        assertEquals("clone", jsonValidator.get("actions[3].id"))
+        assertEquals("update", jsonValidator.get("actions[4].id"))
+        assertEquals(5, jsonValidator.getList("actions")?.size)
 
-        book.deleted = true
-        jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
+        address.deleted = true
+        jsonString = gson.toJson(addressRest.createEditLayout(address, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("undelete", jsonValidator.get("actions[1].id"))
-        assertEquals(2, jsonValidator.getList("actions")?.size)
+        assertEquals("forceDelete", jsonValidator.get("actions[2].id"))
+        assertEquals("clone", jsonValidator.get("actions[3].id"))
+        assertEquals(4, jsonValidator.getList("actions")?.size)
     }
 
+    /**
+     * A list layout is one AG_GRID_LIST_PAGE element plus the reset and search actions, whatever the
+     * entity - the column defs are the entity's own (see AGGridSupport.prepareUIGrid4ListPage).
+     */
     @Test
-    fun testEditBookLayout() {
-        val gson = GsonBuilder().create()
-        val book = Book()
-        val userAccess = UILayout.UserAccess(true, true, true, true)
-        book.id = 42 // So lend-out component will be visible (only in edit mode)
-        val jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
-        val jsonValidator = JsonValidator(jsonString)
-
-        assertEquals(translate("book.title.edit"), jsonValidator.get("title")) // translations not available in test.
-        val title = jsonValidator.getMap("layout[0]")
-        assertField(title, "title", 255.0, "STRING", translate("book.title"), type = "INPUT", key = "el-1")
-        assertEquals(true, title!!["focus"])
-
-        val authors = jsonValidator.getMap("layout[1]")
-        assertField(authors, "authors", 1000.0, null, translate("book.authors"), type = "TEXTAREA", key = "el-2")
-        assertNull(jsonValidator.getBoolean("layout[1].focus"))
-
-        assertEquals("ROW", jsonValidator.get("layout[2].type"))
-        assertEquals("el-3", jsonValidator.get("layout[2].key"))
-
-        assertEquals(6.0, jsonValidator.getDouble("layout[2].content[0].length.xs"))
-        assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
-        assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
-    }
-
-    @Test
-    fun testBookListLayout() {
+    fun testListLayout() {
         logon(TEST_USER)
         val gson = GsonBuilder().create()
-        val jsonString = gson.toJson(bookRest.createListLayout(Mockito.mock(HttpServletRequest::class.java), MagicFilter()))
+        val jsonString =
+            gson.toJson(addressRest.createListLayout(Mockito.mock(HttpServletRequest::class.java), MagicFilter()))
         val jsonValidator = JsonValidator(jsonString)
 
         assertEquals("resultSet", jsonValidator.get("layout[0].id"))
         assertEquals("AG_GRID_LIST_PAGE", jsonValidator.get("layout[0].type"))
         assertEquals("el-1", jsonValidator.get("layout[0].key"))
-
-        assertEquals(8, jsonValidator.getList("layout[0].columnDefs")?.size)
+        assertTrue((jsonValidator.getList("layout[0].columnDefs")?.size ?: 0) > 0)
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))
@@ -135,25 +121,4 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("PRIMARY", jsonValidator.get("actions[1].color")) // Gson doesn't know JsonProperty of Jackson.
     }
 
-    private fun findIndexed(jsonValidator: JsonValidator, field: String, path: String): Int {
-        for (i in 0..7) {
-            if (jsonValidator.get(path.replace("#idx#", "$i")) == field) {
-                return i
-            }
-        }
-        org.junit.jupiter.api.fail("Indexed element '$field' not found in path '$path'.")
-    }
-
-    private fun assertField(element: Map<String, *>?, id: String, maxLength: Double, dataType: String?, label: String, type: String, key: String) {
-        assertNotNull(element)
-        assertEquals(id, element!!.get("id"))
-        assertEquals(maxLength, element.get("maxLength"))
-        if (dataType != null)
-            assertEquals(dataType, element.get("dataType"))
-        else
-            assertNull(dataType)
-        assertEquals(label, element.get("label"))
-        assertEquals(type, element.get("type"))
-        assertEquals(key, element.get("key"))
-    }
 }

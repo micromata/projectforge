@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dto
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -42,6 +42,12 @@ private val log = KotlinLogging.logger {}
 open class BaseDTO<T : ExtendedBaseDO<Long>>(
     override var id: Long? = null,
     var deleted: Boolean = false,
+    /**
+     * The uniform inactivity flag mirrored from [ExtendedBaseDO.deactivated] (a computed getter for some DOs,
+     * so it is copied explicitly below rather than by the reflective, field-name based [copy]). Drives the
+     * struck-through rendering of a referenced object shown in a next list cell.
+     */
+    open var deactivated: Boolean = false,
     var created: Date? = null,
     var lastUpdate: Date? = null,
     /**
@@ -60,6 +66,8 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
      */
     open fun copyFrom(src: T) {
         copy(src, this)
+        // Not copied by [copy]: it is field-name based and skips the (sometimes computed) deactivated getter.
+        this.deactivated = src.deactivated
     }
 
     /**
@@ -82,6 +90,42 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
     open fun copyFromMinimal(src: T) {
         id = src.id
         deleted = src.deleted
+        deactivated = src.deactivated
+    }
+
+    /**
+     * Copy only the fields a list row of the hand built projectforge-next page shows — the third filling of
+     * a DTO, between [copyFromMinimal] and [copyFrom].
+     *
+     * The list of an entity costs what its rows weigh, and a row weighs what the edit form needs: nested
+     * DTOs behind a column showing one name, every sum twice (raw and pre-formatted), comments and access
+     * flags no column reads. The order book sent 12.5 MB over 7132 rows that way; filling only its 19
+     * columns leaves 5.3 MB (1.5 MB -> 549 KB gzipped), and `JsonInclude.Include.NON_NULL` keeps the
+     * rest off the wire.
+     *
+     * Overriding it is what opts an entity into the lean row (see
+     * [org.projectforge.rest.core.AbstractPagesRest.createListRow], which calls it for a next client). The
+     * default is the full copy, so an entity whose DTO is small enough — a book, a cost unit — needs nothing.
+     *
+     * Why not a row class of its own (as `ListAddress` is): the client's row type stays one projection of
+     * one DTO, `id`/`deleted` stay where the framework reads them, and a column added to a next page is one
+     * line here instead of a new class plus its `getId` override.
+     *
+     * An override has to fill [created] and [lastUpdate] as well as the columns of its page: every next list
+     * offers those two as columns of its own, hidden until the user switches them on
+     * (`lib/page-def/audit-columns.ts`), so a row leaving them out shows an empty column instead of a date.
+     * That is what [copyAuditFieldsFrom] is for.
+     */
+    open fun copyFrom4ListRow(src: T) {
+        copyFrom(src)
+    }
+
+    /**
+     * The two timestamps every list offers as a column, for an override of [copyFrom4ListRow] — see there.
+     */
+    protected fun copyAuditFieldsFrom(src: T) {
+        created = src.created
+        lastUpdate = src.lastUpdate
     }
 
     private fun _copyFromMinimal(src: Any?) {
@@ -111,7 +155,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                     try {
                         srcField = BeanHelper.getDeclaredField(srcClazz, destField.name)
                     } catch (ex: Exception) {
-                        log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring...")
+                        log.debug { "srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'. Ignoring..." }
                     }
                     try {
                         if (srcField != null) {
@@ -146,6 +190,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                     val srcValue = srcField.get(src)
                                     if (srcValue != null) {
                                         val instance = destType.getDeclaredConstructor().newInstance()
+                                        @Suppress("UNCHECKED_CAST")
                                         (instance as BaseDO<Long>).id = (srcValue as BaseDTO<*>).id
                                         destField.isAccessible = true
                                         destField.set(dest, instance)
@@ -158,7 +203,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                             srcField.isAccessible = true
                                             value = (srcField.get(src) == true)
                                         } else {
-                                            log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                            log.error { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                         }
                                         if (value != null) {
                                             destField.isAccessible = true
@@ -172,22 +217,19 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
                                             destField.isAccessible = true
                                             destField.set(dest, value == true)
                                         } else {
-                                            log.error("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                            log.error { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                         }
                                     } else {
-                                        log.debug("Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'.")
+                                        log.debug { "Unsupported field to copy from '$srcClazz.${destField.name}' of type '${srcField.type.name}' to '$destClazz.${destField.name}' of type '${destType.name}'." }
                                     }
                                 }
                             }
                         } else {
                             // srcField not found. Can't copy.
-                            log.debug("srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'.")
+                            log.debug { "srcField named '${destField.name}' not found in class '$srcClazz'. Can't copy it to destination of type '$destClazz'." }
                         }
                     } catch (ex: Exception) {
-                        log.error(
-                            "Error while copying field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}",
-                            ex
-                        )
+                        log.error(ex) { "Error while copying field '${destField.name}' from $srcClazz to ${dest.javaClass}: ${ex.message}" }
                     }
                 }
             }

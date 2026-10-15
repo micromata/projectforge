@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.configuration
 
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.common.logging.PfLog
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.entities.ConfigurationDO
@@ -40,7 +43,7 @@ import java.util.*
  * Configuration values persistet in the data base. Please access the configuration parameters via
  * [Configuration].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.java) {
@@ -69,8 +72,10 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                 checkAndUpdateDatabaseEntry(param, list, params)
             }
             for (entry in list) {
-                if (!params.contains(entry.parameter)) {
-                    log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
+                // selectAll returns the deleted rows too, so guard on !deleted: an obsolete parameter is
+                // marked (and logged) once on the transition, not again on every list load that re-runs this.
+                if (!params.contains(entry.parameter) && !entry.deleted) {
+                    PfLog.warn(log, ConfigurationLogEvents.UNKNOWN_ENTRY, "Unknown configuration entry. Mark as deleted: " + entry.parameter)
                     markAsDeleted(entry, checkAccess = false)
                 }
             }
@@ -91,7 +96,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     }
 
     fun getValue(parameter: IConfigurationParam, configurationDO: ConfigurationDO?): Any? {
-        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             if (configurationDO == null) {
                 return parameter.defaultStringValue
             }
@@ -131,12 +136,81 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         throw UnsupportedOperationException("Type unsupported: " + parameter.type)
     }
 
+    /**
+     * The set of configuration parameters is fixed (see [checkAndUpdateDatabaseEntries] and
+     * [newInstance], which throws): a parameter is only ever read or updated through the UI, never inserted
+     * or deleted. INSERT and DELETE are therefore denied even for an admin, so the migrated next page
+     * ([org.projectforge.rest.ConfigurationEntityRest]) offers no add and no delete and both are refused
+     * server-side too. [checkAndUpdateDatabaseEntries] is unaffected: it runs with `checkAccess = false`,
+     * bypassing this method.
+     *
+     * SELECT and UPDATE depend on who maintains the parameter ([ConfigurationParam.getEditors]):
+     * - An admin sees every parameter except the [ConfigurationEditors.CONTROLLING] ones, but changes only the
+     *   [ConfigurationEditors.ADMIN] ones.
+     * - A member of PF_Finance or PF_Controlling sees and changes only the [ConfigurationEditors.FINANCE] ones.
+     * - A member of PF_Finance or PF_Controlling sees the [ConfigurationEditors.CONTROLLING] ones, but only a member
+     *   of both groups changes them.
+     * - A parameter with a page of its own ([ConfigurationParam.getEditPage]) is never updated through this
+     *   check: that page validates its structured value and saves it itself, after checking the editors.
+     *
+     * Without an object (the list as a whole), SELECT is granted to both sides; the rows are then filtered
+     * per parameter.
+     */
     override fun hasAccess(
         user: PFUserDO, obj: ConfigurationDO?, oldObj: ConfigurationDO?,
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        return accessChecker.isUserMemberOfAdminGroup(user, throwException)
+        val allowed = when (operationType) {
+            OperationType.INSERT, OperationType.DELETE, OperationType.UNDELETE -> false
+            OperationType.SELECT -> {
+                if (obj == null) {
+                    accessChecker.isUserMemberOfAdminGroup(user) || isFinanceUser(user)
+                } else {
+                    val editors = paramOf(obj)?.editors ?: ConfigurationEditors.ADMIN
+                    accessChecker.isUserMemberOfGroup(user, *editors.viewers.toTypedArray())
+                }
+            }
+
+            OperationType.UPDATE -> {
+                val param = paramOf(oldObj ?: obj)
+                param != null && param.editPage == null && isEditor(user, param)
+            }
+        }
+        if (!allowed && throwException) {
+            throw AccessException(user, "access.exception.noAccess")
+        }
+        return allowed
+    }
+
+    /**
+     * Whether the user maintains the given parameter ([ConfigurationParam.getEditors]). Also asked by the
+     * pages a parameter has of its own ([ConfigurationParam.getEditPage]).
+     */
+    fun isEditor(user: PFUserDO, param: ConfigurationParam): Boolean {
+        val editors = param.editors
+        return if (editors.allEditorGroupsRequired) {
+            editors.editors.all { accessChecker.isUserMemberOfGroup(user, it) }
+        } else {
+            accessChecker.isUserMemberOfGroup(user, *editors.editors.toTypedArray())
+        }
+    }
+
+    private fun isFinanceUser(user: PFUserDO): Boolean {
+        return accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+    }
+
+    private fun paramOf(obj: ConfigurationDO?): ConfigurationParam? {
+        return obj?.parameter?.let { ConfigurationParam.ofKey(it) }
+    }
+
+    /**
+     * The add button of the next list ([org.projectforge.rest.ConfigurationEntityRest]) routes through
+     * [BaseDao.hasInsertAccess], which bypasses [hasAccess] and would otherwise grant an admin insert via
+     * `@AUserRightId("ADMIN_CORE")`. The parameter set is fixed, so insert is always denied.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return false
     }
 
     override fun newInstance(): ConfigurationDO {
@@ -176,16 +250,52 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         val configuration = ConfigurationDO()
         configuration.parameter = param.key
         configuration.configurationType = param.type
-        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             configuration.value = param.defaultStringValue
         }
-        if (param.type.isIn(ConfigurationType.LONG)) {
+        // A LONG parameter without a default (0) starts empty rather than with 0, e.g. a task id not yet configured.
+        if (param.type.isIn(ConfigurationType.LONG) && param.defaultLongValue != 0L) {
             configuration.longValue = param.defaultLongValue
         }
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()
         }
+        if (param is ConfigurationParam) {
+            param.legacyProperty?.let { property ->
+                takeOverLegacyProperty(configuration, param, applicationContext?.environment?.getProperty(property))
+            }
+        }
         insert(configuration, checkAccess = false)
+    }
+
+    /**
+     * Sets the value of the property the new parameter was configured by before ([ConfigurationParam.getLegacyProperty])
+     * as its initial value. Only on creating the row: afterwards the parameter alone applies, so a value cleared on the
+     * configuration page isn't taken over again.
+     *
+     * @return true if taken over.
+     */
+    internal fun takeOverLegacyProperty(configuration: ConfigurationDO, param: ConfigurationParam, value: String?): Boolean {
+        val property = param.legacyProperty ?: return false
+        val trimmed = value?.trim()?.ifEmpty { null } ?: return false
+        when (param.type) {
+            ConfigurationType.LONG -> {
+                val longValue = trimmed.toLongOrNull()
+                if (longValue == null) {
+                    log.warn("$property='$trimmed' is no number, not taken over into the configuration parameter '${param.key}'.")
+                    return false
+                }
+                configuration.longValue = longValue
+            }
+
+            ConfigurationType.STRING -> configuration.stringValue = trimmed
+            else -> throw UnsupportedOperationException("Taking over a property of type ${param.type} isn't supported.")
+        }
+        log.info(
+            "$property='$trimmed' taken over into the new configuration parameter '${param.key}', which is maintained on " +
+                    "the configuration page from now on. The property is ignored and may be removed from projectforge.properties."
+        )
+        return true
     }
 
     companion object {

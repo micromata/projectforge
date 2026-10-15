@@ -31,7 +31,7 @@ import java.io.Serializable
 /**
  * Declares lastUpdate and created as invalidHistorizableProperties.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @MappedSuperclass
 @WithHistory

@@ -25,13 +25,8 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Predicate
-import mu.KotlinLogging
-import org.hibernate.search.mapper.orm.Search
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import java.util.*
-
-private val log = KotlinLogging.logger {}
 
 internal object DBHistoryQuery {
     private const val MAX_RESULT_SIZE = 100_000 // Limit result list to 100_000
@@ -70,16 +65,22 @@ internal object DBHistoryQuery {
         } else if (searchParams.modifiedTo != null) {
             predicates.add(cb.lessThanOrEqualTo(root.get<Date>("modifiedAt"), searchParams.modifiedTo!!.utilDate))
         }
-        if (!searchParams.searchHistory.isNullOrBlank()) {
-            log.warn(
-                "Search string for history search is given but is ignored by criteria search. Use full text search instead: ${
-                    ToStringUtil.toJsonString(
-                        searchParams
-                    )
-                }"
+        searchParams.searchHistory?.takeIf { it.isNotBlank() }?.let { searchString ->
+            // The searched value doesn't live on HistoryEntryDO but on its attributes, so the search
+            // needs a join. Both columns are searched: an insert entry has no old value at all, so
+            // matching only old_value would never find a value that was just set.
+            val attributes = root.join<HistoryEntryDO, Any>("attributes")
+            val pattern = likePatternOf(searchString)
+            predicates.add(
+                cb.or(
+                    cb.like(cb.lower(attributes.get<String>("value")), pattern),
+                    cb.like(cb.lower(attributes.get<String>("oldValue")), pattern),
+                )
             )
         }
-        val query = entityManager.createQuery(cr.select(root.get("entityId")).where(*predicates.toTypedArray()))
+        val query = entityManager.createQuery(
+            cr.select(root.get("entityId")).where(*predicates.toTypedArray()).distinct(true)
+        )
         query.maxResults = MAX_RESULT_SIZE
         val result = query.resultList
         if (result.isNullOrEmpty()) {
@@ -88,56 +89,12 @@ internal object DBHistoryQuery {
         return result.toSet()
     }
 
-    fun searchHistoryEntryByFullTextQuery(
-        entityManager: EntityManager,
-        clazz: Class<*>,
-        searchParams: DBHistorySearchParams
-    ): Set<Long> {
-        val result = Search.session(entityManager).search(HistoryEntryDO::class.java).where { q ->
-            q.bool().with { bool ->
-                bool.must { must ->
-                    must.match().field("entityName").matching(clazz.name)
-                    val searchString = searchParams.searchHistory
-                    if (!searchString.isNullOrBlank()) {
-                        log.warn(
-                            "Search string for history search is given but is ignored by full text search. Use criteria search instead: ${
-                                ToStringUtil.toJsonString(
-                                    searchParams
-                                )
-                            }"
-                        )
-                        var str = searchString.replace('%', '*')
-                        if (str.length > 1 && str[0].isLetterOrDigit()) {
-                            str = "*$str"
-                            if (!str.endsWith("*"))
-                                str = "$str*"
-                        }
-                        must.wildcard().field("oldValue").matching(str)
-                    }
-                    searchParams.modifiedByUserId?.let { modifiedByUserId ->
-                        must.match().field("modifiedBy").matching(modifiedByUserId.toString())
-                    }
-                    searchParams.modifiedFrom?.let { modifiedFrom ->
-                        searchParams.modifiedTo?.let { modifiedTo ->
-                            // Between:
-                            must.range().field("modifiedAt").between(modifiedFrom.utilDate, modifiedTo.utilDate)
-                        } ?: run {
-                            must.range().field("modifiedAt").atLeast(modifiedFrom.utilDate)
-                        }
-                    } ?: run {
-                        searchParams.modifiedTo?.let { modifiedTo ->
-                            must.range().field("modifiedAt").atMost(modifiedTo.utilDate)
-                        }
-                    }
-                }
-            }
-        }.fetchHits(MAX_RESULT_SIZE)
-
-        if (result.isNullOrEmpty()) {
-            return emptySet()
-        }
-        return result.map {
-            (it as Array<*>)[0] as Long
-        }.toSet()
+    /**
+     * The pattern of a `like` for the given search string: lower case, `%` and `*` both standing for any
+     * text, and surrounded by `%` unless the user placed a wildcard themselves.
+     */
+    private fun likePatternOf(searchString: String): String {
+        val str = searchString.trim().lowercase().replace('*', '%')
+        return if (str.contains('%')) str else "%$str%"
     }
 }

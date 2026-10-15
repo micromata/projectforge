@@ -28,7 +28,7 @@ import java.util.*
 
 /**
  * Provides some helper methods.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object TimesheetUtils {
     /**

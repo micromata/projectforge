@@ -24,7 +24,8 @@
 package org.projectforge.framework.i18n
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserLocale
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +50,8 @@ class I18nServiceImpl : I18nService {
     @PostConstruct
     fun init() {
         I18nHelper.setI18nService(this)
+        // Not only by WicketApplication: the gateway runs without Wicket, but its React UI needs the texts too.
+        I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME)
         // Auto-discover CustomerI18nResources if present (highest priority)
         registerCustomerBundleIfPresent()
         loadResourceBundles()
@@ -60,7 +63,7 @@ class I18nServiceImpl : I18nService {
      * with highest priority, allowing customers to override any translation without code changes.
      */
     private fun registerCustomerBundleIfPresent() {
-        val customerBundleName = "CustomerI18nResources"
+        val customerBundleName = CUSTOMER_BUNDLE_NAME
         val resourceDir = File(configurationService.resourceDirName)
 
         if (!resourceDir.exists() || !resourceDir.isDirectory) {
@@ -130,11 +133,7 @@ class I18nServiceImpl : I18nService {
 
     override fun getLocalizedStringForKey(i18nKey: String, locale: Locale): String {
         val resourceBundle = getResourceBundleFor("I18NResources", locale)
-        return if (resourceBundle != null) {
-            resourceBundle.getObject(i18nKey) as String
-        } else {
-            throw RuntimeException("No ResourceBundle for given locale found$locale")
-        }
+        return resourceBundle.getObject(i18nKey) as String
     }
 
     override fun getAdditionalString(key: String, locale: Locale): String? {
@@ -162,6 +161,29 @@ class I18nServiceImpl : I18nService {
             }
         }
         return null
+    }
+
+    override fun getCustomerI18nOverrides(locale: Locale): Map<String, String> {
+        // Only this deployment's customer bundle, and only if it was actually detected in resourceDir
+        // (registerCustomerBundleIfPresent adds it to I18nHelper.bundleNames). Everything else stays in the
+        // static catalog projectforge-next already ships.
+        if (!I18nHelper.bundleNames.contains(CUSTOMER_BUNDLE_NAME)) {
+            return emptyMap()
+        }
+        val bundle = try {
+            getResourceBundleFor(CUSTOMER_BUNDLE_NAME, locale)
+        } catch (ex: MissingResourceException) {
+            return emptyMap()
+        }
+        val overrides = LinkedHashMap<String, String>()
+        for (key in bundle.keySet()) {
+            try {
+                overrides[key] = bundle.getString(key)
+            } catch (ignored: MissingResourceException) {
+                // A key seen in keySet() but not resolvable for this locale: skip it.
+            }
+        }
+        return overrides
     }
 
     override fun getResourceBundleFor(name: String, locale: Locale): ResourceBundle {
@@ -197,5 +219,10 @@ class I18nServiceImpl : I18nService {
             name,
             ""
         )
+    }
+
+    companion object {
+        /** The customer-specific bundle, auto-discovered in resourceDir and registered with highest priority. */
+        const val CUSTOMER_BUNDLE_NAME = "CustomerI18nResources"
     }
 }

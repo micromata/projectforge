@@ -26,77 +26,94 @@ package org.projectforge.rest
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.saveOrUpdate
+import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.dto.GroupTaskAccess
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The quick-fill templates of the access-rights edit page (`edit/template-buttons.tsx` in
+ * projectforge-next): each button fills the permission matrix with a preset (clear/guest/employee/
+ * leader/administrator).
+ *
+ * Non-persisting by design — the buttons *populate the matrix for review*, then the user saves through
+ * the normal save endpoint. So each endpoint applies the template to the posted (unsaved) entity and
+ * returns the recomputed entity as the `data` variable of an `UPDATE` [ResponseAction]; the frontend
+ * merges its `accessEntries` back into the form without navigating (see `lib/rs/entity.ts`
+ * `convertEntity`).
+ */
 @RestController
 @RequestMapping("${Rest.URL}/access/template")
 class GroupAccessServicesRest {
 
     @Autowired
-    private lateinit var accessDao: AccessDao
+    private lateinit var groupAccessRest: GroupAccessEntityRest
 
     @Autowired
-    private lateinit var groupAccessRest: GroupAccessPagesRest
+    private lateinit var accessDao: AccessDao
 
-    /**
-     * This template clears all access entries.
-     */
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("clear")
-    fun clear(request: HttpServletRequest, @RequestBody postData: PostData<GroupTaskAccessDO>): ResponseEntity<ResponseAction> {
-        val access = postData.data
-        access.clear()
-        return saveOrUpdate(request, this.accessDao, access, postData, groupAccessRest, groupAccessRest.validate(access))
-    }
+    fun clear(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
+        apply(postData) { it.clear() }
 
-    /**
-     * This template is used as default for guests (they have only read access to tasks).
-     */
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("guest")
-    fun guest(request: HttpServletRequest, @RequestBody postData: PostData<GroupTaskAccessDO>): ResponseEntity<ResponseAction> {
-        val access = postData.data
-        access.guest()
-        return saveOrUpdate(request, this.accessDao, access, postData, groupAccessRest, groupAccessRest.validate(access))
-    }
+    fun guest(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
+        apply(postData) { it.guest() }
 
-    /**
-     * This template is used as default for employees. The have read access to the access management, full access to tasks
-     * and own time sheets and only read-access to foreign time sheets.
-     */
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("employee")
-    fun employee(request: HttpServletRequest, @RequestBody postData: PostData<GroupTaskAccessDO>): ResponseEntity<ResponseAction> {
-        val access = postData.data
-        access.employee()
-        return saveOrUpdate(request, this.accessDao, access, postData, groupAccessRest, groupAccessRest.validate(access))
-    }
+    fun employee(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
+        apply(postData) { it.employee() }
 
-    /**
-     * This template is used as default for project managers. Same as employee but with full read-write-access to foreign
-     * time-sheets.
-     */
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("leader")
-    fun leader(request: HttpServletRequest, @RequestBody postData: PostData<GroupTaskAccessDO>): ResponseEntity<ResponseAction> {
-        val access = postData.data
-        access.leader()
-        return saveOrUpdate(request, this.accessDao, access, postData, groupAccessRest, groupAccessRest.validate(access))
+    fun leader(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
+        apply(postData) { it.leader() }
+
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
+    @PostMapping("administrator")
+    fun administrator(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
+        apply(postData) { it.administrator() }
+
+    /**
+     * Applies the given template to the posted entity and returns it recomputed, without touching the
+     * database — the group, task, recursive flag and description the user already entered are preserved,
+     * only the four access entries are overwritten by the template.
+     *
+     * Although nothing is written, the access of the save the template prepares is checked
+     * (`TASK_ACCESS_MANAGEMENT` on the task, see [AccessDao.hasAccess]): the answer resolves the group's
+     * name and the task's path, which must not be readable for arbitrary ids.
+     */
+    private fun apply(
+        postData: PostData<GroupTaskAccess>,
+        template: (GroupTaskAccessDO) -> Unit,
+    ): ResponseAction {
+        val obj = groupAccessRest.transformForDB(postData.data)
+        checkWriteAccess(obj)
+        template(obj)
+        val dto = groupAccessRest.transformFromDB(obj, true)
+        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
     }
 
     /**
-     * This template is used as default for project managers. Same as employee but with full read-write-access to foreign
-     * time-sheets.
+     * No task yet (a new entry, buttons pressed before picking one): there is no task path to answer and the
+     * permission depends on the task, so nothing is checked. Group names are offered by every group picker.
      */
-    @PostMapping("administrator")
-    fun administrator(request: HttpServletRequest, @RequestBody postData: PostData<GroupTaskAccessDO>): ResponseEntity<ResponseAction> {
-        val access = postData.data
-        access.administrator()
-        return saveOrUpdate(request, this.accessDao, access, postData, groupAccessRest, groupAccessRest.validate(access))
+    private fun checkWriteAccess(obj: GroupTaskAccessDO) {
+        obj.taskId ?: return
+        val dbObj = obj.id?.let { accessDao.find(it) }
+        if (dbObj != null) {
+            accessDao.hasLoggedInUserUpdateAccess(obj, dbObj, true)
+        } else {
+            accessDao.hasLoggedInUserInsertAccess(obj, true)
+        }
     }
 }

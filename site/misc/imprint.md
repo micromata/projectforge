@@ -24,7 +24,7 @@ Marie-Calm-Straße 1-5<br>
 34131 Kassel
 
 ### Kontakt
-Web: [www.projectforge.org](www.projectforge.org)<br>
+Web: [www.projectforge.org](https://www.projectforge.org)<br>
 E-Mail: k.reinhard at micromata.com
 
 Tel: +49 561 31 67 93-0<br>
@@ -42,4 +42,4 @@ It is not permitted to alter or distribute the contents of this website. Nor is 
 
 Kai Reinhard cannot be held responsible for the contents of external websites to which links have been established.
 
-Copyright 2001-2021© Kai Reinhard. All rights reserved.
+Copyright 2001-2026© Kai Reinhard. All rights reserved.

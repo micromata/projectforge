@@ -1,0 +1,119 @@
+"use client";
+
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { useTranslations } from "next-intl";
+import { StatusPill } from "@/components/shared/status-pill";
+import type { LogViewerEvent } from "@/lib/rs/log-viewer";
+import { LOG_LEVEL_KEYS, logLevelTone } from "@/components/shared/log-level";
+
+type T = ReturnType<typeof useTranslations>;
+
+/** The latest entries first, as the problems of the system dashboard. */
+export const LOG_VIEWER_SORTING: SortingState = [
+  { id: "timestamp", desc: true },
+];
+
+/**
+ * The columns of the log viewer. A user sees when, how severe and what - the admin additionally who (user@ip,
+ * user agent) and the stack trace, collapsed so a long trace doesn't push all other entries out of sight.
+ */
+export function logViewerColumns<E extends LogViewerEvent = LogViewerEvent>(
+  t: T,
+  admin: boolean
+): ColumnDef<E, unknown>[] {
+  const columns: ColumnDef<E, unknown>[] = [
+    {
+      id: "timestamp",
+      accessorFn: (row) => row.timestampMillis,
+      header: t("timestamp"),
+      size: admin ? 200 : 150,
+      sortDescFirst: true,
+      meta: { label: t("timestamp") },
+      // "5 minutes ago" above the date and time, as the problems of the system dashboard; sorted by the
+      // timestamp (accessorFn).
+      cell: ({ row }) => {
+        const { timestamp, timeAgo } = row.original;
+        return (
+          <div className="flex flex-col leading-tight">
+            <span className="whitespace-nowrap">{timeAgo || timestamp}</span>
+            {timeAgo && (
+              <span className="text-muted-foreground whitespace-nowrap text-xs tabular-nums">
+                {timestamp}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: "level",
+      header: t("system.admin.logViewer.level"),
+      size: 90,
+      enableSorting: false,
+      meta: { label: t("system.admin.logViewer.level") },
+      cell: ({ row }) => (
+        <StatusPill
+          tone={logLevelTone(row.original.level)}
+          label={t(LOG_LEVEL_KEYS[row.original.level])}
+        />
+      ),
+    },
+  ];
+  if (admin) {
+    columns.push({
+      id: "user",
+      header: t("system.admin.logViewer.user"),
+      size: 180,
+      enableSorting: false,
+      meta: { label: t("system.admin.logViewer.user"), wrap: true },
+      cell: ({ row }) => <span className="break-all">{row.original.user}</span>,
+    });
+  }
+  columns.push({
+    id: "message",
+    header: t("system.admin.logViewer.message"),
+    size: admin ? 520 : 760,
+    enableSorting: false,
+    meta: { label: t("system.admin.logViewer.message"), wrap: true },
+    cell: ({ row }) => (
+      <span className="whitespace-pre-wrap break-words">
+        {row.original.message}
+      </span>
+    ),
+  });
+  if (admin) {
+    columns.push(
+      {
+        id: "userAgent",
+        header: t("system.admin.logViewer.userAgent"),
+        size: 200,
+        enableSorting: false,
+        meta: { label: t("system.admin.logViewer.userAgent"), wrap: true },
+        cell: ({ row }) => (
+          <span className="break-all text-muted-foreground">
+            {row.original.userAgent}
+          </span>
+        ),
+      },
+      {
+        id: "stackTrace",
+        header: t("system.admin.logViewer.stacktrace"),
+        size: 320,
+        enableSorting: false,
+        meta: { label: t("system.admin.logViewer.stacktrace"), wrap: true },
+        cell: ({ row }) =>
+          row.original.stackTrace ? (
+            <details>
+              <summary className="cursor-pointer text-muted-foreground">
+                {t("system.admin.logViewer.stacktrace")}
+              </summary>
+              <pre className="mt-1 max-h-96 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-snug">
+                {row.original.stackTrace}
+              </pre>
+            </details>
+          ) : null,
+      }
+    );
+  }
+  return columns;
+}

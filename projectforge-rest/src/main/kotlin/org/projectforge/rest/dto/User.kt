@@ -54,7 +54,9 @@ class User(
     var description: String? = null,
     var organization: String? = null,
     var email: String? = null,
-    var deactivated: Boolean = false,
+    var alternativeEmails: String? = null,
+    var formerEmails: String? = null,
+    override var deactivated: Boolean = false,
     var timeZone: String? = null,
     var locale: Locale? = null,
     var dateFormat: String? = null,
@@ -87,12 +89,21 @@ class User(
      */
     var wlanPassword: String? = null
 
-    var stayLoggedInTokenCreationDate: Date? = null
     var calendarExportTokenCreationDate: Date? = null
     var davTokenCreationDate: Date? = null
     var restClientTokenCreationDate: Date? = null
 
-    var stayLoggedInTokenCreationTimeAgo: String? = null
+    /**
+     * Number of devices with a valid stay-logged-in token (one row per device, see
+     * [org.projectforge.business.user.StayLoggedInTokenDO]). No token is ever sent to the client.
+     */
+    var stayLoggedInDevices: Int? = null
+
+    /**
+     * When the most recently used of those devices was last seen.
+     */
+    var stayLoggedInLastAccessTimeAgo: String? = null
+
     var calendarExportTokenCreationTimeAgo: String? = null
     var davTokenCreationTimeAgo: String? = null
     var restClientTokenCreationTimeAgo: String? = null
@@ -103,6 +114,26 @@ class User(
     var lastWlanPasswordChangeFormatted: String? = null
 
     var userRights: MutableList<UserRightDto>? = null
+
+    /*
+     * Read-only flags of the request for the user edit page (projectforge-next), set in edit mode for
+     * administrators only (UserEntityRest.transformFromDB). No properties of the user: copyTo finds no PFUserDO
+     * counterpart and ignores them.
+     */
+    /** Posix accounts are in use: the LDAP fieldset shows the uid/gid fields. */
+    var posixConfigured: Boolean? = null
+
+    /** Samba accounts are in use: the LDAP fieldset shows the samba SID fields. */
+    var sambaConfigured: Boolean? = null
+
+    /** An external user management system (LDAP) is in use: the local user flag means something. */
+    var externalUserManagementSystem: Boolean? = null
+
+    /** The WLAN password can be set: the initial WLAN password field and the change link are offered. */
+    var wlanPasswordSupported: Boolean? = null
+
+    /** Sipgate is configured: the personal phone identifiers are of use. */
+    var phoneIdentifiersSupported: Boolean? = null
 
     /**
      * @see copyFromMinimal

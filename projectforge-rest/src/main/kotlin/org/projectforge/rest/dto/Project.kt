@@ -25,9 +25,12 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.framework.i18n.translate
+import java.time.LocalDate
 
 class Project(
     id: Long? = null,
@@ -46,10 +49,43 @@ class Project(
     var salesManager: User? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
+    /**
+     * The internal range (Kostenstellen 2-4, "4.xxx") of a project without customer; its customer's number
+     * takes this place otherwise.
+     */
+    var internKost2_4: Int? = null,
+    /**
+     * All cost 2 types, for the edit form: the ones the project already has are marked
+     * [Kost2Art.existsAlready], the ones picked for creation [Kost2Art.selected]. In a list row only the
+     * project's existing ones, with [Kost2Art.active] (see `ProjectEntityRest.createListRow`).
+     */
     var kost2Arts: List<Kost2Art>? = null,
     var kostFormatted: String? = null,
-
-    ) : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
+    /**
+     * The two-digit ids of the project's cost 2 types, for the list column only.
+     */
+    var kost2ArtsAsString: String? = null,
+    /**
+     * The day of the latest time sheet on the project's task tree, for the list column only
+     * (see `ProjectEntityRest.createListRow`).
+     */
+    var lastTimesheetDate: LocalDate? = null,
+    /**
+     * The youngest date of the project's orders, for the list column only
+     * ([org.projectforge.business.fibu.AuftragsCache.getLatestOrderDate]).
+     */
+    var lastOrderDate: LocalDate? = null,
+    /**
+     * The later of [lastTimesheetDate] and [lastOrderDate], for the list column only.
+     */
+    var lastActivityDate: LocalDate? = null,
+    /**
+     * True if the project has cost 2 units, so its number and customer can't be changed any more
+     * ([org.projectforge.business.fibu.ProjektDao.isNumberLocked]). For the edit form only; ignored when
+     * posted back.
+     */
+    var numberLocked: Boolean? = null,
+) : BaseDTODisplayObject<ProjektDO>(id, displayName = displayName) {
     @get:JsonProperty
     val statusAsString: String?
         get() {
@@ -66,7 +102,10 @@ class Project(
 
     override fun copyFromMinimal(src: ProjektDO) {
         super.copyFromMinimal(src)
-        this.customer = src.kunde?.let {
+        // Resolve the customer through the cache: src may be a detached/cached ProjektDO whose kunde is
+        // a lazy proxy. KundeDO.id is @Transient and initializes the whole proxy on access (-> "statement
+        // closed"), so build the Customer from the fully initialized cached KundeDO instead.
+        this.customer = KundeCache.instance.getKundeIfNotInitialized(src.kunde)?.let {
             Customer(it)
         }
     }
@@ -76,7 +115,12 @@ class Project(
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
         src.kunde?.let {
-            this.customer = Customer(it)
+            // Name and division for the list columns of the next project list; the kunde is resolved
+            // from the cache (PfCaches.initialize), so this costs no query.
+            this.customer = Customer(it).also { customer ->
+                customer.name = it.name
+                customer.division = it.division
+            }
         }
         src.konto?.let {
             this.konto = Konto(it)
@@ -87,20 +131,10 @@ class Project(
         this.kostFormatted = KostFormatter.instance.formatProjekt(src, KostFormatter.FormatType.FORMATTED_NUMBER)
     }
 
-    val kost2ArtsAsString: String
-        get() = kost2Arts?.joinToString { it.getFormattedId() } ?: ""
-
-    fun transformKost2(allKost2Arts: List<org.projectforge.reporting.Kost2Art>?) {
-        for (kost2 in allKost2Arts!!) {
-            val kost2Art = Kost2Art()
-            kost2Art.id = kost2.id
-            kost2Art.name = kost2.name
-            kost2Art.description = kost2.description
-            kost2Art.fakturiert = kost2.isFakturiert
-            kost2Art.projektStandard = kost2.isProjektStandard
-            kost2Art.deleted = kost2.isDeleted
-            kost2Art.selected = kost2.isSelected
-            kost2Art.existsAlready = kost2.isExistsAlready
-        }
+    override fun copyTo(dest: ProjektDO) {
+        super.copyTo(dest)
+        // The DTO field is named 'customer' while the DO field is 'kunde', so the name-based super.copyTo
+        // skips it; map it here by id (null clears the reference, i.e. an internal project).
+        dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
     }
 }

@@ -1,0 +1,32 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { formatNumber } from "@/lib/format";
+import { useFormatContext } from "@/hooks/use-format";
+import { ListNotice } from "./list-notice";
+
+interface ListTruncationNoticeProps {
+  /**
+   * The row cap that was hit — the count the backend returned once the result was capped, so the same
+   * number the message names ("Maximum number 50,000 …"). Formatted with the user's grouping separator.
+   */
+  count: number;
+}
+
+/**
+ * Warns that the list is cut off: more rows match the filter than the backend's row limit lets through
+ * (`ResultSet.resultSetTruncated`), so what the table shows is incomplete and the user should narrow.
+ *
+ * In the filter row above the pills — right where the narrowing is done — and in the destructive colours
+ * a deleted row is marked with (see [EntityDeletedBanner]). A typed warning built here rather than the
+ * server's red-span markdown: the colour is a css token and the text is the user's, from `next-intl`.
+ */
+export function ListTruncationNotice({ count }: ListTruncationNoticeProps) {
+  const t = useTranslations("search");
+  const ctx = useFormatContext();
+  return (
+    <ListNotice>
+      {t("maxRowsExceeded", { arg0: formatNumber(count, ctx) })}
+    </ListNotice>
+  );
+}

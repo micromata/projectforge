@@ -23,20 +23,22 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.PostData
-import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Changes the WLAN (Samba) password (projectforge-next page `/next/changeWlanPassword`), see [ChangePasswordPageRest].
+ */
 @RestController
 @RequestMapping("${Rest.URL}/changeWlanPassword")
 class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
@@ -46,33 +48,28 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var changePasswordPageRest: ChangePasswordPageRest
 
-  @PostMapping
-  fun save(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>)
-      : ResponseEntity<ResponseAction> {
-    return changePasswordPageRest.internalSave(request, postData) { data, changeOwn ->
+  /**
+   * @param userIdString is optional, so admins (only) are able to change passwords of other users.
+   */
+  @AccessChecked("Own user only; another user (userId): ADMIN_GROUP")
+  @GetMapping("init")
+  fun getInit(@RequestParam("userId", required = false) userIdString: String?): ChangePasswordInit {
+    return changePasswordPageRest.internalGetInit(userIdString, ChangePasswordPageRest.PasswordType.WLAN)
+  }
+
+  @AccessChecked("Own user only; another user (userId): ADMIN_GROUP. CSRF token required")
+  @PostMapping("change")
+  fun change(request: HttpServletRequest, @RequestBody postData: PostData<ChangePasswordData>): ResponseEntity<*> {
+    return changePasswordPageRest.internalChange(
+      request, postData.data, ChangePasswordPageRest.PasswordType.WLAN,
+    ) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his WLAN/Samba password." }
         userService.changeWlanPassword(data.userId, data.loginPassword, data.newPassword)
       } else {
-        log.info { "Admin user wants to change WLAN/Samba password of user '${data.userDisplayName}' with id ${data.userId}." }
+        log.info { "Admin user wants to change WLAN/Samba password of user with id ${data.userId}." }
         userService.changeWlanPasswordByAdmin(data.userId, data.newPassword)
       }
     }
-  }
-
-  /**
-   * @param userId is optional, so admins (only) are able to change passwords of other users.
-   * is done. (ModalDialog doesn't yet work.)
-   */
-  @GetMapping("dynamic")
-  fun getForm(
-    request: HttpServletRequest,
-    @RequestParam("userId") userIdString: String?,
-  ): FormLayoutData {
-    return changePasswordPageRest.internalGetForm(
-      request, userIdString = userIdString, i18nPrefix = "user.changeWlanPassword",
-      loginPasswordI18nKey = "user.changeWlanPassword.loginPassword",
-      this,
-    )
   }
 }

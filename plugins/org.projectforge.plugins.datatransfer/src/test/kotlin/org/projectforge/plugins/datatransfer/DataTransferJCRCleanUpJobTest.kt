@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
@@ -45,7 +45,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+  private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
   @Autowired
   private lateinit var dataTransferJCRCleanUpJob: DataTransferJCRCleanUpJob
@@ -65,7 +65,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   @Test
   fun cleanUpTest() {
     logon(TEST_USER)
-    repoService.ensureNode(null, "${dataTransferAreaPagesRest.jcrPath}")
+    repoService.ensureNode(null, "${dataTransferAreaEntityRest.jcrPath}")
     createArea("emptyTestArea")
     val area = createArea("testArea")
     val deletedArea = createArea("deletedArea")

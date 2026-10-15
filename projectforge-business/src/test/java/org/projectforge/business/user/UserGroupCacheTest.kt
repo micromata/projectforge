@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.test.TestConfiguration
 import org.projectforge.business.test.TestSetup
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -68,6 +69,9 @@ class UserGroupCacheTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var groupService: org.projectforge.business.group.service.GroupService
 
     @Test
     fun testUserMemberOfAtLeastOneGroup() {
@@ -121,6 +125,91 @@ class UserGroupCacheTest : AbstractTestBase() {
         Assertions.assertTrue(
             userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(TEST_ADMIN_USER).id, group2.id, group1.id)
         )
+    }
+
+    @Test
+    fun testDeletedGroupMembershipIgnored() {
+        logon(TEST_ADMIN_USER)
+        val user = getUser(TEST_USER)
+        val group = GroupDO()
+        group.name = "testDeletedGroupMembership"
+        group.assignedUsers = mutableSetOf(user)
+        val id = groupDao.insert(group)
+        userGroupCache.forceReload()
+        Assertions.assertTrue(
+            userGroupCache.isUserMemberOfGroup(user.id, id),
+            "User should be member of the freshly created group.",
+        )
+        Assertions.assertTrue(
+            userGroupCache.getUserGroups(user)?.contains(id) == true,
+            "getUserGroups should contain the group id.",
+        )
+        // isUserMemberOfAtLeastOneGroup is the primitive behind address books, calendars, bank accounts,
+        // data-transfer areas and Merlin templates:
+        Assertions.assertTrue(
+            userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, id),
+            "User should be member of at least one group (the freshly created one).",
+        )
+
+        // Delete the group: memberships must no longer be indexed, but the group itself stays available.
+        groupDao.markAsDeleted(group)
+        userGroupCache.forceReload()
+        Assertions.assertFalse(
+            userGroupCache.isUserMemberOfGroup(user.id, id),
+            "Membership of a deleted group must not be reported.",
+        )
+        Assertions.assertFalse(
+            userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, id),
+            "A deleted group must not grant access via isUserMemberOfAtLeastOneGroup.",
+        )
+        Assertions.assertFalse(
+            userGroupCache.getUserGroups(user)?.contains(id) == true,
+            "getUserGroups must not contain the id of a deleted group.",
+        )
+        Assertions.assertNotNull(
+            userGroupCache.getGroup(id),
+            "The deleted group must still be available for lookup/display.",
+        )
+
+        // Undelete the group: membership becomes effective again.
+        groupDao.undelete(group)
+        userGroupCache.forceReload()
+        Assertions.assertTrue(
+            userGroupCache.isUserMemberOfGroup(user.id, id),
+            "Membership must be reported again after the group has been undeleted.",
+        )
+    }
+
+    @Test
+    fun testGroupServiceExcludesDeletedGroupUsers() {
+        logon(TEST_ADMIN_USER)
+        val user = getUser(TEST_USER)
+        val group = GroupDO()
+        group.name = "testGetGroupUsersDeleted"
+        group.assignedUsers = mutableSetOf(user)
+        val id = groupDao.insert(group)
+        userGroupCache.forceReload()
+        val groupIds = longArrayOf(id)
+        Assertions.assertTrue(
+            groupService.getGroupUsers(groupIds).any { it.id == user.id },
+            "getGroupUsers should return the assigned user (used e.g. by the Poll plugin).",
+        )
+
+        groupDao.markAsDeleted(group)
+        userGroupCache.forceReload()
+        Assertions.assertFalse(
+            groupService.getGroupUsers(groupIds).any { it.id == user.id },
+            "getGroupUsers must not return users of a deleted group.",
+        )
+    }
+
+    @Test
+    fun testCannotDeleteSystemGroup() {
+        logon(TEST_ADMIN_USER)
+        val adminGroup = getGroup(ADMIN_GROUP)
+        Assertions.assertThrows(UserException::class.java, {
+            groupDao.markAsDeleted(adminGroup)
+        }, "A ProjectForge system group must not be deletable.")
     }
 
     companion object {

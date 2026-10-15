@@ -36,6 +36,11 @@ class Kost1(
     var endziffer: Int = 0,
     var kostentraegerStatus: KostentraegerStatus? = null,
     var description: String? = null,
+    /**
+     * Format `#.###.##.##`, computed by the entity. Read-only: [Kost1DO.formattedNumber] is a getter
+     * without a backing field, so [copyTo] can't write it back and the client must not send one.
+     */
+    var formattedNumber: String? = null,
 ) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
 
     /**
@@ -43,6 +48,31 @@ class Kost1(
      */
     constructor(src: Kost1DO) : this() {
         copyFromMinimal(src)
+    }
+
+    /**
+     * The four number fields, the status and the description are what identifies a cost unit, so even an
+     * embedded Kost1 carries them - without them a caller only gets the id and has to look the number up again.
+     */
+    override fun copyFromMinimal(src: Kost1DO) {
+        super.copyFromMinimal(src)
+        nummernkreis = src.nummernkreis
+        bereich = src.bereich
+        teilbereich = src.teilbereich
+        endziffer = src.endziffer
+        kostentraegerStatus = src.kostentraegerStatus
+        description = src.description
+        formattedNumber = src.formattedNumber
+        displayName = KostFormatter.instance.formatKost1(src, KostFormatter.FormatType.TEXT)
+    }
+
+    /**
+     * [BaseDTO.copyFrom] copies fields by name, and [Kost1DO.formattedNumber] has none (getter only),
+     * so it has to be assigned here - the list and the edit page both show it.
+     */
+    override fun copyFrom(src: Kost1DO) {
+        super.copyFrom(src)
+        formattedNumber = src.formattedNumber
         displayName = KostFormatter.instance.formatKost1(src, KostFormatter.FormatType.TEXT)
     }
 }

@@ -24,10 +24,14 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.framework.configuration.ApplicationContextProvider
+import java.math.BigDecimal
 
 class Kost2(
   id: Long? = null,
@@ -38,7 +42,10 @@ class Kost2(
   var endziffer: Int = 0,
   var kostentraegerStatus: KostentraegerStatus? = null,
   var effectiveKostentraegerStatus: KostentraegerStatus? = null,
+  var workFraction: BigDecimal? = null,
+  var sharedCost: Boolean? = null,
   var description: String? = null,
+  var comment: String? = null,
   var formattedNumber: String? = null,
   var project: Project? = null,
   var kost2Art: Kost2Art? = null,
@@ -60,7 +67,10 @@ class Kost2(
     kostentraegerStatus = src.kostentraegerStatus
     effectiveKostentraegerStatus = src.effectiveKostentraegerStatus
     description = src.description
-    this.project = src.projekt?.let {
+    // Resolve the project through the cache: the Kost2DO handed out by KostCache is detached, so its
+    // lazy projekt (and the projekt's lazy kunde) cannot be initialized here - touching them throws
+    // "statement closed". The cache returns a fully initialized ProjektDO instead.
+    this.project = ProjektCache.instance.getProjektIfNotInitialized(src.projekt)?.let {
       val project = Project()
       project.copyFromMinimal(it)
       project
@@ -81,6 +91,17 @@ class Kost2(
       project.name = it.name
       project
     }
+  }
+
+  override fun copyTo(dest: Kost2DO) {
+    super.copyTo(dest)
+    // The number's last part is the Kost2Art's id; the edit form carries it flat as endziffer (mirroring
+    // the legacy Wicket number boxes), so resolve it here to the reference the entity persists - Hibernate
+    // loads the row from the stub's id.
+    dest.kost2Art = Kost2ArtDO().also { it.id = endziffer.toLong() }
+    // The DTO field is named 'project' while the DO field is 'projekt', so the name-based super.copyTo
+    // skips it; map it here by id (null clears the reference, e.g. a cost unit without a project).
+    dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
   }
 
   companion object {

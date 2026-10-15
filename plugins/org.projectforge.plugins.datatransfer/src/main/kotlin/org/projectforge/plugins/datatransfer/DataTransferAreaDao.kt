@@ -25,7 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
@@ -61,7 +61,7 @@ private val log = KotlinLogging.logger {}
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
  * delete etc. is implemented by the super class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
@@ -292,7 +292,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             dataTransferAuditDao.insertAudit(event, data as DataTransferAreaDO, byUser, byExternalUser, file)
 
         } catch (ex: Exception) {
-            log.error("Exception while calling SendMailService: ${ex.message}.", ex)
+            log.error(ex) { "Exception while calling SendMailService: ${ex.message}." }
         }
     }
 

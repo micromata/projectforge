@@ -1,92 +1,164 @@
 ---
 layout: page
-width: small
+title: Features
+description: "Orders, projects, timesheets, leave, e-invoices, forecast and liquidity – all ProjectForge features in one open-source web app on your own server."
+width: expand
+content_class: pf-adoc-sections
 hero:
     title: Features
-    subtitle: ProjectForge is developed as a professional and secure Software. A lot of features make your project management and daily work much easier!
+    subtitle: Everything a service company needs between sales and accounting – connected in one web app on your own server.
+cta:
+    title: Ready to try it?
+    subtitle: Download ProjectForge and follow the Quick start.
+    tone: plain
+    buttons:
+      - title: Download ProjectForge
+        url: /download/
+      - title: Quick start
+        url: /docs/quickstart/
 permalink: /features/
 author: kai
-tags: [deployment]
+tags: [features]
 ---
 :hide-uri-scheme:
+:imagesdir: /uploads/screenshots
+:page-liquid:
 
-:toc:
-:toclevels: 4
+:last-update-label: Copyright (C) 2001-2026, Last updated
 
-:last-update-label: Copyright (C) 2021, Last updated
+++++
+{% include boxes.html data="features_toc" columns="4" %}
+++++
 
-:sectnums:
+ProjectForge connects orders, projects, timesheets, people, invoices and liquidity. Every feature works on the same data, so what your team books today shows up in tomorrow's forecast – without exports, imports or spreadsheets in between.
+All features are part of the free open-source edition. Your users only need a web browser.
 
-Its modern architecture is very scalable and uses encrypted communication for usage over the Internet. You can start ProjectForge as a small installation (as executable for Windows, Mac or Linux) and migrate it later, if needed, on a server farm.
+[[projects_orders]]
+== Projects & Orders
 
-Your users only need a modern Internet browser. There is no need to install anything on the user's client.
+_Know every order, every budget and every project's status._
 
-== Main features
+Order book:: Offers and orders with positions, budgets, payment schedules and any number of contact persons. ProjectForge tells you when something is ready to be invoiced – and when an order is about to be over-invoiced.
+Structure tree:: Structure customers, projects and phases in an unlimited hierarchy. Decide per group and task who may see, manage and book what.
+Project wizard:: Create a new project with its tasks, groups and access rights in one go.
+Consumption bars:: See at a glance which tasks are on budget and which are running hot.
+Resource planning:: Plan your people across projects week by week, so project leads and employees always know who works on what.
+Gantt charts:: Visualize your plan for your team and your customers.
 
-[cols="1,3",options="header"]
-|===
-|Feature|Description
-|Time sheet booking|Convenient booking of the time sheets on your project tasks and issues. Templates support your team to book their work in seconds.
-|Data transfer tool|Share your files with other user's as well as with your customers. Full drag and drop support and secured by password.
-|Task trees|Organize your company, your customers and your projects in tasks with an unlimited hierarchy. Configure, where your users should book their work.
-|Calendar|A calendar with holidays and working days is a central view of ProjectForge. It gives you an overview of the daily work.
-|Team calendar|Manage and share your calendar events on all your devices and with your teams.
-|Gantt|Visualize your tasks with Gantt diagrams to give your customer and teams a maximum of transparency.
-|User management|A detailed user management gives you the opportunity to manage very detailed access rights of your users.
-|Business objects|There are a lot of business objects such as employees, salaries, accounting records etc. Refer the demo for further details.
-|LDAP support|You may run ProjectForge as LDAP client or run ProjectForge as master of your user/groups administration. All changes of users, groups and assignments will be published to the LDAP server in master mode immediately after any modification. You can administrate POSIX accounts data as well (Samba accounts will be supported with the next version of ProjectForge).
-|===
+image::2026-OrderBook.png[Order book,link=/uploads/screenshots/2026-OrderBook.png]
+image::2026-TaskTree.png[Structure tree with consumption bars,link=/uploads/screenshots/2026-TaskTree.png]
 
-== Project Management
+[[time_tracking]]
+== Time Tracking
 
-[cols="1,3",options="header"]
-|===
-|Feature |Description
-|Consumption|Track your project whenever you want. Consumption bars give you and your team members an overview: which tasks are on track and which tasks not.
-|Order book|Organize all offers with your project managers and key-accounters. Assign orders with their budgets to tasks for your project controlling.
-|HR planning|Make your multi-project management much easier by planning your team members on projects. So every employee and all project managers are every time up-to-date.
-|===
+_Booking time takes seconds, not a Friday afternoon._
 
-== Team work
+Timesheets with templates:: Book recurring work from your favorites with a single click.
+Book from the calendar:: See your bookings next to your appointments, or book several days at once – holidays and weekends are skipped automatically.
+No double bookings:: Overlapping bookings are prevented – unless you explicitly allow them for shared costs.
+Reports and statistics:: Monthly employee reports and personal statistics for employees, project leads and payroll.
+Bulk edit:: Select many bookings and change them at once.
 
-[cols="1,3",options="header"]
-|===
-|Feature |Description
-|Address book|A central address book provides an Excel export as well as v-card exports.
-|Library|Manage your books and their lend-out-states of your library with ProjectForge.
-|===
+image::2026-Timesheets.png[Timesheets,link=/uploads/screenshots/2026-Timesheets.png]
 
-== Plugins
+[[people_leave]]
+== People & Leave
 
-[cols="1,3",options="header"]
-|===
-|Feature |Description
-|Software License Management|A central address book provides an Excel export as well as v-card exportsYou may organize your Software licenses with ProjectForge (Adobe, Microsoft etc.). The administrators have full access to all licenses and keys, the users only to the keys of licenses to which they're assigned. You can track the history of changes easily. Try it (within the demo system on this web site or refer the AdministrationGuide for enabling this plugin).
-|===
+_Leave requests, leave accounts, employees and skills – without an extra HR tool._
 
-== Miscellaneous
+Leave requests:: Request leave, get it approved, everybody involved is notified. Conflicts within the team are detected early.
+Leave becomes a timesheet:: Approved vacation is booked as timesheets automatically every night.
+Leave accounts:: Entitlements, carry-overs and remaining days – always correct.
+Employees and salaries:: Employee data and salaries, importable from Excel and exportable to DATEV.
+Skill matrix:: Who knows what? Your team rates its own skills and interests – a great help when staffing new projects.
 
-[cols="1,3",options="header"]
-|===
-|Feature |Description
-|Full text search|With the full text search engine which is built-in you can find your data in seconds. A query syntax is provided for a customized search.
-|Excel-Exports|see Scripting
-|Scripting|The Scripting engine allows the enabled users to analyze and calculate data and generate Excel exports as well as diagrams. All data of ProjectForge is accessible via scripts.
-|Templating|Templates used e. g. for html-formatted e-mails are internationalized in the language of the receiver and can be configured by administrators (see AdministrationGuide). Groovy is used for enabling more complex logic and embedding other templates in a convenient way. So you can define main style templates for assuring a well-defined layout and design for all the e-mails.
-|Mobile devices|ProjectForge is usable with mobile devices. More and more pages are optimized for devices such as iPhone, Android etc.
-|===
+image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 
-== Financial administration
+[[finance_e_invoicing]]
+== Finance & E-Invoicing
 
-[cols="1,3",options="header"]
-|===
-|Feature |Description
-|Invoices|Organize your inbound and outbound invoices with ProjectForge. Assign the positions of your invoices to projects, releases etc.
-|Cost calculation|It's possible to get every time you want the profit of your projects, customers etc. See which releases or project phases were successful and where you have to improve your processes.
-|===
+_From booked hours to a compliant invoice – XRechnung and ZUGFeRD included._
 
+Outgoing invoices:: Invoice positions linked to orders and projects, Word templates for your layout, PDF output and cancellation invoices.
+E-invoicing:: Create PEPPOL-ready XRechnung and ZUGFeRD invoices, checked for completeness before export – and check the e-invoices you receive with the built-in e-invoice checker.
+Incoming invoices:: Capture or import incoming invoices and assign them to cost units.
+Cost accounting:: Cost units and accounts give you clean results per project, customer and department.
+Currencies:: Amounts in foreign currencies with online exchange rates.
+
+image::2026-Invoice.png[Outgoing invoices,link=/uploads/screenshots/2026-Invoice.png]
+
+[[controlling_liquidity]]
+== Controlling & Liquidity
+
+_Know today what next quarter looks like._
+
+Forecast:: Expected revenue month by month, compared with previous years, as Excel export.
+Key figures and charts:: Order statistics, contribution margins and invoicing quota on chart tiles you can arrange the way you like.
+Liquidity planning:: Expected payments, recurring series and invoices combined into one liquidity forecast.
+Bank accounts:: Import account statements and browse the transactions of your accounts.
+DATEV:: Import accounting records and incoming invoices from DATEV and get business assessments (BWA).
+
+image::2026-Statistics.png[Statistics and forecast,link=/uploads/screenshots/2026-Statistics.png]
+image::2026-Liquidity.png[Liquidity forecast,link=/uploads/screenshots/2026-Liquidity.png]
+
+[[collaboration]]
+== Collaboration
+
+_Team calendars, address book, file sharing and Word templates – the everyday things your team needs anyway._
+
+Team calendars:: Shared calendars with holidays and birthdays. Subscribe to them on any device via ICS and show external calendars inside ProjectForge.
+Address book:: Shared addresses, synchronized to your phone via CardDAV, vCard export.
+Data transfer:: Share files with colleagues and customers – protected by password and expiry date, with a full activity log.
+Word templates:: Generate contracts and serial letters from your own Word templates, as Word or PDF.
+Polls:: Ask your team and get a quick answer.
+Office organization:: Contracts, incoming and outgoing mail log, visitor book, library, software licenses and hardware.
+
+image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
+
+[[easy_to_use]]
+== Easy to Use
+
+_A tool people actually like to open._
+
+Modern interface:: Fast and responsive – on the desktop, tablet and phone. In a light or dark theme.
+Global search:: Find any customer, project, invoice or address in seconds.
+Your menu:: Favorites bar, recently used pages and a menu you can customize.
+Excel everywhere:: Export every list to Excel.
+History:: Every change is logged with who and when – and you can comment on it.
+Two languages:: English and German interface, mails in the language of the recipient.
+
+image::2026-Menu.png[Main menu and favorites,link=/uploads/screenshots/2026-Menu.png]
+image::2026-Dark.png[Dark theme,link=/uploads/screenshots/2026-Dark.png]
+
+[[security_integration]]
+== Security & Integration
+
+_Fits into your IT, not the other way round._
+
+Single sign-on:: Keycloak or Authentik, or LDAP – as client or as master of your users and groups (including POSIX and Samba accounts).
+Two-factor login:: Authenticator apps, WebAuthn security keys, codes by mail or SMS.
+Fine-grained rights:: Groups, roles and access rights per task.
+External gateway:: Offer calendars, contacts and file sharing to the outside world without exposing your main system.
+Integrations:: Access tokens for REST clients and calendar subscriptions, phone integration (Sipgate direct call, SMS), Jira issue links.
+
+
+[[operations_extensibility]]
+== Operations & Extensibility
+
+_Easy to run, easy to extend._
+
+Docker or JAR:: Runs anywhere Java runs, with PostgreSQL in production. Database migrations run automatically on update.
+System dashboard:: Problems, statistics, scheduled jobs and caches in one place – plus an error digest by mail.
+Log viewer:: Live log and full log-file search with context, right in the browser.
+Scripting:: Kotlin and Groovy scripts for your own reports and exports – even as buttons on selected pages.
+Plugins:: Extend ProjectForge with your own modules.
+Open source:: Kotlin, Spring Boot and Next.js. Read the code, change it, contribute.
+
+image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/uploads/screenshots/2026-SystemDashboard.png]
+
+[[requirements]]
 == Technical requirements
 
-- The ProjectForge server is available as a ready-to-run executable jar (for Windows, Mac, Linux and all Java-capable platforms).
-- ProjectForge is available as docker image.
-- The users only need a modern web browser to have full access to ProjectForge anywhere.
+- Server: Docker image or executable JAR (Java 17 or newer) for Linux, macOS and Windows, see link:/docs/installation/[Installation].
+- Database: PostgreSQL for production, an embedded database for evaluation.
+- Users: a current web browser – nothing to install on the client.

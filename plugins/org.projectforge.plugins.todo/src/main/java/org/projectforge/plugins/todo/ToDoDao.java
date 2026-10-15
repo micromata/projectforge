@@ -48,7 +48,7 @@ import javax.sql.DataSource;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class ToDoDao extends BaseDao<ToDoDO> {

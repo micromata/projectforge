@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION") // Tests the legacy UserPrefArea based API.
+
 package org.projectforge.business.user
 
 import org.apache.commons.collections.CollectionUtils
@@ -222,7 +224,7 @@ class UserPrefTest : AbstractTestBase() {
             )
             Assertions.assertFalse(
                 userPrefDao.doesParameterNameAlreadyExist(
-                    id as Long,
+                    id,
                     user,
                     UserPrefArea.TIMESHEET_TEMPLATE,
                     "test"

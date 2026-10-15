@@ -5,21 +5,19 @@
 
     <body>
 
+    <a class="sr-only rounded-md bg-background px-4 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50" href="#main">Skip to content</a>
+
+    {% include header.html %}
+
+    <main id="main">
     {% if page.hero %}
         {% include hero.html %}
-    {% else %}
-        {% include navbar.html %}
     {% endif %}
 
     {{ content }}
+    </main>
 
-    {% include offcanvas-docs.html %}
-
-    {% include offcanvas.html %}
-
-    {% if page.layout != 'doc' %}
-        {% include footer.html %}
-    {% endif %}
+    {% include footer.html %}
 
     {% if page.layout == 'doc' %}
         {% include hook-pre-closing-body-doc.html %}

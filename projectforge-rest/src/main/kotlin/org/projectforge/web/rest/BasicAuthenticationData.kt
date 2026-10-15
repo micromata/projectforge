@@ -23,7 +23,7 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.StandardCharsets
@@ -37,7 +37,7 @@ class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, r
 
   init {
     val basic = StringUtils.split(authHeader)
-    if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
+    if (basic.size != 2 || !basic[0].equals("Basic", ignoreCase = true)) {
       if (required) {
         logError(
           request,
@@ -62,6 +62,6 @@ class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, r
   }
 
   private fun logError(request: HttpServletRequest, msg: String) {
-    log.error("$msg (requestUri=${request.requestURI}, ${request.queryString})")
+    log.error { "$msg (requestUri=${request.requestURI}, ${request.queryString})" }
   }
 }

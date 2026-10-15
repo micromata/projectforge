@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
@@ -116,7 +116,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 }
             }
             if (!fieldFound) {
-                log.warn("Search property '${baseDao.doClass}.$fieldName' not found, but declared as additional field (ignoring it).")
+                log.warn { "Search property '${baseDao.doClass}.$fieldName' not found, but declared as additional field (ignoring it)." }
             }
         }
 
@@ -131,14 +131,12 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
             bridges.add(it)
         }
         this.classBridges = bridges.toTypedArray()
-        log.info(
-            "SearchInfo for class ${
+        log.info { "SearchInfo for class ${
                 ClassUtils.getProxiedClass(
                     baseDao::
                     class.java
                 ).simpleName
-            }: $this"
-        )
+            }: $this" }
     }
 
     fun isStringField(field: String): Boolean {
@@ -247,8 +245,9 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                 jgen.writeNull()
                 return
             }
-            value as Array<ClassBridge>
-            jgen.writeString(value.joinToString(", ") { it.name })
+            @Suppress("UNCHECKED_CAST")
+            val bridges = value as Array<ClassBridge>
+            jgen.writeString(bridges.joinToString(", ") { it.name })
         }
     }
 }

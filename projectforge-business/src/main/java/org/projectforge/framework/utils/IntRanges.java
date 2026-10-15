@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * Hold integer ranges, such as "20-25" which fits als numbers between 20 and 25.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class IntRanges extends Ranges<Integer> implements Serializable

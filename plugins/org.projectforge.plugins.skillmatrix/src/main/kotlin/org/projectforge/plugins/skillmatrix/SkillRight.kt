@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 /**
  * Define the access rights.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 class SkillRight() : UserRightAccessCheck<SkillEntryDO>(SkillRightId.PLUGIN_SKILL_MATRIX, UserRightCategory.PLUGINS, UserRightValue.TRUE) {
     /**

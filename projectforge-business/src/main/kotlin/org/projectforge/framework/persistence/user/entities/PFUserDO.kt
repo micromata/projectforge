@@ -44,7 +44,7 @@ import java.time.DayOfWeek
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -57,6 +57,10 @@ import java.util.*
     NamedQuery(
         name = PFUserDO.FIND_OTHER_USER_BY_USERNAME,
         query = "from PFUserDO where username=:username and id<>:id"
+    ),
+    NamedQuery(
+        name = PFUserDO.FIND_BY_IDP_EXTERNAL_ID,
+        query = "from PFUserDO where idpExternalId=:idpExternalId"
     )
 )
 open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupport {
@@ -88,19 +92,19 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var lastWlanPasswordChange: Date? = null
 
     /**
-     * Timestamp of the last successful password sync to Keycloak.
-     * Null means the password has never been synced to Keycloak.
+     * Timestamp of the last successful password sync to the external IdP (Keycloak, Authentik, etc.).
+     * Null means the password has never been synced.
      */
-    @get:Column(name = "last_keycloak_password_sync")
-    open var lastKeycloakPasswordSync: Date? = null
+    @get:Column(name = "last_idp_password_sync")
+    open var lastIdpPasswordSync: Date? = null
 
     /**
-     * The Keycloak user ID (UUID) for this user.
-     * Set when the user is first created in or synced from Keycloak.
-     * Used to look up and update the user in Keycloak without relying on username matching.
+     * The external IdP user ID (UUID or PK) for this user.
+     * Set when the user is first created in or synced from the IdP.
+     * Used to look up and update the user in the IdP without relying on username matching.
      */
-    @get:Column(name = "keycloak_id", length = 36)
-    open var keycloakId: String? = null
+    @get:Column(name = "idp_external_id", length = 100)
+    open var idpExternalId: String? = null
 
     /**
      * JIRA user name (if differ from the ProjectForge's user name).
@@ -127,11 +131,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var restrictedUser: Boolean = false
 
     /**
-     * A deactivated user has no more system access.
+     * A deactivated user has no more system access. Also the uniform inactivity flag every DO carries
+     * (see [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]): a user shown as a
+     * reference in a next list cell is struck through while this is set.
      */
     @PropertyInfo(i18nKey = "user.deactivated")
     @get:Column(nullable = false)
-    open var deactivated: Boolean = false
+    override var deactivated: Boolean = false
 
     @PropertyInfo(i18nKey = "firstName")
     @FullTextField
@@ -169,6 +175,22 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     @get:Column(length = 255)
     open var email: String? = null
 
+    /**
+     * Further e-mail addresses of the user still in use, comma separated (see [splitEmails]).
+     */
+    @PropertyInfo(i18nKey = "user.alternativeEmails", tooltip = "user.alternativeEmails.info")
+    @FullTextField
+    @get:Column(name = "alternative_emails", length = 1000)
+    open var alternativeEmails: String? = null
+
+    /**
+     * E-mail addresses of the user no longer in use (e.g. after a change of name), comma separated (see [splitEmails]).
+     */
+    @PropertyInfo(i18nKey = "user.formerEmails", tooltip = "user.formerEmails.info")
+    @FullTextField
+    @get:Column(name = "former_emails", length = 1000)
+    open var formerEmails: String? = null
+
     @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @get:Column(name = "mobile_phone", length = 255)
@@ -189,7 +211,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     @get:Column
     open var loginFailures: Int = 0
 
-    @PropertyInfo(i18nKey = "user.locale")
+    @PropertyInfo(i18nKey = "user.locale", tooltip = "user.tooltip.locale")
     @get:Column
     open var locale: Locale? = null
 
@@ -199,7 +221,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      */
     private var _timeZone: TimeZone? = null
 
-    @get:PropertyInfo(i18nKey = "timezone")
+    @get:PropertyInfo(i18nKey = "timezone", tooltip = "user.tooltip.timeZone")
     @get:Transient
     var timeZone: TimeZone
         get() = _timeZone ?: Configuration.instance.defaultTimeZone
@@ -210,7 +232,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     /**
      * For example "Europe/Berlin" if time zone is given otherwise empty string.
      */
-    @get:PropertyInfo(i18nKey = "timezone")
+    @get:PropertyInfo(i18nKey = "timezone", tooltip = "user.tooltip.timeZone")
     @get:Column(name = "time_zone")
     open var timeZoneString: String?
         get() = _timeZone?.id
@@ -249,7 +271,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      *  * dd/MM/yyyy: 21/02/2011, British and French format (day of month first)
      *  * MM/dd/yyyy: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateFormat")
+    @PropertyInfo(i18nKey = "dateFormat", tooltip = "user.tooltip.dateFormat")
     @get:Column(name = "date_format", length = 20)
     open var dateFormat: String? = null
 
@@ -260,7 +282,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      *  * DD/MM/YYYY: 21/02/2011, British and French format (day of month first)
      *  * MM/DD/YYYY: 02/21/2011, American format (month first)
      */
-    @PropertyInfo(i18nKey = "dateFormat.xls")
+    @PropertyInfo(i18nKey = "dateFormat.xls", tooltip = "user.tooltip.excelDateFormat")
     @get:Column(name = "excel_date_format", length = 20)
     open var excelDateFormat: String? = null
 
@@ -277,7 +299,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
             firstDayOfWeekValue = PFDayUtils.getISODayOfWeekValue(value)
         }
 
-    @PropertyInfo(i18nKey = "timeNotation")
+    @PropertyInfo(i18nKey = "timeNotation", tooltip = "user.tooltip.timeNotation")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "time_notation", length = 6)
     open var timeNotation: TimeNotation? = null
@@ -325,15 +347,15 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     /**
      * The user's sshPublicKey, if any.
      */
-    @PropertyInfo(i18nKey = "user.sshPublicKey")
-    @get:Column(name = "ssh_public_key", length = 4096)
+    @PropertyInfo(i18nKey = "user.sshPublicKey", tooltip = "user.tooltip.sshPublicKey")
+    @get:Column(name = "ssh_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var sshPublicKey: String? = null
 
     /**
      * The user's gpgPublicKey, if any.
      */
-    @PropertyInfo(i18nKey = "user.gpgPublicKey")
-    @get:Column(name = "gpg_public_key", length = 4096)
+    @PropertyInfo(i18nKey = "user.gpgPublicKey", tooltip = "user.tooltip.gpgPublicKey")
+    @get:Column(name = "gpg_public_key", length = PUBLIC_KEY_MAX_LENGTH)
     open var gpgPublicKey: String? = null
 
     /**
@@ -435,8 +457,27 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
         return !deleted && !this.deactivated
     }
 
+    /**
+     * Normalizes [alternativeEmails] and [formerEmails] (see [normalizeEmails]) and removes duplicates silently
+     * (case-insensitive): the primary [email] from both lists and the alternative addresses from [formerEmails].
+     */
+    fun normalizeEmailLists() {
+        val primary = email?.trim()?.lowercase()
+        val alternatives = splitEmails(alternativeEmails).filter { it.lowercase() != primary }
+        val used = alternatives.map { it.lowercase() }.toSet() + listOfNotNull(primary)
+        alternativeEmails = joinEmails(alternatives)
+        formerEmails = joinEmails(splitEmails(formerEmails).filter { it.lowercase() !in used })
+    }
+
     companion object {
+        /**
+         * Room for an armored GPG key with subkeys and signatures (often more than 4096 characters) or several
+         * SSH keys.
+         */
+        const val PUBLIC_KEY_MAX_LENGTH = 20000
+
         const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
+        const val FIND_BY_IDP_EXTERNAL_ID = "PFUserDO_FindByIdpExternalId"
 
         /**
          * For detecting the existing of given username in the database for other user than given. Avoids duplicate usernames.
@@ -449,6 +490,63 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
          */
         fun toLongList(users: List<PFUserDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
+        }
+
+        /**
+         * Splits a list of e-mail addresses as stored in [alternativeEmails] and [formerEmails]: separated by
+         * comma, semicolon or whitespace, trimmed, without blank and duplicate (case-insensitive) entries.
+         */
+        @JvmStatic
+        fun splitEmails(value: String?): List<String> {
+            if (value.isNullOrBlank()) {
+                return emptyList()
+            }
+            return value.split(',', ';', ' ', '\t', '\n', '\r')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinctBy { it.lowercase() }
+        }
+
+        /**
+         * @return The given e-mail addresses (see [splitEmails]) joined by ", " or null, if empty.
+         */
+        @JvmStatic
+        fun normalizeEmails(value: String?): String? {
+            return joinEmails(splitEmails(value))
+        }
+
+        private fun joinEmails(emails: List<String>): String? {
+            return emails.takeIf { it.isNotEmpty() }?.joinToString(", ")
+        }
+
+        /**
+         * @return The primary, alternative and former e-mail addresses of the given user, without duplicates
+         * (case-insensitive).
+         */
+        @JvmStatic
+        fun allEmails(user: PFUserDO): List<String> {
+            return (listOfNotNull(user.email?.trim()?.takeIf { it.isNotEmpty() }) +
+                    splitEmails(user.alternativeEmails) + splitEmails(user.formerEmails)).distinctBy { it.lowercase() }
+        }
+
+        /**
+         * The alternative and former addresses of the given user, which are used by another (not deleted) user
+         * as primary, alternative or former address (case-insensitive). The primary addresses aren't compared
+         * with each other.
+         * @param others All users, the given one may be included (compared by id).
+         * @return The address of the given user mapped to the other user using it.
+         */
+        @JvmStatic
+        fun findForeignEmails(user: PFUserDO, others: Collection<PFUserDO>): Map<String, PFUserDO> {
+            val emails = splitEmails(user.alternativeEmails) + splitEmails(user.formerEmails)
+            if (emails.isEmpty()) {
+                return emptyMap()
+            }
+            val othersByEmail = mutableMapOf<String, PFUserDO>()
+            others.filter { !it.deleted && (user.id == null || it.id != user.id) }.forEach { other ->
+                allEmails(other).forEach { othersByEmail.putIfAbsent(it.lowercase(), other) }
+            }
+            return emails.mapNotNull { email -> othersByEmail[email.lowercase()]?.let { email to it } }.toMap()
         }
 
         /**

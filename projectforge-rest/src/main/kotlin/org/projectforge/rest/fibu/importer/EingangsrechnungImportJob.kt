@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu.importer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
@@ -69,7 +69,7 @@ class EingangsrechnungImportJob(
     }
 
     override suspend fun run() {
-        log.info("Starting import of ${selectedEntries.size} incoming invoice entries (isPositionBasedImport=${importStorage.isPositionBasedImport}).")
+        log.info { "Starting import of ${selectedEntries.size} incoming invoice entries (isPositionBasedImport=${importStorage.isPositionBasedImport})." }
 
         if (importStorage.isPositionBasedImport) {
             runPositionBasedImport()
@@ -77,7 +77,7 @@ class EingangsrechnungImportJob(
             runHeaderOnlyImport()
         }
 
-        log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}, deleted=${result.deleted}, unmodified=${result.unmodified}")
+        log.info { "Import completed: inserted=${result.inserted}, updated=${result.updated}, deleted=${result.deleted}, unmodified=${result.unmodified}" }
     }
 
     /**
@@ -174,7 +174,7 @@ class EingangsrechnungImportJob(
         // Modify the existing collection in-place to maintain Hibernate's PersistentList
         val newPositions = createPositions(entries, existingEntity, existingPositionsById)
 
-        if (log.isDebugEnabled) {
+        if (log.isDebugEnabled()) {
             log.debug { "Updating invoice ${existingEntity.id} with ${newPositions.size} positions" }
             newPositions.forEachIndexed { index, pos ->
                 log.debug { "  Position $index: id=${pos.id}, number=${pos.number}, text=${pos.text}, hasKostZuweisungen=${!pos.kostZuweisungen.isNullOrEmpty()}" }

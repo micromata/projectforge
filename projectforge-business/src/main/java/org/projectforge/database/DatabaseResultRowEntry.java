@@ -26,7 +26,7 @@ package org.projectforge.database;
 
 /**
  * For storing the ResultSet.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public interface DatabaseResultRowEntry

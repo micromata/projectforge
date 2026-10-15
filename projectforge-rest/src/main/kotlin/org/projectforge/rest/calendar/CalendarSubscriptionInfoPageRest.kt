@@ -27,6 +27,7 @@ import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
@@ -43,8 +44,34 @@ class CalendarSubscriptionInfoPageRest {
     @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
 
+    /**
+     * The subscription of the time sheets (default), the holidays or the weeks of year as plain JSON, for the
+     * next subscription dialog: headline, full feed url (carrying the user's personal token), the QR code url
+     * and the security advice.
+     */
+    @AccessChecked("Own user only (logged-in user's feed token)")
+    @GetMapping("info")
+    fun getInfo(@RequestParam("type") type: String?): CalendarSubscriptionInfo {
+        return createInfo(type)
+    }
+
     @GetMapping("dynamic")
     fun getLayout(@RequestParam("type") type: String?): FormLayoutData {
+        val subscriptionInfo = createInfo(type)
+        val layout = UILayout("plugins.teamcal.subscription")
+        layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
+        layout.add(UIFieldset(UILength(md = 12, lg = 12))
+                .add(UIRow()
+                        .add(UICol()
+                                .add(UICustomized("calendar.subscriptionInfo",
+                                        values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
+
+        LayoutUtils.process(layout);
+
+        return FormLayoutData(null, layout, null)
+    }
+
+    private fun createInfo(type: String?): CalendarSubscriptionInfo {
         val subscriptionInfo = CalendarSubscriptionInfo()
         if (type == "HOLIDAYS") {
             subscriptionInfo.url = calendarFeedService.fullUrl4Holidays
@@ -57,17 +84,7 @@ class CalendarSubscriptionInfoPageRest {
             subscriptionInfo.url = calendarFeedService.getFullUrl4Timesheets(timesheetUserId)
             subscriptionInfo.headline = translate("timesheet.timesheets")
         }
-        val layout = UILayout("plugins.teamcal.subscription")
-        layout.addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-        layout.add(UIFieldset(UILength(md = 12, lg = 12))
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UICustomized("calendar.subscriptionInfo",
-                                        values = mutableMapOf("subscriptionInfo" to subscriptionInfo))))))
-
-        LayoutUtils.process(layout);
-
-        return FormLayoutData(null, layout, null)
+        return subscriptionInfo
     }
 
     companion object {

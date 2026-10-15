@@ -24,7 +24,7 @@
 package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.CellReference
@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
 /**
  * For excel export.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ExcelUtils {
     const val BOLD_STYLE = "hr"

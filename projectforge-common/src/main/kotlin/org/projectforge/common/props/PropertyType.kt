@@ -26,7 +26,7 @@ package org.projectforge.common.props
 /**
  * If the type of a field isn't represented by the Java type it may be defined in more detail by this enum. For example a BigDecimal may
  * represent a currency value.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class PropertyType {
     CURRENCY, CURRENCY_PLAIN, DATE, DATE_TIME, DATE_TIME_SECONDS, DATE_TIME_MILLIS,

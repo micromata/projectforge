@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.fop.datatypes.Numeric
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The kost2 entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class KostCache : AbstractCache() {
@@ -126,13 +126,39 @@ class KostCache : AbstractCache() {
         }
     }
 
+    /**
+     * The bookable cost 2 units of a project (e.g. for time sheets, see TaskTree.getKost2List): not deleted
+     * and effectively active.
+     */
     fun getActiveKost2(nummernkreis: Int, bereich: Int, teilbereich: Int): List<Kost2DO> {
         checkRefresh()
         synchronized(kost2Map) {
             return kost2Map.values.filter { kost2 ->
                 kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich
+                        && !kost2.deleted
                         && (kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null)
             }
+        }
+    }
+
+    /**
+     * All cost 2 units with the given first three parts of the number (any cost 2 type), whatever their state.
+     */
+    fun getKost2List(nummernkreis: Int, bereich: Int, teilbereich: Int, includeDeleted: Boolean = false): List<Kost2DO> {
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { kost2 ->
+                kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich
+                        && (includeDeleted || !kost2.deleted)
+            }
+        }
+    }
+
+    /** All cost 2 units, also the deleted ones if [includeDeleted]. */
+    fun getAllKost2(includeDeleted: Boolean = false): List<Kost2DO> {
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { includeDeleted || !it.deleted }
         }
     }
 
@@ -223,6 +249,15 @@ class KostCache : AbstractCache() {
     }
 
     /**
+     * All non-deleted cost 2 types (Kost2Art), ordered by their two-digit end number. Read from the cache,
+     * so no database round-trip — used e.g. to offer them as a list filter (see Kost2FilterUtils).
+     */
+    fun getKost2Arts(): List<Kost2ArtDO> {
+        checkRefresh()
+        return kost2ArtMap.values.filter { !it.deleted }.sortedBy { it.id }
+    }
+
+    /**
      * Returns the Kost2ArtDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
      * Prevents lazy loadings.
      */
@@ -279,6 +314,44 @@ class KostCache : AbstractCache() {
         }
     }
 
+    /**
+     * The ids of the projects with an active cost 2 unit ([isActive], not deleted) of any of the given types —
+     * the project list's "active cost 2 types" filter.
+     */
+    fun getProjektIdsWithActiveKost2Arts(kost2ArtIds: Collection<Long>): Set<Long> {
+        if (kost2ArtIds.isEmpty()) {
+            return emptySet()
+        }
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values
+                .filter { !it.deleted && isActive(it) && it.kost2Art?.id in kost2ArtIds }
+                .mapNotNull { it.projekt?.id }
+                .toSet()
+        }
+    }
+
+    /**
+     * The ids of the projects with an active cost 2 unit ([isActive], not deleted) of *every* given type — the
+     * complement of the project list's "non-active or missing cost 2 types" filter.
+     */
+    fun getProjektIdsWithAllActiveKost2Arts(kost2ArtIds: Collection<Long>): Set<Long> {
+        if (kost2ArtIds.isEmpty()) {
+            return emptySet()
+        }
+        val required = kost2ArtIds.toSet()
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values
+                .filter { !it.deleted && isActive(it) && it.kost2Art?.id in required }
+                .groupBy({ it.projekt?.id }, { it.kost2Art!!.id!! })
+                .filter { (projektId, artIds) -> projektId != null && artIds.toSet().containsAll(required) }
+                .keys
+                .filterNotNull()
+                .toSet()
+        }
+    }
+
     val cloneOfAllKost2Arts: List<Kost2Art>
         get() {
             checkRefresh()
@@ -319,40 +392,69 @@ class KostCache : AbstractCache() {
 
     fun updateKost2Arts() {
         // This method must not be synchronized because it works with a new copy of list.
-        val kost2Arts = persistenceService.executeQuery(
+        setKost2Arts(loadKost2Arts())
+    }
+
+    private fun loadKost2Arts(): List<Kost2ArtDO> {
+        return persistenceService.executeQuery(
             "from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO::class.java, lockModeType = LockModeType.NONE
         )
+    }
+
+    private fun setKost2Arts(kost2Arts: List<Kost2ArtDO>) {
         this.allKost2Arts = kost2Arts.map { Kost2ArtImpl(it) }
         kost2ArtMap = kost2Arts.associateBy { it.id!! }
     }
 
     /**
      * This method will be called by CacheHelper and is synchronized via getData();
+     *
+     * The new maps are published only after the isolated context is closed. Published earlier, a request thread
+     * could reach a lazy association of a just cached entity while the context is still open and run the lazy
+     * load on this thread's EntityManager, which isn't thread-safe and is closed under it at the end of the block
+     * ("Session/EntityManager is closed"). Once closed, a lazy access fails right away instead. kost2Art is
+     * join-fetched for the same reason: KostFormatter reads its name, and a proxy of a deleted kost2 art (not
+     * loaded by [loadKost2Arts]) would stay uninitialized.
      */
     override fun refresh() {
-        log.info("Initializing KostCache ...")
-        persistenceService.runIsolatedReadOnly { context ->
+        log.info { "Initializing KostCache ..." }
+        val (newKost1Map, newKost2Map, kost2Arts) = persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
-            this.kost1Map = persistenceService
+            val kost1s = persistenceService
                 .executeQuery("from Kost1DO t", Kost1DO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
                 .associateBy { it.id!! }
                 .toMutableMap()
-            this.kost2Map = persistenceService
-                .executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
+            val kost2s = persistenceService
+                .executeQuery(
+                    "from Kost2DO t left join fetch t.kost2Art",
+                    Kost2DO::class.java,
+                    lockModeType = LockModeType.NONE
+                )
                 .filter { it.id != null }
                 .associateBy { it.id!! }
                 .toMutableMap()
-            kost2EntriesExists = kost2Map.values.any { !it.deleted }
-            updateKost2Arts()
+            val arts = loadKost2Arts()
             log.info { "Initializing of KostCache done. ${context.formatStats()}" }
+            Triple(kost1s, kost2s, arts)
         }
+        this.kost1Map = newKost1Map
+        this.kost2Map = newKost2Map
+        kost2EntriesExists = newKost2Map.values.any { !it.deleted }
+        setKost2Arts(kost2Arts)
     }
 
     companion object {
         lateinit var instance: KostCache
             private set
+
+        /**
+         * Whether a cost 2 unit is active by its own status (null counts as active), not the effective one: an
+         * ended project ends all its units anyway. Deleted or not is up to the caller.
+         */
+        fun isActive(kost2: Kost2DO): Boolean =
+            kost2.kostentraegerStatus == null || kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE
 
         internal fun setForTestCases() {
             instance = KostCache()

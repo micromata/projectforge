@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.createPseudoTask
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.getFormattedDuration
 import org.projectforge.business.timesheet.AITimeSavings
@@ -34,7 +35,7 @@ import java.io.Serializable
 /**
  * Repräsentiert einen Wochenbericht eines Mitarbeiters. Diese Wochenberichte sind dem MonthlyEmployeeReport zugeordnet.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
     private var fromDate: PFDateTime
@@ -86,7 +87,13 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         return !sheet.startTime!!.before(fromDate.utilDate) && sheet.startTime!!.before(toDate.utilDate)
     }
 
-    fun addEntry(timesheet: TimesheetDO, hasSelectAccess: Boolean) {
+    /**
+     * @param attendanceDuration The duration (in millis) attributed to this time sheet for attendance accounting. For
+     * shared cost elements with overlapping time sheets this is the proportionally split duration (see
+     * [org.projectforge.business.timesheet.TimesheetOverlapUtils]); for non-overlapping time sheets it equals
+     * [TimesheetDO.getDuration].
+     */
+    fun addEntry(timesheet: TimesheetDO, hasSelectAccess: Boolean, attendanceDuration: Long) {
         if (!matchWeek(timesheet)) {
             throw RuntimeException("Oups, given time sheet is not inside the week represented by this week object.")
         }
@@ -100,7 +107,10 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         } else if (timesheet.kost2Id != null) {
             entry = kost2Entries[timesheet.kost2Id]
             if (entry == null) {
-                entry = MonthlyEmployeeReportEntry(timesheet.kost2)
+                // Resolve the cost element (incl. projekt and kost2Art) from the cache instead of storing the
+                // lazy Kost2 proxy. Otherwise later reads of kost2.displayName / kost2Art (Kost2Row,
+                // InvoicingQuotaService) trigger one Kost2 + one Kost2Art select per cost element (N+1).
+                entry = MonthlyEmployeeReportEntry(PfCaches.instance.getKost2(timesheet.kost2Id))
                 kost2Entries[timesheet.kost2Id!!] = entry
             }
         } else {
@@ -108,14 +118,18 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
                 entry = taskEntries[taskId]
                 if (entry == null) {
                     entry = MonthlyEmployeeReportEntry(timesheet.task)
-                    taskEntries[taskId] = entry!!
+                    taskEntries[taskId] = entry
                 }
             }
         }
-        val duration = timesheet.duration
+        // Use the (possibly overlap-split) attendance duration instead of the full time sheet duration.
+        val duration = attendanceDuration
         entry?.addMillis(timesheet, duration)
-        totalDuration += timesheet.workFractionDuration
-        if (timesheet.workFractionDuration > 0) {
+        // Net (working time fraction) duration derived from the entry's cost 2 (travelling times etc.), based on the
+        // split attendance duration.
+        val netDuration = entry?.let { it.workFraction.multiply(duration.toBigDecimal()).toLong() } ?: duration
+        totalDuration += netDuration
+        if (netDuration > 0) {
             // Don't add time sheets with zero working time fraction.
             totalGrossDuration += duration
         }
@@ -127,6 +141,14 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
 
     val formattedToDayOfMonth: String
         get() = StringHelper.format2DigitNumber(toDate.dayOfMonth)
+
+    /** First day of the week (clipped to the month) as an ISO date `yyyy-MM-dd`, for the drill-down window. */
+    val isoFromDate: String
+        get() = fromDate.localDate.toString()
+
+    /** Last day of the week (clipped to the month) as an ISO date `yyyy-MM-dd`, for the drill-down window. */
+    val isoToDate: String
+        get() = toDate.localDate.toString()
 
     val formattedTotalDuration: String
         get() = getFormattedDuration(totalDuration)

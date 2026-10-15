@@ -1,12 +1,13 @@
-{% if include.lightbox == 'true' %}
-<figure data-uk-lightbox="animation: slide">
-    <a class="uk-inline" style="min-height: 260px" href="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.caption %} caption="{{ include.caption }}"{% endif %}>
-        <img src="{% if include.img contains 'http' %}{{ include.img }}{% else %}{{ site.uploads | absolute_url }}{{ include.img }}{% endif %}"{% if include.alt %} alt="{{ include.alt }}"{% endif %}>
+{%- comment -%}
+    Screenshot in a bordered frame with an optional caption, linked to the full-size image.
+    Parameters: img (path in /uploads/ or a full url), alt, caption.
+{%- endcomment -%}
+{%- if include.img contains '://' -%}{%- assign src = include.img -%}{%- else -%}{%- capture src -%}{{ site.uploads | relative_url }}{{ include.img }}{%- endcapture -%}{%- endif -%}
+<figure class="overflow-hidden rounded-xl border border-border bg-card">
+    <a class="block" href="{{ src }}" target="_blank" rel="noopener">
+        <img class="block h-auto w-full" src="{{ src }}" alt="{{ include.alt | escape }}" loading="lazy">
     </a>
-    {% if include.caption %}
-    <figcaption data-uk-grid class="uk-flex-right uk-text-left">
-        <span class="uk-width-auto">{{ include.caption }}</span>
-    </figcaption>
-    {% endif %}
+    {%- if include.caption %}
+    <figcaption class="border-t border-border px-4 py-3 text-left text-[13px] leading-5 text-muted-foreground">{{ include.caption }}</figcaption>
+    {%- endif %}
 </figure>
-{% endif %}

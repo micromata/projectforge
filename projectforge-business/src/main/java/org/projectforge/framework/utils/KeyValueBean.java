@@ -29,7 +29,7 @@ import java.io.Serializable;
 
 /**
  * Simply an holder for a key value property.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class KeyValueBean<KeyType, ValueType extends Comparable<ValueType>> implements Comparable<KeyValueBean<KeyType, ValueType>>, Serializable
 {

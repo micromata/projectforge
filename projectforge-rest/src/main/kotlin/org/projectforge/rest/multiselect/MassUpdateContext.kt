@@ -24,7 +24,7 @@
 package org.projectforge.rest.multiselect
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -69,6 +69,26 @@ abstract class MassUpdateContext<T>(
   }
 
   /**
+   * Counts the object of the running update as modified, although none of its fields changed: called from the
+   * `update` of [commitUpdate] when the update changed something besides the object (a project's cost 2 units).
+   */
+  fun markCurrentModified() {
+    current?.additionalModification = true
+  }
+
+  /**
+   * Records the old and new value of a [field] that isn't a property of the object (such as a project's cost 2
+   * types), so the Excel export shows it. If both differ, the object counts as modified.
+   */
+  fun recordCurrentModification(field: String, oldValue: Any?, newValue: Any?) {
+    current?.let {
+      it.fieldModifications[field] = MassUpdateObject.FieldModification(oldValue, massUpdateParams[field]).also { mod ->
+        mod.newValue = newValue
+      }
+    }
+  }
+
+  /**
    * @param identifier4Message The identifier as part of the user feedback on errors. Should display a string for the
    * user to identifier the failed update object (e. g. invoice number or time sheet user and start-date etc.).
    */
@@ -78,7 +98,7 @@ abstract class MassUpdateContext<T>(
     update: () -> Unit
   ) {
     if (current == null) {
-      log.warn("Commit update without current object, please start update first by calling startUpdate.")
+      log.warn { "Commit update without current object, please start update first by calling startUpdate." }
     }
     try {
       current?.setModifiedObject(modifiedObj, identifier4Message)

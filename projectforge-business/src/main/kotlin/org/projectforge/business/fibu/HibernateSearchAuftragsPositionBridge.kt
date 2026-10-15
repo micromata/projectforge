@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
  * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
  * number&gt>).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
     override fun write(
@@ -45,13 +45,13 @@ class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
         val auftrag = bridgedElement.auftrag
         val sb = StringBuilder()
         if (auftrag?.nummer == null) {
-            log.error("AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null.")
+            log.error { "AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null." }
             target.addValue("position", "")
             return
         }
         sb.append(auftrag.nummer).append(".").append(bridgedElement.number.toInt())
-        if (log.isDebugEnabled) {
-            log.debug(sb.toString())
+        if (log.isDebugEnabled()) {
+            log.debug { sb.toString() }
         }
         target.addValue("position", sb.toString())
     }

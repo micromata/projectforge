@@ -23,7 +23,7 @@
 
 package org.projectforge.flyway.dbmigration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.projectforge.framework.utils.Crypt
@@ -42,7 +42,7 @@ class V7_0_0_21__AddressImages : BaseJavaMigration() {
     class MyAddress(val addressId: Int?, val name: String?, val image: ByteArray?, val imagePreview: ByteArray?)
 
     override fun migrate(context: Context) {
-        log.info("Migrating images of addresses...'")
+        log.info { "Migrating images of addresses...'" }
         val ds = context.configuration.dataSource
         val jdbc = JdbcTemplate(ds)
         var counter = 0
@@ -72,9 +72,9 @@ class V7_0_0_21__AddressImages : BaseJavaMigration() {
                 }
 
         if (counter > 0) { // counter > 0
-            log.info("Number of successful migrated images: $counter")
+            log.info { "Number of successful migrated images: $counter" }
         } else {
-            log.info("No images found to migrate (OK, if no address images exist in the data base).")
+            log.info { "No images found to migrate (OK, if no address images exist in the data base)." }
         }
     }
 }

@@ -35,7 +35,7 @@ import java.io.Serializable
  *
  * Used by Wicket pages as well as by AuftragDao in e-mail-notifications.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
+ * @author Kai Reinhard, Roger Kommer, Florian Blumenstein
  */
 open class FlatDisplayHistoryEntry : Serializable {
     /**

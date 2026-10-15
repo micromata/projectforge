@@ -23,22 +23,27 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
-import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.AdminErrorsRest
+import org.projectforge.rest.admin.AdminLogViewerRest
+import org.projectforge.rest.admin.AdminSchedulerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
-import org.projectforge.rest.fibu.kost.Kost1PagesRest
-import org.projectforge.rest.fibu.kost.Kost2PagesRest
-import org.projectforge.rest.hr.HRPlanningListPagesRest
-import org.projectforge.rest.hr.HRPlanningPagesRest
+import org.projectforge.rest.fibu.importer.DatevAccountImportRest
+import org.projectforge.rest.fibu.importer.DatevRecordImportRest
+import org.projectforge.rest.fibu.kost.Kost1EntityRest
+import org.projectforge.rest.fibu.kost.Kost2EntityRest
+import org.projectforge.rest.hr.HRPlanningEntityRest
+import org.projectforge.rest.hr.HRPlanningEntryEntityRest
+import org.projectforge.rest.hr.HRViewRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
-import org.projectforge.rest.scripting.MyScriptExecutePageRest
-import org.projectforge.rest.scripting.MyScriptPagesRest
-import org.projectforge.rest.scripting.ScriptExecutePageRest
-import org.projectforge.rest.scripting.ScriptPagesRest
+import org.projectforge.rest.scripting.MyScriptEntityRest
+import org.projectforge.rest.scripting.MyScriptExecuteRest
+import org.projectforge.rest.scripting.ScriptEntityRest
+import org.projectforge.rest.scripting.ScriptExecuteRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import jakarta.annotation.PostConstruct
@@ -56,72 +61,89 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
   @PostConstruct
   internal fun init() {
+    // The pages of projectforge-next are static files served by a resource handler (see WebApplicationConfig), so
+    // no filter sees their urls and a client side navigation doesn't even reach the server: only their rest calls
+    // are left to gate. Hence WRITE:<category> for the saves and the *Rest classes for the reading shortcuts
+    // (NextMigration2FATest keeps the gates the former Wicket pages /wa/... had).
     registerShortCutValues(
       My2FAShortCut.ADMIN_WRITE,
-      "WRITE:user;WRITE:group;",
-      "/wa/userEdit;/wa/groupEdit;/wa/admin",
-      "/wa/accessEdit",
-      // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin",
-      "/wa/configurationEdit"
+      "WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;",
     )
-    registerShortCutValues(
-      My2FAShortCut.ADMIN,
-      "/wa/user;/wa/group;/wa/admin",
-      "/wa/access",
-      // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin",
-      "/wa/configuration"
-    )
+    // The System page (SystemRest, /rs/system), successor of Wicket's admin page, and the Plugins page
+    // (PluginAdminRest, /rs/pluginList), successor of Wicket's PluginListPage: both legacy pages were gated by
+    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period.
+    registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
-      UserPagesRest::class.java,
-      GroupPagesRest::class.java,
-      AdminLogViewerPageRest::class.java,
-      GroupAccessPagesRest::class.java,
+      UserEntityRest::class.java,
+      GroupEntityRest::class.java,
+      AdminLogViewerRest::class.java,
+      AdminErrorsRest::class.java,
+      AdminSchedulerRest::class.java,
+      GroupAccessEntityRest::class.java,
+      PluginAdminRest::class.java,
+      ConfigurationEntityRest::class.java,
+      SystemRest::class.java,
     )
 
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
-      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;",
-      "/wa/hrPlanningEdit"
+      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:hrPlanning;"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
-      "WRITE:employee;/wa/hr"
+      "WRITE:employee"
     )
     registerShortCutClasses(
       My2FAShortCut.HR,
+      // The HR view, successor of Wicket's /wa/hrList:
+      HRViewRest::class.java,
       LeaveAccountEntryPagesRest::class.java,
-      HRPlanningPagesRest::class.java,
-      HRPlanningListPagesRest::class.java,
+      HRPlanningEntityRest::class.java,
+      HRPlanningEntryEntityRest::class.java,
       EmployeePagesRest::class.java,
     )
 
     registerShortCutValues(
       My2FAShortCut.FINANCE_WRITE,
       "WRITE:incomingInvoice;WRITE:outgoingInvoice;WRITE:project;",
-      "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
-      "/wa/projectEdit;/wa/orderBookEdit"
+      // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
+      // dao ("auftrag").
+      "WRITE:order;WRITE:account;WRITE:cost1;WRITE:cost2;WRITE:cost2Type;WRITE:customer;",
+    )
+    // The DATEV import (successor of Wicket's /wa/datevImport) writes as a whole, so its whole rest paths keep the
+    // write period, as Wicket's page did. Of the report objectives (successor of /wa/reportObjectives) only the
+    // import was a write (Wicket's /wa/reportEdit); evaluating them is reading, gated by FINANCE below.
+    registerShortCutClasses(
+      My2FAShortCut.FINANCE_WRITE,
+      DatevRecordImportRest::class.java,
+      DatevAccountImportRest::class.java,
+    )
+    registerShortCutMethods(
+      My2FAShortCut.FINANCE_WRITE,
+      ReportObjectivesPageRest::upload,
+      ReportObjectivesPageRest::paste,
     )
 
     registerShortCutValues(
       My2FAShortCut.FINANCE,
       "WRITE:employeeSalary",
-      "/wa/report;/wa/accounting;/wa/datev;/wa/incomingInvoice;/wa/outgoingInvoice;/wa/cost;/wa/customer;/wa/account;",
-      "/wa/project;/wa/orderBook"
     )
     registerShortCutClasses(
       My2FAShortCut.FINANCE,
-      AccountingRecordPagesRest::class.java,
-      Kost1PagesRest::class.java,
-      Kost2PagesRest::class.java,
-      KontoPagesRest::class.java,
-      EingangsrechnungPagesRest::class.java,
-      RechnungPagesRest::class.java,
+      DatevRecordImportRest::class.java,
+      DatevAccountImportRest::class.java,
+      ReportObjectivesPageRest::class.java,
+      AccountingRecordEntityRest::class.java,
+      EmployeeSalaryEntityRest::class.java,
+      Kost1EntityRest::class.java,
+      Kost2EntityRest::class.java,
+      KontoEntityRest::class.java,
+      IncomingInvoiceEntityRest::class.java,
+      OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
-      ProjectPagesRest::class.java,
-      AuftragPagesRest::class.java,
+      ProjectEntityRest::class.java, ProjectMultiSelectedPageRest::class.java,
+      OrderEntityRest::class.java,
       EingangsrechnungMultiSelectedPageRest::class.java,
       RechnungMultiSelectedPageRest::class.java,
     )
@@ -143,18 +165,23 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.SCRIPT,
-      ScriptPagesRest::class.java,
-      MyScriptPagesRest::class.java,
-      MyScriptExecutePageRest::class.java,
-      ScriptExecutePageRest::class.java,
+      ScriptEntityRest::class.java,
+      MyScriptEntityRest::class.java,
+      MyScriptExecuteRest::class.java,
+      ScriptExecuteRest::class.java,
     )
     registerShortCutClasses(
       My2FAShortCut.MY_ACCOUNT,
-      MyAccountPageRest::class.java,
+      MyAccountRest::class.java,
       // My2FASetupPageRest::class.java, // Check done by this page itself.
-      TokenInfoPageRest::class.java,
     )
-    registerShortCutMethods(My2FAShortCut.MY_ACCOUNT, UserServicesRest::renewToken)
+    // Logging other users out of all their devices and renewing their tokens are admin operations on foreign
+    // accounts:
+    registerShortCutMethods(
+      My2FAShortCut.ADMIN_WRITE,
+      UserServicesRest::logoutAllDevicesOfUser,
+      UserEntityRest::resetToken,
+    )
     registerShortCutClasses(
       My2FAShortCut.PASSWORD,
       ChangePasswordPageRest::class.java,
@@ -169,7 +196,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutClasses(
     shortCut: My2FAShortCut,
@@ -181,7 +208,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,
@@ -195,7 +222,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,

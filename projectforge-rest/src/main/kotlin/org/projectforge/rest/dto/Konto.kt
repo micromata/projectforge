@@ -31,7 +31,16 @@ class Konto(
   var nummer: Int? = null,
   var bezeichnung: String? = null,
   var description: String? = null,
-  var status: KontoStatus? = null
+  var status: KontoStatus? = null,
+  var vatId: String? = null,
+  var street: String? = null,
+  var zipCode: String? = null,
+  var city: String? = null,
+  var country: String? = null,
+  var leitwegId: String? = null,
+  var eInvoiceEmail: String? = null,
+  var contactPerson: String? = null,
+  var sellerBankAccountName: String? = null,
 ) : BaseDTODisplayObject<KontoDO>(id) {
 
   /**

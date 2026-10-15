@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * Simple key value parser
- * @author K.Reinhard@micromata.com
+ * @author K. Reinhard
  */
 public class KeyValuePairParser
 {

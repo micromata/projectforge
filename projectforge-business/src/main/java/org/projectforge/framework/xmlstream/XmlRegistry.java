@@ -32,7 +32,7 @@ import java.util.*;
 
 /**
  * There is one singleton instance used for default mappings, aliases etc.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class XmlRegistry

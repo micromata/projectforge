@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de) TODO RK check if needed and may replace
+ * @author Kai Reinhard TODO RK check if needed and may replace
  */
 @Service
 public class SearchDao {

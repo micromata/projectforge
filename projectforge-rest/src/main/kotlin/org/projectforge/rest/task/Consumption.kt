@@ -29,6 +29,7 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -73,7 +74,7 @@ class Consumption(
       val maxHours = node.task.maxHours
       val finished = node.isFinished
       val taskTree = TaskTree.instance
-      val maxDays = if (maxHours != null && maxHours.toInt() == 0) {
+      val maxDays = if (maxHours != null && maxHours == 0) {
         null
       } else {
         NumberHelper.setDefaultScale(taskTree.getPersonDays(node))
@@ -122,7 +123,16 @@ class Consumption(
         } else {
           ""
         }
-      val title = "$usageStr$unitStr$maxValueStr"
+      // Append the date range (earliest start until latest stop) of all time sheets of this task and its sub tasks.
+      val earliest = node.getEarliestTimesheetStartDate(taskTree, true)
+      val latest = node.getLatestTimesheetStopDate(taskTree, true)
+      val rangeStr = if (earliest != null && latest != null) {
+        val dateTimeFormatter = DateTimeFormatter.instance()
+        " (${dateTimeFormatter.getFormattedDate(earliest)}–${dateTimeFormatter.getFormattedDate(latest)})"
+      } else {
+        ""
+      }
+      val title = "$usageStr$unitStr$maxValueStr$rangeStr"
       return Consumption(title, status, percentage = percentage, barPercentage = barPercentage, id = node.taskId)
     }
   }

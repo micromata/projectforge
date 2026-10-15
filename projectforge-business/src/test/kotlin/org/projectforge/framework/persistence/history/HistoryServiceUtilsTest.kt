@@ -44,9 +44,13 @@ class HistoryServiceUtilsTest : AbstractTestBase() {
         Assertions.assertFalse(HistoryServiceUtils.get().isNoHistoryProperty(TaskDO::class.java, "title"))
 
         set = HistoryServiceUtils.get().getNoHistoryProperties(AuftragDO::class.java)
-        Assertions.assertEquals(7, set.size)
+        Assertions.assertEquals(10, set.size)
         //    not, because transient Assertions.assertTrue(set.contains("uiStatus"));
         Assertions.assertTrue(set.contains("uiStatusAsXml"))
+        // Deprecated read-only legacy columns, replaced by contactPerson/additionalContactUserIds:
+        Assertions.assertTrue(set.contains("projectManager"))
+        Assertions.assertTrue(set.contains("headOfBusinessManager"))
+        Assertions.assertTrue(set.contains("salesManager"))
         Assertions.assertFalse(set.contains("subject"))
     }
 }

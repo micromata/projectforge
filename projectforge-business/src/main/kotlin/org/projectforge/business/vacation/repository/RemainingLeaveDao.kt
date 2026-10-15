@@ -33,10 +33,11 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.Year
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
@@ -48,6 +49,24 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
     open fun markAsDeleted(employeeId: Long, year: Int, checkAccess: Boolean = true) {
         val entry = get(employeeId, year, false) ?: return
         markAsDeleted(entry, checkAccess)
+    }
+
+    /**
+     * The carry into the current year is calculated once from the left days of the previous year and stored (see
+     * VacationService.getVacationStats). Forces its recalculation, if the given period (vacation or leave account
+     * entry) touches the previous year, as the left days of that year change then.
+     * Older carries aren't recalculated anymore (VacationService only calculates the carry of the current year), so
+     * they are kept.
+     */
+    open fun invalidateCarry(employeeId: Long?, from: LocalDate?, until: LocalDate? = from) {
+        employeeId ?: return
+        from ?: return
+        val previousYear = Year.now().value - 1
+        if (from.year > previousYear || (until ?: from).year < previousYear) {
+            return
+        }
+        val entry = get(employeeId, previousYear + 1) ?: return // Not yet calculated or already invalidated.
+        markAsDeleted(entry, checkAccess = false)
     }
 
     open fun saveOrUpdate(
@@ -107,7 +126,8 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         throwException: Boolean
     ): Boolean {
         if (operationType == OperationType.SELECT) {
-            return accessChecker.isLoggedInUserMemberOfGroup(
+            return accessChecker.isUserMemberOfGroup(
+                user,
                 throwException,
                 ProjectForgeGroup.CONTROLLING_GROUP,
                 ProjectForgeGroup.FINANCE_GROUP,
@@ -115,12 +135,8 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
                 ProjectForgeGroup.ORGA_TEAM
             )
         } else {
-            return accessChecker.hasLoggedInUserRight(
-                UserRightId.HR_VACATION,
-                throwException,
-                UserRightValue.READONLY,
-                UserRightValue.READWRITE
-            )
+            // The stored carry changes the leave of the employee: HR staff only, read-only access isn't enough.
+            return accessChecker.hasRight(user, UserRightId.HR_VACATION, throwException, UserRightValue.READWRITE)
         }
     }
 

@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  *         <ul>
  *         <li>IN_PROGRESS - in progress.</li>

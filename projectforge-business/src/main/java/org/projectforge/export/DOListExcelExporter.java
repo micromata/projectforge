@@ -34,7 +34,7 @@ import java.util.Date;
 /**
  * MyExcelExporter with minor optimizations e. g. for AbstractListPage.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DOListExcelExporter extends MyExcelExporter
 {

@@ -26,16 +26,16 @@ package org.projectforge.business.user
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.thoughtworks.xstream.annotations.XStreamAlias
 import com.thoughtworks.xstream.annotations.XStreamOmitField
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
 /**
- * User preferences contains a Map used by [UserPrefCache] and [UserXmlPreferencesCache] for storing user data application wide.
+ * User preferences contains a Map used by [UserPrefCache] for storing user data application wide.
  * Also, persistent user preferences in the database are supported.<br>
  * The values are stored by area and identifier.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("userPreferences")
 class UserPrefCacheData {

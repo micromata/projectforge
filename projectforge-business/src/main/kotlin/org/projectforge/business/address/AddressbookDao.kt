@@ -29,8 +29,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,9 +41,6 @@ import org.springframework.stereotype.Service
 open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     @Autowired
     private lateinit var userDao: UserDao
-
-    @Autowired
-    private lateinit var historyFormatUtils: HistoryFormatUtils
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -135,10 +130,6 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
 
     val globalAddressbookOrNull: AddressbookDO?
         get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
-
-    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
-        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
-    }
 
     fun hasAccessToGlobalAddressBook(user: PFUserDO?): Boolean {
         user ?: return false

@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.login.LoginHandler
@@ -51,12 +51,15 @@ private val log = KotlinLogging.logger {}
  * as for rest clients.
  * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
  * tokens without the knowledge of this key.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java) {
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -82,7 +85,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         throwException: Boolean
     ): Boolean {
         require(obj?.user != null) { "UserPasswordDO must have a obj.user." }
-        return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
+        return hasLoggedInUserAccess(obj.user!!.id, throwException)
     }
 
     private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {
@@ -139,7 +142,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         var passwordObj = internalGetByUserId(userId)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.find(userId, checkAccess = false)
+            // Attached: only the reference of the new password entry, and this runs in the caller's transaction, which
+            // may manage the user (e.g. just inserted) - a detaching find would pull it out of the session.
+            val user = userDao.find(userId, checkAccess = false, attached = true)
             passwordObj.user = user
         }
         return passwordObj
@@ -171,7 +176,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
             user.lastPasswordChange = Date()
             if (user.id != null) {
                 // Renew token only for existing users.
-                userAuthenticationsService.renewToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
+                // Every device has to log in again with the new password (same meaning as renewing the one
+                // shared key had before, see StayLoggedInTokenDO).
+                stayLoggedInTokenDao.deleteAll(userId)
                 userAuthenticationsService.renewToken(userId, UserTokenType.REST_CLIENT)
             }
         } else {
@@ -191,17 +198,17 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      */
     open fun checkPassword(user: PFUserDO?, clearTextPassword: CharArray): PasswordCheckResult? {
         if (user == null || user.id == null) {
-            log.warn("User not given in checkPassword(PFUserDO, String) method.")
+            log.warn { "User not given in checkPassword(PFUserDO, String) method." }
             return PasswordCheckResult.FAILED
         }
         val userId = user.id ?: return PasswordCheckResult.FAILED
         val passwords = internalGetByUserId(userId)
         if (passwords == null) {
-            log.warn("Can't load user password for user '${user.username}' (${user.id}")
+            log.warn { "Can't load user password for user '${user.username}' (${user.id}" }
             return PasswordCheckResult.FAILED
         }
         if (passwords.passwordHash.isNullOrBlank()) {
-            log.warn("User's password is blank, can't checkPassword(PFUserDO, String) for user '${user.username}' with id ${user.id}")
+            log.warn { "User's password is blank, can't checkPassword(PFUserDO, String) for user '${user.username}' with id ${user.id}" }
             return PasswordCheckResult.FAILED
         }
         val passwordHash = passwords.passwordHash
@@ -210,7 +217,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         if (passwordHash == encryptedPassword) {
             // Passwords match!
             if (saltString.isBlank()) {
-                log.info("Password of user ${user.id} with username '${user.username}' is not yet salted!")
+                log.info { "Password of user ${user.id} with username '${user.username}' is not yet salted!" }
                 return PasswordCheckResult.OK_WITHOUT_SALT
             }
             return PasswordCheckResult.OK
@@ -221,10 +228,10 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
             if (passwordHash == encryptedPassword) {
                 // Passwords match!
                 if (saltString.isBlank()) {
-                    log.info("Password of user ${user.id} with username '${user.username}' is not yet salted and has no pepper!")
+                    log.info { "Password of user ${user.id} with username '${user.username}' is not yet salted and has no pepper!" }
                     return PasswordCheckResult.OK_WITHOUT_SALT_AND_PEPPER
                 }
-                log.info("Password of user ${user.id} with username '${user.username}' has no pepper!")
+                log.info { "Password of user ${user.id} with username '${user.username}' has no pepper!" }
                 return PasswordCheckResult.OK_WITHOUT_PEPPER
             }
         }

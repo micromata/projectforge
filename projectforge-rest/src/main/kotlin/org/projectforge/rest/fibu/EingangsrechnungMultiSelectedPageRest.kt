@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.*
 import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
@@ -33,16 +33,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.multiselect.*
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -67,69 +62,51 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   @Autowired
-  private lateinit var eingangsrechnungPagesRest: EingangsrechnungPagesRest
+  private lateinit var incomingInvoiceEntityRest: IncomingInvoiceEntityRest
 
   @Autowired
   private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
 
   override val layoutContext: LayoutContext = LayoutContext(EingangsrechnungDO::class.java)
 
-  override fun getTitleKey(): String {
-    return "fibu.eingangsrechnung.multiselected.title"
-  }
-
   override val listPageUrl: String = "/${MenuItemDefId.INCOMING_INVOICE_LIST.url}"
 
   @PostConstruct
   private fun postConstruct() {
-    pagesRest = eingangsrechnungPagesRest
+    pagesRest = incomingInvoiceEntityRest
   }
 
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    val lc = LayoutContext(EingangsrechnungDO::class.java)
+  /**
+   * The fields of the mass update, for the next frontend that renders the form itself.
+   */
+  override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+    return listOf(
+      MassUpdateFieldDeclaration("kreditor"),
+      MassUpdateFieldDeclaration("receiver"),
+      MassUpdateFieldDeclaration("iban"),
+      MassUpdateFieldDeclaration("bic"),
+      MassUpdateFieldDeclaration("paymentType"),
+      MassUpdateFieldDeclaration("referenz"),
+      MassUpdateFieldDeclaration("bezahlDatum"),
+      MassUpdateFieldDeclaration("bemerkung", showAppendOption = true),
+    )
+  }
+
+  override fun infoMessageKey(): String {
+    return "fibu.rechnung.multiselected.info"
+  }
+
+  /**
+   * The picked invoices summed up, as the values the hand built next mass-update page renders its
+   * statistics line from — the counterpart of [getStatistics]'s markdown. See
+   * [RechnungMultiSelectedPageRest.getStatisticsData].
+   */
+  override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
     val stats = EingangsrechnungsStatistik()
     eingangsrechnungDao.select(selectedIds)?.forEach { invoice ->
       stats.add(invoice)
     }
-    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "kreditor",
-      "receiver",
-      "iban",
-      "bic",
-      "paymentType",
-      "referenz",
-      "bezahlDatum",
-      minLengthOfTextArea = 1001,
-    )
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "bemerkung",
-      showAppendOption = true,
-    )
-    layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
-
-    if (!selectedIds.isNullOrEmpty()) {
-      layout.add(
-        MenuItem(
-          "transferExport",
-          i18nKey = "fibu.rechnung.transferExport",
-          url = "${getRestPath()}/exportTransfers",
-          type = MenuItemTargetType.DOWNLOAD
-        )
-      )
-    }
+    return IncomingInvoiceEntityRest.InvoiceStatistics(stats)
   }
 
   override fun proceedMassUpdate(
@@ -232,7 +209,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     if (!result.isSuccessful) {
       if (result.errors.isEmpty()) {
         // unknown error
-        log.error("Oups, xml has zero size. Filename: $filename")
+        log.error { "Oups, xml has zero size. Filename: $filename" }
         return RestUtils.downloadFile("error.txt", translate("fibu.rechnung.transferExport.error"))
       }
       val sb = StringBuilder()

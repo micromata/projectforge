@@ -31,7 +31,7 @@ import javax.naming.directory.ModificationItem;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapPersonDao extends LdapDao<String, LdapPerson>
@@ -107,7 +107,7 @@ public class LdapPersonDao extends LdapDao<String, LdapPerson>
   {
     createAndAddModificationItems(list, "sn", person.getSurname());
     createAndAddModificationItems(list, "givenName", person.getGivenName());
-    createAndAddModificationItems(list, "uid", person.getUid());
+    // uid is part of the RDN and must not be modified via LDAP modify — use rename instead.
     createAndAddModificationItems(list, "employeeNumber", person.getEmployeeNumber());
     createAndAddModificationItems(list, "o", person.getOrganization());
     createAndAddModificationItems(list, "mail", person.getMail());

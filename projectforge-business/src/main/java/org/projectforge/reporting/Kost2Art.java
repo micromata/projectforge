@@ -25,7 +25,7 @@ package org.projectforge.reporting;
 
 /**
  * Interface for reporting.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.projectforge.business.fibu.kost.Kost2ArtDO
  */
 public interface Kost2Art

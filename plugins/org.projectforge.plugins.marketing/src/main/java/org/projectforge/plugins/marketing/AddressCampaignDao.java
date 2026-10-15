@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.stereotype.Service;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {

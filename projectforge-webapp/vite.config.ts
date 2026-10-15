@@ -1,0 +1,24 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    proxy: {
+      '/rs': { target: 'http://localhost:8080', changeOrigin: true },
+      // Old Wicket urls: the server's OrphanedLinkFilter redirects them into projectforge-next.
+      '/wa': { target: 'http://localhost:8080', changeOrigin: true },
+      '/react': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    mode: 'test',
+  },
+});

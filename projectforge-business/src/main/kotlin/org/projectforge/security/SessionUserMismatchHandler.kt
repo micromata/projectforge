@@ -125,7 +125,7 @@ object SessionUserMismatchHandler {
                     "\n\nAction taken: $action" +
                     "\n\nThis may indicate DiskPageStore corruption, session mix-up, or a cross-session data leak." +
                     "\nPlease investigate server logs around this timestamp for further details."
-            sendMail.send(mail, null, null, true) // synchronous to ensure delivery before session invalidation
+            sendMail.send(mail, null, null, false) // synchronous to ensure delivery before session invalidation
         } catch (ex: Exception) {
             log.error("Failed to send security alert email for user mismatch incident.", ex)
         }

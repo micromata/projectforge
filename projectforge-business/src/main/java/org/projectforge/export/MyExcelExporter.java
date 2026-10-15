@@ -32,7 +32,7 @@ import org.projectforge.framework.time.DateFormats;
 import java.lang.reflect.Field;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyExcelExporter extends ExcelExporter
 {

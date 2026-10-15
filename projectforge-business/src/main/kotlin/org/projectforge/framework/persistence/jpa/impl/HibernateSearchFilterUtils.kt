@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.jpa.impl
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.math.NumberUtils
+import org.projectforge.framework.persistence.search.SearchStringTokenizer
 import org.slf4j.LoggerFactory
 
 /**
@@ -52,7 +53,11 @@ object HibernateSearchFilterUtils {
     private const val ALLOWED_BEGINNING_CHARS = "@._*"
 
     /**
-     * If the search string contains any of these escape chars, no string modification will be done.
+     * If a word of the search string starts with one of these chars, no modification of that word will be done:
+     * there it is a Lucene operator (required / prohibited) and the user means it.
+     *
+     * Inside a word both are ordinary term characters for Lucene's query parser (`ACME-1234`, `C++`), so a word
+     * is only left alone because of its first character - see [isLuceneOperator].
      */
     private const val ESCAPE_CHARS = "+-"
     /**
@@ -129,6 +134,19 @@ object HibernateSearchFilterUtils {
             }
             if (luceneReservedWords.none { it == token }) {
                 val modified = modifySearchToken(token)
+                val expanded = if (prependWildcard || isLuceneOperator(modified) || modified.contains('*')) {
+                    // A word the user gave a syntax of their own: none of the tokenizer's business.
+                    null
+                } else {
+                    // A separator in the word (dhl-pop, dhl-, kai@acme.de) means the index holds other terms
+                    // than the word, and a wildcard term is never tokenized by Lucene - so 'dhl-pop*' could not
+                    // match anything. Offer the terms of the index as an alternative to the word as typed.
+                    SearchStringTokenizer.expandSplitWord(modified, wildcardChar!!, andSearch && tokens.size > 1)
+                }
+                if (expanded != null) {
+                    sb.append(expanded)
+                    continue
+                }
                 if (tokens.size > 1 && andSearch && StringUtils.containsNone(modified, ESCAPE_CHARS)) {
                     sb.append("+")
                 }
@@ -147,11 +165,47 @@ object HibernateSearchFilterUtils {
             }
         }
         val str = sb.toString().trim()
-        return if (luceneReservedWords.any { str.contains(it) } && !str.startsWith('(') && !str.endsWith(')')) {
+        return if (luceneReservedWords.any { str.contains(it) } && !isSingleGroup(str)) {
             "($str)"
         } else {
             return str
         }
+    }
+
+    /**
+     * Whether the whole string is one parenthesized group, i.e. whether wrapping it in parentheses would add
+     * nothing.
+     *
+     * Not just `startsWith('(') && endsWith(')')`: a word of the search string may be a group of its own now
+     * (see [SearchStringTokenizer.expandSplitWord]), and `(a) OR (b)` begins and ends with a parenthesis
+     * without being one group.
+     */
+    private fun isSingleGroup(str: String): Boolean {
+        if (!str.startsWith('(') || !str.endsWith(')')) {
+            return false
+        }
+        var depth = 0
+        str.forEachIndexed { index, ch ->
+            when (ch) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+            if (depth == 0 && index < str.length - 1) {
+                return false // The group opened at the beginning is closed before the end.
+            }
+        }
+        return true
+    }
+
+    /**
+     * Whether the word starts with one of the [ESCAPE_CHARS], i.e. whether its `+`/`-` is Lucene's required /
+     * prohibited operator and not part of the word: `foo -bar` must stay a NOT.
+     *
+     * Inside a word both characters are ordinary term characters for Lucene's classic query parser, so only
+     * the first position is of interest here.
+     */
+    private fun isLuceneOperator(searchToken: String): Boolean {
+        return searchToken.isNotEmpty() && ESCAPE_CHARS.indexOf(searchToken[0]) >= 0
     }
 
     /**

@@ -39,7 +39,7 @@ import javax.naming.directory.*;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapUserDao extends LdapDao<String, LdapUser> {
@@ -507,10 +507,13 @@ public class LdapUserDao extends LdapDao<String, LdapUser> {
     } else {
       dn = "uid=" + username + "," + searchBase + "," + ldapConnector.getBase();
     }
+    final LdapUser authenticatedUser = user;
     try {
-      ldapConnector.createContext(dn, userPassword);
-      log.info("User '" + username + "' (" + dn + ") successfully authenticated.");
-      return user;
+      // Only the bind is needed, the context is closed afterwards.
+      return ldapConnector.withContext(dn, userPassword, ctx -> {
+        log.info("User '" + username + "' (" + dn + ") successfully authenticated.");
+        return authenticatedUser;
+      });
     } catch (final Exception ex) {
       log.error("User '" + username + "' (" + dn + ") with invalid credentials.");
       return null;

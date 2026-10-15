@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.projectforge.common.KClassUtils
@@ -102,12 +102,12 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
 
     companion object {
         private val numberTypes = listOf(
-            java.lang.Integer::class.java,
+            Int::class.javaObjectType,
             Int::class.java,
             Long::class.java,
-            java.lang.Long::class.java,
+            Long::class.javaObjectType,
             Short::class.java,
-            java.lang.Short::class.java,
+            Short::class.javaObjectType,
         )
     }
 }

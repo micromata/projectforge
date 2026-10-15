@@ -23,7 +23,7 @@
 
 package org.projectforge.i18n
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.Constants
 import org.projectforge.business.book.BookStatus
@@ -53,7 +53,7 @@ private val log = KotlinLogging.logger {}
  * Tries to get all used i18n keys from the sources (java, kotlin, html, tsx, jsx, js). As result a file is written which will be checked
  * by AdminAction.checkI18nProperties. Unused i18n keys should be detected.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 internal class I18nKeysSourceAnalyzer {
     private val i18nKeyMap = mutableMapOf<String, I18nKeyUsageEntry>()
@@ -69,7 +69,7 @@ internal class I18nKeysSourceAnalyzer {
     private var htmlTemplatesCounter = 0
 
     fun run(createTmpFile: Boolean = false): Map<String, I18nKeyUsageEntry> {
-        log.info("Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}")
+        log.info { "Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}" }
         reflections = Reflections("org.projectforge", Scanners.entries)
 
         val srcMainDirs = SourcesUtils.getSrcMainDirs()
@@ -103,7 +103,6 @@ internal class I18nKeysSourceAnalyzer {
         srcMainDirs.forEach { path ->
             parseJava(path)
             parseKotlin(path)
-            parseWicketHtml(path)
             parseHtmlMailTemplates(path)
             parseReact(path)
         }
@@ -146,16 +145,6 @@ internal class I18nKeysSourceAnalyzer {
 
     private val orderedEntries: List<I18nKeyUsageEntry>
         get() = I18nKeysUsage.getOrderedEntries(i18nKeyMap.values)
-
-    @Throws(IOException::class)
-    private fun parseWicketHtml(path: File) {
-        val files = SourcesUtils.listFiles(path, "html")
-        for (file in files) {
-            if (shouldExcludeFile(file)) continue
-            val content = getContent(file)
-            find(file, content, "<wicket:message\\s+key=\"([a-zA-Z0-9\\.]+)\"\\s/>")
-        }
-    }
 
     @Throws(IOException::class)
     private fun parseHtmlMailTemplates(path: File) {
@@ -288,28 +277,6 @@ internal class I18nKeysSourceAnalyzer {
                 for (menuItem in MenuItemDefId.entries) {
                     add(menuItem.i18nKey, file)
                 }
-            } else if (file.name.endsWith("Page.java")
-                && (content.contains("extends AbstractListPage")
-                        || content.contains("extends AbstractEditPage"))
-            ) { // Wicket
-                // Page
-                var list =
-                    find(content, "super\\(parameters, \"([a-zA-Z0-9\\.]+)\"\\);") // super(parameters, "i18nKey");
-                for (entry in list) {
-                    add("$entry.title.edit", file)
-                    add("$entry.title.list", file)
-                    add("$entry.title.list.select", file)
-                }
-                list = find(
-                    content,
-                    "super\\(caller, selectProperty, \"([a-zA-Z0-9\\.]+)\"\\);"
-                ) // super(caller, selectProperty,
-                // "i18nKey");
-                for (entry in list) {
-                    add("$entry.title.edit", file)
-                    add("$entry.title.list", file)
-                    add("$entry.title.list.select", file)
-                }
             }
         }
     }
@@ -395,8 +362,9 @@ internal class I18nKeysSourceAnalyzer {
      * -> registers usage for fibu.employee.title.add, .edit, .list, .heading
      */
     private fun findAbstractPagesRestKeys(file: File, content: String) {
-        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or AbstractPagesRest
-        val pattern = "Abstract(?:DTO|DO)?PagesRest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
+        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or
+        // AbstractPagesRest, and their layout free counterparts Abstract(DTO|DO)?EntityRest.
+        val pattern = "Abstract(?:DTO|DO)?(?:Pages|Entity)Rest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
         val baseKeys = find(content, pattern)
 
         // For each base key, register the 4 derived keys

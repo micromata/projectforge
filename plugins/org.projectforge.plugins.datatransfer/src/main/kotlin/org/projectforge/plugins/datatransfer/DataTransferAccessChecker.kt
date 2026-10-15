@@ -119,8 +119,29 @@ open class DataTransferAccessChecker(
     operationType: OperationType,
     attachment: Attachment
   ): Boolean {
-    val dbo = dataTransferAreaDao.find(id as Long, false)
-    if (!dbo!!.isPersonalBox()) {
+    return hasAccess(user, dataTransferAreaDao.find(id as Long, false)!!, attachment)
+  }
+
+  /**
+   * The area is loaded once for all attachments, not once per attachment as [hasAccess] would do.
+   */
+  override fun filterAccessible(
+    user: PFUserDO?,
+    path: String,
+    id: Any,
+    subPath: String?,
+    operationType: OperationType,
+    attachments: List<Attachment>
+  ): List<Attachment> {
+    if (attachments.isEmpty()) {
+      return attachments
+    }
+    val dbo = dataTransferAreaDao.find(id as Long, false)!!
+    return attachments.filter { hasAccess(user, dbo, it) }
+  }
+
+  private fun hasAccess(user: PFUserDO?, dbo: DataTransferAreaDO, attachment: Attachment): Boolean {
+    if (!dbo.isPersonalBox()) {
       return true
     }
     user ?: return false // User must be given.

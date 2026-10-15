@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.PostData
@@ -35,6 +35,7 @@ import org.projectforge.ui.ValidationError
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import jakarta.servlet.http.HttpServletRequest
+import java.security.MessageDigest
 
 private val log = KotlinLogging.logger {}
 
@@ -59,9 +60,14 @@ open class SessionCsrfService {
   fun validateCsrfToken(
     request: HttpServletRequest, postData: PostData<*>, logAction: String = "Modification"
   ): ResponseEntity<ResponseAction>? {
-    val csrfToken = postData.serverData?.csrfToken
+    // projectforge-next has no PostData/ServerData envelope and sends the token as a header instead.
+    // For next clients this check is a formality: [RestCsrfProtection] already validated that header in
+    // the filter, so a next call that gets here has a valid token. Reading it anyway is what keeps that
+    // true - otherwise every next save would fail here with a ResponseAction the client cannot read
+    // (see the class comment of RestCsrfProtection).
+    val csrfToken = postData.serverData?.csrfToken ?: request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER)
     if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.userContext?.loggedInByAuthenticationToken == true) {
-      if (log.isDebugEnabled) {
+      if (log.isDebugEnabled()) {
         log.debug { "User '${ThreadLocalUserContext.loggedInUser?.username}' logged in by rest call, not by session." }
       }
       return null
@@ -86,16 +92,21 @@ open class SessionCsrfService {
     return ServerData(csrfToken = ensureAndGetToken(request))
   }
 
-  private fun checkToken(request: HttpServletRequest, token: String?): Boolean {
+  /**
+   * Checks the given csrf token against the token of the user's session. Used by clients not working with
+   * [PostData]/[ServerData] (projectforge-next).
+   */
+  fun checkToken(request: HttpServletRequest, token: String?): Boolean {
     if (token.isNullOrEmpty() || token.trim().length < TOKEN_LENGTH) {
       log.info { "Token to short, check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
       return false
     }
     val expected = ensureAndGetToken(request) // If no token is given or is expired, create a new one for next request.
-    if (expected == token) {
+    // Compared in constant time, and neither token is logged: the expected one is valid for the whole session.
+    if (MessageDigest.isEqual(expected.toByteArray(), token.toByteArray())) {
       return true
     }
-    log.info { "Token check failed for session id '${RequestLog.getTruncatedSessionId(request)}': expected='$expected', given='$token'" }
+    log.info { "Token check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
     return false
   }
 
@@ -106,7 +117,7 @@ open class SessionCsrfService {
       return token
     }
     token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
-    log.debug { "No valid csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
+    log.debug { "No valid csrf token found in AbstractSessionCache, creating a new one for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     session.setAttribute(SESSION_ATTRIBUTE_CSRF_TOKEN, token)
     return token
   }

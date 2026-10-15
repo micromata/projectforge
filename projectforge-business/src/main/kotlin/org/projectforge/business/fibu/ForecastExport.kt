@@ -26,14 +26,18 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.Row
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.*
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.scripting.ScriptLogger
 import org.projectforge.business.scripting.ThreadLocalScriptingContext
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FilenameUtils
 import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.formatCurrency
@@ -45,7 +49,9 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
+import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -86,6 +92,12 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var projectCache: ProjektCache
 
     @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
@@ -95,10 +107,31 @@ open class ForecastExport { // open needed by Wicket.
     private lateinit var applicationContext: ApplicationContext
 
     /**
+     * Global default for distributing unused budget of an order position in the forecast (configurable via
+     * application.properties). Used for single-order analyses and as the fallback for the Excel export when the
+     * script doesn't override it. See [ForecastOrderPosInfo.distributeUnusedBudget].
+     */
+    @Value("\${projectforge.fibu.forecast.distributeUnusedBudget:true}")
+    private var distributeUnusedBudget = true
+
+    @PostConstruct
+    private fun init() {
+        ForecastOrderPosInfo.defaultDistributeUnusedBudget = distributeUnusedBudget
+    }
+
+    /**
      * Export the forecast sheet.
      * @param origFilter The filter for the orders to export.
      * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
      * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
+     * @param copyAllFilterCriteria Whether the status, position and date criteria of [origFilter] are applied as well.
+     * False (the Wicket page and the forecast scripts) keeps this to the search string, the projects and the
+     * user, which is all these two callers ever set. True is for a caller that hands over the filter of a
+     * whole list page and expects the export to show what the list shows (see `OrderEntityRest`).
+     *
+     * The period of performance is **not** part of it either way: it is what the start date of the forecast
+     * is derived from, and the query needs to reach three years further back than that (the sheets of the
+     * two prior years' invoices), so an end date or a later begin from the filter would leave them empty.
      * @param fillUnitCol The function to get the unit of the order to show in the unit column.
      */
     @JvmOverloads
@@ -107,18 +140,12 @@ open class ForecastExport { // open needed by Wicket.
         origFilter: AuftragFilter,
         planningDate: LocalDate? = null,
         snapshotDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+        copyAllFilterCriteria: Boolean = false,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
     ): ByteArray? {
-        val startDateParam = origFilter.periodOfPerformanceStartDate
-        val startDate = if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
-        val filter = AuftragFilter()
-        filter.searchString = origFilter.searchString
-        filter.projectList = origFilter.projectList
-        //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
-        //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
-        filter.periodOfPerformanceStartDate =
-            startDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
-        filter.user = origFilter.user
+        val startDate = getStartDate(origFilter)
+        val filter = buildQueryFilter(origFilter, startDate, copyAllFilterCriteria)
         val scriptLogger = ThreadLocalScriptingContext.getLogger()
         val closestPlanningDate = getClosestSnapshotDate(planningDate, scriptLogger, "planning")
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, scriptLogger, "snapshot")
@@ -134,7 +161,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         // scriptLogger?.info { msgSB } ?: log.info { msgSB }
         val orderList = if (closestSnapshotDate != null) {
-            readSnapshot(closestSnapshotDate, filter)
+            readSnapshot(closestSnapshotDate, snapshotMatcher(filter, searchMatchIds(filter, null)))
         } else {
             orderDao.select(filter)
         }
@@ -145,36 +172,216 @@ open class ForecastExport { // open needed by Wicket.
                 }"
             }
         }
-        val showAll = accessChecker.isLoggedInUserMemberOfGroup(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP
-        ) &&
-                filter.searchString.isNullOrBlank() &&
-                filter.projectList.isNullOrEmpty()
+        val showAll = isShowAll(filter)
         try {
-            return xlsExport(
+            return export(
                 orderList,
                 startDate = startDate,
                 planningDate = closestPlanningDate,
                 snapshotDate = closestSnapshotDate,
                 showAll = showAll,
-                auftragFilter = filter,
+                planningOrderMatcher = { orders -> snapshotMatcher(filter, searchMatchIds(filter, orders)) },
                 scriptLogger = scriptLogger,
+                distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
                 fillUnitCol = fillUnitCol,
-            )
+                chartsOnly = false,
+            )?.xls
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
             throw ex
         }
     }
 
-    private fun getStartDate(origFilter: AuftragFilter): PFDay {
-        val startDateParam = origFilter.periodOfPerformanceStartDate
-        return if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
+    /**
+     * The monthly totals of the forecast charts (sheet 'Grafiken 1' of the Excel export) for the web frontend.
+     * Runs the same pipeline as [xlsExport] (same order selection, relevance, invoice and planning rules), so the
+     * values are those the Excel shows without any autofilter set, but skips everything only needed for the file
+     * (project overview, formula evaluation, serialization).
+     * @param origFilter The filter for the orders, all criteria are applied (see copyAllFilterCriteria of [xlsExport]).
+     * The start month is taken from its period of performance start date (begin of the year, if not given).
+     * @param planningDate If given, the plan is calculated from the closest order book snapshot.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun chartData(
+        origFilter: AuftragFilter,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ForecastChartData? {
+        val startDate = getStartDate(origFilter)
+        val filter = buildQueryFilter(origFilter, startDate, copyAllFilterCriteria = true)
+        val closestPlanningDate = getClosestSnapshotDate(planningDate, null, "planning")
+        val orderList = orderDao.select(filter)
+        return export(
+            orderList,
+            startDate = startDate,
+            planningDate = closestPlanningDate,
+            snapshotDate = null,
+            showAll = isShowAll(filter),
+            planningOrderMatcher = { orders -> snapshotMatcher(filter, searchMatchIds(filter, orders)) },
+            scriptLogger = null,
+            distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            fillUnitCol = null,
+            chartsOnly = true,
+        )?.chartData
     }
 
-    open fun getExcelFilenmame(origFilter: AuftragFilter): String {
-        return getFilename(getStartDate(origFilter), extension = ".xlsx")
+    /**
+     * The forecast charts of orders the caller has already selected, e.g. by the filter of a list page with all its
+     * criteria. The forecast doesn't filter them any further, and the order book snapshot of [planningDate] is
+     * restricted to the same orders (by id).
+     * @param orderList The orders of the forecast. Must reach 3 years back before [startDate] (by their period of
+     * performance), so the invoices of the two prior years find their orders, see [buildQueryFilter].
+     * @param startDate The first month of the forecast (any day of it), the begin of the year if not given.
+     * @param unfiltered True, if [orderList] is the whole order book: invoices without any order are then part of the
+     * sums as well (for financial and controlling staff only, see [isShowAll]).
+     * @param planningDate If given, the plan is calculated from the closest order book snapshot.
+     * @param snapshotDate If given, the forecast is calculated from the closest order book snapshot instead of the
+     * current order book: its versions of the orders of [orderList] (matched by id), and the invoices before it only.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun chartData(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+        snapshotDate: LocalDate? = null,
+    ): ForecastChartData? {
+        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate)?.chart
+    }
+
+    /**
+     * The forecast charts plus the detail rows behind them (see [ForecastTables]), see [chartData] for the parameters.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun statistics(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+        snapshotDate: LocalDate? = null,
+    ): ForecastStatistics? {
+        val result = exportSelected(
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, chartsOnly = true,
+        ) ?: return null
+        return ForecastStatistics(result.chartData, result.tables)
+    }
+
+    /**
+     * The forecast Excel of orders the caller has already selected, see [chartData] for the parameters.
+     */
+    open fun xlsExport(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ByteArray? {
+        try {
+            return exportSelected(
+                orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate = null,
+                chartsOnly = false,
+            )?.xls
+        } catch (ex: Exception) {
+            log.error(ex) { "Error exporting forecast: $ex" }
+            throw ex
+        }
+    }
+
+    private fun exportSelected(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate?,
+        distributeUnusedBudget: Boolean?,
+        snapshotDate: LocalDate?,
+        chartsOnly: Boolean,
+    ): ExportResult? {
+        val orderIds = orderList.mapNotNull { it.id }.toSet()
+        val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, null, "snapshot")
+        // The snapshot's versions of the selected orders (a snapshot can't be queried, so they are matched by id).
+        // Orders created after the snapshot aren't part of it.
+        val orders = closestSnapshotDate?.let { readSnapshot(it) { order -> order.id in orderIds } } ?: orderList
+        return export(
+            orders,
+            startDate = getStartDate(startDate),
+            planningDate = getClosestSnapshotDate(planningDate, null, "planning"),
+            snapshotDate = closestSnapshotDate,
+            showAll = unfiltered && isFinanceOrControllingStaff(),
+            planningOrderMatcher = { { it.id in orderIds } },
+            scriptLogger = null,
+            distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            fillUnitCol = null,
+            chartsOnly = chartsOnly,
+        )
+    }
+
+    /** True, if no filter is given, for financial and controlling staff only. */
+    private fun isShowAll(filter: AuftragFilter): Boolean {
+        return isFinanceOrControllingStaff() &&
+                filter.searchString.isNullOrBlank() &&
+                filter.projectList.isNullOrEmpty()
+    }
+
+    private fun isFinanceOrControllingStaff(): Boolean {
+        return accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        )
+    }
+
+    private fun getStartDate(origFilter: AuftragFilter): PFDay {
+        return getStartDate(origFilter.periodOfPerformanceStartDate)
+    }
+
+    private fun getStartDate(startDate: LocalDate?): PFDay {
+        return if (startDate != null) PFDay.from(startDate).beginOfMonth else PFDay.now().beginOfYear
+    }
+
+    /**
+     * The filter the orders are actually queried with — a fresh one rather than the caller's, since the
+     * period of performance has to be rewritten and the caller's filter also serves the sheet's own
+     * filter selection.
+     *
+     * `internal` so [ForecastExportTest] can assert what [copyAllFilterCriteria] does and does not copy:
+     * the criteria only show up in which orders the sheet holds, so getting one wrong is invisible in the
+     * export itself.
+     */
+    internal fun buildQueryFilter(
+        origFilter: AuftragFilter,
+        startDate: PFDay,
+        copyAllFilterCriteria: Boolean,
+    ): AuftragFilter {
+        val filter = AuftragFilter()
+        filter.searchString = origFilter.searchString
+        filter.projectList = origFilter.projectList
+        if (copyAllFilterCriteria) {
+            filter.auftragsStatuses.addAll(origFilter.auftragsStatuses)
+            filter.auftragsPositionsArten.addAll(origFilter.auftragsPositionsArten)
+            filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
+            filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
+            filter.startDate = origFilter.startDate
+            filter.endDate = origFilter.endDate
+        }
+        filter.periodOfPerformanceStartDate =
+            startDate.plusYears(-3).localDate // Go 3 years back for getting all orders referred by invoices of the two prior years.
+        filter.user = origFilter.user
+        return filter
+    }
+
+    @JvmOverloads
+    open fun getExcelFilenmame(origFilter: AuftragFilter, distributeUnusedBudget: Boolean? = null): String {
+        return getExcelFilename(origFilter.periodOfPerformanceStartDate, distributeUnusedBudget)
+    }
+
+    /** The filename of [xlsExport] of the given start date (begin of the year, if not given). */
+    open fun getExcelFilename(startDate: LocalDate?, distributeUnusedBudget: Boolean? = null): String {
+        return getFilename(
+            getStartDate(startDate),
+            extension = ".xlsx",
+            distributeUnusedBudget = distributeUnusedBudget,
+        )
     }
 
     private fun getClosestSnapshotDate(date: LocalDate?, scriptLogger: ScriptLogger?, name: String): LocalDate? {
@@ -188,18 +395,23 @@ open class ForecastExport { // open needed by Wicket.
     }
 
     /**
-     * Get the export filename. Example: 'Forecast-start-2021-01_2025-01-02_22-48.xlsx'
-     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01-2025-01-02_22-48.zip'.
+     * Get the export filename. Example: 'Forecast-start-2021-01_optimistisch_2025-01-02_22-48.xlsx'
+     * or 'Forecast-ACME-snapshot-2023-08-01-start-2023-01_konservativ-2025-01-02_22-48.zip'.
      * @param startDate The start date for the forecast.
      * @param extension The optional file extension ('.xlsx' or '.zip').
      * @param part The optional part of the export file (e.g. 'ACME', 'Customer', ...).
+     * @param distributeUnusedBudget The variant the forecast was calculated with, shown as '_optimistisch' resp.
+     * '_konservativ' in the filename. If null, the configured default is used
+     * ([ForecastOrderPosInfo.defaultDistributeUnusedBudget]).
      */
+    @JvmOverloads
     open fun getFilename(
         startDate: PFDay,
         extension: String? = null,
         part: String? = null,
         planningDate: LocalDate? = null,
-        snapshot: LocalDate? = null
+        snapshot: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
     ): String {
         val startDateString = "-start_${startDate.year}-${startDate.monthValue.format2Digits()}"
         val partString = if (part.isNullOrBlank()) "" else "-${FilenameUtils.escapeFilename(part)}"
@@ -207,8 +419,34 @@ open class ForecastExport { // open needed by Wicket.
         val planningDateString = if (planningDate != null) "-plan_${usePlanningDate}" else ""
         val useSnapshot = orderbookSnapshotsService.findClosestSnapshotDate(snapshot)
         val snapshotString = if (useSnapshot != null) "-snapshot_${useSnapshot}" else ""
+        val variantString = variantSuffix(distributeUnusedBudget)
         val created = DateHelper.getDateAsFilenameSuffix()
-        return "${created}_Forecast$partString$planningDateString$snapshotString${startDateString}${extension ?: ""}"
+        return "${created}_Forecast$partString$planningDateString$snapshotString$startDateString$variantString${extension ?: ""}"
+    }
+
+    /**
+     * @return '_optimistisch', if the unused budget is distributed, otherwise '_konservativ' (see
+     * [ForecastOrderPosInfo.distributeUnusedBudget]). Both variants of the same forecast run may be compared, so the
+     * variant must be part of every filename of the zip archive as well as of the archive itself.
+     */
+    open fun variantSuffix(distributeUnusedBudget: Boolean? = null): String {
+        return if (distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget) {
+            "_optimistisch"
+        } else {
+            "_konservativ"
+        }
+    }
+
+    /**
+     * @return The human readable information (label and explanation) how the unused budget of time&amp;material
+     * positions is handled, shown on the 'Info' sheet of the Excel export (multiline, the cell is wrapped).
+     * The same wording is used by the single order analysis ([ForecastOrderAnalysis]).
+     */
+    open fun variantInfo(distributeUnusedBudget: Boolean): String {
+        val i18nPrefix = "fibu.auftrag.forecast.analysis.variants.$distributeUnusedBudget"
+        // The conservative explanation contains the ramp-up threshold as message parameter {0}:
+        val explanation = translateMsg(i18nPrefix, ForecastOrderPosInfo.RUN_RATE_MIN_ELAPSED_MONTHS)
+        return "${translate("$i18nPrefix.label")}\n$explanation"
     }
 
     /**
@@ -216,23 +454,30 @@ open class ForecastExport { // open needed by Wicket.
      * @param orderList The list of orders to export.
      * @param startDate The start date for the forecast.
      * @param showAll True, if no filter is given, for financial and controlling staff only.
+     * @param planningOrderMatcher Which orders of the snapshot of [planningDate] are the plan, given [orderList]:
+     *              those matching the same filter (a snapshot can't be searched in full text, so it's matched against
+     *              the orders found).
      * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
      * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
      *              If the date is in the past, the forecast will be simulated with the specified date.
      *              If date is given, no caches will be used.
-     * @return The byte array of the Excel file.
+     * @param chartsOnly If true, only the month totals for the charts are calculated: the Excel file itself isn't
+     *              finished (no project overview, no formula evaluation) and not serialized.
+     * @return The byte array of the Excel file (unless [chartsOnly]) and the month totals for the charts.
      */
     @Throws(IOException::class)
-    private fun xlsExport(
+    private fun export(
         orderList: Collection<AuftragDO>,
         startDate: PFDay,
         showAll: Boolean,
         planningDate: LocalDate?,
         snapshotDate: LocalDate?,
-        auftragFilter: AuftragFilter,
+        planningOrderMatcher: (orderList: Collection<AuftragDO>) -> (AuftragDO) -> Boolean,
         scriptLogger: ScriptLogger?,
+        distributeUnusedBudget: Boolean,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)?,
-    ): ByteArray? {
+        chartsOnly: Boolean,
+    ): ExportResult? {
         if (orderList.isEmpty()) {
             val msg = "No orders found for export."
             scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
@@ -241,9 +486,10 @@ open class ForecastExport { // open needed by Wicket.
         }
         val useAuftragsCache = snapshotDate == null
         val prevYearBaseDate = startDate.plusYears(-1) // One year back for getting all invoices.
+        val prevPrevYearBaseDate = startDate.plusYears(-2) // Two years back for the prev-prev-year comparison.
         val invoiceFilter = RechnungFilter()
         invoiceFilter.fromDate =
-            prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
+            prevPrevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
         if (snapshotDate != null) {
             // Don't load invoices later than snapshotDate:
             invoiceFilter.toDate = snapshotDate.minusDays(1)
@@ -279,24 +525,42 @@ open class ForecastExport { // open needed by Wicket.
             InvoicesCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPrevYearSheet.registerColumn(it.header) }
 
+            val invoicesPrevPrevYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_PREV_YEAR.title)!!
+            log.debug { "InvoicesPriorPriorYearSheet sheet: $invoicesPrevPrevYearSheet" }
+            InvoicesCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
+            MonthCol.entries.forEach { invoicesPrevPrevYearSheet.registerColumn(it.header) }
+
             val planningInvoicesSheet = workbook.getSheet(Sheet.PLANNING_INVOICES.title)!!
             log.debug { "PlanningInvoicesSheet sheet: $planningInvoicesSheet" }
             InvoicesCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
+
+            // Optional overview sheet (one row per project). The user creates it in the template with header row and
+            // autofilter; the code only fills the value rows. Missing sheet -> skip (older templates without it).
+            val projectOverviewSheet = workbook.getSheet(Sheet.PROJECT_OVERVIEW.title)
+            if (projectOverviewSheet != null) {
+                log.debug { "Project overview sheet: $projectOverviewSheet" }
+                ProjectOverviewCol.entries.forEach { projectOverviewSheet.registerColumn(it.header) }
+            } else {
+                log.info { "Template has no '${Sheet.PROJECT_OVERVIEW.title}' sheet, skipping project overview." }
+            }
 
             val ctx = Context(
                 workbook,
                 forecastSheet = forecastSheet,
                 invoicesSheet = invoicesSheet,
                 invoicesPrevYearSheet = invoicesPrevYearSheet,
+                invoicesPrevPrevYearSheet = invoicesPrevPrevYearSheet,
                 planningSheet = planningSheet,
                 planningInvoicesSheet = planningInvoicesSheet,
+                projectOverviewSheet = projectOverviewSheet,
                 startDate = startDate,
                 invoices = invoices,
                 baseDate = PFDay.fromOrNow(snapshotDate),
                 planningDate = planningDate,
                 snapshot = snapshotDate != null,
                 fillUnitCol = fillUnitCol,
+                distributeUnusedBudget = distributeUnusedBudget,
             )
             ctx.showAll = showAll
 
@@ -304,19 +568,35 @@ open class ForecastExport { // open needed by Wicket.
             infoSheet.setDateValue(0, 1, Date(), ctx.excelDateFormat)
             planningDate?.let { infoSheet.setDateValue(1, 1, it, ctx.excelDateFormat) }
             snapshotDate?.let { infoSheet.setDateValue(2, 1, it, ctx.excelDateFormat) }
+            // Row 4 (0-based 3) of the info sheet: how the unused budget of time&material positions is handled in
+            // this run (see projectforge.fibu.forecast.distributeUnusedBudget):
+            infoSheet.setStringValue(3, 1, variantInfo(ctx.distributeUnusedBudget))
             log.debug { "info sheet: $infoSheet" }
 
             analyzeOrderPositions(orderList, ctx, planningData = false)
-            analyzePlanningForecast(planningDate, auftragFilter, ctx)
+            analyzePlanningForecast(planningDate, planningOrderMatcher(orderList), ctx)
             forecastExportInvoices.fillInvoices(ctx)
-            val orderPositionsFound =
-                fillOrderPositions(
-                    orderList,
-                    ctx,
-                    ctx.forecastSheet,
-                    baseDate = snapshotDate,
-                    useAuftragsCache,
+            val orderPositionsFound = fillOrderPositions(
+                orderList,
+                ctx,
+                ctx.forecastSheet,
+                baseDate = snapshotDate,
+                useAuftragsCache,
+            )
+            if (chartsOnly) {
+                if (!orderPositionsFound && ctx.invoicedProjectIds.isEmpty()) {
+                    return null
+                }
+                fillPlanningForecast(planningDate, ctx)
+                return ExportResult(
+                    xls = null,
+                    chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate, snapshotDate),
+                    tables = buildTables(ctx, planningDate),
                 )
+            }
+            // The invoice sheets' visible formulas reference the forecast sheet's visibleID range, which only exists
+            // after fillOrderPositions has written all its rows. Fill them now with the exact last forecast row.
+            forecastExportInvoices.fillInvoiceVisibleColumn(ctx)
             if (!orderPositionsFound && ctx.invoicedProjectIds.isEmpty()) {
                 val msg = "Neither orders positions nor invoices found for export."
                 scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
@@ -327,6 +607,7 @@ open class ForecastExport { // open needed by Wicket.
             replaceMonthDatesInHeaderRow(planningSheet, startDate, true)
             replaceMonthDatesInHeaderRow(invoicesSheet, startDate)
             replaceMonthDatesInHeaderRow(invoicesPrevYearSheet, prevYearBaseDate)
+            replaceMonthDatesInHeaderRow(invoicesPrevPrevYearSheet, prevPrevYearBaseDate)
             replaceMonthDatesInHeaderRow(planningInvoicesSheet, startDate)
             if (!ctx.hasUnitColEntries) {
                 ExcelUtils.setColumnHidden(forecastSheet, ForecastCol.UNIT.header, true)
@@ -335,12 +616,39 @@ open class ForecastExport { // open needed by Wicket.
             ExcelUtils.setAutoFilter(forecastSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             invoicesSheet.setAutoFilter()
             invoicesPrevYearSheet.setAutoFilter()
+            invoicesPrevPrevYearSheet.setAutoFilter()
             ExcelUtils.setAutoFilter(planningSheet, FORECAST_HEAD_ROW, 0, FORECAST_NUMBER_OF_COLS_AUTOFILTER)
             planningInvoicesSheet.setAutoFilter()
 
             fillPlanningForecast(planningDate, ctx)
+            fillProjectOverviewSheet(ctx)
+            // Evaluate all formulas so the delivered file carries ready-made cached values (charts and sums are
+            // correct immediately, even in tools that don't recompute). This is cheap now that the visibleID COUNTIF
+            // range is bounded to the actual last forecast row (see fillInvoiceVisibleColumn) instead of a fixed
+            // 100000 rows. setForceFormulaRecalculation(true) additionally makes Excel/LibreOffice recompute on open,
+            // which is what keeps the SUBTOTAL-based visible column correct once the user applies a filter.
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
-            return workbook.asByteArrayOutputStream.toByteArray()
+            workbook.pOIWorkbook.setForceFormulaRecalculation(true)
+            return ExportResult(
+                xls = workbook.asByteArrayOutputStream.toByteArray(),
+                chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate, snapshotDate),
+                tables = buildTables(ctx, planningDate),
+            )
+        }
+    }
+
+    private class ExportResult(val xls: ByteArray?, val chartData: ForecastChartData, val tables: ForecastTables)
+
+    private fun buildTables(ctx: Context, planningDate: LocalDate?): ForecastTables {
+        return ctx.tables.build(
+            months = ForecastChartTotals.months(ctx.startDate),
+            visibleProjectIds = ctx.forecastRowProjectIds,
+            planByProject = planningDate?.let { ctx.chartTotals.planByProject() },
+        ) { projectId ->
+            projectCache.getProjekt(projectId)?.let { projekt ->
+                // projekt.kunde is a lazy proxy on the shared cached instance, resolve it via the KundeCache.
+                kundeCache.getKundeIfNotInitialized(projekt.kunde)?.name to projekt.name
+            }
         }
     }
 
@@ -365,6 +673,12 @@ open class ForecastExport { // open needed by Wicket.
                     ctx.orderMap[id] = orderInfo
                 }
             }
+            if (planningData) {
+                // The order positions decide which invoices belong to the filtered orders (see
+                // ForecastExportInvoices.fillInvoices). Those of the snapshot must not widen that selection:
+                // the plan is compared with the invoices of the orders of the forecast, not of the snapshot.
+                continue
+            }
             orderInfo.infoPositions?.forEach { pos ->
                 pos.id?.let {
                     ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
@@ -374,9 +688,9 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    private fun analyzePlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
+    private fun analyzePlanningForecast(planningDate: LocalDate?, match: (AuftragDO) -> Boolean, ctx: Context) {
         planningDate ?: return
-        val orderList = readSnapshot(planningDate, auftragFilter)
+        val orderList = readSnapshot(planningDate, match)
         analyzeOrderPositions(orderList, ctx, planningData = true)
         ctx.planningOrderList = orderList
     }
@@ -418,7 +732,11 @@ open class ForecastExport { // open needed by Wicket.
             }
             if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                 orderInfo.infoPositions?.forEach { pos ->
-                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow) {
+                    // Completed positions (status not in auftragsPositionsStatusToShow) do not get a real forecast row,
+                    // even when their project was invoiced: that would write one (near-empty, zero-remaining) row per
+                    // completed position and bloat the sheet. Their project's IST visibility is instead ensured by the
+                    // single enriched pseudo row per invoiced project (see missedProjectIds below).
+                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
                         addOrderPosition(
                             ctx,
                             sheet,
@@ -434,7 +752,30 @@ open class ForecastExport { // open needed by Wicket.
             }
         }
         if (sheet == ctx.forecastSheet) {
-            val missedProjectIds = ctx.invoicedProjectIds - ctx.orderProjectIds
+            if (ctx.hasInvoicesWithoutProject) {
+                // Invoices without any assignable project can't be filtered by unit, customer or project. They are
+                // represented by this single pseudo order row: visible (and thus part of the sums) as long as no filter
+                // is set, hidden as soon as the user filters.
+                OrderInfo().let { orderInfo ->
+                    orderInfo.nummer = 0
+                    orderInfo.projektId = Context.PROJECT_ID_NONE
+                    orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                    orderInfo.angebotsDatum = baseDate
+                    orderInfo.titel = translate("fibu.auftrag.forecast.withoutProject")
+                    orderInfo.projektAsString = orderInfo.titel
+                    OrderPositionInfo().let { posInfo ->
+                        posInfo.auftrag = orderInfo
+                        posInfo.status = AuftragsStatus.IN_ERSTELLUNG
+                        posInfo.titel = orderInfo.titel
+                        posInfo.number = 0
+                        addOrderPosition(
+                            ctx, sheet, currentRow++, orderInfo, posInfo, baseDate = baseDate,
+                            useAuftragsCache = useAuftragsCache
+                        )
+                    }
+                }
+            }
+            val missedProjectIds = ctx.invoicedProjectIds - ctx.forecastRowProjectIds
             missedProjectIds.forEach { projectId ->
                 // For all projects that have been invoiced but for which no
                 // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
@@ -445,8 +786,14 @@ open class ForecastExport { // open needed by Wicket.
                     orderInfo.projektId = projectId
                     orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
                     orderInfo.angebotsDatum = baseDate
-                    orderInfo.titel = "Pseudo order for project $projectId, because this project was invoiced."
-                    orderInfo.kundeAsString = project?.kundeAsString
+                    // User-facing title: this pseudo row is the only representation of an invoiced project that has no
+                    // active order position in the forecast (its completed positions get no row of their own).
+                    orderInfo.titel = translate("fibu.auftrag.forecast.invoicedProjectWithoutOrder")
+                    // project is a shared cached ProjektDO with a lazy kunde proxy; resolve it via the KundeCache
+                    // (identifier read is free) instead of reading project.kundeAsString, which would lazy-load
+                    // T_FIBU_KUNDE. Format locally to avoid mutating the shared cached instance.
+                    val kunde = kundeCache.getKundeIfNotInitialized(project?.kunde)
+                    orderInfo.kundeAsString = KundeFormatter.formatKundeAsString(kunde)
                     orderInfo.projektAsString = project?.name
                     OrderPositionInfo().let { posInfo ->
                         posInfo.auftrag = orderInfo
@@ -460,8 +807,38 @@ open class ForecastExport { // open needed by Wicket.
                     }
                 }
             }
+            // Remember the Excel row (1-based) of the last forecast data row (currentRow is the next free 0-based row,
+            // which equals the 1-based number of the last written row). The invoice and planning visible COUNTIF
+            // formulas bound their visibleID range to this row instead of a fixed 100000, so POI/Excel only scan the
+            // rows that actually exist. Guard against an empty sheet so the range stays valid ($11:$11).
+            ctx.forecastDataLastExcelRow = maxOf(currentRow, FORECAST_FISRT_ORDER_ROW + 1)
         }
         return orderPositionFound
+    }
+
+    /**
+     * The order list is loaded 3 years back, because invoices of the two prior years must be able to find their orders
+     * (see [xlsExport]). Such old orders would only clutter the sheet and the filter drop downs, so only positions are
+     * written as rows which are relevant for this export:
+     * - their period of performance overlaps the exported 12 months, or
+     * - their project was invoiced in one of the three year windows: these rows carry unit/customer for propagating the
+     *   filter selection to the (prev/prev-prev year) invoice sheets and must not be dropped.
+     */
+    private fun isRelevant(ctx: Context, order: OrderInfo, pos: OrderPositionInfo): Boolean {
+        if (order.projektId?.let { ctx.invoicedProjectIds.contains(it) } == true) {
+            return true
+        }
+        // The forecast revenue of a position may appear one month after the end of the performance period
+        // (AuftragForecastType.FOLLOWING_MONTH), so start one month earlier:
+        val from = ctx.startDate.plusMonths(-1)
+        val end = ForecastUtils.getEndLeistungszeitraum(order, pos)
+        if (!end.isBefore(from) && !ForecastUtils.getStartLeistungszeitraum(order, pos).isAfter(ctx.endDate)) {
+            return true
+        }
+        // Payment schedules may be scheduled after the end of the performance period (see ForecastOrderPosInfo.createMonths):
+        return ForecastUtils.getPaymentSchedule(order, pos).any { schedule ->
+            schedule.scheduleDate?.let { it >= from.localDate && it <= ctx.endDate.localDate } == true
+        }
     }
 
     private fun fillPlanningForecast(planningDate: LocalDate?, ctx: Context) {
@@ -517,8 +894,12 @@ open class ForecastExport { // open needed by Wicket.
         baseDate: LocalDate?,
         useAuftragsCache: Boolean,
     ) {
-        order.projektId?.let { ctx.orderProjectIds.add(it) }
         val isPlanningSheet = ctx.planningSheet == sheet
+        if (!isPlanningSheet) {
+            // Only real forecast-sheet rows carry a visibleID; feeding this from the planning sheet would wrongly
+            // exclude invoiced projects from missedProjectIds without giving them a visible row.
+            order.projektId?.let { ctx.forecastRowProjectIds.add(it) }
+        }
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
         ExcelUtils.setLongValue(sheet, row, ForecastCol.PROJECT_ID.header, order.projektId)
@@ -532,18 +913,20 @@ open class ForecastExport { // open needed by Wicket.
                 sheet,
                 row,
                 ForecastCol.VISIBLE.header,
-                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRow) > 0"
+                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol${ctx.forecastDataLastExcelRow}, $projectIdCol$excelRow) > 0"
             )
         } else {
             // Visible cell is 1, if row is visible (by filter), otherwise, 0.
             ExcelUtils.setCellFormula(sheet, row, ForecastCol.VISIBLE.header, "SUBTOTAL(3, A$excelRow)")
             val visibleCol = ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE.header)?.columnNumberAsLetters
             val projectIdCol = ctx.forecastSheet.getColumnDef(ForecastCol.PROJECT_ID.header)?.columnNumberAsLetters
+            // Blank project ids must not fall through as numeric 0: COUNTIF of the invoice sheets would then match
+            // every invoice without project against every order row without project, no matter which filter is set.
             ExcelUtils.setCellFormula(
                 sheet,
                 row,
                 ForecastCol.VISIBLE_PROJECT_ID.header,
-                "IF($visibleCol$excelRow=1, $projectIdCol$excelRow, \"\")"
+                "IF(AND($visibleCol$excelRow=1, $projectIdCol$excelRow<>\"\"), $projectIdCol$excelRow, \"\")"
             )
         }
         order.angebotsDatum?.let {
@@ -593,6 +976,13 @@ open class ForecastExport { // open needed by Wicket.
         val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
         val forecastInfo = ForecastOrderPosInfo(order, pos)
+        forecastInfo.distributeUnusedBudget = ctx.distributeUnusedBudget
+        // Distribution must not re-forecast months already covered by actual invoices (respecting baseDate):
+        forecastInfo.lastInvoiceMonth = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
+            ?.filter { it.isInvoiced && (baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate) }
+            ?.mapNotNull { it.rechnungInfo?.date }
+            ?.maxOrNull()
+            ?.let { PFDay.from(it).beginOfMonth }
         forecastInfo.calculate()
         sheet.setBigDecimalValue(row, ForecastCol.NETTOSUMME.header, netSum).cellStyle = ctx.currencyCellStyle
         if (invoicedSum.compareTo(BigDecimal.ZERO) != 0) {
@@ -671,7 +1061,11 @@ open class ForecastExport { // open needed by Wicket.
         ).cellStyle =
             ctx.currencyCellStyle
 
-        sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
+        // order.contactPerson is a lazy PFUserDO proxy; calling getFullname() directly would lazy-load T_PF_USER
+        // once per position (n+1). The id read is free (PFUserDO.id is the @Id), and UserGroupCache holds all users
+        // in memory.
+        val contactPerson = order.contactPerson?.id?.let { userGroupCache.getUser(it) }
+        sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, contactPerson?.getFullname())
         val node = TaskTree.instance.getTaskNodeById(pos.taskId)
         sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
         sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
@@ -704,6 +1098,12 @@ open class ForecastExport { // open needed by Wicket.
             }
             sheet.setStringValue(row, ForecastCol.PAYMENT_SCHEDULE.header, str)
         }
+        order.statusBeschreibung?.let {
+            sheet.setStringValue(row, ForecastCol.STATUS_BESCHREIBUNG.header, it)
+        }
+        val tableMonths = arrayOfNulls<BigDecimal>(MonthCol.entries.size)
+        var tableWarning: String? = null
+        val tableWarningMonths = mutableListOf<Int>()
         forecastInfo.months.forEach { monthEntry ->
             val monthDate = monthEntry.date
             val offset = ctx.startDate.monthsBetween(monthDate).toInt()
@@ -721,30 +1121,275 @@ open class ForecastExport { // open needed by Wicket.
                     monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP),
                 )
             cell.cellStyle = ctx.currencyCellStyle
+            val chartValue = monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP)
+            tableMonths[offset] = chartValue
+            if (isPlanningSheet) {
+                ctx.chartTotals.addPlanningForecast(pos.status, order.projektId, offset, chartValue)
+            } else {
+                ctx.chartTotals.addForecast(pos.status, offset, chartValue)
+            }
             if (monthEntry.lostBudgetWarning) {
                 val errorStyle = when {
                     monthEntry.lostBudget > NumberHelper.HUNDRED_THOUSAND -> ctx.hugeErrorCellStyle
                     monthEntry.lostBudget > NumberHelper.TEN_THOUSAND -> ctx.largeErrorCellStyle
                     else -> ctx.errorCellStyle
                 }
-                sheet.setStringValue(
-                    row,
-                    ForecastCol.WARNING.header,
-                    translateMsg(
-                        "fibu.auftrag.forecast.lostBudgetWarning",
-                        monthEntry.lostBudget.formatCurrency(true, scale = 0),
-                        monthEntry.lostBudgetPercent,
-                        ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
-                    )
-                ).cellStyle = errorStyle
+                tableWarning = translateMsg(
+                    "fibu.auftrag.forecast.lostBudgetWarning",
+                    monthEntry.lostBudget.formatCurrency(true, scale = 0),
+                    monthEntry.lostBudgetPercent,
+                    ForecastOrderPosInfo.PERCENTAGE_OF_LOST_BUDGET_WARNING,
+                )
+                sheet.setStringValue(row, ForecastCol.WARNING.header, tableWarning).cellStyle = errorStyle
                 sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
+                tableWarningMonths.add(offset)
             }
+        }
+        if (!isPlanningSheet) {
+            val ownPeriod = PeriodOfPerformanceType.OWN == pos.periodOfPerformanceType
+            ctx.tables.addPosition(
+                ForecastPositionRow(
+                    orderId = order.id,
+                    orderNumber = order.nummer,
+                    positionNumber = pos.number,
+                    projectId = order.projektId,
+                    customer = order.kundeAsString,
+                    project = order.projektAsString,
+                    title = order.titel,
+                    positionTitle = if (pos.titel != order.titel) pos.titel else null,
+                    art = pos.art?.let { translate(it.i18nKey) },
+                    paymentType = pos.paymentType?.let { translate(it.i18nKey) },
+                    orderStatus = translate(order.status.i18nKey),
+                    positionStatus = translate(pos.status.i18nKey),
+                    personDays = pos.personDays,
+                    netSum = netSum,
+                    probability = forecastInfo.probability,
+                    weightedNetSum = forecastInfo.weightedNetSum,
+                    invoicedSum = invoicedSum,
+                    toBeInvoicedSum = toBeInvoicedSum,
+                    periodOfPerformanceBegin = if (ownPeriod) {
+                        pos.periodOfPerformanceBegin ?: order.periodOfPerformanceBegin
+                    } else {
+                        order.periodOfPerformanceBegin
+                    },
+                    periodOfPerformanceEnd = if (ownPeriod) {
+                        pos.periodOfPerformanceEnd ?: order.periodOfPerformanceEnd
+                    } else {
+                        order.periodOfPerformanceEnd
+                    },
+                    forecastType = translate(ForecastUtils.getForecastType(order, pos).i18nKey),
+                    months = tableMonths.toList(),
+                    remaining = remaining,
+                    difference = forecastInfo.difference,
+                    warning = tableWarning,
+                    warningMonths = tableWarningMonths,
+                    pseudo = order.id == null,
+                )
+            )
         }
     }
 
-    private fun readSnapshot(date: LocalDate, filter: AuftragFilter): List<AuftragDO> {
-        return orderbookSnapshotsService.readSnapshot(date)?.filter { filter.match(it) }
+    /**
+     * Per-project accumulator for the [Sheet.PROJECT_OVERVIEW] sheet. All values are summed over the month columns of
+     * the respective detail sheet for a single project id.
+     */
+    private class ProjectOverviewAgg {
+        var unit: String? = null
+        var customer: String? = null
+        var project: String? = null
+        var forecastRemaining: BigDecimal = BigDecimal.ZERO // Rest forecast (Forecast_Data)
+        var ist: BigDecimal = BigDecimal.ZERO               // already invoiced (Rechnungen)
+        var planRemaining: BigDecimal = BigDecimal.ZERO     // Rest plan (Planning_Data)
+        var planIst: BigDecimal = BigDecimal.ZERO           // plan already invoiced (Planning_Invoices)
+        var prevYear: BigDecimal = BigDecimal.ZERO          // Rechnungen Vorjahr
+        var prevPrevYear: BigDecimal = BigDecimal.ZERO      // Rechnungen Vorvorjahr
+    }
+
+    /**
+     * Fills the optional [Sheet.PROJECT_OVERVIEW] sheet with one row per project. This is a pure re-presentation of the
+     * data already written to the detail sheets — no new calculation. All values are aggregated per project id from the
+     * literal month cells of the detail sheets (those cells are literal numbers, not formulas, so no formula
+     * evaluation is required to read them).
+     *
+     * Column mapping (sum per project id over the detail rows):
+     * - Plan       = Σ Planning_Data months + Σ Planning_Invoices months
+     * - Forecast   = Σ Forecast_Data months (remaining forecast) + Σ Rechnungen months (already invoiced)
+     * - Vorjahr    = Σ Rechnungen Vorjahr months
+     * - Vorvorjahr = Σ Rechnungen Vorvorjahr months
+     * - Differenz Plan/Vorjahr/Vorvorjahr = Forecast − Plan/Vorjahr/Vorvorjahr
+     *
+     * All columns are addressed by header name only, so the user may reorder the columns in the template.
+     */
+    private fun fillProjectOverviewSheet(ctx: Context) {
+        val sheet = ctx.projectOverviewSheet ?: return
+        val map = mutableMapOf<Long, ProjectOverviewAgg>()
+
+        // Forecast_Data: remaining (weighted) forecast + unit/customer/project labels.
+        accumulateMonths(ctx.forecastSheet, ForecastCol.PROJECT_ID.header, map) { agg, row ->
+            agg.forecastRemaining = agg.forecastRemaining.add(sumMonths(ctx.forecastSheet, row))
+            if (agg.unit.isNullOrBlank()) agg.unit = ctx.forecastSheet.getCellString(row, ForecastCol.UNIT.header)
+            if (agg.customer.isNullOrBlank()) agg.customer =
+                ctx.forecastSheet.getCellString(row, ForecastCol.CUSTOMER.header)
+            if (agg.project.isNullOrBlank()) agg.project =
+                ctx.forecastSheet.getCellString(row, ForecastCol.PROJECT.header)
+        }
+        // Rechnungen: already invoiced part of the current year (IST).
+        accumulateMonths(ctx.invoicesSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.ist = agg.ist.add(sumMonths(ctx.invoicesSheet, row))
+            if (agg.customer.isNullOrBlank()) agg.customer =
+                ctx.invoicesSheet.getCellString(row, InvoicesCol.CUSTOMER.header)
+            if (agg.project.isNullOrBlank()) agg.project =
+                ctx.invoicesSheet.getCellString(row, InvoicesCol.PROJECT.header)
+        }
+        // Planning_Data: remaining plan.
+        accumulateMonths(ctx.planningSheet, ForecastCol.PROJECT_ID.header, map) { agg, row ->
+            agg.planRemaining = agg.planRemaining.add(sumMonths(ctx.planningSheet, row))
+        }
+        // Planning_Invoices: already invoiced part of the plan (IST at planning date).
+        accumulateMonths(ctx.planningInvoicesSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.planIst = agg.planIst.add(sumMonths(ctx.planningInvoicesSheet, row))
+        }
+        // Rechnungen Vorjahr / Vorvorjahr.
+        accumulateMonths(ctx.invoicesPrevYearSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.prevYear = agg.prevYear.add(sumMonths(ctx.invoicesPrevYearSheet, row))
+        }
+        accumulateMonths(ctx.invoicesPrevPrevYearSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.prevPrevYear = agg.prevPrevYear.add(sumMonths(ctx.invoicesPrevPrevYearSheet, row))
+        }
+
+        // Resolve missing customer/project labels via the project cache (invoices without an order carry no labels).
+        map.forEach { (id, agg) ->
+            if (id != Context.PROJECT_ID_NONE && (agg.customer.isNullOrBlank() || agg.project.isNullOrBlank())) {
+                projectCache.getProjekt(id)?.let { projekt ->
+                    if (agg.project.isNullOrBlank()) agg.project = projekt.name
+                    if (agg.customer.isNullOrBlank()) {
+                        // projekt.kunde is a lazy proxy on the shared cached instance; resolve via KundeCache
+                        // (identifier read is free) instead of projekt.kunde?.name, which would lazy-load T_FIBU_KUNDE.
+                        agg.customer = kundeCache.getKundeIfNotInitialized(projekt.kunde)?.name
+                    }
+                }
+            }
+        }
+
+        val entries = map.entries.sortedWith(
+            compareBy({ it.value.unit ?: "" }, { it.value.customer ?: "" }, { it.value.project ?: "" })
+        )
+        // Write directly below the header row (row 2 in Excel if the header is row 1). Don't use createRow(), which
+        // would append after any empty/pre-formatted rows the template carries.
+        var rowNum = (sheet.headRow?.rowNum ?: 0) + 1
+        for ((id, agg) in entries) {
+            val plan = agg.planRemaining.add(agg.planIst)
+            val forecast = agg.forecastRemaining.add(agg.ist)
+            val prevYear = agg.prevYear
+            val prevPrevYear = agg.prevPrevYear
+            sheet.getRow(rowNum) // Ensure the row exists before setting values.
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.UNIT.header, agg.unit)
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.CUSTOMER.header, agg.customer)
+            val projectLabel = if (id == Context.PROJECT_ID_NONE && agg.project.isNullOrBlank()) {
+                "(ohne Projekt)"
+            } else {
+                agg.project
+            }
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.PROJECT.header, projectLabel)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PLAN.header, plan)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.FORECAST.header, forecast)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PREV_YEAR.header, prevYear)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PREV_PREV_YEAR.header, prevPrevYear)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PLAN.header, forecast.subtract(plan))
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PREV_YEAR.header, forecast.subtract(prevYear))
+            setOverviewCurrency(
+                ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PREV_PREV_YEAR.header, forecast.subtract(prevPrevYear)
+            )
+            rowNum++
+        }
+        // Re-apply the autofilter over the header row so it stays consistent after the rows were added.
+        sheet.setAutoFilter()
+    }
+
+    /**
+     * Iterates the data rows of [sheet] and invokes [block] per row that carries a numeric project id in the given
+     * [projectIdHeader] column. Rows without that column or without a numeric project id are skipped. No-op if the
+     * sheet doesn't contain the project id column (columns are addressed by header name only).
+     */
+    private fun accumulateMonths(
+        sheet: ExcelSheet,
+        projectIdHeader: String,
+        map: MutableMap<Long, ProjectOverviewAgg>,
+        block: (agg: ProjectOverviewAgg, row: Row) -> Unit,
+    ) {
+        if (sheet.getColumnDef(projectIdHeader) == null) {
+            log.warn { "Sheet '${sheet.sheetName}' has no column '$projectIdHeader', skipping for project overview." }
+            return
+        }
+        val it = sheet.dataRowIterator
+        while (it.hasNext()) {
+            val row = it.next()
+            // Skip header/summary rows and rows without a project id: their ProjectID cell is non-numeric (text or
+            // empty), so readNumeric returns null. This also guards against merlin picking a head row above row 9.
+            val id = readNumeric(sheet, row, projectIdHeader)?.toLong() ?: continue
+            block(map.getOrPut(id) { ProjectOverviewAgg() }, row)
+        }
+    }
+
+    /**
+     * Sums the 12 month columns (Month 1..Month 12) of [row] on [sheet]. Missing columns and non-numeric/empty cells
+     * count as zero.
+     */
+    private fun sumMonths(sheet: ExcelSheet, row: Row): BigDecimal {
+        var sum = BigDecimal.ZERO
+        MonthCol.entries.forEach { monthCol ->
+            readNumeric(sheet, row, monthCol.header)?.let { sum = sum.add(it) }
+        }
+        return sum
+    }
+
+    /**
+     * Reads the numeric value of [header] in [row], or null if the column is missing or the cell isn't numeric (text,
+     * empty or blank). Unlike merlin's getCellDouble this doesn't log a warning for non-numeric cells, which are
+     * expected here (header/summary rows, empty month cells).
+     */
+    private fun readNumeric(sheet: ExcelSheet, row: Row, header: String): BigDecimal? {
+        val cell = sheet.getCell(row, header, false) ?: return null
+        if (cell.cellType != CellType.NUMERIC) return null
+        return BigDecimal.valueOf(cell.numericCellValue)
+    }
+
+    private fun setOverviewString(sheet: ExcelSheet, rowNum: Int, header: String, value: String?) {
+        if (sheet.getColumnDef(header) == null) return
+        sheet.setStringValue(rowNum, header, value ?: "")
+    }
+
+    private fun setOverviewCurrency(ctx: Context, sheet: ExcelSheet, rowNum: Int, header: String, value: BigDecimal) {
+        if (sheet.getColumnDef(header) == null) return
+        sheet.setBigDecimalValue(rowNum, header, value.setScale(2, RoundingMode.HALF_UP)).cellStyle =
+            ctx.currencyCellStyle
+    }
+
+    /** The orders of the snapshot of [date] matching [match]. */
+    private fun readSnapshot(date: LocalDate, match: (AuftragDO) -> Boolean): List<AuftragDO> {
+        return orderbookSnapshotsService.readSnapshot(date)?.filter(match)
             ?.sortedByDescending { it.nummer } ?: emptyList()
+    }
+
+    /**
+     * Which orders of a snapshot match [filter].
+     * @param searchMatchIds The ids of the orders matching the search string of [filter] (see [searchMatchIds]), or
+     *                       null if there is none. [AuftragFilter.match] can't evaluate a search string, so without
+     *                       these the whole order book of the snapshot would be taken.
+     */
+    private fun snapshotMatcher(filter: AuftragFilter, searchMatchIds: Set<Long>?): (AuftragDO) -> Boolean =
+        { filter.match(it) && (searchMatchIds == null || it.id in searchMatchIds) }
+
+    /**
+     * The ids of the orders matching the search string of [filter], or null if it has none. The full text search
+     * only exists for the current order book, so its result decides which orders of a snapshot match as well.
+     * @param currentOrderList The orders already selected with [filter], if any, to save a second query.
+     */
+    private fun searchMatchIds(filter: AuftragFilter, currentOrderList: Collection<AuftragDO>?): Set<Long>? {
+        if (filter.searchString.isNullOrBlank()) {
+            return null
+        }
+        return (currentOrderList ?: orderDao.select(filter)).mapNotNull { it.id }.toSet()
     }
 
     companion object {

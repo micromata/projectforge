@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
+import org.projectforge.Constants
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translate
@@ -31,6 +32,20 @@ import org.projectforge.framework.time.PFDateTime
 import java.util.*
 
 object DataTransferUtils {
+  /** The id of the logged-in user's own personal box in [areaViewPath], resolved by the file view. */
+  const val PERSONAL_BOX_ID = -1L
+
+  /**
+   * The file view of an area in projectforge-next, without leading slash, e.g. `next/datatransfer/42`.
+   * Used by the menu, the links of the notification mails and the area's internal link.
+   */
+  fun areaViewPath(areaId: Long?): String {
+    return "${Constants.NEXT_APP_PATH}$ROUTE/${areaId ?: 0}"
+  }
+
+  /** The route of the data transfer pages in projectforge-next (see `NextMigration.MIGRATED`). */
+  const val ROUTE = "datatransfer"
+
   fun expiryTimeLeft(attachment: Attachment, expiryDays: Int?, locale: Locale? = null): String {
     return expiryTimeLeft(attachment.lastUpdate ?: attachment.created, expiryDays, locale)
   }

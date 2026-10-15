@@ -30,6 +30,7 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
@@ -58,6 +59,9 @@ class Vacation(
     var comment: String? = null,
     var vacationDaysLeftInYear: BigDecimal? = null,
     var vacationDaysLeftInYearString: String? = null,
+    /** The days left in the year once this entry (as edited) is counted instead of its stored state. */
+    var vacationDaysLeftAfterThis: BigDecimal? = null,
+    var vacationDaysLeftAfterThisString: String? = null,
     /**
      * Vacations of substitutes overlapping this vacation. Only set in detail
      * view.
@@ -67,6 +71,23 @@ class Vacation(
      * If at least one day of the vacation period isn't covered by any substitute (replacement).
      */
     var conflict: Boolean? = null,
+    /**
+     * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
+     */
+    var allowedStatus: List<VacationStatus>? = null,
+    /**
+     * Whether the logged-in user may choose the employee (HR staff only). Only set in detail view.
+     */
+    var employeeEditable: Boolean? = null,
+    /**
+     * The days the form charts the overlapping vacations on (the period with a margin, see [VacationChartDay]). Only
+     * set in detail view.
+     */
+    var chartDays: List<VacationChartDay>? = null,
+    /** The weekends and holidays of the period, for the list's bar. Only set in the list. */
+    var nonWorkingDays: List<LocalDate>? = null,
+    /** The days of the period without any substitute on duty, for the list's bar. Only set in the list, on a conflict. */
+    var uncoveredDays: List<LocalDate>? = null,
 ) : BaseDTO<VacationDO>() {
     constructor(src: VacationDO) : this() {
         this.copyFrom(src)
@@ -98,5 +119,34 @@ class Vacation(
     override fun copyTo(dest: VacationDO) {
         super.copyTo(dest)
         dest.otherReplacements = Employee.toEmployeeDOList(otherReplacements)
+    }
+}
+
+/**
+ * A day of the chart of the overlapping vacations in the vacation form.
+ *
+ * @param workingDay Neither weekend nor holiday (a holiday may be a half working day, e.g. Christmas Eve).
+ * @param holiday The holiday's name, if it is one.
+ * @param uncovered A day of the vacation on which no substitute is on duty.
+ */
+class VacationChartDay(
+    val date: LocalDate,
+    val workingDay: Boolean,
+    val holiday: String? = null,
+    val uncovered: Boolean = false,
+) {
+    companion object {
+        /** Every day from [first] to [last] (both inclusive), with the holidays' names in the user's language. */
+        fun listOf(first: LocalDate, last: LocalDate, uncovered: Set<LocalDate> = emptySet()): List<VacationChartDay> {
+            val holidays = Holidays.instance
+            return generateSequence(first) { it.plusDays(1) }.takeWhile { it <= last }.map { date ->
+                val holiday = if (holidays.isHoliday(date.year, date.dayOfYear)) {
+                    holidays.getHolidayInfo(date.year, date.dayOfYear)
+                        .let { if (it.startsWith("calendar.holiday.")) translate(it) else it }
+                        .ifBlank { null }
+                } else null
+                VacationChartDay(date, holidays.isWorkingDay(date), holiday, uncovered.contains(date))
+            }.toList()
+        }
     }
 }

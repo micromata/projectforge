@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.reflect.UndeclaredThrowableException
 import java.security.GeneralSecurityException
 import javax.crypto.Mac
@@ -103,7 +103,7 @@ class TimeBasedOTP(
       hmac.init(macKey)
       hmac.doFinal(text)
     } catch (gse: GeneralSecurityException) {
-      log.error("Can't create HmacSHA1")
+      log.error { "Can't create HmacSHA1" }
       throw UndeclaredThrowableException(gse)
     }
   }

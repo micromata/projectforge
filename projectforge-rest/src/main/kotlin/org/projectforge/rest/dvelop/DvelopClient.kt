@@ -27,7 +27,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.projectforge.business.dvelop.*
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,7 +62,7 @@ private val log = KotlinLogging.logger {}
  * Fragen
  * * Datev-Konto als Entität
  *
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class DvelopClient {
@@ -140,7 +141,7 @@ class DvelopClient {
   /**
    * @throws HttpException
    */
-  internal fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+  internal fun <T : Any> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T? {
     init()
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -156,9 +157,9 @@ class DvelopClient {
           if (debugConsoleOutForTesting) {
             println("Success")
           }
-          return@exchangeToMono response.bodyToMono(expectedReturnClass) as Mono<T>
+          return@exchangeToMono response.bodyToMono(expectedReturnClass)
         } else {
-          log.error { "Error while calling $headersSpec." }
+          log.error(DvelopLogEvents.CALL_FAILED) { "Error while calling $headersSpec: status=${response.statusCode()}." }
           if (debugConsoleOutForTesting) {
             println("Error: ${response.statusCode()}")
           }
@@ -172,7 +173,7 @@ class DvelopClient {
   fun login(): Session? {
     val uriSpec = webClient.get()
     val headersSpec = uriSpec.uri("/identityprovider/login")
-    val map = execute(headersSpec, Map::class.java)
+    val map = execute(headersSpec, Map::class.java) ?: return null
     if (debugConsoleOutForTesting) {
       println("login: ${map.entries.joinToString { "key=[${it.key} value=[${it.value}]" }}")
     }
@@ -232,7 +233,7 @@ class DvelopClient {
 
   private fun logRequest(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofRequestProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Request: \n")
         // append clientRequest method and url
         clientRequest
@@ -251,7 +252,7 @@ class DvelopClient {
 
   private fun logResponse(): ExchangeFilterFunction {
     return ExchangeFilterFunction.ofResponseProcessor { clientRequest ->
-      if (log.isDebugEnabled || debugConsoleOutForTesting) {
+      if (log.isDebugEnabled() || debugConsoleOutForTesting) {
         val sb = StringBuilder("Response: \n")
         // append clientRequest method and url
         log.debug { sb.toString() }

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.sipgate.*
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.json.JsonUtils
@@ -38,7 +38,7 @@ import jakarta.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateService {
@@ -218,7 +218,7 @@ open class SipgateService {
         log.info { "Got ${result.size} entries of $entityName from Sipgate." }
         return result
       } catch (ex: Exception) {
-        log.error("Can't read entries of type $entityName (may-be no access): ${ex.message}", ex)
+        log.error(ex) { "Can't read entries of type $entityName (may-be no access): ${ex.message}" }
         return mutableListOf()
       }
     }

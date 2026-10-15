@@ -28,7 +28,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 /**
  * REST object for system info for initial contact.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ServerInfo
 {

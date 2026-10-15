@@ -25,7 +25,7 @@ package org.projectforge.rest.importer
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.format
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -135,11 +135,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 }
             }
 
-            importStorage?.lastJobRun?.result?.asUIAlert?.let {
+            importStorage.lastJobRun?.result?.asUIAlert?.let {
                 layout.add(it)
             }
 
-            if (importStorage?.pairEntries?.isNotEmpty() == true) {
+            if (importStorage.pairEntries.isNotEmpty()) {
                 fieldset.add(
                     UIButton.createDefaultButton(
                         "reconcile",
@@ -171,7 +171,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             agGrid.add(col)
             createListLayout(request, layout, agGrid)
             // Only show import button if data has been reconciled with database
-            if (importStorage?.hasBeenReconciled == true) {
+            if (importStorage.hasBeenReconciled == true) {
                 agGrid.withMultiRowSelection()
                 agGrid.multiSelectButtonTitle = translate("import")
                 agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
@@ -179,11 +179,11 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
             agGrid.paginationPageSize = 500
             agGrid.withGetRowClass(
                 """if (params.node.data.status === 'NEW') {
-             return 'ag-row-green';
+             return 'row-green';
            } else if (['DELETED', 'FAULTY', 'UNKNOWN', 'UNKNOWN_MODIFICATION'].includes(params.node.data.status)) {
-             return 'ag-row-red';
+             return 'row-red';
            } else if (params.node.data.status === 'MODIFIED') {
-             return 'ag-row-blue';
+             return 'row-blue';
         }""".trimMargin()
             )
         }
@@ -229,7 +229,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     ): ResponseEntity<ResponseAction> {
         val importStorage = getImportStorage(request)
         if (importStorage == null) {
-            log.error("No import storage given (expired?). Can't proceed any import here.")
+            log.error { "No import storage given (expired?). Can't proceed any import here." }
             return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
         }
         val selectedIds = multiSelection?.selectedIds

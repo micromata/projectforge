@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity
@@ -143,6 +143,16 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
     open var externalSubscriptionCalendarBinary: ByteArray? = null
 
     /**
+     * Start of an uninterrupted series of failed updates of the subscribed calendar, null if the last update
+     * succeeded. Persisted for retrying less often and deactivating permanently failing subscriptions, see
+     * [org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache].
+     */
+    @JsonIgnore
+    @NoHistory
+    @get:Column(name = "ext_subscription_failing_since")
+    open var externalSubscriptionFailingSince: java.util.Date? = null
+
+    /**
      * Shorten the url or avoiding logging of user credentials as part of the url.<br></br>
      * Example: Shorten http://www.projectforge.org/cal/... -> http://www.projectforge.org
      *
@@ -196,6 +206,6 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
         }
         return if (this.id == other.id) {
             true
-        } else StringUtils.equals(title, other.title)
+        } else title == other.title
     }
 }

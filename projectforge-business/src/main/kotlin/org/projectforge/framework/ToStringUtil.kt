@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.proxy.AbstractLazyInitializer
@@ -150,10 +150,7 @@ class ToStringUtil {
                 return mapper.writeValueAsString(obj)
             } catch (ex: Exception) {
                 val id = System.currentTimeMillis()
-                log.error(
-                    "Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}",
-                    ex
-                )
+                log.error(ex) { "Exception while serializing object of type '${obj::class.java.simpleName}' #$id: ${ex.message}" }
                 return "[*** Exception while serializing object of type '${obj::class.java.simpleName}', see log files #$id for more details.]"
             } finally {
                 JsonThreadLocalContext.clear()
@@ -200,8 +197,8 @@ class ToStringUtil {
             mapper = ObjectMapper()
             mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            // mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT)
+            mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+            // mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_DEFAULT)
             mapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
             val module = SimpleModule()
             module.addSerializer(java.util.Date::class.java, UtilDateSerializer(UtilDateFormat.ISO_DATE_TIME_SECONDS))

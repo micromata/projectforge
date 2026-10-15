@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * Converts BaseDO from and to strings (using the id).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValueConverter
 {

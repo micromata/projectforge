@@ -28,6 +28,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
@@ -53,7 +54,7 @@ class AbstractJobTest {
   fun keepTerminatedIntervalTest() {
     val jobHandler = JobHandler()
     var onAfterFinishedCalled = false
-    ThreadLocalUserContext.setUser(PFUserDO())
+    ThreadLocalUserContext.userContext = UserContext(PFUserDO(), nofresh = true) // No UserGroupCache in this test.
     val job = jobHandler.addJob(object : AbstractJob("job") {
       override suspend fun run() {
         // println("job2")

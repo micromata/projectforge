@@ -24,7 +24,7 @@
 package org.projectforge.jcr
 
 import com.zaxxer.hikari.HikariDataSource
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
 import org.apache.jackrabbit.oak.plugins.document.DocumentNodeStore

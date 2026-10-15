@@ -30,8 +30,10 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.common.i18n.UserException
@@ -52,6 +54,9 @@ class VacationServiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userDao: UserDao
+
+    @Autowired
+    private lateinit var leaveAccountEntryDao: LeaveAccountEntryDao
 
     @Autowired
     private lateinit var remainingLeaveDao: RemainingLeaveDao
@@ -560,6 +565,119 @@ class VacationServiceTest : AbstractTestBase() {
             15.0,
             addVacations(employee, manager, 2015, Month.DECEMBER, 23, Month.JANUARY, 15),
             "days off expected."
+        )
+    }
+
+    @Test
+    fun `the carry is only usable up to the end of the vacation year`() {
+        val manager = createEmployee("carry-overlap-manager", LocalDate.of(2010, Month.MAY, 1))
+        logon(TEST_HR_USER)
+        // 10 days carried into 2022 and 10 days of 2022 left:
+        val employee = createEmployee("carry-overlap", LocalDate.of(2010, Month.MAY, 1))
+        prepareCarry(employee, manager, usedIn2021 = 20, usedIn2022 = 20)
+        val start = LocalDate.of(2022, Month.MARCH, 30) // Wednesday, 2 days up to 31.03.
+        // The 10 days of 2022 and 2 days of the carry:
+        Assertions.assertNull(validate(employee, manager, start, endDateFor(start, 12)))
+        // But not 3 days of the carry, it's only usable up to 31.03.:
+        Assertions.assertEquals(
+            VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT,
+            validate(employee, manager, start, endDateFor(start, 13)),
+        )
+
+        // 3 days carried into 2022 and 2 days of 2022 left:
+        val employee2 = createEmployee("carry-overlap2", LocalDate.of(2010, Month.MAY, 1))
+        prepareCarry(employee2, manager, usedIn2021 = 27, usedIn2022 = 28)
+        val start2 = LocalDate.of(2022, Month.MARCH, 29) // Tuesday, 3 days up to 31.03.
+        // The whole carry is usable for the 3 days up to 31.03.:
+        Assertions.assertNull(validate(employee2, manager, start2, endDateFor(start2, 5)))
+        Assertions.assertEquals(
+            VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT,
+            validate(employee2, manager, start2, endDateFor(start2, 6)),
+        )
+    }
+
+    @Test
+    fun `changes of the previous year recalculate the carry`() {
+        val employee = createEmployee("carry-recalc", LocalDate.of(2010, Month.MAY, 1))
+        val manager = createEmployee("carry-recalc-manager", LocalDate.of(2010, Month.MAY, 1))
+        logon(TEST_HR_USER)
+        val year = LocalDate.now().year
+        val carry = vacationService.getVacationStats(employee, year).remainingLeaveFromPreviousYear!!
+        Assertions.assertNotNull(remainingLeaveDao.get(employee.id, year), "carry is stored")
+
+        val start = LocalDate.of(year - 1, Month.JUNE, 1)
+        addVacations(employee, manager, start, endDateFor(start, 5))
+        Assertions.assertNull(remainingLeaveDao.get(employee.id, year), "carry is invalidated by the vacation")
+        assertBigDecimal(
+            carry.toDouble() - 5,
+            vacationService.getVacationStats(employee, year).remainingLeaveFromPreviousYear!!,
+        )
+
+        val entry = LeaveAccountEntryDO()
+        entry.employee = employee
+        entry.date = LocalDate.of(year - 1, Month.JULY, 1)
+        entry.amount = BigDecimal(2)
+        leaveAccountEntryDao.insert(entry)
+        Assertions.assertNull(remainingLeaveDao.get(employee.id, year), "carry is invalidated by the correction")
+        assertBigDecimal(
+            carry.toDouble() - 3,
+            vacationService.getVacationStats(employee, year).remainingLeaveFromPreviousYear!!,
+        )
+    }
+
+    /** Stores the carry into 2022, as if calculated in January 2022. */
+    private fun prepareCarry(employee: EmployeeDO, manager: EmployeeDO, usedIn2021: Int, usedIn2022: Int) {
+        val start2021 = LocalDate.of(2021, Month.MAY, 3)
+        addVacations(employee, manager, start2021, endDateFor(start2021, usedIn2021))
+        vacationService.getVacationStats(employee, 2022, true, LocalDate.of(2022, Month.JANUARY, 15))
+        val start2022 = LocalDate.of(2022, Month.MAY, 2)
+        addVacations(employee, manager, start2022, endDateFor(start2022, usedIn2022))
+    }
+
+    private fun validate(
+        employee: EmployeeDO,
+        manager: EmployeeDO,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): VacationValidator.Error? {
+        val vacation = VacationDO()
+        vacation.employee = employee
+        vacation.manager = manager
+        vacation.startDate = startDate
+        vacation.endDate = endDate
+        vacation.status = VacationStatus.IN_PROGRESS
+        vacation.special = false
+        return vacationService.validate(vacation)
+    }
+
+    /** The end date of a vacation of the given working days. */
+    private fun endDateFor(startDate: LocalDate, workingDays: Int): LocalDate {
+        var endDate = startDate
+        while (VacationService.getVacationDays(startDate, endDate) < BigDecimal(workingDays)) {
+            endDate = endDate.plusDays(1)
+        }
+        return endDate
+    }
+
+    @Test
+    fun `only the given statuses are listed`() {
+        val employee = createEmployee("status-filter", LocalDate.of(2018, Month.MAY, 1))
+        val manager = createEmployee("status-filter-manager", LocalDate.of(2018, Month.MAY, 1))
+        logon(TEST_HR_USER)
+        addVacations(employee, manager, 2021, Month.MARCH, 1, Month.MARCH, 5, status = VacationStatus.APPROVED)
+        addVacations(employee, manager, 2021, Month.MARCH, 8, Month.MARCH, 12, status = VacationStatus.REJECTED)
+        val begin = LocalDate.of(2021, Month.MARCH, 1)
+        val end = LocalDate.of(2021, Month.MARCH, 31)
+        Assertions.assertEquals(
+            listOf(VacationStatus.APPROVED),
+            vacationService.getVacationsListForPeriod(employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED))
+                .map { it.status },
+        )
+        Assertions.assertEquals(
+            setOf(VacationStatus.APPROVED, VacationStatus.REJECTED),
+            vacationService.getVacationsListForPeriod(
+                employee.id, begin, end, status = *arrayOf(VacationStatus.APPROVED, VacationStatus.REJECTED)
+            ).map { it.status }.toSet(),
         )
     }
 

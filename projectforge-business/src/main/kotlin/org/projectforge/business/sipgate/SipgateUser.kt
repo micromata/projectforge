@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.framework.json.JsonUtils
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class SipgateUser(
   var id: String? = null,

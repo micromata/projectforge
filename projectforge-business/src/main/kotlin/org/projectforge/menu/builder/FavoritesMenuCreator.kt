@@ -25,7 +25,7 @@
 
 package org.projectforge.menu.builder
 
-import org.projectforge.business.user.service.UserXmlPreferencesService
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component
 @Component
 open class FavoritesMenuCreator {
     @Autowired
-    private lateinit var userXmlPreferencesService: UserXmlPreferencesService
+    private lateinit var userPrefService: UserPrefService
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
@@ -56,7 +56,7 @@ open class FavoritesMenuCreator {
      */
     fun getFavoriteMenu(): Menu {
         val favMenuAsUserPrefString =
-            userXmlPreferencesService.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
+            userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         val menu = getFavoriteMenu(favMenuAsUserPrefString)
         menu.menuItems.removeIf { !MenuConfiguration.instance.isVisible(it.menuItemDef) }
         menu.postProcess() // Build badges of top menus.

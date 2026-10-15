@@ -23,7 +23,7 @@
 
 package org.projectforge.business.image
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.ImageType
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
@@ -57,7 +57,7 @@ class ImageService {
     ): ByteArray? {
         val image = createImageFromBytes(originalImage)
         if (image == null) {
-            log.error("Could not decode image for resizing")
+            log.error { "Could not decode image for resizing" }
             return originalImage
         }
 
@@ -95,7 +95,7 @@ class ImageService {
     fun shrinkToMaxFileSize(originalImage: ByteArray, maxSizeBytes: Long): ImageResult {
         val image = createImageFromBytes(originalImage)
         if (image == null) {
-            log.error("Could not decode image for minimization")
+            log.error { "Could not decode image for minimization" }
             // Try to detect format from original bytes
             val detectedType = detectImageType(originalImage)
             return ImageResult(originalImage, detectedType)
@@ -110,12 +110,12 @@ class ImageService {
         if (imageBytes == null) {
             // JPEG conversion failed, fall back to PNG
             // This can happen for images with transparency (PNG with alpha, GIF)
-            log.info("JPEG conversion failed (possibly due to transparency or unsupported format), using PNG format instead")
+            log.info { "JPEG conversion failed (possibly due to transparency or unsupported format), using PNG format instead" }
             format = detectImageType(originalImage)
             imageBytes = createBytesFromImage(image, format)
 
             if (imageBytes == null) {
-                log.error("Could not convert image to any format")
+                log.error { "Could not convert image to any format" }
                 val detectedType = detectImageType(originalImage)
                 return ImageResult(originalImage, detectedType)
             }
@@ -151,10 +151,9 @@ class ImageService {
 
                 // If result is in optimal range, return it immediately
                 if (qualityResult.size >= targetMinSize && qualityResult.size <= maxSizeBytes) {
-                    log.info(
-                        "Image shrinked by reducing JPEG quality to optimal range: {} bytes -> {} bytes (quality={})",
-                        originalImage.size, qualityResult.size, usedQuality
-                    )
+                    log.info {
+                        "Image shrinked by reducing JPEG quality to optimal range: ${originalImage.size} bytes -> ${qualityResult.size} bytes (quality=$usedQuality)"
+                    }
                     return ImageResult(qualityResult, ImageType.JPEG)
                 } else if (qualityResult.size <= maxSizeBytes) {
                     bestResult = qualityResult // Keep as fallback, but try to get closer to target
@@ -176,10 +175,9 @@ class ImageService {
 
             // Check minimum dimension constraint BEFORE creating the image
             if (newWidth < MIN_DIMENSION || newHeight < MIN_DIMENSION) {
-                log.warn(
-                    "Reached minimum dimension limit ({}x{}) during binary search at iteration {}, using best result from previous iterations",
-                    newWidth, newHeight, iteration + 1
-                )
+                log.warn {
+                    "Reached minimum dimension limit (${newWidth}x$newHeight) during binary search at iteration ${iteration + 1}, using best result from previous iterations"
+                }
                 break
             }
 
@@ -188,7 +186,7 @@ class ImageService {
             result = createBytesFromImage(resized, format, bestQuality)
 
             if (result == null) {
-                log.warn("Failed to create image bytes at scale {} during iteration {}", currentScale, iteration + 1)
+                log.warn { "Failed to create image bytes at scale $currentScale during iteration ${iteration + 1}" }
                 break
             }
 
@@ -196,11 +194,10 @@ class ImageService {
 
             // Check if we're in the optimal range (95-100% of target)
             if (resultSize >= targetMinSize && resultSize <= maxSizeBytes) {
-                log.info(
-                    "Image minimized via binary search (iteration {}): {} bytes -> {} bytes ({}x{} -> {}x{}, scale={}%)",
-                    iteration + 1, originalImage.size, resultSize,
-                    originalWidth, originalHeight, newWidth, newHeight, (currentScale * 100).toInt()
-                )
+                log.info {
+                    "Image minimized via binary search (iteration ${iteration + 1}): ${originalImage.size} bytes -> $resultSize bytes " +
+                            "(${originalWidth}x$originalHeight -> ${newWidth}x$newHeight, scale=${(currentScale * 100).toInt()}%)"
+                }
                 return ImageResult(result, format)
             }
 
@@ -222,12 +219,12 @@ class ImageService {
 
         // Return best result found
         if (bestResult.size <= maxSizeBytes) {
-            log.info("Image minimized to best fit: {} bytes -> {} bytes", originalImage.size, bestResult.size)
+            log.info { "Image minimized to best fit: ${originalImage.size} bytes -> ${bestResult.size} bytes" }
             return ImageResult(bestResult, format)
         }
 
         // If still too large, return best effort
-        log.warn("Could not minimize image to {} bytes, returning best effort: {} bytes", maxSizeBytes, bestResult.size)
+        log.warn { "Could not minimize image to $maxSizeBytes bytes, returning best effort: ${bestResult.size} bytes" }
         return ImageResult(bestResult, format)
     }
 
@@ -309,7 +306,7 @@ class ImageService {
                 baos.close()
                 return imageInByte
             } catch (e: IOException) {
-                log.error("Error while writing image : " + e.message)
+                log.error { "Error while writing image : " + e.message }
                 return null
             }
         }
@@ -321,7 +318,7 @@ class ImageService {
         try {
             return ImageIO.read(bais)
         } catch (e: IOException) {
-            log.error("Error while read ByteArrayInputStream : " + e.message)
+            log.error { "Error while read ByteArrayInputStream : " + e.message }
             return null
         }
     }

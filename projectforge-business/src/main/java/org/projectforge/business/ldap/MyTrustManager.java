@@ -41,7 +41,7 @@ import java.security.cert.X509Certificate;
 /**
  * http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
  * http://stackoverflow.com/questions/3964703/can-i-add-a-new-certificate-to-the-keystore-without-restarting-the-jvm
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyTrustManager implements X509TrustManager
 {

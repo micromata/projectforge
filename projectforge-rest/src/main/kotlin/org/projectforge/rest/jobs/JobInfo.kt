@@ -42,10 +42,17 @@ class JobInfo(
   var progressPercentage: Int? = 0,
   var progressBarColor: UIColor? = null,
   var progressTitle: String? = null,
+  /** The counters of [progressTitle] broken down, see [AbstractJob.progressDetails]. */
+  var progressDetails: String? = null,
   var info: String? = null,
   var infoColor: UIColor? = null,
   var animated: Boolean? = false,
   var cancelId: Int? = null,
+  /**
+   * Why the job failed or was refused, translated. The counters of [progressTitle] say nothing in that
+   * case (a refused job never ran), so this is the only text explaining the outcome.
+   */
+  var errorMessage: String? = null,
 ) {
   companion object {
     fun create(job: AbstractJob?): JobInfo {
@@ -85,13 +92,31 @@ class JobInfo(
           .append(NumberFormatter.format(job.id))
           .append(", ")
           .append(translate(it.status.i18nKey))
-          .append(": ")
-          .append(NumberFormatter.format(it.processedNumber))
-          .append("/")
-          .append(NumberFormatter.format(it.totalNumber))
+        if (it.totalNumber >= 0) {
+          // Both counters start at -1 and stay there until the job knows its size (for a re-index
+          // that is Hibernate Search counting the rows), so "-1/-1" would be the first thing shown.
+          progressTitle.append(": ")
+            .append(NumberFormatter.format(it.processedNumber.coerceAtLeast(0)))
+            .append("/")
+            .append(NumberFormatter.format(it.totalNumber))
+        }
         info.progressTitle = progressTitle.toString()
+        info.progressDetails = it.progressDetails
+        info.errorMessage = translateErrorMessage(it.errorMessage)
       }
       return info
+    }
+
+    /**
+     * [AbstractJob.errorMessage] carries either an i18n key (as [org.projectforge.framework.jobs.JobHandler]
+     * sets it, e. g. jobs.error.refusedByAnotherRunningJob) or the message of an exception, and the two aren't
+     * distinguishable up front. So it is translated and the raw text is kept if no such key exists —
+     * an unknown key comes back prefixed with "???".
+     */
+    private fun translateErrorMessage(errorMessage: String?): String? {
+      errorMessage ?: return null
+      val translated = translate(errorMessage)
+      return if (translated.startsWith("???")) errorMessage else translated
     }
   }
 }

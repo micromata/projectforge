@@ -1,0 +1,346 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest
+
+import de.micromata.merlin.excel.ExcelWorkbook
+import jakarta.validation.Valid
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.SystemStatus
+import org.projectforge.business.ldap.GroupDOConverter
+import org.projectforge.business.ldap.LdapGroupValues
+import org.projectforge.business.ldap.LdapPosixGroupsUtils
+import org.projectforge.business.ldap.LdapUserDao
+import org.projectforge.business.login.Login
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.service.UserService
+import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.getObjectList
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.*
+
+private val log = KotlinLogging.logger {}
+
+/**
+ * The groups, served to the hand built list and edit page of projectforge-next (layout free, see
+ * [AbstractDTOEntityRest]). The LDAP gid number of a new group is offered by [createGid].
+ */
+@RestController
+@RequestMapping("${Rest.URL}/group")
+class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
+    GroupDao::class.java, "group.title",
+    cloneSupport = CloneSupport.CLONE,
+) {
+
+    @Autowired
+    private lateinit var groupDOConverter: GroupDOConverter
+
+    @Autowired
+    private lateinit var ldapPosixGroupsUtils: LdapPosixGroupsUtils
+
+    @Autowired
+    private lateinit var ldapUserDao: LdapUserDao
+
+    @Autowired
+    private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    override fun transformFromDB(obj: GroupDO, editMode: Boolean): Group {
+        val group = Group()
+        // Resolve the lazy associations from the cache before copyFrom reads them. Otherwise every row of the
+        // list fires its own T_GROUP_USER join (the assignedUsers collection) plus a T_PF_USER select (the
+        // groupOwner proxy) - the N+1 the group list suffered from. UserGroupCache holds all groups fully
+        // hydrated (assignedUsers are initialized on refresh) and all users, so both lookups are O(1) and
+        // hit no database. The cached group's members replace obj's own uninitialized collection, so it is
+        // never touched.
+        obj.groupOwner = userGroupCache.getUserIfNotInitialized(obj.groupOwner)
+        userGroupCache.getGroup(obj.id)?.let { obj.assignedUsers = it.assignedUsers }
+        group.copyFrom(obj)
+        group.assignedUsers?.forEach {
+            val user = userService.getUser(it.id)
+            if (user != null) {
+                it.username = user.username
+                it.firstname = user.firstname
+                it.lastname = user.lastname
+            }
+        }
+        group.ldapPosixConfigured = useLdapStuff
+        group.externalUsermanagement = externalUsermanagement
+        if (useLdapStuff) {
+            groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
+                group.gidNumber = ldapGroupValues.gidNumber
+            }
+        }
+        if (editMode) {
+            // The read-only mail addresses of the members, which no GroupDO property holds: the form
+            // (projectforge-next) reads the entity through GET {id}. Edit mode only - no list column shows them, and it costs a cache lookup
+            // per assigned user of every row.
+            group.populateEmails()
+        }
+        return group
+    }
+
+    /**
+     * Tells the list page whether the LDAP columns are worth showing, the same condition the edit page gets
+     * as [Group.ldapPosixConfigured]. The list (projectforge-next) shows or hides its `ldapValues` column by it.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf(
+            "ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff),
+            "externalUsermanagement" to externalUsermanagement,
+        )
+    }
+
+    override fun transformForDB(dto: Group): GroupDO {
+        val groupDO = GroupDO()
+        dto.copyTo(groupDO)
+        //groupDao.setNestedGroups(getData(), form.nestedGroupsListHelper.getAssignedItems());
+        // As Wicket's GroupEditPage: only a given gid is written (merged into the loaded values); otherwise the
+        // ldapValues stay as loaded (copyTo), so a save without the LDAP field (posix not configured) or
+        // without a gid never wipes what the LDAP sync wrote. Clearing a set gid is refused by [validate].
+        dto.gidNumber?.let { gidNumber ->
+            val values = groupDOConverter.readLdapGroupValues(dto.ldapValues) ?: LdapGroupValues()
+            values.gidNumber = gidNumber
+            groupDO.ldapValues = groupDOConverter.getLdapValuesAsXml(values)
+        }
+        return groupDO
+    }
+
+    /**
+     * Every user may read the groups (`GroupDao.hasUserSelectAccess`), only an administrator may change
+     * one (`GroupDao.hasAccess`) - so this is one of the few entities where the write access is a
+     * question about the entity and not about the single entry, and the list page may leave its rows
+     * unclickable for everyone else.
+     */
+    override fun listUpdateAccess(): Boolean {
+        return accessChecker.isLoggedInUserMemberOfAdminGroup
+    }
+
+    /**
+     * The local/exported type filter, only where an external user management system is in use: without one
+     * every group is local, as Wicket's GroupListForm offered the filter only then.
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        if (!externalUsermanagement) {
+            return
+        }
+        elements.add(
+            UIFilterListElement("type", label = translate("status"), defaultFilter = true, multi = false)
+                .buildValues(GroupTypeFilter.TYPE::class.java)
+        )
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<GroupDO>> {
+        val filters = mutableListOf<CustomResultFilter<GroupDO>>()
+        val localGroupFilterEntry = source.entries.find { it.field == "type" }
+        if (localGroupFilterEntry != null) {
+            localGroupFilterEntry.synthetic = true
+            val values = localGroupFilterEntry.value.values
+            if (!values.isNullOrEmpty() && values.size == 1) {
+                val value = values[0]
+                try {
+                    GroupTypeFilter.TYPE.valueOf(value).let {
+                        filters.add(GroupTypeFilter(it))
+                    }
+                } catch (ex: IllegalArgumentException) {
+                    log.warn { "Oups, can't convert '$value': ${ex.message}" }
+                }
+            }
+        }
+        return filters
+    }
+
+    /**
+     * A copy can't keep the gid of its original, which is in use by definition; the user may let
+     * [createGid] propose a free one.
+     */
+    override fun prepareClone(dto: Group): Group {
+        super.prepareClone(dto)
+        dto.gidNumber = null
+        dto.ldapValues = null
+        return dto
+    }
+
+    @PostMapping("createGid")
+    fun createGid(@Valid @RequestBody postData: PostData<Group>):
+            ResponseAction {
+        val data = postData.data
+        data.gidNumber = ldapPosixGroupsUtils.nextFreeGidNumber
+        return ResponseAction(targetType = TargetType.UPDATE)
+            .addVariable("data", data)
+    }
+
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Group) {
+        super.validate(validationErrors, dto)
+        val group = GroupDO()
+        dto.copyTo(group)
+        if (baseDao.doesGroupnameAlreadyExist(group)) {
+            validationErrors.add(
+                ValidationError(
+                    translate("group.error.groupnameAlreadyExists"),
+                    fieldId = GroupDO::name.name,
+                )
+            )
+        }
+        val gidNumber = dto.gidNumber
+        if (gidNumber == null) {
+            // Once a group is a posix group, its gid can't be removed again (Wicket's GroupEditForm validator).
+            if (dto.id != null && useLdapStuff &&
+                groupDOConverter.readLdapGroupValues(dto.ldapValues)?.isPosixValuesEmpty == false
+            ) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg("validation.error.fieldRequired", translate("ldap.gidNumber")),
+                        fieldId = "gidNumber",
+                    )
+                )
+            }
+        } else if (gidNumber !in GID_RANGE) {
+            // The range of Wicket's MinMaxNumberField.
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("validation.error.range.integerOutOfRange", GID_RANGE.first, GID_RANGE.last),
+                    fieldId = "gidNumber",
+                )
+            )
+        } else {
+            if (!ldapPosixGroupsUtils.isGivenNumberFree(dto.id ?: -1, gidNumber)) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg("ldap.gidNumber.alreadyInUse", ldapPosixGroupsUtils.nextFreeGidNumber),
+                        fieldId = "gidNumber",
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Exports groups as Excel file.
+     */
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        log.info { "Exporting groups as Excel file." }
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+
+        @Suppress("UNCHECKED_CAST")
+        val list = getObjectList(this, baseDao, filter)
+        ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("group.title.heading"))
+            val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
+            val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            val wrapTextStyle = workbook.createOrGetCellStyle("wrap")
+            wrapTextStyle.wrapText = true
+
+            ExcelUtils.registerColumn(sheet, GroupDO::name, 20)
+            ExcelUtils.registerColumn(sheet, GroupDO::localGroup)
+            ExcelUtils.registerColumn(sheet, GroupDO::organization, 20)
+            ExcelUtils.registerColumn(sheet, GroupDO::description, 50)
+            sheet.registerColumn(translate("group.assignedUsers"), "assignedUsers").withSize(100)
+            sheet.registerColumn(translate("group.owner"), "groupOwner").withSize(30)
+            sheet.registerColumn(translate("address.emails"), "emails").withSize(100)
+            if (useLdapStuff) {
+                ExcelUtils.registerColumn(sheet, GroupDO::ldapValues, 50)
+                sheet.registerColumn(translate("ldap.gidNumber"), "gidNumber").withSize(15)
+            }
+
+            ExcelUtils.addHeadRow(sheet, boldStyle)
+            list.forEach { groupDO ->
+                val group = Group()
+                group.copyFrom(groupDO)
+                val row = sheet.createRow()
+                row.autoFillFromObject(group, "assignedUsers", "groupOwner", "emails", "gidNumber")
+
+                row.getCell("assignedUsers")?.let {
+                    it.setCellValue(group.assignedUsers?.joinToString { user -> user.displayName ?: "???" })
+                    it.setCellStyle(wrapTextStyle)
+                }
+
+                row.getCell("groupOwner")?.let {
+                    it.setCellValue(group.groupOwner?.displayName ?: "")
+                    it.setCellStyle(wrapTextStyle)
+                }
+
+                row.getCell("emails")?.let {
+                    group.populateEmails()
+                    it.setCellValue(group.emails ?: "")
+                    it.setCellStyle(wrapTextStyle)
+                }
+
+                if (useLdapStuff) {
+                    row.getCell("gidNumber")?.setCellValue(group.gidNumber?.toDouble() ?: 0.0)
+                }
+
+                ExcelUtils.getCell(row, GroupDO::description)?.setCellStyle(wrapTextStyle)
+                ExcelUtils.getCell(row, GroupDO::ldapValues)?.setCellStyle(wrapTextStyle)
+            }
+            sheet.setAutoFilter()
+            val filename = ("GroupList_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
+            val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource)
+        }
+    }
+
+    /** Whether an external user management system (LDAP) is in use, the condition of the local-group flag. */
+    private val externalUsermanagement: Boolean
+        get() = Login.getInstance()?.hasExternalUsermanagementSystem() == true
+
+    private val useLdapStuff: Boolean
+        get() = SystemStatus.isDevelopmentMode() || (accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance()
+            .hasExternalUsermanagementSystem() && ldapUserDao.isPosixAccountsConfigured)
+
+    override val autoCompleteSearchFields = arrayOf("name", "organization")
+
+    companion object {
+        /** The posix gid range, as Wicket's GroupEditForm allowed it. */
+        internal val GID_RANGE = 1..65535
+    }
+}

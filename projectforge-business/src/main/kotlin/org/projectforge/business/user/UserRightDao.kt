@@ -27,6 +27,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.UserRightService
+import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,14 +79,23 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     /**
      * Evaluates the rights of the user and updates the database. The rights will be evaluated if they are available for the user.
      * If a right is not available for the user, the value of the right will be set to null.
+     *
+     * @param groups The groups of the user to evaluate the rights with. Default is the groups of the user group
+     * cache, which doesn't know yet of groups assigned or unassigned within the same request without updating the
+     * cache (see [GroupDao.assignGroupByIds] with updateUserGroupCache = false): pass them then.
      */
     @JvmOverloads
-    fun updateUserRights(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
+    fun updateUserRights(
+        user: PFUserDO,
+        list: List<UserRightVO>,
+        updateUserGroupCache: Boolean = true,
+        groups: Collection<GroupDO>? = null,
+    ) {
         persistenceService.runInTransaction { _ ->
             val dbList = select(user)
             // evict all entities from the session cache to avoid that the update is already done in the copy method
             val userGroupCache = userGroupCache
-            val userGroups = userGroupCache.getUserGroupDOs(user)
+            val userGroups = groups ?: userGroupCache.getUserGroupDOs(user)
             val historyUserComment = user.historyUserComment // Save the history user comment also for the rights.
             list.forEach { rightVO ->
                 var rightDO: UserRightDO? = null
@@ -98,6 +108,9 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                 if (rightDO == null) {
                     if ((rightVO.isBooleanValue && rightVO.value == UserRightValue.FALSE)
                         || rightVO.value == null
+                        // Not available: the update below would set it to null, so it is not stored at all.
+                        || !rightVO.right.isAvailable(user, userGroups)
+                        || !rightVO.right.isAvailable(user, userGroups, rightVO.value)
                     ) {
                         // Right has no value and is not yet in data base.
                         // Do nothing.
@@ -110,7 +123,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         }
                     }
                 } else {
-                    rightDO!!.let {
+                    rightDO.let {
                         copy(it, rightVO)
                         val rightId = userRightService.getRightId(it.rightIdString)
                         val right = userRightService.getRight(rightId)

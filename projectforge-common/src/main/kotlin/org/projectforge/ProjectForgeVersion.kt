@@ -28,7 +28,7 @@ import java.util.*
 /**
  * Version information of ProjectForge containing build date, version number as well as scm information.
  *
- * Create a new version: Update version string in parent build.gradle.kts.
+ * Create a new version: bin/pfDev.sh release X.Y.Z (the version is set in gradle.properties).
  */
 object ProjectForgeVersion {
     const val APP_ID = "ProjectForge"

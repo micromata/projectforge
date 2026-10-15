@@ -27,6 +27,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.TimeUnit
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -70,6 +73,31 @@ class My2FAServiceTest : AbstractTestBase() {
       "OTP validation should work."
     )
     My2FARequestHandlerTest.checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
+  }
+
+  /**
+   * The rule behind projectforge.2fa.loginExpiryDays: with stay-logged-in, a 2FA is required again only after the
+   * configured number of days. Pinned down here, because [org.projectforge.login.LoginService.checkStayLoggedIn]
+   * relies on it - a null lastSuccessful2FA (the last2FA cookie is gone) must keep demanding a second factor, it must
+   * not silently pass.
+   */
+  @Test
+  fun lastSuccessful2FAExpiryTest() {
+    val userContext = UserContext(PFUserDO(), nofresh = true)
+    Assertions.assertFalse(
+      my2FAService.checklastSuccessful2FA(30, My2FAService.Unit.DAYS, userContext),
+      "No 2FA done at all (e. g. the last2FA cookie is missing after a stay-logged-in restore): 2FA required.",
+    )
+    userContext.lastSuccessful2FA = System.currentTimeMillis() - 29 * TimeUnit.DAY.millis
+    Assertions.assertTrue(
+      my2FAService.checklastSuccessful2FA(30, My2FAService.Unit.DAYS, userContext),
+      "Last 2FA is 29 days old, so it's still valid for 30 days.",
+    )
+    userContext.lastSuccessful2FA = System.currentTimeMillis() - 31 * TimeUnit.DAY.millis
+    Assertions.assertFalse(
+      my2FAService.checklastSuccessful2FA(30, My2FAService.Unit.DAYS, userContext),
+      "Last 2FA is 31 days old, so a new 2FA is required.",
+    )
   }
 
   @Test

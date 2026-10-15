@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
@@ -57,7 +57,7 @@ class AutoCompletion<T>(
   /**
    * Pre-defined types of autocompletion objects as information for the clients.
    */
-  enum class Type { USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT }
+  enum class Type { USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT, TASK, KOST2 }
   class Entry<T>(
     val value: T,
     /**
@@ -78,7 +78,7 @@ class AutoCompletion<T>(
       }
     } else {
       if (minChars != null || url != null) {
-        log.warn("Attribute values can't be combined with minChars and url.")
+        log.warn { "Attribute values can't be combined with minChars and url." }
         minChars = null
         url = null
       }

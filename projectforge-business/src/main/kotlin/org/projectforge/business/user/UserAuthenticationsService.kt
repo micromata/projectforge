@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -43,7 +43,7 @@ private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "Authentication.accessLog"
  * as for rest clients.
  * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
  * tokens without the knowledge of this key.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserAuthenticationsService {
@@ -166,9 +166,14 @@ open class UserAuthenticationsService {
   }
 
   /**
+   * Registers the usage of a token in the user's access log.
+   *
+   * Public, because a stay-logged-in token isn't resolved here anymore (it has its own table, see
+   * [StayLoggedInTokenDO]), but its usage still belongs into the same log the user sees.
+   *
    * @param userId If null, ThreadLocalUserContext.getUserId() is used.
    */
-  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Long?) {
+  open fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Long?) {
     userId ?: return
     val accessEntries = getUserAccessLogEntries(tokenType, userId) ?: return
     accessEntries.update(request)
@@ -186,7 +191,7 @@ open class UserAuthenticationsService {
   open fun decrypt(userId: Long, type: UserTokenType, encryptedString: String): String? {
     val storedAuthenticationToken: String? = internalGetToken(userId, type)
     if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user $userId. So can't decrypt encrypted string.")
+      log.warn { "Can't get authentication token for user $userId. So can't decrypt encrypted string." }
       return ""
     }
     val authenticationToken: String = StringUtils.rightPad(storedAuthenticationToken, 32, "x")
@@ -205,7 +210,7 @@ open class UserAuthenticationsService {
   open fun encrypt(userId: Long, type: UserTokenType, data: String): String? {
     val storedAuthenticationToken: String? = getToken(userId, type)
     if (storedAuthenticationToken == null) {
-      log.warn("Can't get authentication token for user $userId. So can't encrypt string.")
+      log.warn { "Can't get authentication token for user $userId. So can't encrypt string." }
       return ""
     }
     val authenticationToken: String = StringUtils.rightPad(storedAuthenticationToken, 32, "x")

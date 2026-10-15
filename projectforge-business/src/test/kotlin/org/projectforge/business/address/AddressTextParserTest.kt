@@ -661,7 +661,7 @@ class AddressTextParserTest {
             34131 Kassel
 
             Tel: +49 561 12345678
-            k.reinhard@micromata.de
+            k.reinhard@acme.com
         """.trimIndent()
 
         val result = AddressTextParser.parseAddressText(text)
@@ -677,7 +677,7 @@ class AddressTextParserTest {
         assertEquals("34131", result.zipCode)
         assertEquals("Kassel", result.city)
         assertEquals("+49 561 12345678", result.businessPhone)
-        assertEquals("k.reinhard@micromata.de", result.email)
+        assertEquals("k.reinhard@acme.com", result.email)
     }
 
     @Test

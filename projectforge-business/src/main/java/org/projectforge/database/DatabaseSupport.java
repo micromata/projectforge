@@ -28,7 +28,7 @@ import org.projectforge.common.DatabaseDialect;
 /**
  * All database dialect specific implementations should be placed here.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DatabaseSupport
 {
@@ -88,7 +88,7 @@ public class DatabaseSupport
   }
 
   /**
-   * Will be called on shutdown by WicketApplication.
+   * Will be called on shutdown (ProjectForgeApp -> DatabaseService.shutdownDatabase).
    */
   public String getShutdownDatabaseStatement()
   {

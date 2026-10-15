@@ -4,10 +4,17 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
-    id("org.springframework.boot") version "3.1.4"
-    id("io.spring.dependency-management") version "1.1.3"
+    id("org.springframework.boot") version libs.versions.org.springframework.boot.get()
+    id("io.spring.dependency-management") version libs.versions.io.spring.dependency.management.get()
     java
     id("org.jetbrains.kotlin.jvm")
+}
+
+// Same targets as buildlogic.pf-module-conventions (not applied here). Without them compileJava would
+// follow the running JDK (e.g. 21) and clash with the Kotlin target 17.
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.withType<KotlinCompile> {
@@ -16,28 +23,43 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+// Spring Boot's BOM (io.spring.dependency-management, applied above and only in this module) pins
+// JUnit to its own version, which would mix the platform engine of the BOM with the launcher of our
+// version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
+extra["junit-jupiter.version"] = libs.versions.org.junit.get()
+// Same for Groovy: Boot 4 manages Groovy 5, which would mix the Groovy 5 modules (json, xml, templates, ...) with
+// the Groovy 4 core of our catalog. Groovy 5 is a separate step (major-upgrades.md, Phase 3).
+extra["groovy.version"] = libs.versions.org.apache.groovy.get()
+
+configurations.all {
+    // See buildlogic.pf-module-conventions: Jackson 2 only until the Jackson 3 migration.
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-jackson")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform() // JUnit Jupiter. Same as buildlogic.pf-module-conventions does for the other modules.
+}
+
 springBoot {
     mainClass.set("org.projectforge.start.ProjectForgeApplication")
 }
 
-val projectVersion = libs.versions.org.projectforge.get() // Current version.
 val kotlinVersion = libs.versions.org.jetbrains.kotlin.get() // Current version.
 val kotlinxCoroutinesVersion = libs.versions.org.jetbrains.kotlinx.coroutines.core.get() // Current version.
 
-val jacksonVersion = libs.versions.com.fasterxml.jackson.get()
+val jacksonVersion = libs.versions.com.fasterxml.jackson.asProvider().get()
 val springVersion = libs.versions.org.springframework.spring.get()
 val springBootVersion = libs.versions.org.springframework.boot.get()
 val springSecurityVersion = libs.versions.org.springframework.security.get()
-val apacheGroovyVersion = libs.versions.org.apache.groovy.get()
+val springDataVersion = libs.versions.org.springframework.data.get()
 val apacheTomcatVersion = libs.versions.org.apache.tomcat.embed.get()
 val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
 dependencies {
-    implementation(project(":projectforge-wicket"))
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
-    implementation(project(":projectforge-keycloak"))
+    implementation(project(":projectforge-idp"))
     implementation(project(":projectforge-webapp"))
     implementation(project(":org.projectforge.plugins.datatransfer"))
     implementation(project(":org.projectforge.plugins.ihk"))
@@ -51,6 +73,14 @@ dependencies {
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
+    testImplementation(libs.org.mockito.junit.jupiter)
+    testImplementation(libs.org.mockito.kotlin)
+    // This module doesn't apply buildlogic.pf-module-conventions (that plugin's java-library,
+    // group/version and resolutionStrategy would clash with the Spring Boot setup below), so the
+    // JUnit engine and launcher have to be declared here. Without them no test of this module
+    // runs at all, see the useJUnitPlatform() call below.
+    testImplementation(libs.org.junit.jupiter.engine)
+    testImplementation(libs.org.junit.platform.launcher)
 
     // Kotlin jars for scripting, must be extracted in fat jar.
     kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -69,36 +99,39 @@ dependencies {
     }
 
     // Force the following dependencies to avoid downgrades:
-    implementation("org.apache.groovy:groovy:$apacheGroovyVersion")
-    implementation("org.apache.groovy:groovy-ant:$apacheGroovyVersion")
     implementation("org.apache.tomcat:tomcat-annotations-api:$apacheTomcatVersion")
     implementation("org.apache.httpcomponents.core5:httpcore5:${libs.versions.org.apache.httpcomponents.core5.get()}")
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:${libs.versions.org.apache.httpcomponents.core5.get()}")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion")
 
-    implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion")
-    implementation("org.springframework.boot:spring-boot-starter-json:$springBootVersion")
+    // Boot 4 split the auto-configurations into modules. Flyway (spring.flyway.*), RestTemplateBuilder, web security
+    // (HttpSecurity of SpringSecurityConfig/GatewaySecurityConfig) and OAuth2 login (spring.security.oauth2.client.*) need theirs:
+    implementation("org.springframework.boot:spring-boot-flyway:$springBootVersion")
+    implementation(libs.org.springframework.boot.restclient)
+    implementation("org.springframework.boot:spring-boot-security:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-security-oauth2-client:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty:$springBootVersion")
     implementation("org.springframework.boot:spring-boot-starter-tomcat:$springBootVersion")
-    implementation("org.springframework.data:spring-data-jpa:$springBootVersion") // springBoot!!!
-    implementation("org.springframework.data:spring-data-commons:$springBootVersion") // springBoot!!!
+    implementation("org.springframework.data:spring-data-jpa:$springDataVersion")
+    implementation("org.springframework.data:spring-data-commons:$springDataVersion")
 
-    implementation("org.yaml:snakeyaml:2.3") // springboot
-    implementation("com.zaxxer:HikariCP:5.0.1") // springboot
+    implementation(libs.org.yaml.snakeyaml)
+    implementation(libs.com.zaxxer.hikaricp)
     implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-crypto:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-client:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-web:$springSecurityVersion")
     implementation("org.springframework:spring-aop:$springVersion")
-    implementation("org.springframework:spring-aspects:$springVersion")
     implementation("org.springframework:spring-beans:$springVersion")
     implementation("org.springframework:spring-core:$springVersion")
     implementation("org.springframework:spring-expression:$springVersion")
-    implementation("org.springframework:spring-jcl:$springVersion")
     implementation("org.springframework:spring-jdbc:$springVersion")
     implementation("org.springframework:spring-web:$springVersion")
     implementation("org.springframework:spring-webflux:$springVersion")
@@ -117,16 +150,14 @@ dependencies {
     implementation(libs.com.fasterxml.jackson.core)
     implementation(libs.com.fasterxml.jackson.core.databind)
     implementation(libs.com.fasterxml.jackson.dataformat.cbor)
-    implementation(libs.com.fasterxml.jackson.datatype.hibernate6)
+    implementation(libs.com.fasterxml.jackson.datatype.hibernate7)
     implementation(libs.com.fasterxml.jackson.datatype.jsr310)
     implementation(libs.com.fasterxml.jackson.module.kotlin)
     implementation(libs.com.google.zxing.core)
     implementation(libs.com.google.zxing.javase)
     implementation(libs.com.googlecode.ez.vcard)
     implementation(libs.com.googlecode.gson)
-    implementation(libs.com.googlecode.json.simple)
     implementation(libs.com.googlecode.lanterna)
-    implementation(libs.com.itextpdf)
     implementation(libs.com.thoughtworks.xstream)
     implementation(libs.com.webauthn4j.core)
     /*implementation(libs.com.webauthn4j.spring.security.core) {
@@ -134,32 +165,32 @@ dependencies {
         exclude("org.springframework.security")
         exclude("org.springframework.boot")
     }*/
-    implementation(libs.com.zaxxer.hikaricp)
     implementation(libs.commons.beanutils)
     implementation(libs.commons.io)
     implementation(libs.de.micromata.merlin.core)
     implementation(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     implementation(libs.io.dropwizard.metrics.core)
-    implementation(libs.io.github.microutils.kotlin.logging)
+    implementation(libs.io.github.oshai.kotlin.logging)
     implementation(libs.jakarta.activation.api)
     implementation(libs.jakarta.annotation.api)
     implementation(libs.jakarta.persistence.api)
     implementation(libs.jakarta.servlet.api)
-    implementation(libs.jakarta.servlet.jsp.api)
     implementation(libs.jakarta.validation.api)
-    implementation(libs.jakarta.ws.rs.api)
     implementation(libs.javax.jcr)
     implementation(libs.jboss.logging)
     implementation(libs.joda.time.joda.time)
     implementation(libs.org.eclipse.angus.jakarta.mail)
     implementation(libs.org.jetbrains.kotlinx.coroutines.core)
-    implementation(libs.org.jetbrains.kotlinx.coroutines.slf4j)
     implementation(libs.net.lingala.zip4j.zip4j)
-    implementation(libs.net.sourceforge.mpxj)
+    implementation(libs.net.sf.mpxj) {
+        // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
+        exclude(group = "org.xerial", module = "sqlite-jdbc")
+        exclude(group = "com.healthmarketscience.jackcess", module = "jackcess")
+        exclude(group = "com.jgoodies", module = "jgoodies-binding")
+    }
     implementation(libs.org.apache.commons.collections4)
     implementation(libs.org.apache.commons.lang3)
     implementation(libs.org.apache.commons.text)
-    implementation(libs.org.apache.groovy.all)
     implementation(libs.org.apache.httpcomponents.client5.httpclient5)
     implementation(libs.org.apache.jackrabbit.oak.jcr)
     implementation(libs.org.apache.jackrabbit.oak.segment.tar)
@@ -169,28 +200,25 @@ dependencies {
     implementation(libs.org.apache.tomcat.embed.el)
     implementation(libs.org.apache.poi)
     implementation(libs.org.apache.poi.ooxml)
-    implementation(libs.org.apache.wicket.myextensions)
-    implementation(libs.org.apache.wicket.spring)
     implementation(libs.org.apache.xmlgraphics.batik.codec)
     implementation(libs.org.apache.xmlgraphics.batik.constants)
     implementation(libs.org.apache.xmlgraphics.batik.dom)
     implementation(libs.org.apache.xmlgraphics.batik.svg.dom)
     implementation(libs.org.apache.xmlgraphics.fop)
     implementation(libs.org.apache.xmlgraphics.commons)
-    implementation(libs.org.aspectj.aspectjtools)
     implementation(libs.org.bouncycastle.bcprov.jdk18on)
     implementation(libs.org.dom4j)
     implementation(libs.org.flywaydb.core)
     implementation(libs.org.flywaydb.database.hsqldb)
     implementation(libs.org.flywaydb.database.postgresql)
     implementation(libs.org.hibernate.orm.core)
+    implementation(libs.org.apache.lucene.backward.codecs)
     implementation(libs.org.hibernate.search.backend.lucene)
     implementation(libs.org.hibernate.search.mapper.orm)
     implementation(libs.org.hibernate.validator)
     implementation(libs.org.hsqldb.hsqldb)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)
-    implementation(libs.org.mozilla.rhino)
     implementation(libs.org.postgresql)
     implementation(libs.org.reflections)
     implementation(libs.org.springframework.boot)
@@ -198,16 +226,14 @@ dependencies {
     implementation(libs.org.springframework.boot.dependencies)
     implementation(libs.org.springframework.boot.starter)
     implementation(libs.org.springframework.boot.starter.data.jpa)
-    implementation(libs.org.springframework.boot.starter.json)
+    implementation(libs.org.springframework.boot.jackson2)
     implementation(libs.org.springframework.boot.starter.logging)
-    implementation(libs.org.springframework.boot.starter.web)
+    implementation(libs.org.springframework.boot.starter.webmvc)
     implementation(libs.org.springframework.boot.starter.webflux)
     implementation(libs.org.springframework.spring.context)
     implementation(libs.org.springframework.spring.orm)
     implementation(libs.org.springframework.spring.tx)
     implementation(libs.org.springframework.spring.webmvc)
-    implementation(libs.org.wicketstuff.html5)
-    implementation(libs.org.wicketstuff.select2)
     implementation(libs.se.sawano.java.alphanumeric.comparator)
 }
 
@@ -215,23 +241,38 @@ sourceSets {
     named("main") {
         resources {
             srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
+            srcDir(project(":projectforge-next").layout.buildDirectory.dir("resources/main"))
         }
     }
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
+    dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
 }
 
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")
+    dependsOn(":projectforge-next:nextAppJar")
     dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar
     val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
     from(webAppJarProvider) {
         into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
     }
+    val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
+    from(nextAppJarProvider) {
+        into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
+    }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
+    // Gradle 9 sorts archive entries by default. Boot's sorting copy action then reads the zipTree entries of the
+    // extracted Kotlin compiler jars (see below) after Gradle has closed them -> ClosedChannelException.
+    isReproducibleFileOrder = false
 }
 
 tasks.withType<Jar> {
@@ -255,6 +296,12 @@ tasks.register("generateGitProperties") {
     val rootDirPath = rootDir.absolutePath
     val projectVersion = version.toString()
     val outputFilePath = propsFile.absolutePath
+    // Without inputs the file of an earlier build stays up to date, e.g. a release jar with the snapshot version.
+    inputs.property("version", projectVersion)
+    inputs.property("commit", providers.exec {
+        commandLine("git", "rev-parse", "HEAD")
+        workingDir = rootDir
+    }.standardOutput.asText.map { it.trim() })
 
     doLast {
         BuildPropertiesGenerator(
@@ -271,3 +318,54 @@ tasks.named("processResources") {
 }
 
 description = "projectforge-application"
+
+/** Runs DevelopmentMainForRelease (source headers, i18n sorting, next catalogs and metadata). */
+tasks.register<JavaExec>("developmentMainForRelease") {
+    group = "development"
+    mainClass.set("org.projectforge.development.DevelopmentMainForReleaseKt")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+}
+
+/**
+ * Used by bin/pfDev.sh release: checks the changelog for the release -PreleaseVersion=X.Y.Z, writes its release notes.
+ * With -PreleasePublished=true|false a missing entry of the release is assumed to be added (published or not).
+ */
+tasks.register<JavaExec>("checkReleaseChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--check-release", providers.gradleProperty("releaseVersion").getOrElse(""))
+    providers.gradleProperty("releasePublished").orNull?.let { args("--add-release", it) }
+}
+
+/**
+ * Used by bin/pfDev.sh release: adds the SHA-256 of the built jar of the release -PreleaseVersion=X.Y.Z to its entry
+ * of changelog/changelog.json and regenerates the changelog.
+ */
+tasks.register<JavaExec>("releaseSha256Changelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    args("--sha256", providers.gradleProperty("releaseVersion").getOrElse(""))
+}
+
+/**
+ * Used by bin/pfDev.sh changelog-fold: moves changelog/unreleased/ into the release -PreleaseId (default: newest).
+ * Used by bin/pfDev.sh release with -PreleaseVersion=X.Y.Z -PreleasePublished=true|false: adds the entry of the
+ * release if missing (published or not) and moves changelog/unreleased/ into it.
+ */
+tasks.register<JavaExec>("foldChangelog") {
+    group = "development"
+    mainClass.set("org.projectforge.development.GenerateChangelogMain")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+    val published = providers.gradleProperty("releasePublished").orNull
+    if (published != null) {
+        args("--fold", providers.gradleProperty("releaseVersion").getOrElse(""), "--add-release", published)
+    } else {
+        args("--fold", providers.gradleProperty("releaseId").getOrElse(""))
+    }
+}

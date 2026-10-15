@@ -23,7 +23,7 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
@@ -43,7 +43,7 @@ private val log = KotlinLogging.logger {}
  * Does the authentication stuff for restful requests.
  *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter {
   private lateinit var springContext: WebApplicationContext
@@ -71,8 +71,8 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
    */
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-    if (log.isDebugEnabled) {
-      log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
+    if (log.isDebugEnabled()) {
+      log.debug { "Processing request ${RequestLog.asString(request as HttpServletRequest)}..." }
     }
     ThreadLocalUserContext.userContext?.let { userContext ->
       // Paranoia:

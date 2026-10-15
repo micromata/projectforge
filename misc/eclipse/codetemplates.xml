@@ -8,13 +8,13 @@
 //
 // Project   ProjectForge
 //
-// Author    Kai Reinhard (k.reinhard@micromata.de)
+// Author    Kai Reinhard
 // Created   ${date}
 // Copyright Micromata 2001-2010
 //
 /////////////////////////////////////////////////////////////////////////////
 </template><template autoinsert="false" context="typecomment_context" deleted="false" description="Comment for created types" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.typecomment" name="typecomment">/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */</template><template autoinsert="false" context="fieldcomment_context" deleted="false" description="Comment for fields" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.fieldcomment" name="fieldcomment"/><template autoinsert="true" context="methodcomment_context" deleted="false" description="Comment for non-overriding methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.methodcomment" name="methodcomment">/**
  * ${tags}

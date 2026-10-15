@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
@@ -47,6 +47,9 @@ class HistoryFormatService {
 
     @Autowired
     private lateinit var historyValueService: HistoryValueService
+
+    @Autowired
+    private lateinit var historyFormatUtils: HistoryFormatUtils
 
     /**
      * Adapter for specific entities. Key is the entityName of HistoryEntryDO built via [HistoryEntryDO.asEntityName] or,
@@ -110,10 +113,15 @@ class HistoryFormatService {
                 })
             }
         }
+        val entityClass = historyValueService.getClass(historyEntry.entityName)
         historyEntry.attributes?.forEach { attr ->
             context.setCurrent(attr)
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
+            if (historyValueService.getValueType(attr.propertyTypeClass) != HistoryValueService.ValueType.ENTITY) {
+                // Comma separated user or group ids stored as plain string: show display names instead of ids.
+                historyFormatUtils.replaceGroupAndUserIdsValues(displayAttr, entityClass)
+            }
             displayHistoryEntry.attributes.add(displayAttr)
             context.setCurrent(displayAttr)
             context.baseDao?.getHistoryPropertyPrefix(context)?.let {

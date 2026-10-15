@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.springframework.stereotype.Service
 

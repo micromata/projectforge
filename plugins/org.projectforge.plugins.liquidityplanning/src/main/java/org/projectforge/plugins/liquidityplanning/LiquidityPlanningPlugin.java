@@ -23,29 +23,26 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
+import org.projectforge.NextMigration;
 import org.projectforge.framework.persistence.api.UserRightService;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntryPagesRest;
+import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntityRest;
+import org.projectforge.plugins.liquidityplanning.rest.LiquiditySeriesRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.plugin.PluginWicketRegistrationService;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LiquidityPlanningPlugin extends AbstractPlugin {
-    public static final String ACCOUNTING_RECORD = "accountingRecord";
-
     public static final String ID = PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID;
 
     public static final String RESOURCE_BUNDLE_NAME = "LiquidityPlanningI18nResources";
-
-    static UserPrefArea USER_PREF_AREA;
 
     // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
     // each test).
@@ -62,26 +59,24 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
     @Override
     protected void initialize() {
         LiquidityEntryDao liquidityEntryDao = WicketSupport.get(LiquidityEntryDao.class);
-        PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
-        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
-        registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
-        registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
+        // WRITE:liquidity is the category of LiquidityEntityRest (/rs/liquidity).
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidity");
+        registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntityRest.class);
+        // The series split (LiquiditySeriesRest, /rs/liquiditySeries/split) writes entries without passing the
+        // save of /rs/liquidity, so WRITE:liquidity doesn't catch it. FINANCE covers it by its url prefix
+        // (^/rs/liquidity.*), an installation configuring FINANCE_WRITE alone wouldn't gate it.
+        registerShortCutClasses(My2FAShortCut.FINANCE_WRITE, LiquiditySeriesRest.class);
         final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
                 "plugins.liquidityplanning");
         register(entry);
 
-        // Register the web part:
-        // Insert at first position before accounting-record entry (for SearchPage).
-        pluginWicketRegistrationService.registerWeb(ID, LiquidityEntryListPage.class, LiquidityEntryEditPage.class,
-                ACCOUNTING_RECORD, true);
-
-        pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
-
-        // Register the menu entry as sub menu entry of the reporting menu:
+        // Register the menu entry as sub menu entry of the reporting menu. The pages are migrated to
+        // projectforge-next (see NextMigration.MIGRATED), their Wicket pages are removed.
         MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
         menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
         menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
+        menuEntry.setUrl(NextMigration.INSTANCE.listUrl("liquidity"));
+        WicketSupport.get(MenuCreator.class).register(MenuItemDefId.REPORTING, menuEntry);
 
         // Define the access management:
         registerRight(new LiquidityPlanningRight());

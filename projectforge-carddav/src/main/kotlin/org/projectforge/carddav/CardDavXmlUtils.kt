@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.kotlin.utils.addToStdlib.countOccurrencesOf
 import org.projectforge.carddav.CardDavUtils.CARD
 import org.projectforge.carddav.CardDavUtils.CS

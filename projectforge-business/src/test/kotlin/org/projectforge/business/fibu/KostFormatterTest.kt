@@ -47,7 +47,7 @@ class KostFormatterTest : AbstractTestBase() {
         Assertions.assertEquals("5.204", kostFormatter.formatKunde(kunde))
         Assertions.assertEquals("204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.NUMBER))
         Assertions.assertEquals("5.204", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.FORMATTED_NUMBER))
-        Assertions.assertEquals("204 - ACME very long name o...", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.NUMBER_AND_NAME))
+        Assertions.assertEquals("204 - ACME very long name of the company with a lot of te...", kostFormatter.formatKunde(kunde, KostFormatter.FormatType.NUMBER_AND_NAME))
         Assertions.assertEquals(
             "5.204: ACME very long name ...",
             kostFormatter.formatKunde(kunde, KostFormatter.FormatType.TEXT, 30)

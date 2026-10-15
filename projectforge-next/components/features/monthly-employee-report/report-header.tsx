@@ -1,0 +1,118 @@
+"use client";
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { cn } from "@/lib/utils";
+import type { MonthlyReport } from "./types";
+
+/**
+ * One labeled statistic in the header line: label above value, small and quiet, matching the app-wide
+ * statistics-line convention (see order-sums-line.tsx) rather than a heavy KPI tile.
+ */
+function Stat({
+  label,
+  children,
+  hint,
+  danger,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  /** Markdown explanation shown as tooltip of the value. */
+  hint?: string;
+  danger?: boolean;
+  /** Extra classes on the pair wrapper, e.g. a max width so a long value wraps instead of widening the row. */
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-col", className)}>
+      <dt className="text-[11px] opacity-70">{label}</dt>
+      <HintTooltip text={hint} openOnTap>
+        <dd
+          className={cn("text-sm tabular-nums", danger && "text-destructive")}
+        >
+          {children}
+        </dd>
+      </HintTooltip>
+    </div>
+  );
+}
+
+/**
+ * The quota's tooltip: the configured explanation why it matters, then how it was computed. The
+ * computation's lines are separated by single `\n`, which markdown would run together, so they become
+ * hard breaks.
+ */
+function invoicingQuotaHint(report: MonthlyReport): string | undefined {
+  const calculation = report.invoicingQuotaTooltip?.replace(
+    /(?<!\n)\n(?!\n)/g,
+    "  \n"
+  );
+  const parts = [report.invoicingQuotaInfo, calculation].filter(Boolean);
+  return parts.length ? parts.join("\n\n") : undefined;
+}
+
+/**
+ * The report's header statistics: user, Kost1, working days, unbooked days, the average-working-time line,
+ * the invoicing quota (Fakturaquote) and the vacation figures — each shown only when it applies, mirroring
+ * the legacy page's conditional fieldsets.
+ */
+export function ReportHeader({ report }: { report: MonthlyReport }) {
+  const t = useTranslations();
+  return (
+    <dl className="flex flex-wrap gap-x-6 gap-y-2" aria-label={t("statistics")}>
+      {!report.maySelectOtherUsers && (
+        <Stat label={t("timesheet.user")}>{report.userName}</Stat>
+      )}
+      {report.costConfigured && report.kost1 && (
+        <Stat label={t("fibu.kost1._")}>{report.kost1}</Stat>
+      )}
+      {report.numberOfWorkingDays && (
+        <Stat label={t("fibu.common.workingDays")}>
+          {report.numberOfWorkingDays}
+        </Stat>
+      )}
+      {report.formattedUnbookedWorkingDays && (
+        <Stat
+          label={t("fibu.monthlyEmployeeReport.workingDaysWithoutTimesheets")}
+          danger
+        >
+          {report.formattedUnbookedWorkingDays}
+        </Stat>
+      )}
+      {report.formattedUnbookedVacationDays && (
+        <Stat
+          label={t("fibu.monthlyEmployeeReport.vacationDaysWithoutTimesheets")}
+        >
+          {/* Opens the calendar's dialog for booking several days; the vacation is chosen there. */}
+          <HintTooltip text={t("timesheet.bookDays.title")} plain>
+            <Link
+              href="/calendar?bookDays=1"
+              className="text-primary underline-offset-2 hover:underline"
+            >
+              {report.formattedUnbookedVacationDays}
+            </Link>
+          </HintTooltip>
+        </Stat>
+      )}
+      {report.invoicingQuota && (
+        <Stat
+          label={t("fibu.common.invoicingQuota._")}
+          hint={invoicingQuotaHint(report)}
+        >
+          {report.invoicingQuota}
+        </Stat>
+      )}
+      {report.vacationAvailable && report.vacationCount && (
+        <Stat label={t("vacation.annualleave")}>{report.vacationCount}</Stat>
+      )}
+      {report.vacationAvailable && report.vacationPlannedCount && (
+        <Stat label={t("vacation.plandannualleave")}>
+          {report.vacationPlannedCount}
+        </Stat>
+      )}
+    </dl>
+  );
+}

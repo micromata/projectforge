@@ -38,7 +38,7 @@ import java.time.LocalDate
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -71,7 +71,10 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var auftragsPosition: AuftragsPositionDO? = null
 
-    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
+    // `fibu.periodOfPerformance`, as `AuftragsPositionDO` names the identical field: the bundle holds no
+    // text under `fibu.periodOfPerformance.type` — that key is only the parent of the enum's own values
+    // (`PeriodOfPerformanceType.i18nKey`), so a label asking for it gets a subtree and no wording at all.
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "period_of_performance_type", length = 10)
     open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
@@ -91,7 +94,10 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:OrderColumn(name = "index")
+    // Sorted by KostZuweisungDO.index, not an @OrderColumn on it: the column is a mapped property of the
+    // assignment as well, and as an order column Hibernate rewrote it from the list position on merge
+    // (0 became 1, 0/1 became 2/3), leaving null holes in the loaded list.
+    @get:OrderBy("index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 

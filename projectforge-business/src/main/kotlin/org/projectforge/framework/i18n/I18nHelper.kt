@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.i18n
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserLocale
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * ThreadLocal context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object I18nHelper {
     private val BUNDLE_NAMES: MutableSet<String> = LinkedHashSet()
@@ -105,7 +105,7 @@ object I18nHelper {
 
     @JvmStatic
     fun getLocalizedString(locale: Locale?, i18nKey: String): String {
-        val lc = locale ?: ThreadLocalUserContext.locale!!
+        val lc = locale ?: ThreadLocalUserContext.locale
         for (bundleName in BUNDLE_NAMES) {
             val translation = getLocalizedString(bundleName, lc, i18nKey)
             if (translation != null) {
@@ -125,7 +125,7 @@ object I18nHelper {
                 null
             }
         } catch (ex: Exception) {
-            log.warn("Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}")
+            log.warn { "Exception while trying to access key '$i18nKey' for locale '$locale' and bundle '$bundleName': ${ex.message}" }
         }
         return null
     }

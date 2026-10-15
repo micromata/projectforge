@@ -1,9 +1,10 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
-import thunk from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import reducer from '../reducers';
+import CustomRouter from './CustomRouter';
 import ProjectForge from './ProjectForge';
 
 describe('renders without crashing', () => {
@@ -11,12 +12,12 @@ describe('renders without crashing', () => {
         const div = document.createElement('div');
         const store = createStore(reducer, applyMiddleware(thunk));
 
-        ReactDOM.render(
-            (
-                <Provider store={store}>
+        createRoot(div).render(
+            <Provider store={store}>
+                <CustomRouter>
                     <ProjectForge />
-                </Provider>
-            ), div,
+                </CustomRouter>
+            </Provider>,
         );
     });
 
@@ -28,18 +29,21 @@ describe('renders without crashing', () => {
                 authentication: {
                     loading: false,
                     error: null,
-                    loggedIn: true,
+                    user: {
+                        userId: 42,
+                        username: 'kai',
+                    },
                 },
             },
             applyMiddleware(thunk),
         );
 
-        ReactDOM.render(
-            (
-                <Provider store={store}>
+        createRoot(div).render(
+            <Provider store={store}>
+                <CustomRouter>
                     <ProjectForge />
-                </Provider>
-            ), div,
+                </CustomRouter>
+            </Provider>,
         );
     });
 });

@@ -30,7 +30,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.springframework.stereotype.Service
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class TradingPartnerService :
@@ -67,7 +67,7 @@ class TradingPartnerService :
     }
   }
 
-  override fun fromJson(response: String): ListData<TradingPartner>? {
-    return JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
+  override fun fromJson(json: String): ListData<TradingPartner>? {
+    return JsonUtils.fromJson(json, TradingPartnerListData::class.java, false)
   }
 }

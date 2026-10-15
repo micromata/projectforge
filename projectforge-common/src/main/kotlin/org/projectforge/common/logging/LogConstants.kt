@@ -25,6 +25,9 @@ package org.projectforge.common.logging
 
 const val MDC_IP = "ip"
 const val MDC_LOG_SESSIONS = "logSessions"
+
+/** Short random id of the current http request, for correlating all log events of one request. */
+const val MDC_REQUEST_ID = "requestId"
 const val MDC_SESSION = "session"
 const val MDC_USER = "user"
 const val MDC_USER_AGENT = "userAgent"

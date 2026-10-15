@@ -39,15 +39,15 @@ class My2FARequestHandlerTest {
       AbstractCache.TICKS_PER_MINUTE,
       handler.matchesUri("/rs/changeWlanPassword")?.expiryMillis
     )
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/124")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/wa/userEdit/125")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/rs/userEdit")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/rs/userEdit/124")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/rs/userEdit/125")?.expiryMillis)
     Assertions.assertEquals(
       AbstractCache.TICKS_PER_HOUR,
       handler.matchesUri("/rs/user/${RestPaths.SAVE}")?.expiryMillis
     )
     Assertions.assertEquals(AbstractCache.TICKS_PER_HOUR, handler.matchesUri("/react/myAccount")?.expiryMillis)
-    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matchesUri("/wa/outgoingInvoice")?.expiryMillis)
+    Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 30, handler.matchesUri("/rs/outgoingInvoice")?.expiryMillis)
     Assertions.assertEquals(AbstractCache.TICKS_PER_DAY * 90, handler.matchesUri("/unknown-url")?.expiryMillis)
     handler = getHandler("PASSWORD;", "", "ADMIN;MY_ACCOUNT")
     Assertions.assertNull(handler.matchesUri("/unknown-url")?.expiryMillis)
@@ -88,7 +88,7 @@ class My2FARequestHandlerTest {
     Assertions.assertEquals(0L, handler.getRemainingPeriod4WriteAccess("user"))
     ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
     checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
-    checkRemainingPeriod(handler.getRemainingPeriod("/wa/incomingInvoice"), 720)
+    checkRemainingPeriod(handler.getRemainingPeriod("/rs/incomingInvoice"), 720)
     Assertions.assertNull(handler.getRemainingPeriod4WriteAccess("timesheet"))
   }
 
@@ -125,19 +125,19 @@ class My2FARequestHandlerTest {
       val handler = My2FARequestHandler()
       handler.registerShortCutValues(
         My2FAShortCut.ADMIN,
-        "WRITE:user;WRITE:group;/wa/userEdit;/wa/groupEdit;/wa/admin",
+        "WRITE:user;WRITE:group;/rs/userEdit;/rs/groupEdit;/rs/admin",
         "/rs/change.*Password",
         "/rs/user",
-        "/wa/license;/wa/access;/react/logViewer/-1;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin"
+        "/rs/license;/rs/access;/react/logViewer/-1;/react/system;/react/configuration"
       )
-      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/wa/employee;")
+      handler.registerShortCutValues(My2FAShortCut.HR, "WRITE:employee;/rs/employee;")
       handler.registerShortCutValues(
         My2FAShortCut.FINANCE,
-        "WRITE:incomingInvoice;WRITE:outgoingInvoice;/wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice"
+        "WRITE:incomingInvoice;WRITE:outgoingInvoice;/rs/report;/rs/accounting;/rs/datev;/rs/liquidity;/react/account;/react/cost1;/react/cost2;/rs/incomingInvoice;/rs/outgoingInvoice"
       )
       handler.registerShortCutValues(
         My2FAShortCut.ORGA,
-        "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract"
+        "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/rs/incomingMail;/react/outgoingMail;/rs/outgoingMail;/react/incomingMail;/rs/contractMail;/react/contract"
       )
       handler.registerShortCutValues(My2FAShortCut.SCRIPT, "/react/script")
       handler.registerShortCutValues(My2FAShortCut.MY_ACCOUNT, "/react/tokenInfo;/react/myAccount;/rs/tokenInfo;/rs/user/renewToken")

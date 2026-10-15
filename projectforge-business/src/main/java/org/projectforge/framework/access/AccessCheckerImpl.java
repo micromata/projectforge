@@ -28,6 +28,7 @@ import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.*;
 import org.projectforge.common.StringHelper;
+import org.projectforge.common.logging.PfLog;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -226,7 +227,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             buf.append(groups[i].toString());
         }
         final String str = buf.toString();
-        log.error(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF + ": " + str);
+        PfLog.warn(log, AccessLogEvents.USER_NOT_MEMBER_OF, I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF + ": " + str);
         return new AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, str);
     }
 

@@ -24,15 +24,12 @@
 package org.projectforge.business.scripting
 
 import de.micromata.merlin.utils.ReplaceUtils.encodeFilename
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FilenameFilter
@@ -42,13 +39,10 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class ScriptDao : AbstractScriptDao() {
-    @Autowired
-    private lateinit var historyFormatUtils: HistoryFormatUtils
-
     /**
      * Copy old script as script backup if modified.
      *
@@ -64,13 +58,10 @@ open class ScriptDao : AbstractScriptDao() {
             ConfigXml.ensureDir(backupDir)
             val file = File(backupDir, filename)
             try {
-                log.info("Writing backup of script to: " + file.absolutePath)
+                log.info { "Writing backup of script to: " + file.absolutePath }
                 file.writeText(dbObj.scriptAsString ?: "")
             } catch (ex: IOException) {
-                log.error(
-                    "Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message,
-                    ex
-                )
+                log.error(ex) { "Error while trying to save backup file of script '" + file.absolutePath + "': " + ex.message }
             }
         }
     }
@@ -119,9 +110,5 @@ open class ScriptDao : AbstractScriptDao() {
             user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
             ProjectForgeGroup.FINANCE_GROUP
         )
-    }
-
-    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
-        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }
 }

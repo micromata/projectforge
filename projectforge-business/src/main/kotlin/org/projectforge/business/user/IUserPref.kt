@@ -31,7 +31,7 @@ import java.io.Serializable
  * For persistence of UserPreferencesData (stores them serialized).
  * The data are stored as xml.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface IUserPref : Serializable, IdObject<Long> {
     /**

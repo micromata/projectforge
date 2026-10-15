@@ -30,7 +30,7 @@ import org.projectforge.reporting.Kunde;
 
 /**
  * Proxy for KundeDO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see KundeDO
  */
 public class KundeImpl implements Kunde

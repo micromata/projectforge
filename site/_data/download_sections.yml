@@ -1,0 +1,39 @@
+# Text sections of the download page, rendered by _includes/text-section.html (fields: see there)
+
+next_steps:
+  title: Next steps
+  text: >-
+    Follow the [Installation guide](/docs/installation/), then set up your company with the
+    [Quick start](/docs/quickstart/). What has changed in each release is listed in the
+    [Changelog](/changelog-posts/).
+  button_text: Installation guide
+  button_url: /docs/installation/
+
+updates:
+  title: Updates
+  text: >-
+    Updating is easy: stop ProjectForge, start the new version. Database schema and data are migrated
+    automatically on the first start. Back up your database before, and check the
+    [Migration guide](/docs/migration/) for the few changes that need your attention.
+  button_text: Migration guide
+  button_url: /docs/migration/
+
+translations:
+  title: Translations
+  text: >-
+    ProjectForge is available in English and German, and fully internationalized. A new language needs a bit
+    more than one file: the backend texts (a translation of the
+    [English translation file](https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/I18nResources.properties),
+    format `key=Translation`), the texts of the web frontend and a small code change to register the language.
+    If you'd like to contribute a language, please open a GitHub issue first – we'll gladly help you get started
+    and include it in a release.
+  button_text: Open a GitHub issue
+  button_url: https://github.com/micromata/projectforge/issues
+
+archive:
+  title: Archive
+  text: >-
+    All earlier versions are available on [GitHub](https://github.com/micromata/projectforge/releases) and,
+    back to 2010, on SourceForge.
+  button_text: Earlier versions on SourceForge
+  button_url: https://sourceforge.net/projects/pforge/files/ProjectForge/

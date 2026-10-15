@@ -37,7 +37,7 @@ import java.util.*;
 
 /**
  * Parses objects serialized by the XmlObjectWriter. Uses the dom4j.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class XmlObjectReader

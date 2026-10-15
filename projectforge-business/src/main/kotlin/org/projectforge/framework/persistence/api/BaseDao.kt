@@ -25,7 +25,8 @@ package org.projectforge.framework.persistence.api
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.criteria.Root
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.hibernate.search.mapper.orm.Search
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
@@ -40,6 +41,7 @@ import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
+import org.projectforge.framework.persistence.database.EntityCountCache
 import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
@@ -56,7 +58,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class BaseDao<O : ExtendedBaseDO<Long>>
 /**
@@ -80,13 +82,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * or in React pages.
      * At default, it's the simple name of the DO clazz without extension "DO".
      */
-    val identifier: String by lazy { StringUtils.uncapitalize(StringUtils.removeEnd(doClass.simpleName, "DO")) }
+    val identifier: String by lazy { doClass.simpleName.removeSuffix("DO").replaceFirstChar { it.lowercase() } }
 
     @JvmField
     var logDatabaseActions: Boolean = true
 
     @Autowired
     lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    lateinit var entityCountCache: EntityCountCache
 
     @Autowired
     protected lateinit var baseDOPersistenceService: BaseDOPersistenceService
@@ -166,6 +171,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         /**
          * Overwrite this method for having a standard sort of result lists (supported by [BaseDao.select].
          */
+        get() = null
+
+    /**
+     * What the per-row select access ([hasSelectAccess]) reads, so [selectDistinct] can check it without loading
+     * the entities. Null (the default) if it needs the entity: [selectDistinct] loads them then. Overwrite it
+     * only together with the access check, and with nothing more than the access check reads.
+     */
+    open val selectAccessProjection: SelectAccessProjection<O>?
         get() = null
 
     abstract fun newInstance(): O
@@ -270,17 +283,34 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
+        // Load in chunks so the `pk IN (…)` clause never exceeds PostgreSQL's 65,535 bind-parameter limit.
+        // A whole result set can be loaded by id (server-side paging via getListByIds, "select all" in a
+        // multi-selection) and reach tens of thousands of ids; the `distinct` criteria shape can also double
+        // the bind count. IN_CLAUSE_CHUNK_SIZE stays well under the ceiling. Each chunk is its own query;
+        // the ids are unique, so concatenating the chunk results yields the same rows a single query would
+        // (order is not guaranteed by the IN query anyway — callers restore it, see restorePageOrder).
         val list = persistenceService.runReadOnly { context ->
             val em = context.em
-            val cr = em.criteriaBuilder.createQuery(doClass)
-            val root = cr.from(doClass)
-            cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
-            context.logAndAdd(
-                PersistenceCallsRecorder.CallType.QUERY,
-                doClass.simpleName,
-                "select by ids=${idList.joinToString()}"
-            )
-            em.createQuery(cr).resultList
+            idList.chunked(IN_CLAUSE_CHUNK_SIZE).flatMap { chunk ->
+                val cr = em.criteriaBuilder.createQuery(doClass)
+                val root = cr.from(doClass)
+                cr.select(root).where(root.get<Any>(idProperty).`in`(chunk)).distinct(true)
+                context.logAndAdd(
+                    PersistenceCallsRecorder.CallType.QUERY,
+                    doClass.simpleName,
+                    "select by ids=${chunk.joinToString()}"
+                )
+                val query = em.createQuery(cr)
+                // Load with the same entity graph the list query uses (createQueryFilter.entityGraphName), so
+                // this id-based load — server-side paging and multi-selection go through it (getListByIds) —
+                // does not N+1 on the collections/associations the graph fetch-joins, e.g.
+                // GroupTaskAccessDO.accessEntries. DAOs that declare no graph are unaffected (the hint is only
+                // set when a name is present).
+                createQueryFilter().entityGraphName?.let { entityGraphName ->
+                    query.setHint("jakarta.persistence.loadgraph", em.getEntityGraph(entityGraphName))
+                }
+                query.resultList
+            }
         }
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
@@ -340,6 +370,43 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         val list = dbQuery.select(this, filter, customResultFilters, checkAccess)
         baseDOChangedRegistry.afterLoad(list)
         return list
+    }
+
+    /**
+     * Like [select], but returns only the ordered ids of the matching objects (see [DBQuery.selectIds]).
+     * Used by server-side paging to materialize the id list without loading, mapping or serializing entities.
+     * No `afterLoad` is fired here — nothing is loaded.
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun selectIds(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    ): DBQuery.DBIdResult {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        return dbQuery.selectIds(this, filter, customResultFilters, checkAccess)
+    }
+
+    /**
+     * The distinct values of [path] (e.g. `kost2.id`) over what [select] would return, access checked, unordered;
+     * null for the rows without one. Selects only these values (and those of [selectAccessProjection]) if it can,
+     * see [DBQuery.selectDistinct].
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun selectDistinct(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        path: String,
+        checkAccess: Boolean = true,
+    ): List<Any?> {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        return dbQuery.selectDistinct(this, filter, customResultFilters, path, checkAccess)
     }
 
     /**
@@ -497,6 +564,27 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         return baseDOPersistenceService.insert(this, obj, checkAccess = checkAccess)!!
     }
 
+    /**
+     * Adds or updates a single object in the full-text index right now, instead of waiting for the periodic
+     * re-index of the newest entries (LUCENE_FLUSH_ALWAYS is off, so neither [insert] nor [update] flushes the
+     * indexing plan synchronously). Needed when a freshly persisted row must be findable by search at once — e.g.
+     * a liquidity occurrence materialized on the fly, whose virtual projection is suppressed the moment the real
+     * row exists, so a not-yet-indexed row would otherwise disappear from a full-text-filtered list. Failures are
+     * logged, not propagated: an index that lags is recoverable by a re-index, a failed transaction is not.
+     */
+    open fun reindex(obj: O) {
+        val id = obj.id ?: return
+        try {
+            persistenceService.runInTransaction { context ->
+                val em = context.em
+                em.flush()
+                Search.session(em).indexingPlan().addOrUpdate(em.find(doClass, id))
+            }
+        } catch (ex: Exception) {
+            log.error(ex) { "Failed to re-index ${doClass.simpleName}#$id: ${ex.message}" }
+        }
+    }
+
     @JvmOverloads
     fun insertOrUpdate(col: Collection<O>, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { _ ->
@@ -625,7 +713,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     fun checkLoggedInUserSelectAccess(obj: O) {
         if (!hasUserSelectAccess(requiredLoggedInUser, obj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -636,7 +724,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             || !hasLoggedInUserHistoryAccess(obj, true)
         ) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -650,7 +738,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open fun checkInsertAccess(user: PFUserDO, obj: O) {
         if (!hasInsertAccess(user, obj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -670,7 +758,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     protected open fun checkUpdateAccess(user: PFUserDO, obj: O, dbObj: O) {
         if (!hasUpdateAccess(user, obj, dbObj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -679,7 +767,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     internal fun checkLoggedInUserDeleteAccess(obj: O, dbObj: O) {
         if (!hasLoggedInUserDeleteAccess(obj, dbObj, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -931,7 +1019,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     open fun getAutocompletion(property: String, searchString: String): List<String> {
         checkLoggedInUserSelectAccess()
         if (!isAutocompletionPropertyEnabled(property)) {
-            log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + doClass.name + "'.")
+            log.warn { "Security alert: The user tried to select property '" + property + "' of entity '" + doClass.name + "'." }
             return ArrayList()
         }
         if (StringUtils.isBlank(searchString)) {
@@ -955,14 +1043,78 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Re-indexes the entries of the last day, 1,000 at max.
+     * The entities of a partial re-index (entries of the last day). [HistoryEntryDO] is no longer included: it is not
+     * @Indexed anymore, its search runs SQL-based (DBHistoryQuery + pg_trgm, see V8.0.24 migration), so there is no
+     * Lucene index left to rebuild for it.
+     */
+    open val reindexClasses4NewestEntries: List<Class<*>>
+        get() = listOf(doClass)
+
+    /**
+     * The child entities whose change history is shown on this DAO's pages, [doClass] excluded (see
+     * [historyEntityNames]). History rows are written per entity instance, so editing an order position writes
+     * entityName=AuftragsPositionDO, not AuftragDO — anything restricting the history to a list page has to name the
+     * children explicitly.
+     *
+     * Keep in sync with [addOwnHistoryEntries], which loads exactly these for the display. Not derivable from it:
+     * VisitorbookDO has no such override, its entries are picked up generically by HistoryService.
+     */
+    protected open val additionalHistoryEntityClasses: List<Class<*>> = emptyList()
+
+    /**
+     * [doClass] and [additionalHistoryEntityClasses] as entity names of t_pf_history: everything whose history
+     * belongs to this DAO's pages. Used to restrict a partial re-index, see DatabaseDao.createMassIndexer.
+     *
+     * Not used by the history search: DBQuery passes only doClass to DBHistoryQuery, so the list filter "modified
+     * since" still sees the parent's entries alone. Reusing this here needs a child-to-parent id mapping first,
+     * because DBQuery matches the found entityIds against the parent id via [contains].
+     */
+    open val historyEntityNames: List<String>
+        get() = listOf(doClass.name) + additionalHistoryEntityClasses.map { it.name }
+
+    /**
+     * The entities of a full re-index. Without the history: it is no longer @Indexed (its search is SQL-based, see
+     * [HistoryEntryDO]), so there is nothing to rebuild for it here.
+     */
+    open val reindexClasses: List<Class<*>>
+        get() = listOf(doClass)
+
+    /**
+     * Number of rows a full re-index processes: the sum over [reindexClasses], from [EntityCountCache] (so possibly
+     * some days old). A class that isn't available (entity of an inactive plugin) counts 0, as
+     * [org.projectforge.framework.persistence.search.HibernateSearchReindexer] skips it, too.
+     */
+    open fun countReindexEntries(): Long {
+        return reindexClasses.sumOf { entityCountCache.count(it) }
+    }
+
+    /**
+     * Whether the logged-in user may start a full re-index ([rebuildDatabaseIndex]) of this entity: admins always,
+     * everybody else only for an entity with less than [FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS] entries — a run
+     * of that size takes seconds, a larger one minutes and system performance.
+     */
+    open fun isFullReindexAllowedForLoggedInUser(): Boolean {
+        // Admin first: they never have to pay for the count.
+        return accessChecker.isLoggedInUserMemberOfAdminGroup || isFullReindexSmall()
+    }
+
+    /**
+     * Whether a full re-index of this entity is small enough for everybody, see [isFullReindexAllowedForLoggedInUser].
+     */
+    open fun isFullReindexSmall(): Boolean {
+        return countReindexEntries() < FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS
+    }
+
+    /**
+     * Re-indexes the entries of the last day.
      *
      * @see DatabaseDao.createReindexSettings
      */
     open fun rebuildDatabaseIndex4NewestEntries() {
-        val settings = createReindexSettings(true)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
-        databaseDao.rebuildDatabaseSearchIndices(HistoryEntryDO::class.java, settings)
+        val settings = createReindexSettings(true, historyEntityNames)
+        reindexClasses4NewestEntries.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**
@@ -970,7 +1122,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     open fun rebuildDatabaseIndex() {
         val settings = createReindexSettings(false)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
+        reindexClasses.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**
@@ -979,8 +1133,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     open fun reindexDependentObjects(obj: O) {
         hibernateSearchDependentObjectsReindexer.reindexDependents(obj)
     }
-
-    protected open val additionalHistorySearchDOs: Array<Class<*>>? = null
 
     /**
      * @return Whether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
@@ -1014,5 +1166,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         const val MAX_MASS_UPDATE: Int = 100
         const val MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N: String =
             "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded"
+
+        /**
+         * Maximum number of ids per `pk IN (…)` query in [select] by idList. Kept well under PostgreSQL's
+         * 65,535 bind-parameter limit (the `distinct` criteria shape can double the effective bind count),
+         * so loading a whole result set by id (server-side paging, "select all" in a multi-selection) never
+         * blows past it.
+         */
+        const val IN_CLAUSE_CHUNK_SIZE: Int = 1000
+
+        /**
+         * Below this number of entries every user may start a full re-index of an entity, from here on admins only
+         * (see [isFullReindexAllowedForLoggedInUser]).
+         */
+        const val FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS: Long = 100_000
     }
 }

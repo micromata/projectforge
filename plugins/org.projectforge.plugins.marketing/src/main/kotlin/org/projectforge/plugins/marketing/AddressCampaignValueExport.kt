@@ -25,7 +25,7 @@ package org.projectforge.plugins.marketing
 
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressExport
 import org.projectforge.business.address.PersonalAddressDO
@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
  * For excel export. export must be called with two params, the first is the AddressCampaignValue map and the second the
  * title of the address campaign.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service("addressCampaignValueExport")
 open class AddressCampaignValueExport : AddressExport() {

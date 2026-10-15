@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.core
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,8 +39,20 @@ class ListFilterService {
     @Autowired
     private lateinit var userPrefRestService: UserPrefRestService
 
-    fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
-        val filter = userPrefRestService.getEntry(session, PREF_AREA, filterClazz.name)
+    /**
+     * @param keySuffix Appended to the filter class' name, so two lists of the same filter type can
+     * keep their own settings. Used by the task tree, whose select popover filters independently of
+     * the page. Null (the default) is the filter of the entity's own list page.
+     * @param session Null for requests without session, e.g. authenticated by token (see [UserPrefRestService]).
+     */
+    @JvmOverloads
+    fun getSearchFilter(
+        session: HttpSession?,
+        filterClazz: Class<out BaseSearchFilter>,
+        keySuffix: String? = null,
+    ): BaseSearchFilter {
+        val key = if (keySuffix != null) "${filterClazz.name}.$keySuffix" else filterClazz.name
+        val filter = userPrefRestService.getEntry(session, PREF_AREA, key)
         if (filter != null) {
             if (filter.javaClass == filterClazz) {
                 try {
@@ -49,17 +61,16 @@ class ListFilterService {
                     // No output needed, info message follows:
                 }
                 // Probably a new software release results in an incompatibility of old and new filter format.
-                log.info(
-                        "Could not restore filter from user prefs: (old) filter type "
-                                + filter.javaClass.getName()
-                                + " is not assignable to (new) filter type "
-                                + filterClazz.javaClass.getName()
-                                + " (OK, probably new software release).")
+                log.info { "Could not restore filter from user prefs: (old) filter type " +
+                                filter.javaClass.getName() +
+                                " is not assignable to (new) filter type " +
+                                filterClazz.javaClass.getName() +
+                                " (OK, probably new software release)." }
             }
         }
-        val result = filterClazz.newInstance()
+        val result = filterClazz.getDeclaredConstructor().newInstance()
         result.reset()
-        userPrefRestService.putEntry(session, PREF_AREA, filterClazz.name, result, true)
+        userPrefRestService.putEntry(session, PREF_AREA, key, result, true)
         return result
     }
 

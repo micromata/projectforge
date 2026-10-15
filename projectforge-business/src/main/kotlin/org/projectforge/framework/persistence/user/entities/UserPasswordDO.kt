@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Users may have several authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
  * may easily be revokable. In addition, no password may be stored on smartphone client e. g. for using ProjectForge's CardDAV/CalDAV service.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(
@@ -84,7 +84,7 @@ open class UserPasswordDO : DefaultBaseDO() {
       (pw != NOPASSWORD)
     ) {
       this.passwordHash = null
-      log.error("Password for user '${this.user?.id}' is not given SHA encrypted. Ignoring it.")
+      log.error { "Password for user '${this.user?.id}' is not given SHA encrypted. Ignoring it." }
     }
   }
 

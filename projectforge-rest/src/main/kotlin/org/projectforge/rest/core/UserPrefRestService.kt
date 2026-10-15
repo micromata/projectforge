@@ -50,10 +50,11 @@ class UserPrefRestService {
     /**
      * Stores the given value for the current user.
      *
-     * @param session    Only for demo users, the value will be stored to session, not to [UserPrefService].
+     * @param session    Only for demo users, the value will be stored to session, not to [UserPrefService]. Null for
+     * requests without session (e.g. authenticated by token): a demo user's value isn't stored then.
      * @param persistent If true, the object will be persisted in the database.
      */
-    fun putEntry(session: HttpSession, area: String, name: String, value: Any?, persistent: Boolean) {
+    fun putEntry(session: HttpSession?, area: String, name: String, value: Any?, persistent: Boolean) {
         val user = ThreadLocalUserContext.loggedInUser
         if (user == null || value == null) {
             // Should only occur, if user is not logged in.
@@ -61,7 +62,7 @@ class UserPrefRestService {
         }
         if (AccessChecker.isDemoUser(user) && value is Serializable) {
             // Store user pref for demo user only in user's session.
-            session.setAttribute(getSessionAttributename(area, name), value as Serializable?)
+            session?.setAttribute(getSessionAttributename(area, name), value as Serializable?)
             return
         }
         try {
@@ -79,19 +80,20 @@ class UserPrefRestService {
     /**
      * Gets the stored user preference entry.
      *
-     * @param session Only for demo users, the value will be stored to session, not to [UserPrefService].
+     * @param session Only for demo users, the value will be stored to session, not to [UserPrefService]. Null for
+     * requests without session (e.g. authenticated by token).
      * @param area
      * @param name
      * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
      * existing, otherwise null;
      */
-    fun getEntry(session: HttpSession, area: String, name: String): Any? {
+    fun getEntry(session: HttpSession?, area: String, name: String): Any? {
         val user = ThreadLocalUserContext.loggedInUser
                 ?: // Should only occur, if user is not logged in.
                 return null
         if (AccessChecker.isDemoUser(user)) {
             // Store user pref for demo user only in user's session.
-            var value: Any? = session.getAttribute(getSessionAttributename(area, name))
+            var value: Any? = session?.getAttribute(getSessionAttributename(area, name))
             if (value != null) {
                 return value
             }
@@ -100,7 +102,7 @@ class UserPrefRestService {
                 return null
             }
             value = CloneHelper.cloneBySerialization<Any>(value)
-            session.setAttribute(getSessionAttributename(area, name), value as Serializable?)
+            session?.setAttribute(getSessionAttributename(area, name), value as Serializable?)
             return value
         }
         try {
@@ -126,7 +128,7 @@ class UserPrefRestService {
      * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
      * existing, otherwise null;
      */
-    fun <T : Class<*>> getEntry(session: HttpSession, expectedType: Class<T>, area: String, name: String): T? {
+    fun <T : Class<*>> getEntry(session: HttpSession?, expectedType: Class<T>, area: String, name: String): T? {
         val entry = getEntry(session, area, name) ?: return null
         if (expectedType.isAssignableFrom(entry.javaClass)) {
             @Suppress("UNCHECKED_CAST")

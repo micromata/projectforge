@@ -38,13 +38,13 @@
         </tr>
         <tr>
           <td>
-            <a href="mailto:${todo.assignee.email}">
+            <a href="mailto:<%= pf.getString(todo.assignee.email) %>">
               <span class="title"><%= pf.getI18nString("plugins.todo.assignee") %></span>
               <span class="value"><%= pf.getString(todo.assignee) %></span>
             </a>
           </td>
           <td>
-            <a href="mailto:${todo.reporter.email}">
+            <a href="mailto:<%= pf.getString(todo.reporter.email) %>">
               <span class="title"><%= pf.getI18nString("plugins.todo.reporter") %></span>
               <span class="value"><%= pf.getString(todo.reporter) %></span>
             </a>

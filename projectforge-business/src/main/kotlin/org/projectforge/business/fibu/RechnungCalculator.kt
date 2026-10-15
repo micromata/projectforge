@@ -45,8 +45,14 @@ object RechnungCalculator {
      * @param rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
      * @return The calculated values.
      */
+    /**
+     * @param checkRefresh If false, [AuftragsCache] is read without triggering a refresh. Pass false when
+     * calculating from inside a running insert/update transaction (see [RechnungCache.update]) to avoid a
+     * self-deadlock: a refresh would run a JDBC SELECT on the invoice-position table the still-open transaction
+     * has write-locked.
+     */
     @JvmOverloads
-    fun calculate(rechnung: AbstractRechnungDO, useCaches: Boolean = true): RechnungInfo {
+    fun calculate(rechnung: AbstractRechnungDO, useCaches: Boolean = true, checkRefresh: Boolean = true): RechnungInfo {
         val info = RechnungInfo(rechnung)
         if (rechnung.deleted) {
             return info
@@ -64,13 +70,15 @@ object RechnungCalculator {
             if (pos.deleted) {
                 return@forEach
             }
-            var posInfo = if (useCaches) {
+            // An unsaved position (no id) is in no cache: not asked, so a calculation outside of Spring (e.g. of
+            // a new invoice in a unit test) doesn't need the caches at all.
+            var posInfo = if (useCaches && pos.id != null) {
                 rechnungCache.getRechnungPosInfo(pos.id)
             } else null
             if (posInfo == null) {
                 posInfo = RechnungPosInfo(info, pos as AbstractRechnungsPositionDO)
             }
-            calculate(posInfo, pos as AbstractRechnungsPositionDO)
+            calculate(posInfo, pos as AbstractRechnungsPositionDO, checkRefresh)
             posInfoList.add(posInfo)
         }
         info.positions = posInfoList
@@ -87,7 +95,9 @@ object RechnungCalculator {
         info.grossSumWithDiscount = calculateGrossSumWithDiscount(rechnung)
 
         val zahlBetrag = info.zahlBetrag
-        info.isBezahlt = if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
+        info.isBezahlt = if (info.isSettledByCancellation) {
+            true
+        } else if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
         } else if (info.bezahlDatum != null && zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0) {
             if (rechnung is RechnungDO) {
@@ -99,7 +109,9 @@ object RechnungCalculator {
             false
         }
         info.isUeberfaellig = false
-        if (!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
+        // A cancelled invoice and its cancellation are settled by each other: nothing is due, so neither is
+        // overdue (and neither is a candidate for a payment reminder).
+        if (!info.isSettledByCancellation &&!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
             info.isUeberfaellig = true
         }
         return info
@@ -108,16 +120,26 @@ object RechnungCalculator {
     /**
      * Calculations for invoice positions.
      */
-    internal fun calculate(posInfo: RechnungPosInfo, position: AbstractRechnungsPositionDO): RechnungPosInfo {
+    internal fun calculate(
+        posInfo: RechnungPosInfo,
+        position: AbstractRechnungsPositionDO,
+        checkRefresh: Boolean = true,
+    ): RechnungPosInfo {
         position.info = posInfo
         if (position is RechnungsPositionDO) {
-            val orderPosInfo = auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id)
-            if (orderPosInfo != null) { // auftragsPosition is null, if auftragsPosition is deleted.
-                position.auftragsPosition?.id.let { auftragsPositionId ->
-                    posInfo.auftragsPositionId = auftragsPositionId
-                    posInfo.auftragsId = orderPosInfo.auftragId
-                    posInfo.auftragsPositionNummer = orderPosInfo.number
-                }
+            // The id of the assigned order position is taken from the position itself, not from AuftragsCache:
+            // this method runs inside RechnungCache.refresh, and that refresh happens while AuftragsCache is
+            // still refreshing (the two caches use each other, see AuftragsRechnungCache.coupledRefreshRounds).
+            // AuftragsCache then answers nothing at all - a nested refresh of a cache returns immediately - and
+            // the id stayed null in the cached RechnungPosInfo until the next refresh of RechnungCache, which
+            // is why the invoice list showed no orders (Rechnung.copyFrom4ListRow resolves them from this id).
+            posInfo.auftragsPositionId = position.auftragsPosition?.id
+            // The order behind the position is the cache's answer and is only known once it has been read.
+            // Whoever needs it later resolves it from auftragsPositionId, when the cache is filled (see
+            // ForecastExportInvoices).
+            position.auftragsPosition?.id?.let { auftragsCache.getOrderPositionInfo(it, checkRefresh) }?.let { orderPosInfo ->
+                posInfo.auftragsId = orderPosInfo.auftragId
+                posInfo.auftragsPositionNummer = orderPosInfo.number
             }
         }
         posInfo.netSum = calculateNetSum(position)

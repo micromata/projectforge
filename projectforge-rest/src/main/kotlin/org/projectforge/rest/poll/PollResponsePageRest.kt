@@ -308,9 +308,9 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             translateMsg("poll.response.mail.update.subject", canedUser.displayName),
             translateMsg(
                 "poll.response.mail.update.content",
-                pollResponseDO.owner?.displayName,
-                pollResponseDO.poll?.title,
-                canedUser.displayName,
+                PollMailService.html(pollResponseDO.owner?.displayName),
+                PollMailService.html(pollResponseDO.poll?.title),
+                PollMailService.html(canedUser.displayName),
                 pollResponseDO.poll?.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString()
             )
         )

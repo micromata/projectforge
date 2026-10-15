@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.common.extensions.abbreviate
@@ -36,7 +36,7 @@ import org.projectforge.web.WicketSupport
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
     override fun addStatisticsEntries(stats: SystemStatisticsData) {

@@ -1,23 +1,39 @@
 ---
 layout: default
 ---
+{%- comment -%}
+    width: expand renders the content as it is (pages built from section includes); content_class is then
+    set on its wrapper. Otherwise the content is set as prose in a column of the given width (xsmall, small,
+    default). hide_title hides the title (e.g. if the hero shows it), cta adds a call-to-action section
+    below the content (title, subtitle, tone and buttons with text, url and style).
+{%- endcomment -%}
+{%- if page.width == 'xsmall' -%}
+    {%- assign column = 'max-w-[640px]' -%}
+{%- elsif page.width == 'small' -%}
+    {%- assign column = 'max-w-[var(--container-narrow)]' -%}
+{%- else -%}
+    {%- assign column = '' -%}
+{%- endif -%}
 
 {% if page.width == 'expand' %}
+<div{% if page.content_class %} class="{{ page.content_class }}"{% endif %}>
     {{ content }}
+</div>
 {% else %}
-<div class="uk-section">
-    <div class="uk-container{% if page.width %} uk-container-{{page.width}}{% endif %}">
-
-        <article class="uk-article">
-
-            <h1 class="uk-article-title">{{ page.title | escape }}</h1>
-
-            <div class="article-content link-primary">
+<div class="py-16 max-sm:py-12">
+    <div class="pf-container {{ column }}">
+        <article>
+            {% unless page.hide_title or page.hero or page.title == nil or page.title == "" %}
+            <h1 class="web-display mb-8">{{ page.title | escape }}</h1>
+            {% endunless %}
+            <div class="prose">
                 {{ content }}
             </div>
-
         </article>
-
     </div>
 </div>
+{% endif %}
+
+{% if page.cta %}
+    {% include cta.html title=page.cta.title subtitle=page.cta.subtitle tone=page.cta.tone buttons=page.cta.buttons %}
 {% endif %}

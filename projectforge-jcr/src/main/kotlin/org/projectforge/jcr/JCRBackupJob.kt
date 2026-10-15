@@ -23,17 +23,16 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import jakarta.annotation.PostConstruct
 import org.projectforge.common.BackupFilesPurging
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipOutputStream
-
-private val log = KotlinLogging.logger {}
 
 @Component
 class JCRBackupJob {
@@ -46,25 +45,37 @@ class JCRBackupJob {
     @Value("\${projectforge.jcr.cron.purgeBackupKeepWeeklyBackups}")
     private val keepWeeklyBackups: Long? = null
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
+    @PostConstruct
+    private fun postConstruct() {
+        schedulerJobRunner.register(SCHEDULER_JOB, ::execute) {
+            if (repoBackupService.backupDirectory == null) "No backup directory of the repository." else null
+        }
+    }
+
     // projectforge.jcr.cron.backup=0 30 0 * * *
-    @Scheduled(cron = "\${projectforge.jcr.cron.backup}")
+    @Scheduled(cron = CRON)
     fun execute() {
-        Thread {
-            log.info("JCR backup job started.")
-            val time = System.currentTimeMillis()
-            val backupFile = RepoBackupService.backupFilename
+        // Duration and exceptions are logged by the scheduler.
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) {
             val backupDirectory = repoBackupService.backupDirectory!!
-            val zipFile = File(backupDirectory, backupFile)
-            ZipOutputStream(FileOutputStream(zipFile)).use {
-                repoBackupService.backupAsZipArchive(zipFile.name, it)
-            }
-            log.info("JCR backup job finished after ${(System.currentTimeMillis() - time) / 1000} seconds.")
+            repoBackupService.createBackupFile()
             BackupFilesPurging.purgeDirectory(
                 backupDirectory,
                 filePrefix = RepoBackupService.backupFilenamePrefix,
                 keepDailyBackups = keepDailyBackups ?: 8,
                 keepWeeklyBackups = keepWeeklyBackups ?: 4,
             )
-        }.start()
+        }
+    }
+
+    companion object {
+        private const val CRON = "\${projectforge.jcr.cron.backup}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "jcr.backup", SchedulerJobArea.BACKUP, JCRBackupJob::class.java, "execute", SchedulerSchedule.Cron(CRON),
+        )
     }
 }

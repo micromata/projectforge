@@ -1,389 +1,533 @@
-/* Clean, simple MenuCustomizer CSS - completely rebuilt */
+/* =============================================================================
+   MenuCustomizer.module.scss — Redesign (ProjectForge)
+   Side-by-Side-Layout · Vorlage als Chips · Gruppen als Container
+   ============================================================================= */
 
+/* ---- Design Tokens ---- */
+$page-bg:        #eef0f4;
+$panel-bg:       #ffffff;
+$panel-border:   #e4e7ec;
+$scroll-bg:      #f8fafc;
+
+$text:           #101828;
+$text-2:         #475467;
+$muted:          #667085;
+$muted-light:    #98a2b3;
+
+$primary:        #2f6fed;
+$primary-hover:  #2563d6;
+$primary-soft:   #eef4fe;
+$primary-bd:     #cdddfb;
+$primary-bd-2:   #dbe7fc;
+$badge-bg:       #dce8fd;
+$badge-fg:       #3b6fd6;
+
+$success:        #2f9e6f;
+$success-check:  #3bb583;
+$success-soft:   #eaf6f0;
+$success-soft-2: #f1faf5;
+$success-bd:     #a4d6bf;
+$chip-bd:        #dde6e1;
+
+$cat-head-bg:    #f4f7fb;
+$cat-head-fg:    #344563;
+$cat-badge-bg:   #e7eef8;
+$cat-badge-fg:   #7d93b8;
+
+$amber-fg:       #a9760a;
+$amber-bd:       #eccf8f;
+$amber-bg:       #fdf6e7;
+$danger-fg:      #c44b43;
+$danger-bd:      #ecb3ae;
+$danger-bg:      #fdeeed;
+
+$grip:           #c2c9d3;
+$item-bd:        #e6ebf1;
+
+$r-panel: 14px;
+$r-card:  11px;
+$r-item:  8px;
+$r-ctrl:  9px;
+
+$shadow-card:    0 1px 2px rgba(16, 24, 40, .05);
+$shadow-hover:   0 2px 6px rgba(16, 24, 40, .08);
+$shadow-primary: 0 1px 2px rgba(47, 111, 237, .35);
+$shadow-chip:    0 1px 4px rgba(47, 158, 111, .18);
+$shadow-toast:   0 8px 24px rgba(16, 24, 40, .28);
+
+$font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+/* ---- Shell & Header ---- */
 .menuCustomizer {
-  padding: 20px;
-  
-  // Prevent auto-scrolling during drag operations
-  * {
-    scroll-behavior: auto !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  background: $page-bg;
+  font-family: $font;
+  color: $text;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 28px 18px;
+
+  h1 { margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -0.01em; }
+  p  { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: $muted; max-width: 640px; }
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12.5px;
+  color: $text-2;
+  flex: none;
+
+  span { display: inline-flex; align-items: center; gap: 7px; }
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+
+  &.dotPrimary { background: $primary; }
+  &.dotSuccess { background: $success; }
+}
+
+/* ---- Toolbar (above both panels) ---- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 0 28px 14px;
+}
+
+/* ---- Two-column layout ---- */
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 22px;
+  padding: 0 28px 24px;
+}
+
+@media (max-width: 1024px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: $panel-bg;
+  border: 1px solid $panel-border;
+  border-radius: $r-panel;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.panelHeader {
+  flex: none;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.panelTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panelTitle { font-size: 15.5px; font-weight: 700; }
+.panelMeta  { font-size: 12.5px; color: $muted-light; margin-left: 10px; }
+
+/* ---- Custom-menu drop body ---- */
+.customMenuBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: flex-start;
+  align-content: flex-start;
+  background: $scroll-bg;
+}
+
+/* ---- Favorite chip (compact item in favorites) ---- */
+.favChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  background: #fff;
+  border: 1px solid $primary-bd;
+  border-radius: $r-item;
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: grab;
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, transform .12s ease;
+  position: relative;
+
+  .favChipDot { width: 6px; height: 6px; border-radius: 50%; background: $primary; flex: none; }
+  .favChipLabel { white-space: nowrap; }
+
+  &:hover:not(.dragging) {
+    border-color: $primary;
+    background: $primary-soft;
+    box-shadow: 0 1px 4px rgba(47, 111, 237, .18);
+    transform: translateY(-1px);
+  }
+  &.dragging { opacity: .35; }
+
+  .favChipRemove {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid #d6dae0;
+    border-radius: 50%; font-size: 9px; color: #aab2bd;
+    cursor: pointer; opacity: 0;
+    transition: opacity .12s ease, color .12s ease, background .12s ease;
+    &:hover { background: #fdeeed; color: $danger-fg; border-color: $danger-bd; }
+  }
+  &:hover .favChipRemove { opacity: 1; }
+}
+
+/* ---- Group (container) ---- */
+.group {
+  flex: 0 0 100%;
+  width: 100%;
+  background: $panel-bg;
+  border: 1px solid $primary-bd;
+  border-radius: $r-card;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 11px 10px 9px;
+  background: $primary-soft;
+  border-bottom: 1px solid $primary-bd-2;
+  cursor: grab;
+
+  .folderIcon { color: $primary; }
+  .grip { color: #9db4e6; }
+  .title { flex: 1; min-width: 0; font-size: 14px; font-weight: 700;
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+.groupCount {
+  flex: none;
+  font-size: 11.5px; font-weight: 700;
+  color: $badge-fg; background: $badge-bg;
+  border-radius: 20px; padding: 2px 9px;
+}
+
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+
+  button {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: none; color: #5b7bb8;
+    border-radius: 7px; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+    &:hover { background: #dde9fd; }
+  }
+  .delete:hover { background: #fbe4e2; color: #d65a52; }
+}
+
+.groupBody {
+  padding: 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 40px;
+  background: $panel-bg;
+  border: 2px dashed transparent;
+  border-top: none;
+  border-radius: 0 0 $r-card $r-card;
+  transition: background .15s ease, border-color .15s ease;
+
+  &.draggingOver {
+    background: $success-soft;
+    border-color: $success;
   }
 }
 
-.customMenuSection {
-  margin-bottom: 20px;
+.emptyGroup {
+  padding: 12px;
+  text-align: center;
+  font-size: 12.5px;
+  font-style: italic;
+  color: $muted-light;
 }
 
+.removeButton {
+  flex: none;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; color: #aab2bd;
+  border-radius: 6px; cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+  &:hover { background: #f0f2f5; color: #d65a52; }
+}
+
+/* ---- Drop indicators ---- */
+.dropIndicator {
+  height: 3px; width: 100%;
+  border-radius: 2px;
+  background: $primary;
+  box-shadow: 0 0 8px rgba(47, 111, 237, .55);
+
+  &.inGroup { background: $success; box-shadow: 0 0 8px rgba(47, 158, 111, .5); }
+}
+
+/* ---- Empty state ---- */
+.emptyMenu {
+  margin: auto;
+  max-width: 380px;
+  text-align: center;
+  padding: 40px 24px;
+  background: $panel-bg;
+  border: 2px dashed #cdd5e0;
+  border-radius: $r-panel;
+
+  .icon {
+    width: 54px; height: 54px; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 14px; background: $primary-soft; color: $primary;
+    font-size: 22px;
+  }
+  .emptyTitle { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .emptyText  { font-size: 13.5px; line-height: 1.5; color: $muted; }
+}
+
+/* ---- Action bar (in header) ---- */
 .actionButtons {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}
-
-.templateMenuSection {
-  // No special styling needed
-}
-
-/* Custom menu horizontal layout */
-.horizontalMenuList {
-  min-height: 120px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  align-items: flex-start;
-  
-  // Prevent layout shifts during drag operations
-  &.dragging {
-    * {
-      pointer-events: none;
-    }
-  }
+  align-items: center;
+  gap: 7px;
 }
 
-/* Template menu layout */
-.templateMenuBody {
-  padding: 15px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  align-items: flex-start;
+@mixin btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 14px; font-size: 13px; font-weight: 600;
+  border-radius: $r-ctrl; cursor: pointer; border: 1px solid transparent;
+  transition: background .12s ease, border-color .12s ease;
 }
 
-/* Menu items */
-.menuItem {
-  padding: 8px 12px;
-  background-color: white;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: grab;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  min-width: 120px;
+.btnPrimary   { @include btn; color: #fff; background: $primary; border: none;
+                box-shadow: $shadow-primary; &:hover { background: $primary-hover; } }
+.btnSecondary { @include btn; color: $text-2; background: #fff; border-color: #d6dae0;
+                &:hover { background: #f6f7f9; }
+                &:disabled { color: #b0b6bf; cursor: not-allowed; opacity: .7; } }
+.btnWarning   { @include btn; color: $amber-fg; background: #fff; border-color: $amber-bd;
+                &:hover { background: $amber-bg; } }
+.btnDanger    { @include btn; color: $danger-fg; background: #fff; border-color: $danger-bd;
+                &:hover { background: $danger-bg; } }
+
+/* ---- Template panel (Vorlage) ---- */
+.searchWrap {
   position: relative;
-  
-  &:hover:not(.dragging) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  &.dragging {
-    opacity: 0.4;
-    transform: none !important;
-    transition: none !important;
-  }
-  
-  .horizontalMenuList & {
-    border-top: 3px solid #007bff;
-    
-    // Stabilize layout during drag
-    &.dragging {
-      height: auto;
-      min-height: 40px;
-    }
-  }
-  
-  .templateMenuBody & {
-    border-left: 3px solid #28a745;
-  }
-}
-
-.menuItemContent {
   display: flex;
   align-items: center;
-  gap: 8px;
-  
-  .groupItem & {
-    cursor: grab;
-    padding: 4px 0;
-    
-    &:active {
-      cursor: grabbing;
-    }
+  margin-top: 12px;
+
+  .searchIcon { position: absolute; left: 11px; color: $muted-light; pointer-events: none; }
+  input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    font-size: 13.5px;
+    border: 1px solid #dfe3e8;
+    border-radius: $r-ctrl;
+    background: $scroll-bg;
+    color: $text;
+    outline: none;
+    transition: border-color .12s ease, background .12s ease;
+    &:focus { border-color: $primary; background: #fff; }
   }
 }
 
-.dragHandle {
-  color: #adb5bd;
-  cursor: grab;
-}
+.searchHint { margin: 10px 0 0; font-size: 12px; line-height: 1.4; color: $muted-light; }
 
-.itemTitle {
+.templateMenuBody {
   flex: 1;
-}
-
-.actionButton {
-  padding: 0;
-  margin-left: 5px;
-  color: #6c757d;
-  border: none;
-  background: none;
-  
-  &:hover {
-    color: #343a40;
-  }
-}
-
-/* Groups */
-.groupItem {
-  min-width: 200px;
-  max-width: 300px;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  gap: 12px;
+  background: $scroll-bg;
+}
+
+.category {
+  background: $panel-bg;
+  border: 1px solid $item-bd;
+  border-radius: $r-card;
   overflow: hidden;
-  border-top: 3px solid #007bff;
-  
-  // Stabilize group layout during drag
-  &.dragging {
-    min-height: 100px;
-    transform: none !important;
-    transition: none !important;
-  }
-}
-
-.folderIcon {
-  margin-right: 8px;
-  color: #007bff;
-}
-
-.groupContent {
-  padding: 8px;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 60px;
-  
-  &.draggingOver {
-    background-color: rgba(40, 167, 69, 0.2);
-    border: 3px solid #28a745;
-    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-  }
-  
-  .menuItem {
-    margin: 0;
-    font-size: 0.85rem;
-    border-top: 2px solid #28a745;
-    min-width: auto;
-  }
-}
-
-.emptyGroup, .emptyMenu {
-  padding: 20px;
-  color: #6c757d;
-  text-align: center;
-  font-style: italic;
-  border: 2px dashed #dee2e6;
-  border-radius: 4px;
-}
-
-/* Drop zones between items */
-.dropZone {
-  width: 8px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  
-  &.draggingOver {
-    width: 20px;
-    background-color: rgba(0, 123, 255, 0.2);
-  }
-}
-
-.dropZoneIndicator {
-  width: 2px;
-  height: 40px;
-  background-color: transparent;
-  border-radius: 1px;
-  transition: all 0.2s ease;
-  
-  .dropZone.draggingOver & {
-    width: 4px;
-    background-color: #007bff;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
-  }
-}
-
-/* Drop zones within groups */
-.groupDropZone {
-  width: 100%;
-  height: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  margin: 2px 0;
-  
-  &.draggingOver {
-    height: 12px;
-    background-color: rgba(40, 167, 69, 0.2);
-  }
-}
-
-.groupDropZoneIndicator {
-  width: 80%;
-  height: 1px;
-  background-color: transparent;
-  border-radius: 1px;
-  transition: all 0.2s ease;
-  
-  .groupDropZone.draggingOver & {
-    height: 3px;
-    background-color: #28a745;
-    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
-  }
-}
-
-/* Drop indicators for horizontal layout */
-.menuItem::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -3px;
-  width: 4px;
-  background-color: #007bff;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.menuItem.dropIndicatorLeft::before {
-  opacity: 1;
-  background-color: #28a745;
-  width: 6px;
-  box-shadow: 0 0 8px rgba(40, 167, 69, 0.8);
-}
-
-.menuItem::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: -3px;
-  width: 4px;
-  background-color: #007bff;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.menuItem.dropIndicatorRight::after {
-  opacity: 1;
-}
-
-/* Drag overlay styling */
-.dragOverlayItem {
-  padding: 8px 12px;
-  background-color: white;
-  border: 2px solid #007bff;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  opacity: 0.9;
-  transform: rotate(5deg);
-}
-
-/* Category columns for template */
-.categoryColumn {
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-}
-
-.categoryContainer {
-  margin-bottom: 15px;
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e9ecef;
 }
 
 .categoryTitle {
-  display: block;
   width: 100%;
-  padding: 10px 15px;
-  background-color: #f0f4f8;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  background: $cat-head-bg;
   border: none;
-  border-bottom: 1px solid #dee2e6;
-  font-weight: 600;
-  text-align: left;
+  border-bottom: 1px solid $item-bd;
   cursor: pointer;
-  color: #344563;
-  
-  &:hover {
-    background-color: #e8eef5;
-  }
+  text-align: left;
+  transition: background .12s ease;
+
+  &:hover { background: #eef3f9; }
+  .chevron { color: #5b7bb8; transition: transform .18s ease; flex: none; }
+  .chevronCollapsed { transform: rotate(-90deg); }
+  .name { flex: 1; font-size: 13.5px; font-weight: 700; color: $cat-head-fg; }
+}
+
+.categoryBadge {
+  font-size: 11.5px; font-weight: 700;
+  color: $cat-badge-fg; background: $cat-badge-bg;
+  border-radius: 20px; padding: 2px 9px;
+  flex: none;
+}
+.categoryBadgeAdded {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; font-weight: 700;
+  color: $success; background: $success-soft;
+  border-radius: 20px; padding: 2px 9px;
+  flex: none;
 }
 
 .categoryLinks {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.categoryLink {
-  border-bottom: 1px solid #f3f3f3;
-  
-  &:last-child {
-    border-bottom: none;
-  }
-  
-  .menuItem {
-    padding: 6px 8px;
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    
-    &:hover {
-      background-color: #f8f9fa;
-    }
-  }
-}
-
-/* Header actions */
-.headerActions {
-  float: right;
-}
-
-.groupForm, .groupEditForm {
+  padding: 10px;
   display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* ---- Template chip (kompakt) ---- */
+.chip {
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  background: #fff;
+  border: 1px solid $chip-bd;
+  border-radius: $r-item;
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: grab;
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, transform .12s ease;
+
+  .chipDot { width: 6px; height: 6px; border-radius: 50%; background: $success; flex: none; }
+  .chipLabel { white-space: nowrap; }
+
+  &:hover {
+    border-color: $success-bd;
+    background: $success-soft-2;
+    box-shadow: $shadow-chip;
+    transform: translateY(-1px);
+  }
+  &.dragging { opacity: .45; }
 }
 
-.groupNameInput {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  border-radius: 0.2rem;
-  border: 1px solid #ced4da;
+/* bereits in "Dein Menü" übernommen */
+.chipAdded {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  background: #f2f4f7;
+  border: 1px solid $panel-border;
+  border-radius: $r-item;
+  font-size: 12.5px;
+  line-height: 1;
+  color: $muted-light;
+  cursor: default;
+
+  .chipCheck { color: $success-check; flex: none; display: flex; }
+  .chipLabel { white-space: nowrap; text-decoration: line-through; text-decoration-color: #cbd2db; }
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .categoryColumn {
-    min-width: 150px;
-    max-width: 200px;
-  }
-  
-  .templateMenuBody, .horizontalMenuList {
-    gap: 10px;
-    padding: 10px;
-  }
+.noResults { margin: 24px auto; text-align: center; font-size: 13.5px; color: $muted-light; }
+
+/* ---- Inline group name editing ---- */
+.groupEditInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid $primary;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
 }
 
-@media (max-width: 480px) {
-  .categoryColumn {
-    min-width: 100%;
-    max-width: 100%;
-  }
+/* ---- Add group form ---- */
+.addGroupBtn {
+  @include btn;
+  color: #fff;
+  background: $primary;
+  border: none;
+  box-shadow: $shadow-primary;
+  padding: 8px 13px;
+  &:hover { background: $primary-hover; }
+}
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 18px;
+  background: $text; color: #fff;
+  font-size: 13.5px; font-weight: 600;
+  border-radius: $r-card;
+  box-shadow: $shadow-toast;
+  z-index: 50;
+  animation: toastIn .25s ease;
+
+  .toastCheck { color: #5fd39a; }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---- Drag overlay (@dnd-kit DragOverlay) ---- */
+.dragOverlayItem {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px 6px 9px;
+  background: #fff;
+  border: 1px solid $primary;
+  border-radius: $r-item;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, .25);
+  font-size: 12.5px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: grabbing;
 }

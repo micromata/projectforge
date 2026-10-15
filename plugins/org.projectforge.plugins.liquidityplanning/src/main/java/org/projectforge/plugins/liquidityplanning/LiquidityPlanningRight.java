@@ -29,7 +29,7 @@ import org.projectforge.business.user.UserRightServiceImpl;
 import org.projectforge.framework.access.AccessChecker;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  *
  */
 public class LiquidityPlanningRight extends UserRightAccessCheck<LiquidityEntryDO>

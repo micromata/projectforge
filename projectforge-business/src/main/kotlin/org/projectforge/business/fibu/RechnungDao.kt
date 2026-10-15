@@ -24,11 +24,16 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightServiceImpl
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.MessageParamType
 import org.projectforge.common.i18n.UserException
@@ -38,7 +43,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
@@ -48,6 +55,7 @@ import org.springframework.stereotype.Service
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -59,6 +67,12 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     @Autowired
     private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     /**
      * @return the rechnungCache
@@ -75,11 +89,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(RechnungsPositionDO::class.java, KostZuweisungDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID
+    }
+
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return property == "kundeText"
     }
 
     val years: IntArray
@@ -104,6 +122,28 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         AbstractRechnungsStatistik.configurationService = configurationService
         for (rechnung in list) {
             stats.add(rechnung)
+        }
+        return stats
+    }
+
+    /**
+     * The invoice statistics of the given ids, straight from [RechnungCache] - no entity is loaded and no
+     * position is touched, so it is cheap enough for a live-during-selection call (see
+     * `RechnungMultiSelectedPageRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
+     * cached [RechnungInfo], keyed by id.
+     */
+    fun buildStatistikByIds(ids: Collection<Serializable>?): RechnungsStatistik {
+        val stats = RechnungsStatistik()
+        if (ids.isNullOrEmpty()) {
+            return stats
+        }
+        // Initialize companion object services for currency conversion (as buildStatistik does).
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        AbstractRechnungsStatistik.configurationService = configurationService
+        ids.forEach { id ->
+            (id as? Number)?.toLong()?.let { longId ->
+                rechnungCache.getRechnungInfo(longId)?.let { info -> stats.add(info) }
+            }
         }
         return stats
     }
@@ -154,6 +194,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            // Its status was changed along with this cancellation (see [updateOriginalStatus]).
+            obj.originalRechnung?.let { rechnungCache.update(it) }
+        }
     }
 
     /**
@@ -162,10 +206,37 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
+    /**
+     * The next edit form posts the order position of an invoice position as id-only stub (see
+     * RechnungsPosition.copyTo). The order position is embedded in the invoice's search index
+     * (positionen.auftragsPosition, see HibernateSearchAuftragsPositionBridge), and a stub has no order: the
+     * position was indexed without its order number, so the invoice wasn't found by it until the next re-index.
+     * The reference loads the order position (and its order) lazily within this transaction when indexed.
+     */
+    private fun resolveOrderPositions(obj: RechnungDO) {
+        obj.positionen?.forEach { pos ->
+            val orderPos = pos.auftragsPosition ?: return@forEach
+            val id = orderPos.id ?: return@forEach
+            if (orderPos.auftrag == null) {
+                pos.auftragsPosition = persistenceService.getReference(AuftragsPositionDO::class.java, id)
+            }
+        }
+    }
+
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+        if (operationType == OperationType.UPDATE && obj.id != null) {
+            checkStoredCancellationUnchanged(obj)
+        }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = find(obj.id, checkAccess = false)
-            if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
+            // A projection, not find(): find() detaches the managed instance this update is just writing, and the
+            // merge of the detached graph then appended every cost assignment past max(index) (see
+            // RechnungsPositionDO.kostZuweisungen).
+            val storedStatus = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_STATUS,
+                RechnungStatus::class.java,
+                Pair("id", obj.id),
+            )
+            if (RechnungStatus.GEPLANT == storedStatus && RechnungStatus.GEPLANT != obj.status) {
                 obj.nummer = getNextNumber(obj)
 
                 val day = now()
@@ -180,13 +251,35 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
 
         AuftragAndRechnungDaoHelper.onSaveOrModify(obj)
+        resolveOrderPositions(obj)
 
         validate(obj)
 
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            if (operationType == OperationType.DELETE) {
+                // No validation: a cancellation has to be deletable even if its original is not cancellable
+                // anymore. The original is no longer cancelled then.
+                obj.originalRechnung?.id?.let { persistenceService.find(RechnungDO::class.java, it, attached = true) }
+                    ?.let { original ->
+                        obj.originalRechnung = original
+                        updateOriginalStatus(original, cancelled = false)
+                    }
+            } else {
+                validateCancellation(obj)
+                updateOriginalStatus(obj.originalRechnung!!, cancelled = true)
+            }
+        } else {
+            // Only a cancellation references an original, and a stale one left over from a type change would
+            // derive nothing but confusion.
+            obj.originalRechnung = null
+        }
         if (obj.typ == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
             if (obj.nummer != null) {
                 throw UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben")
             }
+        } else if (obj.typ == RechnungTyp.CANCELLATION) {
+            // No number of its own: the number of a cancellation is derived from the original's
+            // ([RechnungDO.belegNummer]), so there is no sequence to keep and nothing that could collide.
         } else {
             if (RechnungStatus.GEPLANT != obj.status && obj.nummer == null) {
                 throw UserException(
@@ -256,6 +349,128 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
     }
 
+    /**
+     * The rules of a cancellation invoice ([RechnungTyp.CANCELLATION]):
+     * - it has no number of its own, its number is derived from the original ([RechnungDO.belegNummer]),
+     * - it references the invoice it cancels, which has to be cancellable ([RechnungDO.isCancellable]: a
+     *   cancellation of a cancellation or of an invoice without number makes no sense),
+     * - an invoice is cancelled once at most, otherwise two documents would carry the same number,
+     * - its net sum is negative (or zero), so an invoice and its cancellation cancel each other out in every
+     *   sum of the Rechnungsbuch.
+     *
+     * Replaces the given reference (usually an id-only stub from the REST layer) by the original loaded from the
+     * database, so [RechnungDO.belegNummer] is right for the rest of the request (caches, index, history).
+     */
+    private fun validateCancellation(obj: RechnungDO) {
+        if (obj.nummer != null) {
+            throw UserException("fibu.rechnung.error.cancellation.noOwnNumber")
+        }
+        val originalId = obj.originalRechnung?.id
+            ?: throw UserException("fibu.rechnung.error.cancellation.originalRequired")
+        // Loaded attached, in the session of the running insert/update, and without the positions (which
+        // [find] initializes): a detached copy lazy-loads them through a temporary session on a second
+        // connection, which a table-locking database (HSQLDB in the tests) blocks behind this transaction.
+        val original = persistenceService.find(RechnungDO::class.java, originalId, attached = true)
+        if (original == null || original.id == obj.id || !original.isCancellable) {
+            throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
+        }
+        obj.originalRechnung = original
+        val otherCancellation = persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).any { it.id != obj.id && it.typ == RechnungTyp.CANCELLATION }
+        if (otherCancellation) {
+            throw UserException("fibu.rechnung.error.cancellation.alreadyCancelled", original.nummer.toString())
+        }
+        val netSum = obj.positionenExcludingDeleted.fold(BigDecimal.ZERO) { sum, pos ->
+            sum + (pos.menge ?: BigDecimal.ONE) * (pos.einzelNetto ?: BigDecimal.ZERO)
+        }
+        if (netSum > BigDecimal.ZERO) {
+            throw UserException("fibu.rechnung.error.cancellation.mustBeNegative")
+        }
+    }
+
+    /**
+     * A stored cancellation keeps its type and its original: the original's status was set to STORNIERT for
+     * it, and a cancellation turned into an invoice or moved to another original would leave that status
+     * behind. Deleting the cancellation (and creating a new one) is the way to go instead.
+     */
+    private fun checkStoredCancellationUnchanged(obj: RechnungDO) {
+        val stored = persistenceService.selectNamedSingleResult(
+            RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
+            Tuple::class.java,
+            Pair("id", obj.id),
+        ) ?: return
+        if (stored.get("typ") != RechnungTyp.CANCELLATION) {
+            return
+        }
+        if (obj.typ != RechnungTyp.CANCELLATION || obj.originalRechnung?.id != stored.get("originalId")) {
+            throw UserException("fibu.rechnung.error.cancellation.unchangeable")
+        }
+    }
+
+    /**
+     * Sets the status of the cancelled invoice: STORNIERT while a cancellation exists, and back to BEZAHLT or
+     * GESTELLT (by its payment) once the cancellation is deleted. A status the user has changed by hand in the
+     * meantime is left alone on the way back.
+     *
+     * Written to the (attached) original directly, in the transaction of the cancellation, with a history entry
+     * of its own: a regular [update] of the original would copy it onto itself and detect no change.
+     */
+    private fun updateOriginalStatus(original: RechnungDO, cancelled: Boolean) {
+        val oldStatus = original.status
+        val newStatus = if (cancelled) {
+            RechnungStatus.STORNIERT
+        } else {
+            if (oldStatus != RechnungStatus.STORNIERT) {
+                return
+            }
+            if (original.bezahlDatum != null && original.zahlBetrag != null) RechnungStatus.BEZAHLT else RechnungStatus.GESTELLT
+        }
+        if (oldStatus == newStatus) {
+            return
+        }
+        persistenceService.runInTransaction { context ->
+            original.status = newStatus
+            original.setLastUpdate()
+            HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
+                entity = original,
+                propertyName = "status",
+                propertyTypeClass = RechnungStatus::class.java,
+                oldValue = oldStatus,
+                newValue = newStatus,
+                context = context,
+            )
+        }
+        log.info { "Status of invoice #${original.nummer} changed from $oldStatus to $newStatus (cancellation)." }
+    }
+
+    /**
+     * @return The (undeleted) invoice with the given number, if any. Without access check: the caller
+     * resolves a reference by it, and the invoice itself is checked on read/write.
+     */
+    fun findByNummer(nummer: Int?): RechnungDO? {
+        nummer ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_BY_NUMMER,
+            RechnungDO::class.java,
+            Pair("nummer", nummer),
+        ).firstOrNull()
+    }
+
+    /**
+     * @return The (undeleted) cancellation invoice of the given invoice, if any.
+     */
+    fun findCancellationOf(originalId: Long?): RechnungDO? {
+        originalId ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).firstOrNull { it.typ == RechnungTyp.CANCELLATION }
+    }
+
     override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType) {
         projektDao.initializeProjektManagerGroup(obj.projekt)
     }
@@ -263,17 +478,16 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Fetches the cost assignments.
      *
+     * Touching them is the whole point: both collections are lazy, and a caller outside the transaction
+     * would get a `LazyInitializationException` instead. Null safe throughout, because an unknown id must
+     * answer null and let the caller report a 404 - not throw and turn into a 500.
+     *
      * @see org.projectforge.framework.persistence.api.BaseDao.find
      */
     @Throws(AccessException::class)
     override fun find(id: Serializable?, checkAccess: Boolean, attached: Boolean): RechnungDO? {
         val rechnung = super.find(id, checkAccess = checkAccess, attached = attached)
-        for (pos in rechnung!!.positionen!!) {
-            val list: List<KostZuweisungDO>? = pos.kostZuweisungen
-            if (list != null && list.size > 0) {
-                // Kostzuweisung is initialized
-            }
-        }
+        rechnung?.positionen?.forEach { it.kostZuweisungen?.size }
         return rechnung
     }
 
@@ -318,7 +532,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
                     result.add(rechnung)
                 }
             } else {
-                log.error("Unknown filter setting: " + myFilter.listType)
+                log.error { "Unknown filter setting: " + myFilter.listType }
                 break
             }
         }
@@ -340,10 +554,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     fun getNextNumber(rechnung: RechnungDO?): Int {
         if (rechnung?.id != null) {
-            val orig = find(rechnung.id, checkAccess = false)
-            if (orig!!.nummer != null) {
-                rechnung.nummer = orig.nummer
-                return orig.nummer!!
+            // A projection, not find(): called by onInsertOrModify, where find() would detach the invoice being written.
+            val storedNummer = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_NUMMER,
+                Int::class.javaObjectType,
+                Pair("id", rechnung.id),
+            )
+            if (storedNummer != null) {
+                rechnung.nummer = storedNummer
+                return storedNummer
             }
         }
         return persistenceService.getNextNumber("RechnungDO", "nummer", START_NUMBER)
@@ -353,12 +572,17 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun addOwnHistoryEntries(obj: RechnungDO, context: HistoryLoadContext) {
-        obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context)
-            position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context)
-            }
+        // Batch the children's history (one query per child class) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...). The kostZuweisungen of all positions are
+        // aggregated into a single call. Display prefixes are resolved post-hoc via getHistoryPropertyPrefix.
+        val positionen = obj.positionen
+        positionen?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(RechnungsPositionDO::class.java, ids, context)
         }
+        positionen?.flatMap { it.kostZuweisungen ?: emptyList() }?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }
+            ?.let { ids ->
+                historyService.loadAndMergeHistory(KostZuweisungDO::class.java, ids, context)
+            }
     }
 
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
@@ -393,15 +617,134 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return RechnungDO()
     }
 
+    /**
+     * In addition to the invoice right (FIBU_AUSGANGSRECHNUNGEN), users with order book access
+     * ([UserRightId.PM_ORDER_BOOK]) may open the outgoing invoice list. They only get to see the invoices
+     * linked to an order they may see, filtered per row in [hasUserSelectAccess] (obj form). Read-only:
+     * insert/update/delete still require the invoice right.
+     */
+    override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
+        if (super.hasUserSelectAccess(user, false)) {
+            return true
+        }
+        if (hasOrderBookSelectAccess(user)) {
+            // Order book users may open the (per-row filtered) list.
+            return true
+        }
+        // Delegate to super to throw the standard AccessException if requested.
+        return super.hasUserSelectAccess(user, throwException)
+    }
+
+    /**
+     * Grants read-only access to a single outgoing invoice for order book users if it is linked to an order
+     * the user may see and isn't older than [MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER] years. This is also
+     * the per-row filter of the list query (see [org.projectforge.framework.persistence.api.impl.DBQuery]).
+     */
+    override fun hasUserSelectAccess(user: PFUserDO, obj: RechnungDO, throwException: Boolean): Boolean {
+        if (super.hasUserSelectAccess(user, obj, false)) {
+            return true
+        }
+        if (hasOrderBookUserReadAccess(user, obj)) {
+            return true
+        }
+        // Delegate to super to throw the standard AccessException if requested.
+        return super.hasUserSelectAccess(user, obj, throwException)
+    }
+
+    /**
+     * @return true if the user has (at least read-only) access to the order book ([UserRightId.PM_ORDER_BOOK]).
+     */
+    private fun hasOrderBookSelectAccess(user: PFUserDO): Boolean {
+        return accessChecker.hasRight(
+            user, AuftragDao.USER_RIGHT_ID,
+            UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE
+        )
+    }
+
+    /**
+     * Read-only fallback for order book users: the invoice must be linked (via one of its positions ->
+     * order position -> order) to an order the user is allowed to see, and it must not be older than
+     * [MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER] years.
+     */
+    private fun hasOrderBookUserReadAccess(user: PFUserDO, obj: RechnungDO?): Boolean {
+        obj ?: return false
+        if (!hasOrderBookSelectAccess(user)) {
+            return false
+        }
+        val datum = obj.datum ?: return false
+        if (datum.isBefore(LocalDate.now().minusYears(MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER.toLong()))) {
+            return false
+        }
+        // An invoice position doesn't know its order directly; resolve it through the caches (no lazy init).
+        val auftragIds = rechnungCache.getRechnungInfo(obj.id)?.positions
+            ?.mapNotNull { auftragsCache.getOrderPositionInfo(it.auftragsPositionId)?.auftragId }
+            ?.distinct()
+            ?: return false
+        for (auftragId in auftragIds) {
+            val orderInfo = auftragsCache.getOrderInfo(auftragId) ?: continue
+            if (hasOrderSelectAccess(user, orderInfo)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Cache-only reimplementation of [AuftragRight.hasAccess] for [OperationType.SELECT]. This is called
+     * once per candidate invoice row of the list, so it must not touch the database: loading the order via
+     * [AuftragDao.find] (and letting [AuftragRight.hasAccess] initialize the order's positions and payment
+     * schedules) turned the list into an N+1 storm. All fields the SELECT path needs are available from the
+     * [AuftragsCache] order info and the [ProjektCache] project (whose *Id getters read the foreign key
+     * without initializing the lazy association).
+     */
+    private fun hasOrderSelectAccess(user: PFUserDO, orderInfo: OrderInfo): Boolean {
+        if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
+            return true
+        }
+        if (!hasOrderBookSelectAccess(user)) {
+            return false
+        }
+        if (accessChecker.isUserMemberOfGroup(user, *UserRightServiceImpl.FIBU_ORGA_GROUPS)
+            && accessChecker.hasRight(user, AuftragDao.USER_RIGHT_ID, UserRightValue.READONLY, UserRightValue.READWRITE)
+        ) {
+            // Members of the finance/orga groups with (at least) read access to the order book see every order.
+            return true
+        }
+        // Otherwise the user must be tied to the order as (additional) contact person or through the project's manager group.
+        var hasAccess = false
+        if (orderInfo.isContact(user.id)) {
+            hasAccess = true
+        }
+        projektCache.getProjekt(orderInfo.projektId)?.let { projekt ->
+            if (UserGroupCache.getInstance().isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
+                || projekt.headOfBusinessManagerId == user.id
+                || projekt.salesManagerId == user.id
+            ) {
+                hasAccess = true
+            }
+        }
+        if (!hasAccess) {
+            return false
+        }
+        if (!orderInfo.isVollstaendigFakturiert) {
+            return true
+        }
+        // Fully invoiced orders stay visible for a while, keyed off the performance/offer date (see AuftragRight).
+        val endDate = orderInfo.periodOfPerformanceEnd ?: orderInfo.angebotsDatum ?: return false
+        return LocalDate.now().toEpochDay() - endDate.toEpochDay() <= AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
+    }
+
     companion object {
         @JvmField
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_AUSGANGSRECHNUNGEN
 
-        const val START_NUMBER: Int = 1000
+        /**
+         * Outgoing invoices older than this number of years won't be visible for order book users
+         * (users with [UserRightId.PM_ORDER_BOOK] but without the invoice right).
+         */
+        const val MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER: Int = 2
 
-        val ADDITIONAL_HISTORY_SEARCH_DOS = arrayOf<Class<*>>(
-            RechnungsPositionDO::class.java
-        )
+        const val START_NUMBER: Int = 1000
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "projekt.name",
@@ -413,6 +756,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             var nettoSumme = BigDecimal.ZERO
             if (col != null && col.size > 0) {
                 for (pos in col) {
+                    if (!pos.isInvoiced) {
+                        // Planned or cancelled invoices don't count as invoiced.
+                        continue
+                    }
                     nettoSumme = nettoSumme.add(pos.netSum)
                 }
             }

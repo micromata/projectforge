@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -47,6 +47,7 @@ import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.common.StringHelper
+import org.projectforge.common.logging.error
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.json.*
@@ -184,12 +185,11 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref != null
     }
 
+    /**
+     * Restricted to the logged-in user's own entries.
+     */
     override fun select(filter: BaseSearchFilter): List<UserPrefDO> {
-        val myFilter = filter as UserPrefFilter
         val queryFilter = QueryFilter(filter)
-        if (myFilter.area != null) {
-            queryFilter.add(eq("area", myFilter.area.id))
-        }
         queryFilter.add(eq("user.id", requiredLoggedInUserId))
         queryFilter.addOrder(asc("area"))
         queryFilter.addOrder(asc("name"))
@@ -250,6 +250,25 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     /**
+     * Loads all user prefs of the given area for the given user in a single query, eagerly fetching the legacy
+     * [UserPrefDO.userPrefEntries]. Use this instead of loading the id/name list and then re-selecting each entry
+     * individually (which reads the lazy entries per row and causes an N+1, see [TaskFavoritesService]).
+     *
+     * @param userId If null, an empty list is returned.
+     * @param areaId The area to load (plain area id string, not necessarily a registered [UserPrefArea]).
+     */
+    fun selectUserPrefsWithEntries(userId: Long?, areaId: String): List<UserPrefDO> {
+        userId ?: return emptyList()
+        val list = persistenceService.executeNamedQuery(
+            UserPrefDO.FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES,
+            UserPrefDO::class.java,
+            Pair("userId", userId),
+            Pair("area", areaId)
+        )
+        return list.distinct()
+    }
+
+    /**
      * Adds the object fields as parameters to the given userPref. Fields without the annotation UserPrefParameter will be
      * ignored.
      *
@@ -257,16 +276,6 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      */
     fun addUserPrefParameters(userPref: UserPrefDO, obj: Any) {
         addUserPrefParameters(userPref, obj.javaClass, obj)
-    }
-
-    /**
-     * Adds the fields of the bean type represented by the given area as parameters to the given userPref. Fields without
-     * the annotation UserPrefParameter will be ignored.
-     *
-     * @see .fillFromUserPrefParameters
-     */
-    fun addUserPrefParameters(userPref: UserPrefDO, area: UserPrefArea) {
-        addUserPrefParameters(userPref, area.beanType, null)
     }
 
     private fun addUserPrefParameters(userPref: UserPrefDO, beanType: Class<*>, obj: Any?) {
@@ -525,8 +534,9 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         val valueType = userPref.valueType ?: return null
         val valueString = userPref.serializedValue ?: return null
-        if (userPref.valueType == null) return null
-        userPref.valueObject = fromJson(valueString, valueType)
+        userPref.valueObject = fromJson(
+            valueString, valueType, "id=${userPref.id}, area=${userPref.area}, name=${userPref.name}",
+        )
         return userPref.valueObject
     }
 
@@ -655,6 +665,28 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
     }
 
+    /**
+     * Deletes the user pref identified by user id, area and identifier from the database (if it exists). The id of any
+     * given obj is ignored; the row is looked up by user id, area and name. Does nothing for the demo user or if no
+     * matching row exists.
+     */
+    fun delete(userId: Long, key: UserPrefCacheDataKey, checkAccess: Boolean) {
+        if (accessChecker.isDemoUser(userId)) {
+            // Do nothing.
+            return
+        }
+        if (checkAccess) {
+            if (userId != loggedInUserId) {
+                throw AccessException("User '$loggedInUserId' has no access to delete user preferences of other user '$userId'.")
+            }
+        }
+        synchronized(this) {
+            // Avoid parallel insert, update, delete operations.
+            val dbUserPref = internalQuery(userId, key.area, key.identifier) ?: return
+            super.delete(dbUserPref, checkAccess = checkAccess)
+        }
+    }
+
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.username", "user.firstname",
@@ -682,14 +714,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             return StringUtils.startsWith(value, MAGIC_JSON_START)
         }*/
 
-        internal fun <T> fromJson(json: String, classOfT: Class<T>): T? {
+        /** @param context Which entry, for the log message. */
+        internal fun <T> fromJson(json: String, classOfT: Class<T>, context: String? = null): T? {
             var useJson = getUncompressed(json)
             useJson = useJson.removePrefix(MAGIC_JSON_START)
             // if (!isJsonObject(useJson)) return null
             try {
                 return objectMapper.readValue(useJson, classOfT)
             } catch (ex: IOException) {
-                log.error { "Can't deserialize json object (may-be incompatible ProjectForge versions): ${ex.message}, json=$useJson" }
+                log.error(UserLogEvents.PREF_NOT_DESERIALIZABLE) {
+                    "Can't deserialize json object${context?.let { " ($it)" } ?: ""} (may-be incompatible ProjectForge versions): ${ex.message}, json=$useJson"
+                }
                 return null
             }
         }

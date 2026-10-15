@@ -1,0 +1,613 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.business.fibu
+
+import de.micromata.merlin.word.WordDocument
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.mustangproject.BankDetails
+import org.mustangproject.CashDiscount
+import org.mustangproject.Contact
+import org.mustangproject.FileAttachment
+import org.mustangproject.Invoice
+import org.mustangproject.Item
+import org.mustangproject.Product
+import org.mustangproject.ReferencedDocument
+import org.mustangproject.TradeParty
+import org.mustangproject.SchemedID
+import org.mustangproject.ZUGFeRD.Profiles
+import org.mustangproject.ZUGFeRD.XRExporter
+import org.mustangproject.ZUGFeRD.ZUGFeRD2PullProvider
+import org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA3
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.renderer.LibreOfficeService
+import org.projectforge.framework.renderer.PdfFontProvider
+import org.projectforge.framework.renderer.PdfFontService
+import org.projectforge.jcr.RepoService
+import org.springframework.stereotype.Service
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
+
+private val log = KotlinLogging.logger {}
+
+@Service
+class EInvoiceExportService(
+    val sellerConfig: EInvoiceSellerConfig,
+    private val invoiceService: InvoiceService,
+    private val attachmentsService: AttachmentsService,
+    private val repoService: RepoService,
+    private val rechnungDao: RechnungDao,
+    // Optional only for unit tests constructing the service by hand; Spring always injects them.
+    private val pdfFontService: PdfFontService? = null,
+    private val libreOfficeService: LibreOfficeService? = null,
+) {
+    companion object {
+        const val JCR_PATH = "org.projectforge.rechnung"
+        const val INVOICE_PDF_MARKER = "__INVOICE_PDF__"
+    }
+
+    fun exportAsXRechnung(invoice: RechnungDO): ByteArray {
+        val validationErrors = validate(invoice)
+        if (validationErrors.isNotEmpty()) {
+            throw IllegalStateException(
+                "Invoice ${invoice.nummer} cannot be exported as XRechnung: ${validationErrors.joinToString("; ")}"
+            )
+        }
+
+        val mustangInvoice = buildMustangInvoice(invoice)
+        val exporter = createXRExporter("XRechnung")
+        exporter.setTransaction(mustangInvoice)
+
+        val baos = ByteArrayOutputStream()
+        exporter.export(baos)
+        log.info { "XRechnung XML exported for invoice #${invoice.nummer}" }
+        return baos.toByteArray()
+    }
+
+    /**
+     * @param variant The variant of the Word invoice template to convert where no invoice PDF was uploaded
+     * (see [InvoiceService.getTemplateVariants]); null or blank for the unnamed one. Ignored where a PDF was
+     * uploaded, since that is the document the XML is embedded into then.
+     */
+    fun exportAsZUGFeRD(invoice: RechnungDO, variant: String? = null): ByteArray {
+        val validationErrors = validate(invoice)
+        if (validationErrors.isNotEmpty()) {
+            throw IllegalStateException(
+                "Invoice ${invoice.nummer} cannot be exported as ZUGFeRD: ${validationErrors.joinToString("; ")}"
+            )
+        }
+
+        val pdfBytes = getUploadedInvoicePdf(invoice.id)
+            ?: generateInvoicePdf(invoice, variant)
+            ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured and no PDF uploaded)")
+
+        val mustangInvoice = buildMustangInvoice(invoice)
+
+        val baos = ByteArrayOutputStream()
+        val zugFeRDExporter = ZUGFeRDExporterFromA3()
+            .ignorePDFAErrors()
+            .load(ByteArrayInputStream(pdfBytes))
+            .setProducer("ProjectForge")
+            .setCreator("ProjectForge")
+            .setZUGFeRDVersion(2)
+            .setProfile(Profiles.getByName("EN16931"))
+        zugFeRDExporter.setTransaction(mustangInvoice)
+        zugFeRDExporter.export(baos)
+        log.info { "ZUGFeRD PDF exported for invoice #${invoice.nummer}" }
+        return embedAttachmentsInPdf(baos.toByteArray(), invoice)
+    }
+
+    private fun embedAttachmentsInPdf(pdfBytes: ByteArray, invoice: RechnungDO): ByteArray {
+        val invoiceId = invoice.id ?: return pdfBytes
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+            .filter { it.description != INVOICE_PDF_MARKER }
+        if (attachments.isEmpty()) return pdfBytes
+
+        val doc = Loader.loadPDF(pdfBytes)
+        try {
+            val efTree = PDEmbeddedFilesNameTreeNode()
+            val existingNames = mutableMapOf<String, PDComplexFileSpecification>()
+            doc.documentCatalog.names?.embeddedFiles?.names?.let { existingNames.putAll(it) }
+
+            attachments.forEach { attachment ->
+                val fileId = attachment.fileId ?: return@forEach
+                val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+                val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+                    ?: return@forEach
+                if (!repoService.retrieveFile(fileObject)) return@forEach
+                val content = fileObject.content ?: return@forEach
+                val fileName = attachment.name ?: "attachment"
+                val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"
+
+                val embeddedFile = PDEmbeddedFile(doc, ByteArrayInputStream(content))
+                embeddedFile.subtype = mimeType
+                embeddedFile.size = content.size
+
+                val fileSpec = PDComplexFileSpecification()
+                fileSpec.file = fileName
+                fileSpec.embeddedFile = embeddedFile
+
+                existingNames[fileName] = fileSpec
+                log.info { "Embedded attachment '$fileName' (${content.size} bytes) into ZUGFeRD PDF for invoice #${invoice.nummer}" }
+            }
+
+            efTree.names = existingNames
+            val names = doc.documentCatalog.names ?: PDDocumentNameDictionary(doc.documentCatalog)
+            names.embeddedFiles = efTree
+            doc.documentCatalog.names = names
+
+            val output = ByteArrayOutputStream()
+            doc.save(output)
+            return output.toByteArray()
+        } finally {
+            doc.close()
+        }
+    }
+
+    fun getUploadedInvoicePdf(invoiceId: Long?): ByteArray? {
+        invoiceId ?: return null
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
+        val fileId = pdfAttachment.fileId ?: return null
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+            ?: return null
+        if (!repoService.retrieveFile(fileObject)) return null
+        log.info { "Using uploaded invoice PDF '${pdfAttachment.name}' for invoice id=$invoiceId" }
+        return fileObject.content
+    }
+
+    fun deleteUploadedInvoicePdf(invoiceId: Long) {
+        val deleted = deleteUploadedInvoicePdfInternal(invoiceId)
+        updateAttachmentsCounter(invoiceId, deleted?.let { "Invoice PDF '$it' deleted." })
+    }
+
+    fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
+        val replaced = deleteUploadedInvoicePdfInternal(invoiceId)
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        repoService.ensureNode(null, nodePath)
+        val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
+        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileInfo = fileInfo)
+        fileObject.content = pdfContent
+        repoService.storeFile(fileObject, InternalFileSizeChecker)
+        log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
+        // The replaced file is named too: an upload onto a stored PDF is one action of the user, and the
+        // history entry it leaves is the only place afterwards saying which file it took the place of.
+        updateAttachmentsCounter(
+            invoiceId,
+            if (replaced != null) {
+                "Invoice PDF uploaded: '$fileName' (replacing '$replaced')."
+            } else {
+                "Invoice PDF uploaded: '$fileName'."
+            },
+        )
+    }
+
+    /**
+     * @return the name of the file that was there, or null if this invoice had no invoice PDF.
+     */
+    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long): String? {
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
+        val fileId = pdfAttachment.fileId ?: return null
+        val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+        val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+        repoService.deleteFile(fileObject)
+        log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
+        return pdfAttachment.name
+    }
+
+    /**
+     * Writes the invoice's attachment info after a write to its JCR node, as
+     * `AttachmentsService.updateAttachmentsInfo` does for every other attachment.
+     *
+     * [lastUserAction] is what makes the write appear in the invoice's change history: the four counter and
+     * name fields are `@NoHistory` (they exist for the search index), so a save that touches only them leaves
+     * no entry at all — `attachmentsLastUserAction` is the one historized field of the group, which is why
+     * `AttachmentsService` phrases a sentence into it for each of its own events.
+     */
+    private fun updateAttachmentsCounter(invoiceId: Long, lastUserAction: String? = null) {
+        val invoice = rechnungDao.find(invoiceId, checkAccess = false) ?: return
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        invoice.attachmentsCounter = if (attachments.isNotEmpty()) attachments.size else null
+        invoice.attachmentsSize = if (attachments.isNotEmpty()) attachments.sumOf { it.size ?: 0L } else null
+        invoice.attachmentsNames = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.name ?: "" } else null
+        invoice.attachmentsIds = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.fileId ?: "" } else null
+        lastUserAction?.let { invoice.attachmentsLastUserAction = it }
+        rechnungDao.updateAny(invoice, checkAccess = false)
+    }
+
+    private object InternalFileSizeChecker : org.projectforge.jcr.FileSizeChecker {
+        override val maxFileSize: Long = 50 * 1024 * 1024 // 50 MB
+        override fun checkSize(file: org.projectforge.jcr.FileInfo, data: Any?, displayUserMessage: Boolean) {
+            if ((file.size ?: 0) > maxFileSize) {
+                throw IllegalStateException("Invoice PDF too large (max 50 MB)")
+            }
+        }
+    }
+
+    fun getUploadedInvoicePdfInfo(invoiceId: Long?): org.projectforge.framework.jcr.Attachment? {
+        invoiceId ?: return null
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+        return attachments.firstOrNull { it.description == INVOICE_PDF_MARKER }
+    }
+
+    private fun generateInvoicePdf(invoice: RechnungDO, variant: String?): ByteArray? {
+        val docxStream = invoiceService.getInvoiceWordDocument(invoice, variant) ?: return null
+        val docxBytes = docxStream.toByteArray()
+        // LibreOffice is much closer to Word's layout, xdocreport is the fallback if it isn't installed.
+        libreOfficeService?.convertDocxToPdf(docxBytes)?.let { return it }
+        ByteArrayInputStream(docxBytes).use { bais ->
+            WordDocument(bais, "invoice.docx").use { word ->
+                val options = PdfOptions.create()
+                pdfFontService?.let { options.fontProvider(PdfFontProvider(it)) }
+                ByteArrayOutputStream().use { pdfBaos ->
+                    PdfConverter.getInstance().convert(word.document, pdfBaos, options)
+                    return pdfBaos.toByteArray()
+                }
+            }
+        }
+    }
+
+    /**
+     * What keeps this invoice from being exported, as sentences for the user.
+     *
+     * Translated here rather than answered as keys: every caller - Wicket's error line, the REST endpoint
+     * the next dialog reads - puts the list in front of a user unchanged, so a key would have to be
+     * resolved twice with the same bundle. The texts are the user's language
+     * ([org.projectforge.framework.i18n.translate] follows the logged-in user's locale), which they were
+     * not before: the list used to be English prose in every locale.
+     *
+     * @return One sentence per problem, empty if the invoice can be exported.
+     */
+    fun validate(invoice: RechnungDO): List<String> {
+        val errors = mutableListOf<String>()
+
+        if (!sellerConfig.isConfigured()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.sellerNotConfigured"))
+        }
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            // A cancellation has no number of its own, it is derived from the original's (BT-1 and BT-25).
+            if (invoice.originalRechnung?.nummer == null) {
+                errors.add(translate("fibu.rechnung.eInvoice.error.cancellationOriginalMissing"))
+            }
+            if (netSumOf(invoice) >= BigDecimal.ZERO) {
+                errors.add(translate("fibu.rechnung.eInvoice.error.cancellationNotNegative"))
+            }
+        } else if (invoice.nummer == null) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.numberMissing"))
+        }
+        if (invoice.datum == null) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.dateMissing"))
+        }
+        // Excluding deleted positions: an invoice whose only position was deleted has nothing to state.
+        if (invoice.positionenExcludingDeleted.isEmpty()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.noPositions"))
+        }
+
+        if (sellerConfig.bankAccounts.isEmpty()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotConfigured"))
+        } else if (invoice.sellerBankAccount.isNullOrBlank()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotSelected"))
+        } else if (sellerConfig.findBankAccount(invoice.sellerBankAccount) == null) {
+            errors.add(
+                translateMsg("fibu.rechnung.eInvoice.error.bankAccountNotFound", invoice.sellerBankAccount)
+            )
+        }
+
+        val kunde = invoice.kunde
+        val customerName = kunde?.name ?: invoice.kundeText
+        if (customerName.isNullOrBlank()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerNameMissing"))
+        }
+        val konto = kunde?.konto
+        val street = invoice.customerAddress ?: konto?.street
+        val zip = invoice.customerZipCode ?: konto?.zipCode
+        val city = invoice.customerCity ?: konto?.city
+        if (street.isNullOrBlank()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressMissing"))
+        } else if (zip.isNullOrBlank() || city.isNullOrBlank()) {
+            if (!street.contains("\n") && !street.contains(",")) {
+                errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressIncomplete"))
+            }
+        }
+        val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail
+        if (buyerEmail.isNullOrBlank()) {
+            log.warn { "Buyer electronic address (e-invoice email) is missing for invoice #${invoice.nummer} – PEPPOL validation may warn." }
+        }
+
+        return errors
+    }
+
+    private fun buildMustangInvoice(invoice: RechnungDO): Invoice {
+        val mustangInvoice = Invoice()
+            .setNumber(invoice.belegNummer)
+            .setIssueDate(toDate(invoice.datum!!))
+            .setCurrency(invoice.currency ?: "EUR")
+            .setSender(buildSeller(invoice))
+            .setRecipient(buildBuyer(invoice))
+
+        invoice.faelligkeit?.let { mustangInvoice.setDueDate(toDate(it)) }
+
+        // Document type code
+        val documentCode = when (invoice.typ) {
+            // A cancellation is a credit note referencing the cancelled invoice (BT-25): 457 (reversal) is no
+            // type code XRechnung allows (BR-DE-17), 381 is. Its amounts are therefore positive (see buildItem).
+            RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN, RechnungTyp.CANCELLATION -> "381"
+            else -> "380"
+        }
+        mustangInvoice.setDocumentCode(documentCode)
+
+        // Preceding invoice reference (BT-25, BT-26): the invoice this cancellation cancels.
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            invoice.originalRechnung?.let { original ->
+                val reference = ReferencedDocument().setIssuerAssignedID(original.nummer.toString())
+                original.datum?.let { reference.setFormattedIssueDateTime(toDate(it)) }
+                mustangInvoice.addInvoiceReferencedDocument(reference)
+            }
+        }
+
+        // Delivery date and period (BR-FX-EN-04)
+        val deliveryBegin = invoice.periodOfPerformanceBegin ?: invoice.datum!!
+        val deliveryEnd = invoice.periodOfPerformanceEnd ?: deliveryBegin
+        mustangInvoice.setDeliveryDate(toDate(deliveryEnd))
+        mustangInvoice.setDetailedDeliveryPeriod(toDate(deliveryBegin), toDate(deliveryEnd))
+
+        // Buyer reference: Leitweg-ID (BT-10, required for XRechnung to public sector)
+        val buyerReference = invoice.customerLeitwegId ?: invoice.kunde?.konto?.leitwegId ?: invoice.customerref1
+        if (!buyerReference.isNullOrBlank()) {
+            mustangInvoice.setReferenceNumber(buyerReference)
+        }
+
+        // Buyer order reference (BT-13)
+        if (!invoice.customerref1.isNullOrBlank() && invoice.kunde?.konto?.leitwegId != null) {
+            mustangInvoice.setBuyerOrderReferencedDocument(ReferencedDocument().setIssuerAssignedID(invoice.customerref1))
+        }
+
+        // Cash discount (Skonto), none for a cancellation: there is nothing to pay early.
+        if (invoice.typ != RechnungTyp.CANCELLATION &&
+            invoice.discountPercent != null && invoice.discountMaturity != null
+        ) {
+            val days = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.discountMaturity).toInt()
+            if (days > 0) {
+                mustangInvoice.addCashDiscount(CashDiscount(invoice.discountPercent, days))
+            }
+        }
+
+        // Payment terms description (BR-CO-25: required if amount due is positive)
+        val paymentTerms = buildPaymentTermsDescription(invoice)
+        if (paymentTerms.isNotBlank()) {
+            mustangInvoice.setPaymentTermDescription(paymentTerms)
+        }
+
+        // Line items, without the positions marked as deleted: they are no part of the invoice, and a line for
+        // one would state an amount that no sum of the invoice contains ([RechnungCalculator] skips them).
+        invoice.positionenExcludingDeleted.forEach { pos ->
+            mustangInvoice.addItem(buildItem(pos, invoice))
+        }
+
+        // Embed file attachments from JCR
+        embedAttachments(mustangInvoice, invoice)
+
+        return mustangInvoice
+    }
+
+    private fun embedAttachments(mustangInvoice: Invoice, invoice: RechnungDO) {
+        val invoiceId = invoice.id ?: return
+        val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
+            .filter { it.description != INVOICE_PDF_MARKER }
+        attachments.forEach { attachment ->
+            val fileId = attachment.fileId ?: return@forEach
+            val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
+            val fileObject = repoService.getFileInfo(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
+                ?: return@forEach
+            if (repoService.retrieveFile(fileObject)) {
+                val content = fileObject.content ?: return@forEach
+                val fileName = attachment.name ?: "attachment"
+                val mimeType = java.net.URLConnection.guessContentTypeFromName(fileName) ?: "application/octet-stream"
+                val fileAttachment = FileAttachment(fileName, mimeType, "Data", content)
+                mustangInvoice.embedFileInXML(fileAttachment)
+                log.debug { "Embedded attachment '$fileName' in invoice #${invoice.nummer}" }
+            }
+        }
+    }
+
+    private fun buildSeller(invoice: RechnungDO): TradeParty {
+        val seller = TradeParty(
+            sellerConfig.name,
+            sellerConfig.street,
+            sellerConfig.zip,
+            sellerConfig.city,
+            sellerConfig.country
+        )
+        if (sellerConfig.vatId.isNotBlank()) {
+            seller.addVATID(sellerConfig.vatId)
+        }
+        if (sellerConfig.taxNumber.isNotBlank()) {
+            seller.addTaxID(sellerConfig.taxNumber)
+        }
+        if (sellerConfig.email.isNotBlank()) {
+            seller.setEmail(sellerConfig.email)
+        }
+        val contactName = sellerConfig.contactName.ifBlank { sellerConfig.name }
+        val contactPhone = sellerConfig.phone.ifBlank { null }
+        val contactEmail = sellerConfig.email.ifBlank { null }
+        if (contactPhone != null || contactEmail != null) {
+            seller.setContact(Contact(contactName, contactPhone, contactEmail))
+        }
+        val bankAccount = sellerConfig.findBankAccount(invoice.sellerBankAccount)
+        if (bankAccount != null) {
+            val bankDetails = BankDetails(bankAccount.iban, bankAccount.bic)
+            if (bankAccount.name.isNotBlank()) {
+                bankDetails.setAccountName(bankAccount.name)
+            }
+            seller.addBankDetails(bankDetails)
+        }
+        return seller
+    }
+
+    private fun buildBuyer(invoice: RechnungDO): TradeParty {
+        val kunde = invoice.kunde
+        val konto = invoice.konto ?: kunde?.konto
+        var street = invoice.customerAddress ?: konto?.street ?: ""
+        var zip = invoice.customerZipCode ?: konto?.zipCode ?: ""
+        var city = invoice.customerCity ?: konto?.city ?: ""
+        val country = invoice.customerCountry ?: konto?.country ?: "DE"
+        if (zip.isBlank() && city.isBlank() && street.contains("\n")) {
+            val lines = street.lines().map { it.trim() }.filter { it.isNotBlank() }
+            if (lines.size >= 2) {
+                street = lines.dropLast(1).joinToString(", ")
+                val lastLine = lines.last()
+                val match = Regex("^(\\d{4,5})\\s+(.+)$").find(lastLine)
+                if (match != null) {
+                    zip = match.groupValues[1]
+                    city = match.groupValues[2]
+                } else {
+                    city = lastLine
+                }
+            }
+        }
+        val buyer = TradeParty(
+            konto?.bezeichnung ?: kunde?.name ?: invoice.kundeText ?: "",
+            street,
+            zip,
+            city,
+            country
+        )
+        val vatId = invoice.customerVatId ?: konto?.vatId
+        if (!vatId.isNullOrBlank()) {
+            buyer.addVATID(vatId)
+        }
+        val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail
+        if (!buyerEmail.isNullOrBlank()) {
+            buyer.setEmail(buyerEmail)
+            buyer.addUriUniversalCommunicationID(SchemedID("EM", buyerEmail))
+        }
+        val contactPerson = invoice.customerContactPerson ?: konto?.contactPerson
+        if (!contactPerson.isNullOrBlank()) {
+            buyer.setContact(Contact(contactPerson, null, buyerEmail))
+        }
+        return buyer
+    }
+
+    private fun buildItem(pos: RechnungsPositionDO, invoice: RechnungDO): Item {
+        val vatPercent = pos.vat?.multiply(BigDecimal(100)) ?: BigDecimal.ZERO
+        val posText = pos.text ?: "Position ${pos.number}"
+        val product = Product(
+            posText,
+            posText,
+            "C62",
+            vatPercent
+        )
+
+        // A cancellation is stored with negative amounts (so that it cancels its original out in every sum of
+        // the Rechnungsbuch), but is exported as a credit note (381), whose amounts are positive.
+        val einzelNetto = (pos.einzelNetto ?: BigDecimal.ZERO).let {
+            if (invoice.typ == RechnungTyp.CANCELLATION) it.negate() else it
+        }
+        val item = Item(product, einzelNetto, pos.menge ?: BigDecimal.ONE)
+        item.setId(pos.number.toString())
+
+        // Per-position delivery period
+        val periodBegin = if (pos.periodOfPerformanceType == PeriodOfPerformanceType.OWN) {
+            pos.periodOfPerformanceBegin
+        } else {
+            invoice.periodOfPerformanceBegin
+        }
+        val periodEnd = if (pos.periodOfPerformanceType == PeriodOfPerformanceType.OWN) {
+            pos.periodOfPerformanceEnd
+        } else {
+            invoice.periodOfPerformanceEnd
+        }
+        if (periodBegin != null) {
+            item.setDetailedDeliveryPeriod(toDate(periodBegin), toDate(periodEnd ?: periodBegin))
+        }
+
+        return item
+    }
+
+    private fun buildPaymentTermsDescription(invoice: RechnungDO): String {
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            // Nothing for the customer to pay: the amount of the cancelled invoice is refunded or offset.
+            return "Der Betrag wird erstattet bzw. mit offenen Forderungen verrechnet."
+        }
+        val parts = mutableListOf<String>()
+        if (invoice.discountPercent != null && invoice.discountMaturity != null) {
+            val days = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.discountMaturity).toInt()
+            if (days > 0) {
+                parts.add("${invoice.discountPercent}% Skonto bei Zahlung innerhalb $days Tagen.")
+            }
+        }
+        if (invoice.faelligkeit != null) {
+            val netDays = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.faelligkeit).toInt()
+            parts.add("Zahlbar innerhalb $netDays Tagen.")
+        } else {
+            parts.add("Zahlbar sofort.")
+        }
+        return parts.joinToString(" ")
+    }
+
+    private fun createXRExporter(profileName: String): XRExporter {
+        val provider = ZUGFeRD2PullProvider().apply {
+            setProfile(Profiles.getByName(profileName))
+        }
+        val exporter = XRExporter()
+        val field = XRExporter::class.java.getDeclaredField("xmlProvider")
+        field.isAccessible = true
+        field.set(exporter, provider)
+        return exporter
+    }
+
+    /** The net sum of the undeleted positions, as [RechnungCalculator] sums it (without any rounding). */
+    private fun netSumOf(invoice: RechnungDO): BigDecimal {
+        return invoice.positionenExcludingDeleted.fold(BigDecimal.ZERO) { sum, pos ->
+            sum + (pos.menge ?: BigDecimal.ONE) * (pos.einzelNetto ?: BigDecimal.ZERO)
+        }
+    }
+
+    private fun toDate(localDate: LocalDate): Date {
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+    }
+
+    fun getExportFilename(invoice: RechnungDO): String {
+        return "XRechnung_${invoice.belegNummer ?: "draft"}.xml"
+    }
+
+    fun getZUGFeRDExportFilename(invoice: RechnungDO): String {
+        return "ZUGFeRD_${invoice.belegNummer ?: "draft"}.pdf"
+    }
+}

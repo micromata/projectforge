@@ -23,18 +23,29 @@
 
 package org.projectforge.plugins.marketing.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.rest.dto.BaseDTO
 
 class AddressCampaign(
   var title: String? = null,
-  var values: Array<String>? = null,
+  /** The raw, semicolon separated values as stored (and edited), e.g. "Value 1; Value 2". */
+  var values: String? = null,
   var comment: String? = null
 ) : BaseDTO<AddressCampaignDO>() {
+  /**
+   * The parsed [values] (see [AddressCampaignDO.getValuesArray]), offered as the choices of a campaign value.
+   * Read only: ignored when a client posts it back, and [copyTo] maps by field name and type, so only
+   * [values] is written to the entity.
+   */
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  val valuesArray: Array<String>?
+    get() = AddressCampaignDO.getValuesArray(values)
+
   override fun copyFrom(src: AddressCampaignDO) {
     super.copyFrom(src)
     title = src.title
-    values = src.valuesArray
+    values = src.values
     comment = src.comment
   }
 }

@@ -23,20 +23,22 @@
 
 package org.projectforge.mail
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.scripting.GroovyEngine
+import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
-import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.io.File
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import jakarta.activation.DataHandler
@@ -55,7 +57,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Open needed for mocking.
 @Service
@@ -111,6 +113,26 @@ open class SendMail {
   @Value("\${mail.session.pfmailsession.smtp.password}")
   private var mailSmtpPassword: String? = null
 
+  /**
+   * Milliseconds to wait for the connection to the SMTP server, 0 means: wait forever (the
+   * JavaMail/Angus semantics). Without it the OS TCP timeout applies, which is more than a minute — far
+   * too long for a mail sent inside a user's request (see [send] with `async = false`).
+   */
+  @Value("\${mail.session.pfmailsession.smtp.connectionTimeout:10000}")
+  private var mailSmtpConnectionTimeout: String? = null
+
+  /**
+   * Milliseconds to wait for an answer of the SMTP server (socket read timeout), 0 means: wait forever.
+   */
+  @Value("\${mail.session.pfmailsession.smtp.timeout:10000}")
+  private var mailSmtpTimeout: String? = null
+
+  /**
+   * Milliseconds to wait while writing to the SMTP server, 0 means: wait forever.
+   */
+  @Value("\${mail.session.pfmailsession.smtp.writeTimeout:10000}")
+  private var mailSmtpWriteTimeout: String? = null
+
   private val random = Random()
 
   @PostConstruct
@@ -119,11 +141,12 @@ open class SendMail {
   }
 
   /**
+   * Sends the message asynchronously, see [send].
+   *
    * @param composedMessage the message to send
    * @param attachments     other attachments to add
-   * @return true for successful sending, otherwise an exception will be thrown.
+   * @return see [send] — for this overload true only means that the sending was dispatched.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures.
    */
   fun send(
     composedMessage: Mail?,
@@ -136,9 +159,14 @@ open class SendMail {
    * @param composedMessage the message to send
    * @param icalContent     the ical content to add
    * @param attachments     other attachments to add
-   * @return true for successful sending, otherwise an exception will be thrown.
+   * @param async           if true (the default), the message is handed to a [CompletableFuture] and this
+   *                        method returns before anything was sent.
+   * @return true if the message was sent (`async = false`) or handed over for sending (`async = true`),
+   *         false if it was not even attempted: no message given, or mailing is not configured. Note that
+   *         for `async = true` a failure of the sending itself can only be found in the log — nobody waits
+   *         for the future. Pass `async = false` where the outcome has to be reported to the user.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures.
+   * @throws MailSendException due to technical failures, for `async = false` only.
    */
   @JvmOverloads
   fun send(
@@ -148,15 +176,16 @@ open class SendMail {
     async: Boolean = true
   ): Boolean {
     if (composedMessage == null) {
-      log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.")
+      log.error { "No message object of type org.projectforge.mail.Mail given. E-Mail not sent." }
       return false
     }
     if (!isConfigured) {
-      log.error { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+      log.error(MailLogEvents.NOT_CONFIGURED) { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+      return false
     }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
-      log.error("No to address given. Sending of mail cancelled: $composedMessage")
+      log.error(MailLogEvents.MISSING_RECIPIENT) { "No to address given. Sending of mail cancelled: $composedMessage" }
       throw UserException("mail.error.missingToAddress")
     }
     if (async) {
@@ -166,6 +195,9 @@ open class SendMail {
     }
     return true
   }
+
+  /** The outcome of the mails sent since the start (problem dashboard). */
+  val sendStats = MailSendStats()
 
   val isConfigured: Boolean
     get() = this.mailingEnabled == "true" && !this.mailSmtpHost.isNullOrBlank()
@@ -181,6 +213,11 @@ open class SendMail {
         ?.let { properties["mail.smtp.localhost"] = it.trim() } // FQDN setzen
       // properties["mail.smtp.starttls.enable"] = "true"
       // properties["mail.smtp.ssl.protocols"] = "TLSv1.2"
+
+      // Bounds how long a synchronous send can block, see the fields' KDoc.
+      properties["mail.smtp.connectiontimeout"] = this.mailSmtpConnectionTimeout ?: DEFAULT_TIMEOUT_MS
+      properties["mail.smtp.timeout"] = this.mailSmtpTimeout ?: DEFAULT_TIMEOUT_MS
+      properties["mail.smtp.writetimeout"] = this.mailSmtpWriteTimeout ?: DEFAULT_TIMEOUT_MS
 
       this.mailSmtpUser?.let { properties["mail.smtp.user"] = it }
       this.mailSmtpPassword?.let { properties["mail.smtp.password"] = it }
@@ -210,68 +247,85 @@ open class SendMail {
     composedMessage: Mail, icalContent: String?,
     attachments: Collection<IMailAttachment>?
   ) {
-    log.info("Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", "))
+    log.info { "Start sending e-mail message: " + StringUtils.join(composedMessage.to, ", ") }
+    val start = System.currentTimeMillis()
     try {
-      val session = session
-      /*if (SystemStatus.isDevelopmentMode()) {
-        session!!.setDebug(true)
-      }*/
-      val message = MimeMessage(session)
-      if (composedMessage.from != null) {
-        message.setFrom(InternetAddress(composedMessage.from))
-      } else {
-        mailFromStandardEmailSender
-          ?.takeIf { it.isNotBlank() }
-          ?.let { message.setFrom(InternetAddress(it)) }
-          ?: message.setFrom()
-      }
-      message.setRecipients(
-        Message.RecipientType.TO,
-        composedMessage.to.toTypedArray<Address>()
-      )
-      if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
-        message.setRecipients(
-          Message.RecipientType.CC,
-          composedMessage.cc.toTypedArray<Address>()
-        )
-      }
-      //message.setHeader("Return-Path", "")
-      //message.setHeader("Reply-To", "")
-      val subject = composedMessage.subject
-      message.setSubject(subject, CHARSET)
-      message.sentDate = Date()
-      if (StringUtils.isBlank(icalContent) && attachments == null) {
-        // create message without attachments
-        if (composedMessage.contentType != null) {
-          message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
-        } else {
-          message.setText(composedMessage.content, CHARSET)
-        }
-        // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
-        // message.setText("Einfache Textnachricht")
-      } else {
-        // create message with attachments
-        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
-        message.setContent(mp)
-      }
-      message.saveChanges() // don't forget this
+      val message = createMimeMessage(composedMessage, icalContent, attachments)
       if (testMode) {
-        log.info("Test mode, do not really send e-mails (OK only for test cases).")
+        log.info { "Test mode, do not really send e-mails (OK only for test cases)." }
       } else {
         Transport.send(message)
       }
     } catch (ex: Exception) {
-      log.error("While creating and sending message: $composedMessage", ex)
-      throw InternalErrorException("mail.error.exception")
+      sendStats.recordFailure(start, ex)
+      log.error(MailLogEvents.SEND_FAILED, ex) { "While creating and sending message: $composedMessage" }
+      throw MailSendException(ex)
     }
-    log.info("E-Mail successfully sent: $composedMessage")
+    sendStats.recordSuccess(start)
+    log.info { "E-Mail successfully sent: $composedMessage" }
+  }
+
+  /**
+   * Builds the MIME message as [send] transports it, without sending it. A mail server isn't needed for this,
+   * so it may also be used to export a mail, e.g. as an .eml file by [MimeMessage.writeTo].
+   */
+  @Throws(MessagingException::class)
+  fun createMimeMessage(
+    composedMessage: Mail,
+    icalContent: String? = null,
+    attachments: Collection<IMailAttachment>? = null,
+  ): MimeMessage {
+    val message = MimeMessage(session)
+    if (composedMessage.from != null) {
+      message.setFrom(InternetAddress(composedMessage.from))
+    } else {
+      mailFromStandardEmailSender
+        ?.takeIf { it.isNotBlank() }
+        ?.let { message.setFrom(InternetAddress(it)) }
+        ?: message.setFrom()
+    }
+    message.setRecipients(
+      Message.RecipientType.TO,
+      composedMessage.to.toTypedArray<Address>()
+    )
+    if (CollectionUtils.isNotEmpty(composedMessage.cc)) {
+      message.setRecipients(
+        Message.RecipientType.CC,
+        composedMessage.cc.toTypedArray<Address>()
+      )
+    }
+    //message.setHeader("Return-Path", "")
+    //message.setHeader("Reply-To", "")
+    val subject = composedMessage.subject
+    message.setSubject(subject, CHARSET)
+    message.sentDate = Date()
+    val logo = inlineLogo?.takeIf {
+      composedMessage.contentType == Mail.CONTENTTYPE_HTML && composedMessage.content?.contains(LOGO_CID_URL) == true
+    }
+    if (StringUtils.isBlank(icalContent) && attachments == null && logo == null) {
+      // create message without attachments
+      if (composedMessage.contentType != null) {
+        message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
+      } else {
+        message.setText(composedMessage.content, CHARSET)
+      }
+      // message.setContent("Dies ist eine einfache Testnachricht.", "text/plain; charset=UTF-8");
+      // message.setText("Einfache Textnachricht")
+    } else {
+      // create message with attachments
+      val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET, logo)
+      message.setContent(mp)
+    }
+    message.saveChanges() // don't forget this
+    return message
   }
 
   @Throws(MessagingException::class)
   private fun createMailAttachmentContent(
     message: MimeMessage, composedMessage: Mail, icalContent: String?,
     attachments: Collection<IMailAttachment>?,
-    charset: String
+    charset: String,
+    logo: File? = null,
   ): MimeMultipart {
     // create and fill the first message part
     val mbp1 = MimeBodyPart()
@@ -286,9 +340,13 @@ open class SendMail {
     }
     mbp1.setContent(composedMessage.content, type)
     mbp1.setHeader("Content-Transfer-Encoding", "8bit")
+    val related = logo?.let { createRelatedContent(mbp1, it) }
+    if (related != null && StringUtils.isBlank(icalContent) && attachments.isNullOrEmpty()) {
+      return related
+    }
     // create the Multipart and its parts to it
     val mp = MimeMultipart()
-    mp.addBodyPart(mbp1)
+    mp.addBodyPart(related?.let { MimeBodyPart().also { part -> part.setContent(it) } } ?: mbp1)
     if (StringUtils.isNotBlank(icalContent)) {
       message.addHeaderLine("method=REQUEST")
       message.addHeaderLine("charset=UTF-8")
@@ -330,22 +388,51 @@ open class SendMail {
   }
 
   /**
+   * The html body together with the logo as inline image, referenced by [LOGO_CID_URL] (multipart/related). So
+   * mail clients show the logo without loading it from the server, which many of them block by default.
+   */
+  private fun createRelatedContent(htmlPart: MimeBodyPart, logo: File): MimeMultipart {
+    val related = MimeMultipart("related")
+    related.addBodyPart(htmlPart)
+    val logoPart = MimeBodyPart()
+    val extension = logo.extension.lowercase()
+    logoPart.dataHandler = DataHandler(ByteArrayDataSource(logo.readBytes(), INLINE_LOGO_TYPES[extension]))
+    logoPart.contentID = "<$LOGO_CONTENT_ID>"
+    logoPart.disposition = Part.INLINE
+    logoPart.fileName = "logo.$extension"
+    related.addBodyPart(logoPart)
+    return related
+  }
+
+  /**
+   * The configured logo, if it may be embedded in mails (png, jpg or gif), see [createRelatedContent].
+   */
+  private val inlineLogo: File?
+    get() = configurationService.logoFileObject?.takeIf {
+      configurationService.isLogoFileValid && INLINE_LOGO_TYPES.containsKey(it.extension.lowercase())
+    }
+
+  /**
    * @param composedMessage
    * @param groovyTemplate
    * @param data
    * @param title Title is put in the data map and may be received inside the mail template.
+   * @param locale Locale of the mail, if no recipient is given (e.g. mails to a configured address). The locale of
+   * the recipient has precedence.
    * @see GroovyEngine.executeTemplateFile
    */
+  @JvmOverloads
   fun renderGroovyTemplate(
     composedMessage: Mail, groovyTemplate: String,
     data: MutableMap<String, Any?>,
     title: String,
-    recipient: PFUserDO?
+    recipient: PFUserDO?,
+    locale: Locale? = null,
   ): String {
     prepare(composedMessage, data, title, recipient)
-    log.debug("groovyTemplate=$groovyTemplate")
+    log.debug { "groovyTemplate=$groovyTemplate" }
     val engine = GroovyEngine(
-      configurationService, data, recipient?.locale,
+      configurationService, data, recipient?.locale ?: locale,
       recipient?.timeZone
     )
     return engine.executeTemplateFile(groovyTemplate)
@@ -392,7 +479,10 @@ open class SendMail {
     }
     data["msg"] = composedMessage
     data["baseUrl"] = buildUrl("")
-    if (configurationService.isLogoFileValid) {
+    if (inlineLogo != null) {
+      // Embedded by createMimeMessage.
+      data["logoUrl"] = LOGO_CID_URL
+    } else if (configurationService.isLogoFileValid) {
       val logoBasename = configurationService.syntheticLogoName
       data["logoUrl"] = buildUrl("rsPublic/$logoBasename")
     }
@@ -413,7 +503,10 @@ open class SendMail {
           Protocol.fromString(
             mailSmtpEncryptionProtocol
           )
-        }', auth=$mailSmtpAuth, port=$mailSmtpPort, from='$mailFromStandardEmailSender'"
+        }', auth=$mailSmtpAuth, port=$mailSmtpPort, from='$mailFromStandardEmailSender'" +
+            ", connectionTimeout=${mailSmtpConnectionTimeout ?: DEFAULT_TIMEOUT_MS}" +
+            ", timeout=${mailSmtpTimeout ?: DEFAULT_TIMEOUT_MS}" +
+            ", writeTimeout=${mailSmtpWriteTimeout ?: DEFAULT_TIMEOUT_MS}"
       )
       mailSmtpUser?.let {
         if (it.isNotBlank()) {
@@ -433,6 +526,21 @@ open class SendMail {
 
     private const val CHARSET = "UTF-8"
 
+    private const val LOGO_CONTENT_ID = "logo@projectforge"
+
+    /** Url of the logo inside the mail templates, if the logo is embedded, see [createRelatedContent]. */
+    const val LOGO_CID_URL = "cid:$LOGO_CONTENT_ID"
+
+    private val INLINE_LOGO_TYPES = mapOf(
+      "png" to "image/png",
+      "jpg" to "image/jpeg",
+      "jpeg" to "image/jpeg",
+      "gif" to "image/gif",
+    )
+
+    /** Fallback for the three SMTP timeouts, used when the property is not set at all. */
+    private const val DEFAULT_TIMEOUT_MS = "10000"
+
     /**
      * Get the ProjectForge standard subject: "[ProjectForge] ..."
      *
@@ -443,10 +551,12 @@ open class SendMail {
       return STANDARD_SUBJECT_PREFIX + subject
     }
 
+    /** The user's name as HTML, linked to the mail address if given (both escaped). */
     fun formatUserWithMail(name: String, mail: String?): String {
+      val escapedName = HtmlHelper.escapeHtml(name)
       return if (mail == null) {
-        name
-      } else "<a href=\"mailto:$mail\">$name</a>"
+        escapedName
+      } else "<a href=\"mailto:${HtmlHelper.escapeHtml(mail)}\">$escapedName</a>"
     }
 
     private var testMode = false

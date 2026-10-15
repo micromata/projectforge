@@ -28,16 +28,18 @@ import org.apache.commons.lang3.Validate
 import org.apache.commons.text.StringEscapeUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.common.OutputType
+import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
 import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.timesheet.TimesheetOverlapUtils
+import org.projectforge.business.timesheet.UnbookedDaysCalculator
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
 import org.projectforge.common.extensions.formatFractionAsPercent
 import org.projectforge.common.extensions.isZeroOrNull
-import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.calendar.MonthHolder
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.YearMonth
 import java.util.*
 
 /**
@@ -57,7 +60,7 @@ import java.util.*
  *
  * @param year
  * @param month 1-based: 1 - January, ..., 12 - December
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializable {
     class Kost2Row(@JvmField val kost2: Kost2DO?) : Serializable {
@@ -85,14 +88,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
         val kost2ArtName: String?
             /**
-             * XML-escaped or null if not exists.
+             * XML-escaped or null if not exists or not displayed (see [displayedKost2ArtName]).
              */
-            get() {
-                if (kost2?.kost2Art == null) {
-                    return null
-                }
-                return StringEscapeUtils.escapeXml11(kost2.kost2Art!!.name)
-            }
+            get() = displayedKost2ArtName(kost2)?.let { StringEscapeUtils.escapeXml11(it) }
 
         val kost2Description: String?
             /**
@@ -107,6 +105,21 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
         companion object {
             private const val serialVersionUID = -5379735557333691194L
+
+            /**
+             * The cost type name is only shown for customer cost units (Nummernkreis 4 and 5). For internal ones
+             * it is misleading (e.g. vacation shown as "Akquise"), so it is left empty. Used by the cost 2 list
+             * and its Excel export too.
+             * @param kost2Art The cost type of [kost2], if the caller already has it (e.g. from the cache).
+             */
+            @JvmStatic
+            @JvmOverloads
+            fun displayedKost2ArtName(kost2: Kost2DO?, kost2Art: Kost2ArtDO? = kost2?.kost2Art): String? {
+                if (kost2 == null || (kost2.nummernkreis != 4 && kost2.nummernkreis != 5)) {
+                    return null
+                }
+                return kost2Art?.name
+            }
         }
     }
 
@@ -152,6 +165,14 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var invoicingQuota: BigDecimal? = null
         private set
 
+    /** Billed work time in ms the [invoicingQuota] is based on (numerator). */
+    var invoicingQuotaBilledMillis: Long = 0
+        private set
+
+    /** Non-ignored work time in ms the [invoicingQuota] is based on (denominator). */
+    var invoicingQuotaTotalMillis: Long = 0
+        private set
+
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
 
     private var vacationPlannedCount: BigDecimal? = BigDecimal.ZERO
@@ -166,7 +187,7 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
      */
     private val bookedDays: MutableSet<Int> = HashSet()
 
-    private val unbookedDays: MutableList<Int> = ArrayList()
+    private var unbookedDays = UnbookedDaysCalculator.UnbookedDays(emptyList(), emptyList())
 
     /**
      * Key is kost2.id.
@@ -231,27 +252,52 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         } while (date.isBefore(toDateTime))
     }
 
+    /**
+     * Time sheets are buffered and only bucketed into weeks in [calculate], because the proportional overlap split
+     * (shared cost elements) needs to know all time sheets of the month first.
+     */
+    private val bufferedSheets = mutableListOf<Pair<TimesheetDO, Boolean>>()
+
     fun addTimesheet(sheet: TimesheetDO, hasSelectAccess: Boolean) {
         val day = from(sheet.startTime!!) // not null
         bookedDays.add(day.dayOfMonth)
-        for (week in weeks) {
-            if (week.matchWeek(sheet)) {
-                week.addEntry(sheet, hasSelectAccess)
-                return
-            }
-        }
-        log.info(
-            ("Ignoring time sheet which isn't inside current month: "
-                    + year
-                    + "-"
-                    + StringHelper.format2DigitNumber(month)
-                    + ": "
-                    + sheet)
-        )
+        bufferedSheets.add(sheet to hasSelectAccess)
     }
 
-    fun calculate() {
+    /**
+     * @param calculateVacationStats If true (default), the (expensive) vacation statistics are computed and set as
+     * [vacationCount] / [vacationPlannedCount]. Callers that only need the working-time totals (e.g. the average
+     * working-time computation, which rebuilds a full report per month) should pass false to avoid the N+1 vacation
+     * queries per rebuilt month.
+     */
+    @JvmOverloads
+    fun calculate(calculateVacationStats: Boolean = true) {
         Validate.notEmpty<List<MonthlyEmployeeReportWeek>?>(weeks)
+        // Distribute overlapping time (shared cost elements) proportionally for attendance accounting: at any instant
+        // covered by n time sheets each of them gets 1/n. The sum of all split durations equals the union of the
+        // intervals (overlapping time counted once). Non-overlapping time sheets keep their full duration.
+        val splitDurations = TimesheetOverlapUtils.splitDurations(bufferedSheets.map { it.first })
+        for ((sheet, hasSelectAccess) in bufferedSheets) {
+            val attendanceDuration = sheet.id?.let { splitDurations[it] } ?: sheet.duration
+            var added = false
+            for (week in weeks) {
+                if (week.matchWeek(sheet)) {
+                    week.addEntry(sheet, hasSelectAccess, attendanceDuration)
+                    added = true
+                    break
+                }
+            }
+            if (!added) {
+                log.info(
+                    ("Ignoring time sheet which isn't inside current month: "
+                            + year
+                            + "-"
+                            + StringHelper.format2DigitNumber(month)
+                            + ": "
+                            + sheet)
+                )
+            }
+        }
         for (week in weeks) {
             if (MapUtils.isNotEmpty(week.kost2Entries)) {
                 for (entry in week.kost2Entries.values) {
@@ -308,29 +354,30 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         }
         val monthHolder = MonthHolder(this.fromDateTime)
         this.numberOfWorkingDays = monthHolder.numberOfWorkingDays
-        val holidays = Holidays.instance
-        for (week in monthHolder.weeks) {
-            for (day in week.days) {
-                if (day.month == fromDateTime.month && holidays.isWorkingDay(day)
-                    && !bookedDays.contains(day.dayOfMonth)
-                ) {
-                    unbookedDays.add(day.dayOfMonth)
+        // The same days as the notifications about missing time sheets show, the vacation days among them separately.
+        val vacationDays = WicketSupport.get(UnbookedDaysCalculator::class.java)?.vacationDays(employee, yearMonth).orEmpty()
+        unbookedDays = UnbookedDaysCalculator.unbookedDays(yearMonth, bookedDays, vacationDays)
+        if (calculateVacationStats) {
+            val vacationService = WicketSupport.get(VacationService::class.java)
+            if (vacationService != null && this.employee != null && employee!!.user != null) {
+                if (vacationService.hasAccessToVacationService(employee!!.user, false)) {
+                    val stats = vacationService.getVacationStats(employee!!)
+                    this.vacationCount =
+                        stats.vacationDaysLeftInYear // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+                    this.vacationPlannedCount =
+                        stats.vacationDaysInProgress // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
                 }
             }
         }
-        val vacationService = WicketSupport.get(VacationService::class.java)
-        if (vacationService != null && this.employee != null && employee!!.user != null) {
-            if (vacationService.hasAccessToVacationService(employee!!.user, false)) {
-                val stats = vacationService.getVacationStats(employee!!)
-                this.vacationCount =
-                    stats.vacationDaysLeftInYear // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
-                this.vacationPlannedCount =
-                    stats.vacationDaysInProgress // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
-            }
-        }
         val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
-        if (invoicingQuotaService?.isEnabled() == true) {
-            this.invoicingQuota = invoicingQuotaService.calculateQuota(kost2Durations)
+        // Computed only if the logged-in user may see it: the own quota, the quota of others only as member of a
+        // configured group. So no page (Wicket, REST) can show it to anybody else.
+        if (invoicingQuotaService?.isEnabled() == true && invoicingQuotaService.mayViewQuotaOf(user?.id)) {
+            invoicingQuotaService.calculateQuotaResult(kost2Durations)?.let { result ->
+                this.invoicingQuota = result.quota
+                this.invoicingQuotaBilledMillis = result.billedDurationMillis
+                this.invoicingQuotaTotalMillis = result.totalDurationMillis
+            }
         }
     }
 
@@ -338,30 +385,36 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
      * Gets the list of unbooked working days. These are working days without time sheets of the actual user.
      */
     fun getUnbookedDays(): List<Int> {
-        return unbookedDays
+        return unbookedDays.all
+    }
+
+    /**
+     * The unbooked working days covered by an approved vacation (a subset of [getUnbookedDays]).
+     */
+    fun getUnbookedVacationDays(): List<Int> {
+        return unbookedDays.vacationDays
     }
 
     val formattedUnbookedDays: String?
         /**
          * @return Days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
          */
-        get() {
-            val buf = StringBuilder()
-            var first = true
-            for (dayOfMonth in unbookedDays) {
-                if (first) {
-                    first = false
-                } else {
-                    buf.append(", ")
-                }
-                buf.append(StringHelper.format2DigitNumber(dayOfMonth)).append(".")
-                    .append(StringHelper.format2DigitNumber(month)).append(".")
-            }
-            if (first) {
-                return null
-            }
-            return buf.toString()
-        }
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.all)
+
+    val formattedUnbookedWorkingDays: String?
+        /**
+         * @return Days of month without time sheets not covered by a vacation: 03.11., 08.11., ... or null if none.
+         */
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.workingDays)
+
+    val formattedUnbookedVacationDays: String?
+        /**
+         * @return Vacation days of month without time sheets: 03.11., 08.11., ... or null if no entries exists.
+         */
+        get() = UnbookedDaysCalculator.format(yearMonth, unbookedDays.vacationDays)
+
+    private val yearMonth: YearMonth
+        get() = YearMonth.of(fromDateTime.year, fromDateTime.monthValue)
 
     val year: Int
         get() = fromDateTime.year
@@ -402,6 +455,21 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     val formattedInvoicingQuota: String?
         get() = invoicingQuota?.formatFractionAsPercent(true)
 
+    val formattedInvoicingQuotaTooltip: String?
+        /**
+         * @return A localized explanation of how the invoicing quota was computed for this concrete report,
+         * including the billed and total (billable) work durations, or null if no quota is available.
+         */
+        get() {
+            val quota = invoicingQuota ?: return null
+            return getLocalizedMessage(
+                "fibu.common.invoicingQuota.tooltip",
+                formatDurationHours(invoicingQuotaBilledMillis),
+                formatDurationHours(invoicingQuotaTotalMillis),
+                quota.formatFractionAsPercent(true),
+            )
+        }
+
     companion object {
         private const val serialVersionUID = -4636357379552246075L
 
@@ -439,6 +507,16 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
             if (duration == 0L) {
                 return ""
             }
+            return formatDurationHours(duration)
+        }
+
+        /**
+         * Formats a duration in milliseconds as hours with 2 decimals. Unlike [getFormattedDuration],
+         * a duration of 0 is rendered as "0" (not an empty string), which is required for the invoicing
+         * quota tooltip where a billed duration of 0 (quota 0 %) must still be shown.
+         */
+        @JvmStatic
+        fun formatDurationHours(duration: Long): String {
             val hours = BigDecimal(duration).divide(
                 BigDecimal(1000 * 60 * 60), 2,
                 RoundingMode.HALF_UP

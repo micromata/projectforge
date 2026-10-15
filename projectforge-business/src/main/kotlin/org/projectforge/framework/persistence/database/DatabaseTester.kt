@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.database
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -61,7 +61,7 @@ class DatabaseTester {
     }
 
     private fun run(threadNumber: Int, iteration: Int) {
-        log.info("Thread #$threadNumber.$iteration")
+        log.info { "Thread #$threadNumber.$iteration" }
         userGroupCache.setExpired()
         val newState = userGroupCache.internalGetCopyOfUserMap()
         val newStateAsJson = JsonUtils.toJson(newState)

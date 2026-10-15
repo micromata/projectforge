@@ -24,7 +24,7 @@
 package org.projectforge.ui
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
@@ -80,7 +80,7 @@ class UISelect<T>(
                 @Suppress("UNCHECKED_CAST")
                 newvalues.add(UISelectValue(value.name as T, translation))
             } else {
-                log.error("UISelect supports only enums of type I18nEnum, not '$value': '${this}'")
+                log.error { "UISelect supports only enums of type I18nEnum, not '$value': '${this}'" }
             }
         }
         values = newvalues
@@ -172,25 +172,6 @@ class UISelect<T>(
                 label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
                 additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
                 autoCompletion = AutoCompletion.getAutoCompletion4Customers(),
-                tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
-            )
-        }
-
-        fun createProjectSelect(
-            lc: LayoutContext,
-            id: String,
-            multi: Boolean,
-            label: String? = null,
-            additionalLabel: String? = null,
-            tooltip: String? = null
-        ): UISelect<Long> {
-            return UISelect(
-                id,
-                lc,
-                multi = multi,
-                label = label ?: ElementsRegistry.getElementInfo(lc, id)?.i18nKey,
-                additionalLabel = additionalLabel ?: ElementsRegistry.getElementInfo(lc, id)?.additionalI18nKey,
-                autoCompletion = AutoCompletion.getAutoCompletion4Projects(),
                 tooltip = tooltip ?: ElementsRegistry.getElementInfo(lc, id)?.tooltipI18nKey
             )
         }

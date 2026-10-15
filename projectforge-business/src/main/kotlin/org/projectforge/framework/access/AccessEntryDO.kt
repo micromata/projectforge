@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.history.NoHistory
  *
  * History is handled by the parent object [GroupTaskAccessDO].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

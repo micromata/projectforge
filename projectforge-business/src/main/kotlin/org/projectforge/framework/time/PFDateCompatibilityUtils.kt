@@ -31,6 +31,7 @@ import java.util.*
 class PFDateCompatibilityUtils {
     companion object {
         @JvmStatic
+        @Suppress("DEPRECATION") // Reads legacy serialized calendar filters.
         fun convertToLocalDate(dateMidnight: org.joda.time.DateMidnight?): java.time.LocalDate? {
             if (dateMidnight == null)
                 return null

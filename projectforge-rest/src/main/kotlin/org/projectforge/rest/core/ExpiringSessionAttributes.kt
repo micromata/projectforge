@@ -44,7 +44,9 @@ object ExpiringSessionAttributes {
   }
 
   fun setAttribute(request: HttpServletRequest, name: String, value: Any, ttlMinutes: Int) {
-    setAttribute(request.getSession(false), name, value, ttlMinutes)
+    // Writing an attribute needs a session: create one if the client has none yet (or its old session
+    // expired / was dropped by a server restart), instead of failing with a null-session NPE.
+    setAttribute(request.getSession(true), name, value, ttlMinutes)
   }
 
   fun setAttribute(session: HttpSession, name: String, value: Any, ttlMinutes: Int) {
@@ -56,7 +58,8 @@ object ExpiringSessionAttributes {
   }
 
   fun <T> getAttribute(request: HttpServletRequest, name: String, classOfT: Class<T>): T? {
-    return getAttribute(request.getSession(false), name, classOfT)
+    val session = request.getSession(false) ?: return null
+    return getAttribute(session, name, classOfT)
   }
 
   fun <T> getAttribute(session: HttpSession, name: String, classOfT: Class<T>): T? {
@@ -65,7 +68,10 @@ object ExpiringSessionAttributes {
   }
 
   fun getAttribute(request: HttpServletRequest, name: String): Any? {
-    return getAttribute(request.getSession(false), name)
+    // No session means nothing was ever stored (e.g. the client's old session expired or was dropped by a
+    // server restart): return null instead of dereferencing a null session.
+    val session = request.getSession(false) ?: return null
+    return getAttribute(session, name)
   }
 
   /**
@@ -83,7 +89,8 @@ object ExpiringSessionAttributes {
   }
 
   fun removeAttribute(request: HttpServletRequest, name: String) {
-    return removeAttribute(request.getSession(false), name)
+    val session = request.getSession(false) ?: return
+    return removeAttribute(session, name)
   }
 
   fun removeAttribute(session: HttpSession, name: String) {

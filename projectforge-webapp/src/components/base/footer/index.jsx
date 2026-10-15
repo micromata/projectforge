@@ -47,8 +47,8 @@ function Footer() {
             <ul className={classNames(style.list, style.version)}>
                 <li>
                     <a
-                        href="https://www.projectforge.org/changelog-posts/"
-                        title="News"
+                        href="/next/changelog"
+                        title="Changelog"
                         className={style.news_link}
                     >
                         {`${scmId}, ${version}, ${buildTimestamp}`}

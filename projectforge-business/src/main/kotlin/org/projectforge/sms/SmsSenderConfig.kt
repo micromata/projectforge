@@ -66,7 +66,7 @@ open class SmsSenderConfig {
     }
 
     open fun setHttpMethodType(httpMethodType: String): SmsSenderConfig {
-        this.httpMethodType = if (StringUtils.equalsIgnoreCase("get", httpMethodType)) HttpMethodType.GET else HttpMethodType.POST
+        this.httpMethodType = if (httpMethodType.equals("get", ignoreCase = true)) HttpMethodType.GET else HttpMethodType.POST
         return this
     }
 }

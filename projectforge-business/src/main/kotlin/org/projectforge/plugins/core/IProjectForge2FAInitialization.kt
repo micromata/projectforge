@@ -33,17 +33,17 @@ interface IProjectForge2FAInitialization {
   fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String): IProjectForge2FAInitialization
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>)
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>)
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>)
 }

@@ -32,7 +32,7 @@ import java.math.BigDecimal;
 /**
  * Used in config.xml for (re-)definition of holidays.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "holiday")

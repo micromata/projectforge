@@ -15,7 +15,6 @@ val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs"
 // libs.versions etc. not available in buildSrc. Must use findVersion and findLibrary instead.
 
 group = "org.projectforge"
-version = libs.findVersion("org.projectforge").get().requiredVersion
 
 extensions.configure<JavaPluginExtension> {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -34,7 +33,7 @@ tasks.withType<KotlinCompile> {
 }*/
 
 tasks.withType<Test> {
-    useJUnitPlatform() // JUnit 5
+    useJUnitPlatform() // JUnit Jupiter
 }
 
 tasks.withType<Javadoc>() {
@@ -42,14 +41,24 @@ tasks.withType<Javadoc>() {
 }
 
 configurations.all {
+    // Spring Boot 4 starters pull in Jackson 3 (tools.jackson). ProjectForge stays on Jackson 2 (spring-boot-jackson2)
+    // until the Jackson 3 migration, so Spring MVC doesn't switch the JSON mapper of the REST API.
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-jackson")
     resolutionStrategy {
         preferProjectModules() // Prioritize local modules.
+        // Force all Jackson module versions to match project's explicit Jackson version.
+        // Transitive dependencies (e.g. ez-vcard, flyway) may pull in newer Jackson versions.
+        val jacksonVersion = libs.findVersion("com.fasterxml.jackson").get().requiredVersion
+        force("com.fasterxml.jackson:jackson-bom:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+        force("com.fasterxml.jackson.core:jackson-annotations:${libs.findVersion("com.fasterxml.jackson.annotations").get().requiredVersion}")
     }
 }
 
 dependencies {
     api(libs.findLibrary("org-jetbrains-kotlin-stdlib").get())
-    api(libs.findLibrary("io-github-microutils-kotlin-logging").get())
+    api(libs.findLibrary("io-github-oshai-kotlin-logging").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-api").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-engine").get())
     testImplementation(libs.findLibrary("org-junit-platform-launcher").get())

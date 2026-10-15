@@ -27,7 +27,7 @@ package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_IDS_AND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
@@ -60,7 +61,7 @@ private val log = KotlinLogging.logger {}
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
  * etc.).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @NoHistory
 @Entity
@@ -73,6 +74,11 @@ private val log = KotlinLogging.logger {}
 //@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
     NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
+    NamedQuery(
+        name = FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES,
+        // Eagerly fetch the legacy userPrefEntries to avoid an N+1 when the caller reads entry values (see TaskFavoritesService).
+        query = "select distinct u from UserPrefDO u left join fetch u.userPrefEntries where u.user.id=:userId and u.area=:area order by u.name"
+    ),
     NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
     NamedQuery(
         name = FIND_BY_USER_AND_AREA_AND_NAME,
@@ -166,7 +172,10 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
                     null
                 else Class.forName(valueTypeString)
             } catch (ex: ClassNotFoundException) {
-                log.error("Can't get value type from '$valueTypeString'. Class not found (old incompatible ProjectForge version)?")
+                // Stale rows of removed/renamed classes are skipped; log each class only once to avoid flooding the log.
+                if (unknownValueTypes.add(valueTypeString!!)) {
+                    log.info { "Ignoring user prefs of value type '$valueTypeString': class not found (removed or renamed in a newer ProjectForge version)." }
+                }
                 return null
             }
         }
@@ -219,9 +228,9 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
      * excluded.
      */
     @Deprecated("Use value with json serialization instead.")
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
-        val src = source as UserPrefDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        var modificationStatus = super.copyValuesFrom(src, *ignoreFields)
+        src as UserPrefDO
         src.userPrefEntries?.let { srcUserPrefEntries ->
             for (srcEntry in srcUserPrefEntries) {
                 srcEntry.parameter?.let { param ->
@@ -305,9 +314,13 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     }
 
     companion object {
+        private val unknownValueTypes: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
         internal const val FIND_BY_USER_ID = "UserPrefDO_FindByUserId"
 
         internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_FindByUserIdAndArea"
+
+        internal const val FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES = "UserPrefDO_FindByUserIdAndAreaWithEntries"
 
         internal const val FIND_BY_USER_AND_AREA_AND_ID = "UserPrefDO_FindByUserIdAndAreaAndId"
 

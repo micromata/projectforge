@@ -26,7 +26,7 @@ package org.projectforge.database.jdbc;
 import org.projectforge.database.DatabaseResultRowEntry;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class DatabaseResultRowEntryImpl implements DatabaseResultRowEntry

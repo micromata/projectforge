@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}
@@ -33,12 +33,7 @@ class AuftragsPositionsArtFilter(val values: List<AuftragsPositionsArt>) : Custo
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach { pos ->
-            if (values.contains(pos.art)) {
-                return true
-            }
-        }
-        return false
+        return AuftragsCache.instance.anyPositionMatches(element) { _, art, _ -> values.contains(art) }
     }
 
     companion object {

@@ -24,7 +24,7 @@
 package org.projectforge.carddav.service
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.CardDavConfig
@@ -151,9 +151,9 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterInsertOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
         synchronized(contactMap) {
-            contactMap.remove(changedObject.id)
+            contactMap.remove(obj.id)
         }
     }
 
@@ -163,7 +163,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListen
     }
 
     override fun refresh() {
-        log.info("Clearing cache ${this::class.java.simpleName}.")
+        log.info { "Clearing cache ${this::class.java.simpleName}." }
         synchronized(contactMap) {
             contactMap.clear()
         }

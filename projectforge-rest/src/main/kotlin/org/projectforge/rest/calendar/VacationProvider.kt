@@ -27,8 +27,10 @@ import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,6 +49,9 @@ open class VacationProvider {
 
     @Autowired
     private lateinit var vacationCache: VacationCache
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
     @Autowired
     private lateinit var vacationService: VacationService
@@ -74,12 +79,12 @@ open class VacationProvider {
         val vacations =
             vacationCache.getVacationForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         vacations.forEach { vacation ->
+            if (vacation.status == VacationStatus.REJECTED) {
+                return@forEach // The cache leaves them out already; nobody is away.
+            }
             val employeeUser = employeeCache.getUser(vacation.employee)
             val title = "${translate("vacation")}: ${employeeUser?.getFullname()}"
-            if (!events.any {
-                    it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) &&
-                            vacation.status != VacationStatus.REJECTED
-                }) {
+            if (!events.any { it.title == title && FullCalendarEvent.samePeriod(it, vacation.startDate, vacation.endDate) }) {
                 val duration = VacationService.getVacationDays(vacation)
                 val unit = if (duration == BigDecimal.ONE) "fibu.common.workingDay" else "fibu.common.workingDays"
                 // Event doesn't yet exist:
@@ -102,7 +107,11 @@ open class VacationProvider {
                     .addPropRow(
                         translate("vacation.replacement"),
                         vacationService.collectAllReplacements(vacation).joinToString { employeeCache.getUser(it)?.displayName ?: "???" })
-                if (!vacation.comment.isNullOrBlank()) {
+                // The cached comment is kept raw (VacationDao.afterLoad), so apply the per-user privacy check here:
+                // the comment is personal data, only visible to the owner and to users with update access (HR/manager).
+                if (!vacation.comment.isNullOrBlank() &&
+                    vacationDao.isCommentVisibleFor(ThreadLocalUserContext.requiredLoggedInUser, vacation)
+                ) {
                     tb.addPropRow(translate("comment"), vacation.comment, abbreviate = true)
                 }
                 event.setTooltip(title, tb)

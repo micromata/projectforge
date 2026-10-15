@@ -36,15 +36,19 @@ import org.projectforge.test.WorkFileHelper;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GanttTest
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttTest.class);
+
+  private long nextId = 1;
 
   @BeforeAll
   public static void setUp()
@@ -64,6 +68,20 @@ public class GanttTest
     writeFile("ganttTest.png", BatikImageRenderer.getByteArray(diagram.create(), 800, ImageFormat.PNG));
     writeFile("ganttTest.svg", BatikImageRenderer.getByteArray(diagram.create(), 800, ImageFormat.SVG));
     writeFile("ganttTest.pdf", BatikImageRenderer.getByteArray(diagram.create(), 800, ImageFormat.PDF));
+  }
+
+  @Test
+  public void exportMSProject() throws IOException
+  {
+    final GanttChart diagram = new GanttChart(createTestChart(), new GanttChartStyle(), new GanttChartSettings(), "test-chart");
+    final String xml = new String(ExportMSProject.exportXml(diagram), StandardCharsets.UTF_8);
+    writeFile("ganttTest.xml", xml.getBytes(StandardCharsets.UTF_8));
+    assertTrue(xml.contains("<Name>Task 1</Name>"), "MSPDI export must contain the tasks.");
+    assertTrue(xml.contains("<PredecessorLink>"), "MSPDI export must contain the predecessor links.");
+    final String mpx = new String(ExportMSProject.exportMpx(diagram), StandardCharsets.ISO_8859_1);
+    writeFile("ganttTest.mpx", mpx.getBytes(StandardCharsets.ISO_8859_1));
+    assertTrue(mpx.startsWith("MPX"), "MPX export must start with the MPX header.");
+    assertTrue(mpx.contains("Task 1"), "MPX export must contain the tasks.");
   }
 
   private void writeFile(final String filename, final byte[] ba) throws IOException
@@ -128,6 +146,7 @@ public class GanttTest
       final int dependDayOffset)
   {
     final GanttTaskImpl node = new GanttTaskImpl();
+    node.setId(nextId++);
     node.setTitle(title);
     node.setWorkpackageCode(workpackageCode);
     node.setDuration(new BigDecimal(durationDays));

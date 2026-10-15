@@ -27,7 +27,7 @@ import java.time.ZonedDateTime
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class DatePrecision {
     /** Precision millisecond (nanos will be a multiplier of thousands).  */

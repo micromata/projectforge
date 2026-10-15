@@ -15,7 +15,6 @@ dependencies {
     api(project(":projectforge-business"))
     api(libs.org.springframework.boot.starter.webflux)
     api(libs.jakarta.annotation.api)
-    api(libs.jakarta.ws.rs.api)
     api(libs.jakarta.validation.api)
     api(libs.com.google.zxing.core)
     api(libs.com.google.zxing.javase)
@@ -24,6 +23,8 @@ dependencies {
     testImplementation(testFixtures(project(":projectforge-business")))
     testImplementation(libs.com.googlecode.gson)
     testImplementation(libs.org.mockito.core)
+    // MockMultipartFile, for the upload endpoints; projectforge-business declares it for the same reason.
+    testImplementation(libs.org.springframework.spring.test)
 }
 
 description = "projectforge-rest"

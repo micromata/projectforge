@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.configuration.ConfigurationService
@@ -66,7 +66,7 @@ class GroovyEngine @JvmOverloads constructor(
   )
       : this(configurationService, mutableMapOf(), locale, timeZone)
 
-  private val locale = locale ?: ThreadLocalUserContext.locale!!
+  private val locale = locale ?: ThreadLocalUserContext.locale
   private val timeZone = timeZone ?: Configuration.instance.defaultTimeZone
   private val htmlFormat = true
   private val groovyExecutor = GroovyExecutor()
@@ -153,10 +153,8 @@ class GroovyEngine @JvmOverloads constructor(
     val res = configurationService.getResourceContentAsString(file)
     val template = res[0] as? String
     if (template == null) {
-      log.error(
-        "Template with filename '" + file
-            + "' not found (neither in resource path nor in ProjectForge's application dir."
-      )
+      log.error { "Template with filename '" + file +
+            "' not found (neither in resource path nor in ProjectForge's application dir." }
       return ""
     }
     return executeTemplate(template)
@@ -262,7 +260,7 @@ class GroovyEngine @JvmOverloads constructor(
   }
 
   fun log(message: String?) {
-    log.info(message)
+    log.info { message }
   }
 
   /**
@@ -298,7 +296,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(customer: KundeDO?): String {
     return if (customer == null) {
       ""
-    } else OldKostFormatter.formatKunde(customer)
+    } else html(OldKostFormatter.formatKunde(customer))
   }
 
   /**
@@ -310,7 +308,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(project: ProjektDO?): String {
     return if (project == null) {
       ""
-    } else OldKostFormatter.formatProjekt(project)
+    } else html(OldKostFormatter.formatProjekt(project))
   }
 
   /**
@@ -320,7 +318,7 @@ class GroovyEngine @JvmOverloads constructor(
    * @see PFUserDO.getFullname
    */
   fun getString(user: PFUserDO?): String {
-    return user?.getFullname() ?: ""
+    return html(user?.getFullname())
   }
 
   fun getString(value: Number?): String {
@@ -330,7 +328,13 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(task: TaskDO?): String {
     return if (task == null) {
       ""
-    } else TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN) ?: ""
+    } else html(TaskFormatter.getTaskPath(task.id, true, OutputType.PLAIN))
+  }
+
+  /** A name or title entered by a user, escaped like [getString]: names of customers, users, tasks may contain `<`, `&`. */
+  private fun html(value: String?): String {
+    value ?: return ""
+    return if (htmlFormat) HtmlHelper.formatText(value, true) else value
   }
 
   fun getCurrency(value: BigDecimal?): String {

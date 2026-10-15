@@ -58,7 +58,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     user.setUsername("k.reinhard");
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
-    user.setEmail("k.reinhard@micromata.de");
+    user.setEmail("k.reinhard@acme.com");
     user.setDescription("Developer");
     user.setOrganization("Micromata GmbH");
     user.setId(42L);
@@ -74,7 +74,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     assertEquals("Reinhard", ldapUser.getSurname());
     assertEquals("Micromata GmbH", ldapUser.getOrganization());
     assertEquals(1, ldapUser.getMail().length);
-    assertEquals("k.reinhard@micromata.de", ldapUser.getMail()[0]);
+    assertEquals("k.reinhard@acme.com", ldapUser.getMail()[0]);
     assertEquals(now, ldapUser.getSambaPwdLastSet());
 
     user = pfUserDOConverter.convert(ldapUser);
@@ -84,7 +84,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     assertEquals("Kai", user.getFirstname());
     assertEquals("Reinhard", user.getLastname());
     assertEquals("Micromata GmbH", user.getOrganization());
-    assertEquals("k.reinhard@micromata.de", user.getEmail());
+    assertEquals("k.reinhard@acme.com", user.getEmail());
     assertEquals(now, user.getLastWlanPasswordChange());
 
     user = new PFUserDO();

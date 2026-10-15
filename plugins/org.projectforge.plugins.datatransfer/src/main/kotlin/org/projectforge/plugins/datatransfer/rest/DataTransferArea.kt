@@ -30,9 +30,11 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaCapacity
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferUtils
 import org.projectforge.plugins.datatransfer.IDataTransferArea
 import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.EntityAccessSupport
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import java.util.*
@@ -63,7 +65,9 @@ class DataTransferArea(
     var personalBox: Boolean? = null,
     override var attachmentsCounter: Int? = null,
     override var attachmentsSize: Long? = null,
-) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea {
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<DataTransferAreaDO>(id), AttachmentsSupport, IDataTransferArea, EntityAccessSupport {
     override var attachments: List<Attachment>? = null
         set(value) {
             // Replace #EXTERNAL# by translated marker:
@@ -71,18 +75,22 @@ class DataTransferArea(
                 attachment.createdByUser = DataTransferAreaDao.getTranslatedUserString(null, attachment.createdByUser)
                 attachment.lastUpdateByUser =
                     DataTransferAreaDao.getTranslatedUserString(null, attachment.lastUpdateByUser)
+                // Here and not per caller, so every read of the attachments carries it (the entity's GET,
+                // the answers of upload/modify/delete and the file view). Set by copyFrom before.
+                attachment.addExpiryInfo(DataTransferUtils.expiryTimeLeft(attachment, expiryDays))
             }
             field = value
         }
 
     /**
-     * Link for external users.
+     * Link for external users. Null without a token: the DAO removes it for users without admin access, and a link
+     * ending with "null" would only look like a working one.
      */
     //@PropertyInfo(i18nKey = "plugins.datatransfer.external.link", tooltip = "plugins.datatransfer.external.link.info")
-    val externalLink
+    val externalLink: String?
         @JsonProperty
         @Transient
-        get() = "$externalLinkBaseUrl$externalAccessToken"
+        get() = externalAccessToken?.let { "$externalLinkBaseUrl$it" }
 
     @get:Transient
     var externalLinkBaseUrl: String? = null

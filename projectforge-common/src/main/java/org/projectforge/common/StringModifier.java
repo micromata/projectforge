@@ -27,7 +27,7 @@ package org.projectforge.common;
  * Simple interface usable for modification of strings. This is used e. g. by ProjectForge app to replace variables
  * while creating config files on new installations of ProjectForge.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface StringModifier {
   String modify(String str);

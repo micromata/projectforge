@@ -24,8 +24,8 @@
 package org.projectforge.business.vacation.service
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
-import org.projectforge.business.fibu.EmployeeService
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.cache.AbstractCache
@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -43,13 +44,12 @@ private val log = KotlinLogging.logger {}
 @Service
 class ConflictingVacationsCache() : AbstractCache() {
     @Autowired
-    private lateinit var employeeService: EmployeeService
-
-    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var vacationService: VacationService
+
+    private lateinit var vacationDao: VacationDao
 
     /**
      * Key is the employee id.
@@ -61,17 +61,29 @@ class ConflictingVacationsCache() : AbstractCache() {
      */
     private var allConflictingVacations = mutableSetOf<Long>()
 
+    /**
+     * Guards both collections above: [refresh] replaces them, so locking on the instances would lock on ones that
+     * may already be gone, and an update could land in a collection no reader sees any more.
+     */
+    private val lock = Any()
+
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
     @PostConstruct
     private fun postConstruct() {
         this.vacationService = applicationContext.getBean(VacationService::class.java)
+        this.vacationDao = applicationContext.getBean(VacationDao::class.java)
     }
 
+    /**
+     * Takes the conflict of a vacation as it is stored into the cache. Only a current or future one in a status the
+     * cache holds (see [refresh]) is kept: opening an old or rejected entry must not mark it as a conflict.
+     */
     fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
         checkRefresh()
-        synchronized(allConflictingVacations) {
+        val conflict = conflict && isConsidered(vacationDO)
+        synchronized(lock) {
             vacationDO.id?.let { id ->
                 if (!conflict) {
                     allConflictingVacations.remove(id) // If given
@@ -79,14 +91,17 @@ class ConflictingVacationsCache() : AbstractCache() {
                     allConflictingVacations.add(id)
                 }
             }
-        }
-        synchronized(conflictingVacationsByEmployee) {
-            if (!conflict) {
-                conflictingVacationsByEmployee[vacationDO.employee?.id]?.remove(vacationDO)
-            } else {
+            // By id: the list holds the instance of the last refresh, not the one given here.
+            conflictingVacationsByEmployee[vacationDO.employee?.id]?.removeIf { it.id == vacationDO.id }
+            if (conflict) {
                 ensureEmployeeList(conflictingVacationsByEmployee, vacationDO.employee?.id).add(vacationDO)
             }
         }
+    }
+
+    private fun isConsidered(vacationDO: VacationDO): Boolean {
+        val endDate = vacationDO.endDate ?: return false
+        return !vacationDO.deleted && endDate >= LocalDate.now() && vacationDO.status in VacationService.CONFLICT_STATUS
     }
 
     fun hasConflict(vacationDO: VacationDO): Boolean {
@@ -96,15 +111,15 @@ class ConflictingVacationsCache() : AbstractCache() {
     fun hasConflict(vacationId: Long?): Boolean {
         vacationId ?: return false
         checkRefresh()
-        synchronized(allConflictingVacations) {
+        synchronized(lock) {
             return allConflictingVacations.contains(vacationId)
         }
     }
 
     fun numberOfConflicts(userId: Long): Int {
-        employeeService.findByUserId(userId)?.id?.let { employeeId ->
-            checkRefresh()
-            synchronized(allConflictingVacations) {
+        checkRefresh()
+        EmployeeCache.instance.getEmployeeIdByUserId(userId)?.let { employeeId ->
+            synchronized(lock) {
                 return conflictingVacationsByEmployee[employeeId]?.size ?: 0
             }
         }
@@ -112,7 +127,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     }
 
     override fun refresh() {
-        log.info("Refreshing cache of conflicting vacations...")
+        log.info { "Refreshing cache of conflicting vacations..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
             // First, order all vacations by employee:
@@ -122,13 +137,26 @@ class ConflictingVacationsCache() : AbstractCache() {
                     ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
                 }
             }
+            // A running vacation also counts the days already past, as getVacationOverlaps does when the entry is
+            // opened: its substitutes' vacations that ended before today are needed too.
+            val running = all.filter { it.startDate?.isBefore(LocalDate.now()) == true }
+            val earlierOfReplacements = if (running.isEmpty()) {
+                emptyList()
+            } else {
+                vacationDao.getVacationsOfEmployeesForPeriod(
+                    running.flatMap { vacationService.collectAllReplacements(it) }.mapNotNull { it.id }.toSet(),
+                    running.minOf { it.startDate!! },
+                    LocalDate.now().minusDays(1),
+                ).filter { it.status in VacationService.CONFLICT_STATUS && it.endDate?.isBefore(LocalDate.now()) == true }
+            }
+            val pool = all + earlierOfReplacements
             val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
             val newAllConflictingVacations = mutableSetOf<Long>()
             // Now find conflicting entries:
             all.forEach { vacation ->
                 val vacationsOfReplacements = mutableListOf<VacationDO>()
                 vacationService.collectAllReplacements(vacation).forEach { replacementEmployee ->
-                    vacationsOfReplacements.addAll(all.filter { it.employee?.id == replacementEmployee.id })
+                    vacationsOfReplacements.addAll(pool.filter { it.employee?.id == replacementEmployee.id })
                 }
                 if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
                     ensureEmployeeList(newConflictingVacations, vacation.employee?.id).add(vacation)
@@ -137,10 +165,12 @@ class ConflictingVacationsCache() : AbstractCache() {
                     }
                 }
             }
-            conflictingVacationsByEmployee = newConflictingVacations
-            allConflictingVacations = newAllConflictingVacations
+            synchronized(lock) {
+                conflictingVacationsByEmployee = newConflictingVacations
+                allConflictingVacations = newAllConflictingVacations
+            }
             log.info {
-                "Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees. ${
+                "Refreshing cache of conflicting vacations done. Found ${newAllConflictingVacations.size} conflicts of ${newConflictingVacations.size} employees. ${
                     context.formatStats()
                 }"
             }

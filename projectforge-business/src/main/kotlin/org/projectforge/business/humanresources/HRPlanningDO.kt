@@ -25,7 +25,7 @@ package org.projectforge.business.humanresources
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -286,12 +286,12 @@ open class HRPlanningDO : DefaultBaseDO() {
      */
     fun deleteEntry(entry: HRPlanningEntryDO) {
         if (this.entries == null) {
-            log.error("Can't remove entry because the list of entries is null (do nothing): $entry")
+            log.error { "Can't remove entry because the list of entries is null (do nothing): $entry" }
             return
         }
         if (entry.id == null) {
             if (!this.entries!!.remove(entry)) {
-                log.error("Can't remove entry because the list of entries does not contain such an entry: $entry")
+                log.error { "Can't remove entry because the list of entries does not contain such an entry: $entry" }
             }
         } else {
             entry.deleted = true

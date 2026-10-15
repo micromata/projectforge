@@ -31,7 +31,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  * For documentation please refer the ProjectForge-API: Kost2DO object.
  * REST object cost2.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class Cost2Object extends AbstractBaseObject
 {

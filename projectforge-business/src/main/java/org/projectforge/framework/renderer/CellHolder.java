@@ -26,7 +26,7 @@ package org.projectforge.framework.renderer;
 /**
  * For storing a cell content.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class CellHolder

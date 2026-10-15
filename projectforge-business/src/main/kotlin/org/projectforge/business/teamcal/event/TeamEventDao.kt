@@ -25,19 +25,17 @@ package org.projectforge.business.teamcal.event
 
 import jakarta.persistence.NoResultException
 import jakarta.persistence.NonUniqueResultException
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.teamcal.ical.ICalDateUtils
@@ -61,8 +59,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -80,7 +76,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Service
@@ -96,8 +92,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
-
-    override val additionalHistorySearchDOs: Array<Class<*>> = arrayOf(TeamEventAttendeeDO::class.java)
 
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR_EVENT
@@ -142,15 +136,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             }
         }
         if (reminderHasChanged) {
-            val stackTrace = Thread.currentThread().stackTrace
-            val changedByWebView =
-                Arrays.stream(stackTrace)
-                    .filter { ste: StackTraceElement -> ste.className.contains("org.projectforge.web.wicket.EditPageSupport") }
-                    .count() > 0
-            log.info(
-                "TeamEventDao.internalUpdate -> Changed reminder of team event. Changed by: " + (if (changedByWebView) "WebView" else "REST") + " Message: " + message
-                    .toString()
-            )
+            log.info { "TeamEventDao.internalUpdate -> Changed reminder of team event. Message: $message" }
         }
     }
 
@@ -215,6 +201,19 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
+    /**
+     * All non-deleted events of the given calendar with the given uid. Normally none or one, but a uid isn't
+     * unique by constraint, so unlike [getByUid] a caller can tell "not found" from "ambiguous".
+     */
+    fun selectByUid(calendarId: Long, uid: String): List<TeamEventDO> {
+        return persistenceService.executeQuery(
+            "select e from TeamEventDO e where e.uid = :uid and e.calendar.id = :calendarId and e.deleted = false",
+            TeamEventDO::class.java,
+            Pair("uid", uid),
+            Pair("calendarId", calendarId),
+        )
+    }
+
     override fun onUpdate(obj: TeamEventDO, dbObj: TeamEventDO) {
         logReminderChange(obj)
         handleSeriesUpdates(obj)
@@ -265,31 +264,27 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             recurrenceData.until = getUntilDate(selectedEvent.startDate!!)
             event.setRecurrence(recurrenceData)
             insert(newEvent)
-            if (log.isDebugEnabled) {
-                log.debug(
-                    "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
+            if (log.isDebugEnabled()) {
+                log.debug { "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
                         recurrenceData.until
-                    )
-                )
-                log.debug("The new event is: $newEvent")
+                    ) }
+                log.debug { "The new event is: $newEvent" }
             }
             return
         } else if (mode == SeriesModificationMode.SINGLE) { // only current date
             // Add current date to the master date as exclusion date and save this event (without recurrence settings).
             event.addRecurrenceExDate(selectedEvent.startDate)
             if (newEvent.hasRecurrence()) {
-                log.warn("User tries to modify single event of a series, the given recurrence is ignored.")
+                log.warn { "User tries to modify single event of a series, the given recurrence is ignored." }
             }
             newEvent.setRecurrence(null as? RRule<ZonedDateTime>?) // User only wants to modify single event, ignore recurrence.
             insert(newEvent)
-            if (log.isDebugEnabled) {
-                log.debug(
-                    ("Recurrency ex date of master entry is now added: "
+            if (log.isDebugEnabled()) {
+                log.debug { ("Recurrency ex date of master entry is now added: "
                             + DateHelper.formatAsUTC(selectedEvent.startDate)
                             + ". The new string is: "
-                            + event.recurrenceExDate)
-                )
-                log.debug("The new event is: $newEvent")
+                            + event.recurrenceExDate) }
+                log.debug { "The new event is: $newEvent" }
             }
         }
     }
@@ -329,7 +324,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
         // set DTSTAMP if empty
         if (obj.dtStamp == null) {
-            obj.dtStamp = Date(obj.created!!.time)
+            obj.dtStamp = Date((obj.created ?: Date()).time) // created isn't set yet on a direct insert.
         }
 
         // create uid if empty
@@ -620,39 +615,10 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             queryFilter.add(le("startDate", endDate))
         }
         queryFilter.addOrder(desc("startDate"))
-        if (log.isDebugEnabled) {
-            log.debug(ToStringBuilder.reflectionToString(filter))
+        if (log.isDebugEnabled()) {
+            log.debug { ToStringBuilder.reflectionToString(filter) }
         }
         return queryFilter
-    }
-
-    /**
-     * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
-     */
-    override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
-        obj.attendees?.forEach { attendee ->
-            historyService.loadAndMergeHistory(attendee, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())
-            }
-        }
-    }
-
-    /**
-     * Returns also true, if idSet contains the id of any attendee.
-     *
-     * @see org.projectforge.framework.persistence.api.BaseDao.contains
-     */
-    override fun contains(idSet: Set<Long>?, entry: TeamEventDO): Boolean {
-        idSet ?: return false
-        if (super.contains(idSet, entry)) {
-            return true
-        }
-        for (pos in entry.attendees!!) {
-            if (idSet.contains(pos.id)) {
-                return true
-            }
-        }
-        return false
     }
 
     override fun newInstance(): TeamEventDO {
@@ -695,58 +661,36 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
         // remove ex range values
         val col: MutableCollection<ICalendarEvent> = ArrayList()
-        if (dateList != null) {
-            for (dateTime in dateList) {
-                val day = ICalDateUtils.extractLocalDate(dateTime)
-                if (RRuleUtils.isEventExcluded(day, exDates)) {
-                    log.debug { "= ${dateTime} included in exdates: ${exDates?.joinToString()}" }
-                    // this date is part of ex dates, so don't use it.
-                    continue
-                }
-                if (seedDate.localDate == day) {
-                    // Put event itself to the list.
-                    col.add(event)
-                } else {
-                    // Now we need this event as date with the user's time-zone.
-                    val date = fromTemporal(dateTime, timeZone.toZoneId())
-                    val recurEvent = TeamRecurrenceEvent(event, date)
-                    col.add(recurEvent)
-                }
+        for (dateTime in dateList) {
+            val day = ICalDateUtils.extractLocalDate(dateTime)
+            if (RRuleUtils.isEventExcluded(day, exDates)) {
+                log.debug { "= ${dateTime} included in exdates: ${exDates?.joinToString()}" }
+                // this date is part of ex dates, so don't use it.
+                continue
+            }
+            if (seedDate.localDate == day) {
+                // Put event itself to the list.
+                col.add(event)
+            } else {
+                // Now we need this event as date with the user's time-zone.
+                val date = fromTemporal(dateTime, timeZone.toZoneId())
+                val recurEvent = TeamRecurrenceEvent(event, date)
+                col.add(recurEvent)
             }
         }
-        if (log.isDebugEnabled) {
+        if (log.isDebugEnabled()) {
             for (ev in col) {
-                log.debug(
-                    ("startDate="
+                log.debug { ("startDate="
                             + DateHelper.formatIsoTimestamp(ev.startDate, timeZone)
                             + "; "
                             + DateHelper.formatAsUTC(ev.startDate)
                             + ", endDate="
                             + DateHelper.formatIsoTimestamp(ev.startDate, timeZone)
                             + "; "
-                            + DateHelper.formatAsUTC(ev.endDate))
-                )
+                            + DateHelper.formatAsUTC(ev.endDate)) }
             }
         }
         return col
-    }
-
-    /**
-     * Will be called, before an address is (forced) deleted. All references in personal address books have to be deleted first.
-     *
-     * @param addressDO
-     */
-    fun removeAttendeeByAddressIdFromAllEvents(addressDO: AddressDO) {
-        persistenceService.runInTransaction { context ->
-            val addressId = addressDO.id ?: return@runInTransaction
-            val counter: Int = context.executeNamedUpdate(
-                TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
-                Pair("addressId", addressId),
-            )
-            if (counter > 0) {
-                log.info("Address #" + addressId + " of '" + addressDO.fullName + "' removed as attendee in " + counter + " events.")
-            }
-        }
     }
 
     companion object {

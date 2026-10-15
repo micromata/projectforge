@@ -23,13 +23,20 @@
 
 package org.projectforge.config;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.projectforge.Constants;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
 
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
@@ -41,6 +48,178 @@ public class WebApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
+        // Root of the Next.js app: an empty resource path isn't resolved by the resource handler below, so map the
+        // bare base path explicitly. These patterns match exactly and therefore don't interfere with asset requests.
+        registry.addViewController("/" + Constants.NEXT).setViewName("redirect:/" + Constants.NEXT_APP_PATH);
+        registry.addViewController("/" + Constants.NEXT_APP_PATH).setViewName("forward:/" + Constants.NEXT_APP_PATH + "index.html");
+    }
+
+    /**
+     * projectforge-next (Next.js static export) is served side-by-side with the legacy React app during the migration.
+     * <p>
+     * Unlike the legacy React app (whose assets live at the root, so a plain view-controller forward suffices), the
+     * Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
+     * to the SPA shell would therefore swallow asset requests. This resource handler instead serves real files first
+     * (assets, per-route {@code index.html}) and only then falls back to the shell of the matching dynamic route for
+     * deep links such as {@code /next/book/5}. Missing assets still yield a real 404.
+     * <p>
+     * The export is packaged into {@code classpath:/static/next/} (see projectforge-next Gradle build).
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/" + Constants.NEXT_APP_PATH + "**")
+                .addResourceLocations("classpath:/static/" + Constants.NEXT_APP_PATH)
+                .resourceChain(true)
+                .addResolver(new NextSpaResourceResolver());
+    }
+
+    /**
+     * Resolves a request under {@code /next/**} to a static file, applying Next.js static-export conventions
+     * (directory {@code index.html}, {@code <route>.html}) and mapping deep links of a dynamic route onto the one
+     * route Next prerendered for it.
+     * <p>
+     * A static export has no file for {@code /next/book/25219084}: {@code book/[id]} is prerendered exactly once,
+     * from the placeholder of its {@code generateStaticParams} ({@code book/new}). That prerender — not
+     * {@code 404.html}, which is Next's own not-found page and renders as such wherever it is served — is the shell a
+     * deep link has to be answered with, because the HTML carries the route's page component. Which shell belongs to
+     * which route pattern is read from {@code next-spa-shell-map.json}, written by the Next build
+     * (projectforge-next/scripts/generate-spa-shell-map.mjs), so a new dynamic route needs no change here.
+     * <p>
+     * Substituting the whole directory rather than just the HTML also serves the route's RSC payloads
+     * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
+     * client-side navigation to a deep link work.
+     */
+    // Package private rather than private: the order of the cases below is the whole correctness
+    // argument, so NextSpaResourceResolverTest exercises them directly.
+    static class NextSpaResourceResolver extends PathResourceResolver {
+        private static final String SHELL_MAP = "next-spa-shell-map.json";
+
+        /** Lazily loaded: the location isn't known before the first request. */
+        private volatile List<DynamicRoute> dynamicRoutes;
+
+        private record DynamicRoute(String page, Pattern pattern, String shellDir) {
+        }
+
+        @Override
+        protected Resource getResource(String resourcePath, Resource location) throws java.io.IOException {
+            // 1. Exact file (assets like _next/static/*.js, favicon.ico, and <route>/index.html when path ends in "/").
+            Resource resource = tryResource(resourcePath, location);
+            if (resource != null) return resource;
+            if (resourcePath.isEmpty() || resourcePath.endsWith("/")) {
+                resource = tryResource(resourcePath + "index.html", location);
+                if (resource != null) return resource;
+            } else {
+                // 2. Page route without trailing slash: <route>/index.html or <route>.html.
+                resource = tryResource(resourcePath + "/index.html", location);
+                if (resource == null) resource = tryResource(resourcePath + ".html", location);
+                if (resource != null) return resource;
+            }
+            // 3. Deep link of a dynamic route → the shell Next prerendered for that route.
+            return tryShell(resourcePath, location, isAssetRequest(resourcePath));
+        }
+
+        /** Whether the last segment carries a non-.html extension, i.e. a file was asked for, not a page. */
+        private static boolean isAssetRequest(String resourcePath) {
+            int lastSlash = resourcePath.lastIndexOf('/');
+            String lastSegment = lastSlash >= 0 ? resourcePath.substring(lastSlash + 1) : resourcePath;
+            return lastSegment.contains(".") && !lastSegment.endsWith(".html");
+        }
+
+        /**
+         * Replaces the part of {@code resourcePath} that identifies a dynamic route with that route's shell directory.
+         * <p>
+         * Three shapes occur, all of which the client router needs:
+         * <ol>
+         * <li>the page itself, {@code /book/5} → {@code book/new/index.html};</li>
+         * <li>the RSC payload of a client side navigation, {@code /book/5.txt} → {@code book/new/index.txt} — the
+         * route with an extension appended, not a file below it;</li>
+         * <li>a file below the page, {@code /book/5/__next._tree.txt} → {@code book/new/__next._tree.txt}.</li>
+         * </ol>
+         * A static route's own payload ({@code /book.txt} → {@code book/index.txt}) is looked up before all of them:
+         * it is no dynamic route at all, but its path matches one once the extension is stripped.
+         *
+         * @param assetRequest whether a file was asked for rather than a page. For those only an exact hit counts: an
+         *                     unresolvable asset has to stay a 404 rather than be masked with HTML.
+         */
+        private Resource tryShell(String resourcePath, Resource location, boolean assetRequest) throws java.io.IOException {
+            String path = "/" + (resourcePath.endsWith("/") ? resourcePath.substring(0, resourcePath.length() - 1) : resourcePath);
+            if (!assetRequest) {
+                String shellDir = matchShellDir(path, location);
+                return shellDir == null ? null : tryResource(shellDir + "/index.html", location);
+            }
+            // The payload of a *static* route, which the export stores as that route's own index file
+            // ("/book.txt" → "book/index.txt"). Before any shell match: "/book" without the extension also matches the
+            // catch-all "/[category]", whose shell then answers a client side navigation to /next/book with the
+            // payload of a page that renders its own not-found for every route it does not own — the list would
+            // arrive as a 404 although its own prerender is right there.
+            int extension = path.lastIndexOf('.');
+            Resource own = tryResource(path.substring(1, extension) + "/index" + path.substring(extension), location);
+            if (own != null) return own;
+            // 3. before 2.: a file below the page, matching the route against the path without the file name. Tried
+            // first because stripping the extension instead (below) can turn such a path into a match of a *different*
+            // route — "/book/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".
+            int lastSlash = path.lastIndexOf('/');
+            String shellDir = matchShellDir(path.substring(0, lastSlash), location);
+            if (shellDir != null) {
+                Resource resource = tryResource(shellDir + path.substring(lastSlash), location);
+                if (resource != null) return resource;
+            }
+            // 2. <route>.<ext>: the payload of the page, which the export stores as the page's own index.<ext>.
+            int dot = path.lastIndexOf('.');
+            shellDir = matchShellDir(path.substring(0, dot), location);
+            return shellDir == null ? null : tryResource(shellDir + "/index" + path.substring(dot), location);
+        }
+
+        /** The shell directory of the first dynamic route matching {@code path}, or null. */
+        private String matchShellDir(String path, Resource location) {
+            // The map keeps Next's own order, which is most specific first — so the first match is the right one.
+            for (DynamicRoute route : getDynamicRoutes(location)) {
+                if (route.pattern().matcher(path).matches()) return route.shellDir();
+            }
+            return null;
+        }
+
+        private List<DynamicRoute> getDynamicRoutes(Resource location) {
+            List<DynamicRoute> routes = dynamicRoutes;
+            if (routes == null) {
+                synchronized (this) {
+                    routes = dynamicRoutes;
+                    if (routes == null) {
+                        dynamicRoutes = routes = loadDynamicRoutes(location);
+                    }
+                }
+            }
+            return routes;
+        }
+
+        private static List<DynamicRoute> loadDynamicRoutes(Resource location) {
+            List<DynamicRoute> routes = new ArrayList<>();
+            try {
+                Resource resource = location.createRelative(SHELL_MAP);
+                if (!resource.isReadable()) {
+                    log.warn("{} not found in the Next.js export: deep links such as /{}book/5 will not work. Rebuild projectforge-next.",
+                            SHELL_MAP, Constants.NEXT_APP_PATH);
+                    return routes;
+                }
+                try (java.io.InputStream in = resource.getInputStream()) {
+                    for (com.fasterxml.jackson.databind.JsonNode node : new com.fasterxml.jackson.databind.ObjectMapper().readTree(in).path("routes")) {
+                        routes.add(new DynamicRoute(node.path("page").asText(),
+                                Pattern.compile(node.path("regex").asText()),
+                                node.path("shellDir").asText()));
+                    }
+                }
+                log.info("Next.js dynamic routes served from their prerendered shell: {}",
+                        routes.stream().map(route -> route.page() + " -> " + route.shellDir()).toList());
+            } catch (Exception ex) {
+                log.error("Can't read " + SHELL_MAP + " of the Next.js export: deep links will not work: " + ex.getMessage(), ex);
+            }
+            return routes;
+        }
+
+        private Resource tryResource(String resourcePath, Resource location) throws java.io.IOException {
+            Resource resource = location.createRelative(resourcePath);
+            return (resource.isReadable()) ? resource : null;
+        }
     }
 
     @Override

@@ -24,15 +24,22 @@
 package org.projectforge.plugins.core
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
+import org.projectforge.ProjectForgeApp
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.jcr.FileStoreMigrationService
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -51,6 +58,33 @@ open class PluginAdminService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var fileStoreMigrationService: FileStoreMigrationService
+
+    @Value("\${projectforge.plugins.ensure-active:}")
+    private var ensureActivePluginsConfig: String = ""
+
+    @Value("\${projectforge.gateway.enabled:false}")
+    private var gatewayMode: Boolean = false
+
+    /**
+     * The gateway serves the DataTransfer UI, so the plugin is always active there, also without the
+     * external-gateway profile (which sets projectforge.plugins.ensure-active=datatransfer).
+     */
+    val ensureActivePluginIds: List<String>
+        get() {
+            val ids = ensureActivePluginsConfig.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            return if (gatewayMode && !ids.contains(PLUGIN_DATA_TRANSFER_ID)) ids + PLUGIN_DATA_TRANSFER_ID else ids
+        }
+
+    /**
+     * Comma separated list of plugin ids to activate, independent of the configuration stored in the database.
+     * 'all' activates every available plugin. Useful for test and pentest instances:
+     * projectforge.plugins.active=all
+     */
+    @Value("\${projectforge.plugins.active:}")
+    private var activePluginsConfig: String? = null
 
     /**
      * All plugins registered as Spring components (activated as well as not activated ones).
@@ -133,6 +167,19 @@ open class PluginAdminService {
             return plugins.split(",").map { it.trim { it <= ' ' } }.sorted().toMutableList()
         }
 
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationReady() {
+        log.info { "Initializing plugins on application ready..." }
+        WicketSupport.register(applicationContext)
+        initializeActivePlugins(true)
+        if (!ProjectForgeApp.isJunitTestMode()) {
+            // projectforge.files.store=db: migrates the files of the JCR to the file store (skips migrated ones). Not before the
+            // plugins are initialized: the file system paths (DataTransfer) must be registered, otherwise their files
+            // would be migrated into the database.
+            fileStoreMigrationService.autoStart()
+        }
+    }
+
     /**
      * Will be active plugins
      */
@@ -155,20 +202,59 @@ open class PluginAdminService {
         initializeActivePlugins(false)
     }
 
+    /**
+     * Plugin ids forced to be active by projectforge.plugins.active, or null if the property isn't given.
+     * 'all' means all available plugins.
+     */
+    private val forcedActivePlugins: List<String>?
+        get() {
+            val config = activePluginsConfig
+            if (config.isNullOrBlank()) {
+                return null
+            }
+            val entries = config.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            return if (entries.any { it.equals("all", ignoreCase = true) }) {
+                allPlugins.map { it.info.id }
+            } else {
+                entries
+            }
+        }
+
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
         val plugins = allPlugins
-        val activatedPluginsByConfig = if (isFirstStart()) {
-            INITIAL_ACTIVATED_PLUGINS
+        val forced = forcedActivePlugins
+        val activatedPluginsByConfig = if (forced != null) {
+            log.info { "Plugins forced to be active by projectforge.plugins.active: ${forced.joinToString()}." }
+            forced.toMutableList()
+        } else if (isFirstStart()) {
+            INITIAL_ACTIVATED_PLUGINS.toMutableList()
         } else {
             activatedPluginsFromConfiguration
         }
+        for (pluginId in ensureActivePluginIds) {
+            if (!activatedPluginsByConfig.contains(pluginId)) {
+                activatedPluginsByConfig.add(pluginId)
+                log.info { "Ensuring plugin '$pluginId' is active (configured via projectforge.plugins.ensure-active)." }
+            }
+        }
+        var activatedCount = 0
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
-                log.info("Skipping not activated plugin '${plugin.info.name}'.")
+                log.info { "Skipping not activated plugin '${plugin.info.name}'." }
                 continue
             }
-            log.info("Processing activated plugin: '${plugin.info.name}'.")
+            log.info { "Processing activated plugin: '${plugin.info.name}'." }
             activatePlugin(plugin)
+            activatedCount++
+        }
+        if (activatedCount > 0) {
+            // Plugins register their user rights here (see registerRight -> UserRightService.addRight), on the
+            // ApplicationReadyEvent — after UserGroupCache did its initial refresh. That refresh drops any stored
+            // UserRightDO whose right isn't registered yet (UserGroupCache.refresh: userRightService.getRight(id)
+            // == null), so a user's plugin right (e.g. PLUGIN_LIQUIDITY_PLANNING = READWRITE) is left out of the
+            // rights cache and access is wrongly denied until the next scheduled refresh. Reload now that all
+            // plugin rights are known, so those rows are cached from the first request on.
+            WicketSupport.get(UserGroupCache::class.java).forceReload()
         }
     }
 
@@ -178,6 +264,11 @@ open class PluginAdminService {
         factory.autowireBean(plugin)
         PluginsRegistry.instance().register(plugin)
         plugin.init()
+        // Register the plugin's i18n resource bundles globally, so plugin translations are resolved
+        // regardless of whether Wicket is active. Plugin initialization was moved from WicketApplication.init()
+        // to the Spring lifecycle (ApplicationReadyEvent), which runs after Wicket servlet init and is skipped
+        // entirely in gateway mode. Registering the bundles here ensures I18nHelper knows about them in all modes.
+        plugin.resourceBundleNames.forEach { I18nHelper.addBundleName(it) }
         for (callback in afterCreatedActivePluginsCallback) {
             callback.call(plugin)
         }
@@ -195,7 +286,8 @@ open class PluginAdminService {
         const val PLUGIN_BANKING_ID = "banking"
         const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
         const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
-        const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquidityplanning"
+        // Must match the id used by LiquidityPlanningPlugin's constructor:
+        const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquidplanning"
         const val PLUGIN_MEMO_ID = "memo"
         const val PLUGIN_MERLIN_ID = "merlin"
         const val PLUGIN_SKILL_MATRIX_ID = "skillmatrix"

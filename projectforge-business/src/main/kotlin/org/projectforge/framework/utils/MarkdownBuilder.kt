@@ -26,7 +26,7 @@ package org.projectforge.framework.utils
 import org.projectforge.framework.i18n.translate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MarkdownBuilder {
     private val sb = StringBuilder()

@@ -41,7 +41,7 @@ import java.time.format.DateTimeFormatter
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SqlDateSerializer : StdSerializer<java.sql.Date>(java.sql.Date::class.java) {
 
@@ -59,7 +59,7 @@ class SqlDateSerializer : StdSerializer<java.sql.Date>(java.sql.Date::class.java
 
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SqlDateDeserializer : StdDeserializer<java.sql.Date>(java.sql.Date::class.java) {
 

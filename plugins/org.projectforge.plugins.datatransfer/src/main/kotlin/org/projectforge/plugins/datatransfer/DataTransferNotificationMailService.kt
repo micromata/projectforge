@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserLocale
 import org.projectforge.business.user.service.UserService
@@ -34,8 +34,6 @@ import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -91,10 +89,7 @@ open class DataTransferNotificationMailService {
       return 0
     }
     val link = domainService.getDomain(
-      PagesResolver.getDynamicPageUrl(
-        DataTransferPageRest::class.java,
-        id = area.id ?: 0
-      )
+      DataTransferUtils.areaViewPath(area.id)
     )
     var counter = 0
     recipients.distinct().forEach { id ->
@@ -102,11 +97,13 @@ open class DataTransferNotificationMailService {
       val mail = prepareMail(recipient, area, link, auditEntries, downloadAuditEntries)
       mail?.let {
         try {
-          if (sendMail.send(it)) {
+          // Synchronously, so the counter means what its name says: mails actually sent, not merely
+          // dispatched. This runs in a cron job (DatatransferAuditJob), nobody is waiting for it.
+          if (sendMail.send(it, null, null, false)) {
             ++counter
           }
         } catch (ex: Exception) {
-          log.error(ex.message, ex)
+          log.error(ex) { ex.message }
         }
       }
     }
@@ -188,10 +185,7 @@ open class DataTransferNotificationMailService {
     notificationInfoList.forEach { info ->
       if (info.link == null) {
         info.link = domainService.getDomain(
-          PagesResolver.getDynamicPageUrl(
-            DataTransferPageRest::class.java,
-            id = info.dataTransferArea.id ?: 0
-          )
+          DataTransferUtils.areaViewPath(info.dataTransferArea.id)
         )
       }
       info.attachment.addExpiryInfo(

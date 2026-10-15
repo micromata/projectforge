@@ -26,7 +26,7 @@ package org.projectforge.carddav
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
@@ -89,7 +89,7 @@ class CardDavService {
         val authInfo = authenticate(request, response)
         val user = authInfo.user
         if (user == null) {
-            log.error { "Authentication failed: ${RequestLog.asString(request)}" }
+            log.info { "Authentication failed: ${RequestLog.asString(request)}" }
             ResponseUtils.setValues(
                 response, HttpStatus.UNAUTHORIZED, contentType = MediaType.TEXT_PLAIN_VALUE,
                 content = "Authentication is required to access this resource.",
@@ -174,7 +174,7 @@ class CardDavService {
                 val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
                     RequestLog.asString(authInfo.request)
                 }."
-                log.error(msg)
+                log.error { msg }
                 SecurityLogging.logSecurityWarn(
                     authInfo.request,
                     this::class.java,

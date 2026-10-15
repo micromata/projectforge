@@ -1,6 +1,10 @@
 _site
-.sass-cache
 .jekyll-cache
 .jekyll-metadata
 vendor
 .DS_Store
+Gemfile.lock
+_data/binaries.json
+node_modules
+# Built by npm run build:css from _css/site.css
+assets/css/main.css

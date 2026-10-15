@@ -30,7 +30,7 @@ import java.io.Serializable
 import java.time.LocalDate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LiquidityFilter(filter: BaseSearchFilter? = null) : BaseSearchFilter(filter), Serializable {
     /**

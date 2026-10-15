@@ -25,7 +25,7 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  * Repräsentiert einen Mitarbeiter. Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und enthält
  * buchhalterische Angaben.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -61,6 +61,9 @@ private val log = KotlinLogging.logger {}
     indexes = [jakarta.persistence.Index(
         name = "idx_fk_t_fibu_employee_kost1_id",
         columnList = "kost1_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_employee_konto_id",
+        columnList = "konto_id"
     ), jakarta.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")]
 )
 @AUserRightId("HR_EMPLOYEE")
@@ -102,6 +105,15 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kost1_id", nullable = true)
     open var kost1: Kost1DO? = null
+
+    /**
+     * The (creditor) account of the employee, e.g. for travel expenses (sent to Lanes & Planes).
+     */
+    @PropertyInfo(i18nKey = "fibu.employee.konto", tooltip = "fibu.employee.konto.tooltip")
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "konto_id", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var konto: KontoDO? = null
 
     /**
      * Field will be set by EmployeeDao automatically from validity period attr.
@@ -184,10 +196,19 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
             return true
         }
 
+    /**
+     * The uniform inactivity flag (see [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]):
+     * an employee is deactivated once more than three months have passed since the leaving date, so a recently
+     * left employee still reads as active. Mirrors [EmployeeService.isEmployeeActive] with showRecentlyLeavers.
+     */
+    override val deactivated: Boolean
+        @Transient
+        get() = austrittsDatum?.let { LocalDate.now().minusMonths(3).isAfter(it) } ?: false
+
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         val modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
         // val src = source as EmployeeDO
-        log.warn("*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes")
+        log.warn { "*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes" }
         return modificationStatus
     }
 
@@ -215,9 +236,9 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
         val u2 = other.user
         if (u1 == null) return -1
         if (u2 == null) return 1
-        var result = StringUtils.compare(u1.lastname, u2.lastname)
+        var result = compareValues(u1.lastname, u2.lastname)
         if (result == 0) {
-            result = StringUtils.compare(u1.firstname, u2.firstname)
+            result = compareValues(u1.firstname, u2.firstname)
         }
         return result
     }

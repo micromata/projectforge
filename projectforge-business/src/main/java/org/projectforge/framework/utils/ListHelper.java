@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * Some helper methods ...
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ListHelper
 {

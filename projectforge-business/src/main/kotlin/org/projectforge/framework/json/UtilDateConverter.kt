@@ -55,7 +55,7 @@ enum class UtilDateFormat(val pattern: String) {
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<java.util.Date>(java.util.Date::class.java) {
 
@@ -73,7 +73,7 @@ class UtilDateSerializer(private val format: UtilDateFormat) : StdSerializer<jav
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
  * @param format If given, only the given format will be tried for deserialization. If null, all formats will be tried (recommended).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UtilDateDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<java.util.Date>(java.util.Date::class.java) {
 

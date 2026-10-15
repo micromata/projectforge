@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateDevice
 import org.projectforge.business.sipgate.SipgateNumber
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateDirectCallService {
@@ -234,7 +234,7 @@ open class SipgateDirectCallService {
         log.error { "No caller-id found for user '${user.username}' and callerId='$callerId'." }
         return null
       }
-      return CallData(callerId = callerId!!, caller = caller, deviceId = callerDeviceId, callee = callee)
+      return CallData(callerId = callerId, caller = caller, deviceId = callerDeviceId, callee = callee)
     }
 
     private fun getFullNumber(basePhoneNumber: String?, number: String?): String? {

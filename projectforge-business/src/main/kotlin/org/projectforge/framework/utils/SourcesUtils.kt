@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.utils
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.projectforge.framework.utils.SourcesUtils.extractAllClassnames
 import java.io.File

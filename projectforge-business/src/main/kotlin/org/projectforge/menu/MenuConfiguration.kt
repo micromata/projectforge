@@ -88,9 +88,6 @@ open class MenuConfiguration {
     @Value("\${projectforge.menu.visibility.myScripts}")
     private var myScriptsVisibility: String? = null
 
-    @Value("\${projectforge.menu.visibility.myPreferences}")
-    private var myPreferencesVisibility: String? = null
-
     @Value("\${projectforge.menu.visibility.personalStatistics}")
     private var personalStatisticsVisibility: String? = null
 
@@ -120,9 +117,6 @@ open class MenuConfiguration {
 
     @Value("\${projectforge.menu.visibility.vacationAccount}")
     private var vacationAccountVisibility: String? = null
-
-    @Value("\${projectforge.menu.visibility.systemStatistics}")
-    private var systemStatisticsVisibility: String? = null
 
     // *******************
     // Built-in plugins:
@@ -206,7 +200,6 @@ open class MenuConfiguration {
         registry.add(MenuVisibility("my2FA", my2FAVisibility, MenuItemDefId.MY_2FA))
         registry.add(MenuVisibility("my2FASetup", my2FASetupVisibility, MenuItemDefId.MY_2FA_SETUP))
         registry.add(MenuVisibility("myScripts", myScriptsVisibility, MenuItemDefId.MY_SCRIPT_LIST))
-        registry.add(MenuVisibility("myPreferences", myPreferencesVisibility, MenuItemDefId.MY_PREFERENCES))
         registry.add(
             MenuVisibility(
                 "personalStatistics",
@@ -223,7 +216,6 @@ open class MenuConfiguration {
         registry.add(MenuVisibility("users", usersVisibility, MenuItemDefId.USER_LIST))
         registry.add(MenuVisibility("vacation", vacationVisibility, MenuItemDefId.VACATION))
         registry.add(MenuVisibility("vacationAccount", vacationAccountVisibility, MenuItemDefId.VACATION_ACCOUNT))
-        registry.add(MenuVisibility("systemStatistics", systemStatisticsVisibility, MenuItemDefId.SYSTEM_STATISTICS))
 
         // Built-in plugins:
         registry.add(MenuVisibility("addressCampaign", addressCampaignVisibility))

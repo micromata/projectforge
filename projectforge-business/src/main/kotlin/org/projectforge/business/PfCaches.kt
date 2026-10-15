@@ -24,6 +24,7 @@
 package org.projectforge.business
 
 import jakarta.annotation.PostConstruct
+import org.hibernate.Hibernate
 import org.projectforge.business.address.AddressbookCache
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.*
@@ -93,9 +94,6 @@ class PfCaches {
         order.kunde = getKundeIfNotInitialized(order.kunde)
         order.projekt = getProjektIfNotInitialized(order.projekt)
         order.contactPerson = getUserIfNotInitialized(order.contactPerson)
-        order.headOfBusinessManager = getUserIfNotInitialized(order.headOfBusinessManager)
-        order.projectManager = getUserIfNotInitialized(order.projectManager)
-        order.salesManager = getUserIfNotInitialized(order.salesManager)
         // order.paymentSchedules
         // order.positionen
         return order
@@ -197,14 +195,29 @@ class PfCaches {
     }
 
     fun initialize(invoice: RechnungDO): RechnungDO {
-        rechnungCache.ensureRechnungInfo(invoice)
-        invoice.kunde = getKundeIfNotInitialized(invoice.kunde)
-        invoice.projekt = getProjektIfNotInitialized(invoice.projekt)
+        initializeWithoutPositions(invoice)
         invoice.positionen?.forEach { pos ->
             // pos.rechnung = invoice
             // pos.auftragsPosition
             rechnungCache.ensureRechnungPosInfo(pos)
         }
+        return invoice
+    }
+
+    /**
+     * [initialize] without touching [RechnungDO.positionen] - for a caller that reads the invoice itself and
+     * its [RechnungInfo], but none of the position entities.
+     *
+     * `positionen` is a lazy collection, so iterating it means one `SELECT` per invoice: over a list of
+     * 17.000 invoices that is 17.000 queries and ~20 s of the request, while the sums and the cost unit
+     * columns of a list row come from the cached [RechnungInfo] (whose own positions are preloaded by
+     * `RechnungJdbcService`) and need no entity at all. Compare [initialize] for [AuftragDO], which leaves
+     * its positions alone for the same reason.
+     */
+    fun initializeWithoutPositions(invoice: RechnungDO): RechnungDO {
+        rechnungCache.ensureRechnungInfo(invoice)
+        invoice.kunde = getKundeIfNotInitialized(invoice.kunde)
+        invoice.projekt = getProjektIfNotInitialized(invoice.projekt)
         return invoice
     }
 
@@ -261,10 +274,16 @@ class PfCaches {
     }
 
     fun getGroupIfNotInitialized(groupDO: GroupDO?): GroupDO? {
-        return userGroupCache.getGroupIfNotInitialized(groupDO)?.also { group ->
-            group.groupOwner = getUserIfNotInitialized(group.groupOwner)
+        val group = userGroupCache.getGroupIfNotInitialized(groupDO)?.let { group ->
+            // A group loaded in another (meanwhile closed) session counts as initialized, but its lazy assignedUsers
+            // can't be read anymore (e.g. a projekt of the ProjektCache refreshed within a request's transaction).
+            if (Hibernate.isInitialized(group.assignedUsers)) group else userGroupCache.getGroup(group.id) ?: group
+        } ?: return null
+        group.groupOwner = getUserIfNotInitialized(group.groupOwner)
+        if (Hibernate.isInitialized(group.assignedUsers)) {
             group.assignedUsers = group.assignedUsers?.mapNotNull { getUserIfNotInitialized(it) }?.toMutableSet()
         }
+        return group
     }
 
     fun getKonto(konto: Long?): KontoDO? {
@@ -422,6 +441,26 @@ class PfCaches {
             return initialize(vacation)
         }
 
+        /**
+         * Makes [instance] the given bean, for a test which has a Spring context: the bean assigns itself in
+         * its own `@PostConstruct`, but a test base class doing setup of its own may run before that and would
+         * otherwise leave the cacheless [internalSetupForTestCases] instance in place.
+         *
+         * That instance has no dependency injected, so anything reaching [instance] afterwards fails on an
+         * uninitialized `persistenceService`. Whether it does depends on the order the beans are created in,
+         * which is why this only shows up in some modules (`Kost2DO.effectiveKostentraegerStatus` is such a
+         * caller).
+         */
+        @JvmStatic
+        fun internalSetInstanceForTestCases(caches: PfCaches) {
+            instance = caches
+        }
+
+        /**
+         * Caches without any dependency injected, for a test running **without** a Spring context: they answer
+         * nothing, but a static read of [instance] doesn't fail with an uninitialized `lateinit` either. A test
+         * with a context must use [internalSetInstanceForTestCases] instead.
+         */
         @JvmStatic
         fun internalSetupForTestCases() {
             instance = PfCaches()

@@ -25,7 +25,7 @@ package org.projectforge.common.logging
 
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -34,6 +34,7 @@ private val log = KotlinLogging.logger {}
 class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     private var lastLogEntryOrderNumber: Long = -1
     private val logSubscriptions = CopyOnWriteArrayList<LogSubscription>()
+    private val listeners = CopyOnWriteArrayList<LogEventListener>()
 
     private val queue = LogQueue(QUEUE_SIZE)
 
@@ -45,9 +46,32 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
         logSubscriptions.forEach { subscription ->
             subscription.processEvent(eventData)
         }
+        if (listeners.isNotEmpty() && eventData.level.matches(LogLevel.WARN)) {
+            listeners.forEach { listener ->
+                try {
+                    listener.onEvent(eventData)
+                } catch (ex: Throwable) {
+                    // Not logged: an error logged here would come back to the failing listener.
+                    System.err.println("LogEventListener ${listener::class.java.name} failed: ${ex.message}")
+                }
+            }
+        }
         if (System.currentTimeMillis() - lastSubscriptionGCRun > REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS) {
             runSubscriptionsGC()
         }
+    }
+
+    /**
+     * Registers a listener for every event of level WARN and above, independent of users and subscriptions
+     * (e.g. the support error digest). Called in the logging thread, so it must be fast and must not log at
+     * WARN or above itself.
+     */
+    fun addListener(listener: LogEventListener) {
+        listeners.addIfAbsent(listener)
+    }
+
+    fun removeListener(listener: LogEventListener) {
+        listeners.remove(listener)
     }
 
     internal fun register(subscription: LogSubscription): LogSubscription {
@@ -98,6 +122,16 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
         return queue.query(filter, locale)
     }
 
+    /** The context of the event of the given id, see [LogQueue.context]; null if it isn't in memory anymore. */
+    fun context(
+        id: Long,
+        before: Int,
+        after: Int,
+        accept: (LoggingEventData, hit: LoggingEventData) -> Boolean,
+    ): LogContext? {
+        return queue.context(id, before, after, accept)
+    }
+
     companion object {
         private const val QUEUE_SIZE = 10000
         private const val REGISTERED_SUBSCRIPTION_GC_INTERVAL_MS = 10 * 60 * 1000 // run GC every 10 minutes
@@ -122,4 +156,11 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
             instance = this
         }
     }
+}
+
+/**
+ * See [LoggerMemoryAppender.addListener].
+ */
+fun interface LogEventListener {
+    fun onEvent(event: LoggingEventData)
 }

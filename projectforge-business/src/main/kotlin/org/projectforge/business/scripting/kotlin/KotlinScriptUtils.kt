@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting.kotlin
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.scripting.*
 import org.projectforge.framework.i18n.translate
 import kotlin.script.experimental.api.*

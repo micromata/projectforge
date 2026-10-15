@@ -25,7 +25,7 @@ package org.projectforge.rest.scripting
 
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.excel.ExportWorkbook
 import org.projectforge.business.scripting.*
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
@@ -37,7 +37,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
@@ -56,6 +56,9 @@ class ScriptExecution {
 
     @Autowired
     private lateinit var attachmentsService: AttachmentsService
+
+    @Autowired
+    private lateinit var scriptPageTargets: ScriptPageTargets
 
     internal val downloadFileSupport = DownloadFileSupport(EXPIRING_SESSION_ATTRIBUTE, DOWNLOAD_EXPIRY_MINUTES)
 
@@ -82,7 +85,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): String {
         val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
         return scriptDao.getEffectiveScript(
@@ -97,7 +100,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): List<String> {
         val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
         return scriptDao.getScriptVariableNames(
@@ -113,7 +116,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
         scriptLogger: ScriptLogger,
     ): ScriptExecutionResult {
         log.info {
@@ -176,7 +179,7 @@ class ScriptExecution {
     private fun prepareScriptInit(
         script: Script,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): ScriptInitData {
         val scriptDO: ScriptDO
         if (script.id != null) {
@@ -195,6 +198,8 @@ class ScriptExecution {
                 ScriptFileAccessor(attachmentsService, scriptPagesRest, scriptDO)
         }
         additionalVariables["scriptUser"] = ScriptUser()
+        // Always bound, so a script using it also runs (with an empty context) if not started from a page:
+        additionalVariables[SCRIPT_VAR_NAME_PAGE_CONTEXT] = scriptPageTargets.createContext(script.pageTarget)
         var myImports: List<String>? = null
         scriptDO.executeAsUser?.let { executeAsUser ->
             additionalVariables[SCRIPT_VAR_NAME_EXECUTE_USER] = ExecuteAsUser(executeAsUser, scriptDO)
@@ -263,7 +268,7 @@ class ScriptExecution {
             }
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 
@@ -282,7 +287,7 @@ class ScriptExecution {
             )
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 
@@ -300,7 +305,7 @@ class ScriptExecution {
             )
         } catch (ex: Exception) {
             scriptExecutionResult.exception = ex
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
     }
 
@@ -341,6 +346,7 @@ class ScriptExecution {
 
         private val SCRIPT_VAR_NAME_EXECUTE_USER = "executeAsUser"
         private val SCRIPT_VAR_NAME_FILES = "files"
+        private val SCRIPT_VAR_NAME_PAGE_CONTEXT = "pageContext"
 
         private val DOWNLOAD_EXPIRY_MINUTES = 5
 

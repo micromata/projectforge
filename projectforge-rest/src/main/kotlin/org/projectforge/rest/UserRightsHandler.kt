@@ -23,13 +23,15 @@
 
 package org.projectforge.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.dto.UserRightDto
+import org.projectforge.rest.dto.UserRightInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -71,6 +73,42 @@ class UserRightsHandler {
     return null
   }
 
+  /**
+   * The rights the user edit page offers for [user] with its currently assigned groups: the configurable ones
+   * only, in the order of [UserRightService.orderedRights]. Which rights are configurable and which values a
+   * right offers depend on the groups, so the page asks again whenever they change.
+   *
+   * The values come from [user]'s [User.userRights] where it carries one (what the form holds, possibly not
+   * saved yet), otherwise from the database.
+   */
+  fun getRightInfos(user: User, userDO: PFUserDO): List<UserRightInfo> {
+    val userGroups = User.getAssignedGroupDOs(user)
+    return getUserRights(user, userDO).mapNotNull { rightDto ->
+      val right = getUserRight(rightDto, userDO, userGroups) ?: return@mapNotNull null
+      val current = user.userRights?.find { it.rightId == rightDto.rightId }
+      if (right.isBooleanType) {
+        UserRightInfo(
+          rightId = rightDto.rightId,
+          label = translate(right.id.i18nKey),
+          booleanType = true,
+          values = emptyList(),
+          booleanValue = if (current != null) current.booleanValue else rightDto.booleanValue,
+        )
+      } else {
+        val available = right.getAvailableValues(userDO, userGroups)
+        // A value the right no longer offers with the new groups is dropped, as the select couldn't show it.
+        val value = (if (current != null) current.value else rightDto.value)?.takeIf { it in available }
+        UserRightInfo(
+          rightId = rightDto.rightId,
+          label = translate(right.id.i18nKey),
+          booleanType = false,
+          values = available.map { UserRightInfo.Option(it.name, translate(it.i18nKey)) },
+          value = value?.name,
+        )
+      }
+    }
+  }
+
   fun getUserRightVOs(user: User): List<UserRightVO> {
     val list = mutableListOf<UserRightVO>()
     user.userRights?.forEach { rightDto ->
@@ -89,7 +127,7 @@ class UserRightsHandler {
         }
         list.add(rightVO)
       } else {
-        log.error("Oups, right with id '${rightDto.rightId}' not found. Will be ignored.")
+        log.error { "Oups, right with id '${rightDto.rightId}' not found. Will be ignored." }
       }
     }
     return list

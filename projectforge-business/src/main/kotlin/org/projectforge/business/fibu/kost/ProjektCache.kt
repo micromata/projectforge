@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.framework.access.OperationType
@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The kost2 entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class ProjektCache : AbstractCache() {
@@ -75,6 +75,16 @@ class ProjektCache : AbstractCache() {
     }
 
     /**
+     * All projects by id, deleted ones included. Replaced as a whole by each refresh, so a caller holding on to
+     * something derived can tell by identity whether it is still current.
+     */
+    val all: Map<Long, ProjektDO>
+        get() {
+            checkRefresh()
+            return projektMap
+        }
+
+    /**
      * Returns the ProjektDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
      * Prevents lazy loadings.
      */
@@ -90,8 +100,12 @@ class ProjektCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing ProjektCache ...")
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+        log.info { "Initializing ProjektCache ..." }
+        // runReadOnlyForCacheMaintenance (not runIsolatedReadOnly): the refresh can be triggered from within an open
+        // write transaction (e.g. AuftragDao.onInsertOrModify -> resolveKundeAndProjekt). Opening a second, isolated
+        // connection there would self-deadlock on a lock-based DB such as HSQLDB (also the default embedded production
+        // DB); reusing the transaction's connection avoids it. See AbstractCache.runReadOnlyForCacheMaintenance.
+        runReadOnlyForCacheMaintenance { context ->
             this.projektMap = context
                 .executeQuery("from ProjektDO t", ProjektDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }

@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IDao
 

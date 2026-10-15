@@ -25,7 +25,7 @@ package org.projectforge.plugins.merlin
 
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.WordTemplateChecker
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
@@ -40,7 +40,7 @@ import java.io.InputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class MerlinHandler {

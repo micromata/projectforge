@@ -38,7 +38,7 @@ import java.math.BigDecimal
  * Die letzten beiden Ziffern (Endziffern) eines Kostenträgers repräsentieren die Kostenart. Anhand der Endziffer kann
  * abgelesen werden, um welche Art von Kostenträger es sich handelt (fakturiert/nicht fakturiert, Akquise, Wartung etc.)
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

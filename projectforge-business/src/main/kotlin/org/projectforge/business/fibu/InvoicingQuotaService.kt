@@ -23,9 +23,12 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
 /**
  * Service for calculating invoicing quota (Fakturaquote) in monthly employee reports.
@@ -33,16 +36,41 @@ import java.math.RoundingMode
  * The invoicing quota is the percentage of work time that is billed to customers,
  * based on configurable patterns for Kost2 display names.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class InvoicingQuotaService(
-    private val config: InvoicingQuotaConfiguration
+    private val config: InvoicingQuotaConfiguration,
+    private val accessChecker: AccessChecker,
 ) {
     /**
      * Check if invoicing quota calculation is enabled.
      */
     fun isEnabled(): Boolean = config.enabled && config.billedPatterns.isNotEmpty()
+
+    /**
+     * May the logged-in user see the invoicing quota of the given user? Always for the own quota, for other
+     * users only as member of one of the configured [InvoicingQuotaConfiguration.foreignUserGroups].
+     */
+    fun mayViewQuotaOf(userId: Long?): Boolean = mayViewQuotaOf(userId, ThreadLocalUserContext.loggedInUserId)
+
+    internal fun mayViewQuotaOf(userId: Long?, loggedInUserId: Long?): Boolean {
+        loggedInUserId ?: return false
+        if (userId == loggedInUserId) {
+            return true
+        }
+        val groups = config.foreignUserGroups
+        return groups.isNotEmpty() && accessChecker.isLoggedInUserMemberOfGroup(*groups.toTypedArray())
+    }
+
+    /**
+     * The configured explanation of the invoicing quota in the language of [locale], falling back to English.
+     *
+     * @return The markdown text, or null if none is configured.
+     */
+    fun getInfo(locale: Locale): String? {
+        return (config.info[locale.language] ?: config.info["en"])?.takeIf { it.isNotBlank() }
+    }
 
     /**
      * Check if the given Kost2 display name is considered as billed work.
@@ -83,6 +111,17 @@ class InvoicingQuotaService(
      * @return The invoicing quota as a decimal (0.0 - 1.0), or null if disabled or no data
      */
     fun calculateQuota(kost2Durations: Map<Long, MonthlyEmployeeReportEntry>): BigDecimal? {
+        return calculateQuotaResult(kost2Durations)?.quota
+    }
+
+    /**
+     * Calculate the invoicing quota including the underlying billed and total durations, so callers may
+     * present the concrete numbers (e.g. in a tooltip explaining how the quota was computed).
+     *
+     * @param kost2Durations Map of Kost2 ID to MonthlyEmployeeReportEntry
+     * @return The invoicing quota result, or null if disabled or no (non-ignored) data
+     */
+    fun calculateQuotaResult(kost2Durations: Map<Long, MonthlyEmployeeReportEntry>): InvoicingQuotaResult? {
         if (!isEnabled()) return null
 
         var totalDuration = 0L
@@ -101,11 +140,12 @@ class InvoicingQuotaService(
         }
 
         return if (totalDuration > 0) {
-            BigDecimal(billedDuration).divide(
+            val quota = BigDecimal(billedDuration).divide(
                 BigDecimal(totalDuration),
                 4,
                 RoundingMode.HALF_UP
             )
+            InvoicingQuotaResult(quota, billedDuration, totalDuration)
         } else {
             null
         }
@@ -138,3 +178,16 @@ class InvoicingQuotaService(
         return value.matches(Regex(regexPattern))
     }
 }
+
+/**
+ * Result of an invoicing quota calculation, carrying the quota fraction together with the billed and total
+ * durations it was derived from (both in milliseconds, based on [MonthlyEmployeeReportEntry.workFractionMillis]).
+ */
+class InvoicingQuotaResult(
+    /** The invoicing quota as a decimal fraction (0.0 - 1.0), scale 4, HALF_UP. */
+    val quota: BigDecimal,
+    /** Sum of billed work durations in milliseconds (numerator). */
+    val billedDurationMillis: Long,
+    /** Sum of all non-ignored work durations in milliseconds (denominator). */
+    val totalDurationMillis: Long,
+)

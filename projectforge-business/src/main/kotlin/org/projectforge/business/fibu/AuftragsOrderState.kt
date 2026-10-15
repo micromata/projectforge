@@ -25,7 +25,7 @@ package org.projectforge.business.fibu
 
 /**
  * For categorizing the state of an order or position.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class AuftragsOrderState {
     POTENTIAL, COMMISSIONED, LOST;

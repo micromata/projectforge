@@ -33,7 +33,7 @@ import java.io.Serializable
 /**
  * User context for logged-in users. Contains the user etc.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolean = false) : Serializable {
     init {
@@ -44,6 +44,35 @@ class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolea
 
     val employeeId: Long?
         get() = EmployeeCache.instance.getEmployeeIdByUserId(user?.id)
+
+    /**
+     * The user's last password change (epoch ms, 0 for none) when this context was created, i.e. at login. A later
+     * change (on another device, by an admin, by a password reset) ends the session, see [isPasswordChangedSinceLogin].
+     * Null only for a context deserialized from a session older than this field.
+     */
+    private var lastPasswordChangeAtLogin: Long? = passwordChangeOf(user)
+
+    /**
+     * True, if the password of the user was changed after this context was created: the session must not survive
+     * it, otherwise a password change wouldn't lock out anybody who knew (or stole a session with) the old one.
+     */
+    fun isPasswordChangedSinceLogin(): Boolean {
+        val current = passwordChangeOf(user)
+        val atLogin = lastPasswordChangeAtLogin ?: run {
+            // A session from before this check was introduced: nothing to compare with, so start now.
+            lastPasswordChangeAtLogin = current
+            return false
+        }
+        return current > atLogin
+    }
+
+    /**
+     * Keeps this session alive after its own user changed the password in it (the other sessions end).
+     */
+    fun acceptOwnPasswordChange() {
+        // Now and not the user's new value: the cache may still hold the old one, and now is later than the change.
+        lastPasswordChangeAtLogin = System.currentTimeMillis()
+    }
 
     /**
      * If true, a 2FA authentification is required before any further access. This field may be set to true,
@@ -126,6 +155,8 @@ class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolea
         private val log = LoggerFactory.getLogger(UserContext::class.java)
         private const val serialVersionUID = 4934701869144478233L
 
+        private fun passwordChangeOf(user: PFUserDO?): Long = user?.lastPasswordChange?.time ?: 0L
+
         /**
          * Don't use this method. It's used for creating an UserContext without copying a user.
          *
@@ -134,7 +165,9 @@ class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolea
          */
         @JvmStatic
         fun __internalCreateWithSpecialUser(user: PFUserDO): UserContext {
-            return UserContext(user)
+            // nofresh=true: the special/pseudo user (e.g. system admin) is synthetic and not in UserGroupCache;
+            // refreshing it would only log a misleading "Couldn't update user from UserCache" warning on startup/shutdown.
+            return UserContext(user, nofresh = true)
         }
 
         @JvmStatic

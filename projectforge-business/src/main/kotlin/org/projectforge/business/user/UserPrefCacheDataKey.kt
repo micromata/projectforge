@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UserPrefCacheDataKey(var area: String?, var identifier: String?) {
     override fun equals(other: Any?): Boolean {

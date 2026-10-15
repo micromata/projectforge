@@ -1,7 +1,7 @@
 ---
-title: Requirement for the vacationfeature
+title: What is needed to use the leave management?
 categories: [general,faq]
 permalink: /misc/faqs.html
 ---
-	
-That an employee is able to use the vacationfeature, he must be assigned to a user and his vacationdays must be set in employee-edit-page.
+
+The user must be assigned to an employee, and the employee's annual leave entitlement must be set on the employee's edit page.

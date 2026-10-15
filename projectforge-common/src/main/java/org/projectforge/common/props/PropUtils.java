@@ -32,7 +32,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class PropUtils {
   private static Field[] EMPTY_FIELDS = new Field[0];

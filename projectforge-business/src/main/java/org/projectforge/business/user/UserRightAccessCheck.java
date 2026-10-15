@@ -35,7 +35,7 @@ import java.util.Collection;
 /**
  * These rights implement the checking of the different access types (select, insert, update, delete) itself.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserRightAccessCheck<O> extends UserRight {
   private static final long serialVersionUID = 3075619933808717141L;

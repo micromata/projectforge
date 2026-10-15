@@ -24,6 +24,7 @@
 package org.projectforge.web.rest
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WebUtils
 import org.springframework.http.HttpStatus
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -41,7 +42,12 @@ class RestAuthenticationInfo(var request: HttpServletRequest,
             field = value
         }
     var userString: String? = null
-    var clientIpAddress: String = request.remoteAddr ?: "unkown"
+    /**
+     * This address keys the brute force protection ([org.projectforge.business.login.LoginProtection]) of all rest
+     * calls, so it must be the address of the client and not the one of our own reverse proxy: `X-Forwarded-For` is
+     * used if (and only if) the request came from a trusted proxy, see `projectforge.security.trustedProxies`.
+     */
+    var clientIpAddress: String = WebUtils.getClientIp(request) ?: "unkown"
     var resultCode: HttpStatus? = null
     var lockedByTimePenalty = false
 

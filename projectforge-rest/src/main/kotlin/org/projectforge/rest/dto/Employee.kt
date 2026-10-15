@@ -35,6 +35,7 @@ class Employee(
     displayName: String? = null,
     var user: User? = null,
     var kost1: Kost1? = null,
+    var konto: Konto? = null,
     var position: String? = null,
     var eintrittsDatum: LocalDate? = null,
     var austrittsDatum: LocalDate? = null,

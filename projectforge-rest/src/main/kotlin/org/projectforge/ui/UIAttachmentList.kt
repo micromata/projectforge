@@ -203,6 +203,7 @@ class UIAttachmentList(
       "file.upload.deleteSelected",
       "file.upload.deleteSelected.confirm",
       "file.upload.downloadSelected",
+      "file.upload.error", // Shown by the client if the transfer itself failed (network, proxy).
       "file.upload.error.fileAlreadyExists",
       "file.upload.error.tooManyFiles",
       "modified",

@@ -33,7 +33,9 @@ tasks {
     named<com.github.gradle.node.npm.task.NpmTask>("npmInstall") {
         group = "build"
         description = "Installs npm dependencies"
-        args.set(listOf("install"))
+        // No args: this task already runs `npm install` (NpmInstallTask sets npmCommand itself and
+        // NpmTask appends args). An args entry of "install" made it `npm install install`, which
+        // installs the npm package named "install" and saves it to package.json on every build.
         // Skip task if node_modules exists
         val nodeModulesDir = layout.projectDirectory.dir("node_modules")
         onlyIf {
@@ -44,30 +46,33 @@ tasks {
 
     register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
         group = "build"
-        description = "Builds the React project"
+        description = "Builds the React project with Vite"
         args.set(listOf("run", "build"))
         dependsOn("npmInstall")
 
-        inputs.files(fileTree("src")) // All source files as input
-        outputs.dir("build") // React output directory as output
+        inputs.files(fileTree("src"))
+        inputs.file("index.html")
+        inputs.file("vite.config.ts")
+        // Vite copies public/ verbatim into dist/ (favicon.ico, favicon.png, apple-touch-icon.png,
+        // manifest.json, ...). Without it declared, editing an icon left the task UP-TO-DATE and the
+        // old dist/ in place, so the change never reached static/.
+        inputs.dir("public")
+        outputs.dir("dist")
     }
 
-    register<Copy>("copyReactBuild") {
+    // Sync, not Copy: Vite's asset names carry content hashes, so a Copy kept the bundles (and source maps)
+    // of every earlier build in static/assets and they all went into the jar.
+    register<Sync>("copyReactBuild") {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         group = "build"
         description = "Copies built React files to the target directory"
-        dependsOn("npmBuild") // Depends on the React build process
-        from(file("build")) {
-            // Exclude the target directory to prevent recursion
+        dependsOn("npmBuild")
+        from(file("dist")) {
             exclude("resources/main/static/**")
         }
-        from(file("src")) {
-            include("index.html")
-        }
-        into(layout.buildDirectory.dir("resources/main/static")) // Target directory in the Gradle project
-        // Skip task if target directory is up-to-date
-        inputs.dir("build") // React build directory as input
-        outputs.dir(layout.buildDirectory.dir("resources/main/static")) // Static resources directory as output
+        into(layout.buildDirectory.dir("resources/main/static"))
+        inputs.dir("dist")
+        outputs.dir(layout.buildDirectory.dir("resources/main/static"))
     }
 
     register<Jar>("webAppJar") {

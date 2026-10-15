@@ -34,7 +34,7 @@ import java.math.BigDecimal
 
 /**
  * Repräsentiert einen Eintrag innerhalb eines Wochenberichts eines Mitarbeiters zu einem Kostenträger (Anzahl Stunden).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReportEntry : Serializable {
     /**
@@ -50,6 +50,15 @@ class MonthlyEmployeeReportEntry : Serializable {
         private set
 
     var millis: Long = 0
+        private set
+
+    /**
+     * The raw booked duration (sum of the time sheets' full duration) before the proportional shared-cost
+     * overlap split and before the working time fraction. [millis] is the attendance duration (after the
+     * split); [workFractionMillis] the counted (net) duration. This is only accumulated for the per-week
+     * cell entries (via [addMillis] with a time sheet), not for the aggregated total entries.
+     */
+    var grossMillis: Long = 0
         private set
 
     var timeimeSavedByAIMillis: Long = 0
@@ -70,6 +79,7 @@ class MonthlyEmployeeReportEntry : Serializable {
 
     fun addMillis(timesheetDO: TimesheetDO, duration: Long) {
         this.millis += duration
+        this.grossMillis += timesheetDO.duration
         this.timeimeSavedByAIMillis += AITimeSavings.getTimeSavedByAIMillis(timesheetDO, duration)
     }
 

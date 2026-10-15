@@ -26,7 +26,6 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import jakarta.servlet.http.HttpServletRequest
 
 /**
@@ -46,20 +45,6 @@ constructor(
   i18nKeyPrefix: String,
   cloneSupport: CloneSupport = CloneSupport.NONE
 ) : AbstractPagesRest<O, O, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
-
-  companion object {
-    // For caching historizable flag:
-    private val historizableMap = mutableMapOf<Class<*>, Boolean>()
-
-    internal fun isHistorizable(clazz: Class<out ExtendedBaseDO<*>>): Boolean {
-      var result = historizableMap.get(clazz)
-      if (result != null)
-        return result
-      result = HistoryBaseDaoAdapter.isHistorizable(clazz)
-      historizableMap.put(clazz.javaClass, result)
-      return result
-    }
-  }
 
   override fun postProcessResultSet(
     resultSet: ResultSet<O>,

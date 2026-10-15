@@ -25,7 +25,7 @@ package org.projectforge.web.session;
 
 /**
  * The users client agent device (stored in MySession).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum UserAgentDevice

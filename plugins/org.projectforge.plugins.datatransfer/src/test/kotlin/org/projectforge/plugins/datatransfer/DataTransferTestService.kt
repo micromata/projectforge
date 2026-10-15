@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.AttachmentsServicesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -61,7 +61,7 @@ class DataTransferTestService {
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   @Autowired
-  private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+  private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
   @Autowired
   private lateinit var pluginAdminService: PluginAdminService
@@ -103,7 +103,7 @@ class DataTransferTestService {
     ageInDays: Int = 0,
     fileSuffix: String? = null
   ): FileObject? {
-    val path = "/ProjectForge/${dataTransferAreaPagesRest.jcrPath}"
+    val path = "/ProjectForge/${dataTransferAreaEntityRest.jcrPath}"
     val file = FileObject()
     file.fileName = filename ?: "build.gradle-$ageInDays${fileSuffix ?: ""}.kts"
     file.description = "This is the gradle build file."
@@ -115,7 +115,7 @@ class DataTransferTestService {
     file.lastUpdateByUser = "kai"
     try {
       val attachment = attachmentsService.addAttachment(
-        dataTransferAreaPagesRest.jcrPath!!,
+        dataTransferAreaEntityRest.jcrPath!!,
         fileInfo = file,
         content = File("build.gradle.kts").readBytes(),
         baseDao = dataTransferAreaDao,

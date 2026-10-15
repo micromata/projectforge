@@ -97,6 +97,84 @@ class RechnungDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun testCancellation() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val original = RechnungDO()
+            original.datum = LocalDate.now()
+            original.faelligkeit = LocalDate.now()
+            original.projekt = initTestDB.addProjekt(null, 1, "foo")
+            original.nummer = rechnungDao.getNextNumber(original)
+            original.status = RechnungStatus.GESTELLT
+            original.addPosition(createPosition(2, "50.00", "0.19", "test"))
+            val originalId = rechnungDao.insert(original)
+            val originalNummer = original.nummer!!
+            Assertions.assertNull(rechnungDao.findCancellationOf(originalId))
+
+            fun newCancellation(): RechnungDO {
+                val cancellation = RechnungDO()
+                cancellation.typ = RechnungTyp.CANCELLATION
+                cancellation.datum = LocalDate.now()
+                cancellation.faelligkeit = LocalDate.now()
+                cancellation.projekt = original.projekt
+                cancellation.originalRechnung = RechnungDO().also { it.id = originalId }
+                cancellation.addPosition(createPosition(2, "-50.00", "0.19", "test"))
+                return cancellation
+            }
+            assertUserException("fibu.rechnung.error.cancellation.noOwnNumber") {
+                rechnungDao.insert(newCancellation().also { it.nummer = rechnungDao.nextNumber })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.originalRequired") {
+                rechnungDao.insert(newCancellation().also { it.originalRechnung = null })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.mustBeNegative") {
+                rechnungDao.insert(newCancellation().also { it.positionen!![0].einzelNetto = BigDecimal("50.00") })
+            }
+
+            val nextNumberBefore = rechnungDao.nextNumber
+            val cancellationId = rechnungDao.insert(newCancellation())
+            val cancellation = rechnungDao.find(cancellationId, attached = true)!!
+            Assertions.assertNull(cancellation.nummer, "A cancellation has no number of its own.")
+            Assertions.assertEquals("$originalNummer-S", cancellation.belegNummer)
+            Assertions.assertEquals("$originalNummer-S", cancellation.displayName)
+            Assertions.assertEquals(nextNumberBefore, rechnungDao.nextNumber, "No number is spent on a cancellation.")
+            Assertions.assertEquals(cancellationId, rechnungDao.findCancellationOf(originalId)?.id)
+
+            // An invoice is cancelled once at most, and a cancellation can't be cancelled.
+            assertUserException("fibu.rechnung.error.cancellation.alreadyCancelled") {
+                rechnungDao.insert(newCancellation())
+            }
+            assertUserException("fibu.rechnung.error.cancellation.originalInvalid") {
+                rechnungDao.insert(newCancellation().also {
+                    it.originalRechnung = RechnungDO().also { ref -> ref.id = cancellationId }
+                })
+            }
+
+            // The original is cancelled by it.
+            Assertions.assertEquals(RechnungStatus.STORNIERT, rechnungDao.find(originalId, attached = true)!!.status)
+            Assertions.assertFalse(cancellation.isValid, "Left out where the STORNIERT original is left out.")
+
+            // A stored cancellation keeps its type and its original.
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.update(RechnungDO().also {
+                    it.id = cancellationId
+                    it.typ = RechnungTyp.RECHNUNG
+                })
+            }
+
+            // Deleting the cancellation reverts the original.
+            rechnungDao.markAsDeleted(cancellation)
+            Assertions.assertEquals(RechnungStatus.GESTELLT, rechnungDao.find(originalId, attached = true)!!.status)
+            Assertions.assertNull(rechnungDao.findCancellationOf(originalId))
+        }
+    }
+
+    private fun assertUserException(i18nKey: String, block: () -> Unit) {
+        val ex = Assertions.assertThrows(UserException::class.java) { block() }
+        Assertions.assertEquals(i18nKey, ex.i18nKey)
+    }
+
+    @Test
     fun checkAccess() {
         lateinit var rechnung: RechnungDO
         lateinit var id: Serializable
@@ -125,7 +203,9 @@ class RechnungDaoTest : AbstractTestBase() {
             checkNoAccess(id, rechnung, "Other")
 
             logon(TEST_PROJECT_MANAGER_USER)
-            checkNoAccess(id, rechnung, "Project manager")
+            // The project manager has PM_ORDER_BOOK, so it may open the (per-row filtered) outgoing invoice
+            // list - but not this invoice, which is linked to no order (see RechnungDaoOrderBookAccessTest).
+            checkNoAccess(id, rechnung, "Project manager", mayOpenList = true)
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(id, rechnung, "Admin ")
@@ -133,13 +213,19 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
-    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String) {
-        try {
-            val filter = RechnungFilter()
+    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String, mayOpenList: Boolean = false) {
+        val filter = RechnungFilter()
+        if (mayOpenList) {
+            // Order book users (PM_ORDER_BOOK) may open the per-row filtered list without an exception; the
+            // per-row grant itself is asserted in RechnungDaoOrderBookAccessTest.
             rechnungDao.select(filter)
-            Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
-        } catch (ex: AccessException) {
-            // OK
+        } else {
+            try {
+                rechnungDao.select(filter)
+                Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
+            } catch (ex: AccessException) {
+                // OK
+            }
         }
         try {
             rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
@@ -192,6 +278,40 @@ class RechnungDaoTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
         }
+    }
+
+    /**
+     * [RechnungDao.find] overrides its base to initialize the lazy positions and cost assignments. It used
+     * to dereference both with `!!`, so an id nobody has answered with an NPE - a 500 where the REST layer
+     * would have answered a 404.
+     */
+    @Test
+    fun `an unknown id answers null instead of throwing`() {
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            Assertions.assertNull(rechnungDao.find(-1L, checkAccess = false))
+            null
+        }
+    }
+
+    @Test
+    fun `the positions and their cost assignments are readable outside the transaction`() {
+        lateinit var id: Serializable
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            val rechnung = RechnungDO()
+            rechnung.nummer = rechnungDao.getNextNumber(rechnung)
+            rechnung.datum = LocalDate.now()
+            rechnung.faelligkeit = LocalDate.now()
+            rechnung.projekt = initTestDB.addProjekt(null, 42, "lazy init")
+            rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
+            id = rechnungDao.insert(rechnung)
+            null
+        }
+        // What the override is for: no LazyInitializationException here.
+        val fromDb = rechnungDao.find(id)
+        Assertions.assertEquals(1, fromDb!!.positionen!!.size)
+        Assertions.assertNotNull(fromDb.positionen!![0].kostZuweisungen)
     }
 
     private fun createPosition(

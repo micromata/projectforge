@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service
 /**
  * This class tries to extract trading partners from incoming and outgoing invoices and customers from
  * the database for creating an initial import for D-velop.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class ExtractPFTradingPartners {
@@ -91,7 +91,7 @@ class ExtractPFTradingPartners {
   }
 
   fun extractTradingPartnersAsExcel(dvelopTradingPartners: List<TradingPartner>): ByteArray {
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       createTradingPartnersSheet(workbook, "D.velop TradingPartners", dvelopTradingPartners)
       createTradingPartnersSheet(workbook, "ProjectForge TradingPartners", extractTradingPartners())
       return workbook.asByteArrayOutputStream.toByteArray()

@@ -249,7 +249,14 @@ class KostFormatter {
             private set
 
         const val MAX_VALUE: Int = 99999999
-        const val ABBREVIATION_LENGTH = 30
+
+        /**
+         * Default cap for the abbreviated TEXT / NUMBER_AND_NAME formats (project, kost, kunde). The
+         * clients that show these — the entity pickers of the invoice and order edit — truncate to their
+         * own width already, so a tight cap here only throws the tail away before they get the chance
+         * ("5.011.01: Bode AMT (Advance..."). 60 keeps a sane upper bound without cutting the usual name.
+         */
+        const val ABBREVIATION_LENGTH = 60
 
         /**
          * Gibt den Kostenträger als Ganzzahl zurück. Wenn die Wertebereiche der einzelnen Parameter außerhalb des definierten

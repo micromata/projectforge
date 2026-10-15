@@ -1,8 +1,10 @@
-import { baseURL, createQueryParams, getServiceURL } from './rest';
+import { baseURL, baseRestURL, createQueryParams, getServiceURL } from './rest';
 
 it('base url', () => {
     expect(baseURL)
-        .toBe('/rs');
+        .toBe('http://localhost:8080');
+    expect(baseRestURL)
+        .toBe('http://localhost:8080/rs');
 });
 
 describe('create query params', () => {
@@ -51,7 +53,7 @@ describe('create query params', () => {
 describe('get service url', () => {
     it('undefined params', () => {
         const serviceURL = 'cakes/order';
-        const expectedServiceURL = '/rs/cakes/order';
+        const expectedServiceURL = 'http://localhost:8080/rs/cakes/order';
 
         expect(getServiceURL(serviceURL))
             .toBe(expectedServiceURL);
@@ -60,7 +62,7 @@ describe('get service url', () => {
     it('empty params', () => {
         const params = {};
         const serviceURL = 'cakes/order';
-        const expectedServiceURL = '/rs/cakes/order';
+        const expectedServiceURL = 'http://localhost:8080/rs/cakes/order';
 
         expect(getServiceURL(serviceURL, params))
             .toBe(expectedServiceURL);
@@ -72,7 +74,7 @@ describe('get service url', () => {
             amount: 123,
         };
         const serviceURL = 'cakes/order';
-        const expectedServiceURL = '/rs/cakes/order?id=1&amount=123';
+        const expectedServiceURL = 'http://localhost:8080/rs/cakes/order?id=1&amount=123';
 
         expect(getServiceURL(serviceURL, params))
             .toBe(expectedServiceURL);

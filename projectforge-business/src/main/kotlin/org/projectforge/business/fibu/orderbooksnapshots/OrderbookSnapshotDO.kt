@@ -39,7 +39,7 @@ import java.util.*
  * ```
  * SELECT date, created, incremental_based_on, octet_length(serialized_orderbook) AS byte_count, size FROM t_fibu_orderbook_snapshots order by date desc;
  * ```
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(

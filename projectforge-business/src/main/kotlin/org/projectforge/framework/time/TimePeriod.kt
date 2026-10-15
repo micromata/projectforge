@@ -35,7 +35,7 @@ import java.util.*
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TimePeriod @JvmOverloads constructor(
   var fromDate: Date? = null, var toDate: Date? = null,

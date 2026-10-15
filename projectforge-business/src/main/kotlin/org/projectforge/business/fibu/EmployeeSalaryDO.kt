@@ -38,7 +38,7 @@ import java.math.BigDecimal
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

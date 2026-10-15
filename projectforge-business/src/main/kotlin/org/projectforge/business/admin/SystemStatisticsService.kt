@@ -24,29 +24,29 @@
 package org.projectforge.business.admin
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.integration.SyncStatsRegistry
+import org.projectforge.framework.support.LogAggregationStatisticsBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.concurrent.CopyOnWriteArraySet
 
 private val log = KotlinLogging.logger {}
 
 @Service
 class SystemStatistics {
-    class DatabasePoolStatistics(
-        val total: Int,
-        val idle: Int,
-        val active: Int,
-        val threadsAwaitingConnection: Int
-    )
-
     @Autowired
     private lateinit var databaseStatisticsBuilder: DatabaseStatisticsBuilder
 
     @Autowired
     private lateinit var diskUsageStatisticsBuilder: DiskUsageStatisticsBuilder
 
-    private var statisticsBuilderRegistry = mutableSetOf<SystemsStatisticsBuilderInterface>()
+    @Autowired
+    private lateinit var logAggregationStatisticsBuilder: LogAggregationStatisticsBuilder
+
+    // Read by parallel requests (one per section), written by plugins on startup.
+    private val statisticsBuilderRegistry = CopyOnWriteArraySet<SystemsStatisticsBuilderInterface>()
 
     @PostConstruct
     private fun postConstruct() {
@@ -56,6 +56,8 @@ class SystemStatistics {
         registerStatisticsBuilder(databaseStatisticsBuilder)
         registerStatisticsBuilder(MemoryStatisticsBuilder())
         registerStatisticsBuilder(diskUsageStatisticsBuilder)
+        registerStatisticsBuilder(SyncStatsRegistry)
+        registerStatisticsBuilder(logAggregationStatisticsBuilder)
     }
 
     /**
@@ -64,6 +66,23 @@ class SystemStatistics {
     @Suppress("unused")
     fun registerStatisticsBuilder(statisticsBuilder: SystemsStatisticsBuilderInterface) {
         statisticsBuilderRegistry.add(statisticsBuilder)
+    }
+
+    /**
+     * All registered builders in order of their registration.
+     */
+    val builders: List<SystemsStatisticsBuilderInterface>
+        get() = statisticsBuilderRegistry.toList()
+
+    /**
+     * Builds the statistics of the given builder only.
+     * @return null, if no builder with this id is registered.
+     */
+    fun getSystemStatistics(builderId: String): SystemStatisticsData? {
+        val builder = statisticsBuilderRegistry.find { it.id == builderId } ?: return null
+        val stats = SystemStatisticsData()
+        builder.addStatisticsEntries(stats)
+        return stats
     }
 
     /**
@@ -76,7 +95,7 @@ class SystemStatistics {
             it.addStatisticsEntries(stats)
         }
 
-        log.info("Statistics: ${ToStringUtil.toJsonString(stats)}")
+        log.info { "Statistics: ${ToStringUtil.toJsonString(stats)}" }
         return stats
     }
 

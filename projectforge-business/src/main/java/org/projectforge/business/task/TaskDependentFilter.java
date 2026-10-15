@@ -27,7 +27,7 @@ package org.projectforge.business.task;
 /**
  * Marker for filters which are dependent of a task.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface TaskDependentFilter
 {

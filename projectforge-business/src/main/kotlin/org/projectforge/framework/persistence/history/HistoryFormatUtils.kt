@@ -23,12 +23,10 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.user.service.UserService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.history.HistoryOldFormatConverter.isOldAttr
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
@@ -36,47 +34,58 @@ import org.springframework.stereotype.Service
  */
 @Service
 class HistoryFormatUtils {
-    @Autowired
-    private lateinit var groupService: GroupService
-
-    @Autowired
-    private lateinit var userService: UserService
-
-    fun replaceGroupAndUserIdsValues(entry: DisplayHistoryEntry) {
-        entry.attributes.forEach { attr ->
-            replaceGroupAndUserIdsValues(attr)
+    /**
+     * Replaces comma separated user or group ids in the old and new value by the sorted display names of the
+     * referenced users or groups. Applies to properties annotated with [HistoryIdList] and to properties named
+     * `*UserIds` or `*GroupIds`. The removed and added names are given as [DisplayHistoryEntryAttr.removedValues] and
+     * [DisplayHistoryEntryAttr.addedValues]. Values which aren't pure id lists are left untouched.
+     * @param entityClass The class of the entity the attr belongs to, for finding the [HistoryIdList] annotation.
+     */
+    fun replaceGroupAndUserIdsValues(attr: DisplayHistoryEntryAttr, entityClass: Class<*>?) {
+        val type = getIdListType(entityClass, attr.propertyName) ?: return
+        val cache = UserGroupCache.getInstance()
+        val nameOf: (Long) -> String? = when (type) {
+            HistoryIdList.Type.USER -> { id -> cache.getUser(id)?.displayName }
+            HistoryIdList.Type.GROUP -> { id -> cache.getGroup(id)?.displayName }
         }
-    }
-
-    fun replaceGroupAndUserIdsValues(attr: DisplayHistoryEntryAttr) {
-        val propertyName = attr.propertyName ?: return
-        if (propertyName.endsWith("GroupIds")) {
-            attr.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.oldValue = groupService.getGroupNames(value)
-                    .sorted()
-                    .joinToString(", ")
-            }
-            attr.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.newValue = groupService.getGroupNames(value)
-                    .sorted()
-                    .joinToString(", ")
-            }
-        } else if (propertyName.endsWith("UserIds")) {
-            attr.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.oldValue = userService.getUserNames(value)
-                    .sorted()
-                    .joinToString(", ")
-            }
-            attr.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.newValue = userService.getUserNames(value)
-                    .sorted()
-                    .joinToString(", ")
-            }
-        }
+        val oldNames = getIdListNames(attr.oldValue, nameOf) ?: return
+        val newNames = getIdListNames(attr.newValue, nameOf) ?: return
+        attr.setListValues(oldNames, newNames)
+        attr.oldValue = oldNames.joinToString(", ")
+        attr.newValue = newNames.joinToString(", ")
     }
 
 
     companion object {
+        /**
+         * @return The type of the id list hold by the given property, or null, if it isn't a user or group id list.
+         */
+        internal fun getIdListType(entityClass: Class<*>?, propertyName: String?): HistoryIdList.Type? {
+            propertyName ?: return null
+            if (entityClass != null) {
+                PropUtils.getField(entityClass, propertyName, true)?.getAnnotation(HistoryIdList::class.java)
+                    ?.let { return it.type }
+            }
+            return when {
+                propertyName.endsWith("UserIds") -> HistoryIdList.Type.USER
+                propertyName.endsWith("GroupIds") -> HistoryIdList.Type.GROUP
+                else -> null
+            }
+        }
+
+        /**
+         * Resolves a comma separated id list to the sorted display names. Unknown ids are shown as `#id`.
+         * @return An empty list for a blank value, or null, if the value isn't a pure id list (e.g. already formatted).
+         */
+        internal fun getIdListNames(value: String?, nameOf: (Long) -> String?): List<String>? {
+            if (value.isNullOrBlank() || value == "null") {
+                return emptyList()
+            }
+            val ids = value.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                .map { it.toLongOrNull() ?: return null }
+            return ids.map { id -> nameOf(id) ?: "#$id" }.sorted()
+        }
+
         fun getPlainPropertyName(attr: HistoryEntryAttr): String? {
             if (isOldAttr(attr)) {
                 return HistoryOldFormatConverter.getPlainPropertyName(attr)

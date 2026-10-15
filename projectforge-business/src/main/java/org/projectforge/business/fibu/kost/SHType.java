@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Debit/credit (Soll/Haben)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public enum SHType implements I18nEnum

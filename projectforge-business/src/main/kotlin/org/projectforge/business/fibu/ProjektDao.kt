@@ -31,6 +31,7 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightId
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -181,6 +182,32 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
     }
 
+    /**
+     * The number of a project (nummernkreis, bereich, teilbereich, i.e. customer or internal range and
+     * [ProjektDO.nummer]) is fixed once it has cost 2 units: each [Kost2DO] got a copy of it when it was
+     * created ([org.projectforge.business.fibu.kost.Kost2Dao.setProjekt]), and nothing renumbers them, so
+     * the project and its cost 2 units would part ways — and so would everything booked on them.
+     */
+    override fun onUpdate(obj: ProjektDO, dbObj: ProjektDO) {
+        if (isNumberLocked(obj.id) && isNumberChanged(obj, dbObj)) {
+            throw UserException(NUMBER_LOCKED_I18N_KEY)
+        }
+    }
+
+    /**
+     * True if the project has cost 2 units, deleted ones included (they may be undeleted). Its number and
+     * customer can't be changed then, see [onUpdate].
+     */
+    open fun isNumberLocked(projektId: Long?): Boolean {
+        projektId ?: return false
+        return kostCache.getKost2ForProjekt(projektId, includeDeleted = true).isNotEmpty()
+    }
+
+    private fun isNumberChanged(obj: ProjektDO, dbObj: ProjektDO): Boolean {
+        return obj.nummernkreis != dbObj.nummernkreis || obj.bereich != dbObj.bereich ||
+                obj.teilbereich != dbObj.teilbereich
+    }
+
     override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {
         obj.task?.id?.let { taskId ->
             taskTree.internalSetProject(taskId, obj)
@@ -198,10 +225,16 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun addOwnHistoryEntries(obj: ProjektDO, context: HistoryLoadContext) {
-        kostCache.getKost2ForProjekt(obj.id).forEach { kost2 ->
-            historyService.loadAndMergeHistory(kost2, context)
+        // Batch the children's history (one query) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...).
+        kostCache.getKost2ForProjekt(obj.id).mapNotNull { it.id }.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(Kost2DO::class.java, ids, context)
         }
     }
+
+    // Kost2DO is the doClass of Kost2Dao as well, so its history is covered by two list pages. Harmless: a partial
+    // re-index doesn't purge, so both runs merely refresh the same documents.
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(Kost2DO::class.java)
 
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
         val entry = context.requiredHistoryEntry
@@ -219,6 +252,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_PROJECT
+
+        const val NUMBER_LOCKED_I18N_KEY = "fibu.projekt.validation.numberLocked"
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
             "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",

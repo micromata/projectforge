@@ -60,7 +60,7 @@ import java.util.TimeZone;
 /**
  * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by SrpingApplication.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class ProjectForgeApp {
@@ -89,6 +89,10 @@ public class ProjectForgeApp {
      */
     public static void internalSetJunitTestMode() {
         junitTestMode = true;
+    }
+
+    public static boolean isJunitTestMode() {
+        return junitTestMode;
     }
 
     private static ConfigurableApplicationContext springApplicationRunContext;
@@ -170,7 +174,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * Should be called on start-up (e. g. by WicketApplication) if all start-up stuff is done and all the services and
+     * Called on start-up ({@link ApplicationReadyEvent}, see {@link #startApp()}) if all start-up stuff is done and all the services and
      * login should be started. <br>
      * Flag upAndRunning will be set to true.
      */

@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.addDeserializer
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.proxy.AbstractLazyInitializer
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.calendar.StyledTeamCalendar
@@ -199,7 +199,7 @@ open class JacksonConfiguration {
     mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
     if (failOnUnknownJsonProperties) {
-      log.warn("Unknown JSON properties are not allowed in REST call, due to configuration in projectforge.properties:projectforge.rest.json.failOnUnknownJsonProperties (OK, but Rest calls may fail).")
+      log.warn { "Unknown JSON properties are not allowed in REST call, due to configuration in projectforge.properties:projectforge.rest.json.failOnUnknownJsonProperties (OK, but Rest calls may fail)." }
     }
     mapper.configure(
       DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
@@ -208,7 +208,7 @@ open class JacksonConfiguration {
     //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true)
     mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
 
     val module = object : SimpleModule() {
       override fun setupModule(context: SetupContext) {
@@ -251,7 +251,9 @@ open class JacksonConfiguration {
     })
     JsonUtils.initializeMapper(module)
     module.addDeserializer(String::class.java, TextDeserializer())
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN") // Typed like the deserializers (see Deserializers.kt).
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     module.addDeserializer(java.lang.Long::class.java, LongDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
     module.addDeserializer(Date::class.java, UtcDateDeserializer())

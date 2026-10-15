@@ -20,6 +20,7 @@ function DateInput(
         label,
         locale = 'en',
         noInputContainer = false,
+        onEnter,
         setDate,
         todayButton,
         value,
@@ -29,6 +30,7 @@ function DateInput(
     const [inputValue, setInputValue] = React.useState('');
     const [isActive, setIsActive] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
+    const [month, setMonth] = React.useState(value);
     const inputRef = React.useRef(null);
     const Tag = noInputContainer ? React.Fragment : InputContainer;
 
@@ -36,6 +38,8 @@ function DateInput(
         if (value) {
             setInputValue(moment(value)
                 .format(jsDateFormat));
+            // Keep the day picker in sync with the (typed or selected) value.
+            setMonth(value);
         } else {
             setInputValue('');
         }
@@ -73,6 +77,21 @@ function DateInput(
     const handleFocus = () => setIsActive(true);
 
     const handleKeyDown = (event) => {
+        // Accept a non-strict parse on Enter so partially/loosely typed dates are committed.
+        if (event.key === 'Enter') {
+            const momentDate = moment(inputValue, jsDateFormat);
+            if (inputValue.trim() === '') {
+                setDate(undefined);
+            } else if (momentDate.isValid()) {
+                event.preventDefault();
+                setDate(momentDate.toDate());
+                if (onEnter) {
+                    onEnter(momentDate.toDate());
+                }
+            }
+            return;
+        }
+
         const momentDate = moment(inputValue, jsDateFormat, true);
 
         if (momentDate.isValid()) {
@@ -158,7 +177,8 @@ function DateInput(
             additionalClassName={styles.dayPickerContainer}
         >
             <DayPicker
-                defaultMonth={value}
+                month={month}
+                onMonthChange={setMonth}
                 selectedDays={value}
                 onDayClick={handleDayPickerClick}
                 locale={locale === 'de' ? de : 'en'}
@@ -179,6 +199,7 @@ DateInput.propTypes = {
     label: PropTypes.string,
     locale: PropTypes.string,
     noInputContainer: PropTypes.bool,
+    onEnter: PropTypes.func,
     todayButton: PropTypes.string,
     value: PropTypes.instanceOf(Date),
     weekStartsOn: PropTypes.number,

@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * For storing a row content.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class RowHolder

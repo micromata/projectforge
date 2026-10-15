@@ -25,18 +25,25 @@ package org.projectforge.business.teamcal.ical
 
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
+import net.fortuna.ical4j.model.Parameter
 import net.fortuna.ical4j.model.Property
+import net.fortuna.ical4j.model.parameter.Cn
+import net.fortuna.ical4j.model.parameter.PartStat
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.*
 import net.fortuna.ical4j.util.CompatibilityHints
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.teamcal.TeamCalConfig
+import org.projectforge.business.teamcal.event.model.TeamEventAttendee
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.io.StringReader
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
@@ -58,34 +65,67 @@ object VEventUtils {
             if (storeOriginalIcsEntry) {
                 originalIcsEntry = component.toString()
             }
-            subject = component.summary?.orElse(null)?.value
-            location = component.location?.orElse(null)?.value
-            note = component.description?.orElse(null)?.value
-            val startTemporal = component.getDateTimeStart<Temporal>()?.orElse(null)?.date
-            val endTemporal = component.getDateTimeEnd<Temporal>()?.orElse(null)?.date
-            val dtTemporal = component.dateTimeStamp?.orElse(null)?.date
+            subject = component.summary?.value
+            location = component.location?.value
+            note = component.description?.value
+            val startTemporal = component.getDateTimeStart<Temporal>()?.date
+            val endTemporal = component.getDateTimeEnd<Temporal>()?.date
+                ?: deriveEnd(component, startTemporal)
+            // Not via component.dateTimeStamp: DtStamp is typed as Instant, but relaxed parsing returns e.g.
+            // OffsetDateTime or ZonedDateTime, so the implicit cast would fail.
+            val dtTemporal = component.getProperty<DateProperty<Temporal>>(Property.DTSTAMP).orElse(null)?.date
             allDay = startTemporal is LocalDate
             startDate = temporalToUTCDate(startTemporal)
             endDate = temporalToUTCDate(endTemporal)
             dtStamp = temporalToUTCDate(dtTemporal)
-            val rrule = component.getProperty<RRule<Temporal>>(Property.RRULE)?.orElse(null)
+            val rrule = component.getProperty<RRule<Temporal>>(Property.RRULE).orElse(null)
             recurrenceRule = rrule?.value
-            recurrenceExDate = component.getProperty<ExDate<Temporal>>(Property.EXDATE)?.orElse(null)?.value
-            organizer = component.organizer?.orElse(null)?.value
-            organizerAdditionalParams = component.organizer?.orElse(null)?.getParameters()?.joinToString()
-            sequence = component.sequence?.orElse(null)?.sequenceNo
-            uid = component.uid?.orElse(null)?.value
+            recurrenceExDate = component.getProperty<ExDate<Temporal>>(Property.EXDATE).orElse(null)?.value
+            organizer = component.organizer?.value
+            organizerAdditionalParams = component.organizer?.getParameters()?.joinToString()
+            sequence = component.sequence?.sequenceNo
+            uid = component.uid.orElse(null)?.value
+            storeAttendees(extractAttendees(component))
         }
+    }
+
+    /**
+     * The ATTENDEEs of the event: CN as name, the mailto: address as mail and PARTSTAT as status (null if
+     * unknown). Entries with neither a name nor a mail address are skipped.
+     */
+    internal fun extractAttendees(component: VEvent): List<TeamEventAttendee> {
+        return component.getProperties<Attendee>(Property.ATTENDEE).mapNotNull { attendee ->
+            val name = attendee.getParameter<Cn>(Parameter.CN).orElse(null)?.value?.takeIf { it.isNotBlank() }
+            val email = attendee.value.trim().removePrefix("mailto:").removePrefix("MAILTO:")
+                .takeIf { it.isNotBlank() }
+            if (name == null && email == null) {
+                return@mapNotNull null
+            }
+            val partStat = attendee.getParameter<PartStat>(Parameter.PARTSTAT).orElse(null)?.value
+            TeamEventAttendee(name, email, TeamEventAttendeeStatus.getStatusForPartStat(partStat))
+        }
+    }
+
+    /**
+     * The end of an event without DTEND, as RFC 5545 (3.6.1) defines it: start plus DURATION if given, otherwise
+     * one day for an all-day event (DTSTART is a DATE) and no time at all for a timed one (end = start).
+     * A DURATION a DATE can't take (e.g. `PT1H` on an all-day event) is ignored like a missing one.
+     */
+    internal fun deriveEnd(component: VEvent, start: Temporal?): Temporal? {
+        start ?: return null
+        val duration = component.getProperty<Duration>(Property.DURATION).orElse(null)?.duration
+        if (duration != null) {
+            runCatching { start.plus(duration) }.getOrNull()?.let { return it }
+        }
+        return if (start is LocalDate) start.plusDays(1) else start
     }
 
     fun extractExdates(event: VEvent): List<Temporal> {
         val exDates = mutableListOf<Temporal>()
         event.getProperties<ExDate<Temporal>>(Property.EXDATE).forEach { property ->
-            if (property is ExDate<*>) {
-                // Exception Dates aus der EXDATE-Property extrahieren
-                property.dates.forEach { date ->
-                    exDates.add(date)
-                }
+            // Exception Dates aus der EXDATE-Property extrahieren
+            property.dates.forEach { date ->
+                exDates.add(date)
             }
         }
         return exDates
@@ -139,7 +179,7 @@ object VEventUtils {
         val stringReader = StringReader(asCalendar(icsString))
         val calendarBuilder = CalendarBuilder()
         val calendar = calendarBuilder.build(stringReader)
-        return calendar.getComponents<VEvent>(Component.VEVENT).firstOrNull() as? VEvent
+        return calendar.getComponents<VEvent>(Component.VEVENT).firstOrNull()
     }
 
     fun createSetupEvent(): VEvent {
@@ -149,8 +189,13 @@ object VEventUtils {
         return setupEvent
     }
 
+    /**
+     * Creates an all-day event.
+     * @param endDay The last day of the event (inclusive). DTEND of an all-day event is exclusive (RFC 5545), so the
+     * day after is written.
+     */
     fun createAllDayEvent(startDay: LocalDate, endDay: LocalDate, title: String, uid: String? = null): VEvent {
-        val event = VEvent(startDay, endDay, title)
+        val event = VEvent(startDay, endDay.plusDays(1), title)
         setUid(event, uid)
         return event
     }
@@ -183,7 +228,7 @@ object VEventUtils {
     }
 
     fun isSetupEvent(vEvent: VEvent): Boolean {
-        return vEvent.summary?.orElse(null)?.value == TeamCalConfig.SETUP_EVENT
+        return vEvent.summary?.value == TeamCalConfig.SETUP_EVENT
     }
 
     fun setUid(event: VEvent, uid: String? = null) {
@@ -209,16 +254,20 @@ object VEventUtils {
                 // Assume start of day (00:00) in UTC
                 Date.from(temporal.atStartOfDay(ZoneOffset.UTC).toInstant())
 
+            is OffsetDateTime -> Date.from(temporal.toInstant())
+
+            is Instant -> Date.from(temporal)
+
             else -> null // Unknown type, return null
         }
     }
 
     fun getPropertyValue(event: VEvent, propertyKey: String): String? {
-        return event.getProperty<Property>(propertyKey)?.orElse(null)?.value
+        return event.getProperty<Property>(propertyKey).orElse(null)?.value
     }
 
     fun getRRuleString(event: VEvent): String? {
-        val rrule = event.getProperty<RRule<Temporal>>(Property.RRULE)?.orElse(null)
+        val rrule = event.getProperty<RRule<Temporal>>(Property.RRULE).orElse(null)
         return rrule?.value
     }
 

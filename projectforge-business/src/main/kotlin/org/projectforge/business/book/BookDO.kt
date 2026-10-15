@@ -43,7 +43,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 /**
  * For managing libraries including lend-out functionality.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

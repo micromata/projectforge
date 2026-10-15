@@ -23,66 +23,31 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.user.UsersProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Collection;
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @Service
 public class LicenseDao extends BaseDao<LicenseDO>
 {
-  private final UsersProvider usersProvider;
-
-  @Autowired
-  UserDao userDao;
-
   public LicenseDao()
   {
     super(LicenseDO.class);
     userRightId = LicensemanagementPluginUserRightsId.PLUGIN_LICENSE_MANAGEMENT;
-    usersProvider = new UsersProvider(userDao);
   }
 
   /**
-   * Please note: Only the string license.owners will be modified (but not be saved)!
-   *
-   * @param license
-   * @param owners Full list of all owners (user id's) which have are assigned to this license.
-   * @return
+   * Organization and product complete from the values already entered. Every user with select access sees all
+   * licenses, so no check of single entities is needed (the key is no autocompletion property).
    */
-  public void setOwners(final LicenseDO license, final Collection<PFUserDO> owners)
+  @Override
+  public boolean isAutocompletionPropertyEnabled(final String property)
   {
-    license.setOwnerIds(usersProvider.getUserIds(owners));
-  }
-
-  public Collection<PFUserDO> getSortedOwners(final LicenseDO license)
-  {
-    return usersProvider.getSortedUsers(license.getOwnerIds());
-  }
-
-  public String getSortedOwnernames(final LicenseDO license)
-  {
-    final Collection<PFUserDO> sortedOwners = getSortedOwners(license);
-    if (CollectionUtils.isEmpty(sortedOwners)) {
-      return "";
-    }
-    final StringBuilder buf = new StringBuilder();
-    boolean first = true;
-    for (final PFUserDO owner : sortedOwners) {
-      first = StringHelper.append(buf, first, owner.getFullname(), ", ");
-    }
-    return buf.toString();
+    return "organization".equals(property) || "product".equals(property);
   }
 
   @Override

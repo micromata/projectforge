@@ -25,13 +25,16 @@ package org.projectforge.business.timesheet
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
-import mu.KotlinLogging
+import org.projectforge.business.PfCaches
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.common.AutoCompletionUtils
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
@@ -50,6 +53,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SelectAccessProjection
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ge
@@ -58,6 +62,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -76,7 +81,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
@@ -130,6 +135,56 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
+
+    /**
+     * Newest sheets first, as [TimesheetFilter.orderType] defaults to [OrderDirection.DESC]. Only used when the
+     * caller asks for no order of its own (see [BaseDao.select]/[org.projectforge.framework.persistence.api.impl.DBQuery]):
+     * the Wicket list page adds the same order explicitly ([buildQueryFilter]), while the REST list has no default
+     * of its own, so without this it would come back unordered.
+     */
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
+
+    /** [hasUserSelectAccess] reads the sheet's task and user, nothing else. */
+    override val selectAccessProjection = SelectAccessProjection(listOf("task.id", "user.id")) { values ->
+        TimesheetDO().also { sheet ->
+            sheet.task = (values[0] as Long?)?.let { id -> TaskDO().also { it.id = id } }
+            sheet.user = (values[1] as Long?)?.let { id -> PFUserDO().also { it.id = id } }
+        }
+    }
+
+    /**
+     * The data the list statistics need for the given time sheets, as a lean projection instead of the whole
+     * entities: only the four columns [AITimeSavings.buildStats] reads — start and stop for the duration, the
+     * AI amount and its unit. Returned as detached [TimesheetDO] stubs (nothing else set) so the existing
+     * [AITimeSavings.buildStats] can consume them unchanged.
+     *
+     * One `SELECT` of four columns, no lazy relations and no row hydration: the id list of a server-side paged
+     * list can be thousands of sheets, and loading them whole (all columns, in `IN` batches) only to sum
+     * durations is exactly what this avoids (see `TimesheetEntityRest.aggregate`). Access is already checked -
+     * the ids come from the access-filtered id list of the paged result.
+     */
+    open fun selectStatisticsData(ids: Collection<Long>): List<TimesheetDO> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        // Batched IN query: the id list can hold up to the list row cap (100k), which a single IN clause
+        // would push past PostgreSQL's 65535 bind-parameter limit. buildStatistics sums the whole returned
+        // list afterwards, so batching is transparent to the caller (see executeQueryBatched).
+        return persistenceService.executeQueryBatched(
+            "SELECT t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit FROM TimesheetDO t WHERE t.id IN :ids",
+            Tuple::class.java,
+            batchParam = "ids",
+            batchValues = ids,
+        ).map { tuple ->
+            TimesheetDO().also {
+                it.startTime = tuple.get("startTime") as Date?
+                it.stopTime = tuple.get("stopTime") as Date?
+                it.timeSavedByAI = tuple.get("timeSavedByAI") as BigDecimal?
+                it.timeSavedByAIUnit = tuple.get("timeSavedByAIUnit") as TimesheetDO.TimeSavedByAIUnit?
+            }
+        }
+    }
 
     /**
      * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
@@ -206,20 +261,23 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 val taskIds = node.descendantIds
                 taskIds.add(node.id)
                 queryFilter.add(isIn<Any>("task.id", taskIds))
-                if (log.isDebugEnabled) {
+                if (log.isDebugEnabled()) {
                     log.debug { "search in tasks: $taskIds" }
                 }
             } else {
                 queryFilter.add(eq("task.id", filter.taskId))
             }
         }
+        if (filter.kost2Id != null) {
+            queryFilter.add(eq("kost2.id", filter.kost2Id))
+        }
         if (filter.orderType == OrderDirection.DESC) {
             queryFilter.addOrder(desc("startTime"))
         } else {
             queryFilter.addOrder(asc("startTime"))
         }
-        if (log.isDebugEnabled) {
-            log.debug(ToStringBuilder.reflectionToString(filter))
+        if (log.isDebugEnabled()) {
+            log.debug { ToStringBuilder.reflectionToString(filter) }
         }
         return queryFilter
     }
@@ -303,7 +361,36 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (hasTimeOverlap(obj, true)) {
             throw UserException("timesheet.error.timeCollision")
         }
-        
+        if (operationType == OperationType.INSERT) {
+            validateKost2(obj)
+        }
+        // An update is checked in onUpdate, as it needs the stored time sheet; a (un)delete keeps the booking.
+    }
+
+    override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
+        if (compareValues(obj.taskId, dbObj.taskId) != 0) {
+            taskTree.resetTotalDuration(dbObj.taskId!!)
+        }
+        if (compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0) {
+            validateKost2(obj)
+        }
+    }
+
+    /**
+     * The cost 2 unit must be one the task may be booked on ([TaskTree.getKost2List]: active cost 2 units of
+     * the task's project). Checked for a new time sheet and for a changed task or cost 2 unit only: an existing
+     * booking stays editable (and deletable) after its cost 2 unit was deactivated or its project ended.
+     *
+     * The task's project (the nearest one in the task tree) must not be ended or deleted. Its cost 2 units are
+     * ended then, but that alone doesn't block a booking: without any bookable cost 2 unit, the task would take
+     * a time sheet without one, or the cost 2 units of an ancestor task's project ([TaskTree.getKost2List]).
+     */
+    private fun validateKost2(obj: TimesheetDO) {
+        taskTree.getProjekt(obj.taskId)?.let { projekt ->
+            if (projekt.status == ProjektStatus.ENDED || projekt.deleted) {
+                throw UserException("timesheet.error.projectEnded")
+            }
+        }
         if (Configuration.instance.isCostConfigured) {
             val kost2List = taskTree.getKost2List(obj.taskId)
             val kost2Id = obj.kost2Id
@@ -340,12 +427,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                     throw UserException("timesheet.error.invalidKost2") // Kost2Id can't be given for task without any kost2 entries!
                 }
             }
-        }
-    }
-
-    override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
-        if (compareValues(obj.taskId, dbObj.taskId) != 0) {
-            taskTree.resetTotalDuration(dbObj.taskId!!)
         }
     }
 
@@ -394,7 +475,21 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
      * update (also undelete). For time collision detection deleted time sheets are ignored.
      *
-     * @return The existing time sheet with the time period collision.
+     * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two time sheets is booked on
+     * a shared cost element AND the two time sheets don't belong to the same project (booking overlapping time twice
+     * inside the same project is always a forbidden double booking). A time sheet is booked on a shared cost element if
+     * its cost unit says so ([Kost2DO.sharedCost]); if the cost unit doesn't say anything (null) or there is none, its
+     * task decides ([TaskDO.allowTimeOverlap], inherited from ancestor tasks). A cost unit's explicit setting (true or
+     * false) takes precedence over the task's one. See [TimesheetOverlapUtils] for the purpose (cost sharing between
+     * projects/customers).
+     *
+     * Never allowed, shared or not:
+     * - Two time sheets on the same cost unit, or on the same task if neither has a cost unit (e.g. a double vacation).
+     * - Two time sheets on cost units of the same overlap group ([TimesheetOverlapGroups],
+     *   [ConfigurationParam.TIMESHEET_OVERLAP_GROUPS], e.g. all cost units 6.*): a group counts like one
+     *   project and takes precedence over the cost unit's project.
+     *
+     * @return true, if at least one overlapping time sheet is a forbidden collision.
      */
     open fun hasTimeOverlap(timesheet: TimesheetDO, throwException: Boolean): Boolean {
         val begin = System.currentTimeMillis()
@@ -409,25 +504,177 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             queryFilter.add(ne("id", timesheet.id!!))
         }
         val list = select(queryFilter)
-        if (list.isNotEmpty()) {
-            val ts = list[0]
+        // Find the first overlapping time sheet that is a real (forbidden) collision. Overlaps with shared cost
+        // elements in other projects are allowed.
+        val collision = list.firstOrNull { !isOverlapAllowed(timesheet, it) }
+        val end = System.currentTimeMillis()
+        log.info { "TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms." }
+        if (collision != null) {
             if (throwException) {
-                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $ts")
-                val startTime = DateHelper.formatIsoTimestamp(ts.startTime)
-                val stopTime = DateHelper.formatIsoTimestamp(ts.stopTime)
+                log.info { "Time sheet collision detected of time sheet $timesheet with existing time sheet $collision" }
+                val startTime = DateHelper.formatIsoTimestamp(collision.startTime)
+                val stopTime = DateHelper.formatIsoTimestamp(collision.stopTime)
                 throw UserException(
                     "timesheet.error.timeperiodOverlapDetection", MessageParam(
-                        ts.id
+                        collision.id
                     ), MessageParam(startTime), MessageParam(stopTime)
                 )
             }
-            val end = System.currentTimeMillis()
-            log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
             return true
         }
-        val end = System.currentTimeMillis()
-        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
         return false
+    }
+
+    /**
+     * @return true, if the two time sheets, overlapping in time, are a forbidden collision as [hasTimeOverlap] refuses
+     * it. The time sheets themselves aren't compared, the caller knows that they overlap. Only the ids of task and
+     * cost unit are used (resolved by the caches), so detached time sheets with lazy cost units are fine.
+     */
+    open fun isCollision(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        return !isOverlapAllowed(timesheet, other)
+    }
+
+    private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        return isOverlapAllowed(timesheet.taskId, timesheet.kost2?.id, other.taskId, other.kost2?.id)
+    }
+
+    /**
+     * @return true, if two time sheets of the given tasks and cost units are allowed to overlap in time (see
+     * [hasTimeOverlap]): not on the same cost unit (or, without cost units, the same task), at least one of them booked
+     * on a shared cost element (see [isSharedCost]) and not in the same project or overlap group (see [overlapKeyOf]).
+     */
+    private fun isOverlapAllowed(taskId: Long?, kost2Id: Long?, otherTaskId: Long?, otherKost2Id: Long?): Boolean {
+        if (kost2Id != null || otherKost2Id != null) {
+            if (kost2Id == otherKost2Id) {
+                return false // Same cost unit => forbidden double booking.
+            }
+        } else if (taskId == otherTaskId) {
+            return false // No cost units, same task => forbidden double booking.
+        }
+        if (!isSharedCost(taskId, kost2Id) && !isSharedCost(otherTaskId, otherKost2Id)) {
+            return false
+        }
+        // Same project or overlap group => forbidden double booking. Time sheets without project and group (internal
+        // tasks) never count as the same project.
+        val key = overlapKeyOf(taskId, kost2Id) ?: return true
+        return key != overlapKeyOf(otherTaskId, otherKost2Id)
+    }
+
+    /**
+     * The start times of the time sheets of all users (deleted ones ignored) starting within [from] (inclusive) and
+     * [to] (exclusive), by user id. One `SELECT` of two columns, no row hydration and no access check: for jobs
+     * evaluating the bookings of all employees (e.g. the notification rule for missing time sheets).
+     */
+    open fun getStartTimesByUser(from: Date, to: Date): Map<Long, List<Date>> {
+        val sql = "SELECT t.user.id AS userId, t.startTime AS startTime FROM TimesheetDO t" +
+                " WHERE t.deleted = false AND t.startTime >= :from AND t.startTime < :to"
+        val result = mutableMapOf<Long, MutableList<Date>>()
+        persistenceService.executeQuery(sql, Tuple::class.java, Pair("from", from), Pair("to", to)).forEach { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@forEach
+            val startTime = tuple.get("startTime") as Date? ?: return@forEach
+            result.getOrPut(userId) { mutableListOf() }.add(startTime)
+        }
+        return result
+    }
+
+    /** A time sheet without cost 2 unit, see [getTimesheetsWithoutKost2]. */
+    class TimesheetWithoutKost2(val userId: Long, val taskId: Long?, val startTime: Date, val durationMillis: Long)
+
+    /**
+     * The time sheets without cost 2 unit of all users (deleted ones ignored) starting within [from] (inclusive) and
+     * [to] (exclusive), by user id: booked on a task without cost 2 units, they are missing in the salary export. One
+     * `SELECT` of four columns, no row hydration and no access check: for jobs (e.g. the notification rule).
+     */
+    open fun getTimesheetsWithoutKost2(from: Date, to: Date): Map<Long, List<TimesheetWithoutKost2>> {
+        val sql = "SELECT t.user.id AS userId, t.task.id AS taskId, t.startTime AS startTime, t.stopTime AS stopTime" +
+                " FROM TimesheetDO t WHERE t.deleted = false AND t.kost2 IS NULL AND t.startTime >= :from AND t.startTime < :to"
+        val result = mutableMapOf<Long, MutableList<TimesheetWithoutKost2>>()
+        persistenceService.executeQuery(sql, Tuple::class.java, Pair("from", from), Pair("to", to)).forEach { tuple ->
+            val userId = tuple.get("userId") as Long? ?: return@forEach
+            val startTime = tuple.get("startTime") as Date? ?: return@forEach
+            val duration = (tuple.get("stopTime") as Date?)?.let { it.time - startTime.time }?.coerceAtLeast(0) ?: 0
+            result.getOrPut(userId) { mutableListOf() }
+                .add(TimesheetWithoutKost2(userId, tuple.get("taskId") as Long?, startTime, duration))
+        }
+        return result
+    }
+
+    /**
+     * The ids of the given user's time sheets (deleted ones ignored) that collide in time with another of the user's
+     * time sheets — the forbidden overlaps [hasTimeOverlap] refuses on save; an overlap released by a shared cost
+     * element doesn't count. Sheets saved before that check existed (or imported) may still collide, this finds them:
+     * the "only collisions" option of the time sheet list.
+     *
+     * One `SELECT` of five columns, no row hydration (a user may have many thousand sheets). [from]/[to] narrow it to
+     * the sheets that may collide with one touching that window — widened by [MAXIMUM_DURATION], the longest a sheet
+     * may last; null means unbounded. No access check: the caller filters an access checked result with it.
+     */
+    open fun getCollidingTimesheetIds(userId: Long, from: Date?, to: Date?): Set<Long> {
+        val sql = StringBuilder(
+            "SELECT t.id AS id, t.startTime AS startTime, t.stopTime AS stopTime, t.task.id AS taskId, t.kost2.id AS kost2Id" +
+                    " FROM TimesheetDO t WHERE t.user.id = :userId AND t.deleted = false"
+        )
+        val params = mutableListOf<Pair<String, Any?>>(Pair("userId", userId))
+        from?.let {
+            sql.append(" AND t.stopTime >= :from")
+            params.add(Pair("from", Date(it.time - MAXIMUM_DURATION)))
+        }
+        to?.let {
+            sql.append(" AND t.startTime <= :to")
+            params.add(Pair("to", Date(it.time + MAXIMUM_DURATION)))
+        }
+        sql.append(" ORDER BY t.startTime")
+        val sheets = persistenceService.executeQuery(sql.toString(), Tuple::class.java, *params.toTypedArray())
+            .mapNotNull { tuple ->
+                val start = (tuple.get("startTime") as Date?)?.time ?: return@mapNotNull null
+                val stop = (tuple.get("stopTime") as Date?)?.time ?: return@mapNotNull null
+                CollisionCandidate(tuple.get("id") as Long, start, stop, tuple.get("taskId") as Long?, tuple.get("kost2Id") as Long?)
+            }
+        val result = mutableSetOf<Long>()
+        // Sweep over the sheets sorted by start: the active ones are those still running at the current start, so
+        // only sheets that really overlap are compared (a handful), not every pair.
+        val active = mutableListOf<CollisionCandidate>()
+        sheets.forEach { sheet ->
+            active.removeAll { it.stop <= sheet.start }
+            active.forEach { other ->
+                // Strictly overlapping, as hasTimeOverlap (one ending when the other starts is no collision).
+                if (sheet.stop > other.start && !isOverlapAllowed(sheet.taskId, sheet.kost2Id, other.taskId, other.kost2Id)) {
+                    result.add(sheet.id)
+                    result.add(other.id)
+                }
+            }
+            active.add(sheet)
+        }
+        return result
+    }
+
+    private class CollisionCandidate(val id: Long, val start: Long, val stop: Long, val taskId: Long?, val kost2Id: Long?)
+
+    /**
+     * @return true, if a time sheet of the given task and cost unit is booked on a shared cost element: the cost
+     * unit's own setting ([Kost2DO.sharedCost]) wins if set, otherwise the task's (inherited) one
+     * ([TaskDO.allowTimeOverlap]). The cost unit is taken from the cache, so its current setting counts.
+     */
+    private fun isSharedCost(taskId: Long?, kost2Id: Long?): Boolean {
+        return PfCaches.instance.getKost2(kost2Id)?.sharedCost ?: taskTree.isTimeOverlapAllowed(taskId)
+    }
+
+    /**
+     * What "the same project" means for [isOverlapAllowed]: the overlap group of the cost unit
+     * ([TimesheetOverlapGroups]), if it belongs to one, otherwise the project of the task or cost unit.
+     *
+     * @return null, if there is neither group nor project.
+     */
+    private fun overlapKeyOf(taskId: Long?, kost2Id: Long?): OverlapKey? {
+        val kost2 = PfCaches.instance.getKost2(kost2Id)
+        TimesheetOverlapGroups.current().groupOf(kost2)?.let { return OverlapKey.Group(it) }
+        val projektId = taskTree.getProjekt(taskId)?.id ?: kost2?.projekt?.id ?: return null
+        return OverlapKey.Projekt(projektId)
+    }
+
+    private sealed interface OverlapKey {
+        data class Group(val index: Int) : OverlapKey
+        data class Projekt(val id: Long) : OverlapKey
     }
 
     /**
@@ -563,7 +810,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * true without further checking.
      *  1. Is the task or any of the ancestor tasks closed or deleted?
      *  1. Has the task or any of the ancestor tasks the TimesheetBookingStatus.TREE_CLOSED?
-     *  1. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
+     *  1. Is the task not a leaf node and is its effective booking status ONLY_LEAFS? The effective status
+     * is the one of the nearest explicitly configured node (walking up the ancestors while INHERIT), so an
+     * intermediate node with children can be re-enabled for booking by setting it explicitly to OPENED.
      *  1. Does any of the descendant task node has an assigned order position?
      *
      *
@@ -585,7 +834,14 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 return true
             }
         }
-        val taskNode = taskTree.getTaskNodeById(timesheet.taskId, checkTaskTreeRefresh)
+        return checkTaskBookable(taskTree.getTaskNodeById(timesheet.taskId, checkTaskTreeRefresh)!!, throwException)
+    }
+
+    /**
+     * The task part of [checkTaskBookable] (without the update short-cut): may time sheets be booked on the given
+     * task at all?
+     */
+    open fun checkTaskBookable(taskNode: TaskNode, throwException: Boolean): Boolean {
         // 1. Is the task or any of the ancestor tasks closed, deleted or has the booking status TREE_CLOSED?
         var node: TaskNode? = taskNode
         do {
@@ -606,13 +862,16 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             }
             node = node.parent
         } while (node != null)
-        // 2. Has the task the booking status NO_BOOKING?
-        var bookingStatus = taskNode!!.task.timesheetBookingStatus
+        // 2. Determine the effective booking status: start with the task's own status and walk up the
+        // ancestors as long as the status is INHERIT. The first explicitly set status wins, so an
+        // explicit status on a nearer (descendant) node overrides the setting of a higher ancestor.
+        var bookingStatus = taskNode.task.timesheetBookingStatus
         node = taskNode
         while (bookingStatus == TimesheetBookingStatus.INHERIT && node?.parent != null) {
             node = node.parent
             bookingStatus = node.task.timesheetBookingStatus
         }
+        // 2a. Has the effective booking status NO_BOOKING?
         if (bookingStatus == TimesheetBookingStatus.NO_BOOKING) {
             if (throwException) {
                 throw AccessException(
@@ -623,21 +882,19 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             return false
         }
         if (taskNode.hasChildren()) {
-            // 3. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
-            node = taskNode
-            do {
-                val task = node!!.task
-                if (task.timesheetBookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
-                    if (throwException) {
-                        throw AccessException(
-                            "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
-                            taskNode.task.title + " (#" + taskNode.id + ")"
-                        )
-                    }
-                    return false
+            // 3. Is the task not a leaf node and is its effective booking status ONLY_LEAFS?
+            // Because the effective status is inherited from the nearest explicitly configured node
+            // (see above), an intermediate node can be re-enabled for booking by explicitly setting it
+            // (e.g. to OPENED), even if a higher ancestor is set to ONLY_LEAFS.
+            if (bookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
+                if (throwException) {
+                    throw AccessException(
+                        "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
+                        taskNode.task.title + " (#" + taskNode.id + ")"
+                    )
                 }
-                node = node.parent
-            } while (node != null)
+                return false
+            }
             // 4. Does any of the descendant task node has an assigned order position?
             for (child in taskNode.children) {
                 if (taskTree.hasOrderPositions(child.id, true)) {
@@ -770,6 +1027,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
          */
         const val MAXIMUM_DURATION = (1000 * 3600 * 14).toLong()
         const val HIDDEN_FIELD_MARKER = "[...]"
+
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(desc("startTime"))
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.id",

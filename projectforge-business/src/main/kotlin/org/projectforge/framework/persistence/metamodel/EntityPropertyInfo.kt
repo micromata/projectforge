@@ -32,7 +32,7 @@ import kotlin.reflect.KClass
  * Represents a property of an entity and contains all annotation of package jakarta.persistence and
  * org.projectforge.framework.persistence
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class EntityPropertyInfo(
     val entityClass: Class<*>,

@@ -36,8 +36,12 @@ class Kost2Art(
         var projektStandard: Boolean = false,
         var description: String? = null
 ) : BaseDTODisplayObject<Kost2ArtDO>(id, displayName = displayName) {
+    /** The checkbox of the project edit form: the project shall have an active cost 2 unit of this type. */
     var selected: Boolean = false
+    /** The project has a (not deleted) cost 2 unit of this type, whatever its status. */
     var existsAlready: Boolean = false
+    /** The project's cost 2 unit of this type exists and its own status is active (or none). */
+    var active: Boolean = false
 
     fun getFormattedId(): String {
         return StringHelper.format2DigitNumber(id!!)

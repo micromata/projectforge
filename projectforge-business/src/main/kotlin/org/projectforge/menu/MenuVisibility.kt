@@ -23,7 +23,7 @@
 
 package org.projectforge.menu
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.builder.MenuItemDefId
@@ -68,7 +68,7 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
                         if (id != null) {
                             allowedGroupIds += id
                         } else {
-                            log.warn("No group with id $groupId found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString")
+                            log.warn { "No group with id $groupId found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString" }
                         }
                     }
                     allowedGroupIds += groupId
@@ -77,7 +77,7 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
                         if (id != null) {
                             allowedGroupIds += id
                         } else {
-                            log.warn("No group with name '$trimmed' found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString")
+                            log.warn { "No group with name '$trimmed' found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString" }
                         }
                     }
                 }
@@ -86,7 +86,7 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
         if (allUsersAllowed) {
             // OK, nothing to log.
         } else if (allowedGroupIds.isEmpty()) {
-            log.info("No groups found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString")
+            log.info { "No groups found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString" }
         } else {
             log.info {
                 "Allowed groups for menu '${this.id}': ${

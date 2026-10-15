@@ -12,7 +12,6 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api(project(":projectforge-wicket"))
     api(project(":projectforge-rest"))
     testImplementation(project(":projectforge-business"))
 }

@@ -25,7 +25,7 @@ package org.projectforge.framework.configuration;
 
 /**
  * Marker for Configuration.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see Configuration
  */
 public interface ConfigurationData

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.login.Login
@@ -48,7 +48,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
@@ -117,6 +117,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return userGroupCache.getUserRights(userId)
     }
 
+    override fun onInsertOrModify(obj: PFUserDO, operationType: OperationType) {
+        obj.normalizeEmailLists()
+    }
+
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      */
@@ -149,13 +153,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
             user, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
         )
-        log.debug("UserDao hasSelectAccess. Check user member of admin, finance or controlling group: $result")
+        log.debug { "UserDao hasSelectAccess. Check user member of admin, finance or controlling group: $result" }
         if (!result && obj.hasSystemAccess()) {
             result = accessChecker.areUsersInSameGroup(user, obj)
-            log.debug(
-                ("UserDao hasSelectAccess. Caller user: " + user.username + " Check user: " + obj.username
-                        + " Check user in same group: " + result)
-            )
+            log.debug { ("UserDao hasSelectAccess. Caller user: " + user.username + " Check user: " + obj.username
+                        + " Check user in same group: " + result) }
         }
         if (throwException && !result) {
             throw AccessException(user, AccessType.GROUP, OperationType.SELECT)
@@ -199,6 +201,28 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     /**
+     * Resets lastIdpPasswordSync for all non-deleted, non-local users that have it set.
+     * This forces a password re-sync to the IdP on the next login.
+     * @return the number of affected users
+     */
+    fun resetIdpPasswordSync(): Int {
+        return persistenceService.runInTransaction { context ->
+            val cb = context.em.criteriaBuilder
+            val criteriaUpdate = cb.createCriteriaUpdate(PFUserDO::class.java)
+            val root = criteriaUpdate.from(PFUserDO::class.java)
+            criteriaUpdate.set(root.get<Date?>("lastIdpPasswordSync"), null as Date?)
+            criteriaUpdate.where(
+                cb.and(
+                    cb.equal(root.get<Boolean>("deleted"), false),
+                    cb.equal(root.get<Boolean>("localUser"), false),
+                    cb.isNotNull(root.get<Date>("lastIdpPasswordSync"))
+                )
+            )
+            context.em.createQuery(criteriaUpdate).executeUpdate()
+        }
+    }
+
+    /**
      * Does an user with the given username already exists? Works also for existing users (if username was modified).
      */
     fun doesUsernameAlreadyExist(user: PFUserDO): Boolean {
@@ -222,6 +246,15 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
             PFUserDO.FIND_BY_USERNAME,
             PFUserDO::class.java,
             Pair("username", username),
+        )
+    }
+
+    fun getUserByIdpExternalId(idpExternalId: String?): PFUserDO? {
+        if (idpExternalId.isNullOrBlank()) return null
+        return persistenceService.selectNamedSingleResult(
+            PFUserDO.FIND_BY_IDP_EXTERNAL_ID,
+            PFUserDO::class.java,
+            Pair("idpExternalId", idpExternalId),
         )
     }
 
@@ -250,10 +283,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         dbUser.sshPublicKey = user.sshPublicKey
         val result = update(dbUser, checkAccess = false)
         if (result != EntityCopyStatus.NONE) {
-            log.info("Object updated: $dbUser")
+            log.info { "Object updated: $dbUser" }
             copyValues(user, contextUser)
         } else {
-            log.info("No modifications detected (no update needed): $dbUser")
+            log.info { "No modifications detected (no update needed): $dbUser" }
         }
         userGroupCache.updateUser(contextUser)
     }
@@ -269,6 +302,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         historyService.loadAndMergeHistory(UserRightDO::class.java, rightIds, context)
     }
 
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(UserRightDO::class.java)
+
     override fun hasHistoryAccess(user: PFUserDO, throwException: Boolean): Boolean {
         return accessChecker.isUserMemberOfAdminGroup(user, throwException)
     }
@@ -282,9 +317,9 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         if (!super.wantsReindexAllDependentObjects(obj, dbObj)) {
             return false
         }
-        return !StringUtils.equals(obj.username, dbObj.username)
-                || !StringUtils.equals(obj.firstname, dbObj.firstname)
-                || !StringUtils.equals(obj.lastname, dbObj.lastname)
+        return obj.username != dbObj.username
+                || obj.firstname != dbObj.firstname
+                || obj.lastname != dbObj.lastname
     }
 
     override fun newInstance(): PFUserDO {
@@ -342,11 +377,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         }
         val passwordObj = userPasswordDao!!.internalGetByUserId(userId)
         if (passwordObj == null) {
-            log.warn("Can't encrypt data. Password for user $userId not found.")
+            log.warn { "Can't encrypt data. Password for user $userId not found." }
             return null
         }
         if (StringUtils.isBlank(passwordObj.passwordHash)) {
-            log.warn("Can't encrypt data. Password of user '$userId not found.")
+            log.warn { "Can't encrypt data. Password of user '$userId not found." }
             return null
         }
         return passwordObj.passwordHash

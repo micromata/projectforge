@@ -52,6 +52,20 @@ class SystemStatusRest {
         var messageOfTheDay: String? = null,
         var copyRightYears: String,
         var logoUrl: String? = null,
+        /** Optional dark-mode variant of [logoUrl]; null when no dark logo is configured. */
+        var logoUrlDark: String? = null,
+        /**
+         * True if `projectforge.development.mode` is set, so that a client can show that this instance
+         * isn't a productive one (projectforge-next shows a marker in its logo row).
+         */
+        var developmentMode: Boolean = false,
+        /**
+         * True if `projectforge.testsystemMode` is set: the client marks every page in [testsystemColor], as
+         * Wicket coloured its background, so a test copy isn't mistaken for the productive system.
+         */
+        var testsystemMode: Boolean = false,
+        /** The marker's colour (`projectforge.testsystemColor`), only given in [testsystemMode]. */
+        var testsystemColor: String? = null,
         /**
          * If given, the client should redirect to this url.
          */
@@ -72,13 +86,21 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = systemStatus.copyRightYears,
             logoUrl = LogoServiceRest.logoUrl,
-            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
+            developmentMode = systemStatus.developmentMode,
+            testsystemMode = systemStatus.testsystemMode,
+            testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
+            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(systemStatus.startTimeMillis)
         )
     }
 
     /**
      * Contains only message of the day without detailed information of version, build-date etc. due to security reasons.
+     *
+     * [SystemData.developmentMode] and [SystemData.testsystemMode] are a deliberate exception to that
+     * redaction: the marker of a development or test instance is wanted on the login page as well, and a
+     * productive system answers false anyway.
      */
     val publicSystemData: SystemData by lazy {
         // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
@@ -93,7 +115,11 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = "2001-${Year.now()}",
             logoUrl = LogoServiceRest.logoUrl,
-            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
+            developmentMode = systemStatus.developmentMode,
+            testsystemMode = systemStatus.testsystemMode,
+            testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
+            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(0L)
         )
     }

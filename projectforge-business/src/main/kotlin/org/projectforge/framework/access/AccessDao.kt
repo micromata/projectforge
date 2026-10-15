@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java) {
@@ -61,6 +61,17 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
 
     init {
         this.supportAfterUpdate = true
+    }
+
+    /**
+     * Eager-fetch the access entries with the list query. transformFromDB maps every row via
+     * GroupTaskAccess.copyFrom, which reads orderedEntries; without the graph that lazy collection is loaded
+     * per row (one SELECT on T_GROUP_TASK_ACCESS_ENTRY each), producing the N+1 seen on the /access list.
+     */
+    override fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+        return super.createQueryFilter(filter).also {
+            it.entityGraphName = GroupTaskAccessDO.ENTITY_GRAPH_WITH_ACCESS_ENTRIES
+        }
     }
 
     /**

@@ -37,7 +37,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 import org.projectforge.framework.json.IdOnlySerializer
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -52,7 +52,7 @@ class GanttChartDO : AbstractBaseDO<Long>() {
     /**
      * Free usable name.
      */
-    @PropertyInfo(i18nKey = "gantt.name")
+    @PropertyInfo(i18nKey = "gantt.name", required = true)
     @FullTextField
     @get:Column(length = 1000)
     var name: String? = null

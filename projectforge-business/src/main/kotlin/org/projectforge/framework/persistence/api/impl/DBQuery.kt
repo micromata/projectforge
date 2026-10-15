@@ -23,7 +23,8 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -109,9 +110,7 @@ open class DBQuery {
                 val end = System.currentTimeMillis()
                 if (end - begin > 2000) {
                     // Show only slow requests.
-                    log.info(
-                        "BaseDao.select for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
-                    )
+                    log.info { "BaseDao.select for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)." }
                 }
                 list
             }
@@ -119,6 +118,93 @@ open class DBQuery {
             log.error(ex, { "Error while querying: ${ex.message}. Magicfilter: ${filter}." })
             return emptyList()
         }
+    }
+
+    /**
+     * Result of [selectIds]: the ordered ids matching the filter and whether the result was truncated
+     * (the pipeline hit [org.projectforge.framework.persistence.api.impl.DBFilter.maxRows]).
+     */
+    class DBIdResult(val ids: LongArray, val truncated: Boolean)
+
+    /**
+     * Same result as [select], but returns only the ids of the matching objects (in the same order).
+     *
+     * Used by server-side paging (see `MIGRATION-list-paging.md`): the ordered id list is materialized
+     * once per (user, filter), so the expensive per-row work of [select] — DTO mapping, currency
+     * formatting, Jackson serialization — runs on one page of ids instead of on every row.
+     *
+     * For now this delegates to [select] and maps the loaded objects to their ids: it saves nothing on the
+     * database but removes everything after it. A `SELECT id` projection is a later optimization and the
+     * only place the row set or its order could drift, so it deliberately does not live here.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Long>> selectIds(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    ): DBIdResult {
+        val list = select(baseDao, filter, customResultFilters, checkAccess)
+        val ids = LongArray(list.size)
+        list.forEachIndexed { index, obj -> ids[index] = obj.id!! }
+        // A full result equal to maxRows is treated as truncated: there may be more rows the cap dropped.
+        val truncated = list.size >= filter.maxRows
+        return DBIdResult(ids, truncated)
+    }
+
+    /**
+     * The distinct values of [path] over what [select] would return, null for the rows without one, unordered.
+     *
+     * Selects only the values of [path] and of the dao's [BaseDao.selectAccessProjection] if the query is a pure
+     * criteria search: the per-row access check then runs once per distinct combination of the access values, on
+     * the dao's stub. Unlike [select], [QueryFilter.maxRows] does not cap the rows here: what this returns are the
+     * values of all matching rows.
+     *
+     * Loads the entities as [select] does instead, if anything has to be matched in memory: a full text search,
+     * result predicates, [customResultFilters], a history search, or an access check needing the entity.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Long>> selectDistinct(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        path: String,
+        checkAccess: Boolean = true,
+    ): List<Any?> {
+        val access = baseDao.selectAccessProjection
+        val history = filter.modifiedByUserId != null || filter.modifiedFrom != null || filter.modifiedTo != null ||
+                !filter.searchHistory.isNullOrBlank()
+        if (customResultFilters.isNullOrEmpty() && !history && (!checkAccess || access != null)) {
+            if (checkAccess) {
+                baseDao.checkLoggedInUserSelectAccess()
+                if (accessChecker.isRestrictedUser) {
+                    return listOf()
+                }
+            }
+            val accessPaths = if (checkAccess) access!!.paths else emptyList()
+            val rows = try {
+                persistenceService.runReadOnly { context ->
+                    val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, filter.createDBFilter(), projection = true)
+                    if (queryBuilder.projectable) queryBuilder.selectDistinct(listOf(path) + accessPaths) else null
+                }
+            } catch (ex: Exception) {
+                log.error(ex) { "Error while querying distinct '$path': ${ex.message}. Filter: $filter." }
+                return emptyList()
+            }
+            if (rows != null) {
+                if (!checkAccess) {
+                    return rows.map { it[0] }.distinct()
+                }
+                val loggedInUser = ThreadLocalUserContext.loggedInUser!!
+                val granted = mutableMapOf<List<Any?>, Boolean>()
+                return rows.filter { row ->
+                    val values = row.drop(1)
+                    granted.getOrPut(values) { baseDao.hasSelectAccess(access!!.stubOf(values), loggedInUser) }
+                }.map { it[0] }.distinct()
+            }
+        }
+        return select(baseDao, filter, customResultFilters, checkAccess)
+            .map { PropertyUtils.getProperty(it, path) }.distinct()
     }
 
     private fun <O : ExtendedBaseDO<Long>> privateCreateList(
@@ -144,16 +230,11 @@ open class DBQuery {
             || !historSearchParams.searchHistory.isNullOrBlank()
         ) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
+            // One query for all three criteria, the searched value included: HistoryEntryDO indexes neither
+            // modifiedBy nor modifiedAt (see its commented out @GenericField annotations), and the value lives
+            // on HistoryEntryAttrDO, so a full text search over this index can answer none of them.
             val idSet = persistenceService.runIsolatedReadOnly { innerContext ->
-                val isolatedEm = innerContext.em
-                val set = if (historSearchParams.searchHistory.isNullOrBlank()) {
-                    DBHistoryQuery.searchHistoryEntryByCriteria(isolatedEm, baseDao.doClass, historSearchParams)
-                    //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
-                } else {
-                    DBHistoryQuery.searchHistoryEntryByFullTextQuery(isolatedEm, baseDao.doClass, historSearchParams)
-                    //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
-                }
-                set
+                DBHistoryQuery.searchHistoryEntryByCriteria(innerContext.em, baseDao.doClass, historSearchParams)
             }
             while (next != null) {
                 val id = next.id

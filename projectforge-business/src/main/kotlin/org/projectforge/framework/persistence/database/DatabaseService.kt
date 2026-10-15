@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import jakarta.persistence.Persistence
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.login.Login
@@ -112,7 +112,7 @@ class DatabaseService {
      * attributes and groups of the user are set by this method.
      */
     fun initializeDefaultData(adminUser: PFUserDO, adminUserTimezone: TimeZone) {
-        log.info("Init admin user and root task.")
+        log.info { "Init admin user and root task." }
         if (databaseTablesWithEntriesExist()) {
             databaseNotEmpty()
         }
@@ -125,7 +125,7 @@ class DatabaseService {
             task.setCreated()
             task.setLastUpdate()
             em.persist(task)
-            log.info("New object added (" + task.id + "): " + task.toString())
+            log.info { "New object added (" + task.id + "): " + task.toString() }
 
             // Use of taskDao does not work with maven test case: Could not synchronize database state with session?
 
@@ -158,17 +158,17 @@ class DatabaseService {
             taskTree.setExpired()
             userGroupCache.setExpired()
         }
-        log.info("Default data successfully initialized in database.")
+        log.info { "Default data successfully initialized in database." }
     }
 
     @JvmOverloads
     fun insertGlobalAddressbook(user: PFUserDO? = null): AddressbookDO {
-        log.info("Checking if global addressbook exists.")
+        log.info { "Checking if global addressbook exists." }
         val addressbook = addressbookDao.globalAddressbookOrNull
         if (addressbook != null) {
             return addressbook
         }
-        log.info("Adding global addressbook.")
+        log.info { "Adding global addressbook." }
         val insertGlobal =
             "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, owner_fk) VALUES (:id, :created, :deleted, :lastUpdate, :description, :title, :owner)"
         val ownerId = user?.id ?: ThreadLocalUserContext.loggedInUserId
@@ -184,7 +184,7 @@ class DatabaseService {
                 Pair("title", AddressbookDao.GLOBAL_ADDRESSBOOK_TITLE),
                 Pair("owner", ownerId),
             )
-            log.info("Adding global addressbook finished: $insertGlobal, result: $result")
+            log.info { "Adding global addressbook finished: $insertGlobal, result: $result" }
         }
         return addressbookDao.globalAddressbook
     }
@@ -261,22 +261,22 @@ class DatabaseService {
             try {
                 rebuildThread.join()
             } catch (e: InterruptedException) {
-                log.warn("reindex thread was interrupted: " + e.message, e)
+                log.warn(e) { "reindex thread was interrupted: " + e.message }
             }
         }
         taskTree.setExpired()
         userGroupCache.setExpired()
-        log.info("Database successfully initialized with test data.")
+        log.info { "Database successfully initialized with test data." }
     }
 
     private fun databaseNotEmpty() {
         val msg = "Database seems to be not empty. Initialization of database aborted."
-        log.error(msg)
+        log.error { msg }
         throw AccessException(msg)
     }
 
     fun updateSchema() {
-        log.info("Start generating Schema...")
+        log.info { "Start generating Schema..." }
         val props: MutableMap<String?, Any?> = HashMap()
         props["hibernate.hbm2ddl.auto"] = "update"
         props["hibernate.search.backend.directory.root"] = hibernateSearchDirectoryRoot
@@ -284,10 +284,10 @@ class DatabaseService {
         try {
             Persistence.createEntityManagerFactory("org.projectforge.webapp", props)
         } catch (e: Exception) {
-            log.error("Exception while updateSchema:" + e.message, e)
+            log.error(e) { "Exception while updateSchema:" + e.message }
             throw e
         }
-        log.info("Finished generating Schema...")
+        log.info { "Finished generating Schema..." }
     }
 
     val dialect: DatabaseDialect
@@ -337,7 +337,7 @@ class DatabaseService {
         try {
             jdbc.queryForInt("SELECT COUNT(*) FROM $table")
         } catch (ex: Exception) {
-            log.warn("Exception while checking count from table: " + table + " Exception: " + ex.message)
+            log.warn { "Exception while checking count from table: " + table + " Exception: " + ex.message }
             return false
         }
         return true
@@ -364,7 +364,7 @@ class DatabaseService {
      */
     fun createMissingIndices(): Int {
         accessCheck()
-        log.info("createMissingIndices called.")
+        log.info { "createMissingIndices called." }
         var counter = 0
         // For user / time period search:
         try {
@@ -382,7 +382,7 @@ class DatabaseService {
                 }
             }
         } catch (ex: SQLException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         }
         return counter
     }
@@ -400,7 +400,7 @@ class DatabaseService {
         try {
             val jdbcString = "CREATE INDEX $name ON $table($attributes);"
             execute(jdbcString, false)
-            log.info(jdbcString)
+            log.info { jdbcString }
             return true
         } catch (ex: Throwable) {
             // Index does already exist (or an error has occurred).
@@ -424,20 +424,20 @@ class DatabaseService {
         accessCheck()
         val jdbc = getDatabaseExecutor()
         jdbc.execute(jdbcString, ignoreErrors)
-        log.info(jdbcString)
+        log.info { jdbcString }
     }
 
     fun queryForInt(jdbcQuery: String?): Int {
         accessCheck()
         val jdbc = getDatabaseExecutor()
-        log.info(jdbcQuery)
+        log.info { jdbcQuery }
         return jdbc.queryForInt(jdbcQuery)
     }
 
     fun query(sql: String?, vararg args: Any?): List<DatabaseResultRow> {
         accessCheck()
         val jdbc = getDatabaseExecutor()
-        log.info(sql)
+        log.info { sql }
         return jdbc.query(sql, *args)
     }
 
@@ -448,7 +448,7 @@ class DatabaseService {
      */
     fun shutdownDatabase() {
         val statement = databaseSupport!!.shutdownDatabaseStatement ?: return
-        log.info("Executing database shutdown statement: $statement")
+        log.info { "Executing database shutdown statement: $statement" }
         execute(statement)
     }
 
@@ -462,7 +462,7 @@ class DatabaseService {
             val tableName = "T_PF_USER"
             return internalDoesTableExist(tableName) && !internalIsTableEmpty(tableName)
         } catch (ex: Exception) {
-            log.error("Error while checking existing of user table with entries.", ex)
+            log.error(ex) { "Error while checking existing of user table with entries." }
         }
         return false
     }

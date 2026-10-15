@@ -31,7 +31,7 @@ import org.projectforge.common.StringHelper;
 
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskHelper {
     /**

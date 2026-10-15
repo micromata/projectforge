@@ -59,7 +59,16 @@ abstract class MassUpdateObject<T>(
     }
   }
 
+  /**
+   * A change the field comparison can't see, because it isn't made to the object itself - the cost 2 units a
+   * project mass update creates or deactivates (see [MassUpdateContext.markCurrentModified]).
+   */
+  var additionalModification = false
+
   fun hasModifications(): Boolean {
+    if (additionalModification) {
+      return true
+    }
     fieldModifications.values.forEach {
       if (it.oldValue != it.newValue) {
         return true

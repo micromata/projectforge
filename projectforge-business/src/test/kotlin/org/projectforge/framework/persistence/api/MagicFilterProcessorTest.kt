@@ -26,6 +26,10 @@ package org.projectforge.framework.persistence.api
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.FormOfAddress
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.EmployeeSalaryDO
+import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.api.impl.MatchType
 
@@ -53,6 +57,84 @@ class MagicFilterProcessorTest {
         testEntry("*abc", "abc",  MatchType.ENDS_WITH)
         testEntry("*abc*", "abc",  MatchType.CONTAINS)
         testEntry("abc*", "abc",  MatchType.STARTS_WITH)
+    }
+
+    /**
+     * A LIST filter may ask for entries without any value, alone or beside real ones
+     * (see [MagicFilterEntry.NULL_VALUE]).
+     */
+    @Test
+    fun enumNullValueTest() {
+        // 0 - deleted, 1 - form
+        Assertions.assertTrue(enumPredicate(FormOfAddress.MISTER.name) is DBPredicate.IsIn<*>)
+        Assertions.assertTrue(enumPredicate(MagicFilterEntry.NULL_VALUE) is DBPredicate.IsNull)
+        val both = enumPredicate(MagicFilterEntry.NULL_VALUE, FormOfAddress.MISTER.name)
+        Assertions.assertTrue(both is DBPredicate.Or)
+        val address = AddressDO()
+        Assertions.assertTrue(both.match(address), "form is null: matches the null part.")
+        address.form = FormOfAddress.MISTER
+        Assertions.assertTrue(both.match(address), "form is one of the given values.")
+        address.form = FormOfAddress.COMPANY
+        Assertions.assertFalse(both.match(address), "form is set, but not to one of the given values.")
+    }
+
+    /**
+     * A column's sort id is a path through the entity or through the DTO the list shows, and only the
+     * first is something the database can order by (see [MagicFilterProcessor.resolveSortProperty]).
+     */
+    @Test
+    fun sortPropertyResolutionTest() {
+        // Paths through the entity, kept whole. `kunde.displayName` used to be shortened to
+        // `displayName`, which no AuftragDO has: the order book then came back unordered.
+        assertSortProperty("kunde.displayName", AuftragDO::class.java, "kunde.displayName")
+        assertSortProperty("projekt.kunde.name", AuftragDO::class.java, "projekt.kunde.name")
+        assertSortProperty("nummer", AuftragDO::class.java, "nummer")
+        // A DTO wrapper the entity has no property for is dropped, until a segment names one.
+        assertSortProperty("employee.user.lastname", EmployeeSalaryDO::class.java, "fibu.employee.user.lastname")
+        // Nothing resolves: shortened as before. Reported by addOrder, or mapped by a *PagesRest first.
+        assertSortProperty("unknown", AuftragDO::class.java, "nothing.unknown")
+    }
+
+    private fun assertSortProperty(expected: String, entityClass: Class<*>, property: String) {
+        val magicFilter = MagicFilter()
+        magicFilter.sortProperties.add(SortProperty(property))
+        val queryFilter = MagicFilterProcessor.doIt(entityClass, magicFilter)
+        Assertions.assertEquals(expected, queryFilter.sortProperties.single().property, "Sort id '$property'")
+    }
+
+    /**
+     * An association column whose displayed value no single database column holds is expanded into the real
+     * columns behind it, most significant first, for any entity that has the column: a `kost1`/`kost2` shows a
+     * formatted number, a `user` shows the full name (see [MagicFilterProcessor.expandSortProperty]).
+     */
+    @Test
+    fun associationSortExpansionTest() {
+        val kost2Parts = listOf("kost2.nummernkreis", "kost2.bereich", "kost2.teilbereich", "kost2.kost2Art.id")
+        // A time sheet's `kost2` association, and the same reached through the DTO prefix the next list sends
+        // (`timesheet.` is dropped by resolveSortProperty first, then the association is expanded).
+        assertSortProperties(kost2Parts, TimesheetDO::class.java, "kost2")
+        assertSortProperties(kost2Parts, TimesheetDO::class.java, "timesheet.kost2")
+        // A user association is expanded into the name columns, matching the displayed "firstname lastname".
+        val userParts = listOf("user.firstname", "user.lastname", "user.username")
+        assertSortProperties(userParts, TimesheetDO::class.java, "user")
+        assertSortProperties(userParts, TimesheetDO::class.java, "timesheet.user")
+        // An association without an entry stays a single sort property.
+        assertSortProperties(listOf("task"), TimesheetDO::class.java, "task")
+    }
+
+    private fun assertSortProperties(expected: List<String>, entityClass: Class<*>, property: String) {
+        val magicFilter = MagicFilter()
+        magicFilter.sortProperties.add(SortProperty(property))
+        val queryFilter = MagicFilterProcessor.doIt(entityClass, magicFilter)
+        Assertions.assertEquals(expected, queryFilter.sortProperties.map { it.property }, "Sort id '$property'")
+    }
+
+    private fun enumPredicate(vararg values: String): DBPredicate {
+        val magicFilter = MagicFilter()
+        val entry = MagicFilterEntry("form")
+        entry.value.values = arrayOf(*values)
+        magicFilter.entries.add(entry)
+        return MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter).createDBFilter().allPredicates[1]
     }
 
     private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType, autoStartWithSearch: Boolean = false) {

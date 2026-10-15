@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.FileSizeChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calculateMaxUploadFileSize
@@ -31,7 +31,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calcu
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class DataTransferFileSizeChecker(val globalMaxFileSizeOfDataTransfer: Long) : FileSizeChecker {
 

@@ -28,7 +28,7 @@ package org.projectforge.framework.persistence.history
  *
  * Used by [org.projectforge.framework.persistence.candh.CollectionHandler] for auto update of collection entries.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)

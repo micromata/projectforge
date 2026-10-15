@@ -23,8 +23,7 @@
 
 package org.projectforge.rest.calendar
 
-import jakarta.ws.rs.BadRequestException
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
@@ -50,6 +49,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URLEncoder
 import java.time.LocalDate
 import java.util.*
@@ -270,7 +270,8 @@ class CalendarServicesRest {
             PFDateTime.fromOrNull(filter.end)
         )
         adjustRange(range)
-        val settings = calendarSettingsService.getSettings()
+        val darkMode = filter.darkMode == true
+        val settings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         timesheetsProvider.addTimesheetEvents(
             range.start,
             range.end!!,
@@ -294,7 +295,7 @@ class CalendarServicesRest {
         }
         val visibleTeamCalendarIds =
             visibleCalendarIds?.filter { it != null && it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
-        val calendarSettings = calendarSettingsService.getSettings()
+        val calendarSettings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         teamCalEventsProvider.addEvents(
             range.start,
             range.end!!,
@@ -371,7 +372,7 @@ class CalendarServicesRest {
     private fun adjustRange(range: DateTimeRange) {
         if (range.end != null) {
             if (range.start.daysBetween(range.end!!) > 50)
-                throw BadRequestException("Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Requested range for calendar to big. Max. number of days between start and end must not higher than 50.")
             return
         } else {
             range.end = range.start.plusDays(1)
@@ -384,9 +385,9 @@ class CalendarServicesRest {
                 // Time sheet was modified, so reload page and goto date of timesheet (if modified):
                 val hash = NumberHelper.getSecureRandomAlphanumeric(4)
                 val gotoDate = PFDateTime.fromOrNow(date).localDate
-                return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$gotoDate&hash=$hash")
+                return ResponseAction("/${NextMigration.listUrl("calendar")}?gotoDate=$gotoDate&hash=$hash")
             }
-            return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
+            return ResponseAction("/${NextMigration.listUrl("calendar")}")
         }
     }
 }

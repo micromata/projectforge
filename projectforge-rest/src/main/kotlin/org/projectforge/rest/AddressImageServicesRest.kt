@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressImageDao
 import org.projectforge.business.address.ImageType
 import org.projectforge.common.DataSizeConfig
@@ -119,7 +119,7 @@ class AddressImageServicesRest {
             addressImageDao.findImage(id, fetchImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val image = addressImage.image
         if (image == null || image.isEmpty()) {
-            log.warn("Image is null or empty for address $id")
+            log.warn { "Image is null or empty for address $id" }
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
         val resource = ByteArrayResource(image)
@@ -138,7 +138,7 @@ class AddressImageServicesRest {
             addressImageDao.findImage(id, fetchPreviewImage = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         val imagePreview = addressImage.imagePreview
         if (imagePreview == null || imagePreview.isEmpty()) {
-            log.warn("Image preview is null or empty for address $id")
+            log.warn { "Image preview is null or empty for address $id" }
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
         val resource = ByteArrayResource(imagePreview)

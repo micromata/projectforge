@@ -36,7 +36,15 @@ class LoggingFilterTest {
   @Test
   fun logSuspiciousURITest() {
     val request = Mockito.mock(HttpServletRequest::class.java)
-    val knownUris = arrayOf(null, "/wa", "/wa/", "/react/mypage/dynamic", "/denied/../react/mypage")
+    val knownUris = arrayOf(
+      null,
+      "/wa",
+      "/wa/",
+      "/react/mypage/dynamic",
+      "/denied/../react/mypage",
+      "/next",
+      "/next/mypage/dynamic",
+    )
     var counter = 0
     Mockito.`when`(request.requestURI).thenAnswer { knownUris[counter] }
     knownUris.forEach {

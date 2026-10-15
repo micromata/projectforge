@@ -128,6 +128,17 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
     }
 
+    /**
+     * Eager-fetch [Kost2DO.kost2Art] (and the projekt with its kunde) with the list query. kost2Art is a
+     * @ManyToOne with a non-null foreign key, so Hibernate would otherwise fire a per-row secondary SELECT
+     * on T_FIBU_KOST2ART - the N+1 seen on the cost 2 list (see [Kost2DO.ENTITY_GRAPH_KOST2ART_AND_PROJEKT]).
+     */
+    override fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+        return super.createQueryFilter(filter).also {
+            it.entityGraphName = Kost2DO.ENTITY_GRAPH_KOST2ART_AND_PROJEKT
+        }
+    }
+
     override fun select(filter: BaseSearchFilter): List<Kost2DO> {
         val myFilter = if (filter is KostFilter) {
             filter
@@ -161,7 +172,8 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         if (obj.projekt?.id != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
-                projektDao.find(obj.projekt?.id, checkAccess = false) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
+                // Attached: inside the update transaction, a detaching find would pull the project out of the session.
+                projektDao.find(obj.projekt?.id, checkAccess = false, attached = true)
             if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
                 throw UserException(
                     ("Inkonsistenz bei Kost2: "

@@ -54,6 +54,11 @@ class CardDavFilterTest {
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge-123.vcf", true)
         checkRequest("GET", "/users/joe/addressbooks/ProjectForge123.vcf", false)
         checkRequest("GET", "/users/joe/address/ProjectForge-123.vcf", false)
+
+        checkRequest("PUT", "/carddav/users/kai/addressbooks/urn:uuid:fa2680a7-1d61-4a0e-9ab9-62c938592517.vcf", true)
+        checkRequest("PUT", "/users/kai/addressbooks/ProjectForge-129.vcf", true)
+        checkRequest("PUT", "/principals", true)
+        checkRequest("PUT", "/some/other/path", false)
     }
 
     private fun checkRequest(

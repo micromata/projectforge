@@ -32,7 +32,7 @@ import jakarta.persistence.Basic
 /**
  * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface ExtendedBaseDO<I : Serializable> : BaseDO<I>, MarkDeletableRecord<I> {
     /**
@@ -42,6 +42,13 @@ interface ExtendedBaseDO<I : Serializable> : BaseDO<I>, MarkDeletableRecord<I> {
     fun recalculate()
 
     override var deleted: Boolean
+
+    /**
+     * A referenced object that is deactivated reads as stale wherever it is shown (e.g. struck through in a
+     * next list cell), without being deleted. Each DO defines its own rule; the default is never deactivated.
+     * A user is deactivated when its account is (see PFUserDO), an employee three months after leaving.
+     */
+    val deactivated: Boolean get() = false
 
     var created: Date?
 

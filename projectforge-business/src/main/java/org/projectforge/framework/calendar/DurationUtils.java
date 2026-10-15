@@ -26,7 +26,7 @@ package org.projectforge.framework.calendar;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DurationUtils {
   /**

@@ -27,7 +27,7 @@ import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.word.templating.VariableType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
@@ -39,7 +39,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.plugins.merlin.*
-import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -88,7 +87,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     fun execute(@Valid @RequestBody postData: PostData<MerlinExecutionData>): ResponseEntity<*> {
         MerlinPlugin.ensureUserLogSubscription()
         val executionData = postData.data
-        log.info("User wants to execute '${executionData.name}'...")
+        log.info { "User wants to execute '${executionData.name}'..." }
         // Save input values as user preference:
         val userPref = getUserPref(executionData.id)
         userPref.inputVariables = executionData.inputVariables
@@ -108,7 +107,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
                 download = pdfResult.content
             } catch (ex: Throwable) {
                 // Stackoverflow may occur.
-                log.error("Error while converting to pdf (falling back to docx): ${ex.message}", ex)
+                log.error(ex) { "Error while converting to pdf (falling back to docx): ${ex.message}" }
             }
         }
         return RestUtils.downloadFile(filename, download)
@@ -257,15 +256,6 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
             serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "users"))
         }
         layout.add(serialExceutionMenu)
-        MenuItem(
-            "logViewer",
-            i18nKey = "plugins.merlin.viewLogs",
-            url = PagesResolver.getDynamicPageUrl(
-                LogViewerPageRest::class.java,
-                id = MerlinPlugin.ensureUserLogSubscription().id
-            ),
-            type = MenuItemTargetType.REDIRECT,
-        )
 
         if (hasEditAccess(dbObj)) {
             layout.add(

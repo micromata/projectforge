@@ -23,7 +23,15 @@
 
 package org.projectforge.common.logging
 
-import mu.KLogger
+import io.github.oshai.kotlinlogging.KLogger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+/**
+ * The SLF4J logger behind this [KLogger], for APIs that still expect an [org.slf4j.Logger]
+ * (the old mu.KLogger extended it, the oshai KLogger doesn't).
+ */
+fun KLogger.toSlf4j(): Logger = LoggerFactory.getLogger(name)
 
 /**
  * Utility class for logging.
@@ -36,7 +44,7 @@ object LogUtils {
      * @param lb the log builder
      */
     fun logDebugFunCall(log: KLogger, builder: (lb: LogBuilder) -> Unit) {
-        if (!log.isDebugEnabled) {
+        if (!log.isDebugEnabled()) {
             return
         }
         LogBuilder(log).also {

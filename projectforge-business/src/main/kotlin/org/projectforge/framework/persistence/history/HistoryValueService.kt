@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
@@ -72,8 +72,6 @@ class HistoryValueService private constructor() {
         UNKNOWN,
     }
 
-    private val defaultHandler = DefaultHistoryValueHandler()
-
     init {
         instance = this
     }
@@ -87,7 +85,7 @@ class HistoryValueService private constructor() {
             return valueString
         }
         return when (getValueType(propertyType)) {
-            ValueType.BASE_TYPE -> formatBaseType(valueString)
+            ValueType.BASE_TYPE -> formatBaseType(valueString, propertyType)
             ValueType.ENTITY -> formatEntity(valueString, propertyType)
             ValueType.ENUM -> formatEnum(valueString)
             ValueType.I18N_ENUM -> formatI18nEnum(valueString, propertyType)
@@ -111,7 +109,7 @@ class HistoryValueService private constructor() {
             }
         }
         if (propertyTypeClass == EmployeeDO::class.java || propertyTypeClass == AddressbookDO::class.java) {
-            return getDBObjects(value, context).joinToString { dbObject ->
+            return getDBObjects(value, context).map { dbObject ->
                 if (dbObject is EmployeeDO) {
                     dbObject.user?.getFullname() ?: "???"
                 } else if (dbObject is AddressbookDO) {
@@ -165,7 +163,7 @@ class HistoryValueService private constructor() {
         try {
             clazz = Class.forName(typeString)
         } catch (_: ClassNotFoundException) {
-            log.warn("Class '$typeString' not found.")
+            log.warn { "Class '$typeString' not found." }
         }
         if (clazz == null) {
             return addUnknownPropertyType(typeString)
@@ -203,16 +201,26 @@ class HistoryValueService private constructor() {
 
     /**
      * Formats the value for displaying.
+     *
+     * Time-of-day values are stored as UTC strings, so they must be converted to the logged-in user's time
+     * zone (and date format) for display via the type-specific [HistoryValueHandler]; otherwise a moved time
+     * sheet, for instance, shows its begin/end two hours off. Other base types (numbers, date-only, strings)
+     * are shown exactly as stored to avoid unrelated reformatting of legacy history.
      */
-    internal fun formatBaseType(valueString: String?): String {
+    internal fun formatBaseType(valueString: String?, propertyType: String? = null): String {
         if (valueString.isNullOrBlank()) {
             return ""
         }
-        try {
-            val value = defaultHandler.deserialize(valueString) ?: return ""
-            return defaultHandler.format(value)
-        } catch (_: Exception) {
+        if (propertyType !in timeZoneSensitiveTypes) {
             return valueString
+        }
+        @Suppress("UNCHECKED_CAST")
+        val handler = HistoryValueHandlerRegistry.getHandler(propertyType) as HistoryValueHandler<Any>
+        return try {
+            val value = handler.deserialize(valueString) ?: return ""
+            handler.format(value)
+        } catch (_: Exception) {
+            valueString
         }
     }
 
@@ -258,11 +266,11 @@ class HistoryValueService private constructor() {
                     if (ent != null) {
                         ret.add(ent)
                     } else {
-                        log.warn("Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString")
+                        log.warn { "Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString" }
                         ret.add("${propertyClass.simpleName}#$id")
                     }
                 } catch (_: NumberFormatException) {
-                    log.warn("Cannot parse id for property $propertyName: $idString")
+                    log.warn { "Cannot parse id for property $propertyName: $idString" }
                 }
             }
         }
@@ -272,8 +280,18 @@ class HistoryValueService private constructor() {
     internal fun toDisplayNames(value: Any?): String {
         value ?: return ""
         return if (value is Collection<*>) {
-            value.map { input -> toDisplayName(input) }.sorted().joinToString()
+            toDisplayNameList(value).joinToString()
         } else toDisplayName(value)
+    }
+
+    /**
+     * @return The sorted display names of the given collection, or of the single object.
+     */
+    internal fun toDisplayNameList(value: Any?): List<String> {
+        value ?: return emptyList()
+        return if (value is Collection<*>) {
+            value.map { input -> toDisplayName(input) }.sorted()
+        } else listOf(toDisplayName(value))
     }
 
     internal fun toDisplayName(obj: Any?): String {
@@ -298,6 +316,17 @@ class HistoryValueService private constructor() {
             propertyType ?: return ""
             return propertyType.substringBefore("_$$").substringBefore("$")
         }
+
+        /**
+         * Base types carrying a time of day: stored as UTC and therefore reformatted into the user's time zone
+         * for display. Date-only types (java.sql.Date, java.time.LocalDate, net.fortuna.ical4j.model.Date) are
+         * excluded on purpose - they have no time zone and are shown as stored.
+         */
+        private val timeZoneSensitiveTypes = setOf(
+            "java.util.Date",
+            "java.sql.Timestamp",
+            "net.fortuna.ical4j.model.DateTime",
+        )
 
         private val baseTypes = arrayOf(
             "boolean",

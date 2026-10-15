@@ -25,12 +25,19 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.test.AbstractTestBase
 import java.math.BigDecimal
+import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
 class RechnungCalculatorTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var currencyConversionService: CurrencyConversionService
 
     @Test
     fun `test calculation of RechnungDO`() {
@@ -81,6 +88,39 @@ class RechnungCalculatorTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a cancelled invoice and its cancellation count as paid and in no sum`() {
+        // Set as RechnungDao.buildStatistik does.
+        AbstractRechnungsStatistik.configurationService = configurationService
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("1", "100", "0.19"))
+            invoice.faelligkeit = LocalDate.now().minusDays(1)
+            invoice.status = RechnungStatus.STORNIERT
+            val info = RechnungCalculator.calculate(invoice)
+            assertTrue(info.isBezahlt, "cancelled")
+            assertFalse(info.isUeberfaellig, "cancelled")
+            val statistics = RechnungsStatistik()
+            statistics.add(info)
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.brutto), "brutto")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.netto), "netto")
+            assertEquals(0, statistics.counter, "counter")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.offen), "offen")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.ueberfaellig), "ueberfaellig")
+        }
+        RechnungDO().also { invoice ->
+            invoice.typ = RechnungTyp.CANCELLATION
+            invoice.status = RechnungStatus.GESTELLT
+            invoice.addPosition(createPositionInfo("-1", "100", "0.19"))
+            val info = RechnungCalculator.calculate(invoice)
+            assertTrue(info.isBezahlt, "cancellation")
+            val statistics = RechnungsStatistik()
+            statistics.add(info)
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.brutto), "brutto")
+            assertEquals(0, BigDecimal.ZERO.compareTo(statistics.offen), "offen")
+        }
+    }
+
+    @Test
     fun `test rounding`() {
         RechnungDO().also { invoice ->
             invoice.addPosition(createPositionInfo("0.75", "118.75", "0.19", "79.06")) // -10.00
@@ -120,6 +160,28 @@ class RechnungCalculatorTest : AbstractTestBase() {
             assertEquals(BigDecimal("17.85"), info.kostZuweisungGrossSum, "kostZuweisungGrossSum")
             assertEquals(BigDecimal("-5.00"), info.kostZuweisungNetFehlbetrag, "kostZuweisungNetFehlbetrag")
         }
+    }
+
+    /**
+     * The assigned order position is named by its id even when [AuftragsCache] cannot answer anything about it.
+     * That is the situation of every position while `RechnungCache.refresh` runs: it is called from the refresh of
+     * `AuftragsCache` (through `AuftragsRechnungCache`), so that cache answers nothing at all as long as its own
+     * refresh is underway - a nested refresh returns immediately. The id stayed null in the cached
+     * [RechnungPosInfo] then, and the invoice list, which resolves the orders of an invoice from it
+     * (`Rechnung.copyFrom4ListRow`), showed no order for any invoice.
+     */
+    @Test
+    fun `an assigned order position is named although the cache knows nothing about it`() {
+        val position = createPositionInfo("1", "100").also {
+            // An id no order position of the test database has, so AuftragsCache answers null for it - as it does
+            // for every position while it is refreshing itself.
+            it.auftragsPosition = AuftragsPositionDO().also { orderPos -> orderPos.id = 4711424242L }
+        }
+        val posInfo = calculateAndAssert(position, net = "100.00", gross = "100.00")
+        assertEquals(4711424242L, posInfo.auftragsPositionId, "auftragsPositionId")
+        // The order behind it is the cache's answer and stays open until it has been read.
+        assertNull(posInfo.auftragsId, "auftragsId")
+        assertNull(posInfo.auftragsPositionNummer, "auftragsPositionNummer")
     }
 
     private fun calculateAndAssert(

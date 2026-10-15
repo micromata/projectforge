@@ -24,7 +24,7 @@
 package org.projectforge.business.task
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.MapUtils
 import org.dom4j.DocumentHelper
@@ -63,7 +63,7 @@ private val log = KotlinLogging.logger {}
  * Holds the complete task list in a tree. It will be initialized by the values read from the database. Any changes will
  * be written to this tree and to the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class TaskTree : AbstractCache(TICKS_PER_HOUR),
@@ -96,7 +96,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     @PostConstruct
     private fun postConstruct() {
         if (backingInstance != null) {
-            log.warn("Oups, shouldn't instantiate TaskTree twice")
+            log.warn { "Oups, shouldn't instantiate TaskTree twice" }
             return
         }
         backingInstance = this
@@ -111,11 +111,13 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     /**
      * For faster searching of entries.
      */
+    @Volatile
     private var taskMap = mutableMapOf<Long, TaskNode>()
 
     /**
      * The root node of all tasks. The only node with parent null.
      */
+    @Volatile
     private var root: TaskNode? = null
 
     /**
@@ -163,8 +165,10 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             // This node is not the root node:
             node.setParent(root)
         }
-        synchronized(taskMap) {
-            taskMap[node.id!!] = node
+        // Read once: a refresh swaps the map, and the lock must belong to the map written to.
+        val map = taskMap
+        synchronized(map) {
+            map[node.id!!] = node
         }
         val timesheet = TimesheetDO()
         timesheet.task = task
@@ -234,9 +238,27 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         return resultList
     }
 
+    /**
+     * Appends every node below [node], not only its children: a descendant of a descendant is one as well,
+     * as [TaskNode.getDescendantIds] has it.
+     *
+     * The already-collected list guards the recursion, in the same paranoid way that method does: a cyclic
+     * parent reference would otherwise not end.
+     */
     private fun addDescendants(resultList: MutableList<TaskNode>, node: TaskNode) {
+        addDescendants(resultList, node, resultList.mapTo(mutableSetOf()) { it.id })
+    }
+
+    private fun addDescendants(
+        resultList: MutableList<TaskNode>,
+        node: TaskNode,
+        visited: MutableSet<Long?>,
+    ) {
         for (child in node.getChildren()) {
-            resultList.add(child)
+            if (visited.add(child.id)) {
+                resultList.add(child)
+                addDescendants(resultList, child, visited)
+            }
         }
     }
 
@@ -253,8 +275,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         if (checkRefresh) {
             checkRefresh()
         }
-        synchronized(taskMap) {
-            return taskMap[taskId]
+        val map = taskMap
+        synchronized(map) {
+            return map[taskId]
         }
     }
 
@@ -294,6 +317,50 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         return node?.getProjekt()
     }
 
+    /**
+     * The latest stop time of all time sheets booked on the project's task and its sub tasks, read from the
+     * cached per-task values (no query per call). A sub task assigned to another project is skipped with its
+     * whole sub tree: those time sheets belong to that project.
+     *
+     * @param projektId The project the [taskId] is assigned to.
+     * @param taskId The project's task ([ProjektDO.task]).
+     * @return null, if no time sheet exists (or the project has no task).
+     */
+    fun getLatestTimesheetStopDate(projektId: Long?, taskId: Long?): Date? {
+        val node = getTaskNodeById(taskId) ?: return null
+        return latestTimesheetStopDate(node, projektId)
+    }
+
+    private fun latestTimesheetStopDate(node: TaskNode, projektId: Long?): Date? {
+        var result = node.getLatestTimesheetStopDate(this, false)
+        // The package-visible field, not getChildren(): it is null for a leaf.
+        node.children?.forEach { child ->
+            val childProjektId = child.getProjekt(false)?.id
+            if (childProjektId != null && childProjektId != projektId) {
+                return@forEach
+            }
+            latestTimesheetStopDate(child, projektId)?.let { date ->
+                if (result == null || date.after(result)) {
+                    result = date
+                }
+            }
+        }
+        return result
+    }
+
+    /**
+     * @param taskId
+     * @return true, if the task or any ancestor task is marked as a shared cost element (allowing time sheet overlap).
+     * @see TaskNode.isTimeOverlapAllowed
+     */
+    fun isTimeOverlapAllowed(taskId: Long?): Boolean {
+        if (taskId == null) {
+            return false
+        }
+        val node = getTaskNodeById(taskId)
+        return node?.isTimeOverlapAllowed() == true
+    }
+
     fun internalSetProject(taskId: Long, projekt: ProjektDO?) {
         val node = getTaskNodeById(taskId)
             ?: throw InternalErrorException("Could not found task with id $taskId in internalSetProject")
@@ -322,7 +389,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @param recursive If true then search the ancestor task for cost definitions if current task haven't.
      * @return Available Kost2DOs or null, if no Kost2DO found.
      */
-    fun getKost2List(taskId: Long?, recursive: Boolean): List<Kost2DO?>? {
+    fun getKost2List(taskId: Long?, recursive: Boolean): List<Kost2DO>? {
         val node = getTaskNodeById(taskId)
         return getKost2List(node, recursive)
     }
@@ -392,9 +459,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     kost2List.add(kost2)
                 } else if (!infoLogDone) {
                     if (item.length <= 2) {
-                        log.info("Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Project not linked anymore to task? Task id=" + task.id + ", task=" + task)
+                        log.info { "Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Project not linked anymore to task? Task id=" + task.id + ", task=" + task }
                     } else {
-                        log.info("Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Specified at task with id " + task.id + ": " + task)
+                        log.info { "Given kost2 not found: '" + item + "' of white list '" + task.kost2BlackWhiteList + "'. Specified at task with id " + task.id + ": " + task }
                     }
                     infoLogDone = true
                 }
@@ -431,10 +498,10 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     fun resetTotalDuration(taskId: Long) {
         val node = getTaskNodeById(taskId)
         if (node == null) {
-            log.error("Task id '$taskId' not found.")
+            log.error { "Task id '$taskId' not found." }
             return
         }
-        node.totalDuration = -1
+        node.resetTimesheetStats()
     }
 
     /**
@@ -499,8 +566,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         checkRefresh()
         val taskId = groupTaskAccess.taskId
         val node: TaskNode
-        synchronized(taskMap) {
-            node = taskMap[taskId]!!
+        val map = taskMap
+        synchronized(map) {
+            node = map[taskId]!!
         }
         node.removeGroupTaskAccess(groupTaskAccess.groupId)
     }
@@ -520,12 +588,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             writer.write(document)
             result = sw.toString()
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
         } finally {
             try {
                 writer.close()
             } catch (ex: IOException) {
-                log.error("Error while closing xml writer: " + ex.message, ex)
+                log.error(ex) { "Error while closing xml writer: " + ex.message }
             }
         }
         return result
@@ -586,7 +654,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     private val orderPositionEntries: Map<Long, Set<OrderPositionInfo>>?
         get() {
             synchronized(this) {
-                if (this.orderPositionReferencesDirty) {
+                // The tree may not be built yet: this refresh is marked dirty by a cache listener
+                // (AuftragsCache), and a request can reach it while the base refresh - which fills root and
+                // taskMap - is still running on another thread, so checkRefresh returned at once without
+                // populating them (see AbstractCache.refreshLock). Leaving it dirty, the references are
+                // rebuilt on the next call, once root is there; refresh itself marks it dirty again at its end.
+                if (this.orderPositionReferencesDirty && root != null) {
                     log.info { "TaskTree: refreshing order position references..." }
                     val duration = LogDuration()
                     val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
@@ -604,16 +677,21 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                             }
                         }
                     }
-                    resetOrderPersonDays(root!!)
-                    references.forEach orderPositions@{ (key, value) ->
-                        val node = getTaskNodeById(key)
-                        node!!.orderedPersonDays = null
-                        value.forEach { pos ->
-                            if (pos.personDays == null) {
-                                return@orderPositions
-                            }
-                            node.orderedPersonDays = (node.orderedPersonDays ?: BigDecimal.ZERO).add(pos.personDays)
+                    // Summed up first and assigned once per node: readers don't wait for this, and resetting
+                    // all nodes before adding up would show them null or half-summed values meanwhile.
+                    val personDays = references.mapValues { (_, positions) ->
+                        var sum: BigDecimal? = null
+                        for (pos in positions) {
+                            // As before: the positions up to the first one without person days count.
+                            sum = (sum ?: BigDecimal.ZERO).add(pos.personDays ?: break)
                         }
+                        sum
+                    }
+                    // Every node of the map, as before (and not only those reachable from root). Order positions
+                    // referencing a task not in the tree (deleted meanwhile) are left out.
+                    val map = taskMap
+                    synchronized(map) { map.values.toList() }.forEach { node ->
+                        node.orderedPersonDays = personDays[node.id]
                     }
                     this.orderPositionReferences = references
                     this.orderPositionReferencesDirty = false
@@ -622,15 +700,6 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 return this.orderPositionReferences
             }
         }
-
-    private fun resetOrderPersonDays(node: TaskNode) {
-        node.orderedPersonDays = null
-        if (node.hasChildren()) {
-            for (child in node.getChildren()) {
-                resetOrderPersonDays(child)
-            }
-        }
-    }
 
     /**
      * @param taskId
@@ -713,20 +782,26 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
 
     /**
      * @param node
-     * @return The ordered person days or if not found the defined max hours. If both not found, the get the sum of all
-     * direct or null if both not found.
+     * @return If the task's maxHoursHasPriority flag is set and a positive max hours value is defined, the person days
+     * derived from that max hours value (it wins over ordered person days). Otherwise the ordered person days (if order
+     * positions are assigned), or else the defined max hours. If none of these apply, the sum of all direct children or
+     * null.
      */
     fun getPersonDays(node: TaskNode?): BigDecimal? {
         checkRefresh()
         if (node == null || node.isDeleted) {
             return null
         }
+        val maxHours = node.getTask().maxHours
+        // A manually entered, positive max hours value wins over ordered person days if the task's flag is set.
+        if (node.getTask().maxHoursHasPriority && greaterZero(maxHours)) {
+            return BigDecimal(maxHours!!).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
+        }
         if (hasOrderPositions(node.id, true)) {
             return getOrderedPersonDaysSum(node)
         }
-        val maxHours = node.getTask().maxHours
-        if (maxHours != null) {
-            return BigDecimal(maxHours).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
+        if (greaterZero(maxHours)) {
+            return BigDecimal(maxHours!!).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
         }
         if (!node.hasChildren()) {
             return null
@@ -784,19 +859,15 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     /**
      * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
      */
-    private fun readTotalDurations() {
+    private fun readTotalDurations(nodes: Map<Long, TaskNode>) {
         val list = taskDao.readTotalDurations()
         for (res in list) {
             val taskId = res[1] as Long
-            val node = getTaskNodeById(taskId, false)
+            val node = nodes[taskId]
             if (node == null) {
                 log.warn { "Task not found: $taskId" }
             } else {
-                if (res[0] is Int) {
-                    node.totalDuration = (res[0] as Int).toLong()
-                } else {
-                    node.totalDuration = (res[0] as Long)
-                }
+                node.setTimesheetStats((res[0] as Number).toLong(), res[2] as java.util.Date?, res[3] as java.util.Date?)
             }
         }
     }
@@ -805,12 +876,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
      */
     fun readTotalDuration(taskId: Long) {
-        val duration = taskDao.readTotalDuration(taskId)
+        val info = taskDao.readTotalDurationInfo(taskId)
         val node = getTaskNodeById(taskId)
         if (node == null) {
-            log.warn("Task not found: $taskId")
+            log.warn { "Task not found: $taskId" }
         } else {
-            node.totalDuration = duration
+            node.setTimesheetStats(info.duration, info.earliestStartTime, info.latestStopTime)
         }
     }
 
@@ -831,12 +902,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
-        log.info("Initializing task tree ...")
+        log.info { "Initializing task tree ..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             var newRoot: TaskNode? = null
             val nTaskMap = mutableMapOf<Long, TaskNode>()
             val taskList = taskDao.selectAll(checkAccess = false)
-            log.debug("Loading list of tasks ...")
+            log.debug { "Loading list of tasks ..." }
             // First create all nodes and put them into the map:
             // The root node is the first node without parent node.
             for (task in taskList) {
@@ -857,7 +928,6 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             if (newRoot == null) {
                 throw IllegalArgumentException("No root task found. Corrupted data-base or not correct initialized one.")
             }
-            this.root = newRoot
             log.debug { "Creating tree for " + taskList.size + " tasks ..." }
             taskList.forEach { task ->
                 val node = nTaskMap[task.id]!!
@@ -870,7 +940,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     log.debug { "Processing root node:$node" }
                 }
             }
-            log.debug { root.toString() }
+            log.debug { newRoot.toString() }
 
             // Now read all explicit group task access' from the database:
             accessDao.selectAll(checkAccess = false).forEach { access ->
@@ -893,8 +963,17 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 }
             }
             log.debug { this.toString() }
+            readTotalDurations(nTaskMap)
+            // Bookability is checked against the published tree (below), so until then a node keeps the status
+            // of the node it replaces instead of showing every task as not bookable meanwhile.
+            val oldTaskMap = this.taskMap.let { map -> synchronized(map) { map.toMap() } }
+            nTaskMap.forEach { (id, node) ->
+                node.bookableForTimesheets = oldTaskMap[id]?.bookableForTimesheets ?: false
+            }
+            // Published only now, as a whole: readers don't wait for a refresh (see AbstractCache.refreshLock), so
+            // an earlier assignment would show them a tree without children, durations or bookability.
             this.taskMap = nTaskMap
-            readTotalDurations()
+            this.root = newRoot
             refreshOrderPositionReferences()
             // Now update the status: bookable for time sheets:
             val timesheet = TimesheetDO()

@@ -32,7 +32,7 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.*
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FilenameUtils
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.DateFormatType
@@ -43,6 +43,8 @@ import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.renderer.PdfFontProvider
+import org.projectforge.framework.renderer.PdfFontService
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -64,7 +66,7 @@ import java.util.zip.ZipOutputStream
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class MerlinRunner {
@@ -75,7 +77,7 @@ open class MerlinRunner {
     private lateinit var merlinHandler: MerlinHandler
 
     @Autowired
-    private lateinit var merlinFontService: MerlinFontService
+    private lateinit var pdfFontService: PdfFontService
 
     /**
      * @return Pair of filename and byte array representing the Word file.
@@ -248,7 +250,7 @@ open class MerlinRunner {
         ByteArrayInputStream(wordBytes).use { bais ->
             WordDocument(bais, filename).use { word ->
                 val options = PdfOptions.create()
-                options.fontProvider(MerlinFontProvider(merlinFontService))
+                options.fontProvider(PdfFontProvider(pdfFontService))
                 ByteArrayOutputStream().use { baos ->
                     PdfConverter.getInstance().convert(word.document, baos, options)
                     val pdfFilename = "${FilenameUtils.getBaseName(filename)}.pdf"

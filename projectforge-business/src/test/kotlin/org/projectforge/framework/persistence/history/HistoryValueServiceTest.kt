@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
 
 class HistoryValueServiceTest : AbstractTestBase() {
@@ -105,6 +106,21 @@ class HistoryValueServiceTest : AbstractTestBase() {
             "org.projectforge.business.address.AddressDO",
             "org.projectforge.business.address.AddressDO\$HibernateProxy\$En8hKwh8",
         )
+    }
+
+    @Test
+    fun testFormatConvertsTimeOfDayToUsersZone() {
+        // java.util.Date / java.sql.Timestamp are stored as UTC, so the display must be the user's time zone
+        // (regression: a moved time sheet showed its begin/end two hours off).
+        val utc = "2006-11-02 14:59:59"
+        val expected = DateHistoryValueHandler().format(PFDateTimeUtils.parse(utc)!!.utilDate)
+        Assertions.assertEquals(expected, historyValueService.format(utc, "java.util.Date"))
+        Assertions.assertNotEquals(utc, historyValueService.format(utc, "java.util.Date"))
+        Assertions.assertNotEquals(utc, historyValueService.format(utc, "java.sql.Timestamp"))
+
+        // Date-only and numeric base types have no time zone and are shown exactly as stored.
+        Assertions.assertEquals("2010-02-22", historyValueService.format("2010-02-22", "java.sql.Date"))
+        Assertions.assertEquals("4455.00", historyValueService.format("4455.00", "java.math.BigDecimal"))
     }
 
     private fun assertTypeClassName(expected: String, propertyType: String) {

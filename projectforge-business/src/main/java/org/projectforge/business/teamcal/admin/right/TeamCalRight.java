@@ -31,7 +31,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 public class TeamCalRight extends BaseUserGroupRight<TeamCalDO> {
   private static final long serialVersionUID = -2928342166476350773L;

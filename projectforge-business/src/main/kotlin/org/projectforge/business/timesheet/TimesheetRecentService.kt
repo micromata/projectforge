@@ -23,7 +23,7 @@
 
 package org.projectforge.business.timesheet
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -102,7 +102,7 @@ open class TimesheetRecentService {
             @Suppress("UNCHECKED_CAST")
             recentQueue = userPrefService.getEntry(PREF_AREA, id, RecentQueue::class.java, userId) as? RecentQueue<T>
         } catch (ex: Exception) {
-            log.error("Unexpected exception while getting recent $id for user #$userId: ${ex.message}.", ex)
+            log.error(ex) { "Unexpected exception while getting recent $id for user #$userId: ${ex.message}." }
         }
         if (recentQueue == null || recentQueue.size() == 0) {
             recentQueue = RecentQueue()

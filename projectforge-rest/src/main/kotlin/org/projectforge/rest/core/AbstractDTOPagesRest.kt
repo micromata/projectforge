@@ -54,22 +54,53 @@ abstract class AbstractDTOPagesRest<
     request: HttpServletRequest,
     magicFilter: MagicFilter,
   ): ResultSet<*> {
+    // A page may offer a lean row for the hand built next list, see createListRow.
+    val leanRows = useListRow(request)
     val newList = resultSet.resultSet.map {
-      transformFromDB(it, false)
+      if (leanRows) createListRow(it) else transformFromDB(it, false)
     }
     val result = ResultSet(
       newList,
       resultSet,
-      newList.size,
+      // For a server-side paged result totalSize is the size of the whole result, not of this page;
+      // keep it (and the paging fields below), which the DTO transform would otherwise drop.
+      totalSize = resultSet.totalSize ?: newList.size,
       selectedEntityIds = resultSet.selectedEntityIds,
       magicFilter = magicFilter,
+      offset = resultSet.offset,
+      limit = resultSet.limit,
+      totalSizeExact = resultSet.totalSizeExact,
     )
+    result.statistics = resultSet.statistics
     resultSet.resultInfo?.let { info ->
       if (info.isNotBlank()) {
         result.resultInfo = info
       }
     }
     return result
+  }
+
+  /**
+   * An empty DTO, for a page that fills one itself. Null unless the page names its DTO's constructor, which
+   * is all [createListRow] needs of it — Kotlin cannot reach `DTO` at runtime (type erasure), and resolving
+   * it from the generic supertype breaks as soon as a page inherits through an intermediate class.
+   */
+  protected open fun newDTO(): DTO? {
+    return null
+  }
+
+  /**
+   * The lean row of the hand built next list, built by the DTO itself
+   * ([org.projectforge.rest.dto.BaseDTO.copyFrom4ListRow]) — so what a row of an entity consists of is
+   * declared once, next to its full copy, rather than in this rest class.
+   *
+   * Falls back to the full DTO for a page that names no [newDTO], which is every page whose rows are small
+   * enough already.
+   */
+  override fun createListRow(obj: O): DTO {
+    val dto = newDTO() ?: return transformFromDB(obj, false)
+    dto.copyFrom4ListRow(obj)
+    return dto
   }
 
   /**
@@ -89,6 +120,6 @@ abstract class AbstractDTOPagesRest<
   }
 
   override fun isHistorizable(): Boolean {
-    return AbstractDOPagesRest.isHistorizable(baseDao.doClass)
+    return isHistorizable(baseDao.doClass)
   }
 }

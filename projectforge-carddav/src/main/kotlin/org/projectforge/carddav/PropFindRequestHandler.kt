@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.carddav.CardDavUtils.D
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusEnd
 import org.projectforge.carddav.CardDavXmlUtils.appendMultiStatusStart

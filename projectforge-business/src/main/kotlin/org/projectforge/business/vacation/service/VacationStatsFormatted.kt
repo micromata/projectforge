@@ -23,13 +23,14 @@
 
 package org.projectforge.business.vacation.service
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
 
 /**
  * Formats all values for the client.
  */
-class VacationStatsFormatted(var stats: VacationStats) {
+class VacationStatsFormatted(@get:JsonIgnore var stats: VacationStats) {
 
     @get:JsonProperty
     val year: Int?

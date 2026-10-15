@@ -23,7 +23,7 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.extensions.capitalize
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -37,7 +37,7 @@ import kotlin.reflect.jvm.javaSetter
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object AnnotationsUtils {
     fun getClassAnnotations(clazz: Class<*>): Array<Annotation> {
@@ -86,7 +86,7 @@ object AnnotationsUtils {
     }
 
     fun <T : Annotation> getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<T>): T? {
-        return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass } as? T
+        return getAnnotations(clazz, propertyName).filterIsInstance(annotationClass).firstOrNull()
     }
 
     fun hasAnnotation(property: KProperty1<*, *>, annotationClass: Class<out Annotation>): Boolean {

@@ -27,7 +27,7 @@ import de.micromata.merlin.word.AbstractConditional
 
 /**
  * Represents info of an conditional expression.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MerlinConditional(conditional: AbstractConditional) {
   var statement: String? = null

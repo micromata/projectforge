@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
 import org.apache.jackrabbit.oak.segment.SegmentNodeStoreBuilders

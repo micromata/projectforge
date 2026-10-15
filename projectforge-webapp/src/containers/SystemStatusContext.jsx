@@ -22,10 +22,6 @@ export const systemStatusContextDefaultValues = {
      */
     scmId: undefined,
     /**
-     * @type {String} Message of the day for the login screen.
-     */
-    messageOfTheDay: undefined,
-    /**
      * @type {String} Url where the logo can be found if one is set.
      */
     logoUrl: undefined,

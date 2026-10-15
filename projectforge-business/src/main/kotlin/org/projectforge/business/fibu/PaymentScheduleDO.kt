@@ -63,9 +63,11 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   /**
    * The order position's number this payment schedule is assigned to. (It is not the id/pk!!!)
    */
+  @PropertyInfo(i18nKey = "fibu.auftrag.position")
   @get:Column(name = "position_number")
   open var positionNumber: Short? = null
 
+  @PropertyInfo(i18nKey = "fibu.auftrag.paymentschedule.number")
   @get:Column
   open var number: Short = 0
 

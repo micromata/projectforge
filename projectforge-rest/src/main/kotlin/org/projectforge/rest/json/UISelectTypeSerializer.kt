@@ -34,7 +34,7 @@ import java.io.IOException
 /**
  * Serialization. This serialization is needed, because the values of UI Select are serialized with a customizable
  * attribute name (labelProperty and valueProperty).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UISelectTypeSerializer : StdSerializer<UISelect<*>>(UISelect::class.java) {
 

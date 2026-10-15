@@ -24,7 +24,7 @@
 package org.projectforge.i18n
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.json.JsonUtils
 import java.io.File
 

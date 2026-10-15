@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressExport
@@ -116,7 +116,7 @@ class AddressServicesRest {
 
     @GetMapping("exportFavoritesVCards")
     fun exportFavoritesVCards(): ResponseEntity<*> {
-        log.info("Exporting personal address book as vcards.")
+        log.info { "Exporting personal address book as vcards." }
         val list = addressDao.favoriteVCards
         if (list.isNullOrEmpty()) {
             return ResponseEntity(
@@ -140,7 +140,7 @@ class AddressServicesRest {
      */
     @GetMapping("exportFavoritesExcel")
     fun exportFavoritesExcel(request: HttpServletRequest): ResponseEntity<*> {
-        log.info("Exporting personal address book as Excel file.")
+        log.info { "Exporting personal address book as Excel file." }
         val list = addressDao.favoriteVCards.map { it.address!! }
         val magicFilter = MagicFilter(maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS)
         val resultSet = ResultSet(list, null, list.size, magicFilter = magicFilter)
@@ -167,18 +167,18 @@ class AddressServicesRest {
 
     @GetMapping("downloadAppleScript")
     fun downloadAppleScript(): ResponseEntity<*> {
-        log.info("Downloading AppleScript.")
+        log.info { "Downloading AppleScript." }
         val content: ByteArray?
         val file = APPLE_SCRIPT_DIR + APPLE_SCRIPT_FOR_ADDRESS_BOOK
         try {
             val cLoader = this.javaClass.classLoader
             val inputStream = cLoader.getResourceAsStream(file)
             if (inputStream == null) {
-                log.error("Could not find script in resource path: '$file'.")
+                log.error { "Could not find script in resource path: '$file'." }
             }
             content = IOUtils.toByteArray(inputStream!!)
         } catch (ex: IOException) {
-            log.error("Could not load script '" + file + "'." + ex.message, ex)
+            log.error(ex) { "Could not load script '" + file + "'." + ex.message }
             throw RuntimeException(ex)
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
@@ -328,7 +328,7 @@ class AddressServicesRest {
             )
 
         } catch (e: Exception) {
-            log.error("Error parsing VCF file: $filename", e)
+            log.error(e) { "Error parsing VCF file: $filename" }
             return ResponseEntity.ok(
                 ResponseAction(targetType = TargetType.NOTHING)
                     .addVariable("error", translate("address.book.vCardsImport.error.parsing"))

@@ -26,18 +26,19 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
-import org.apache.commons.lang3.builder.CompareToBuilder
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
-import org.projectforge.common.BeanHelper
+import org.hibernate.search.util.common.SearchException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.text.Collator
+import org.projectforge.framework.persistence.api.SortPropertyComparator
 
 
 private val log = KotlinLogging.logger {}
+
+/** Hibernate Search: "An error occurred while parsing the query string ...". */
+private const val QUERY_PARSE_ERROR = "HSEARCH600180"
 
 /**
  * Block wise search result iterator. (100 was much too low: 100 caused a lot of queries)
@@ -79,49 +80,13 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         }
     }
 
+    /**
+     * A full text query answers in relevance order, so the sort happens here — with the semantics of the
+     * criteria search (see [SortPropertyComparator] and `DBQueryBuilderByCriteria.addOrder`), so that a
+     * list the user searched in and one they only filtered read the same.
+     */
     override fun sort(list: List<O>): List<O> {
-        val collator = Collator.getInstance(ThreadLocalUserContext.locale)
-        val errorProperties = mutableListOf<String>()
-        return list.sortedWith(object : Comparator<O> {
-            override fun compare(o1: O, o2: O): Int {
-                if (sortProperties.isEmpty()) {
-                    return 0
-                }
-                val ctb = CompareToBuilder()
-                for (sortProperty in sortProperties) {
-                    try {
-                        val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
-                        val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
-                        if (val1 is String) {
-                            // Strings should be compared by using locale dependent collator (especially for german Umlaute)
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2, collator)
-                            } else {
-                                ctb.append(val2, val1, collator)
-                            }
-                        } else if (val1 is Comparable<*>) {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2)
-                            } else {
-                                ctb.append(val2, val1)
-                            }
-                        } else {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1?.toString(), val2?.toString())
-                            } else {
-                                ctb.append(val2?.toString(), val1?.toString())
-                            }
-                        }
-                    } catch (ex: Exception) {
-                        if (!errorProperties.contains(ex.message)) {
-                            errorProperties.add("${ex.message}")
-                            log.warn("Ignore sort property (OK): ${ex.message}")
-                        }
-                    }
-                }
-                return ctb.toComparison()
-            }
-        })
+        return SortPropertyComparator.sort(list, sortProperties.toList())
     }
 
     private fun internalNext(): O? {
@@ -157,7 +122,13 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
             return searchResult as List<O>
         } catch (ex: Exception) {
             val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
-            log.error(errorMsg)
+            if (ex is SearchException && ex.message?.startsWith(QUERY_PARSE_ERROR) == true) {
+                // The user's search term isn't valid query syntax (e.g. an unclosed '"' or a trailing '/'): no bug
+                // and no problem of the installation, the user just gets no result. Not collected by the dashboard.
+                log.info { errorMsg }
+            } else {
+                log.error(errorMsg)
+            }
             return emptyList()
         }
     }

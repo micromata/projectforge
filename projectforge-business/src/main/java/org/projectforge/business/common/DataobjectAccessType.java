@@ -24,7 +24,7 @@
 package org.projectforge.business.common;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 public enum DataobjectAccessType {
   OWNER, FULL, READONLY, MINIMAL, NONE;

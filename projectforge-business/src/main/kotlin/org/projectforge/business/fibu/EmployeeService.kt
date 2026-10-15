@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.timesheet.TimesheetDao
@@ -111,7 +111,12 @@ class EmployeeService {
         } else {
             employeeDao.selectAll(checkAccess = false)
         }
-        return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
+        return employeeList
+            // Resolve the (lazy) user of every employee from the cache before it is touched. displayName is
+            // "${user?.getFullname()}", and both the sort below and the callers (e.g. the employee selects of
+            // an edit form) read it, so without this every employee would trigger its own T_PF_USER query.
+            .onEach { it.user = caches.getUserIfNotInitialized(it.user) }
+            .filter { employee -> isEmployeeActive(employee, showRecentLeft) }
             .sortedBy { it.displayName }
     }
 
@@ -416,7 +421,17 @@ class EmployeeService {
         return employeeServiceSupport.undeleteValidSinceAttr(employee, attr, checkAccess = checkAccess)
     }
 
-    fun getReportOfMonth(year: Int, month: Int, user: PFUserDO): MonthlyEmployeeReport {
+    /**
+     * @param calculateVacationStats If true (default), the report also computes the vacation statistics. Pass false
+     * when only the working-time totals are needed (avoids the expensive per-report vacation queries).
+     */
+    @JvmOverloads
+    fun getReportOfMonth(
+        year: Int,
+        month: Int,
+        user: PFUserDO,
+        calculateVacationStats: Boolean = true,
+    ): MonthlyEmployeeReport {
         val monthlyEmployeeReport = MonthlyEmployeeReport(user, year, month)
         monthlyEmployeeReport.init()
         val filter = TimesheetFilter()
@@ -434,7 +449,7 @@ class EmployeeService {
                 )
             }
         }
-        monthlyEmployeeReport.calculate()
+        monthlyEmployeeReport.calculate(calculateVacationStats = calculateVacationStats)
         return monthlyEmployeeReport
     }
 

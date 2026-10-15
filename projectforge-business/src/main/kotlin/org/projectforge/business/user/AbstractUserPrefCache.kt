@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ShutdownListener
 import org.projectforge.business.user.UserPrefCache.Companion.dontCallShutdownInTestMode
 import org.projectforge.framework.ToStringUtil
@@ -31,7 +31,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -40,9 +39,9 @@ private val log = KotlinLogging.logger {}
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
- * Extended by [UserPrefCache] and [UserXmlPreferencesCache].
+ * Extended by [UserPrefCache].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     val title: String,
@@ -68,12 +67,38 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     protected abstract fun remove(userId: Long, key: UserPrefCacheDataKey)
     protected abstract fun newEntry(): DBObj
 
+    /**
+     * Hook for lazily migrating a preference from a legacy store on a cache miss. Called by [resolve] when neither a
+     * persistent nor a volatile entry exists for the given key. The default implementation returns null (no migration).
+     *
+     * Overridden by [UserPrefCache] to read a possibly existing legacy XML preference. If it returns a non-null value,
+     * [resolve] stores it as a persistent entry (without an original hash code, so it is written as JSON on the next
+     * flush) and returns it. Implementations must never throw.
+     */
+    protected open fun migrateLegacyEntryOnCacheMiss(userId: Long, key: UserPrefCacheDataKey): Any? = null
+
+    /**
+     * Single read choke point: returns the cached entry or, on a miss, tries [migrateLegacyEntryOnCacheMiss] and caches
+     * its result as a persistent entry so it is persisted on the next flush.
+     */
+    private fun resolve(userId: Long, key: UserPrefCacheDataKey): Any? {
+        val data = ensureAndGetUserPreferencesData(userId)
+        data.getEntry(key)?.let { return it }
+        val migrated = migrateLegacyEntryOnCacheMiss(userId, key) ?: return null
+        synchronized(data) {
+            // Re-check to avoid a double put on concurrent access.
+            data.getEntry(key)?.let { return it }
+            data.putEntry(key, migrated, persistent = true)
+        }
+        return migrated
+    }
+
     @JvmOverloads
     fun getEntry(
         area: String?, identifier: String?, userId: Long? = null
     ): Any? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier)
+        return resolve(uid, UserPrefCacheDataKey(area, identifier))
     }
 
     @Suppress("UNCHECKED_CAST", "UNUSED_PARAMETER")
@@ -82,7 +107,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         area: String?, identifier: String, expectedType: Class<T>, userId: Long? = null
     ): T? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier) as? T?
+        return resolve(uid, UserPrefCacheDataKey(area, identifier)) as? T?
     }
 
     @JvmOverloads
@@ -125,8 +150,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * Gets an entry from the user preferences cache.
      */
     fun getEntry(userId: Long, key: UserPrefCacheDataKey): Any? {
-        val data = ensureAndGetUserPreferencesData(userId)
-        return data.getEntry(key)
+        return resolve(userId, key)
     }
 
     @JvmOverloads
@@ -153,7 +177,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
                 try {
                     saveOrUpdate(userId, key, value, checkAccess)
                 } catch (ex: Throwable) {
-                    log.warn(ex.message, ex)
+                    log.warn(ex) { ex.message }
                 }
             } else {
                 log.debug { "User preference not modified: ${createLogMessagePart(userId, key)}" }
@@ -230,9 +254,18 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     /**
      * Flushes the user settings to the database (independent of the expired mechanism). Should be used after the user's
      * logout. If the user data isn't modified, then nothing will be done.
+     *
+     * No check against the logged-in user of the thread: the logout of projectforge-next runs as public rest call
+     * (/rsPublic) without one, and the user id is taken from the user's own session. The check made all
+     * preferences modified since the last periodic flush get lost, because the caller clears them afterwards.
      */
     fun flushToDB(userId: Long) {
-        flushToDB(userId, true)
+        val user = persistenceService.find(PFUserDO::class.java, userId)
+        if (AccessChecker.isDemoUser(user)) {
+            // Do nothing for demo user.
+            return
+        }
+        flushToDB(userId, false)
     }
 
     /**
@@ -240,7 +273,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * logout. If the user data isn't modified, then nothing will be done.
      */
     private fun flushAllToDB() {
-        log.info("$title: Flushing all user preferences to database....")
+        log.info { "$title: Flushing all user preferences to database...." }
         persistenceService.runInNewTransaction {
             synchronized(allPreferences) {
                 allPreferences.forEach { (_, data) ->
@@ -252,18 +285,6 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     }
 
     private fun flushToDB(userId: Long, checkAccess: Boolean) {
-        if (checkAccess) {
-            if (userId != loggedInUserId) {
-                log.error { "$title: User '$loggedInUserId' has no access to write user preferences of other user '$userId'." }
-                // No access.
-                return
-            }
-            val user = persistenceService.find(PFUserDO::class.java, userId)
-            if (AccessChecker.isDemoUser(user)) {
-                // Do nothing for demo user.
-                return
-            }
-        }
         persistenceService.runInNewTransaction {
             synchronized(allPreferences) {
                 allPreferences[userId]?.let { data ->
@@ -281,9 +302,9 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
-        log.info("$title: Flushing all user preferences to database....")
+        log.info { "$title: Flushing all user preferences to database...." }
         flushAllToDB()
-        log.info("$title: Flushing of user preferences to database done.")
+        log.info { "$title: Flushing of user preferences to database done." }
     }
 
     /**
@@ -307,7 +328,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
 
     override fun shutdown() {
         if (dontCallShutdownInTestMode) {
-            log.info("$title: It seems to be running in test mode. No sync to database in UserXmlPreferencesCache.")
+            log.info { "$title: It seems to be running in test mode. No sync to database in $title." }
             return
         }
         flushAllToDB()

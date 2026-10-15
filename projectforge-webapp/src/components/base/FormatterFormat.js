@@ -50,6 +50,7 @@ const formatterFormat = (
                 style: 'currency',
                 currency: normalizeCurrency(currency),
             }).format(value);
+        case 'AMOUNT':
         case 'CURRENCY_PLAIN':
             return Intl.NumberFormat(locale, {
                 style: 'decimal',

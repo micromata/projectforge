@@ -24,8 +24,9 @@
 package org.projectforge.business.user
 
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.UserAccessLogEntry
 import java.util.*
 
@@ -47,7 +48,7 @@ class UserAccessLogEntries(val tokenType: UserTokenType) {
   }
 
   fun update(request: HttpServletRequest) {
-    val ip = request.remoteAddr
+    val ip = WebUtils.getClientIp(request)
     val userAgent = request.getHeader("User-Agent")
     update(userAgent = userAgent, ip = ip)
   }
@@ -56,7 +57,7 @@ class UserAccessLogEntries(val tokenType: UserTokenType) {
    * Clears all access entries (writes current state to log file before clearing). Should be called after renewing a token.
    */
   fun clear() {
-    log.info("Clearing entries '$logAccessName'. State was: $this")
+    log.info { "Clearing entries '$logAccessName'. State was: $this" }
     entries.clear()
   }
 

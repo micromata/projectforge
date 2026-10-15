@@ -31,7 +31,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("AuftragFilter")
 class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) : BaseSearchFilter(filter),
@@ -114,11 +114,7 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
      */
     fun matchUser(auftrag: AuftragDO): Boolean {
         val uid = user?.id ?: return true
-        return (auftrag.projectManager?.id == uid ||
-                auftrag.headOfBusinessManager?.id == uid ||
-                auftrag.contactPerson?.id == uid ||
-                auftrag.salesManager?.id == uid
-                )
+        return auftrag.isContact(uid)
     }
 
     /**
@@ -148,7 +144,7 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
                 return true
             }
         }
-        return auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) }
+        return AuftragsCache.instance.anyPositionMatches(auftrag) { status, _, _ -> auftragsStatuses.contains(status) }
     }
 
     /**
@@ -156,11 +152,8 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
      *              If this filter setting is empty, true is returned.
      */
     fun matchAuftragsPositionsArten(auftrag: AuftragDO): Boolean {
-        return auftragsPositionsArten.isEmpty() || auftrag.positionenExcludingDeleted.any { pos ->
-            auftragsPositionsArten.contains(
-                pos.art
-            )
-        }
+        return auftragsPositionsArten.isEmpty() ||
+                AuftragsCache.instance.anyPositionMatches(auftrag) { _, art, _ -> auftragsPositionsArten.contains(art) }
     }
 
     override fun reset(): AuftragFilter {
@@ -188,13 +181,19 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
     private fun checkFakturiert(auftrag: AuftragDO): Boolean {
         val orderInfo = AuftragsCache.instance.getOrderInfo(auftrag)
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
-            return orderInfo.toBeInvoiced
+            return orderInfo.toBeInvoicedDue
+        }
+        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE) {
+            return orderInfo.isToBeInvoicedAfter(OrderInfo.invoiceCutoff())
         }
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.FAKTURIERT) {
             return orderInfo.isVollstaendigFakturiert
         }
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.NICHT_FAKTURIERT) {
             return orderInfo.notYetInvoicedSum > BigDecimal.ZERO
+        }
+        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.FAKTURIERT_MIT_RESTBETRAG) {
+            return orderInfo.vollstaendigFakturiertMitRestbetrag
         }
         return true
     }

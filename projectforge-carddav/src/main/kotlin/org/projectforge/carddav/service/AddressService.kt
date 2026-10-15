@@ -23,7 +23,7 @@
 
 package org.projectforge.carddav.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.carddav.model.Contact
@@ -90,7 +90,7 @@ class AddressService {
             if (personalAddress?.isFavorite == true) {
                 personalAddress.isFavoriteCard = false
                 personalAddressDao.saveOrUpdate(personalAddress)
-                log.info("Contact #$contactId removed from favorite list.")
+                log.info { "Contact #$contactId removed from favorite list." }
             }
             return true
         } catch (e: Exception) {

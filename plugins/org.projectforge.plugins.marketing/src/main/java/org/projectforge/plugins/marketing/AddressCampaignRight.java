@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO> {
   private static final long serialVersionUID = 4021610615575404717L;

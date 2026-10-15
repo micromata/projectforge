@@ -26,7 +26,7 @@ package org.projectforge.plugins.liquidityplanning;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum LiquidityEntryType implements I18nEnum

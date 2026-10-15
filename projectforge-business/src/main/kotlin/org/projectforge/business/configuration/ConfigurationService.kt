@@ -23,7 +23,7 @@
 
 package org.projectforge.business.configuration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeApp
@@ -156,6 +156,15 @@ open class ConfigurationService {
     protected set
 
   /**
+   * Optional dark-mode variant of [logoFileName]. The Next.js client shows it while the dark theme is active
+   * and falls back to the light logo where this is unset. Empty by default, so existing configurations keep
+   * working without the property.
+   */
+  @Value("\${projectforge.logoFileDark:}")
+  open var logoFileNameDark: String? = null
+    protected set
+
+  /**
    * Default is €
    */
   @Value("\${projectforge.currencySymbol}")
@@ -184,16 +193,10 @@ open class ConfigurationService {
   open var excelPaperSize: String? = null
     protected set
 
-  @Value("\${projectforge.wicket.developmentMode}")
-  private var developmentMode = false
-
   @Value("\${pf.config.security.teamCalCryptPassword}")
   open var teamCalCryptPassword: String? = null
     protected set
 
-  @Value("\${pf.config.compileCss:true}")
-  open var compileCss = false
-    protected set
 
   @Value("\${projectforge.login.handlerClass}")
   open var loginHandlerClass: String? = null
@@ -250,7 +253,7 @@ open class ConfigurationService {
       try {
         result[0] = IOUtils.toString(it, "UTF-8")
       } catch (ex: IOException) {
-        log.error(ex.message, ex)
+        log.error(ex) { ex.message }
       }
     }
     return result
@@ -277,7 +280,7 @@ open class ConfigurationService {
           inputStream = FileInputStream(file)
           path = file.toURI().toString()
         } catch (ex: FileNotFoundException) {
-          log.error(file.absoluteFile.toString() + ": " + ex.message, ex) // Should not occur.
+          log.error(ex) { file.absoluteFile.toString() + ": " + ex.message } // Should not occur.
           inputStream = null
         }
         showExistingMessage(file, false)
@@ -292,10 +295,8 @@ open class ConfigurationService {
       inputStream = cLoader.getResourceAsStream(filename)
     }
     if (inputStream == null) {
-      log.error(
-        "File '" + filename + "' not found (neither in file system under '" + base.absolutePath
-            + "' nor in resource!)"
-      )
+      log.error { "File '" + filename + "' not found (neither in file system under '" + base.absolutePath +
+            "' nor in resource!)" }
     }
     val result = arrayOfNulls<Any>(2)
     result[0] = inputStream
@@ -344,15 +345,15 @@ open class ConfigurationService {
           keystoreFile = File(applicationHomeDir, keystoreFileName)
         }
         if (!keystoreFile.canRead()) {
-          log.warn("Can't read keystore file: $keystoreFile")
+          log.warn { "Can't read keystore file: $keystoreFile" }
           return
         }
         val inputStream: InputStream = FileInputStream(keystoreFile)
         usersSSLSocketFactory = createSSLSocketFactory(inputStream, keystorePassphrase ?: "")
-        log.info("Keystore successfully read from file: " + keystoreFile.absolutePath)
+        log.info { "Keystore successfully read from file: " + keystoreFile.absolutePath }
       } catch (ex: Throwable) {
-        log.error("Could not initialize your key store (see error message below)!")
-        log.error(ex.message, ex)
+        log.error { "Could not initialize your key store (see error message below)!" }
+        log.error(ex) { ex.message }
       }
     }
   }
@@ -372,11 +373,11 @@ open class ConfigurationService {
 
   private fun ensureDir(dir: File): Boolean {
     if (!dir.exists()) {
-      log.info("Creating directory $dir")
+      log.info { "Creating directory $dir" }
       dir.mkdir()
     }
     if (!dir.canRead()) {
-      log.error("Can't create directory: $dir")
+      log.error { "Can't create directory: $dir" }
       return false
     }
     return true
@@ -396,7 +397,7 @@ open class ConfigurationService {
       return if (configurationDO != null) {
         configurationDO.timeZone
       } else {
-        log.error("No timezone configured in db configuration. Return default timezone.")
+        log.error { "No timezone configured in db configuration. Return default timezone." }
         TimeZone.getDefault()
       }
     }
@@ -407,21 +408,35 @@ open class ConfigurationService {
     }
 
   /**
+   * Number of past days the first run of the nightly job books approved vacation as time sheets for (at most
+   * [MAX_VACATION_AUTO_BOOKING_DAYS]; later runs catch up from the last successful one on, see
+   * [org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob]), 0 if disabled (not configured).
+   */
+  open val vacationAutoBookingDays: Int
+    get() {
+      val days = configDao.getEntry(ConfigurationParam.TIMESHEET_VACATION_AUTO_BOOKING_DAYS)?.longValue ?: 0L
+      return days.coerceIn(0L, MAX_VACATION_AUTO_BOOKING_DAYS).toInt()
+    }
+
+  /**
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
    * from the last year will be invalid, if not used.
    */
   open fun getEndOfCarryVacationOfPreviousYear(year: Int): LocalDate {
     var day = 31
     var month = 3 // March, 1 based, 1-January, ..., 12-December.
-    val configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
-    if (configDO != null) {
-      val dayMonthString = configDO.stringValue
-      val dayMonthParts = dayMonthString!!.split("\\.".toRegex()).toTypedArray()
+    // Read from the (hourly-refreshed) Configuration cache, not directly via ConfigurationDao: this method
+    // is called once per employee while calculating vacation stats (e.g. the salary Excel export builds one
+    // MonthlyEmployeeReport per employee), so a direct DB read is an N+1 select (T_CONFIGURATION by parameter
+    // per row). The cache already holds every ConfigurationParam value.
+    val dayMonthString = Configuration.instance.getStringValue(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
+    if (!dayMonthString.isNullOrBlank()) {
+      val dayMonthParts = dayMonthString.split("\\.".toRegex()).toTypedArray()
       try {
         month = dayMonthParts[1].toInt()
         day = dayMonthParts[0].toInt()
       } catch (e: NumberFormatException) {
-        log.error("Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: $dayMonthString")
+        log.error { "Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: $dayMonthString" }
         day = 31
         month = 3 // March
       }
@@ -448,7 +463,7 @@ open class ConfigurationService {
         }
       } catch (e: RuntimeException) {
         // this could happen if the database is not initialized (during projectforge initial setup)
-        log.warn("Exception while getting the min password length configuration.", e)
+        log.warn(e) { "Exception while getting the min password length configuration." }
       }
       return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultLongValue.toInt()
     }
@@ -466,7 +481,7 @@ open class ConfigurationService {
         }
       } catch (e: RuntimeException) {
         // this could happen if the database is not initialized (during projectforge initial setup)
-        log.warn("Exception while getting configuration flag - password change requirement.", e)
+        log.warn(e) { "Exception while getting configuration flag - password change requirement." }
       }
       return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.defaultBooleanValue
     }
@@ -475,39 +490,74 @@ open class ConfigurationService {
       val logoFile = logoFileObject
       return logoFile != null && logoFile.canRead() && logoFile.isFile
     }
-  open val syntheticLogoName: String?
+
+  open val isLogoFileDarkValid: Boolean
     get() {
-      val logoFile = logoFileName
-      if (StringUtils.isBlank(logoFile)) {
-        return null
-      }
-      if (logoFile!!.endsWith(".png")) {
-        return "logo.png"
-      }
-      return if (logoFile.endsWith(".jpg") || logoFile.endsWith(".jpeg")) {
-        "logo.jpg"
-      } else "logo.gif"
+      val logoFile = logoFileObjectDark
+      return logoFile != null && logoFile.canRead() && logoFile.isFile
     }
+
+  open val syntheticLogoName: String?
+    get() = syntheticLogoNameFor(logoFileName, "logo")
+
+  /**
+   * Synthetic name of the dark logo (`logoDark.<ext>`), so that [org.projectforge.rest.pub.LogoServiceRest] can
+   * serve it under a stable url independent of the configured file name.
+   */
+  open val syntheticLogoNameDark: String?
+    get() = syntheticLogoNameFor(logoFileNameDark, "logoDark")
+
   open var logoFileObject: File? = null
     get() {
       if (field != null) {
         return field
       }
-      logoFileName?.let {
-        if (it.isNotBlank()) {
-          var file = File(it)
-          if (!file.isAbsolute) {
-            file = Paths.get(resourceDirName, "images", it).toFile()
-          }
-          field = file
-          return file
-        }
-      }
-      return null
+      field = resolveLogoFile(logoFileName)
+      return field
     }
     protected set
 
+  open var logoFileObjectDark: File? = null
+    get() {
+      if (field != null) {
+        return field
+      }
+      field = resolveLogoFile(logoFileNameDark)
+      return field
+    }
+    protected set
+
+  /** Maps a configured logo file name to its stable download name `<baseName>.<ext>`, or null if unset. */
+  private fun syntheticLogoNameFor(fileName: String?, baseName: String): String? {
+    if (StringUtils.isBlank(fileName)) {
+      return null
+    }
+    if (fileName!!.endsWith(".png")) {
+      return "$baseName.png"
+    }
+    return if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+      "$baseName.jpg"
+    } else "$baseName.gif"
+  }
+
+  /** Resolves a configured logo file name to a [File]: used as is when absolute, else under `<resourceDir>/images`. */
+  private fun resolveLogoFile(fileName: String?): File? {
+    fileName?.let {
+      if (it.isNotBlank()) {
+        var file = File(it)
+        if (!file.isAbsolute) {
+          file = Paths.get(resourceDirName, "images", it).toFile()
+        }
+        return file
+      }
+    }
+    return null
+  }
+
   companion object {
+    /** Upper bound of [vacationAutoBookingDays]: the first run of the job books a week back at most. */
+    const val MAX_VACATION_AUTO_BOOKING_DAYS = 7L
+
     @Transient
     private val nonExistingResources: MutableSet<String> = HashSet()
 
@@ -528,10 +578,8 @@ open class ConfigurationService {
         nonExistingResources.add(file.absolutePath)
         existingResources.remove(file.absolutePath) // If changed by administrator during application running.
         val type = if (directory) "directory" else "file"
-        log.info(
-          "Using default " + type + " of ProjectForge, because " + type + "'" + file.absolutePath
-              + "' does not exist (OK)"
-        )
+        log.info { "Using default " + type + " of ProjectForge, because " + type + "'" + file.absolutePath +
+              "' does not exist (OK)" }
       }
     }
 
@@ -541,7 +589,7 @@ open class ConfigurationService {
         existingResources.add(file.absolutePath)
         nonExistingResources.remove(file.absolutePath) // If changed by administrator during application running.
         val type = if (directory) "directory" else "file"
-        log.info("Using existing " + type + ":" + file.absolutePath)
+        log.info { "Using existing " + type + ":" + file.absolutePath }
       }
     }
 

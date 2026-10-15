@@ -26,7 +26,7 @@ package org.projectforge.business.scripting
 /**
  * For exporting a single file as result from script.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class ExportFile(val filename: String, content: String? = null) {
     constructor(filename: String, content: ByteArray) : this(filename) {

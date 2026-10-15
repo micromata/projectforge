@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -65,7 +65,8 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:OrderColumn(name = "index")
+    // Sorted by KostZuweisungDO.index, not an @OrderColumn on it: see RechnungsPositionDO.kostZuweisungen.
+    @get:OrderBy("index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 

@@ -27,13 +27,11 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.logging.LogEventLoggerNameMatcher;
 import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.ihk.service.IHKService;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.plugin.PluginWicketRegistrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by mnuhn on 05.12.2019
@@ -55,13 +53,10 @@ public class IHKPlugin extends AbstractPlugin {
     // Register it:
     register(getId(), TimesheetDao.class, WicketSupport.get(TimesheetDao.class), "plugins.ihk");
 
-    PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
-    // Register the web part:
-    pluginWicketRegistrationService.registerWeb(getId());
-
-    // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(getId(), "plugins.ihk.menu"),
-            IHKPage.class);
+    // Register the menu entry as sub menu entry of the misc menu. The page is part of projectforge-next (served by
+    // IHKRest). The menu id stays getId(), the menu visibility (projectforge.menu.visibility.ihk) depends on it.
+    WicketSupport.get(MenuCreator.class).register(MenuItemDefId.MISC,
+        MenuItemDef.create(getId(), "plugins.ihk.menu", "next/ihk"));
 
     // Define the access management:
     registerRight(new IHKRight());

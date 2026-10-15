@@ -7,14 +7,14 @@ permalink: /misc/terms-of-use.html
 
 ## Join us, do it yourself.
 
-<p class="uk-text-lead uk-text-muted">The most famous OpenSource license make sure the protection of investments and the possibility for own extensions, development and improvements.</p>
+<p class="lead">The most famous OpenSource license make sure the protection of investments and the possibility for own extensions, development and improvements.</p>
 
 ### License
 
 ProjectForge Community Edition<br>
 [www.projectforge.org](https://www.projectforge.org)
 
-Copyright &copy; 2001-2021 Kai Reinhard (k.reinhard at micromata.com)<br>
+Copyright &copy; 2001-2026 Kai Reinhard (k.reinhard at micromata.com)<br>
 Micromata GmbH<br>
 Marie-Calm-Str. 1-5<br>
 34131 Kassel

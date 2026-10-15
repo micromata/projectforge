@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.marketing
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDao
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -37,7 +37,7 @@ import org.springframework.util.CollectionUtils
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCampaignValueDO::class.java) {
@@ -83,6 +83,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
                 try {
                     val field = campaignFilter.javaClass.getDeclaredField("addressFilter")
                     field.isAccessible = true
+                    @Suppress("UNCHECKED_CAST")
                     field.get(campaignFilter) as? CustomResultFilter<org.projectforge.business.address.AddressDO>
                 } catch (e: Exception) {
                     log.warn { "Could not extract address filter from CampaignValueFilterAdapter: ${e.message}" }

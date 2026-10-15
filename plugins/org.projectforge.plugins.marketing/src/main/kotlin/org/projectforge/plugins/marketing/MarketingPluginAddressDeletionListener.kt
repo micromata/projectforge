@@ -23,14 +23,14 @@
 
 package org.projectforge.plugins.marketing
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDeletionListener
 
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCampaignDao) : AddressDeletionListener {
     override fun onDelete(address: AddressDO) {
@@ -41,7 +41,7 @@ class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCamp
             )
         }
         if (counter > 0) {
-            log.info("Removed #$counter address campaign value entries of deleted address: $address")
+            log.info { "Removed #$counter address campaign value entries of deleted address: $address" }
         }
     }
 }

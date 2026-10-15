@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.configuration
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.cache.AbstractCache
@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
  * are cached. <br></br>
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 class Configuration(
@@ -147,6 +147,14 @@ class Configuration(
     val isCostConfigured: Boolean
         get() = getBooleanValue(ConfigurationParam.COST_CONFIGURED)
 
+    /**
+     * Time sheets without cost 2 unit are reported ([ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2], cost units
+     * configured): one saved without gets a warning and the notification rule of these time sheets applies. Booking
+     * stays allowed.
+     */
+    val isWarnMissingKost2: Boolean
+        get() = isCostConfigured && getBooleanValue(ConfigurationParam.TIMESHEET_WARN_MISSING_KOST2)
+
     protected fun getValue(parameter: IConfigurationParam?): Any? {
         checkRefresh()
         synchronized(this) {
@@ -167,21 +175,18 @@ class Configuration(
 
     private fun doRefresh() {
         val newMap: MutableMap<ConfigurationParam, Any?> = HashMap()
-        log.info("Initializing (ConfigurationDO parameters) ...")
+        log.info { "Initializing (ConfigurationDO parameters) ..." }
         val list = try {
             configurationService.daoInternalLoadAll()
         } catch (ex: Exception) {
-            log.error(
-                "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): "
-                        + ex.message,
-                ex
-            )
+            log.error(ex) { "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): " +
+                        ex.message }
             emptyList<ConfigurationDO>()
         }
         for (param in ConfigurationParam.values()) {
             var configuration: ConfigurationDO? = null
             for (entry in list) {
-                if (StringUtils.equals(param.key, entry.parameter)) {
+                if (param.key == entry.parameter) {
                     configuration = entry
                     break
                 }
@@ -191,7 +196,12 @@ class Configuration(
         if (configurationParamMap == null) {
             for ((key, value1) in newMap) {
                 val value = value1 ?: continue
-                log.info(key.key + "=" + value)
+                if (key.editPage != null) {
+                    // A structured value (the customer groups' JSON) would flood the log.
+                    log.info { key.key + "=<" + value.toString().length + " characters>" }
+                } else {
+                    log.info { key.key + "=" + value }
+                }
             }
         }
         configurationParamMap = newMap
@@ -220,7 +230,7 @@ class Configuration(
 
     init {
         if (initialized) {
-            log.warn("Oups, shouldn't initiate Configuration twice.")
+            log.warn { "Oups, shouldn't initiate Configuration twice." }
         } else {
             instance = this
             instanceSet = true

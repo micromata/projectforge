@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
  * Represents a currency pair for currency conversion (e.g. USD -> EUR).
  * The conversion rates are stored in CurrencyConversionRateDO with validity periods.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

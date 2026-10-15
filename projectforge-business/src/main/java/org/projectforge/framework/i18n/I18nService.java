@@ -24,6 +24,7 @@
 package org.projectforge.framework.i18n;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -38,4 +39,14 @@ public interface I18nService
   ResourceBundle getResourceBundleFor(String name, Locale locale);
 
   String getAdditionalString(String key, Locale locale);
+
+  /**
+   * The keys and values of the customer-specific {@code CustomerI18nResources} bundle for the given locale,
+   * or an empty map if this deployment ships no such bundle. These are the deployment's overrides — the
+   * texts a customer changed without touching the code (see {@code I18nHelper.addBundleNameWithHighestPriority}).
+   * projectforge-next ships a static message catalog built from the product bundle only, so it fetches these
+   * at runtime and overlays them with highest priority, the way the server-rendered UILayout pages did through
+   * {@code I18nHelper} automatically.
+   */
+  Map<String, String> getCustomerI18nOverrides(Locale locale);
 }

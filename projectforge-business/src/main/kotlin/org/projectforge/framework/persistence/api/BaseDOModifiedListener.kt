@@ -30,7 +30,7 @@ import org.projectforge.framework.access.OperationType
  * Useful for external caches.
  * This listener is also used by [BaseDao].
  * All calls are outside transaction.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface BaseDOModifiedListener<O : ExtendedBaseDO<Long>> {
     /**

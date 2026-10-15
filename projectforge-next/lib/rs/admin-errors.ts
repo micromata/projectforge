@@ -1,0 +1,276 @@
+/**
+ * The error dashboard (`org.projectforge.rest.admin.AdminErrorsRest`, admin group only, 2FA-gated as ADMIN): the
+ * problems of the log aggregation (`LogGroupAdminService`) with their trends, and their status. Times are epoch
+ * millis.
+ *
+ * A non-entity page, so it has its own small client rather than going through the entity plumbing.
+ */
+
+import { request } from "./client";
+import { downloadPost } from "./download";
+import type { LogLevel, LogViewerEvent } from "./log-viewer";
+
+/** `org.projectforge.common.logging.LogCategory`. */
+export type LogCategory =
+  | "EXTERNAL"
+  | "SECURITY"
+  | "DATA"
+  | "BUG"
+  | "CONFIG"
+  | "CLIENT"
+  | "UNCLASSIFIED";
+
+/** `LogNotify`: whether and when a problem is mailed. */
+export type LogNotify = "NONE" | "DIGEST" | "DIGEST_IF_NEW" | "IMMEDIATE";
+
+/** `LogAudience`: who is mailed. */
+export type LogAudience = "DEVELOPER" | "ADMIN" | "SECURITY";
+
+/** `LogGroupStatus`. */
+export type LogGroupStatus = "NEW" | "ACKNOWLEDGED" | "IGNORED" | "RESOLVED";
+
+/**
+ * `LogGroupStatusFilter`: OPEN are the new and acknowledged problems, MUTED the open ones whose mute lies ahead.
+ */
+export type LogGroupStatusFilter =
+  | "OPEN"
+  | "ALL"
+  | "NEW"
+  | "ACKNOWLEDGED"
+  | "MUTED"
+  | "IGNORED"
+  | "RESOLVED";
+
+export type LogGroupAction =
+  | "ACKNOWLEDGE"
+  | "IGNORE"
+  | "RESOLVE"
+  | "REOPEN"
+  | "MUTE"
+  | "UNMUTE"
+  | "SET_NOTIFY";
+
+/** `LogGroupScope`: a key figure's selection the other filters can't express. */
+export type LogGroupScope = "NEW_24H" | "REGRESSION";
+
+/** `LogGroupFilter`. [days]: only problems seen within the last days, 0 for all. */
+export interface LogGroupFilter {
+  status: LogGroupStatusFilter;
+  category?: LogCategory | null;
+  search?: string | null;
+  days?: number | null;
+  /** Only the problems of the subsystem (`SubsystemEntry.id`). */
+  subsystem?: string | null;
+  /** Only the problems of a key figure, see AdminErrorsSummary. */
+  scope?: LogGroupScope | null;
+}
+
+/** `LogGroupEntry`. */
+export interface LogGroupEntry {
+  id: number;
+  code: string;
+  category: LogCategory;
+  level: LogLevel;
+  location?: string | null;
+  exceptionClass?: string | null;
+  /** The sample message, truncated. */
+  message?: string | null;
+  firstSeen: number;
+  lastSeen: number;
+  /** The last occurrence as "5 minutes ago", in the user's locale. */
+  lastSeenTimeAgo?: string | null;
+  totalCount: number;
+  count24h: number;
+  status: LogGroupStatus;
+  /** Only while still muted. */
+  mutedUntil?: number | null;
+  /** Ignored or muted: not reported. */
+  muted: boolean;
+  /** The effective rule: the admin's override, else the event's one. */
+  notify: LogNotify;
+  overrideNotify?: LogNotify | null;
+  /** A resolved problem that occurred again. */
+  regression: boolean;
+  /** The occurrences of the last `trendDays` days in bins of `trendBinHours` hours, oldest first. */
+  trend: number[];
+}
+
+/**
+ * `LogGroupCounts`: problems or their occurrences, split by what was done about them. [active] ones are open and
+ * not muted, so they still need a look; the others are handled.
+ */
+export interface LogGroupCounts {
+  active: number;
+  muted: number;
+  ignored: number;
+  resolved: number;
+}
+
+/** `LogGroupSummary`: the key figures of all problems, whatever the filter, split by their handling. */
+export interface LogGroupSummary {
+  /** Problems with occurrences within the last 24 hours. */
+  problems24h: LogGroupCounts;
+  occurrences24h: LogGroupCounts;
+  /** The occurrences of the most frequent active problem within the last 24 hours. */
+  topOccurrences24h: number;
+  newProblems24h: LogGroupCounts;
+  regressions: LogGroupCounts;
+  externalProblems24h: LogGroupCounts;
+  open: LogGroupCounts;
+}
+
+/** `LogGroupList`. [total] counts all matching problems, [entries] holds the first ones only. */
+export interface LogGroupList {
+  enabled: boolean;
+  entries: LogGroupEntry[];
+  total: number;
+  summary: LogGroupSummary;
+  trendDays: number;
+  trendBinHours: number;
+}
+
+/** `LogGroupDetail`: the problem with the texts of its event and the sample of an occurrence. */
+export interface LogGroupDetail {
+  entry: LogGroupEntry;
+  /** A known event: otherwise explanation and action are missing. */
+  registered: boolean;
+  explanation?: string | null;
+  action?: string | null;
+  eventNotify: LogNotify;
+  audience: LogAudience;
+  threshold: number;
+  sampleMessage?: string | null;
+  sampleStackTrace?: string | null;
+  sampleRequest?: string | null;
+  lastNotified?: number | null;
+  reopenedAt?: number | null;
+  distinctUsers24h: number;
+  /** The last 7 days per hour, oldest first, starting at [hourlyStart]. */
+  hourly: number[];
+  hourlyStart: number;
+  /** The last 30 days per 24 hours, oldest first, starting at [dailyStart]. */
+  daily: number[];
+  dailyStart: number;
+}
+
+/** `SubsystemState`, ordered by severity. */
+export type SubsystemState = "OK" | "UNKNOWN" | "DEGRADED" | "DOWN";
+
+/** `SubsystemSync`: the last run of a sync since the start. */
+export interface SubsystemSync {
+  type: string;
+  runs: number;
+  lastRun?: number | null;
+  lastStatus?: "SUCCESS" | "ERRORS" | "ABORTED" | null;
+  lastDurationMs?: number | null;
+  lastError?: string | null;
+  lastErrorDate?: number | null;
+}
+
+/** `SubsystemEntry`: a tile of an active subsystem with the statistics of its problems. */
+export interface SubsystemEntry {
+  id: string;
+  /** Translated by the server. */
+  title: string;
+  detail?: string | null;
+  state: SubsystemState;
+  syncs: SubsystemSync[];
+  occurrences24h: LogGroupCounts;
+  newProblems24h: number;
+  /** Its problems with status NEW or ACKNOWLEDGED: active or muted. */
+  open: LogGroupCounts;
+  /** As `LogGroupEntry.trend`, summed over its active problems. */
+  trend: number[];
+}
+
+/** `LogGroupUpdate`. [muteDays] for MUTE, [notify] for SET_NOTIFY (null: the event's rule). */
+export interface LogGroupUpdate {
+  ids: number[];
+  action: LogGroupAction;
+  muteDays?: number | null;
+  notify?: LogNotify | null;
+}
+
+export function fetchAdminErrors(
+  filter: LogGroupFilter,
+  signal?: AbortSignal
+): Promise<LogGroupList> {
+  return request<LogGroupList>(
+    "/rs/adminErrors/list",
+    { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
+export function fetchAdminSubsystems(
+  signal?: AbortSignal
+): Promise<SubsystemEntry[]> {
+  return request<SubsystemEntry[]>(
+    "/rs/adminErrors/subsystems",
+    { method: "GET" },
+    signal
+  );
+}
+
+export function fetchAdminErrorDetail(
+  id: number,
+  signal?: AbortSignal
+): Promise<LogGroupDetail> {
+  return request<LogGroupDetail>(
+    `/rs/adminErrors/detail?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** `LogFileEvent`: a record of the log file in the shape of the log viewer's `LogViewerEvent`. */
+export interface LogFileEvent extends LogViewerEvent {
+  logger: string;
+  /** Where it was found: `ProjectForge.2026-10-05.log.gz:1234`. */
+  source: string;
+  /** The file's name and the record's first line, to read its context (see fetchLogFileContext). */
+  file: string;
+  line: number;
+}
+
+/** `LogFileSearchData`: the occurrences of a problem in the log files of its last days. */
+export interface LogFileSearchData {
+  /** Newest first. */
+  entries: LogFileEvent[];
+  searchedFiles: string[];
+  /** The search stopped at its limit (hits, time, size), older occurrences may exist. */
+  truncated: boolean;
+  /** Lines of the files aren't readable, so occurrences may be missing. */
+  formatWarning: boolean;
+  unparsedLines: number;
+  /** The `logging.pattern.file` the log file is written with, as logback has it. */
+  pattern?: string | null;
+  recommendedPattern: string;
+}
+
+export function fetchAdminErrorLogFile(
+  id: number,
+  signal?: AbortSignal
+): Promise<LogFileSearchData> {
+  return request<LogFileSearchData>(
+    `/rs/adminErrors/logFile?id=${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * All problems of the filter (not only the listed ones) with their samples and trends as one JSON file, for an
+ * analysis by an AI (`LogAnalysisExport`). Named by the backend.
+ */
+export function downloadAdminErrors(filter: LogGroupFilter): Promise<void> {
+  return downloadPost("/rs/adminErrors/export", filter);
+}
+
+/** @return The number of changed problems. */
+export function updateAdminErrors(update: LogGroupUpdate): Promise<number> {
+  return request<number>("/rs/adminErrors/update", {
+    method: "POST",
+    body: JSON.stringify(update),
+  });
+}

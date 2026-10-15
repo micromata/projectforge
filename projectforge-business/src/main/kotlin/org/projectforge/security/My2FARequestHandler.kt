@@ -23,7 +23,7 @@
 
 package org.projectforge.security
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.menu.builder.MenuItemDefId
@@ -322,7 +322,11 @@ open class My2FARequestHandler {
     @JvmField
     val MY_2FA_URL = MenuItemDefId.MY_2FA.url!!
 
-    private val NO_2FA_URLS = arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rsPublic", "/rs/webauthn/webAuthn")
+    // /rs/next2FA is the 2FA of projectforge-next (org.projectforge.rest.my2fa.My2FANextRest).
+    // Matched by prefix (see no2FAUrl), so a new controller whose path merely starts with one of these entries
+    // (e. g. /rs/next2FAsomething) would silently be exempt from 2FA as well. Keep new paths clearly distinct.
+    private val NO_2FA_URLS =
+      arrayOf("/rs/menu", "/rs/userStatus", "/rs/2FA", "/rs/next2FA", "/rsPublic", "/rs/webauthn/webAuthn")
 
     private val NO_2FA_URL_MATCHERS = arrayOf("^/rs/\\w*/autosearch".toRegex(), "^/rs/\\w*/autocomplete".toRegex())
 
@@ -395,7 +399,7 @@ open class My2FARequestHandler {
   }
 
   init {
-    registerShortCutValues(My2FAShortCut.ALL, "/wa", "/rs/")
+    registerShortCutValues(My2FAShortCut.ALL, "/rs/")
   }
 
   fun getShortCutResolved(shortCut: My2FAShortCut): String? {

@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
 import org.projectforge.framework.ToStringUtil
@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The group user relations will be cached with this class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Open for mocking in test cases.
 @Service
@@ -411,11 +411,11 @@ open class UserGroupCache : AbstractCache() {
      */
     override fun refresh() {
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            log.info("Initializing UserGroupCache...")
+            log.info { "Initializing UserGroupCache..." }
             // This method must not be synchronized because it works with a new copy of maps.
             val uMap: MutableMap<Long, PFUserDO> = HashMap()
             // Could not autowire UserDao because of cyclic reference with AccessChecker.
-            log.info("Loading all users ...")
+            log.info { "Loading all users ..." }
             val users = Login.getInstance().allUsers
             users.forEach { user ->
                 user.id?.let { userId ->
@@ -423,11 +423,11 @@ open class UserGroupCache : AbstractCache() {
                 }
             }
             if (users.size != uMap.size) {
-                log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
-                log.info("For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users))
+                log.warn { "********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!" }
+                log.info { "For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users) }
                 return@runIsolatedReadOnly
             }
-            log.info("Loading all groups ...")
+            log.info { "Loading all groups ..." }
             val groups = Login.getInstance().allGroups
             val gMap = mutableMapOf<Long, GroupDO>()
             val ugIdMap = mutableMapOf<Long, MutableSet<Long>>()
@@ -442,6 +442,12 @@ open class UserGroupCache : AbstractCache() {
             for (group in groups) {
                 val groupId = group.id ?: continue
                 gMap[groupId] = group
+                if (group.deleted) {
+                    // Deleted groups must never grant access anywhere: keep them in groupMap (for display and
+                    // lookup), but don't index their memberships (userGroupIdMap and the ProjectForge system-group
+                    // sets), so no membership check can test positively for a deleted group.
+                    continue
+                }
                 group.assignedUsers?.forEach { user ->
                     val userId = user.id ?: return@forEach
                     val groupIdSet = ugIdMap.getOrPut(userId) { mutableSetOf() }
@@ -473,18 +479,15 @@ open class UserGroupCache : AbstractCache() {
             val rights = try {
                 userRightDao.selectAllOrdered()
             } catch (ex: Exception) {
-                log.error(
-                    "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
-                            + ex.message,
-                    ex
-                )
+                log.error(ex) { "******* Exception while getting user rights from data-base (only OK for migration from older versions): " +
+                            ex.message }
                 ArrayList()
             }
             var set: MutableSet<UserRightDO>? = null
             var userId: Long? = null
             for (right in rights) {
                 if (right.userId == null) {
-                    log.warn("Oups, userId = null: $right")
+                    log.warn { "Oups, userId = null: $right" }
                     continue
                 }
                 if (right.userId != userId) {

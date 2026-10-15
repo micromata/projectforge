@@ -24,7 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * as for rest clients.
  * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
  * tokens without the knowledge of this key.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthenticationsDO::class.java) {
@@ -77,7 +77,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         throwException: Boolean
     ): Boolean {
         require(obj?.user != null) { "UserAuthenticationsDO must have a user." }
-        return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
+        return hasLoggedInUserAccess(obj.user!!.id, throwException)
     }
 
     private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {
@@ -115,16 +115,15 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     open fun getUserByToken(userId: Long, type: UserTokenType, token: String?): PFUserDO? {
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.warn("Token for user $userId too short, aborting.")
+            log.warn { "Token for user $userId too short, aborting." }
             return null
         }
         val sql = when (type) {
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
-            UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY
             else -> {
-                log.error("Getting user by token of type $type not supported.")
+                log.error { "Getting user by token of type $type not supported." }
                 return null
             }
         }
@@ -135,7 +134,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             Pair("token", encryptToken(token)),
         )
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
+            log.warn { "Deleted user '${user.username}' tried to login (via token '$type')." }
             return null
         }
         return user
@@ -143,16 +142,15 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     open fun getUserByToken(username: String, type: UserTokenType, token: String?): PFUserDO? {
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.warn("Token for user '$username' too short, aborting.")
+            log.warn { "Token for user '$username' too short, aborting." }
             return null
         }
         val sql = when (type) {
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
-            UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY
             else -> {
-                log.error("Getting user by token of type $type not supported.")
+                log.error { "Getting user by token of type $type not supported." }
                 return null
             }
         }
@@ -163,7 +161,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             Pair("token", encryptToken(token)),
         )
         if (user != null && !user.hasSystemAccess()) {
-            log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
+            log.warn { "Deleted user '${user.username}' tried to login (via token '$type')." }
             return null
         }
         return user
@@ -254,7 +252,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             var changed = checkAndFixToken(authentications, userId, UserTokenType.CALENDAR_REST)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.DAV_TOKEN)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
-            changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
                 update(authentications, checkAccess)
             }
@@ -264,7 +261,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     private fun checkAndFixToken(authentications: UserAuthenticationsDO, userId: Long, type: UserTokenType): Boolean {
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
-            log.info("Authentication token '$type' renewed for user: $userId")
+            log.info { "Authentication token '$type' renewed for user: $userId" }
             authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             return true
         }
@@ -278,12 +275,24 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
         val authentications = getByUserId(userId)
         if (authentications == null) {
-            log.warn("No user authentications object found for user $userId. Nothing to renew for token '$type'.")
+            log.warn { "No user authentications object found for user $userId. Nothing to renew for token '$type'." }
             return
         }
         authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
         update(authentications)
-        log.info("Authentication token '$type' renewed for user: $userId")
+        log.info { "Authentication token '$type' renewed for user: $userId" }
+    }
+
+    /**
+     * Sets a token for a user without access checks. Used by gateway sync to replicate tokens.
+     * @param userId The user ID.
+     * @param type The token type (DAV_TOKEN, CALENDAR_REST, etc.)
+     * @param plainToken The decrypted/plain token value to store (will be encrypted).
+     */
+    open fun internalSetToken(userId: Long, type: UserTokenType, plainToken: String) {
+        val authentications = ensureAuthentications(userId, checkAccess = false)
+        authentications.setToken(type, encryptToken(plainToken), true)
+        update(authentications, checkAccess = false)
     }
 
     /**
@@ -300,7 +309,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         update(authentications)
         ThreadLocalUserContext.userContext!!
             .updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
-        log.info("Authenticator token created for user '${loggedInUser.username}'.")
+        log.info { "Authenticator token created for user '${loggedInUser.username}'." }
     }
 
     /**
@@ -313,7 +322,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         authentications.authenticatorToken = null
         authentications.authenticatorTokenCreationDate = null
         update(authentications)
-        log.info("Authenticator token deleted for user '${loggedInUser.username}'.")
+        log.info { "Authenticator token deleted for user '${loggedInUser.username}'." }
     }
 
     internal fun createAuthenticationToken(type: UserTokenType): String {
@@ -346,10 +355,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * Decrypts all tokens in given object.
      */
     open fun decryptAllTokens(authentications: UserAuthenticationsDO) {
-        UserTokenType.values().forEach { type ->
-            if (type != UserTokenType.AUTHENTICATOR_KEY) {
-                authentications.setToken(type, decryptToken(authentications.getToken(type)))
-            }
+        // TOKEN_LIST, not UserTokenType.entries: AUTHENTICATOR_KEY is encrypted differently and
+        // STAY_LOGGED_IN_KEY isn't stored in this table at all (one row per device, see StayLoggedInTokenDO).
+        TOKEN_LIST.forEach { type ->
+            authentications.setToken(type, decryptToken(authentications.getToken(type)))
         }
     }
 
@@ -388,13 +397,14 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     companion object {
         /**
-         * List of all tokens without authenticator token: [UserTokenType.CALENDAR_REST], [UserTokenType.DAV_TOKEN], [UserTokenType.REST_CLIENT], [UserTokenType.STAY_LOGGED_IN_KEY]
+         * List of all tokens stored in this table, without the authenticator token:
+         * [UserTokenType.CALENDAR_REST], [UserTokenType.DAV_TOKEN], [UserTokenType.REST_CLIENT].
+         * [UserTokenType.STAY_LOGGED_IN_KEY] is *not* part of it anymore, see [StayLoggedInTokenDO].
          */
         val TOKEN_LIST = listOf(
             UserTokenType.CALENDAR_REST,
             UserTokenType.DAV_TOKEN,
             UserTokenType.REST_CLIENT,
-            UserTokenType.STAY_LOGGED_IN_KEY
         )
     }
 }

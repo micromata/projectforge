@@ -32,7 +32,7 @@ import jakarta.persistence.*
 import org.projectforge.framework.json.IdOnlySerializer
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Entity
 @Table(

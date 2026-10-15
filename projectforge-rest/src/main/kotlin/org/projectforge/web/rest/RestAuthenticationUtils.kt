@@ -23,7 +23,10 @@
 
 package org.projectforge.web.rest
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
+import org.projectforge.rest.core.RestLogEvents
+import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAccessLogEntries
@@ -37,7 +40,10 @@ import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
+import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.my2fa.My2FAPageRest
+import org.projectforge.rest.pub.next.RestError
+import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.RegisterUser4Thread
@@ -49,6 +55,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
@@ -60,7 +67,7 @@ private val log = KotlinLogging.logger {}
  * Does the authentication stuff for restful requests.
  *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class RestAuthenticationUtils {
@@ -72,6 +79,9 @@ open class RestAuthenticationUtils {
 
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
+
+  @Autowired
+  private lateinit var restCsrfProtection: RestCsrfProtection
 
   /**
    * Checks also login protection (time out against brute force attack).
@@ -90,7 +100,7 @@ open class RestAuthenticationUtils {
           authInfo,
           "Authentication failed, no user given by request params ${joinToString(userAttributes)}. Rest call forbidden."
         )
-      } else if (log.isDebugEnabled) {
+      } else if (log.isDebugEnabled()) {
         logDebug(authInfo, "Can't get user String by request parameters ${joinToString(userAttributes)} (OK).")
       }
       return null
@@ -99,7 +109,7 @@ open class RestAuthenticationUtils {
       // Access denied (time offset due to failed logins). Logging is done by check method.
       return null
     }
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Got user by request parameters ${joinToString(userAttributes)}: ${authInfo.userString}.")
     }
     return authInfo.userString
@@ -116,7 +126,7 @@ open class RestAuthenticationUtils {
     required: Boolean,
     authenticate: (userString: String, secret: String) -> PFUserDO?
   ) {
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Trying basic authentication...")
     }
     val authHeader = getHeader(authInfo.request, "authorization", "Authorization")
@@ -124,9 +134,10 @@ open class RestAuthenticationUtils {
       if (required) {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
         authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authentication required\"")
-        logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
+        // Normal first leg of the Basic auth challenge: clients (CardDAV etc.) retry with credentials after the 401.
+        logInfo(authInfo, "Basic authentication failed, header 'authorization' not found.")
         log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
-      } else if (log.isDebugEnabled) {
+      } else if (log.isDebugEnabled()) {
         logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
       }
       return
@@ -147,7 +158,7 @@ open class RestAuthenticationUtils {
     authInfo.user = authenticate(username, secret)
     if (!authInfo.success) {
       logError(authInfo, "Basic authentication failed for user '$username'.")
-    } else if (log.isDebugEnabled) {
+    } else if (log.isDebugEnabled()) {
       logDebug(authInfo, "Basic authentication was successful for user '$username'.")
     }
   }
@@ -162,7 +173,7 @@ open class RestAuthenticationUtils {
     userTokenType: UserTokenType,
     required: Boolean
   ) {
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(authInfo, "Trying token based authentication...")
     }
     val authenticationToken = getAttribute(authInfo.request, *REQUEST_PARAMS_TOKEN)
@@ -210,7 +221,7 @@ open class RestAuthenticationUtils {
             }). Rest call denied."
           )
           authInfo.resultCode = HttpStatus.BAD_REQUEST
-        } else if (log.isDebugEnabled) {
+        } else if (log.isDebugEnabled()) {
           logDebug(
             authInfo,
             "User not found (by request params ${joinToString(userParams)}) and/or authentication tokens (by request params ${
@@ -227,11 +238,12 @@ open class RestAuthenticationUtils {
       userAuthenticationsService.getUserByToken(authInfo.request, username!!, userTokenType, authenticationToken)
     }
     if (authInfo.user == null) {
-      logError(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
+      // Usually a calendar or other client still polling with an outdated token or of a deactivated user.
+      logWarn(authInfo, "Bad request, user not found by username '$username' or id $userId and token.")
       authInfo.resultCode = HttpStatus.BAD_REQUEST
     } else {
       authInfo.loggedInByAuthenticationToken = true // Marking the user as logged in by authentication token.
-      if (log.isDebugEnabled) {
+      if (log.isDebugEnabled()) {
         logDebug(authInfo, "User found by username '$username' or id $userId.")
       }
     }
@@ -255,12 +267,16 @@ open class RestAuthenticationUtils {
   ) {
     response as HttpServletResponse
     request as HttpServletRequest
-    if (log.isDebugEnabled) {
+    if (log.isDebugEnabled()) {
       logDebug(request, "Processing request...")
     }
     if (!systemStatus.upAndRunning) {
-      log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+      log.error(RestLogEvents.SYSTEM_NOT_AVAILABLE) { "System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode." }
+      sendError(
+        response,
+        HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+        "System isn't up and running (start-up phase or maintenance mode).",
+      )
       return
     }
     val authInfo = RestAuthenticationInfo(request, response)
@@ -272,18 +288,50 @@ open class RestAuthenticationUtils {
         LoginProtection.instance()
           .incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress, userTokenType?.name)
       }
-      response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
+      sendError(
+        response,
+        authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED,
+        "Access denied: no valid credentials given.",
+      )
       return
     }
     try {
       registerUser(request, authInfo, userTokenType)
+      if (!restCsrfProtection.checkRequest(request, response, authInfo)) {
+        return // Cross-site request: the error response was already written.
+      }
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
+        if (authInfo.loggedInByAuthenticationToken) {
+          // A client authenticated by an authentication token can't do a 2FA at all: it has no session, so
+          // registerUser creates a fresh UserContext for every request and UserContext.lastSuccessful2FA is always
+          // null (My2FAExpiryPeriod.valid). Such a request is therefore permanently denied and the client only needs
+          // to be told so in a way it can evaluate: without this branch it got the ResponseAction below with status
+          // 200 and had to read a login page url as if it were the requested payload.
+          // Checked before isNextClient, because that one is only a hint given by the client itself.
+          val msg =
+            "2FA is required for ${request.requestURI}, but the request was authenticated by an authentication token: " +
+                "a rest client can't do a 2FA. Either exclude this url from projectforge.2fa.expiryPeriod.* or use " +
+                "an url not protected by a second factor."
+          logError(authInfo, msg)
+          sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, not available for rest clients.")
+          return
+        }
+        if (isNextClient(request)) {
+          // projectforge-next doesn't know the UILayout based ResponseAction protocol: it opens its own 2FA dialog
+          // and repeats the request afterwards (see lib/rs/client.ts).
+          response.status = HttpStatus.FORBIDDEN.value()
+          response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+          response.writer.write(
+            JsonUtils.toJson(TwoFactorRequired(expiryMillis = expiryMillis), ignoreNullableProps = true)
+          )
+          return
+        }
         response.status = HttpStatus.OK.value()
         response.setContentType(MediaType.APPLICATION_JSON_VALUE)
         val url = request.requestURI
-        // /rs/changePassword/dynamic
+        // /rs/2FASetup/dynamic
         // /rs/group/edit
         val targetType = if (
           url.matches("""^/rs/.*/dynamic.*""".toRegex()) ||
@@ -336,7 +384,7 @@ open class RestAuthenticationUtils {
     userContext.loggedInByAuthenticationToken = authInfo.loggedInByAuthenticationToken
     val settings = getConnectionSettings(request)
     ConnectionSettings.set(settings)
-    log.info("User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress")
+    log.info { "User: ${user.username} calls RestURL: ${request.requestURI} with ip: $clientIpAddress" }
   }
 
   fun unregister(
@@ -346,11 +394,36 @@ open class RestAuthenticationUtils {
     RegisterUser4Thread.unregister()
     ConnectionSettings.set(null)
     val resultCode = (response as HttpServletResponse).status
-    if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by CardDavService, because XML is returned.
+    // Any 2xx is a success: 204 is answered by fire-and-forget calls such as POST /rs/menu/recent, and
+    // MULTI_STATUS (207) by CardDavService, because XML is returned.
+    if (resultCode !in 200..299) {
       val user = authInfo.user!!
       val clientIpAddress = authInfo.clientIpAddress
-      log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
+      val msg =
+        "User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}."
+      if (resultCode >= 500) {
+        log.error(RestLogEvents.SERVER_ERROR_RESPONSE) { msg }
+      } else {
+        // 4xx (validation errors, access denied, CSRF) are already logged with their reason where they occur.
+        log.info { msg }
+      }
     }
+  }
+
+  /**
+   * Writes the status and a plain json body instead of using [HttpServletResponse.sendError], see [RestError] for the
+   * reason. Same approach as used for [TwoFactorRequired] above and by
+   * [org.projectforge.rest.core.RestCsrfProtection.deny].
+   *
+   * Not restricted to projectforge-next: the React app and the DAV clients only look at the status code as well, so
+   * all of them are better off with the real 401 than with a 404 html page.
+   */
+  private fun sendError(response: HttpServletResponse, status: Int, message: String) {
+    response.status = status
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+    // Otherwise the container falls back to its default (ISO-8859-1) and announces that in the content type.
+    response.characterEncoding = StandardCharsets.UTF_8.name()
+    response.writer.write(JsonUtils.toJson(RestError(status = status, message = message), ignoreNullableProps = true))
   }
 
   @Throws(IOException::class)
@@ -359,7 +432,7 @@ open class RestAuthenticationUtils {
       .getFailedLoginTimeOffsetIfExists(authInfo.userString, authInfo.clientIpAddress, tokenType?.name)
     if (offset > 0) {
       val seconds = (offset / 1000).toString()
-      log.warn("The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress}).")
+      log.warn { "The account for '${authInfo.userString}' is locked for $seconds seconds due to failed login attempts (ip=${authInfo.clientIpAddress})." }
       authInfo.resultCode = HttpStatus.FORBIDDEN
       authInfo.lockedByTimePenalty = true
       return true
@@ -378,7 +451,17 @@ open class RestAuthenticationUtils {
   }
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
-    log.error("$msg (${RequestLog.asString(authInfo.request)})")
+    log.error(RestLogEvents.AUTH_FAILED) { "$msg (${RequestLog.asString(authInfo.request)})" }
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logWarn(authInfo: RestAuthenticationInfo, msg: String) {
+    log.warn { "$msg (${RequestLog.asString(authInfo.request)})" }
+    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
+  }
+
+  private fun logInfo(authInfo: RestAuthenticationInfo, msg: String) {
+    log.info { "$msg (${RequestLog.asString(authInfo.request)})" }
     SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 
@@ -387,10 +470,30 @@ open class RestAuthenticationUtils {
   }
 
   private fun logDebug(request: HttpServletRequest, msg: String) {
-    log.debug("$msg (request=${RequestLog.asString(request)})")
+    log.debug { "$msg (request=${RequestLog.asString(request)})" }
   }
 
   companion object {
+    /**
+     * Header sent by projectforge-next (lib/rs/client.ts) to identify itself. The Referer is used as fallback, because
+     * the static export is served under [Constants.NEXT_APP_PATH].
+     */
+    const val NEXT_CLIENT_HEADER = "X-PF-Frontend"
+
+    /**
+     * Both the header and the Referer are under the client's control, so this is **not** a trust boundary and must
+     * never gate access: it only picks the shape of the response. Every caller uses it in a branch that denies the
+     * request either way (JSON for next, ResponseAction for the UILayout clients).
+     *
+     * @return true, if the request was sent by projectforge-next (which can't handle UILayout based ResponseActions).
+     */
+    fun isNextClient(request: HttpServletRequest): Boolean {
+      if (request.getHeader(NEXT_CLIENT_HEADER) == Constants.NEXT) {
+        return true
+      }
+      return request.getHeader("Referer")?.contains("/${Constants.NEXT_APP_PATH}") == true
+    }
+
     /**
      * "Authentication-User-Id" and "authenticationUserId".
      */

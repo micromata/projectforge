@@ -55,7 +55,7 @@ public class LiquidityEntriesStatistics implements Serializable
   {
     final BigDecimal amount = entry.getAmount();
     this.total = NumberHelper.add(total, amount);
-    if (entry.getPaid()) {
+    if (entry.getEffectivePaid()) {
       this.paid = NumberHelper.add(paid, amount);
       counterPaid++;
     } else {

@@ -23,7 +23,7 @@
 
 package org.projectforge.business.humanresources
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -227,7 +227,9 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         ) {
             var existingPlanning: HRPlanningDO? = null
             if (obj.id != null) {
-                existingPlanning = find(obj.id, false)
+                // Attached: inside the update this is the managed instance being written (its values aren't copied in
+                // yet), and a detaching find() would make the update merge a detached graph.
+                existingPlanning = find(obj.id, checkAccess = false, attached = true)
             }
             for (entry in obj.entries!!) {
                 val projekt = entry.projekt
@@ -276,6 +278,9 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     override fun addOwnHistoryEntries(obj: HRPlanningDO, context: HistoryLoadContext) {
+        // Kept per-entry (not batched like the other DAOs): the display prefix depends on the individual entry
+        // (projektName/status) and is applied via the per-entry customize callback, which the batched
+        // loadAndMergeHistory(entityClass, entityIds, ...) variant cannot express.
         obj.entries?.forEach { position ->
             var prefix = if (position.projekt != null) position.projektName else position.status.toString()
             if (prefix == null) {
@@ -287,8 +292,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         }
     }
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(HRPlanningEntryDO::class.java)
 
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf<String>(
@@ -299,7 +303,5 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_HR_PLANNING
 
         private val log: Logger = LoggerFactory.getLogger(HRPlanningDao::class.java)
-
-        private val ADDITIONAL_SEARCH_DOS = arrayOf<Class<*>>(HRPlanningEntryDO::class.java)
     }
 }

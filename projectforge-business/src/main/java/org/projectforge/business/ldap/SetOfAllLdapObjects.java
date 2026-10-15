@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Stores DN and id (if given) in sets to detect either an object is in the set or not in later operations. This is used by
  * {@link LdapDao#createOrUpdate(SetOfAllLdapObjects, LdapObject, Object...)}.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class SetOfAllLdapObjects
 {

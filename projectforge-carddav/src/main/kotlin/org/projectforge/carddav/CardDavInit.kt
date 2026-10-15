@@ -24,7 +24,7 @@
 package org.projectforge.carddav
 
 import jakarta.servlet.ServletContext
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.NumberOfBytes
 import org.projectforge.rest.config.RestUtils
 import org.springframework.beans.factory.annotation.Autowired

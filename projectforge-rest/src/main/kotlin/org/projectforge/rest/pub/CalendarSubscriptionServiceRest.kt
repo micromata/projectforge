@@ -25,7 +25,9 @@ package org.projectforge.rest.pub
 
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
+import org.projectforge.rest.core.RestLogEvents
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.teamcal.CalendarHelper
@@ -50,6 +52,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
 import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.projectforge.rest.config.Rest
@@ -73,6 +76,9 @@ private val log = KotlinLogging.logger {}
  */
 @RestController
 @RequestMapping(Rest.CALENDAR_EXPORT_BASE_URI)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+    name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true
+)
 class CalendarSubscriptionServiceRest {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
@@ -97,7 +103,7 @@ class CalendarSubscriptionServiceRest {
         var logMessage: String? = null
         try {
             val userId = ThreadLocalUserContext.loggedInUserId ?: run {
-                log.error("Internal error: shouldn't occur: can't get context user! Should be denied by filter!!!")
+                log.error { "Internal error: shouldn't occur: can't get context user! Should be denied by filter!!!" }
                 return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
             }
             val params = decryptRequestParams(request, userId, userAuthenticationsService)
@@ -109,7 +115,7 @@ class CalendarSubscriptionServiceRest {
             var timesheetUser: PFUserDO? = null
             if (timesheetUserParam != null) {
                 timesheetUser = getTimesheetUser(userId, timesheetUserParam) ?: run {
-                    log.error("Bad request, timesheet user not found: ${request.queryString}")
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Bad request, timesheet user not found: ${request.queryString}" }
                     return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
                 }
             }
@@ -123,7 +129,7 @@ class CalendarSubscriptionServiceRest {
             // setup event is needed for empty calendars
             generator.ensureNotEmpty()
             logMessage = params.filter { it.key != "token" }.map { "${it.key}=${it.value}" }.joinToString(", ")
-            log.info("Read calendar entries for: $logMessage")
+            log.debug { "Read calendar entries for: $logMessage" }
             val baos = ByteArrayOutputStream()
             generator.writeToOutputStream(baos)
 
@@ -141,7 +147,7 @@ class CalendarSubscriptionServiceRest {
             val safeFilename = "projectforge-${ReplaceUtils.encodeFilename(sb.toString(), false)}.ics"
             return RestUtils.downloadFile(safeFilename, resource)
         } finally {
-            log.info("Finished request: $logMessage")
+            log.debug { "Finished request: $logMessage" }
             ThreadLocalUserContext.setUser(null)
             MDC.remove("ip")
             MDC.remove("session")
@@ -155,12 +161,12 @@ class CalendarSubscriptionServiceRest {
             val timesheetUserId = parseLong(timesheetUserParam)
             if (timesheetUserId != null) {
                 if (timesheetUserId != userId) {
-                    log.error("Not yet allowed: all users are only allowed to download their own time-sheets.")
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Not yet allowed: all users are only allowed to download their own time-sheets." }
                     return null
                 }
                 timesheetUser = userGroupCache.getUser(timesheetUserId)
                 if (timesheetUser == null) {
-                    log.error("Time-sheet user with id '$timesheetUserParam' not found.")
+                    log.error(RestLogEvents.CALENDAR_SUBSCRIPTION_BAD_REQUEST) { "Time-sheet user with id '$timesheetUserParam' not found." }
                     return null
                 }
             }
@@ -193,7 +199,7 @@ class CalendarSubscriptionServiceRest {
             val teamEvents = teamEventService.getEventList(eventFilter, false)
             teamEvents?.forEach { teamEventObject ->
                 if (teamEventObject !is TeamEventDO) {
-                    log.warn("Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: $teamEventObject")
+                    log.warn { "Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: $teamEventObject" }
                 } else {
                     generator.add(teamEventObject)
                 }
@@ -271,59 +277,63 @@ class CalendarSubscriptionServiceRest {
             return false
         }
         val holidaysFrom = now().beginOfYear.plusYears(-2)
-        val holidayTo = holidaysFrom.plusYears(6)
-        var day = holidaysFrom
-        val holidays = instance
-        var idCounter = 0
-        var paranoiaCounter = 0
-        do {
-            if (++paranoiaCounter > 4000) {
-                log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.")
-                break
-            }
-            if (!holidays.isHoliday(day)) {
-                day = day.plusDays(1)
-                continue
-            }
-            val title: String?
-            val holidayInfo = holidays.getHolidayInfo(day)
-            title = if (holidayInfo.startsWith("calendar.holiday.")) {
-                translate(holidayInfo)
-            } else {
-                holidayInfo
-            }
-            generator.addAllDayEvent(holidaysFrom.localDate, holidayTo.localDate, title, "pf-holiday" + ++idCounter)
-            day = day.plusDays(1)
-        } while (!day.isAfter(holidayTo))
+        addHolidays(generator, holidaysFrom, holidaysFrom.plusYears(6))
         return true
     }
 
     private fun readWeeksOfYear(generator: ICalGenerator, params: Map<String, String>): Boolean {
-        val weeksOfYear = params[CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS]
-        if ("true" != weeksOfYear) {
+        if ("true" != params[CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS]) {
             return false
         }
-        var from = PFDateTime.now()
-        from = from.beginOfYear.minusYears(2).beginOfWeek
-        val to = from
-        to.plusYears(6)
-        var paranoiaCounter = 0
-        do {
-            generator.addAllDayEvent(
-                to.localDate, to.localDate,
-                ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + to.weekOfYear,
-                "pf-weekOfYear" + to.year + "-" + paranoiaCounter,
-            )
-            to.plusWeeks(1)
-            if (++paranoiaCounter > 500) {
-                log.warn("Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year.")
-            }
-        } while (to.isBefore(to))
+        val from = now().beginOfYear.plusYears(-2)
+        addWeeksOfYear(generator, from, from.plusYears(6))
         return true
     }
 
     companion object {
         const val PARAM_EXPORT_REMINDER = "exportReminders"
+
+        /**
+         * Adds every holiday in [from]..[to] (both inclusive) as a one-day event.
+         */
+        internal fun addHolidays(generator: ICalGenerator, from: PFDay, to: PFDay) {
+            val holidays = instance
+            var day = from
+            var paranoiaCounter = 0
+            while (!day.isAfter(to)) {
+                if (++paranoiaCounter > 4000) {
+                    log.error { "Paranoia counter exceeded! Dear developer, please have a look at the implementation of addHolidays." }
+                    break
+                }
+                if (holidays.isHoliday(day)) {
+                    val holidayInfo = holidays.getHolidayInfo(day)
+                    val title = if (holidayInfo.startsWith("calendar.holiday.")) translate(holidayInfo) else holidayInfo
+                    generator.addAllDayEvent(day.localDate, day.localDate, title, "pf-holiday-${day.localDate}")
+                }
+                day = day.plusDays(1)
+            }
+        }
+
+        /**
+         * Adds one week-long event per week, starting with the week of [from] up to (excluding) [until].
+         */
+        internal fun addWeeksOfYear(generator: ICalGenerator, from: PFDay, until: PFDay) {
+            val label = ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel")
+            var week = from.beginOfWeek
+            var paranoiaCounter = 0
+            while (week.isBefore(until)) {
+                if (++paranoiaCounter > 500) {
+                    log.warn { "Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year." }
+                    break
+                }
+                generator.addAllDayEvent(
+                    week.localDate, week.plusDays(6).localDate,
+                    "$label ${week.weekOfYear}",
+                    "pf-weekOfYear-${week.localDate}",
+                )
+                week = week.plusWeeks(1)
+            }
+        }
 
         fun decryptRequestParams(
             request: HttpServletRequest,
@@ -333,7 +343,7 @@ class CalendarSubscriptionServiceRest {
                 : Map<String, String>? {
             val q = request.getParameter("q")
             if (q.isNullOrBlank()) {
-                log.info("Parameter 'q' with encrypted credentials not found in request parameters. Rest call denied.")
+                log.info { "Parameter 'q' with encrypted credentials not found in request parameters. Rest call denied." }
                 return null
             }
             // Parameters of q are encrypted by user's token for calendar subscriptions:
@@ -341,7 +351,7 @@ class CalendarSubscriptionServiceRest {
                 ?: run {
                     val msg =
                         "Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): ${request.queryString}"
-                    log.error(msg)
+                    log.warn { msg }
                     logSecurityWarn(this::class.java, "${UserTokenType.CALENDAR_REST.name} AUTHENTICATION FAILED", msg)
                     return null
                 }

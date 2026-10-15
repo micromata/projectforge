@@ -26,7 +26,7 @@ package org.projectforge.business.test
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object DatabaseHelper {
     @JvmStatic
@@ -43,6 +43,15 @@ object DatabaseHelper {
                 .resultList
                 .forEach { tableName ->
                     em.createNativeQuery("DELETE FROM $tableName").executeUpdate()
+                }
+            // Files of the file store (schema pf_files, created by PfFilesTestSchema):
+            em.createNativeQuery("SELECT TABLE_NAME \n" +
+                    "FROM INFORMATION_SCHEMA.TABLES \n" +
+                    "WHERE TABLE_TYPE = 'BASE TABLE' \n" +
+                    "AND TABLE_SCHEMA = 'PF_FILES'")
+                .resultList
+                .forEach { tableName ->
+                    em.createNativeQuery("DELETE FROM PF_FILES.$tableName").executeUpdate()
                 }
         }
         persistenceService.runInTransaction { context ->

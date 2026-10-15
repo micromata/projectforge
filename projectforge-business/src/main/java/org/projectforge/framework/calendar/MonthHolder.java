@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MonthHolder {
   /**

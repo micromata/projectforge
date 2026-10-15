@@ -32,7 +32,7 @@ import java.time.temporal.Temporal
 object RRuleUtils {
     @JvmStatic
     fun <T : Temporal> getRecurUntil(rRule: RRule<T>): T? {
-        return rRule.getRecur()?.getUntil()
+        return rRule.getRecur().getUntil()
     }
 
     fun parseExcludeDates(datesAsCsv: String?): List<Temporal>? {

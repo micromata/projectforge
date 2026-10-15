@@ -24,7 +24,7 @@
 package org.projectforge.business.availability
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.OperationType

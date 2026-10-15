@@ -132,6 +132,10 @@ open class VacationService {
          * day).
          */
         val conflict: Boolean = false,
+        /**
+         * The days of the vacation on which every substitute is on leave as well (see [uncoveredDays]).
+         */
+        val uncoveredDays: List<LocalDate> = emptyList(),
     )
 
     /**
@@ -187,7 +191,8 @@ open class VacationService {
             stats.specialVacationDaysApproved =
                 sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, true, VacationStatus.APPROVED)
 
-            stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
+            stats.allocatedDaysInOverlapPeriod =
+                getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year, stats.endOfVacationYear)
 
             stats.remainingLeaveFromPreviousYear =
                 remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
@@ -258,7 +263,7 @@ open class VacationService {
             : List<VacationDO> {
         var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         result = if (status.isNotEmpty()) {
-            result.filter { VacationStatus.entries.contains(it.status) }
+            result.filter { status.contains(it.status) }
         } else {
             result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
         }
@@ -290,7 +295,7 @@ open class VacationService {
             VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
             Pair("endDate", LocalDate.now()),
-            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
+            Pair("statusList", CONFLICT_STATUS),
             entityGraphName = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS
         )
     }
@@ -337,7 +342,14 @@ open class VacationService {
         val result = AverageWorkingTime(fromMonth = fromMonth, toMonth = toMonth)
         var currentMonth = fromMonth
         for (paranoiaCounter in 0..3) { // Paranoia counter for avoiding endless loops.
-            val reportOfMonth = employeeService.getReportOfMonth(currentMonth.year, currentMonth.month.value, user)
+            // Only the working-time totals are read below, so skip the (expensive) vacation statistics to avoid
+            // rebuilding them for every month in this loop.
+            val reportOfMonth = employeeService.getReportOfMonth(
+                currentMonth.year,
+                currentMonth.month.value,
+                user,
+                calculateVacationStats = false,
+            )
             result.workingHours += BigDecimal(reportOfMonth.totalNetDuration).divide(
                 TimePeriod.MILLIS_PER_HOUR,
                 2,
@@ -427,6 +439,13 @@ open class VacationService {
     }
 
     /**
+     * @see [VacationDao.hasLoggedInUserUnrestrictedVacationView]
+     */
+    open fun hasLoggedInUserUnrestrictedVacationView(): Boolean {
+        return vacationDao.hasLoggedInUserUnrestrictedVacationView()
+    }
+
+    /**
      * Method for detecting vacation overlaps between employees and their substitutes (replacement) or to get
      * an vacation list for selected employees or group of employees.
      */
@@ -437,23 +456,40 @@ open class VacationService {
         vararg status: VacationStatus,
     )
             : List<VacationsByEmployee> {
-        val result = mutableListOf<VacationsByEmployee>()
-        employees.forEach { employee ->
-            val vacations =
-                getVacationsListForPeriod(
-                    employee.id,
-                    periodBegin,
-                    periodEnd,
-                    withSpecial,
-                    trimVacations,
-                    *status
-                )
-            result.add(VacationsByEmployee(employee, vacations))
+        val statuses = if (status.isNotEmpty()) status.toList() else DEFAULT_VACATION_STATUS_LIST.toList()
+        // In one query for all employees, not one per employee (n+1).
+        val byEmployeeId = vacationDao.getVacationsOfEmployeesForPeriod(
+            employees.mapNotNull { it.id }.distinct(), periodBegin, periodEnd,
+        )
+            .filter { withSpecial || it.special != true }
+            .filter { statuses.contains(it.status) }
+            .groupBy { it.employee?.id }
+        return employees.map { employee ->
+            val vacations = byEmployeeId[employee.id].orEmpty()
+            if (trimVacations) {
+                vacations.forEach {
+                    if (periodBegin.isAfter(it.startDate)) {
+                        it.startDate = periodBegin
+                    }
+                    if (periodEnd.isBefore(it.endDate)) {
+                        it.endDate = periodEnd
+                    }
+                }
+            }
+            VacationsByEmployee(employee, vacations)
         }
-        return result
     }
 
-    open fun getVacationOverlaps(vacation: VacationDO): VacationOverlaps {
+    /**
+     * The vacations of the replacements overlapping the given one, and whether at least one day isn't covered by
+     * any of them.
+     *
+     * @param updateCache Stores the result in [ConflictingVacationsCache]. Only for a vacation as it is stored:
+     * the edit form asks for the state the user is still editing (see `VacationEntityRest.stats`), which must not
+     * leave its unsaved conflict in the cache.
+     */
+    @JvmOverloads
+    open fun getVacationOverlaps(vacation: VacationDO, updateCache: Boolean = true): VacationOverlaps {
         val periodBegin = vacation.startDate ?: return VacationOverlaps() // Should not occur on db entries.
         val periodEnd = vacation.endDate ?: return VacationOverlaps() // Should not occur on db entries.
         val employees = collectAllReplacements(vacation)
@@ -466,7 +502,8 @@ open class VacationService {
             periodBegin,
             periodEnd,
             withSpecial = true,
-            trimVacations = true,
+            // Not trimmed to the period: the form charts them as they are (see VacationEntityRest.computeStats).
+            trimVacations = false,
         ).forEach { employeeVacations ->
             employeeVacations.vacations.forEach { otherVacation ->
                 if (vacation.hasOverlap(otherVacation)) {
@@ -474,9 +511,33 @@ open class VacationService {
                 }
             }
         }
-        val conflict = checkConflict(vacation, vacationOverlaps)
-        conflictingVacationsCache.updateVacation(vacation, conflict)
-        return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
+        val uncoveredDays = uncoveredDays(vacation, vacationOverlaps)
+        val conflict = uncoveredDays.isNotEmpty()
+        if (updateCache) {
+            conflictingVacationsCache.updateVacation(vacation, conflict)
+        }
+        return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict, uncoveredDays)
+    }
+
+    /**
+     * The days without any substitute on duty of each of the given vacations (by id), as [getVacationOverlaps]
+     * tells them one by one, but with a single query for the vacations of all their substitutes: for a list of
+     * entries. Nothing is written to the [ConflictingVacationsCache].
+     */
+    open fun getUncoveredDays(vacations: Collection<VacationDO>): Map<Long, List<LocalDate>> {
+        val relevant = vacations.filter { it.id != null && it.startDate != null && it.endDate != null }
+        val employeeIds = relevant.flatMap { collectAllReplacements(it) }.mapNotNull { it.id }.toSet()
+        if (employeeIds.isEmpty()) {
+            return emptyMap()
+        }
+        val others = vacationDao.getVacationsOfEmployeesForPeriod(
+            employeeIds,
+            relevant.minOf { it.startDate!! },
+            relevant.maxOf { it.endDate!! },
+        ).filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
+        return relevant.associate { vacation ->
+            vacation.id!! to uncoveredDays(vacation, others.filter { vacation.hasOverlap(it) })
+        }
     }
 
     /**
@@ -490,56 +551,54 @@ open class VacationService {
 
 
     internal fun checkConflict(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): Boolean {
+        return uncoveredDaySequence(vacation, vacationsOfReplacements).any()
+    }
+
+    /**
+     * The days of the vacation on which no substitute is on duty: every substitute (replacement and other
+     * replacements) has a vacation covering the day. None, if one of them has no vacation at all among the given ones.
+     * Calendar days, as for the conflict flag.
+     */
+    internal fun uncoveredDays(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): List<LocalDate> {
+        return uncoveredDaySequence(vacation, vacationsOfReplacements).toList()
+    }
+
+    private fun uncoveredDaySequence(
+        vacation: VacationDO,
+        vacationsOfReplacements: List<VacationDO>,
+    ): Sequence<LocalDate> {
         if (vacationsOfReplacements.isEmpty()) {
-            return false
+            return emptySequence()
         }
         val allReplacements = collectAllReplacements(vacation)
         if (allReplacements.isEmpty()) {
-            return false // return should not occur
+            return emptySequence() // should not occur
         }
-        allReplacements.forEach { employeeDO ->
-            if (vacationsOfReplacements.none { it.employee?.id == employeeDO.id }) {
-                return false // one replacement employee found without any vacation in the vacation period -> no conflict.
-            }
+        val startDate = vacation.startDate ?: return emptySequence() // should not occur on db entries.
+        val endDate = vacation.endDate ?: return emptySequence() // should not occur on db entries.
+        val vacationsByReplacement = allReplacements.map { replacement ->
+            vacationsOfReplacements.filter { it.employee?.id == replacement.id }
         }
-
-        val startDate = vacation.startDate ?: return false // return should not occur on db entries.
-        val endDate = vacation.endDate ?: return false // return should not occur on db entries.
-        if (startDate > endDate) {
-            return false // startDate after endDate shouldn't occur fore db entries.
+        if (vacationsByReplacement.any { it.isEmpty() }) {
+            return emptySequence() // A substitute without any vacation in the period is on duty all the time.
         }
-        var date = startDate
-        var paranoiaCounter = 10000
-        while (date <= endDate) {
-            if (--paranoiaCounter <= 0) {
-                // Paranoia counter for avoiding endless loops
-                break
-            }
-            var substituteAvailable = false
-            // No check either at least one substitute is on duty or not:
-            allReplacements.forEach replacements@{ replacement ->
-                vacationsOfReplacements.filter { it.employee?.id == replacement.id }.forEach { other ->
-                    if (!other.isInBetween(date)) {
-                        substituteAvailable = true
-                        return@replacements
-                    }
-                }
-            }
-            if (!substituteAvailable) {
-                // No substitute found for at least one day.
-                return true
-            }
-            date = date.plusDays(1)
-        }
-        return false
+        return generateSequence(startDate) { it.plusDays(1) }
+            .takeWhile { it <= endDate }
+            .take(10000) // Paranoia limit against endless periods.
+            .filter { date -> vacationsByReplacement.all { vacations -> vacations.any { it.isInBetween(date) } } }
     }
 
     /**
      * Determine the vacation days (of the database) from 1.1. until 31.3. of the given year.
      */
-    private fun getNumberValidVacationDaysInOverlapPeriod(vacations: List<VacationDO>, year: Int): BigDecimal {
+    private fun getNumberValidVacationDaysInOverlapPeriod(
+        vacations: List<VacationDO>,
+        year: Int,
+        endOfCarryVacation: LocalDate? = null,
+    ): BigDecimal {
         val periodBegin = LocalDate.of(year, Month.JANUARY, 1)
-        val periodEnd = configService.getEndOfCarryVacationOfPreviousYear(year)
+        // Reuse the already-loaded end-of-carry date if the caller provides it (saves a redundant configuration read).
+        val periodEnd = endOfCarryVacation ?: configService.getEndOfCarryVacationOfPreviousYear(year)
         return sum(vacations, periodBegin, periodEnd, false, *DEFAULT_VACATION_STATUS_LIST)
     }
 
@@ -627,6 +686,9 @@ open class VacationService {
         private val HALF_DAY = BigDecimal(0.5)
         private val TWELVE = BigDecimal(12)
         private val DEFAULT_VACATION_STATUS_LIST = arrayOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
+
+        /** The statuses of the vacations [ConflictingVacationsCache] checks for conflicts. */
+        val CONFLICT_STATUS = listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)
 
         @JvmStatic
         @JvmOverloads

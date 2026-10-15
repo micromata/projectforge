@@ -30,7 +30,7 @@ import org.projectforge.framework.xmlstream.XmlField;
 
 /**
  * Bean used by ConfigXML (config.xml).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LdapConfig
 {

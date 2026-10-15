@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Stores the number of entities in the different tables (used by SearchPage).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class StatisticsCache extends AbstractCache

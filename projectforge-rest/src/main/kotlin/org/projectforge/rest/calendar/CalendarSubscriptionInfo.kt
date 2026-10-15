@@ -37,7 +37,7 @@ class CalendarSubscriptionInfo(var headline: String? = null,
                                val securityAdviseHeadline: String? = translate("securityAdvice"),
                                val securityAdvise: String? = translate("calendar.icsExport.securityAdvice")) {
     /**
-     * For owners the url with reminders is used as default. Might be used
+     * For owners and users with full or read-only access the url with reminders is used as default. Might be used
      * in frontend for a checkbox for switching reminders in export on and off.
      */
     val remindersExportDefaultValue: Boolean = accessStatus != null && remindersStatusList.contains(accessStatus)
@@ -53,6 +53,7 @@ class CalendarSubscriptionInfo(var headline: String? = null,
     }
 
     companion object {
-        val remindersStatusList = listOf(CalendarAccessStatus.OWNER, CalendarAccessStatus.FULL_ACCESS)
+        val remindersStatusList =
+            listOf(CalendarAccessStatus.OWNER, CalendarAccessStatus.FULL_ACCESS, CalendarAccessStatus.READONLY_ACCESS)
     }
 }

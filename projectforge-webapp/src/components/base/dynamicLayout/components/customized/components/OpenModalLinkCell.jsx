@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import style from './Customized.module.scss';
 
 function OpenModalLinkCell({
-    value, data, urlPattern, multiline, placeholder,
+    value = null, data, urlPattern, multiline = false, placeholder = null,
 }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -67,12 +67,6 @@ OpenModalLinkCell.propTypes = {
     urlPattern: PropTypes.string.isRequired,
     multiline: PropTypes.bool,
     placeholder: PropTypes.string,
-};
-
-OpenModalLinkCell.defaultProps = {
-    value: null,
-    multiline: false,
-    placeholder: null,
 };
 
 export default OpenModalLinkCell;

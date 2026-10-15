@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.orderbooksnapshots
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.springframework.beans.factory.annotation.Autowired

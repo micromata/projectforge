@@ -36,11 +36,8 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
-import org.projectforge.rest.multiselect.MassUpdateParameter
+import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -60,43 +57,51 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   private lateinit var rechnungDao: RechnungDao
 
   @Autowired
-  private lateinit var rechnungPagesRest: RechnungPagesRest
+  private lateinit var outgoingInvoiceEntityRest: OutgoingInvoiceEntityRest
 
   override val layoutContext: LayoutContext = LayoutContext(RechnungDO::class.java)
-
-  override fun getTitleKey(): String {
-    return "fibu.rechnung.multiselected.title"
-  }
 
   override val listPageUrl: String = "/${MenuItemDefId.OUTGOING_INVOICE_LIST.url}"
 
   @PostConstruct
   private fun postConstruct() {
-    pagesRest = rechnungPagesRest
+    pagesRest = outgoingInvoiceEntityRest
   }
 
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    val lc = LayoutContext(RechnungDO::class.java)
-    val stats = RechnungsStatistik()
-    rechnungDao.select(selectedIds)?.forEach { invoice ->
-      stats.add(invoice)
-    }
-    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "status",
-      "bezahlDatum",
+  /**
+   * The three fields of the mass update, for the next frontend that renders the form itself.
+   */
+  override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+    return listOf(
+      MassUpdateFieldDeclaration("status"),
+      MassUpdateFieldDeclaration("bezahlDatum"),
+      MassUpdateFieldDeclaration("bemerkung", showAppendOption = true),
     )
-    createAndAddFields(lc, massUpdateData, layout, "bemerkung", showAppendOption = true)
-    layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
+  }
+
+  override fun infoMessageKey(): String {
+    return "fibu.rechnung.multiselected.info"
+  }
+
+  override fun getStatistics(selectedIds: Collection<Serializable>?): String {
+    return buildStatistics(selectedIds).asMarkdown
+  }
+
+  /**
+   * The same numbers [getStatistics] renders as markdown, as the values the list serves.
+   *
+   * The markdown (`MultiSelectMetaData.statistics`) is deprecated: it carries the `<span style="color:blue">`
+   * `MarkdownBuilder` colours it with. The hand built page renders its own statistics line and needs the
+   * numbers, which is also the only way it can format an amount in the *user's* locale and currency.
+   */
+  override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
+    return OutgoingInvoiceEntityRest.InvoiceStatistics(buildStatistics(selectedIds))
+  }
+
+  private fun buildStatistics(selectedIds: Collection<Serializable>?): RechnungsStatistik {
+    // Cache-based (RechnungCache), so this stays cheap when called live on every debounced selection
+    // change - no invoice is hydrated and no position is loaded (see RechnungDao.buildStatistikByIds).
+    return rechnungDao.buildStatistikByIds(selectedIds)
   }
 
   override fun proceedMassUpdate(

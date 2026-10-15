@@ -36,7 +36,7 @@ import java.io.Serializable;
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
  * accounting areas, such as for DATEV accounting records.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "accounting")

@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
@@ -57,7 +58,8 @@ import org.springframework.web.bind.annotation.RestController
 class MerlinPagesRest :
     AbstractDTOPagesRest<MerlinTemplateDO, MerlinTemplate, MerlinTemplateDao>(
         MerlinTemplateDao::class.java,
-        "plugins.merlin.title"
+        "plugins.merlin.title",
+        cloneSupport = CloneSupport.CLONE,
     ) {
     @Autowired
     private lateinit var groupService: GroupService
@@ -86,6 +88,27 @@ class MerlinPagesRest :
         return template
     }
 
+    /**
+     * The user and group columns are joined display names, there's no database column to sort on. The groups
+     * sort by their names only, without the users listed after them. See [computedSortProperties].
+     */
+    override val computedSortProperties: Map<String, (MerlinTemplateDO) -> Comparable<*>?>
+        get() = mapOf(
+            "adminsAsString" to { obj ->
+                usersAsString(User.toUserList(obj.adminIds)?.also { User.restoreDisplayNames(it) })
+            },
+            "accessUsersAsString" to { obj ->
+                usersAsString(User.toUserList(obj.accessUserIds)?.also { User.restoreDisplayNames(it) })
+            },
+            "accessGroupsAsString" to { obj ->
+                groupsAsString(Group.toGroupList(obj.accessGroupIds)?.also { Group.restoreDisplayNames(it) })
+            },
+        )
+
+    private fun usersAsString(users: List<User>?): String = users?.joinToString { it.displayName ?: "???" } ?: ""
+
+    private fun groupsAsString(groups: List<Group>?): String = groups?.joinToString { it.displayName ?: "???" } ?: ""
+
     override fun transformForDB(dto: MerlinTemplate): MerlinTemplateDO {
         val obj = MerlinTemplateDO()
         dto.copyTo(obj)
@@ -102,9 +125,9 @@ class MerlinPagesRest :
         User.restoreDisplayNames(dto.admins)
         User.restoreDisplayNames(dto.accessUsers)
 
-        dto.adminsAsString = dto.admins?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.adminsAsString = usersAsString(dto.admins)
         buildAccessGroupAsString(dto)
-        dto.accessUsersAsString = dto.accessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.accessUsersAsString = usersAsString(dto.accessUsers)
 
         obj.id?.let { id ->
             val list =
@@ -113,6 +136,23 @@ class MerlinPagesRest :
             dto.wordTemplateFileName = list?.find { it.fileExtension == "docx" }?.name
         }
         return dto
+    }
+
+    /**
+     * The attachments (Word template and Excel template definition) aren't cloned. The user has to upload them
+     * after saving the clone.
+     */
+    override fun prepareClone(dto: MerlinTemplate): MerlinTemplate {
+        val clone = super.prepareClone(dto)
+        clone.name = translateMsg("plugins.merlin.clone.name", dto.name ?: "")
+        // Attachments aren't cloned:
+        clone.attachments = null
+        clone.attachmentsCounter = null
+        clone.attachmentsSize = null
+        clone.wordTemplateFileName = null
+        clone.excelTemplateDefinitionFileName = null
+        clone.lastVariableUpdate = null
+        return clone
     }
 
     /**
@@ -530,7 +570,7 @@ class MerlinPagesRest :
             dto.accessGroupsAsString = "-"
             return
         }
-        dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
+        dto.accessGroupsAsString = groupsAsString(dto.accessGroups)
         val accessGroupUsers =
             groupService.getGroupUsers(User.toLongArray(dto.accessGroupIds)).joinToString { it.displayName }
         dto.accessGroupsAsString += ": $accessGroupUsers"

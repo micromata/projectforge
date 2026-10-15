@@ -1,0 +1,198 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import type { FilterElement } from "@/lib/rs/types";
+import type { PeriodKindId } from "@/lib/date-period";
+import { FilterFieldPicker } from "./filter-field-picker";
+import { hoistDeletedFilter } from "./filter-groups";
+import { FilterPeriodKindsProvider } from "./filter-period-kinds";
+import { FilterValuesProvider } from "./filter-values-context";
+import { FilterPill } from "./filter-pill";
+import { withFilterValue, type FilterValues } from "./filter-value";
+import {
+  clearHistoryFilters,
+  historyFilterActive,
+  historyFilterGroupOf,
+  mergeHistoryFilters,
+  withoutHistoryFilters,
+  HISTORY_FILTER_GROUP_ID,
+} from "./history-filter";
+import { HistoryFilterPill } from "./history-filter-pill";
+
+interface FilterPillsProps {
+  /** Field definitions, for labels and for resolving LIST values to their text. */
+  elements: FilterElement[];
+  values: FilterValues;
+  onChange: (values: FilterValues) => void;
+  /**
+   * The arts the period filters of this list offer, from the page's declaration. Absent leaves the
+   * default (`Monat`, `Jahr bis heute`) — see [FilterPeriodKindsProvider].
+   */
+  periodKinds?: readonly PeriodKindId[];
+  /** The art a date typed into an empty period filter snaps to (see [FilterPeriodKindsProvider]). */
+  defaultPeriodKind?: PeriodKindId;
+  /** Sits at the end of the row — meant for the saved-filters menu. */
+  trailing?: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * The list's filters as pills: each one opens its own input, and the "add filter" chip
+ * picks another field — or opens every field at once (see [FilterFieldPicker]).
+ *
+ * The three change-history fields share one pill under the pseudo id `historyFilter`; see
+ * [historyFilterGroupOf].
+ */
+export function FilterPills({
+  elements,
+  values,
+  onChange,
+  periodKinds,
+  defaultPeriodKind,
+  trailing,
+  className,
+}: FilterPillsProps) {
+  const t = useTranslations("filter");
+  const [openId, setOpenId] = useState<string | null>(null);
+  // A field picked from the chip: shown as an empty pill until it is saved or dropped.
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  // Boolean fields the user has toggled this session. A boolean toggles off in place — its value is
+  // dropped, but its pill stays on the row (empty, dashed), unlike a text or list pill. The row is
+  // rebuilt from the stored filter on a reload or a return to the page, so the empty ones are then
+  // gone; "Clear all" and the pill's own remove (×) drop them at once.
+  const [keptBooleanIds, setKeptBooleanIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const activeCount = Object.keys(values).length;
+  const history = historyFilterGroupOf(elements);
+  const showHistory =
+    history != null &&
+    (historyFilterActive(values) || pendingId === HISTORY_FILTER_GROUP_ID);
+
+  // Derived, and in backend order, so pills don't jump around as values come and go.
+  const shown = withoutHistoryFilters(elements).filter(
+    (element) =>
+      element.defaultFilter ||
+      element.id in values ||
+      element.id === pendingId ||
+      keptBooleanIds.has(element.id)
+  );
+
+  function close() {
+    setOpenId(null);
+    setPendingId(null);
+  }
+
+  const keepBoolean = (id: string) =>
+    setKeptBooleanIds((prev) => (prev.has(id) ? prev : new Set([...prev, id])));
+
+  const dropBoolean = (id: string) =>
+    setKeptBooleanIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+
+  return (
+    // Around the whole row, so the fields of the pills and the ones the "all filters" dialog repeats
+    // offer the same arts.
+    <FilterPeriodKindsProvider
+      periodKinds={periodKinds}
+      defaultPeriodKind={defaultPeriodKind}
+    >
+      {/* Pill edits apply live, so the applied values are the ones a checklist narrows by. */}
+      <FilterValuesProvider value={values}>
+        <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+          {showHistory && (
+            <HistoryFilterPill
+              group={history}
+              values={values}
+              open={openId === HISTORY_FILTER_GROUP_ID}
+              onOpenChange={(open) =>
+                open ? setOpenId(HISTORY_FILTER_GROUP_ID) : close()
+              }
+              onSave={(draft) => onChange(mergeHistoryFilters(values, draft))}
+              onDelete={() => {
+                onChange(clearHistoryFilters(values));
+                close();
+              }}
+            />
+          )}
+          {shown.map((element) => (
+            <FilterPill
+              key={element.id}
+              element={element}
+              value={values[element.id]}
+              open={openId === element.id}
+              onOpenChange={(open) => (open ? setOpenId(element.id) : close())}
+              removable={!element.defaultFilter}
+              onSave={(value) => {
+                // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
+                if (element.filterType === "BOOLEAN") keepBoolean(element.id);
+                onChange(withFilterValue(values, element.id, value));
+              }}
+              onDelete={() => {
+                // The pill's × is the real removal: drop the value and stop keeping the empty pill.
+                dropBoolean(element.id);
+                onChange(withFilterValue(values, element.id, undefined));
+                close();
+              }}
+            />
+          ))}
+          <FilterFieldPicker
+            entries={[
+              ...(history
+                ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
+                : []),
+              // `deleted` right behind the change history instead of alphabetically among the entity's
+              // own properties, in both places a field can be picked (see hoistDeletedFilter).
+              ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
+                (element) => ({
+                  id: element.id,
+                  label: element.label ?? element.id,
+                  tooltip: element.tooltip,
+                })
+              ),
+            ]}
+            activeIds={[
+              ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
+              ...shown.map((element) => element.id),
+            ]}
+            onSelect={(id) => {
+              // A boolean has one meaningful state; picking it is the same as ticking it, so it
+              // becomes an active pill straight away instead of opening a popover with one checkbox.
+              const element = elements.find((e) => e.id === id);
+              if (element?.filterType === "BOOLEAN") {
+                onChange(withFilterValue(values, id, { value: "true" }));
+                return;
+              }
+              // Keyed by id, so a pending pill mounts with its popover already open.
+              if (!(id in values)) setPendingId(id);
+              setOpenId(id);
+            }}
+            elements={elements}
+            values={values}
+            onApply={onChange}
+          />
+          {activeCount > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                close();
+                setKeptBooleanIds(new Set());
+                onChange({});
+              }}
+              className="cursor-pointer px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              {t("clearAll")}
+            </button>
+          )}
+          {trailing}
+        </div>
+      </FilterValuesProvider>
+    </FilterPeriodKindsProvider>
+  );
+}

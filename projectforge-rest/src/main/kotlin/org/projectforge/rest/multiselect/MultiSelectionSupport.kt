@@ -25,7 +25,7 @@ package org.projectforge.rest.multiselect
 
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import java.io.Serializable
 import jakarta.servlet.http.HttpServletRequest
@@ -124,7 +124,7 @@ object MultiSelectionSupport {
   /**
    * @return Caller url, if registered.
    */
-  fun clear(request: HttpServletRequest, pagesRest: AbstractPagesRest<*, *, *>): String? {
+  fun clear(request: HttpServletRequest, pagesRest: AbstractEntityRest<*, *, *>): String? {
     val identifier = pagesRest::class.java.name
     pagesRest.getCurrentFilter().multiSelection = false // multi selection mode is also stored in magic filter.
     val callerUrl = getRegisteredCallerUrl(request, identifier)
@@ -238,12 +238,14 @@ object MultiSelectionSupport {
   }
 
   /**
-   * Call this method on [AbstractPagesRest.getInitialList], if you want to force multi selection usage only.
-   * This is useful, if the page isn't yet migrated from Wicket, but already used for multi selection.
+   * Call this method on the initial list of a legacy React list page (`AbstractPagesRest.getInitialList`), if
+   * you want to force multi selection usage only. This is useful, if the page isn't yet migrated from Wicket,
+   * but already used for multi selection. Not needed for projectforge-next, which selects via
+   * [AbstractMultiSelectedPage.select].
    */
   fun ensureMultiSelectionOnly(
     request: HttpServletRequest,
-    pagesRest: AbstractPagesRest<*, *, *>,
+    pagesRest: AbstractEntityRest<*, *, *>,
     returnToUrl: String,
   ) {
     if (!isMultiSelection(request, pagesRest.getCurrentFilter())) {

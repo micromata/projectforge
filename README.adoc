@@ -34,7 +34,7 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 ====
 
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
-2. For developing try OpenJDK 17 (tested): `java -version`.
+2. For developing use a JDK 17 or newer (we use Java 21): `java -version`.
 3. Build ProjectForge:
    `./gradlew build -x test` (or `./gradlew.bat build -x test` on Windows)
 4. Run ProjectForge:
@@ -58,8 +58,8 @@ To configure a different directory you have several options (*choose Your favori
 
 Please note the detailed documentations for administrators, developers as well as for users.
 
-Java version 17 is required since ProjectForge 8.0.
-Please note, that OpenJdk 17 is currently used in production for developing and running ProjectForge.
+Java 17 or newer is required since ProjectForge 8.0.
+ProjectForge is compiled for Java 17 and runs in production on Java 21 (the Docker image is based on Eclipse Temurin 21).
 
 === Quickstart with IntelliJ
 
@@ -88,7 +88,7 @@ podman run -d \
   -e POSTGRES_USER=projectforge \
   -e POSTGRES_PASSWORD=$PGPASSWORD \
   -v projectforge-pgdata:/var/lib/postgresql/data \
-  docker.io/library/postgres:16
+  docker.io/library/postgres:17
 ----
 * Configure ProjectForge
 
@@ -114,8 +114,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 password is now `test123`.
 |Clear calendar subscriptions (optional)|`update t_calendar set ext_subscription=false where owner_fk != [pk];` +
 This is useful for avoiding a lot of external calendar calls of foreign users if your productive data contains a lot of users with calendar subscriptions.
-|Uninstall|`podman stop projectforge-postgres` \
-           `podman rm projectforge-postgres` \
+|Uninstall|`podman stop projectforge-postgres` &&
+           `podman rm projectforge-postgres` &&
            `podman volume rm projectforge-pgdata`
 |===
 

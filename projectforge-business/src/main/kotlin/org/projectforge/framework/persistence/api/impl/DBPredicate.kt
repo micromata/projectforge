@@ -24,9 +24,10 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.criteria.Predicate
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.math.NumberUtils
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
+import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
@@ -65,7 +66,7 @@ abstract class DBPredicate(
     internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate?
     internal open fun handle(
         searchPredicateFactory: SearchPredicateFactory,
-        boolCollector: BooleanPredicateOptionsCollector<*>,
+        boolCollector: BooleanPredicateOptionsCollector<*, *>,
         searchClassInfo: HibernateSearchClassInfo,
     ) {
         throw UnsupportedOperationException("Operation '${this.javaClass}' not supported by full text query.")
@@ -154,7 +155,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -181,7 +182,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -249,7 +250,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as T && value <= to
             }
-            log.warn("Between operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "Between operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -263,7 +264,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -298,7 +299,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -319,7 +320,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from <= value as O
             }
-            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -333,7 +334,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -354,7 +355,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return (value as O) < to
             }
-            log.warn("Less operator fails, because value isn't of type ${to::class.java}: $value")
+            log.warn { "Less operator fails, because value isn't of type ${to::class.java}: $value" }
             return false
         }
 
@@ -368,7 +369,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -389,7 +390,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return value as O <= to
             }
-            log.warn("LessEqual operator fails, because value isn't of type ${to::class.java}: $value")
+            log.warn { "LessEqual operator fails, because value isn't of type ${to::class.java}: $value" }
             return false
         }
 
@@ -403,7 +404,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             logDebugFunCall(log) {
@@ -444,7 +445,8 @@ abstract class DBPredicate(
         }
 
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field!!) { innerMatch(it as String) }
+            // A missing value matches no pattern, as in SQL (where like over null is not true).
+            return fieldValueMatch(obj, field!!) { innerMatch(it as String?) }
         }
 
         private fun innerMatch(value: String?): Boolean {
@@ -468,7 +470,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
             val term = queryString.replace('%', '*')
@@ -519,7 +521,7 @@ abstract class DBPredicate(
 
         override fun handle(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             searchClassInfo: HibernateSearchClassInfo,
         ) {
             logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
@@ -533,6 +535,7 @@ abstract class DBPredicate(
                     searchPredicateFactory,
                     boolCollector,
                     number,
+                    queryString,
                     searchClassInfo.numericFields,
                     useSearchFields,
                 )
@@ -547,11 +550,12 @@ abstract class DBPredicate(
 
         private fun search(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             value: String,
             fields: Array<String>,
         ) {
-            if (value.isBlank()) {
+            if (value.isBlank() || fields.isEmpty()) {
+                // Without any field Hibernate Search fails with an NPE (LuceneCommonQueryStringPredicateBuilder).
                 return
             }
             logDebugFunCall(log) {
@@ -566,10 +570,17 @@ abstract class DBPredicate(
             )
         }
 
+        /**
+         * @param value The parsed numeric value, used for the id and the numeric range predicates (exact match).
+         * @param stringQuery The (possibly wildcard-expanded) query string, used for the text fields so that e.g.
+         * a search for "9022355108" still finds a customer reference "9022355108C1" via the trailing "*". Using the
+         * bare number here would restrict the text fields to an exact term match and miss such references.
+         */
         private fun search(
             searchPredicateFactory: SearchPredicateFactory,
-            boolCollector: BooleanPredicateOptionsCollector<*>,
+            boolCollector: BooleanPredicateOptionsCollector<*, *>,
             value: Number,
+            stringQuery: String,
             numericFields: Array<Pair<String, Class<*>>>,
             stringFields: Array<String>,
         ) {
@@ -581,16 +592,20 @@ abstract class DBPredicate(
             }.toTypedArray()
             logDebugFunCall(log) {
                 it.mtd("search(value, fields)")
-                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$value\")))")
+                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$stringQuery\")))")
+            }
+            // Without any field Hibernate Search fails with an NPE (LuceneCommonQueryStringPredicateBuilder).
+            val stringPredicates: Array<PredicateFinalStep> = if (stringFields.isEmpty()) {
+                emptyArray()
+            } else {
+                arrayOf(searchPredicateFactory.queryString().fields(*stringFields).matching(stringQuery))
             }
             boolCollector.must(
                 searchPredicateFactory.or(
                     searchPredicateFactory
                         .id()
                         .matching(value.toLong()),
-                    searchPredicateFactory.queryString()
-                        .fields(*stringFields)
-                        .matching(value.toString()),
+                    *stringPredicates,
                     *predicates
                 )
             )
@@ -605,10 +620,10 @@ abstract class DBPredicate(
 
     fun getValue(value: Number, type: Class<*>): Any {
         return when (type) {
-            Int::class.java, Integer::class.java -> value.toInt()
-            Long::class.java, java.lang.Long::class.java -> value.toLong()
-            Float::class.java, java.lang.Float::class.java -> value.toFloat()
-            Double::class.java, java.lang.Double::class.java -> value.toDouble()
+            Int::class.java, Int::class.javaObjectType -> value.toInt()
+            Long::class.java, Long::class.javaObjectType -> value.toLong()
+            Float::class.java, Float::class.javaObjectType -> value.toFloat()
+            Double::class.java, Double::class.javaObjectType -> value.toDouble()
             BigDecimal::class.java -> BigDecimal(value.toString())
             BigInteger::class.java -> BigInteger(value.toString())
             else -> value

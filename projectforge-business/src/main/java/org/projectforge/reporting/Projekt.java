@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * Interface for reporting.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.projectforge.business.fibu.ProjektDO
  */
 public interface Projekt

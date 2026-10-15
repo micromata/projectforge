@@ -26,7 +26,7 @@ package org.projectforge.business.vacation.service
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
@@ -38,17 +38,20 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.xmlstream.XmlHelper
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import java.io.File
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.time.format.TextStyle
@@ -58,7 +61,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Exports vacation entries of users.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 object VacationExcelExporter {
   private class Context(val workbook: ExcelWorkbook) {
@@ -108,6 +111,31 @@ object VacationExcelExporter {
       alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
+    // Half vacation days (half day begin/end, or a half working day such as 24.12.) are lighter and marked by ½.
+    val halfVacationStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "halfVacationDay",
+      alignment = HorizontalAlignment.CENTER,
+      fillForegroundColor = IndexedColors.LIGHT_GREEN,
+      borderStyle = BorderStyle.THIN,
+    )
+    val halfUnapprovedVacationStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "halfUnapprovedVacationDay",
+      alignment = HorizontalAlignment.CENTER,
+      fillForegroundColor = IndexedColors.GREY_25_PERCENT,
+      borderStyle = BorderStyle.THIN,
+    )
+
+    fun vacationStyle(cell: VacationCell) = when {
+      cell.approved && cell.half -> halfVacationStyle
+      cell.approved -> vacationStyle
+      cell.half -> halfUnapprovedVacationStyle
+      else -> unapprovedVacationStyle
+    }
+
+    /** Weekends and holidays off work are coloured; a holiday configured as (half) working day (24.12.) isn't. */
+    fun dayStyle(day: PFDay) = if (Holidays.instance.isWorkingDay(day)) standardDayStyle else holidayAndWeekendStyle
 
     fun withSheet(sheet: ExcelSheet) {
       currentSheet = sheet
@@ -123,7 +151,7 @@ object VacationExcelExporter {
     availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
   ): ByteArray {
     log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->
@@ -137,6 +165,15 @@ object VacationExcelExporter {
       row = sheet.createRow()
       row.getCell(0).setCellStyle(context.vacationStyle)
       row.getCell(1).setCellValue(translate("vacation.status.approved"))
+      row = sheet.createRow()
+      row.getCell(0).setCellValue(HALF_DAY_MARKER).setCellStyle(context.halfUnapprovedVacationStyle)
+      row.getCell(1).setCellValue("${translate("vacation.status.inProgress")} (${translate("vacation.halfDay")})")
+      row = sheet.createRow()
+      row.getCell(0).setCellValue(HALF_DAY_MARKER).setCellStyle(context.halfVacationStyle)
+      row.getCell(1).setCellValue("${translate("vacation.status.approved")} (${translate("vacation.halfDay")})")
+      row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.holidayAndWeekendStyle)
+      row.getCell(1).setCellValue(translate("vacation.export.legend.holidayOrWeekend"))
       row = sheet.createRow()
       row.getCell(0).setCellStyle(context.availabilityStyle)
       row.getCell(1).setCellValue(translate("availability.title"))
@@ -174,11 +211,7 @@ object VacationExcelExporter {
     val columnIndexMap = mutableMapOf<LocalDate, Int>()
     while (currentDate <= endDate && paranoiaCounter++ < 500) {
       // Add day columns.
-      val style = if (currentDate.isHolidayOrWeekend()) {
-        context.holidayAndWeekendStyle
-      } else {
-        context.standardDayStyle
-      }
+      val style = context.dayStyle(currentDate)
       columnIndexMap[currentDate.date] = ++columnIndex // Store for finding column indexes by vacation dates.
       sheet.setColumnWidth(columnIndex, COL_WIDTH_DAY)
       dateRow.getCell(columnIndex).setCellValue("${currentDate.dayOfMonth}").setCellStyle(style)
@@ -208,48 +241,24 @@ object VacationExcelExporter {
       currentDate = startDate
       while (currentDate <= endDate && paranoiaCounter++ < 500) {
         columnIndexMap[currentDate.date]?.let { col ->
-          if (currentDate.isHolidayOrWeekend()) {
-            employeeRow.getCell(col).setCellStyle(context.holidayAndWeekendStyle)
-          } else {
-            employeeRow.getCell(col).setCellStyle(context.standardDayStyle)
-          }
+          employeeRow.getCell(col).setCellStyle(context.dayStyle(currentDate))
         }
         currentDate = currentDate.plusDays(1)
       }
       val occupiedCols = mutableSetOf<Int>()
-      var hasEntries = false
-      // Process vacations first (higher priority).
-      entry.vacations.forEach { vacation ->
-        val vacationStart = PFDay.fromOrNull(vacation.startDate)
-        val vacationEnd = PFDay.fromOrNull(vacation.endDate)
-        if (vacationStart != null && vacationEnd != null) {
-          val style = if (vacation.status == VacationStatus.APPROVED) {
-            context.vacationStyle
-          } else {
-            context.unapprovedVacationStyle
+      // Vacations first (higher priority).
+      val cells = vacationCells(entry.vacations, startDate, endDate)
+      cells.forEach { (date, cell) ->
+        columnIndexMap[date]?.let { col ->
+          val excelCell = employeeRow.getCell(col).setCellStyle(context.vacationStyle(cell))
+          if (cell.half) {
+            excelCell.setCellValue(HALF_DAY_MARKER)
           }
-          val label = if (vacation.status == VacationStatus.APPROVED) {
-            translate("vacation")
-          } else {
-            "${translate("vacation")} (${translate("vacation.status.inProgress")})"
-          }
-          val cols = mutableListOf<Int>()
-          paranoiaCounter = 0
-          var current: PFDay = vacationStart
-          while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
-            val col = columnIndexMap[current.date]
-            if (col != null) {
-              employeeRow.getCell(col).setCellStyle(style)
-              cols.add(col)
-              occupiedCols.add(col)
-              hasEntries = true
-            }
-            current = current.plusDays(1)
-          }
-          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, style)
+          occupiedCols.add(col)
         }
       }
-      // Process availability entries.
+      var hasEntries = cells.isNotEmpty()
+      // Availability entries on the days not occupied by vacations.
       availabilitiesByEmployee[employee.id]?.forEach { availability ->
         val availStart = PFDay.fromOrNull(availability.startDate)
         val availEnd = PFDay.fromOrNull(availability.endDate)
@@ -257,7 +266,7 @@ object VacationExcelExporter {
           val label = getAvailabilityLabel(availability)
           val cols = mutableListOf<Int>()
           paranoiaCounter = 0
-          var current: PFDay = availStart
+          var current: PFDay = if (availStart < startDate) startDate else availStart
           while (current <= availEnd && current <= endDate && paranoiaCounter++ < 500) {
             val col = columnIndexMap[current.date]
             if (col != null && col !in occupiedCols) {
@@ -272,6 +281,7 @@ object VacationExcelExporter {
         }
       }
       if (hasEntries) {
+        // Mark row as user with vacation or availability entries:
         employeeRow.getCell(1).setCellValue("X")
       }
     }
@@ -345,6 +355,49 @@ object VacationExcelExporter {
     }
   }
 
+  /** A painted vacation day: approved wins over in progress, a full day over a half one. */
+  internal data class VacationCell(val approved: Boolean, val half: Boolean) {
+    fun outranks(other: VacationCell): Boolean =
+      if (approved != other.approved) approved else !half && other.half
+  }
+
+  /**
+   * The painted days of the given vacations between [startDate] and [endDate], by date. Only working days are
+   * painted, so weekends and holidays inside a vacation keep their own colour (they aren't vacation days). A day
+   * is half if it's the half day begin/end of its vacation or a half working day (24.12.), as counted by
+   * [VacationService.getVacationDays]. Overlapping vacations are merged by [VacationCell.outranks], whatever the
+   * order of the list.
+   */
+  internal fun vacationCells(
+    vacations: List<VacationDO>,
+    startDate: PFDay,
+    endDate: PFDay,
+  ): Map<LocalDate, VacationCell> {
+    val cells = mutableMapOf<LocalDate, VacationCell>()
+    vacations.forEach { vacation ->
+      val vacationStart = PFDay.fromOrNull(vacation.startDate) ?: return@forEach
+      val vacationEnd = PFDay.fromOrNull(vacation.endDate) ?: return@forEach
+      val approved = vacation.status == VacationStatus.APPROVED
+      var paranoiaCounter = 0
+      // A vacation beginning before the sheet is painted from the sheet's first day on.
+      var current: PFDay = if (vacationStart < startDate) startDate else vacationStart
+      while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
+        val fraction = PFDayUtils.getNumberOfWorkingDays(current, current)
+        if (fraction > BigDecimal.ZERO) {
+          val halfDayFlag = current.isSameDay(vacationStart) && vacation.halfDayBegin == true ||
+              current.isSameDay(vacationEnd) && vacation.halfDayEnd == true
+          val cell = VacationCell(approved, half = fraction < BigDecimal.ONE || halfDayFlag)
+          val existing = cells[current.date]
+          if (existing == null || cell.outranks(existing)) {
+            cells[current.date] = cell
+          }
+        }
+        current = current.plusDays(1)
+      }
+    }
+    return cells
+  }
+
   private fun getWeekDayString(day: PFDay): String {
     return day.dayOfWeek.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale).take(1)
   }
@@ -384,7 +437,6 @@ object VacationExcelExporter {
    */
   internal fun getSheetsData(startDate: PFDay): List<SheetData> {
     val list = mutableListOf<SheetData>()
-    list.add(getSheetData(startDate, startDate.plusMonths(2)))
     // Create 3 month sheet:
     list.add(getSheetData(startDate, startDate.plusMonths(2)))
     // Create sheet for rest of year:
@@ -498,6 +550,8 @@ object VacationExcelExporter {
     vacation.status = status
     return vacation
   }
+
+  internal const val HALF_DAY_MARKER = "½"
 
   private const val COL_WIDTH_DAY = 600
   private const val COL_WIDTH_USER = 20 * 256

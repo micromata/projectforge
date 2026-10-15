@@ -26,7 +26,7 @@ package org.projectforge.business.gantt;
 /**
  * Defining your own matcher.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface Matcher<T>
 {

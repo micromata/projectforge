@@ -23,7 +23,7 @@
 
 package org.projectforge.common
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Purges old backup file by keeping e. g. monthly backups and removing daily ones.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object BackupFilesPurging {
     /**

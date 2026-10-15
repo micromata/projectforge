@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -58,6 +58,29 @@ object ElementsRegistry {
     }
 
     /**
+     * All property names of [clazz] annotated with [PropertyInfo], from both places the annotation may sit:
+     * on the field (including inherited ones, see [PropUtils.getPropertyInfoFields]) and on the getter
+     * (`@get:PropertyInfo` in Kotlin, e.g. PFUserDO.username or AbstractBaseDO.created).
+     *
+     * Unlike [getProperties] this does not depend on a layout having been built before: that one only returns
+     * what [getElementInfo] happened to put into the cache. Callers that have to be complete and reproducible
+     * (validation, code generation) must use this one.
+     *
+     * @return the property names, sorted. The order of [Class.getDeclaredFields] is not specified by the JVM,
+     *         so anything writing files from this would produce needless diffs.
+     */
+    fun listProperties(clazz: Class<*>): List<String> {
+        val propertyNames = sortedSetOf<String>()
+        PropUtils.getPropertyInfoFields(clazz).forEach { propertyNames.add(it.name) }
+        BeanUtils.getPropertyDescriptors(clazz).forEach { descriptor ->
+            if (descriptor.readMethod?.getAnnotation(PropertyInfo::class.java) != null) {
+                propertyNames.add(descriptor.name)
+            }
+        }
+        return propertyNames.toList()
+    }
+
+    /**
      * Contains all found and created UIElements named by class:property.
      */
     private val registryMap = mutableMapOf<Class<*>, MutableMap<String, ElementInfo>>()
@@ -80,7 +103,7 @@ object ElementsRegistry {
         val mapKey = getMapKey(lc.dataObjectClazz, property) ?: return UILabel(property)
         val elementInfo = getElementInfo(lc, property)
         if (elementInfo == null) {
-            log.info("Can't build UIElement from $mapKey.")
+            log.info { "Can't build UIElement from $mapKey." }
             return UILabel("??? $mapKey ???")
         }
         var element: UIElement?
@@ -104,7 +127,7 @@ object ElementsRegistry {
                         }
                     }
 
-                    Boolean::class.java, java.lang.Boolean::class.java -> UICheckbox(property)
+                    Boolean::class.java, Boolean::class.javaObjectType -> UICheckbox(property)
 
                     Date::class.java,
                     LocalDate::class.java,
@@ -123,7 +146,7 @@ object ElementsRegistry {
                         dataType = dataType!!
                     )
 
-                    Integer::class.java, Long::class.java, BigDecimal::class.java -> UIInput(
+                    Int::class.javaObjectType, Long::class.java, BigDecimal::class.java -> UIInput(
                         property,
                         required = elementInfo.required,
                         layoutContext = lc,
@@ -148,14 +171,14 @@ object ElementsRegistry {
                     element = UISelect<String>(property, required = elementInfo.required, layoutContext = lc)
                         .buildValues(i18nEnum = elementInfo.propertyClass as Class<out Enum<*>>)
                 } else {
-                    log.warn("Properties of enum not implementing I18nEnum not yet supported: $mapKey.")
+                    log.warn { "Properties of enum not implementing I18nEnum not yet supported: $mapKey." }
                     synchronized(unavailableElementsSet) {
                         unavailableElementsSet.add(mapKey)
                     }
                     return UILabel("??? $mapKey ???")
                 }
             } else {
-                log.warn("Unsupported property type '${elementInfo.propertyClass}': $mapKey")
+                log.warn { "Unsupported property type '${elementInfo.propertyClass}': $mapKey" }
             }
         }
         if (element is UILabelledElement) {
@@ -179,7 +202,7 @@ object ElementsRegistry {
                 if (listElementInfo.genericType != null) {
                     return getElementInfo(listElementInfo.genericType, property.substring(parts[0].length + 1))
                 }
-                log.warn("Can't detect generic type of list element '$parts[0]' for property '$property'")
+                log.warn { "Can't detect generic type of list element '$parts[0]' for property '$property'" }
             }
         }
         return getElementInfo(lc.dataObjectClazz, property)
@@ -187,9 +210,14 @@ object ElementsRegistry {
 
     /**
      * If possible, use [getElementInfo] with layoutContext instead for supporting list elements.
+     *
+     * Merges the two places a field's rules are declared: [PropertyInfo] (i18nKey, required, type) and the JPA
+     * `@Column` (length, nullable). This is the single source of those rules — validation and the metadata
+     * generator for projectforge-next both read them from here instead of restating them.
+     *
      * @param property name of property (nested properties are supported, like timesheet.task.id.
      */
-    internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
+    fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
         if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)!!
@@ -208,7 +236,7 @@ object ElementsRegistry {
         } else {
             elementInfo = getPropertyInfo(clazz, property)
             if (elementInfo == null) {
-                log.info("Property $clazz.$property not found. Can't autodetect layout.")
+                log.info { "Property $clazz.$property not found. Can't autodetect layout." }
                 synchronized(unavailableElementsSet) {
                     unavailableElementsSet.add(mapKey)
                 }
@@ -230,18 +258,20 @@ object ElementsRegistry {
                 BeanUtils.getPropertyDescriptor(clazz, property)?.readMethod?.getAnnotation(PropertyInfo::class.java)
         }
         if (propertyInfo == null) {
-            log.warn("@PropertyInfo '$clazz:$property' not found.")
+            log.warn { "@PropertyInfo '$clazz:$property' not found." }
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)
         if (colinfo != null) {
             elementInfo.maxLength = colinfo.length
             if ((!(colinfo.nullable) || propertyInfo.required)) {
-                if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != java.lang.Boolean::class.java) {
+                if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != Boolean::class.javaObjectType) {
                     elementInfo.required = true
                 }
             }
         }
+        elementInfo.min = parseBound(clazz, property, "min", propertyInfo.min)
+        elementInfo.max = parseBound(clazz, property, "max", propertyInfo.max)
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.propertyType = propertyInfo.type
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
@@ -290,6 +320,26 @@ object ElementsRegistry {
         if (entity == null)
             return null
         return EntityMetaDataRegistry.getColumnMetaData(entity, property)
+    }
+
+    /**
+     * A bound of [PropertyInfo.min]/[PropertyInfo.max] as the number it denotes.
+     *
+     * Throws rather than ignoring a malformed literal: the annotation is written by hand and a dropped
+     * bound is a rule that silently stops being enforced. The registry is built on the first request
+     * for the property, so a typo surfaces the first time the entity is used.
+     */
+    private fun parseBound(clazz: Class<*>, property: String, name: String, value: String): BigDecimal? {
+        if (value.isEmpty()) {
+            return null
+        }
+        try {
+            return BigDecimal(value)
+        } catch (ex: NumberFormatException) {
+            throw IllegalArgumentException(
+                "@PropertyInfo($name = \"$value\") of ${clazz.name}.$property is no number.", ex
+            )
+        }
     }
 
     private fun getNullIfEmpty(value: String?): String? {

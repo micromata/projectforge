@@ -27,8 +27,8 @@ package org.projectforge.ui
  * A row may contain columns or elements (showing in one row without)
  */
 data class UIRow(val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.ROW), IUIContainer {
-    override fun add(col: UIElement): UIRow {
-        content.add(col)
+    override fun add(el: UIElement): UIRow {
+        content.add(el)
         return this
     }
 }

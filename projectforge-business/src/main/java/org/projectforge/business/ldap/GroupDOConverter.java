@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class GroupDOConverter

@@ -162,6 +162,38 @@ object ForecastUtils { // open needed by Wicket.
         return getGivenProbability(order, BigDecimal.ZERO)
     }
 
+    /**
+     * The probability of occurrence of the order as a whole, weighted by the net sums of its positions:
+     * `sum(pos.netSum * probability(pos)) / sum(pos.netSum)`.
+     *
+     * [getProbabilityOfAccurence] is defined per position - it depends on the status of the order *and* of
+     * the position - so an order has no single probability of its own. This is the one the forecast
+     * effectively works with: the same factor that, applied to the order's net sum, yields the weighted net
+     * sum ([ForecastOrderAnalysis], `fibu.auftrag.nettoSumme.weighted`).
+     *
+     * @return A factor between 0 and 1, or null for an order that has nothing to weigh: no positions at all,
+     * or positions whose net sums are all zero. Zero for a lost order ([AuftragsOrderState.LOST]) - that is a
+     * statement of its own and not the same as "unknown", although its positions count zero as well.
+     */
+    @JvmStatic
+    fun getWeightedProbabilityOfAccurence(order: OrderInfo): BigDecimal? {
+        if (order.status.orderState == AuftragsOrderState.LOST) {
+            // Rejected and replaced orders never occur, whatever their positions say. Answered here because
+            // their positions' net sums are zeroed as well, which the quotient below could not tell from an
+            // order that simply has no amounts yet.
+            return BigDecimal.ZERO
+        }
+        val positions = order.infoPositions?.filter { !it.deleted } ?: return null
+        // netSum, not dbNetSum: it is 0 for lost positions, which is also what the weighted sum counts them
+        // as, so both sides of the quotient agree on which positions carry weight.
+        val netSum = positions.sumOf { it.netSum }
+        if (netSum.compareTo(BigDecimal.ZERO) == 0) {
+            return null
+        }
+        val weighted = positions.sumOf { it.netSum.multiply(getProbabilityOfAccurence(order, it)) }
+        return weighted.divide(netSum, 4, RoundingMode.HALF_UP)
+    }
+
     @JvmStatic
     fun getGivenProbability(order: OrderInfo, defaultValue: BigDecimal): BigDecimal {
         val propability = order.probabilityOfOccurrence ?: return defaultValue

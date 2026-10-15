@@ -23,7 +23,7 @@
 
 package org.projectforge.jcr
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.jackrabbit.oak.Oak
 import org.apache.jackrabbit.oak.jcr.Jcr
@@ -362,6 +362,21 @@ abstract class OakStorage(val mainNodeName: String) {
         }
     }
 
+    /**
+     * @return The node info or null, if the node doesn't exist (e. g. no file was stored yet below this path).
+     */
+    @JvmOverloads
+    open fun getNodeInfoOrNull(absPath: String, recursive: Boolean = false): NodeInfo? {
+        return runInSession { session ->
+            if (!session.nodeExists(absPath)) {
+                log.info { "Node with path '$absPath' doesn't exist (yet)." }
+                return@runInSession null
+            }
+            log.info { "Getting node info of path '$absPath'..." }
+            NodeInfo(session.getNode(absPath), recursive)
+        }
+    }
+
     private fun getFilesNode(
         sessionWrapper: SessionWrapper,
         parentNodePath: String?,
@@ -511,25 +526,20 @@ abstract class OakStorage(val mainNodeName: String) {
             log.error { "File is encrypted, but no password given to decrypt in repository '${node.path}': $fileObject" }
             return null
         }
-        var binary: Binary? = null
-        try {
-            binary = node.getProperty(PROPERTY_FILECONTENT)?.binary ?: return null
-            return if (useEncryptedFile || password.isNullOrBlank()) {
-                binary.stream
-            } else {
-                try {
-                    CryptStreamUtils.pipeToDecryptedInputStream(binary.stream, password)
-                } catch (ex: Exception) {
-                    if (CryptStreamUtils.wasWrongPassword(ex)) {
-                        log.error { "Can't decrypt and retrieve file (wrong password) in repository '${node.path}': $fileObject" }
-                        null
-                    } else {
-                        throw ex
-                    }
+        val binary = node.getProperty(PROPERTY_FILECONTENT)?.binary ?: return null
+        return if (useEncryptedFile || password.isNullOrBlank()) {
+            binary.stream
+        } else {
+            try {
+                CryptStreamUtils.pipeToDecryptedInputStream(binary.stream, password)
+            } catch (ex: Exception) {
+                if (CryptStreamUtils.wasWrongPassword(ex)) {
+                    log.error { "Can't decrypt and retrieve file (wrong password) in repository '${node.path}': $fileObject" }
+                    null
+                } else {
+                    throw ex
                 }
             }
-        } finally {
-            binary?.dispose()
         }
     }
 
@@ -538,13 +548,8 @@ abstract class OakStorage(val mainNodeName: String) {
         if (!suppressLogInfo) {
             log.info { "Determining size of file from repository '${node.path}': '${fileObject.fileName}'..." }
         }
-        var binary: Binary? = null
-        try {
-            binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
-            return binary?.size
-        } finally {
-            binary?.dispose()
-        }
+        val binary = node.getProperty(PROPERTY_FILECONTENT)?.binary
+        return binary?.size
     }
 
     internal fun getNode(
@@ -625,6 +630,15 @@ abstract class OakStorage(val mainNodeName: String) {
         } finally {
             session.logout()
             afterSessionClosed()
+        }
+    }
+
+    /**
+     * @return true, if the main node has any child nodes (the repository is in use).
+     */
+    fun hasContent(): Boolean {
+        return runInSession { session ->
+            session.rootNode.hasNode(mainNodeName) && session.rootNode.getNode(mainNodeName).hasNodes()
         }
     }
 

@@ -1,0 +1,380 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.framework.support
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.projectforge.Constants
+import org.projectforge.business.admin.SystemStatisticsData
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.logging.LogCategory
+import org.projectforge.common.logging.LogEvent
+import org.projectforge.common.logging.LogLevel
+import org.projectforge.common.logging.LogNotify
+import org.projectforge.framework.integration.SubsystemState
+import org.projectforge.framework.integration.SubsystemStatus
+import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
+
+class LogGroupAdminServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var logAggregationService: LogAggregationService
+
+    @Autowired
+    private lateinit var logGroupAdminService: LogGroupAdminService
+
+    @Autowired
+    private lateinit var logAggregationStatisticsBuilder: LogAggregationStatisticsBuilder
+
+    @Test
+    fun `list, detail and status changes`() {
+        val now = System.currentTimeMillis()
+        val hour = Constants.MILLIS_PER_HOUR
+        val external = LogEvent("test.admin.external", LogCategory.EXTERNAL, notify = LogNotify.DIGEST_IF_NEW)
+        val bug = LogEvent("test.admin.bug", LogCategory.BUG)
+        repeat(3) { logAggregationService.add(occurrence(external, now - it * hour, user = "u$it")) }
+        logAggregationService.add(occurrence(external, now - 3 * Constants.MILLIS_PER_DAY))
+        logAggregationService.add(occurrence(bug, now - 10 * Constants.MILLIS_PER_DAY, stackTrace = "trace"))
+        // Not written yet: the dashboard flushes itself.
+        val list = logGroupAdminService.list(LogGroupFilter(search = "test.admin."), now)
+        Assertions.assertTrue(list.enabled)
+        Assertions.assertEquals(listOf(external.code), list.entries.map { it.code }, "The bug is older than 7 days.")
+        val entry = list.entries.single()
+        Assertions.assertEquals(4, entry.totalCount)
+        Assertions.assertEquals(3, entry.count24h)
+        Assertions.assertEquals(LogCategory.EXTERNAL.defaultNotify, entry.notify, "Not registered: the category's rule.")
+        Assertions.assertEquals(28, entry.trend.size)
+        Assertions.assertEquals(4, entry.trend.sum())
+        Assertions.assertTrue(list.summary.externalProblems24h.active >= 1)
+        list.summary.let {
+            // Other tests may have written problems too.
+            Assertions.assertTrue(it.problems24h.active >= 1)
+            Assertions.assertTrue(it.topOccurrences24h >= 3)
+            Assertions.assertTrue(it.occurrences24h.active >= it.topOccurrences24h)
+        }
+        Assertions.assertEquals(
+            2, logGroupAdminService.list(LogGroupFilter(search = "test.admin.", days = 0), now).total,
+        )
+        Assertions.assertEquals(
+            listOf(bug.code),
+            logGroupAdminService.list(
+                LogGroupFilter(search = "test.admin.", days = 0, category = LogCategory.BUG), now,
+            ).entries.map { it.code },
+        )
+
+        val detail = logGroupAdminService.detail(entry.id, now)!!
+        Assertions.assertFalse(detail.registered, "Not in the registry: a test event.")
+        Assertions.assertEquals(168, detail.hourly.size)
+        Assertions.assertEquals(4, detail.hourly.sum(), "7 days.")
+        Assertions.assertEquals(3, detail.hourly.takeLast(24).sum())
+        Assertions.assertEquals(4, detail.daily.sum())
+        Assertions.assertEquals(3, detail.distinctUsers24h)
+        Assertions.assertNull(logGroupAdminService.detail(-1, now))
+
+        Assertions.assertEquals(
+            1, logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.ACKNOWLEDGE), now),
+        )
+        Assertions.assertEquals(LogGroupStatus.ACKNOWLEDGED, stateOf(external).status, "The digest sees it at once.")
+        val before = logGroupAdminService.list(LogGroupFilter(), now).summary
+        logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.MUTE, muteDays = 7), now)
+        logGroupAdminService.list(LogGroupFilter(), now).summary.let {
+            Assertions.assertEquals(before.problems24h.active - 1, it.problems24h.active, "A muted problem isn't active.")
+            Assertions.assertEquals(before.problems24h.muted + 1, it.problems24h.muted)
+            Assertions.assertEquals(before.occurrences24h.muted + 3, it.occurrences24h.muted)
+            Assertions.assertEquals(before.externalProblems24h.muted + 1, it.externalProblems24h.muted)
+        }
+        logGroupAdminService.update(
+            LogGroupUpdate(listOf(entry.id), LogGroupAction.SET_NOTIFY, notify = LogNotify.IMMEDIATE), now,
+        )
+        logGroupAdminService.list(LogGroupFilter(search = external.code), now).entries.single().let {
+            Assertions.assertTrue(it.muted)
+            Assertions.assertEquals(now + 7 * Constants.MILLIS_PER_DAY, it.mutedUntil)
+            Assertions.assertEquals(LogNotify.IMMEDIATE, it.notify)
+            Assertions.assertEquals(LogGroupStatus.ACKNOWLEDGED, it.status)
+        }
+        logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.RESOLVE), now)
+        logGroupAdminService.list(LogGroupFilter(), now).summary.let {
+            Assertions.assertEquals(before.problems24h.muted, it.problems24h.muted)
+            Assertions.assertEquals(before.problems24h.resolved + 1, it.problems24h.resolved)
+            Assertions.assertEquals(before.problems24h.total, it.problems24h.total)
+        }
+        Assertions.assertTrue(
+            logGroupAdminService.list(LogGroupFilter(search = external.code), now).entries.isEmpty(),
+            "Resolved problems aren't open.",
+        )
+        assertThrows<IllegalArgumentException> {
+            logGroupAdminService.update(LogGroupUpdate(listOf(entry.id), LogGroupAction.MUTE, muteDays = 0), now)
+        }
+        assertThrows<IllegalArgumentException> { logGroupAdminService.update(LogGroupUpdate(listOf(entry.id)), now) }
+    }
+
+    @Test
+    fun `scopes of the key figures`() {
+        val now = System.currentTimeMillis()
+        val fresh = LogEvent("test.scope.fresh", LogCategory.BUG)
+        val old = LogEvent("test.scope.old", LogCategory.BUG)
+        logAggregationService.add(occurrence(fresh, now - Constants.MILLIS_PER_HOUR))
+        logAggregationService.add(occurrence(old, now - 3 * Constants.MILLIS_PER_DAY))
+        val codes = { scope: LogGroupScope? ->
+            logGroupAdminService.list(LogGroupFilter(status = LogGroupStatusFilter.ALL, search = "test.scope.", days = 0, scope = scope), now)
+                .entries.map { it.code }.sorted()
+        }
+        Assertions.assertEquals(listOf(fresh.code, old.code), codes(null))
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "First seen within 24 hours.")
+        Assertions.assertTrue(codes(LogGroupScope.REGRESSION).isEmpty())
+
+        val oldId = logGroupAdminService.list(LogGroupFilter(search = old.code, days = 0), now).entries.single().id
+        logGroupAdminService.update(LogGroupUpdate(listOf(oldId), LogGroupAction.RESOLVE), now)
+        logAggregationService.add(occurrence(old, now))
+        Assertions.assertEquals(listOf(old.code), codes(LogGroupScope.REGRESSION), "Resolved and occurred again.")
+        Assertions.assertEquals(listOf(fresh.code), codes(LogGroupScope.NEW_24H), "A regression isn't new.")
+    }
+
+    @Test
+    fun `status filter muted`() {
+        val now = System.currentTimeMillis()
+        val events = listOf("muted", "expired", "active", "ignored").associateWith {
+            LogEvent("test.muted.$it", LogCategory.BUG).also { event -> logAggregationService.add(occurrence(event, now)) }
+        }
+        val idOf = { name: String ->
+            logGroupAdminService.list(LogGroupFilter(search = events[name]!!.code, days = 0), now).entries.single().id
+        }
+        val mute = { name: String, days: Int ->
+            logGroupAdminService.update(LogGroupUpdate(listOf(idOf(name)), LogGroupAction.MUTE, muteDays = days), now)
+        }
+        mute("muted", 7)
+        mute("expired", 1)
+        val ignoredId = idOf("ignored")
+        mute("ignored", 7)
+        logGroupAdminService.update(LogGroupUpdate(listOf(ignoredId), LogGroupAction.IGNORE), now)
+        // Two days later: the mute of a day has expired.
+        val later = now + 2 * Constants.MILLIS_PER_DAY
+        val codes = { status: LogGroupStatusFilter ->
+            logGroupAdminService.list(LogGroupFilter(status = status, search = "test.muted.", days = 0), later)
+                .entries.map { it.code }.sorted()
+        }
+        Assertions.assertEquals(listOf(events["muted"]!!.code), codes(LogGroupStatusFilter.MUTED))
+        Assertions.assertEquals(
+            listOf("active", "expired", "muted").map { events[it]!!.code },
+            codes(LogGroupStatusFilter.OPEN),
+            "Open ones include the muted.",
+        )
+    }
+
+    @Test
+    fun `counts split by handling`() {
+        val now = 1_000 * Constants.MILLIS_PER_DAY
+        val row = { id: Long, status: LogGroupStatus, mutedUntil: Long? ->
+            LogGroupRow(
+                id, "test.$id", LogCategory.BUG, LogLevel.ERROR, null, null, null, Date(now), Date(now), 1, status,
+                mutedUntil?.let { Date(it) }, null, null,
+            )
+        }
+        val rows = listOf(
+            row(1, LogGroupStatus.NEW, null),
+            row(2, LogGroupStatus.ACKNOWLEDGED, now - 1),
+            row(3, LogGroupStatus.NEW, now + 1),
+            row(4, LogGroupStatus.IGNORED, now + 1),
+            row(5, LogGroupStatus.RESOLVED, null),
+        )
+        Assertions.assertEquals(
+            listOf(LogGroupHandling.ACTIVE, LogGroupHandling.ACTIVE, LogGroupHandling.MUTED, LogGroupHandling.IGNORED, LogGroupHandling.RESOLVED),
+            rows.map { LogGroupAdminService.handlingOf(it, now) },
+            "An expired mute is active, ignored wins over muted.",
+        )
+        LogGroupAdminService.countsOf(rows, now) { it.id.toInt() * 10 }.let {
+            Assertions.assertEquals(30, it.active)
+            Assertions.assertEquals(30, it.muted)
+            Assertions.assertEquals(40, it.ignored)
+            Assertions.assertEquals(50, it.resolved)
+            Assertions.assertEquals(150, it.total)
+        }
+    }
+
+    @Test
+    fun bins() {
+        val start = 1_000 * Constants.MILLIS_PER_HOUR
+        val buckets = listOf(-1, 0, 5, 6, 23, 24).map { LogBucketRow(1, Date(start + it * Constants.MILLIS_PER_HOUR), 1, 1) }
+        Assertions.assertArrayEquals(
+            intArrayOf(2, 1, 0, 1),
+            LogGroupAdminService.bins(buckets, start, binHours = 6, count = 4),
+            "Older and newer ones are skipped.",
+        )
+    }
+
+    private fun stateOf(event: LogEvent) = logAggregationService.stateOf(ErrorDigestCollector.keyOf(occurrence(event, 0)))!!
+
+    @Test
+    fun `key figures in the system statistics, for admins only`() {
+        logAggregationService.add(occurrence(LogEvent("test.admin.statistics", LogCategory.BUG), System.currentTimeMillis()))
+        logon(TEST_USER)
+        Assertions.assertTrue(statisticsOf().entries.isEmpty(), "Visible for all users, but not these.")
+        logon(TEST_ADMIN_USER)
+        val entries = statisticsOf().entries.associate { it.id to it.value }
+        Assertions.assertEquals(
+            listOf("errorsProblems24h", "errors24h", "errorsNew24h", "errorsRegressions", "errorsExternal24h", "errorsOpen"), entries.keys.toList(),
+        )
+        Assertions.assertNotEquals("0", entries["errorsNew24h"])
+    }
+
+    @Test
+    fun `export as json for an analysis`() {
+        val now = System.currentTimeMillis()
+        val event = LogEvent("test.admin.export", LogCategory.DATA, explanation = "Explained.")
+        val longMessage = "x".repeat(1000)
+        repeat(2) {
+            logAggregationService.add(
+                occurrence(
+                    event, now - it * Constants.MILLIS_PER_DAY, user = "secret.user", stackTrace = "trace",
+                    message = longMessage, request = "GET /rs/foo",
+                ),
+            )
+        }
+        val export = logGroupAdminService.export(LogGroupFilter(search = event.code, days = 0), now)
+        Assertions.assertEquals(LogAnalysisExport.SOURCE_DASHBOARD, export.source)
+        val problem = export.problems.single()
+        Assertions.assertEquals(event.code, problem.code)
+        Assertions.assertEquals(LogCategory.DATA, problem.category)
+        Assertions.assertEquals(longMessage, problem.message, "The full message, not the list's cut.")
+        Assertions.assertEquals("trace", problem.sampleStackTrace)
+        Assertions.assertEquals("GET /rs/foo", problem.sampleRequest)
+        Assertions.assertEquals(2L, problem.totalCount)
+        Assertions.assertEquals(30, problem.daily30!!.size)
+        Assertions.assertEquals(2, problem.daily30!!.sum())
+        Assertions.assertTrue(problem.dashboardUrl!!.endsWith("next/systemDashboard?id=${problem.id}"))
+
+        val json = export.toJson()
+        val tree = ObjectMapper().readTree(json)
+        Assertions.assertEquals(LogAnalysisExport.FORMAT, tree["format"].asText())
+        Assertions.assertEquals(LogAnalysisExport.VERSION, tree["version"].asInt())
+        Assertions.assertEquals(LogCategory.entries.size, tree["guide"]["categories"].size())
+        Assertions.assertEquals(event.code, tree["problems"][0]["code"].asText())
+        Assertions.assertTrue(tree["problems"][0]["firstSeen"].asText().endsWith("Z"), "ISO-8601, UTC.")
+        Assertions.assertFalse(json.contains("secret.user"), "No user names.")
+
+        Assertions.assertEquals(listOf(problem), logGroupAdminService.analysisProblems(listOf(problem.id!!, -1), now))
+        Assertions.assertTrue(logGroupAdminService.analysisProblems(emptyList(), now).isEmpty())
+    }
+
+    @Test
+    fun `subsystem tiles and filter`() {
+        val now = System.currentTimeMillis()
+        val day = Constants.MILLIS_PER_DAY
+        val byCode = LogEvent("test.subsystem.code", LogCategory.EXTERNAL)
+        val byLocation = LogEvent("test.subsystemLocation", LogCategory.EXTERNAL)
+        val bySync = LogEvent("test.subsystemSync", LogCategory.EXTERNAL)
+        val other = LogEvent("test.subsystemOther", LogCategory.EXTERNAL)
+        repeat(2) {
+            logAggregationService.add(occurrence(byCode, now - it * Constants.MILLIS_PER_HOUR, level = LogLevel.WARN))
+        }
+        logAggregationService.add(occurrence(byLocation, now - 3 * day, location = "TestSubsystemClient:42"))
+        logAggregationService.add(
+            occurrence(bySync, now - 2 * day, message = "Sync test-subsystem-a errors in 1s", level = LogLevel.WARN),
+        )
+        logAggregationService.add(occurrence(other, now))
+
+        val codes = { subsystem: String? ->
+            logGroupAdminService.list(LogGroupFilter(search = "test.subsystem", subsystem = subsystem), now)
+                .entries.map { it.code }.toSet()
+        }
+        Assertions.assertEquals(setOf(byCode.code, byLocation.code, bySync.code, other.code), codes(null))
+        Assertions.assertEquals(
+            setOf(byCode.code, byLocation.code, bySync.code), codes(TestSubsystemStatusProvider.ID),
+            "By code prefix, location prefix and the message of a sync.",
+        )
+        Assertions.assertTrue(codes("unknown").isEmpty(), "An unknown subsystem matches nothing.")
+
+        val tile = { logGroupAdminService.subsystems(now).find { it.id == TestSubsystemStatusProvider.ID } }
+        try {
+            Assertions.assertNull(tile(), "Not active.")
+            TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.OK, detail = "host")
+            tile()!!.let {
+                Assertions.assertEquals(SubsystemState.OK, it.state, "Only warnings within 24 hours, the error is older.")
+                Assertions.assertEquals("host", it.detail)
+                Assertions.assertEquals(2, it.occurrences24h.active)
+                Assertions.assertEquals(2, it.occurrences24h.total)
+                Assertions.assertEquals(1, it.newProblems24h)
+                Assertions.assertEquals(3, it.open.active)
+                Assertions.assertEquals(28, it.trend.size)
+                Assertions.assertEquals(4, it.trend.sum())
+            }
+
+            val error = LogEvent("test.subsystem.error", LogCategory.EXTERNAL)
+            logAggregationService.add(occurrence(error, now))
+            Assertions.assertEquals(SubsystemState.DEGRADED, tile()!!.state, "An open error within 24 hours.")
+            val errorId = logGroupAdminService.list(LogGroupFilter(search = error.code), now).entries.single().id
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.MUTE, muteDays = 1), now)
+            tile()!!.let {
+                Assertions.assertEquals(SubsystemState.OK, it.state, "A muted error doesn't degrade.")
+                Assertions.assertEquals(2, it.occurrences24h.active, "A muted problem isn't active.")
+                Assertions.assertEquals(1, it.occurrences24h.muted)
+                Assertions.assertEquals(3, it.open.active)
+                Assertions.assertEquals(1, it.open.muted)
+                Assertions.assertEquals(4, it.trend.sum(), "Of the active problems only.")
+            }
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.UNMUTE), now)
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.ACKNOWLEDGE), now)
+            Assertions.assertEquals(3, tile()!!.occurrences24h.active, "An acknowledged problem is open.")
+            logGroupAdminService.update(LogGroupUpdate(listOf(errorId), LogGroupAction.RESOLVE), now)
+            tile()!!.let {
+                Assertions.assertEquals(2, it.occurrences24h.active, "A resolved problem isn't active.")
+                Assertions.assertEquals(1, it.occurrences24h.resolved)
+                Assertions.assertEquals(3, it.open.active)
+                Assertions.assertEquals(0, it.open.resolved, "Resolved problems aren't open.")
+                Assertions.assertEquals(4, it.trend.sum())
+            }
+            TestSubsystemStatusProvider.status = SubsystemStatus(SubsystemState.DOWN)
+            Assertions.assertEquals(SubsystemState.DOWN, tile()!!.state, "The worse state of the syncs is kept.")
+        } finally {
+            TestSubsystemStatusProvider.status = null
+        }
+    }
+
+    private fun statisticsOf() = SystemStatisticsData().also { logAggregationStatisticsBuilder.addStatisticsEntries(it) }
+
+    private fun occurrence(
+        event: LogEvent,
+        millis: Long,
+        user: String? = null,
+        stackTrace: String? = null,
+        message: String = "Something failed",
+        request: String? = null,
+        location: String = "Foo:1",
+        level: LogLevel = LogLevel.ERROR,
+    ) =
+        ErrorOccurrence(
+            timestampMillis = millis,
+            level = level,
+            event = event,
+            exceptionClass = null,
+            message = message,
+            location = location,
+            stackTrace = stackTrace,
+            user = user,
+            request = request,
+            groupByCode = true,
+        )
+}

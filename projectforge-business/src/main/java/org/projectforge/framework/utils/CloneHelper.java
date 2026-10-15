@@ -28,7 +28,7 @@ import java.io.*;
 /**
  * For cloning a object including all fields (recursive).
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class CloneHelper

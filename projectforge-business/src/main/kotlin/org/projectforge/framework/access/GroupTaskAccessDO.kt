@@ -47,7 +47,7 @@ import java.io.Serializable
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
  * GroupTaskAccess.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -64,6 +64,20 @@ import java.io.Serializable
         name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
         query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"
     )
+)
+@NamedEntityGraph(
+    // Fetch everything the list query needs in one shot, avoiding N+1 on the /access list
+    // (AccessDao.createQueryFilter -> BaseDao.select):
+    //  - accessEntries: else each row's GroupTaskAccess.copyFrom (orderedEntries) fires its own SELECT
+    //    on T_GROUP_TASK_ACCESS_ENTRY.
+    //  - group and task: both @ManyToOne default to EAGER, so without join-fetching them here Hibernate
+    //    issues a per-row secondary SELECT on T_GROUP and T_TASK.
+    name = GroupTaskAccessDO.ENTITY_GRAPH_WITH_ACCESS_ENTRIES,
+    attributeNodes = [
+        NamedAttributeNode(value = "accessEntries"),
+        NamedAttributeNode(value = "group"),
+        NamedAttributeNode(value = "task"),
+    ],
 )
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
@@ -206,11 +220,11 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
      * Copies all values from the given src object excluding the values created and modified. Null values will be
      * excluded.
      *
-     * @param source
+     * @param src
      */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
-        val src = source as GroupTaskAccessDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        var modificationStatus = super.copyValuesFrom(src, *ignoreFields)
+        src as GroupTaskAccessDO
         if (src.accessEntries != null) {
             for (srcEntry in src.accessEntries!!) {
                 val destEntry = ensureAndGetAccessEntry(srcEntry.accessType)
@@ -325,5 +339,11 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
          * from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId
          */
         internal const val FIND_BY_TASK_AND_GROUP = "GroupTaskAccessDO_FindByTaskAndGroup"
+
+        /**
+         * Entity graph that fetches [accessEntries] together with the entity, avoiding the N+1 select on
+         * T_GROUP_TASK_ACCESS_ENTRY when the access list maps each row to its DTO. See [AccessDao.createQueryFilter].
+         */
+        const val ENTITY_GRAPH_WITH_ACCESS_ENTRIES = "GroupTaskAccessDO.accessEntries"
     }
 }

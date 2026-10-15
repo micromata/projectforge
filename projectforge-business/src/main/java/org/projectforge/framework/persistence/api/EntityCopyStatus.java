@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.api;
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public enum EntityCopyStatus

@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.dvelop
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.dvelop.ExtractPFTradingPartners
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
@@ -80,7 +80,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("downloadTradingPartners")
   fun downloadTradingPartners(): ResponseEntity<*> {
-    log.info("Downloading Trading partners for D-velop import.")
+    log.info { "Downloading Trading partners for D-velop import." }
     val filename = ("D-velop-TradingPartners-Import-${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
     return RestUtils.downloadFile(
       filename,
@@ -90,7 +90,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("synchronizeTradingPartners")
   fun synchronizeTradingPartners(): ResponseAction {
-    log.info("Synchronizing Trading partners for D-velop import.")
+    log.info { "Synchronizing Trading partners for D-velop import." }
     val localPartners = extractPFTradingPartners.extractTradingPartners()
     val remotePartners = tradingPartnerService.getList()
     var insertedCounter = 0
@@ -121,7 +121,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
     val msg =
       "Total=$totalCounter: ${insertedCounter + modifiedCounter} TradingPartners sent to D.velop ($insertedCounter inserted, $modifiedCounter modified, $failedCounter entries failed, $ignoredCounter ignored/no importCode, $unmodifiedCounter unmodified)."
 
-    log.info(msg)
+    log.info { msg }
     return UIToast.createToast(
       msg, color = UIColor.SUCCESS
     )

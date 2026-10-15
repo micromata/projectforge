@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 
 /**
  * Simple class for storing a task favorite. It contains only a reference to one task.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * Replaced by {@link TaskFavorite}
  * @Deprecated
  */

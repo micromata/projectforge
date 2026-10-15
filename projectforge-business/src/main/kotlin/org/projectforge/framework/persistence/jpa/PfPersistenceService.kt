@@ -26,10 +26,15 @@ package org.projectforge.framework.persistence.jpa
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.LockModeType
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.logging.error
 import org.hibernate.Session
+import org.hibernate.jpa.SpecHints
+import org.projectforge.common.DatabaseDialect
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
@@ -46,11 +51,38 @@ open class PfPersistenceService {
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
 
+    @Value("\${projectforge.maintenance.db.lockTimeoutSeconds:${MaintenanceDbTimeouts.DEFAULT_LOCK_TIMEOUT_SECONDS}}")
+    private var maintenanceLockTimeoutSeconds: Int = MaintenanceDbTimeouts.DEFAULT_LOCK_TIMEOUT_SECONDS
+
+    @Value("\${projectforge.maintenance.db.statementTimeoutSeconds:0}")
+    private var maintenanceStatementTimeoutSeconds: Int = 0
+
     @PostConstruct
     private fun postConstruct() {
         instance = this
         HibernateUtils.internalInit(entityManagerFactory)
+        MaintenanceDbTimeouts.lockTimeoutSeconds = maintenanceLockTimeoutSeconds
+        MaintenanceDbTimeouts.statementTimeoutSeconds = maintenanceStatementTimeoutSeconds
     }
+
+    /**
+     * @return true if the current thread runs inside an active write transaction (a transactional
+     * [PfPersistenceContext] is set in the ThreadLocal), i.e. it holds a DB connection that may hold row/table
+     * locks. Readonly contexts do not count - they never open a transaction (see [runReadOnly]).
+     *
+     * A caller that opens a *second* DB connection (e.g. a cache refresh via JDBC) while such a transaction is
+     * open risks a single-thread self-deadlock: the second connection blocks on a lock the open transaction
+     * holds, and that transaction cannot commit because the same thread is blocked waiting for the second
+     * connection.
+     *
+     * Two things build on this:
+     * - [org.projectforge.framework.cache.AbstractCache.runReadOnlyForCacheMaintenance] - the central helper for
+     *   cache read work that reuses the transaction's own connection instead of an isolated one when active.
+     * - [org.projectforge.business.fibu.AbstractRechnungCache.ensureRechnungInfo] - a special case whose second
+     *   connection is a [org.springframework.jdbc.core.JdbcTemplate] (RechnungJdbcService), which cannot be routed
+     *   onto the transaction's connection, so it skips triggering the refresh while a transaction is active instead.
+     */
+    fun isTransactionActive(): Boolean = PfPersistenceContextThreadLocal.getTransactional() != null
 
     /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
@@ -141,6 +173,7 @@ open class PfPersistenceService {
                 log.debug { "Begin transactional context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 em.transaction.begin()
+                applyMaintenanceTimeouts(context)
                 // openedTransactions.add(em.transaction)
                 //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
                 try {
@@ -149,11 +182,20 @@ open class PfPersistenceService {
                     //openedTransactions.remove(em.transaction)
                     //log.info { "Commit transaction ${em.transaction}..." }
                     return ret
-                } catch (ex: Exception) {
+                } catch (ex: Throwable) {
+                    // Catch Throwable, not only Exception: an Error escaping here (e.g. a JUnit
+                    // AssertionFailedError from a test running inside a transaction) would otherwise leave the
+                    // transaction uncommitted. The abandoned connection keeps its locks, and the next
+                    // "CHECKPOINT DEFRAG" (see AbstractTestBase.recreateDataBase) blocks on them forever.
                     em.transaction.rollback()
                     //openedTransactions.remove(em.transaction)
                     //log.info { "Rollback transaction ${em.transaction}..." }
-                    log.error(ex.message, ex)
+                    if (ex is UserException) {
+                        // Validation error of the user, logged (without stack trace) and shown by the caller.
+                        log.debug { "Rollback due to user exception: ${ex.message}" }
+                    } else {
+                        log.error(PersistenceLogEvents.TRANSACTION_ROLLBACK, ex) { ex.message }
+                    }
                     throw ex
                 }
             }
@@ -190,6 +232,7 @@ open class PfPersistenceService {
                 // log.info { "Running read only" }
                 em.unwrap(Session::class.java).isDefaultReadOnly = true
                 // No transaction in readonly mode.
+                applyMaintenanceTimeouts(context)
                 return block(context)
             }
         } finally {
@@ -197,6 +240,46 @@ open class PfPersistenceService {
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().readonlyClosed()
+        }
+    }
+
+    /**
+     * Sets the [MaintenanceDbTimeouts] for a new context, if called inside [MaintenanceDbTimeouts.run] (cache refresh,
+     * scheduler run):
+     * - PostgreSQL: transaction-local on the connection (`set_config(..., true)`). The pool has auto-commit off and
+     *   Hibernate holds the connection until the context is closed (handling mode DELAYED_ACQUISITION_AND_HOLD), so a
+     *   readonly context runs in one implicit transaction, too, rolled back on return to the pool. The pooled
+     *   connection therefore never keeps the timeouts.
+     * - HSQLDB has no lock timeout, but its JDBC query timeout covers the wait for locks, too. It is set as JPA query
+     *   timeout of the context's session, which Hibernate applies to every query created by it (not to `find` or lazy
+     *   loading).
+     */
+    private fun applyMaintenanceTimeouts(context: PfPersistenceContext) {
+        if (!MaintenanceDbTimeouts.isActive) {
+            return
+        }
+        if (HibernateUtils.databaseDialect == DatabaseDialect.HSQL) {
+            MaintenanceDbTimeouts.queryTimeoutMillis()?.let { context.em.setProperty(SpecHints.HINT_SPEC_QUERY_TIMEOUT, it) }
+            return
+        }
+        val settings = MaintenanceDbTimeouts.settings()
+        if (settings.isEmpty()) {
+            return
+        }
+        try {
+            // One statement for all settings: a single round trip per context.
+            val sql = "select " + settings.joinToString(", ") { "set_config(?, ?, true)" }
+            context.em.unwrap(Session::class.java).doWork { connection ->
+                connection.prepareStatement(sql).use { statement ->
+                    settings.forEachIndexed { index, (name, value) ->
+                        statement.setString(2 * index + 1, name)
+                        statement.setString(2 * index + 2, value)
+                    }
+                    statement.executeQuery().close()
+                }
+            }
+        } catch (ex: Exception) {
+            log.warn { "Couldn't set the database timeouts for maintenance work: ${ex.message}" }
         }
     }
 
@@ -320,6 +403,48 @@ open class PfPersistenceService {
     }
 
     /**
+     * Runs [executeQuery] in batches over a large collection bind parameter and concatenates the row results,
+     * so an `IN` clause can't exceed the database's per-statement bind-parameter limit (PostgreSQL: 65535).
+     * Each id list of a server-side paged result can be up to the list row cap (100k), which a single `IN`
+     * would blow past.
+     *
+     * Only correct for row-returning selects whose full result is the **union** of the per-batch results.
+     * Do NOT use for aggregates (`COUNT`, `SUM`, `GROUP BY`) or `ORDER BY` + [maxResults]: those results
+     * don't concatenate. Compute such aggregates in the application over the batched rows instead.
+     *
+     * @param batchParam Name of the collection parameter to chunk; it must appear in an `IN :param` clause of [sql].
+     * @param batchValues The values for [batchParam]; chunked into slices of at most [batchSize].
+     * @param keyValues Any further (non-batched) bind parameters, passed unchanged to every batch.
+     */
+    @JvmOverloads
+    fun <T> executeQueryBatched(
+        sql: String,
+        resultClass: Class<T>,
+        batchParam: String,
+        batchValues: Collection<*>,
+        vararg keyValues: Pair<String, Any?>,
+        attached: Boolean = false,
+        namedQuery: Boolean = false,
+        entityGraphName: String? = null,
+        batchSize: Int = IN_CLAUSE_MAX_BATCH_SIZE,
+    ): List<T> {
+        if (batchValues.isEmpty()) {
+            return emptyList()
+        }
+        return batchValues.chunked(batchSize).flatMap { batch ->
+            val params = arrayOf(Pair(batchParam, batch as Any?), *keyValues)
+            executeQuery(
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = params,
+                attached = attached,
+                namedQuery = namedQuery,
+                entityGraphName = entityGraphName,
+            )
+        }
+    }
+
+    /**
      * Convenience call for [executeQuery] with namedQuery = true. Encapsulated in [runReadOnly].
      * @see executeQuery
      */
@@ -368,7 +493,7 @@ open class PfPersistenceService {
             "select max(t.$attribute) from $table t",
             Int::class.java,
         ) ?: run {
-            log.info("First entry of $table")
+            log.info { "First entry of $table" }
             startNumber
         }
         return maxNumber + 1
@@ -394,5 +519,11 @@ open class PfPersistenceService {
         @JvmStatic
         lateinit var instance: PfPersistenceService
             private set
+
+        /**
+         * Default batch size for [executeQueryBatched]: kept well below PostgreSQL's hard limit of 65535 bind
+         * parameters per prepared statement, so a chunked `IN` clause never overflows even at the 100k list row cap.
+         */
+        const val IN_CLAUSE_MAX_BATCH_SIZE = 50000
     }
 }

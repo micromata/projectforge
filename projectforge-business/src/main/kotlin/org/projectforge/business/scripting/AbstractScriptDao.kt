@@ -23,14 +23,14 @@
 
 package org.projectforge.business.scripting
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDao
 
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     override fun newInstance(): ScriptDO {

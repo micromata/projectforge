@@ -1,0 +1,85 @@
+"use client";
+
+import { Textarea } from "@/components/ui/textarea";
+import {
+  FieldShell,
+  useFieldIds,
+  type BaseFieldProps,
+  type FieldMetaState,
+} from "./field-shell";
+import { useEntityEditForm, useFieldMetadata } from "./form-context";
+import { useFieldErrors } from "./use-field-errors";
+
+export interface TextAreaFieldProps extends BaseFieldProps {
+  rows?: number;
+  /**
+   * Classes of the textarea itself (the field's `className` goes to the shell around label and box) — a
+   * maximum height for a value that can be very long (a public key), where the box would otherwise grow
+   * with its content.
+   */
+  controlClassName?: string;
+  /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
+  disabled?: boolean;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a DTO-only value like a
+   * configuration parameter's `stringValue` is no `@PropertyInfo` field of its DO (see
+   * [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
+}
+
+export function TextAreaField({
+  name,
+  label,
+  hint,
+  className,
+  rows = 4,
+  controlClassName,
+  disabled,
+  metadataLess,
+}: TextAreaFieldProps) {
+  const form = useEntityEditForm();
+  const fieldErrors = useFieldErrors();
+  const ids = useFieldIds();
+  const { required, maxLength } = useFieldMetadata(name, metadataLess);
+  return (
+    <form.Field name={name as never}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {(field: any) => {
+        const meta = field.state.meta as FieldMetaState;
+        const invalid = meta.isTouched && !meta.isValid;
+        const raw = field.state.value as string | null;
+        return (
+          <FieldShell
+            name={name}
+            label={label}
+            required={required}
+            readOnly={disabled}
+            hint={hint}
+            invalid={invalid}
+            errors={fieldErrors(meta, label)}
+            className={className}
+            ids={ids}
+          >
+            <Textarea
+              id={ids.controlId}
+              rows={rows}
+              className={controlClassName}
+              disabled={disabled}
+              // Same as InputField: the column's length.
+              maxLength={maxLength}
+              value={raw ?? ""}
+              // Same null-vs-"" rule as InputField.
+              onChange={(e) =>
+                field.handleChange(
+                  required ? e.target.value : e.target.value || null
+                )
+              }
+              onBlur={field.handleBlur}
+            />
+          </FieldShell>
+        );
+      }}
+    </form.Field>
+  );
+}

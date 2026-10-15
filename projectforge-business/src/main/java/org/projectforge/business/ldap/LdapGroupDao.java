@@ -35,7 +35,7 @@ import javax.naming.directory.ModificationItem;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapGroupDao extends LdapDao<String, LdapGroup>

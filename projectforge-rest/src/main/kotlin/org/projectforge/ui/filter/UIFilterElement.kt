@@ -23,7 +23,9 @@
 
 package org.projectforge.ui.filter
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIElement
 import org.projectforge.ui.UIElementType
@@ -59,7 +61,52 @@ open class UIFilterElement(
          */
         var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
-    enum class FilterType { STRING, DATE, TIMESTAMP, BOOLEAN, OBJECT, LIST }
+    /**
+     * MONTH is a DATE range of whole calendar months (the values are still `yyyy-MM-dd`: the first day of the
+     * begin month, the last day of the end month) — for a field the query reads by year and month only.
+     */
+    enum class FilterType { STRING, DATE, MONTH, TIMESTAMP, BOOLEAN, OBJECT, LIST }
+
+    /**
+     * Translated label of the group this field belongs to, taken from the parent chain of its
+     * [org.projectforge.ui.ElementInfo] (e. g. "Kunde" for `kunde.name`), or null for a top level field.
+     *
+     * A grouping hint for the client: a list offers every search field of its entity, which is a flat
+     * list of 40 fields for an order. Where the client groups by this, [shortLabel] is what it shows.
+     */
+    var group: String? = null
+
+    /**
+     * The field's own label without the group prefix ("Name" instead of "Kunde - Name"), or null if
+     * [label] already is it.
+     *
+     * [label] stays the full path on purpose: it is the sort key of the field list, the text of the
+     * client's filter pill and the text its field search matches. Shortened, an order would show
+     * "Name" three times with no way to tell the fields apart.
+     */
+    var shortLabel: String? = null
+
+    /**
+     * A field the entity indexes but never declares: no `@PropertyInfo`, so it has no translation and
+     * its label falls back to the property name. Offered, because it is searchable,
+     * but not worth a place among the fields a user came for.
+     */
+    var technical: Boolean? = null
+
+    /**
+     * Set by [addLeading]: the field comes before the ones sorted by label (see [LayoutListFilterUtils]).
+     * Server-side only: the client keeps the order it gets.
+     */
+    @JsonIgnore
+    var leading: Boolean = false
+
+    /**
+     * If set, this filter offers autocompletion (type-ahead suggestions from [AutoCompletion.url]). An
+     * [UIFilterObjectElement] always has one; a plain STRING filter may carry one too, so the client can
+     * show suggestions while still filtering by the free text the user types (e. g. the time sheet's
+     * `kost2.nummer`, which suggests concrete cost units but filters as a prefix on the number).
+     */
+    var autoCompletion: AutoCompletion<*>? = null
 
     init {
         key = id
@@ -71,7 +118,7 @@ open class UIFilterElement(
             return
         }
         when (propertyType) {
-            Boolean::class.java, java.lang.Boolean::class.java ->
+            Boolean::class.java, Boolean::class.javaObjectType ->
                 filterType = FilterType.BOOLEAN
             Date::class.java ->
                 filterType = FilterType.TIMESTAMP
@@ -81,4 +128,35 @@ open class UIFilterElement(
                 filterType = FilterType.TIMESTAMP
         }
     }
+}
+
+/**
+ * Puts a hand-made filter element into a group, for the elements an
+ * [org.projectforge.rest.core.AbstractEntityRest.addMagicFilterElements] adds itself: only the fields
+ * derived from a property have a parent chain [LayoutListFilterUtils] could read the group from.
+ *
+ * @param shortLabel The label to show inside the group; the full label is kept where the group isn't shown.
+ */
+fun <T : UIFilterElement> T.inGroup(group: String, shortLabel: String? = null): T {
+    this.group = group
+    this.shortLabel = shortLabel
+    return this
+}
+
+/**
+ * Adds the fields a list is filtered by first, in the given order, ahead of the ones
+ * [LayoutListFilterUtils] sorts by label: business unit, customer and project, side by side and coarse
+ * to fine, instead of under B, K and P. A null field (one not offered here) is skipped.
+ */
+fun MutableList<UILabelledElement>.addLeading(vararg fields: UIFilterElement?) {
+    fields.filterNotNull().forEach {
+        it.leading = true
+        add(it)
+    }
+}
+
+/** Marks a hand-made element as [UIFilterElement.technical], which is autodetected for property fields. */
+fun <T : UIFilterElement> T.asTechnical(): T {
+    technical = true
+    return this
 }

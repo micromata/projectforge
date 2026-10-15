@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.search
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.orm.entity.SearchIndexedEntity
@@ -35,12 +35,12 @@ import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
+import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -63,6 +63,9 @@ class HibernateSearchReindexer {
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
 
+    @Autowired
+    private lateinit var pluginAdminService: PluginAdminService
+
     private lateinit var indexedEntities: Collection<SearchIndexedEntity<*>>
 
     @PostConstruct
@@ -70,19 +73,43 @@ class HibernateSearchReindexer {
         indexedEntities = Search.mapping(entityManagerFactory).allIndexedEntities()
     }
 
+    /**
+     * All entity classes known to Hibernate Search, in the order used for a full re-index (same set the no-arg
+     * [rebuildDatabaseSearchIndices] iterates). Exposed so a full re-index can be handed to a [ReindexJob], which
+     * needs the explicit class list to report per-class progress. Entities of not activated plugins are excluded.
+     */
+    val indexedEntityClasses: List<Class<*>>
+        get() = indexedEntities.map { it.javaClass() }.filterNot { isEntityOfInactivePlugin(it) }
+
+    /**
+     * Hibernate maps the entities of all plugins found in the classpath, but only an activated plugin runs its
+     * Flyway migrations. So the table of a not activated plugin may be missing or outdated (e.g. left from an earlier
+     * activation, lacking newer columns): loading its entities fails and must not be tried.
+     * An entity belongs to a plugin, if it's located in the plugin's package or a sub package.
+     */
+    private fun isEntityOfInactivePlugin(clazz: Class<*>): Boolean {
+        val activePlugins = pluginAdminService.activePlugins.map { it.javaClass }.toSet()
+        return pluginAdminService.availablePlugins
+            .filter { it.javaClass !in activePlugins }
+            .any { plugin ->
+                val pluginPackage = plugin.javaClass.packageName
+                clazz.packageName == pluginPackage || clazz.packageName.startsWith("$pluginPackage.")
+            }
+    }
+
     fun execute() {
-        log.info("Re-index job started.")
+        log.info { "Re-index job started." }
         /*if (databaseDao == null) {
             log.error("Job not configured, aborting.")
             return
         }*/
         val result = rebuildDatabaseSearchIndices()
         if (result.contains("*")) {
-            log.error(ERROR_MSG)
+            log.error { ERROR_MSG }
             val recipients = instance
                 .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL)
             if (StringUtils.isNotBlank(recipients)) {
-                log.info("Try to inform administrator about re-indexing error.")
+                log.info { "Try to inform administrator about re-indexing error." }
                 val msg = Mail()
                 msg.addTo(recipients)
                 msg.setProjectForgeSubject("Error while re-indexing ProjectForge data-base.")
@@ -96,13 +123,13 @@ class HibernateSearchReindexer {
                 sendMail.send(msg, null, null)
             }
         }
-        log.info("Re-index job finished successfully.")
+        log.info { "Re-index job finished successfully." }
     }
 
     fun rebuildDatabaseSearchIndices(settings: ReindexSettings, vararg classes: Class<*>): String {
         if (currentReindexRun != null) {
             val sb = StringBuilder()
-            if (classes != null && classes.isNotEmpty()) {
+            if (classes.isNotEmpty()) {
                 var first = true
                 for (cls in classes) {
                     first = StringHelper.append(sb, first, cls.name, ", ")
@@ -112,17 +139,15 @@ class HibernateSearchReindexer {
                 currentReindexRun, Locale.ENGLISH,
                 DateHelper.UTC
             )
-            log.info(
-                ("Re-indexing of '" + sb.toString()
-                        + "' cancelled due to another already running re-index job started at " + date + " (UTC):")
-            )
+            log.info { ("Re-indexing of '" + sb.toString()
+                        + "' cancelled due to another already running re-index job started at " + date + " (UTC):") }
             return "Another re-index job is already running. The job was started at: $date"
         }
         synchronized(this) {
             try {
                 currentReindexRun = Date()
                 val sb = StringBuilder()
-                if (classes != null && classes.isNotEmpty()) {
+                if (classes.isNotEmpty()) {
                     for (cls in classes) {
                         reindex(cls, settings, sb)
                     }
@@ -140,15 +165,17 @@ class HibernateSearchReindexer {
     }
 
     private fun reindex(clazz: Class<*>, settings: ReindexSettings, sb: StringBuilder) {
+        if (isEntityOfInactivePlugin(clazz)) {
+            log.info { "Class '$clazz' belongs to a non-active plugin, skipping re-index." }
+            return
+        }
         try {
             // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
             persistenceService.selectSingleResult("select count(*) from " + clazz.simpleName + " t", Long::class.java)?.let {
                 log.info { "Re-indexing ${it.format()} entries of class '${clazz.name}'." }
             }
         } catch (ex: Exception) {
-            if (HistoryEntryDO::class.java != clazz) {
-                log.info("Class '$clazz' not available (OK for non-active plugins and HistoryEntryDO).")
-            }
+            log.info { "Class '$clazz' not available (OK for non-active plugins)." }
             return
         }
         // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
@@ -157,7 +184,7 @@ class HibernateSearchReindexer {
             databaseDao.reindex(clazz, settings, sb)
         } catch (ex: Exception) {
             sb.append(" (an error occurred, see log file for further information.), ")
-            log.error("While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message, ex)
+            log.error(ex) { "While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message }
         }
     }
 

@@ -24,7 +24,7 @@
 package org.projectforge.business.test
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -88,7 +88,7 @@ import kotlin.jvm.java
 /**
  * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [TestConfiguration::class])
@@ -120,6 +120,9 @@ abstract class AbstractTestBase protected constructor() {
 
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
+
+    @Autowired
+    private lateinit var caches: PfCaches
 
     @Autowired
     private lateinit var repoService: RepoService
@@ -155,7 +158,7 @@ abstract class AbstractTestBase protected constructor() {
                 if (webRegistryClazz == null) {
                     // Wicket not present in current plugin to test (OK)
                 } else {
-                    baseLog.error(ex.message, ex)
+                    baseLog.error(ex) { ex.message }
                 }
             }
             pluginAdminService.initializeAllPluginsForUnitTest()
@@ -167,7 +170,11 @@ abstract class AbstractTestBase protected constructor() {
                 }
             }
         }
-        PfCaches.internalSetupForTestCases()
+        // The autowired bean, not `internalSetupForTestCases`: that one builds caches without a
+        // `persistenceService`, so anything reading a cache statically through `PfCaches.instance` - and
+        // `Kost2DO.getEffectiveKostentraegerStatus` does - fails on an uninitialized `lateinit`. A test with a
+        // Spring context has the real thing; only a test running without one needs the empty stand-in.
+        PfCaches.internalSetInstanceForTestCases(caches)
     }
 
     protected var mCount: Int = 0
@@ -198,8 +205,11 @@ abstract class AbstractTestBase protected constructor() {
             // System.out.println("******** " + instance.getClass());
         }
         if (testRepoDir != null) {
+            PfFilesTestSchema.ensure(dataSource)
             repoService.internalResetForJunitTestCases()
             repoService.init(testRepoDir!!)
+            // A fresh repository (as before for each test class with its own JCR repository):
+            repoService.fileStore?.internalClearForJunitTestCases()
             testRepoDir = null // Don't initialize twice.
         }
         if (!initialized) {
@@ -221,7 +231,7 @@ abstract class AbstractTestBase protected constructor() {
         System.setProperty("user.timezone", "UTC")
         TimeZone.setDefault(DateHelper.UTC)
         Locale.setDefault(Locale.ENGLISH)
-        baseLog.info("user.timezone is: " + System.getProperty("user.timezone"))
+        baseLog.info { "user.timezone is: " + System.getProperty("user.timezone") }
         val jdbc = JdbcTemplate(dataSource)
         try {
             jdbc.execute("CHECKPOINT DEFRAG")
@@ -239,7 +249,7 @@ abstract class AbstractTestBase protected constructor() {
         try {
             initDb()
         } catch (e: BeansException) {
-            baseLog.error("Something in setUp go wrong: " + e.message, e)
+            baseLog.error(e) { "Something in setUp go wrong: " + e.message }
         }
         return
     }

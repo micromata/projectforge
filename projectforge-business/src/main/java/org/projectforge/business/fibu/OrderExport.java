@@ -48,7 +48,7 @@ import java.util.Set;
 /**
  * For excel export.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class OrderExport {
@@ -79,19 +79,18 @@ public class OrderExport {
                 new I18nExportColumn(OrderCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.PROJECT_CUSTOMER, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.TITLE, "fibu.auftrag.title", MyXlsContentProvider.LENGTH_STD),
-                new I18nExportColumn(OrderCol.PROJECTMANAGER, "fibu.projectManager", 30),
-                new I18nExportColumn(OrderCol.HEADOFBUSINESSMANAGER, "fibu.headOfBusinessManager", 30),
-                new I18nExportColumn(OrderCol.SALESMANAGER, "fibu.salesManager", 30),
                 new I18nExportColumn(OrderCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.INVOICED, "fibu.fakturiert", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.TO_BE_INVOICED, "fibu.toBeInvoiced", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.COMPLETELY_INVOICED, "fibu.auftrag.vollstaendigFakturiert", MyXlsContentProvider.LENGTH_BOOLEAN),
+                new I18nExportColumn(OrderCol.FEHLBETRAG, "fibu.auftrag.position.fehlbetrag", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(OrderCol.INVOICES, "fibu.rechnungen", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, "fibu.periodOfPerformance.from", MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_END, "fibu.periodOfPerformance.to", MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.FORECAST_TYPE, AuftragForecastType.getBaseKey(), MyXlsContentProvider.LENGTH_PERCENT),
                 new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", MyXlsContentProvider.LENGTH_STD),
+                new I18nExportColumn(OrderCol.ADDITIONAL_CONTACTS, "fibu.auftrag.additionalContacts", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.REFERENCE, "fibu.common.reference", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(OrderCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)
         };
@@ -116,9 +115,6 @@ public class OrderExport {
                 order.getKundeText());
         mapping.add(OrderCol.PROJECT_CUSTOMER, projectCustomer);
         mapping.add(OrderCol.TITLE, order.getTitel());
-        mapping.add(OrderCol.PROJECTMANAGER, order.getProjectManager() != null ? order.getProjectManager().getFullname() : "");
-        mapping.add(OrderCol.HEADOFBUSINESSMANAGER, order.getHeadOfBusinessManager() != null ? order.getHeadOfBusinessManager().getFullname() : "");
-        mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
         final BigDecimal netSum = orderInfo.getNetSum();
         final BigDecimal invoicedSum = orderInfo.getInvoicedSum();
         final BigDecimal toBeInvoicedSum = orderInfo.getNotYetInvoicedSum();
@@ -126,6 +122,7 @@ public class OrderExport {
         addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
         addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(OrderCol.COMPLETELY_INVOICED, orderInfo.isVollstaendigFakturiert() ? "x" : "");
+        addCurrency(mapping, OrderCol.FEHLBETRAG, orderInfo.getFehlbetrag());
         final List<RechnungPosInfo> invoicePositions = rechnungCache
                 .getRechnungsPosInfosByAuftragId(order.getId());
         mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
@@ -136,6 +133,7 @@ public class OrderExport {
 
         final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
         mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
+        mapping.add(OrderCol.ADDITIONAL_CONTACTS, order.getAdditionalContactsAsString());
         mapping.add(OrderCol.REFERENCE, order.getReferenz());
         mapping.add(OrderCol.COMMENT, order.getBemerkung());
     }
@@ -159,6 +157,7 @@ public class OrderExport {
                 new I18nExportColumn(PosCol.TO_BE_INVOICED, "fibu.tobeinvoiced", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(PosCol.COMPLETELY_INVOICED, "fibu.auftrag.vollstaendigFakturiert",
                         MyXlsContentProvider.LENGTH_BOOLEAN),
+                new I18nExportColumn(PosCol.FEHLBETRAG, "fibu.auftrag.position.fehlbetrag", MyXlsContentProvider.LENGTH_CURRENCY),
                 new I18nExportColumn(PosCol.INVOICES, "fibu.rechnungen", MyXlsContentProvider.LENGTH_STD),
                 new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, null, MyXlsContentProvider.LENGTH_DATE),
                 new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_END, null, MyXlsContentProvider.LENGTH_DATE),
@@ -201,6 +200,7 @@ public class OrderExport {
         addCurrency(mapping, PosCol.INVOICED, invoicedSum);
         addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
+        addCurrency(mapping, PosCol.FEHLBETRAG, posInfo != null ? orderInfo.getFehlbetrag(posInfo) : null);
         final Collection<RechnungPosInfo> invoicePositions = rechnungCache
                 .getRechnungsPosInfosByAuftragsPositionId(pos.getId());
         mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
@@ -290,7 +290,7 @@ public class OrderExport {
         ExportSheet sheet = xls.addSheet(sheetTitle);
         ContentProvider sheetProvider = sheet.getContentProvider();
         sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, OrderCol.NETSUM, OrderCol.INVOICED,
-                OrderCol.TO_BE_INVOICED);
+                OrderCol.TO_BE_INVOICED, OrderCol.FEHLBETRAG);
         sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), OrderCol.DATE_OF_ENTRY, OrderCol.DATE_OF_OFFER, OrderCol.ORDER_DATE);
         sheet.createFreezePane(1, 1);
         sheet.setColumns(columns);
@@ -305,7 +305,7 @@ public class OrderExport {
         sheet = xls.addSheet(sheetTitle);
         sheetProvider = sheet.getContentProvider();
         sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, PosCol.NETSUM, PosCol.INVOICED,
-                PosCol.TO_BE_INVOICED);
+                PosCol.TO_BE_INVOICED, PosCol.FEHLBETRAG);
         sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE_OF_OFFER, PosCol.DATE_OF_ENTRY,
                 PosCol.PERIOD_OF_PERFORMANCE_BEGIN,
                 PosCol.PERIOD_OF_PERFORMANCE_END);
@@ -358,11 +358,11 @@ public class OrderExport {
     }
 
     private enum OrderCol {
-        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, REFERENCE, COMMENT
+        NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, FORECAST_TYPE, CONTACT_PERSON, ADDITIONAL_CONTACTS, REFERENCE, COMMENT
     }
 
     private enum PosCol {
-        NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
+        NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, FEHLBETRAG, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
     }
 
     private enum PaymentsCol {

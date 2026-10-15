@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum
 /**
  * When sales of an order are distributed, this can be used to determine, for example, whether sales are
  * invoiced/forecast in the current month or in the following month.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class AuftragForecastType(val key: String) : I18nEnum {
     CURRENT_MONTH("currentMonth"),

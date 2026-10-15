@@ -52,8 +52,8 @@ class AbstractCsvImporterTest {
         val entities = mutableListOf<TestDTO>()
 
         override fun prepareEntity(): TestDTO = TestDTO()
-        override fun commitEntity(entity: TestDTO) {
-            entities.add(entity)
+        override fun commitEntity(obj: TestDTO) {
+            entities.add(obj)
         }
     }
 

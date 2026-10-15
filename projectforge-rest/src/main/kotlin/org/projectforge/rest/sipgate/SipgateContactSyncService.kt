@@ -25,12 +25,19 @@ package org.projectforge.rest.sipgate
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
+import org.projectforge.common.scheduling.SchedulerJobArea
+import org.projectforge.common.scheduling.SchedulerJobDefinition
+import org.projectforge.common.scheduling.SchedulerJobRunner
+import org.projectforge.common.scheduling.SchedulerSchedule
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.integration.IntegrationErrors
+import org.projectforge.framework.integration.SyncCounts
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
@@ -52,7 +59,7 @@ private val log = KotlinLogging.logger {}
  *   - Hilfreich wäre eine Reference-ID (String oder Zahl) zum Verknüpfen von Sipgate und Fremdsystemadressen.
  *   - Hilfreich wäre ansonsten als Antwort nach einem Insert die Contact-id.
  *   - Typ von Nummern in Kontakten werden nicht immer korrekt zurückgegeben (Beispiele heraussuchen, wie cell-home, fax, ...)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
@@ -101,6 +108,16 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
         override fun toString(): String {
             return "total=$total, inserted=$inserted, updated=$updated, deleted=$deleted, failed=$failed, ignored=$ignored"
         }
+
+        internal fun toSyncCounts(): SyncCounts {
+            return SyncCounts(
+                created = inserted,
+                updated = updated,
+                deleted = deleted,
+                unchanged = maxOf(0, total - inserted - updated - deleted - failed),
+                errors = failed,
+            )
+        }
     }
 
     /**
@@ -142,6 +159,8 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
 
     private var lastSyncInEpochMillis: Long? = null
 
+    private val syncStats = SyncStatsRegistry.get("sipgate")
+
     /**
      * Debouncing mechanism to prevent expensive sync operations on every address modification.
      *
@@ -170,12 +189,29 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     private val batchSyncDelayMillis = 5000L // Wait 5 seconds after last update in batch
     private val singleSyncDelayMillis = 10000L // Wait 10 seconds for isolated single updates
 
+    @Autowired
+    private lateinit var schedulerJobRunner: SchedulerJobRunner
+
     @PostConstruct
     private fun postConstruct() {
         addressDao.register(this)
+        schedulerJobRunner.register(SCHEDULER_JOB, ::scheduler) {
+            when {
+                !configuration.isConfigured() -> "Sipgate isn't configured."
+                !configuration.cronActive -> "projectforge.sipgate.cron.sync.active=false"
+                else -> null
+            }
+        }
     }
 
     companion object {
+        private const val CRON = "\${projectforge.sipgate.cron.sync}"
+
+        val SCHEDULER_JOB = SchedulerJobDefinition(
+            "sipgate.contactSync", SchedulerJobArea.INTEGRATION, SipgateContactSyncService::class.java, "scheduler",
+            SchedulerSchedule.Cron(CRON),
+        )
+
         internal var countryPrefixForTestcases: String? = null
 
         /**
@@ -423,7 +459,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                         }
                     }
             }
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 val sb = StringBuilder()
                 sb.appendLine("matchscores:")
                 val map = matchScores.sortedBy { it.score }.groupBy { it.contactId }
@@ -527,18 +563,17 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     }
 
 
-    @Scheduled(cron = "\${projectforge.sipgate.cron.sync}")
+    /** Inactive (not run) if Sipgate isn't configured or projectforge.sipgate.cron.sync.active=false. */
+    @Scheduled(cron = CRON)
     fun scheduler() {
-        if (!configuration.isConfigured()) {
-            return // Without any logging.
+        schedulerJobRunner.runAsync(SCHEDULER_JOB) { run ->
+            try {
+                sync()
+            } catch (ex: Exception) {
+                // Already logged by sync().
+                run.fail("Sipgate sync failed: ${ex.message}", ex)
+            }
         }
-        if (!configuration.cronActive) {
-            log.info { "Scheduler is inactive: projectforge.sipgate.cron.sync.active=false" }
-            return
-        }
-        Thread {
-            sync()
-        }.start()
     }
 
     /**
@@ -550,6 +585,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     fun sync(resetContacts: Boolean = false): SyncContext {
         log.info { "Syncing local addresses and remote Sipgate contacts..." }
         synchronized(this) {
+            val run = syncStats.startRun(if (resetContacts) "reset contacts" else null)
             try {
                 val syncContext = SyncContext()
                 syncContext.addressList =
@@ -610,7 +646,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                                             }
                                             syncContext.localCounter.updated++
                                         } catch (ex: Exception) {
-                                            log.error("${getLogInfo(address, contact)}: ${ex.message}", ex)
+                                            log.error(ex) { "${getLogInfo(address, contact)}: ${ex.message}" }
                                             syncContext.localCounter.failed++
                                         }
                                     }
@@ -686,7 +722,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                                         }
                                         syncContext.localCounter.inserted++
                                     } catch (ex: Exception) {
-                                        log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                                        log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                                         syncContext.localCounter.failed++
                                     }
                                 } else {
@@ -709,9 +745,13 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 // Delete remote contacts (without numbers)?
                 lastSyncInEpochMillis = System.currentTimeMillis()
                 log.info { "Syncing of local addresses and remote Sipgate contacts finished: $syncContext" }
+                run.addStep("local", syncContext.localCounter.toSyncCounts())
+                run.addStep("remote", syncContext.remoteCounter.toSyncCounts())
+                run.finish()
                 return syncContext
             } catch (ex: Exception) {
-                log.error("Error during sync: ${ex.message}", ex)
+                run.abort(ex.message ?: ex.javaClass.simpleName, IntegrationErrors.isTimeout(ex))
+                log.error(ex) { "Error during sync: ${ex.message}" }
                 throw ex
             }
         }
@@ -731,7 +771,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 it.remoteCounter.inserted++
             }
         } catch (ex: Exception) {
-            log.error("${getLogInfo(address, null)}: ${ex.message}", ex)
+            log.error(ex) { "${getLogInfo(address, null)}: ${ex.message}" }
             syncContext?.let {
                 it.remoteCounter.failed++
             }
@@ -764,7 +804,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 }
                 syncContext.remoteCounter.updated++
             } catch (ex: Exception) {
-                log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                 syncContext.remoteCounter.failed++
             }
         }
@@ -792,7 +832,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                     }
                     syncContext.remoteCounter.deleted++
                 } catch (ex: Exception) {
-                    log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
+                    log.error(ex) { "${getLogInfo(null, contact)}: ${ex.message}" }
                     syncContext.remoteCounter.failed++
                 }
             }
@@ -991,7 +1031,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 singleSyncDelayMillis // 10s for single
             }
 
-            if (log.isDebugEnabled) {
+            if (log.isDebugEnabled()) {
                 log.debug {
                     "Address #${obj.id} modified, scheduling sync in ${delayMillis}ms " +
                             "(batch=$isBatchUpdate, timeSinceLastUpdate=${timeSinceLastUpdate}ms)"

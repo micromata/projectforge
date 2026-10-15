@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.history
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.OneToMany
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.access.AccessChecker
@@ -157,7 +157,10 @@ class HistoryService {
             } else {
                 ""
             }
-            entry.userComment = "${entry.userComment}\n${PFDateTime.now().isoString}Z$userString: $userComment"
+            val newLine = "${PFDateTime.now().isoString}Z$userString: $userComment"
+            // The first comment of an entry starts the text, it isn't appended to a "null" line.
+            val existing = entry.userComment
+            entry.userComment = if (existing.isNullOrBlank()) newLine else "$existing\n$newLine"
             context.em.merge(entry)
         }
         return info
@@ -227,7 +230,7 @@ class HistoryService {
         val contextUser = loggedInUser
         val userPk = contextUser?.id?.toString()
         if (userPk == null) {
-            log.warn("No user found for creating history entry.")
+            log.warn { "No user found for creating history entry." }
         }
         persistenceService.runInTransaction { context ->
             HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(

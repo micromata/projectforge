@@ -43,7 +43,7 @@ import org.projectforge.framework.persistence.entities.HistoryUserCommentSupport
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

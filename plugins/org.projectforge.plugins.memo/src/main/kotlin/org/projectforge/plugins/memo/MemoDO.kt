@@ -40,7 +40,7 @@ import org.projectforge.framework.json.IdOnlySerializer
  * If you want to use the history of changes and undo functionality please use DefaultBaseDO as super class instead of
  * AbstractBaseDO. .
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
 
-
 /**
  * Mass update after selection.
  */
@@ -61,10 +60,6 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
     override fun getId(obj: AddressCampaignValue): Long {
         return obj.id ?: obj.addressId ?: -1
-    }
-
-    override fun getTitleKey(): String {
-        return "plugins.marketing.addressCampaignValue.multiselected.title"
     }
 
     @PostConstruct
@@ -91,7 +86,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         if (addressCampaign != null) {
             layout.add(UIReadOnlyField(label = "plugins.marketing.addressCampaign", value = addressCampaign.title))
         }
-        val values = addressCampaign?.values?.map { UISelectValue(it, it) }
+        val values = addressCampaign?.valuesArray?.map { UISelectValue(it, it) }
         layout.add(
             createInputFieldRow(
                 "value",
@@ -112,7 +107,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
         params["value"]?.let { param ->
             param.textValue?.let { value ->
-                if (!value.isEmpty() && addressCampaign?.values?.contains(value) != true) {
+                if (!value.isEmpty() && addressCampaign?.valuesArray?.contains(value) != true) {
                     return showValidationErrors(
                         ValidationError(
                             "plugins.marketing.addressCampaignValue.error.unknownValue",

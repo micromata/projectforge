@@ -23,7 +23,10 @@
 
 package org.projectforge.business.scripting.support
 
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginEntry
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginEntryType
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.time.PFDay
@@ -74,6 +77,7 @@ open class AccountingRecord(
   val profit
     get() = revenue + costs // Costs are given as negative amounts.
 
+  /** The profit as fraction of the revenue (two decimals); 0 for a loss or without positive revenue. */
   val percentage
     get() = if (revenue > BigDecimal.ZERO && profit > BigDecimal.ZERO) {
       profit.divide(revenue, 2, RoundingMode.HALF_UP)
@@ -145,6 +149,36 @@ open class AccountingRecord(
         cost2 = cost2.nummer,
         account = record.konto?.nummer,
         projectManagerGroup = project.projektManagerGroup?.name
+      )
+    }
+
+    /**
+     * Creates a record of an amount of the contribution margin, as loaded by
+     * [org.projectforge.business.fibu.contributionmargin.ContributionMarginService.load].
+     */
+    fun create(entry: ContributionMarginEntry, businessUnit: String, customerGroup: String): AccountingRecord {
+      val caches = PfCaches.instance
+      val project = caches.getProjekt(entry.projectId)
+      val kost2 = caches.getKost2(entry.kost2Id)
+      return AccountingRecord(
+        PFDay.from(entry.date),
+        businessUnit = businessUnit,
+        customer = caches.getKundeIfNotInitialized(project?.kunde)?.name ?: "---",
+        customerGroup = customerGroup,
+        project = project?.name ?: "???",
+        projectId = entry.projectId,
+        kost2String = kost2?.formattedNumber ?: project?.kost ?: "",
+        cost2 = kost2?.nummer,
+        account = entry.account,
+        projectManagerGroup = caches.getGroup(project?.projektManagerGroup?.id)?.name,
+        revenue = entry.revenue,
+        costs = entry.costs,
+        text = entry.text,
+        type = when (entry.type) {
+          ContributionMarginEntryType.RECORD -> TYPE.RECORD
+          ContributionMarginEntryType.INVOICE -> TYPE.INVOICE
+          ContributionMarginEntryType.TIMESHEET -> TYPE.TIMESHEET
+        },
       )
     }
 

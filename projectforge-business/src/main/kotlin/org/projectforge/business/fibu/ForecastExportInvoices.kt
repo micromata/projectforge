@@ -24,8 +24,9 @@
 package org.projectforge.business.fibu
 
 import de.micromata.merlin.excel.ExcelSheet
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.ForecastCol
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.time.PFDay
@@ -49,14 +50,26 @@ internal class ForecastExportInvoices { // open needed by Wicket.
     private lateinit var projektCache: ProjektCache
 
     @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     internal fun fillInvoices(ctx: ForecastExportContext) {
         val firstMonthCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.MonthCol.MONTH1.header)!!.columnNumber
         for (invoice in ctx.invoices) {
-            if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT) {
-                continue // Ignoriere stornierte oder geplante Rechnungen.
+            if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT ||
+                invoice.typ == RechnungTyp.CANCELLATION
+            ) {
+                // Ignore planned and cancelled invoices, and cancellations: the latter would otherwise count
+                // negatively against an original that is ignored as STORNIERT already.
+                continue
             }
+            // Resolve the lazy kunde/projekt proxies from the caches once per invoice (avoids an n+1: reading
+            // invoice.kundeAsString below would otherwise trigger one SELECT on T_FIBU_KUNDE per invoice). The
+            // identifier read inside getXIfNotInitialized is free (KundeDO.nummer/ProjektDO.id are the @Id).
+            invoice.kunde = kundeCache.getKundeIfNotInitialized(invoice.kunde)
+            invoice.projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
             rechnungCache.getRechnungInfo(invoice.id)?.positions?.forEach { pos ->
                 val orderPosInfo = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
                 val orderPosId = orderPosInfo?.id
@@ -73,13 +86,13 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                     val orderId = pos.auftragsId ?: ordersCache.getOrderPositionInfo(orderPosId)?.auftragId
                     order = ordersCache.getOrderInfo(orderId)
                     if (order == null) {
-                        log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
+                        log.error { "Shouldn't occur: can't determine order from order position: $orderPosId" }
                         return@forEach // continue
                     }
                     ctx.orderMapByPositionId[orderPosId] = order
                 }
                 var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
-                if (monthIndex !in -12..11) {
+                if (monthIndex !in -24..11) {
                     return@forEach // continue
                 }
                 if (monthIndex >= 0) {
@@ -99,7 +112,8 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                             )
                         }
                     }
-                } else {
+                } else if (monthIndex >= -12) {
+                    // The 12 months before startDate: shift into the same Month1..Month12 columns of the prev-year sheet.
                     monthIndex += 12
                     insertIntoSheet(
                         ctx,
@@ -111,8 +125,45 @@ internal class ForecastExportInvoices { // open needed by Wicket.
                         firstMonthCol,
                         monthIndex
                     )
+                } else {
+                    // The 12 months two years before startDate (-24..-13): shift into the prev-prev-year sheet.
+                    monthIndex += 24
+                    insertIntoSheet(
+                        ctx,
+                        ctx.invoicesPrevPrevYearSheet,
+                        invoice,
+                        pos,
+                        order,
+                        orderPosId,
+                        firstMonthCol,
+                        monthIndex
+                    )
                 }
             }
+        }
+    }
+
+    /**
+     * Writes the visible-column COUNTIF formula for every invoice row collected by [fillInvoices]/[insertIntoSheet].
+     * Must be called after [ForecastExport.fillOrderPositions], because the formula references the forecast sheet's
+     * visibleID range whose upper bound ([ForecastExportContext.forecastDataLastExcelRow]) is only known then. Bounding
+     * the range to the actual last forecast row (instead of a fixed 100000) keeps the formula cheap to evaluate.
+     */
+    internal fun fillInvoiceVisibleColumn(ctx: ForecastExportContext) {
+        val visibleProjectIdCol =
+            ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
+        val lastRow = ctx.forecastDataLastExcelRow
+        // The PROJECT_ID column letter is identical across all invoice sheets (same template layout), so resolve it once.
+        val projectIdCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+            ?.columnNumberAsLetters
+        ctx.invoiceVisibleCells.forEach { (sheet, rowNumber) ->
+            val excelRowNumber = rowNumber + 1 // Excel row numbers start with 1.
+            ExcelUtils.setCellFormula(
+                sheet,
+                rowNumber,
+                ForecastExportContext.InvoicesCol.VISIBLE.header,
+                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$lastRow, $projectIdCol$excelRowNumber) > 0"
+            )
         }
     }
 
@@ -127,37 +178,38 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.invoicedProjectIds.add(it)
         }
         val rowNumber = sheet.createRow().rowNum
-        val excelRowNumber = rowNumber + 1  // Excel row numbers start with 1.
         sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
+        // Fall back to the project of the order: the filter selection of the forecast sheet is propagated by project
+        // id only, so every invoice row needs one. Invoices without any project get PROJECT_ID_NONE (see the
+        // 'without project' pseudo order row in the forecast sheet).
+        val projectId = invoice.projekt?.id ?: order?.projektId
+        if (projectId == null) {
+            ctx.hasInvoicesWithoutProject = true
+        }
         ExcelUtils.setLongValue(
             sheet,
             rowNumber,
             ForecastExportContext.InvoicesCol.PROJECT_ID.header,
-            invoice.projekt?.id
+            projectId ?: ForecastExportContext.PROJECT_ID_NONE
         )
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
-        val visibleProjectIdCol =
-            ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
-        val projectIdCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)?.columnNumberAsLetters
-        ExcelUtils.setCellFormula(
-            sheet,
-            rowNumber,
-            ForecastExportContext.InvoicesCol.VISIBLE.header,
-            "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRowNumber) > 0"
-        )
+        // The visible-column COUNTIF references the forecast sheet's visibleID range, which only exists after
+        // fillOrderPositions has written its rows. Remember this cell and write the formula later in
+        // fillInvoiceVisibleColumn, so the range can be bounded to the actual last forecast row.
+        ctx.invoiceVisibleCells.add(sheet to rowNumber)
         sheet.setDateValue(
             rowNumber,
             ForecastExportContext.InvoicesCol.DATE.header,
             PFDay(invoice.datum!!).localDate,
             ctx.excelDateFormat
         )
-        val projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
+        // kunde and projekt were already resolved from the caches in fillInvoices, so these reads don't lazy-load.
         sheet.setStringValue(
             rowNumber,
             ForecastExportContext.InvoicesCol.CUSTOMER.header,
             invoice.kundeAsString
         )
-        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, projekt?.name)
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, invoice.projekt?.name)
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.SUBJECT.header, invoice.betreff)
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_TEXT.header, pos.text)
         invoice.bezahlDatum?.let {
@@ -196,7 +248,39 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.currencyCellStyle
         sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle =
             ctx.currencyCellStyle
-
+        val chartKind = when (sheet) {
+            ctx.invoicesSheet -> ForecastChartTotals.InvoiceKind.IST
+            ctx.planningInvoicesSheet -> ForecastChartTotals.InvoiceKind.PLANNING
+            ctx.invoicesPrevYearSheet -> ForecastChartTotals.InvoiceKind.PREV_YEAR
+            else -> ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR
+        }
+        ctx.chartTotals.addInvoice(chartKind, projectId ?: ForecastExportContext.PROJECT_ID_NONE, monthIndex, pos.netSum)
+        val tableKind = when (chartKind) {
+            ForecastChartTotals.InvoiceKind.IST -> ForecastInvoiceRow.Kind.IST
+            ForecastChartTotals.InvoiceKind.PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_YEAR
+            ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR -> ForecastInvoiceRow.Kind.PREV_PREV_YEAR
+            ForecastChartTotals.InvoiceKind.PLANNING -> null // Part of the plan sums only.
+        }
+        if (tableKind != null) {
+            ctx.tables.addInvoice(
+                ForecastInvoiceRow(
+                    invoiceId = invoice.id,
+                    invoiceNumber = invoice.nummer,
+                    positionNumber = pos.number,
+                    date = invoice.datum,
+                    projectId = projectId ?: ForecastExportContext.PROJECT_ID_NONE,
+                    customer = invoice.kundeAsString,
+                    project = invoice.projekt?.name,
+                    subject = invoice.betreff,
+                    positionText = pos.text,
+                    orderId = if (orderPosId != null) order?.id else null,
+                    order = if (order != null && orderPosId != null) "${order.nummer}.${pos.auftragsPositionNummer}" else null,
+                    netSum = pos.netSum,
+                    monthIndex = monthIndex,
+                    kind = tableKind,
+                )
+            )
+        }
     }
 
     private fun getMonthIndex(ctx: ForecastExportContext, date: PFDay): Int {

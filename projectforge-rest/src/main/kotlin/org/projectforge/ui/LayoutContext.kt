@@ -23,7 +23,7 @@
 
 package org.projectforge.ui
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
@@ -42,7 +42,7 @@ data class LayoutContext(
     fun registerListElement(varName: String, idPath: String) {
         val elInfo = ElementsRegistry.getElementInfo(this, idPath)
         if (elInfo == null) {
-            log.warn("Can't register list element '$idPath'. It won't be available under varname '$varName'")
+            log.warn { "Can't register list element '$idPath'. It won't be available under varname '$varName'" }
         } else {
             listElements[varName] = elInfo
         }

@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryLoadContext
@@ -83,7 +83,9 @@ class HistoryEntryUserCommentModalRest {
     ): ResponseEntity<ResponseAction> {
         sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
         val dto = postData.data
-        if (dto.userComment.isNullOrBlank()) {
+        // appendComment carries the newly entered text; userComment is the read-only existing one and
+        // is empty for the first comment of an entry.
+        if (dto.appendComment.isNullOrBlank()) {
             return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
         }
         val id = dto.id ?: return ResponseEntity(HttpStatus.NOT_FOUND)

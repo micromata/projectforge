@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
-import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
@@ -39,7 +38,7 @@ import org.projectforge.framework.utils.StringComparator
 /**
  * Eingehende Rechnungen.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -54,7 +53,7 @@ import org.projectforge.framework.utils.StringComparator
 @NamedQueries(
     NamedQuery(
         name = EingangsrechnungDO.SELECT_MIN_MAX_DATE,
-        query = "select min(datum), max(datum) from EingangsrechnungDO"
+        query = "select min(datum), max(datum) from EingangsrechnungDO where deleted = false"
     )
 )
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {
@@ -118,8 +117,8 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
         mappedBy = "eingangsrechnung",
         targetEntity = EingangsrechnungsPositionDO::class,
     )
-    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
-    @get:ListIndexBase(1)
+    // Sorted by the position number, not an @OrderColumn on it: see RechnungDO.positionen.
+    @get:OrderBy("number")
     override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?

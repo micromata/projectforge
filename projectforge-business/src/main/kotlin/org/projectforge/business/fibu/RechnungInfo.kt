@@ -60,6 +60,13 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     val zahlBetrag = invoice.zahlBetrag
 
+    /**
+     * The invoice's currency, needed by [AbstractRechnungsStatistik] to convert a foreign-currency invoice
+     * to the system currency without loading the [AbstractRechnungDO] (the JDBC cache carries it, see
+     * [RechnungJdbcService]).
+     */
+    val currency = invoice.currency
+
     val faelligkeit = invoice.faelligkeit
 
     val discountMaturity = invoice.discountMaturity
@@ -68,6 +75,18 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
      * The status of the invoice. Only available for [RechnungDO].
      */
     var status: RechnungStatus? = if (invoice is RechnungDO) invoice.status else null
+
+    /**
+     * The type of the invoice. Only available for [RechnungDO].
+     */
+    val typ: RechnungTyp? = (invoice as? RechnungDO)?.typ
+
+    /**
+     * A cancelled invoice and its cancellation are settled by each other: nothing is due, so both count as
+     * paid and neither adds to the open amount.
+     */
+    val isSettledByCancellation: Boolean
+        get() = status == RechnungStatus.STORNIERT || typ == RechnungTyp.CANCELLATION
 
     /**
      * @return The total sum of all cost assignment net amounts of all positions.

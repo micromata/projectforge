@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.utils
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
 private val log = KotlinLogging.logger {}

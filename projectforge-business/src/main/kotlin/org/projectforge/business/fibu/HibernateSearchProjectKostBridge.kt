@@ -30,7 +30,7 @@ import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 /**
  * StringBridge for hibernate search to search in kost2 part of project: "5.010.01".
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchProjectKostBridge : TypeBridge<ProjektDO> {
     override fun write(

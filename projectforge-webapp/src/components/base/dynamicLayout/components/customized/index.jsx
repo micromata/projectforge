@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import AddressImportDialogWrapper from './components/AddressImportDialogWrapper';
 import AddressImportReconciler from './components/AddressImportReconciler';
-import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
@@ -24,11 +23,8 @@ import CostNumberComponent from './components/CostNumberComponent';
 import AccessTableComponent from './components/AccessTableComponent';
 import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
-import VacationStatistics from './components/vacation/VacationStatistics';
-import VacationTable from './components/vacation/VacationTable';
 import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
 import WebAuthnRegister from './components/WebAuthnRegister';
-import CostNumber24Component from './components/CostNumber24Component';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -61,9 +57,6 @@ function DynamicCustomized({ id, ...props }) {
         case 'color-chooser':
             Tag = CustomizedColorChooser;
             break;
-        case 'book.lendOutComponent':
-            Tag = BookLendOut;
-            break;
         case 'calendar.recurrency':
             Tag = CalendarEventRecurrency;
             break;
@@ -78,9 +71,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'cost.number':
             Tag = CostNumberComponent;
-            break;
-        case 'cost.number24':
-            Tag = CostNumber24Component;
             break;
         case 'dayRange':
             Tag = DayRange;
@@ -108,12 +98,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'timesheet.edit.templatesAndRecent':
             Tag = TimesheetTemplatesAndRecent;
-            break;
-        case 'vacation.entries':
-            Tag = VacationTable;
-            break;
-        case 'vacation.statistics':
-            Tag = VacationStatistics;
             break;
         case 'webauthn.authenticate':
             Tag = WebAuthnAuthenticate;

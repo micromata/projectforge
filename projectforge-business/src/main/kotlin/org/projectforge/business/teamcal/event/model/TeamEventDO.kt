@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.event.model
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.fortuna.ical4j.model.Month
 import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
@@ -70,7 +70,7 @@ private val log = KotlinLogging.logger {}
  *  * **UID**: UID:19960401T080045Z-4000F192713-0052@example.com
  *
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity
@@ -92,7 +92,6 @@ private val log = KotlinLogging.logger {}
         columnList = "calendar_fk, start_date"
     ), jakarta.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")]
 )
-//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 @NamedQueries(
     NamedQuery(
@@ -172,8 +171,8 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     open var recurrenceRule: String? = null
         set(recurrenceRule) {
             this.recurrenceRuleObject = null
-            field = if (StringUtils.startsWith(recurrenceRule, "RRULE:")) {
-                recurrenceRule!!.substring(6)
+            field = if (recurrenceRule?.startsWith("RRULE:") == true) {
+                recurrenceRule.substring(6)
             } else recurrenceRule
         }
 
@@ -216,10 +215,16 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @get:Column(length = 4000)
     override var note: String? = null
 
-    // @get:OneToMany(fetch = FetchType.LAZY)
-    // @get:JoinColumn(name = "team_event_fk")
-    @get:Transient
-    open var attendees: MutableSet<TeamEventAttendeeDO>? = null
+    /**
+     * The attendees as a JSON list of [TeamEventAttendee] (see [attendeeList]). They are a self-contained
+     * snapshot (name, mail, status), shown read-only; they come from the ICS import or the migrated former
+     * attendee table. No editing and no invitations: hence a plain column instead of an entity of their own,
+     * so it is simply copied along on save, clone and series split.
+     *
+     * Intentionally without @PropertyInfo (kept out of the generated metadata and the search index).
+     */
+    @get:Column(name = "attendees", length = 10000)
+    open var attendeesJson: String? = null
 
     @get:Column
     open var ownership: Boolean? = null
@@ -317,7 +322,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         note = null
         location = note
         subject = location
-        attendees?.clear()
+        attendeesJson = null
         organizer = null
         organizerAdditionalParams = null
         reminderDuration = null
@@ -333,29 +338,15 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     }
 
     /**
-     * Creates a [TreeSet].
-     *
-     * @return this for chaining.
+     * The attendees parsed from [attendeesJson], empty if there are none (or the JSON is unreadable).
      */
-    fun ensureAttendees(): MutableSet<TeamEventAttendeeDO> {
-        if (this.attendees == null) {
-            this.attendees = HashSet()
-        }
-        return this.attendees!!
-    }
+    fun attendeeList(): List<TeamEventAttendee> = TeamEventAttendee.fromJson(attendeesJson)
 
-    fun addAttendee(attendee: TeamEventAttendeeDO): TeamEventDO {
-        ensureAttendees()
-        var number: Short = 1
-        for (pos in attendees!!) {
-            if (pos.number!! >= number) {
-                number = pos.number!!
-                number++
-            }
-        }
-        attendee.number = number
-        this.attendees!!.add(attendee)
-        return this
+    /**
+     * Stores the given attendees as [attendeesJson] (null for none).
+     */
+    fun storeAttendees(attendees: List<TeamEventAttendee>?) {
+        attendeesJson = TeamEventAttendee.toJson(attendees)
     }
 
     /**
@@ -364,7 +355,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
      */
     @Transient
     fun setRecurrence(rRule: RRule<ZonedDateTime>?): TeamEventDO {
-        if (rRule == null || rRule.recur == null) {
+        if (rRule == null) {
             this.recurrenceRuleObject = null
             this.recurrenceRule = null
             this.recurrenceUntil = null
@@ -453,7 +444,8 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             if (this.allDay) {
                 // just use date, no time
                 val until = PFDateTime.fromOrNull(recurrenceData.until)
-                recur.until = until?.dateTime
+                @Suppress("DEPRECATION")
+                until?.let { recur.setUntil(it.dateTime) } // Deprecated in ical4j, but Recur.until isn't assignable in Kotlin 2.2 anymore.
                 this.recurrenceUntil = recurrenceData.until
             } else {
                 this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.until!!, recurrenceData.timeZone)
@@ -472,7 +464,8 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     private fun fixUntilInRecur(recur: Recur<Temporal>, until: Date, timezone: TimeZone?): Date {
         val dateTime = PFDateTime.from(until, timezone).endOfDay
-        recur.until = dateTime.dateTime
+        @Suppress("DEPRECATION") // Recur.until isn't assignable in Kotlin 2.2 anymore.
+        recur.setUntil(dateTime.dateTime)
         return dateTime.utilDate
     }
 
@@ -560,7 +553,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             for (day in recur.monthDayList) {
                 recurrenceData.isCustomized = true
                 recurrenceData.monthMode = RecurrenceMonthMode.EACH
-                monthdays[day!! - 1] = true
+                monthdays[day - 1] = true
             }
             recurrenceData.monthdays = monthdays
 
@@ -582,7 +575,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             for (day in recur.monthList) {
                 recurrenceData.isCustomized = true
 
-                months[day!!.monthOfYear - 1] = true
+                months[day.monthOfYear - 1] = true
             }
             recurrenceData.months = months
 
@@ -613,7 +606,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             try {
                 recurrenceRuleObject = ICal4JUtils.calculateRRule(recurrenceRule)
             } catch (ex: IllegalArgumentException) {
-                log.error("RecurrenceRule '$recurrenceRule' not parseable: ${ex.message}.", ex)
+                log.error(ex) { "RecurrenceRule '$recurrenceRule' not parseable: ${ex.message}." }
             }
         }
         return recurrenceRuleObject
@@ -689,7 +682,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         var result = 1
         result = prime * result + if (allDay) 1231 else 1237
         result = prime * result + if (attachments == null) 0 else attachments!!.hashCode()
-        result = prime * result + if (attendees == null) 0 else attendees!!.hashCode()
+        result = prime * result + if (attendeesJson == null) 0 else attendeesJson!!.hashCode()
         result = prime * result + if (calendar == null) 0 else calendar!!.hashCode()
         result = prime * result + if (endDate == null) 0 else endDate!!.hashCode()
         result = prime * result + if (location == null) 0 else location!!.hashCode()
@@ -729,11 +722,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             return false
         }
 
-        if (attendees == null) {
-            if (o.attendees != null) {
-                return false
-            }
-        } else if (attendees != o.attendees) {
+        if (attendeesJson != o.attendeesJson) {
             return false
         }
         if (calendar == null) {
@@ -906,11 +895,9 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         } else if (subject != other.subject) {
             return true
         }
-        if (attendees == null || attendees!!.isEmpty()) {
-            if (other.attendees != null && other.attendees!!.isNotEmpty()) {
-                return true
-            }
-        } else if (attendees != other.attendees) {
+        if (attendeesJson.isNullOrEmpty() != other.attendeesJson.isNullOrEmpty() ||
+            (!attendeesJson.isNullOrEmpty() && attendeesJson != other.attendeesJson)
+        ) {
             return true
         }
         if (attachments == null || attachments!!.isEmpty()) {
@@ -951,21 +938,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
         clone.reminderDuration = this.reminderDuration
         clone.reminderDurationUnit = this.reminderDurationUnit
         clone.reminderActionType = this.reminderActionType
-        if (this.attendees != null && this.attendees!!.isNotEmpty()) {
-            clone.attendees = clone.ensureAttendees()
-            for (attendee in this.attendees!!) {
-                val cloneAttendee = TeamEventAttendeeDO()
-                cloneAttendee.address = attendee.address
-                cloneAttendee.comment = attendee.comment
-                cloneAttendee.commentOfAttendee = attendee.commentOfAttendee
-                cloneAttendee.loginToken = attendee.loginToken
-                cloneAttendee.number = attendee.number
-                cloneAttendee.status = attendee.status
-                cloneAttendee.url = attendee.url
-                cloneAttendee.user = attendee.user
-                clone.addAttendee(cloneAttendee)
-            }
-        }
+        clone.attendeesJson = this.attendeesJson
         if (this.attachments != null && this.attachments!!.isNotEmpty()) {
             clone.attachments = clone.ensureAttachments()
             for (attachment in this.attachments!!) {

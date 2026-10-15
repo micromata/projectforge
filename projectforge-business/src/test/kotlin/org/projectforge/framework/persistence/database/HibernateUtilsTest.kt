@@ -46,7 +46,7 @@ class HibernateUtilsTest : AbstractTestBase() {
         class Entry(
             tableName: String?,
             val idColumnName: String? = "pk",
-            val idColumnType: Class<*>? = java.lang.Integer::class.java,
+            val idColumnType: Class<*>? = Int::class.javaObjectType,
             val entityInfo: EntityInfo? = null,
         ) {
             val tableName = tableName?.lowercase()
@@ -88,7 +88,7 @@ class HibernateUtilsTest : AbstractTestBase() {
                 println("HsqlDB:")
             }
             entries.distinctBy { it.tableName }.sortedBy { it.tableName }.forEach { entry ->
-                if (entry.idColumnType == java.lang.Integer::class.java) {
+                if (entry.idColumnType == Int::class.javaObjectType) {
                     println("ALTER TABLE ${entry.tableName} ALTER COLUMN ${entry.idColumnName}$type bigint;")
                 }
                 val entityInfo = entry.entityInfo
@@ -111,7 +111,7 @@ class HibernateUtilsTest : AbstractTestBase() {
     @Test
     fun propertyLengthTest() {
         var length = getPropertyLength(TaskDO::class.java.name, "title")
-        Assertions.assertEquals(40, length)
+        Assertions.assertEquals(100, length)
         length = getPropertyLength(TaskDO::class.java.name, "shortDescription")
         Assertions.assertEquals(255, length)
         length = getPropertyLength(TaskDO::class.java, "shortDescription")

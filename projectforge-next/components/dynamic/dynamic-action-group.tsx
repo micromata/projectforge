@@ -1,0 +1,78 @@
+"use client";
+
+import { useState } from "react";
+import { useDynamicLayout } from "./dynamic-context";
+import { buttonVariant } from "./button-variant";
+import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { Spinner } from "@/components/shared/spinner";
+import { useSubmitShortcutHint } from "@/hooks/use-submit-shortcut";
+import { defaultActionOf } from "./dynamic-default-action";
+
+export function DynamicActionGroup() {
+  const { ui, callAction, translate, isFetching } = useDynamicLayout();
+  const shortcutHint = useSubmitShortcutHint();
+  const defaultAction = defaultActionOf(ui.actions);
+  // Which button is waiting for its answer. `isFetching` is the whole page's state and would put a
+  // spinner on every button at once; a save can take seconds (a mail sent along with it waits for the
+  // SMTP server), and what the user needs to see is that the button they pressed is working.
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
+  if (!ui.actions || ui.actions.length === 0) return null;
+
+  // Cancel to the left, the default (submit) action to the right, everything else in between in its
+  // original order — e.g. Cancel, Clone, Save. The backend does not guarantee this order, so we sort
+  // by rank; Array.prototype.sort is stable, keeping the "between" buttons as the backend sent them.
+  const rankOf = (action: (typeof ui.actions)[number]): number =>
+    action.id === "cancel" ? 0 : action.id === defaultAction?.id ? 2 : 1;
+  const actions = [...ui.actions].sort((a, b) => rankOf(a) - rankOf(b));
+
+  async function run(id: string, call: () => Promise<void>): Promise<void> {
+    setPendingId(id);
+    try {
+      await call();
+    } finally {
+      // Also when the action navigated away — this component may still be mounted.
+      setPendingId(null);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2 border-t bg-background px-6 py-3">
+      {actions.map((action) => {
+        const isDefault = action.id === defaultAction?.id;
+        return (
+          <HintTooltip
+            key={action.id}
+            // The shortcut goes below the button's own explanation, if it is the one Return triggers.
+            // The heading slot only when there is nothing else to explain — above a backend tooltip it
+            // would announce the shortcut as the heading of a text that is about something else.
+            title={
+              isDefault && !action.tooltip ? shortcutHint.title : undefined
+            }
+            text={
+              isDefault
+                ? [action.tooltip, shortcutHint.text]
+                    .filter(Boolean)
+                    .join("\n\n")
+                : action.tooltip
+            }
+          >
+            <Button
+              variant={buttonVariant(action.color, action.outline)}
+              disabled={isFetching || action.disabled}
+              aria-busy={pendingId === action.id}
+              className="gap-1.5"
+              onClick={() => void run(action.id, () => callAction(action))}
+            >
+              {pendingId === action.id && (
+                <Spinner className="h-3.5 w-3.5 border-2" />
+              )}
+              {translate(action.title ?? action.id)}
+            </Button>
+          </HintTooltip>
+        );
+      })}
+    </div>
+  );
+}

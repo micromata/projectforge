@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.jobs
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.jobs.JobHandler

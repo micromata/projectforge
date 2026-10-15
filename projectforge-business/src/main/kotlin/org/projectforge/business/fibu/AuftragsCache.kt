@@ -24,14 +24,18 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.StringHelper2
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.hibernate.Hibernate
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
 
 private val log = KotlinLogging.logger {}
 
@@ -53,7 +57,19 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
 
     private var orderPositionMapByPosId = mapOf<Long, OrderPositionInfo>()
 
+    /**
+     * The positions per order id, built with [orderPositionMapByPosId]. [OrderInfo.infoPositions] asks for them on
+     * every read, so filtering all positions each time made the forecast of all orders quadratic.
+     */
+    private var orderPositionInfosByOrderId = mapOf<Long, List<OrderPositionInfo>>()
+
+    /** The youngest order date per project, see [buildLatestOrderDateByProjektId]. */
+    private var latestOrderDateByProjektId = mapOf<Long, LocalDate>()
+
     private var toBeInvoicedCounter: Int? = null
+
+    /** The cutoff [toBeInvoicedCounter] was counted for: it is out of date with the next month. */
+    private var toBeInvoicedCounterCutoff: LocalDate? = null
 
     @PostConstruct
     private fun init() {
@@ -66,13 +82,20 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
         auftragId ?: return null
         checkRefresh()
-        // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
-        return orderPositionMapByPosId.values.filter { it.auftragId == auftragId } // No sync, immutable map.
+        return orderPositionInfosByOrderId[auftragId] ?: emptyList() // No sync, immutable map.
     }
 
-    fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
+    /**
+     * @param checkRefresh If true, the cache will be checked for refresh. Pass false to avoid a deadlock when
+     * this is read from inside a running insert/update transaction (see [RechnungCache.update]): a refresh would
+     * run a JDBC SELECT on the invoice-position table the still-open transaction has write-locked.
+     */
+    @JvmOverloads
+    fun getOrderPositionInfo(auftragsPositionId: Long?, checkRefresh: Boolean = true): OrderPositionInfo? {
         auftragsPositionId ?: return null
-        checkRefresh()
+        if (checkRefresh) {
+            checkRefresh()
+        }
         return orderPositionMapByPosId[auftragsPositionId] // No sync, immutable map.
     }
 
@@ -100,19 +123,24 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     }
 
     /**
-     * Number of all orders (finished, signed or escalated) which has to be invoiced.
+     * Number of all orders (finished, signed or escalated) which has to be invoiced until the end of the current
+     * month (see [OrderInfo.isToBeInvoicedBy]).
      */
     fun getToBeInvoicedCounter(): Int {
-        if (toBeInvoicedCounter != null) {
-            return toBeInvoicedCounter!!
+        val cutoff = OrderInfo.invoiceCutoff()
+        toBeInvoicedCounter?.let { counter ->
+            if (toBeInvoicedCounterCutoff == cutoff) {
+                return counter
+            }
         }
         // No sync, immutable map.
-        val counter = orderInfoMap.values.count { it.toBeInvoiced }
+        val counter = orderInfoMap.values.count { it.isToBeInvoicedBy(cutoff) }
         log.debug {
             "To be invoiced counter=$counter: ${
-                orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+                orderInfoMap.values.filter { it.isToBeInvoicedBy(cutoff) }.joinToString { it.nummer.toString() }
             }"
         }
+        toBeInvoicedCounterCutoff = cutoff
         toBeInvoicedCounter = counter
         return counter
     }
@@ -136,6 +164,29 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         return orderInfoMap.values.find { it.nummer == orderNumber } // No sync, immutable map.
     }
 
+    /**
+     * The ids of all orders listing the given user as additional contact ([AuftragDO.additionalContactUserIds]).
+     * Meant for database queries filtering by user: the comma separated ids can't be matched by an equality there.
+     */
+    fun getOrderIdsWithAdditionalContact(userId: Long?): List<Long> {
+        userId ?: return emptyList()
+        checkRefresh()
+        return orderInfoMap.values.filter { // No sync, immutable map.
+            StringHelper2.splitToListOfLongValues(it.additionalContactUserIds).contains(userId)
+        }.mapNotNull { it.id }
+    }
+
+
+    /**
+     * The youngest date of the project's orders (see [latestOrderDate]), e.g. for spotting projects without any
+     * recent activity.
+     * @return null, if the project has no (relevant) order.
+     */
+    fun getLatestOrderDate(projektId: Long?): LocalDate? {
+        projektId ?: return null
+        checkRefresh()
+        return latestOrderDateByProjektId[projektId] // No sync, immutable map.
+    }
 
     fun getOrderInfoByPositionId(positionInfoId: Long?): OrderInfo? {
         positionInfoId ?: return null
@@ -143,6 +194,26 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         return orderPositionMapByPosId[positionInfoId]?.auftrag // No sync, immutable map.
     }
 
+
+    /**
+     * True, if any non-deleted position of the given order matches [predicate]. Meant for filtering lists of orders by
+     * position attributes: the positions are taken from the cache, because touching the lazy positions of each order
+     * fires one select per order (N+1). The order's own positions are used if they are loaded already (e.g. an order
+     * being edited) or if the order isn't cached (e.g. not yet persisted).
+     */
+    fun anyPositionMatches(
+        order: AuftragDO,
+        predicate: (status: AuftragsStatus?, art: AuftragsPositionsArt?, paymentType: AuftragsPositionsPaymentType?) -> Boolean,
+    ): Boolean {
+        val positions = order.positionen
+        val cachedPositions = if (positions == null || Hibernate.isInitialized(positions)) {
+            null
+        } else {
+            getOrderInfo(order.id)?.infoPositions
+        }
+        cachedPositions ?: return order.positionenExcludingDeleted.any { predicate(it.status, it.art, it.paymentType) }
+        return cachedPositions.any { !it.deleted && predicate(it.status, it.art, it.paymentType) }
+    }
 
     /**
      * @param checkRefresh If true, the cache will be checked for refresh (needed for avoiding deadlocks).
@@ -181,7 +252,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     }
 
     override fun refresh() {
-        log.info("Refreshing AuftragsCache...")
+        log.info { "Refreshing AuftragsCache..." }
         val duration = LogDuration()
         // Don't use fetch.
         val orderPositions = auftragsCacheService.selectNonDeletedAuftragsPositions().groupBy { it.auftrag?.id }
@@ -218,6 +289,8 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         }
         orderInfoMap = nOrderInfoMap
         orderPositionMapByPosId = nOrderPositionMapByPosId
+        orderPositionInfosByOrderId = nOrderPositionInfosByOrderId
+        latestOrderDateByProjektId = buildLatestOrderDateByProjektId(nOrderInfoMap.values, nOrderPositionInfosByOrderId)
         toBeInvoicedCounter = null // Force recalculation.
         log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }
     }
@@ -248,5 +321,42 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     companion object {
         lateinit var instance: AuftragsCache
             private set
+
+        /**
+         * The youngest [latestOrderDate] of the orders per project. Deleted orders don't count, and neither do
+         * replaced ones ([AuftragsStatus.ERSETZT]): their successor carries the activity.
+         * @param positionsByOrderId The non-deleted positions per order id.
+         */
+        internal fun buildLatestOrderDateByProjektId(
+            orders: Collection<OrderInfo>,
+            positionsByOrderId: Map<Long, Collection<OrderPositionInfo>>,
+        ): Map<Long, LocalDate> {
+            val result = mutableMapOf<Long, LocalDate>()
+            orders.forEach { order ->
+                val projektId = order.projektId ?: return@forEach
+                if (order.deleted || order.status == AuftragsStatus.ERSETZT) {
+                    return@forEach
+                }
+                val date = latestOrderDate(order, positionsByOrderId[order.id]) ?: return@forEach
+                result.merge(projektId, date) { a, b -> maxOf(a, b) }
+            }
+            return result
+        }
+
+        /**
+         * The youngest of the order's offer, entry and decision date and the end of its period of performance
+         * (of the order and of any non-deleted position). The creation date only if none of them is given.
+         * A period of performance may end in the future: a project still planned is active.
+         */
+        internal fun latestOrderDate(order: OrderInfo, positions: Collection<OrderPositionInfo>?): LocalDate? {
+            val dates = listOfNotNull(
+                order.angebotsDatum,
+                order.erfassungsDatum,
+                order.entscheidungsDatum,
+                order.periodOfPerformanceEnd,
+            ) + positions.orEmpty().filter { !it.deleted }.mapNotNull { it.periodOfPerformanceEnd }
+            // The system's zone, not the user's: the cache is shared, whoever triggered its refresh.
+            return dates.maxOrNull() ?: order.created?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
+        }
     }
 }

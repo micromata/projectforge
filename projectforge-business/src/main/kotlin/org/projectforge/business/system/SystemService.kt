@@ -23,22 +23,16 @@
 
 package org.projectforge.business.system
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.FileUtils
-import org.projectforge.business.address.BirthdayCache.Companion.instance
-import org.projectforge.business.fibu.AuftragsCache
-import org.projectforge.business.fibu.AuftragsRechnungCache
-import org.projectforge.business.fibu.KontoCache
-import org.projectforge.business.fibu.RechnungCache
-import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.jobs.CronSanityCheckJob
-import org.projectforge.business.task.TaskTree
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.common.html.Html
 import org.projectforge.common.html.HtmlDocument
 import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.database.SchemaExport
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
@@ -53,7 +47,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Provides some system routines.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
+ * @author Kai Reinhard, Florian Blumenstein
  */
 @Service
 class SystemService {
@@ -61,34 +55,31 @@ class SystemService {
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var auftragsCache: AuftragsCache
-
-    @Autowired
-    private lateinit var auftragsRechnungCache: AuftragsRechnungCache
-
-    @Autowired
     private lateinit var cronSanityCheckJob: CronSanityCheckJob
 
     @Autowired
     private lateinit var dataTransferBridge: DataTransferBridge
 
-    @Autowired
-    private lateinit var kontoCache: KontoCache
+    /**
+     * Re-reads the configuration ([Configuration] and the config.xml): forces a reload of the [Configuration] cache
+     * and re-reads config.xml via [ConfigXml].
+     *
+     * @return The result message of [ConfigXml.readConfiguration] (warnings, if any).
+     */
+    fun rereadConfiguration(): String? {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        log.info { "Administration: reload configuration." }
+        Configuration.instance.forceReload()
+        return ConfigXml.getInstance().readConfiguration()
+    }
 
-    @Autowired
-    private lateinit var kostCache: KostCache
-
-    @Autowired
-    private lateinit var rechnungCache: RechnungCache
-
-    @Autowired
-    private lateinit var userGroupCache: UserGroupCache
-
-    @Autowired
-    private lateinit var systemInfoCache: SystemInfoCache
-
-    @Autowired
-    private lateinit var taskTree: TaskTree
+    /**
+     * Exports the current config.xml (see [ConfigXml.exportConfiguration]) so an administrator can download it.
+     */
+    fun exportConfiguration(): String? {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        return ConfigXml.getInstance().exportConfiguration()
+    }
 
     fun exportSchema(): String? {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -97,7 +88,7 @@ class SystemService {
         try {
             file = File.createTempFile("projectforge-schema", ".sql")
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             return ex.message
         }
         exp.exportSchema(file.path)
@@ -105,7 +96,7 @@ class SystemService {
         try {
             result = FileUtils.readFileToString(file, "UTF-8")
         } catch (ex: IOException) {
-            log.error(ex.message, ex)
+            log.error(ex) { ex.message }
             return ex.message
         }
         file.delete()
@@ -138,7 +129,7 @@ class SystemService {
                 )
             } finally {
                 ThreadLocalUserContext.clear()
-                log.info("Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}")
+                log.info { "Checking of system integrity finished after ${(System.currentTimeMillis() - start).formatMillis()}" }
             }
         }.start()
         val html = HtmlDocument(JobListExecutionContext.title).add(Html.H1(JobListExecutionContext.title))
@@ -163,23 +154,5 @@ class SystemService {
     private fun internalCheckSystemIntegrity(): String {
         val context = cronSanityCheckJob.execute()
         return context.getReportAsHtml()
-    }
-
-    /**
-     * Refreshes the caches: TaskTree, userGroupCache and kost2.
-     *
-     * @return the name of the refreshed caches.
-     */
-    fun refreshCaches(): String {
-        userGroupCache.forceReload()
-        taskTree.forceReload()
-        kontoCache.forceReload()
-        kostCache.forceReload()
-        rechnungCache.forceReload()
-        auftragsCache.forceReload()
-        auftragsRechnungCache.forceReload()
-        systemInfoCache.forceReload()
-        instance.forceReload()
-        return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, AuftragsCache, AuftragsRechnungCache, SystemInfoCache, BirthdayCache"
     }
 }

@@ -40,7 +40,7 @@ abstract class LantAbstractWizardWindow(context: LantGUIContext,
 
     init {
         this.context = context
-        size = context.windowSize
+        setFixedSize(context.windowSize)
         mainPanel = Panel()
         mainPanel.layoutManager = GridLayout(1)
 
@@ -77,7 +77,7 @@ abstract class LantAbstractWizardWindow(context: LantGUIContext,
     open fun redraw() {}
 
     open fun resize() {
-        size = context.windowSize
+        setFixedSize(context.windowSize)
         contentPanel.preferredSize = TerminalSize(size.columns, size.rows - 5)
         separator.preferredSize = TerminalSize(context.terminalSize.columns - 8, 0)
     }

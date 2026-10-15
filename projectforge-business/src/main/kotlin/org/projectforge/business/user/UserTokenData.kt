@@ -28,6 +28,6 @@ import java.util.*
 /**
  * Token, type and creation date.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 data class UserTokenData(val token: String?, val type: UserTokenType, val creationDate: Date?)

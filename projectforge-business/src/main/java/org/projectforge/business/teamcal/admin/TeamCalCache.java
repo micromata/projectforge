@@ -43,7 +43,7 @@ import java.util.*;
 /**
  * Caches all calendars.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class TeamCalCache extends AbstractCache {

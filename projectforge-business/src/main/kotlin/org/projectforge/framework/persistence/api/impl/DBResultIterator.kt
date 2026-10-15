@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO

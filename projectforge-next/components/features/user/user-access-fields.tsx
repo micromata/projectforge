@@ -1,0 +1,81 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useEntityData } from "@/components/shared/form/form-context";
+import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
+import type { UserAccessInfo } from "@/lib/rs/user";
+import { cn } from "@/lib/utils";
+import { UserAccessAction } from "./user-access-action";
+import type { UserDetail } from "./types";
+
+/**
+ * What an administrator may do about the access of an existing user without saving the form: renew one
+ * of the tokens and log out every device staying logged in (the passwords are changed from beside the
+ * heading, see UserPasswordActions). The tokens themselves are the user's (my-account page); only when
+ * they were created shows here.
+ *
+ * The actions answer the refreshed dates, kept here rather than in the form — they are nothing a save
+ * would write.
+ */
+export function UserAccessFields({ className }: { className?: string }) {
+  const t = useTranslations();
+  const data = useEntityData<UserDetail>();
+  const [info, setInfo] = useState<UserAccessInfo>({});
+  const userId = data?.id;
+  if (userId == null) return null;
+  const merged = { ...data, ...info };
+  const update = (next: UserAccessInfo) =>
+    setInfo((old) => ({ ...old, ...next }));
+  const devices = `${merged.stayLoggedInDevices ?? 0}${
+    merged.stayLoggedInLastAccessTimeAgo
+      ? ` (${t("login.stayLoggedIn.devices.lastAccess")}: ${merged.stayLoggedInLastAccessTimeAgo})`
+      : ""
+  }`;
+  return (
+    <div className={cn("flex flex-col gap-4", className)}>
+      <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_max-content]">
+        <ReadOnlyValue
+          label={t("user.authenticationToken.calendar_rest._")}
+          hint={t("user.authenticationToken.calendar_rest.tooltip")}
+        >
+          {merged.calendarExportTokenCreationTimeAgo}
+        </ReadOnlyValue>
+        <UserAccessAction
+          userId={userId}
+          tokenType="CALENDAR_REST"
+          onDone={update}
+        />
+        <ReadOnlyValue
+          label={t("user.authenticationToken.dav_token._")}
+          hint={t("user.authenticationToken.dav_token.tooltip")}
+        >
+          {merged.davTokenCreationTimeAgo}
+        </ReadOnlyValue>
+        <UserAccessAction
+          userId={userId}
+          tokenType="DAV_TOKEN"
+          onDone={update}
+        />
+        <ReadOnlyValue
+          label={t("user.authenticationToken.rest_client._")}
+          hint={t("user.authenticationToken.rest_client.tooltip")}
+        >
+          {merged.restClientTokenCreationTimeAgo}
+        </ReadOnlyValue>
+        <UserAccessAction
+          userId={userId}
+          tokenType="REST_CLIENT"
+          onDone={update}
+        />
+        <ReadOnlyValue
+          label={t("login.stayLoggedIn.devices._")}
+          hint={t("login.stayLoggedIn.devices.tooltip")}
+        >
+          {devices}
+        </ReadOnlyValue>
+        <UserAccessAction userId={userId} onDone={update} />
+      </div>
+    </div>
+  );
+}

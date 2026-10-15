@@ -25,7 +25,7 @@ package org.projectforge.shared.storage;
 
 /**
  * Some constants used by different packages of ProjectForge.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class StorageConstants

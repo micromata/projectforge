@@ -26,12 +26,14 @@ package org.projectforge.business.fibu
 import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.JoinType
 import org.apache.commons.collections4.CollectionUtils
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragsPositionsPaymentTypeFilter.Companion.create
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.MessageParamType
@@ -48,10 +50,14 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ge
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -95,14 +101,28 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     // Not autowired (due to cyclic dependency).
     private lateinit var taskTree: TaskTree
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(AuftragsPositionDO::class.java, PaymentScheduleDO::class.java)
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
+    /**
+     * The order book is read newest first: the number is assigned on the first save
+     * ([getNextNumber]), so the highest one is the order entered last.
+     *
+     * Only used when the caller asks for no order of its own (see [BaseDao.select]); the Wicket list
+     * page adds the same order explicitly ([getList]).
+     */
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
+
     init {
         userRightId = USER_RIGHT_ID
+    }
+
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return property == "kundeText"
     }
 
     /**
@@ -226,7 +246,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         var positionStatusAlreadyFilterd = false
         queryFilter.createJoin("positionen")
-        if (myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+        val toBeInvoicedFilter = myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN ||
+                myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE
+        if (toBeInvoicedFilter) {
             // Show all orders to be invoiced (ignore status values on orders and their positions).
             queryFilter.createJoin("paymentSchedules", JoinType.LEFT)
             queryFilter.add(
@@ -238,15 +260,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             )
         }
 
-        if (myFilter.user != null) {
-            queryFilter.add(
-                or(
-                    eq("contactPerson", myFilter.user!!),
-                    eq("projectManager", myFilter.user!!),
-                    eq("headOfBusinessManager", myFilter.user!!),
-                    eq("salesManager", myFilter.user!!)
-                )
-            )
+        myFilter.user?.let { user ->
+            queryFilter.add(contactPredicate(user))
         }
         myFilter.projectList?.let { projectList ->
             if (projectList.isNotEmpty()) {
@@ -264,7 +279,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         list = myFilter.filterFakturiert(list)
 
-        if (myFilter.auftragFakturiertFilterStatus != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+        if (!toBeInvoicedFilter) {
             // Don't use filter for orders to be invoiced.
             list = list.toMutableList() // Make mutable list of Kotlin's immutable list.
             filterPositionsArten(myFilter, list)
@@ -320,7 +335,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (auftragsStatuses.isEmpty()) {
             return list
         }
-        return list.filter { auftrag -> auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) } }
+        return list.filter { auftrag ->
+            auftragsCache.anyPositionMatches(auftrag) { status, _, _ -> auftragsStatuses.contains(status) }
+        }
     }
 
     private fun filterPositionsPaymentTypes(myFilter: AuftragFilter, list: List<AuftragDO>) {
@@ -339,20 +356,21 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: AuftragDO, operationType: OperationType) {
+        resolveKundeAndProjekt(obj)
         if (obj.nummer == null) {
             throw UserException(
                 "validation.required.valueNotPresent",
                 MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY)
-            )
+            ).setCausedByField("nummer")
         }
         if (obj.status == null || obj.status == AuftragsStatus.OPTIONAL) {
-            throw UserException("Order status not given. OPTIONAL not supported.")
+            throw UserException("fibu.auftrag.error.invalidStatus").setCausedByField("status")
         }
         if (obj.id == null) {
             // Neuer Auftrag/Angebot
             val next = getNextNumber(obj)
             if (next != obj.nummer) {
-                throw UserException("fibu.auftrag.error.nummerIstNichtFortlaufend")
+                throw UserException("fibu.auftrag.error.nummerIstNichtFortlaufend").setCausedByField("nummer")
             }
         } else {
             val other = persistenceService.selectNamedSingleResult(
@@ -362,11 +380,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 Pair("id", obj.id),
             )
             if (other != null) {
-                throw UserException("fibu.auftrag.error.nummerBereitsVergeben")
+                throw UserException("fibu.auftrag.error.nummerBereitsVergeben").setCausedByField("nummer")
             }
         }
         if (obj.positionen.isNullOrEmpty()) {
-            throw UserException("fibu.auftrag.error.auftragHatKeinePositionen")
+            throw UserException("fibu.auftrag.error.auftragHatKeinePositionen").setCausedByField("positionen")
         }
         val positionen = obj.positionen
         if (!positionen.isNullOrEmpty()) {
@@ -381,8 +399,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 }
             }
         }
-        positionen?.forEach { position ->
-            position.checkVollstaendigFakturiert()
+        positionen?.forEachIndexed { index, position ->
+            try {
+                position.checkVollstaendigFakturiert()
+            } catch (ex: UserException) {
+                // The index is the one of the posted collection, so a REST client can show the error at the row
+                // that caused it instead of only as a toast.
+                throw ex.setCausedByField("positionen[$index].vollstaendigFakturiert")
+            }
         }
         val uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus())
         obj.uiStatusAsXml = uiStatusAsXml
@@ -504,11 +528,25 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     /**
-     * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
+     * Sends an e-mail to everybody concerned with the order ([getNotificationRecipients]): one mail per recipient,
+     * rendered in the recipient's locale.
      *
-     * @param auftrag
-     * @param operationType
-     * @return
+     * The order's relations are resolved from the caches first: the REST layer builds the [AuftragDO]
+     * from its DTO ([org.projectforge.rest.dto.Auftrag.copyTo]), so contact person, customer and project
+     * arrive as id-only stubs. Without the e-mail address of the contact person there is no recipient at
+     * all ([Mail.setTo] ignores such a user silently and [SendMail.send] then throws
+     * `mail.error.missingToAddress` after the order has already been written), and the template would
+     * render the customer and the project as `110 - null`.
+     *
+     * The lookup is by id and not [PfCaches.initialize]: that one goes through
+     * `get*IfNotInitialized`, which only replaces a *Hibernate proxy* — a hand built `PFUserDO` carrying
+     * nothing but an id passes `HibernateUtils.isFullyInitialized` and would be kept as it is. For
+     * Wicket, which passes its fully loaded object, the lookup yields the same entities from the cache.
+     *
+     * A failing mail doesn't stop the mails to the other recipients; the first failure is thrown after all
+     * recipients were tried, so the caller can still report it.
+     *
+     * @return true if at least one mail was sent.
      */
     fun sendNotificationIfRequired(
         auftrag: AuftragDO, operationType: OperationType,
@@ -517,17 +555,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (!configurationService.isSendMailConfigured) {
             return false
         }
-        val contactPerson = auftrag.contactPerson ?: return false
-        if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
+        resolveRelationsForNotification(auftrag)
+        val history = flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag)
+        val recipients = getNotificationRecipients(auftrag, history)
+        if (recipients.isEmpty()) {
             return false
         }
-        val data: MutableMap<String, Any?> = HashMap()
-        data["contactPerson"] = contactPerson
-        data["auftrag"] = auftrag
-        data["requestUrl"] = requestUrl
-        data["history"] = flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag).take(10)
-        val msg = Mail()
-        msg.setTo(contactPerson)
         val subject = if (operationType == OperationType.INSERT) {
             "Auftrag #" + auftrag.nummer + " wurde angelegt."
         } else if (operationType == OperationType.DELETE) {
@@ -535,6 +568,36 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         } else {
             "Auftrag #" + auftrag.nummer + " wurde geändert."
         }
+        var sent = false
+        var failure: Exception? = null
+        recipients.forEach { recipient ->
+            try {
+                if (sendNotification(auftrag, recipient, subject, requestUrl, history.take(10))) {
+                    sent = true
+                }
+            } catch (ex: Exception) {
+                log.error("Can't send the notification of order #${auftrag.nummer} to user ${recipient.username}: ${ex.message}", ex)
+                failure = failure ?: ex
+            }
+        }
+        failure?.let { throw it }
+        return sent
+    }
+
+    private fun sendNotification(
+        auftrag: AuftragDO,
+        recipient: PFUserDO,
+        subject: String,
+        requestUrl: String?,
+        history: List<FlatDisplayHistoryEntry>,
+    ): Boolean {
+        val data: MutableMap<String, Any?> = HashMap()
+        data["contactPerson"] = auftrag.contactPerson
+        data["auftrag"] = auftrag
+        data["requestUrl"] = requestUrl
+        data["history"] = history
+        val msg = Mail()
+        msg.setTo(recipient)
         msg.setProjectForgeSubject(subject)
         data["subject"] = subject
         val content = sendMail.renderGroovyTemplate(
@@ -542,11 +605,99 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             "mail/orderChangeNotification.html",
             data,
             getLocalizedMessage("fibu.auftrag"),
-            contactPerson
+            recipient
         )
         msg.content = content
         msg.contentType = Mail.CONTENTTYPE_HTML
-        return sendMail.send(msg, null, null)
+        // Synchronously: the user asked for this mail while saving a form, so the answer to that form is
+        // the only place a failure can still be shown (see OrderEntityRest.onAfterSaveOrUpdate). An
+        // asynchronous send reports nothing but a log entry, minutes after the response has gone out. How
+        // long the save may be delayed by this is bounded by the SMTP timeouts of SendMail.
+        return sendMail.send(msg, null, null, async = false)
+    }
+
+    /**
+     * The users to notify about a change of the order: its contact person, its additional contacts and everybody
+     * who has edited the order before (its history, including the one of positions and payment schedules), in this
+     * order and without duplicates. Left out are the logged-in user (who makes the change), deleted or deactivated
+     * users and users without select access to the order.
+     *
+     * @param history The history of the order, if already loaded. Otherwise it's loaded here.
+     */
+    fun getNotificationRecipients(
+        auftrag: AuftragDO,
+        history: List<FlatDisplayHistoryEntry>? = null,
+    ): List<PFUserDO> {
+        val userIds = LinkedHashSet<Long>()
+        auftrag.contactPerson?.id?.let { userIds.add(it) }
+        userIds.addAll(auftrag.additionalContactUserIdList)
+        (history ?: flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag))
+            .forEach { entry -> entry.user?.id?.let { userIds.add(it) } }
+        userIds.remove(ThreadLocalUserContext.loggedInUserId)
+        val userGroupCache = UserGroupCache.getInstance()
+        return userIds.mapNotNull { userGroupCache.getUser(it) }
+            .filter { !it.deleted && !it.deactivated }
+            .filter { hasAccess(it, auftrag, null, OperationType.SELECT, false) }
+    }
+
+    /**
+     * Matches the orders the given user is a contact of: as [AuftragDO.contactPerson] or as one of the
+     * [AuftragDO.additionalContactUserIds] (by their ids from the [AuftragsCache], the comma separated ids can't be
+     * compared in the query).
+     */
+    fun contactPredicate(user: PFUserDO): DBPredicate {
+        val orderIds = AuftragsCache.instance.getOrderIdsWithAdditionalContact(user.id)
+        if (orderIds.isEmpty()) {
+            return eq("contactPerson", user)
+        }
+        return or(eq("contactPerson", user), isIn("id", orderIds))
+    }
+
+    /**
+     * Replaces the relations the notification reads by the cached entities, looked up by id.
+     *
+     * Only the fields the mail needs: the contact person (printed, and maybe a recipient) and the two the
+     * template prints ([AuftragDO.kunde], [AuftragDO.projekt], for their display names).
+     * A stub whose id is unknown to the cache is left alone rather than nulled — the order was written
+     * with it, so dropping it here would silently change what the mail says about the order.
+     */
+    /**
+     * Replaces the id-only kunde/projekt stubs the REST layer builds ([Auftrag.copyTo]) by the cached,
+     * fully populated entities before the order is written.
+     *
+     * The order's search document embeds kunde and projekt ([AuftragDO], `@IndexedEmbedded`), and
+     * Hibernate Search builds it from the entity state at flush time. A stub whose `name` is null would
+     * make it index an empty customer/project name, so a search by the project's name (e.g. "pricing")
+     * misses the freshly saved order until a later reindex writes the real name in — the reported "a new
+     * order only shows up minutes later when searching by its project". The cache also carries the
+     * project's own customer ([ProjektDO.kunde], indexed at depth 2), so nothing is read lazily off a
+     * detached stub during indexing.
+     *
+     * A stub whose id is unknown to the cache is left alone rather than nulled: the order is written with
+     * it either way, and dropping it here would change what is stored. Fully loaded relations (the Wicket
+     * path) are swapped for the identical cached instance, which changes nothing.
+     */
+    private fun resolveKundeAndProjekt(auftrag: AuftragDO) {
+        val caches = PfCaches.instance
+        // Use nummer (KundeDO's real @Id); reading the transient id alias would initialize the lazy proxy
+        // with a DB load, defeating the purpose of swapping in the cached instance.
+        auftrag.kunde?.nummer?.let { id -> caches.getKunde(id)?.let { auftrag.kunde = it } }
+        auftrag.projekt?.id?.let { id ->
+            caches.getProjekt(id)?.let { projekt ->
+                // The project's customer is embedded too (projekt.kunde.name); populate it from the cache
+                // so indexing never touches a lazy association.
+                auftrag.projekt = projekt.also { it.kunde = caches.getKundeIfNotInitialized(it.kunde) }
+            }
+        }
+    }
+
+    private fun resolveRelationsForNotification(auftrag: AuftragDO) {
+        // kunde/projekt are already resolved on save (see resolveKundeAndProjekt); the mail additionally
+        // needs the contact person's cached instance for its e-mail address.
+        resolveKundeAndProjekt(auftrag)
+        PfCaches.instance.let { caches ->
+            auftrag.contactPerson?.id?.let { id -> caches.getUser(id)?.let { auftrag.contactPerson = it } }
+        }
     }
 
     val nextNumber: Int
@@ -578,11 +729,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         obj: AuftragDO,
         context: HistoryLoadContext
     ) {
-        obj.positionenIncludingDeleted?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context)
+        // Load the children's history batched (one query per child class) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...). The display prefix (pos#/payment#) is
+        // resolved post-hoc via getHistoryPropertyPrefix/findLoadedEntity, so batching preserves behavior.
+        obj.positionenIncludingDeleted?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(AuftragsPositionDO::class.java, ids, context)
         }
-        obj.paymentSchedules?.forEach { schedule ->
-            historyService.loadAndMergeHistory(schedule, context)
+        obj.paymentSchedules?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(PaymentScheduleDO::class.java, ids, context)
         }
     }
 
@@ -631,7 +785,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         private val log: Logger = LoggerFactory.getLogger(AuftragDao::class.java)
 
-        val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> = arrayOf(AuftragsPositionDO::class.java)
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(desc("nummer"))
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "contactPerson.username",

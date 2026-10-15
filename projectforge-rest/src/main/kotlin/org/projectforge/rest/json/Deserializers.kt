@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.NumericNode
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
@@ -148,7 +148,7 @@ class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
             user.id = id
             return user
         } catch (ex: Exception) {
-            log.warn("Can't deserialize PFUserDO: $node. Id not readable: ${node.get("id")}")
+            log.warn { "Can't deserialize PFUserDO: $node. Id not readable: ${node.get("id")}" }
             return null
         }
     }

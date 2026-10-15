@@ -436,6 +436,78 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     }
 
     @Test
+    fun massUpdateKost2Only() {
+        val prefix = "ts-mu54-"
+        val list = mutableListOf<TimesheetDO>()
+        persistenceService.runInTransaction { _ ->
+            logon(getUser(TEST_FINANCE_USER))
+            val kunde = KundeDO()
+            kunde.name = "ACME Kost2Only"
+            kunde.id = 54
+            kundeDao.insert(kunde)
+            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
+            val t1 = initTestDB.addTask(prefix + "1", "root")
+            projektDao.setTask(projekt1, t1.id)
+            projektDao.update(projekt1)
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            initTestDB.addUser(prefix + "user1")
+            logon(getUser(TEST_ADMIN_USER))
+            list.add(
+                createTimesheet(
+                    prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+                    "TS#0", 5, 54, 1, 0,
+                )
+            )
+            list.add(
+                createTimesheet(
+                    prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+                    "TS#1", 5, 54, 1, 1,
+                )
+            )
+        }
+        // The cost unit alone changes: no task is set (the sheets keep their own tasks), only a cost unit
+        // reachable from the shared task - the "change only Kost2" case of the mass update page.
+        val master = TimesheetDO()
+        master.kost2 = kost2Dao.getKost2(5, 54, 1, 2)
+        Assertions.assertNotNull(master.kost2)
+
+        val dbList = massUpdate(list, master)
+        // Every sheet books on the picked cost unit now, and neither task moved.
+        Assertions.assertEquals(getTask(prefix + "1.1").id, dbList.find { it.description == "TS#0" }!!.taskId)
+        Assertions.assertEquals(getTask(prefix + "1.2").id, dbList.find { it.description == "TS#1" }!!.taskId)
+        assertKost2(dbList.find { it.description == "TS#0" }!!, 5, 54, 1, 2)
+        assertKost2(dbList.find { it.description == "TS#1" }!!, 5, 54, 1, 2)
+    }
+
+    @Test
+    fun sharedTaskAndKost2LowestCommonAncestor() {
+        val prefix = "ts-shared-"
+        val list = mutableListOf<TimesheetDO>()
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask(prefix + "1", "root")
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            initTestDB.addUser(prefix + "user1")
+            logon(getUser(TEST_FINANCE_USER))
+            list.add(
+                createTimesheet(
+                    prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office", "TS#0",
+                )
+            )
+            list.add(
+                createTimesheet(
+                    prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office", "TS#1",
+                )
+            )
+        }
+        val (taskId, kost2Id) = timesheetMultiSelectedPageRest.sharedTaskAndKost2(list)
+        // The two sheets sit on siblings 1.1 and 1.2, so their deepest common ancestor is task 1.
+        Assertions.assertEquals(getTask(prefix + "1").id, taskId)
+        Assertions.assertNull(kost2Id) // No cost unit booked on either sheet.
+    }
+
+    @Test
     fun checkMaxMassUpdateNumber() {
         val list = mutableListOf<TimesheetDO>()
         for (i in 0L..BaseDao.MAX_MASS_UPDATE) {

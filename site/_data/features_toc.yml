@@ -1,0 +1,32 @@
+# Overview cards on top of the features page, each links to its section of features.adoc
+
+- title: Projects & Orders
+  icon: folder-kanban
+  url: /features/#projects_orders
+- title: Time Tracking
+  icon: clock
+  url: /features/#time_tracking
+- title: People & Leave
+  icon: users
+  url: /features/#people_leave
+- title: Finance & E-Invoicing
+  icon: receipt
+  url: /features/#finance_e_invoicing
+- title: Controlling & Liquidity
+  icon: chart-line
+  url: /features/#controlling_liquidity
+- title: Collaboration
+  icon: calendar-days
+  url: /features/#collaboration
+- title: Easy to Use
+  icon: mouse-pointer-click
+  url: /features/#easy_to_use
+- title: Security & Integration
+  icon: shield-check
+  url: /features/#security_integration
+- title: Operations & Extensibility
+  icon: puzzle
+  url: /features/#operations_extensibility
+- title: Technical requirements
+  icon: server
+  url: /features/#requirements

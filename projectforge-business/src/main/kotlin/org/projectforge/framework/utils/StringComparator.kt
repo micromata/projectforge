@@ -30,7 +30,7 @@ import java.util.*
 
 /**
  * Uses [Collator] and the user's locale to compare string.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object StringComparator {
     private val germanCollator: Collator = Collator.getInstance(Locale.GERMAN).also {
@@ -66,7 +66,7 @@ object StringComparator {
      */
     @JvmStatic
     @JvmOverloads
-    fun compare(s1: String?, s2: String?, asc: Boolean = true, locale: Locale = ThreadLocalUserContext.locale!!): Int {
+    fun compare(s1: String?, s2: String?, asc: Boolean = true, locale: Locale = ThreadLocalUserContext.locale): Int {
         if (s1 == null) {
             return if (s2 == null)
                 0

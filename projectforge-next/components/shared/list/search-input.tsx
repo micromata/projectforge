@@ -1,0 +1,121 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Search01Icon } from "@hugeicons/core-free-icons";
+import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+
+/** Long enough to swallow a word being typed, short enough not to feel like a delay. */
+const SEARCH_DELAY_MS = 300;
+
+export interface SearchInputProps {
+  /** The search string as it is in effect, i.e. as the last [onChange] left it. */
+  value: string;
+  /** Called once the typing has settled — not per keystroke. */
+  onChange: (value: string) => void;
+  /**
+   * Enter in the box, `backwards` with Shift — a find in page steps through its matches with it. A string
+   * still being debounced is sent at once instead, so Enter right after typing searches first.
+   */
+  onEnter?: (backwards: boolean) => void;
+  /** Focus the box on mount, for a page whose first thing to do is searching it. */
+  autoFocus?: boolean;
+  /**
+   * Focus the box on mount, but only where nothing else holds the focus yet — the list pages, whose box
+   * is the likeliest first target but must not pull the cursor out of a field or a dialog that got it
+   * first. Not on a touch device, where focusing a field opens the on-screen keyboard over the list.
+   */
+  focusIfIdle?: boolean;
+}
+
+/**
+ * The search box of a list: what the user types is shown at once, and reaches the caller 300 ms later.
+ *
+ * The search string goes to the server (`MagicFilter.searchString`), so a call per keystroke means a full
+ * list query per keystroke — on the order book, seconds of server time and megabytes for a result nobody
+ * sees. Debouncing here rather than in the query hook keeps the input responsive: the value it renders is
+ * its own state, and only the settled one leaves.
+ *
+ * Owned by this component and not by the pages, so every list debounces the same way — including its
+ * label: "Suchen…" says everything a list-specific wording would, and a phrase per entity is one more
+ * text to translate for no reader who was in doubt about what the box above the table searches.
+ */
+export function SearchInput({
+  value,
+  onChange,
+  onEnter,
+  autoFocus,
+  focusIfIdle,
+}: SearchInputProps) {
+  const t = useTranslations();
+  const placeholder = t("filter.searchList");
+  const [typed, setTyped] = useState(value);
+  const debounced = useDebouncedValue(typed, SEARCH_DELAY_MS);
+
+  // The caller's value wins whenever it changes for a reason other than this input: the filter was reset,
+  // or a saved filter was applied. Compared against what was last sent, so the user's own typing — which
+  // arrives back here as `value` a moment later — does not overwrite what has been typed meanwhile.
+  const sent = useRef(value);
+  useEffect(() => {
+    if (value !== sent.current) {
+      sent.current = value;
+      setTyped(value);
+    }
+  }, [value]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!focusIfIdle) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    // preventScroll: a list returned to by browser-back restores its scroll position (useRememberScroll).
+    inputRef.current?.focus({ preventScroll: true });
+    // On mount only: a later render must not take the focus back from wherever the user moved it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (debounced === sent.current) return;
+    sent.current = debounced;
+    onChange(debounced);
+    // onChange is a fresh closure per render on most call sites, and depending on it would fire this on
+    // every render of the page rather than on a settled value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+
+  return (
+    <>
+      <HugeiconsIcon
+        icon={Search01Icon}
+        size={14}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+      />
+      <Input
+        ref={inputRef}
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+        onKeyDown={(e) => {
+          // Escape clears the box, the way a user expects a search field to reset.
+          if (e.key === "Escape" && typed !== "") {
+            e.preventDefault();
+            setTyped("");
+          }
+          if (e.key === "Enter" && onEnter) {
+            e.preventDefault();
+            if (typed !== sent.current) {
+              sent.current = typed;
+              onChange(typed);
+            } else onEnter(e.shiftKey);
+          }
+        }}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        autoFocus={autoFocus}
+        className="h-9 pl-9"
+      />
+    </>
+  );
+}

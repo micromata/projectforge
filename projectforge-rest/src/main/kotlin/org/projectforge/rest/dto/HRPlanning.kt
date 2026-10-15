@@ -24,16 +24,21 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.humanresources.HRPlanningDO
+import org.projectforge.business.humanresources.HRPlanningEntryDO
 import java.math.BigDecimal
 import java.time.LocalDate
 
-
+/**
+ * The planned week of one employee: user, week (its Monday) and the entries of that week. The DTO of the
+ * hand-built projectforge-next edit page (`HRPlanningEntityRest`).
+ */
 class HRPlanning(
-        var week: LocalDate? = null,
-        var formattedWeekOfYear: String? = null,
-        var totalHours: BigDecimal? = null,
-        var totalUnassignedHours: BigDecimal? = null,
-        var user: User? = null
+    var week: LocalDate? = null,
+    var formattedWeekOfYear: String? = null,
+    var totalHours: BigDecimal? = null,
+    var totalUnassignedHours: BigDecimal? = null,
+    var user: User? = null,
+    var entries: MutableList<HRPlanningEntry>? = null,
 ) : BaseDTO<HRPlanningDO>() {
 
     /**
@@ -51,5 +56,31 @@ class HRPlanning(
         this.user = src.user?.let {
             User(it)
         }
+    }
+
+    /**
+     * [copyFrom] plus the entries, for the edit page: it shows every entry and sends them all back on save.
+     *
+     * The deleted entries travel too: `HRPlanningDO.entries` has `autoUpdateCollectionEntries` but no
+     * `@SoftDeleteCollection`, so the collection handler physically removes whatever a posted collection
+     * leaves out.
+     */
+    fun copyFromWithCollections(src: HRPlanningDO) {
+        copyFrom(src)
+        entries = src.entries?.map { HRPlanningEntry().also { entry -> entry.copyFrom(it) } }?.toMutableList()
+    }
+
+    /**
+     * Rebuilds the entries instead of appending to them, each with its back reference to [dest] — which the
+     * collection handler needs for matching a posted entry against its database row.
+     */
+    override fun copyTo(dest: HRPlanningDO) {
+        super.copyTo(dest)
+        dest.entries = entries?.map { dto ->
+            HRPlanningEntryDO().also {
+                dto.copyTo(it)
+                it.planning = dest
+            }
+        }?.toMutableList()
     }
 }

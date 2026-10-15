@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 /**
  * Converts the old history entries (until 2024) to the new format.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object HistoryOldFormatConverter {
     const val OP_SUFFIX: String = ":op"
