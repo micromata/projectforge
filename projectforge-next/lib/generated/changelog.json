@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "changed",
-      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators." ]
+      "items" : [ "Addressbooks: the list and the form of the address books are migrated to the new interface. The list shows the users and groups with full and read-only access in columns of their own.", "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators." ]
     } ]
   },
   "groups" : [ {

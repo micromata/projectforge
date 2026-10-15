@@ -26,7 +26,9 @@
       "leader": "Projektmanagement"
     },
     "title": {
+      "_": "Zugriffsoptionen",
       "add": "Neues Zugriffsrecht",
+      "edit": "Zugriff bearbeiten",
       "heading": "Zugriffsrechte",
       "list": "Liste der Zugriffsrechte"
     },
@@ -133,8 +135,23 @@
   },
   "addressbook": {
     "description": "Beschreibung",
+    "fullAccess": {
+      "groups": "Vollzugriff (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben Schreib- und Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Vollzugriff (Benutzer:innen)"
+    },
     "owner": "Eigner:in",
-    "title": "Titel"
+    "readonlyAccess": {
+      "groups": "Nur lesend (Gruppen)",
+      "tooltip": "Diese Benutzer:innen haben einen reinen Lesezugriff auf alle Adressen, die diesem Adressbuch zugeordnet sind.",
+      "users": "Nur lesend (Benutzer:innen)"
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Adressbuch hinzufügen",
+      "heading": "Adressbuch",
+      "list": "Adressbücherliste"
+    }
   },
   "administration": {
     "configuration": {

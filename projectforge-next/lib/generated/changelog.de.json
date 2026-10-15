@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "changed",
-      "items" : [ "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren." ]
+      "items" : [ "Adressbücher: Liste und Formular der Adressbücher sind in die neue Oberfläche migriert. Die Liste zeigt die Benutzer:innen und Gruppen mit Voll- und Lesezugriff in eigenen Spalten.", "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren." ]
     } ]
   },
   "groups" : [ {

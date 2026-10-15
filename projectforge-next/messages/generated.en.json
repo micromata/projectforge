@@ -26,7 +26,9 @@
       "leader": "Leader"
     },
     "title": {
+      "_": "Accessoptions",
       "add": "Add new group structure element access",
+      "edit": "Edit group structure element access",
       "heading": "Group structure element access",
       "list": "List of group structure element access's"
     },
@@ -133,8 +135,23 @@
   },
   "addressbook": {
     "description": "Description",
+    "fullAccess": {
+      "groups": "Full access (groups)",
+      "tooltip": "Users have write and read access to all addresses assigned to this address book.",
+      "users": "Full access (users)"
+    },
     "owner": "Owner",
-    "title": "Title"
+    "readonlyAccess": {
+      "groups": "Read-only access (groups)",
+      "tooltip": "Users have only read access to all addresses assigned to this address book.",
+      "users": "Read-only access (users)"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add Addressbook",
+      "heading": "Addressbook",
+      "list": "List of addressbooks"
+    }
   },
   "administration": {
     "configuration": {

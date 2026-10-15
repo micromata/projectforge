@@ -209,6 +209,16 @@ object NextMigration {
             legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage",
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the address books (AddressbookEntityRest, components/features/addressBook),
+        // migrated from React. The React pages are gone (no UILayout served any more), so there is no way back; the
+        // legacy app is kept for the redirect of bookmarked React links only.
+        "addressBook" to NextPage(
+            route = "addressBook",
+            editRoute = "addressBook/$ID_PLACEHOLDER",
+            newEntryRoute = "addressBook/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.
