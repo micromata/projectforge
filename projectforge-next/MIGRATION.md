@@ -395,7 +395,7 @@ Client ist die Brücke bis dahin.
 
 Fertig: **Auftragsbuch** (`order`), **Debitorenrechnungen** (`outgoingInvoice`),
 **Kreditorenrechnungen** (`incomingInvoice`), **Strukturelemente/Aufgabenbaum** (`task`),
-**Gruppen** (`group`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`). **Offen:** **Kalenderseite** (Detailplan
+**Gruppen** (`group`), **Benutzer** (`user`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`), **Adressbücher** (`addressBook`). **Offen:** **Kalenderseite** (Detailplan
 [MIGRATION-calendar.md](MIGRATION-calendar.md), Phasen A/B/D umgesetzt, C offen).
 
 Alle handgebauten Seiten laufen über `PageDef` und die geteilten Bausteine oben. Was pro
@@ -585,6 +585,19 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
   anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
   Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
+- **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei
+  über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
+  für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des
+  React-Adressformulars bleibt unverändert. `react/addressBook/**` leitet `OrphanedLinkFilter` über `NextMigration` um.
+- **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über
+  `UserEntityRest` (`/rs/user`; `/rs/user/autosearch` bleibt für alle Benutzer-Auswahlen). Die Rechte hängen an den
+  zugeordneten Gruppen: statt des Watch-Field-Re-Layouts fragt das Formular `POST user/rights` (Gruppen + aktuelle
+  Werte, `UserRightsHandler.getRightInfos`) bei jeder Gruppenänderung neu; das Edit-DTO startet mit derselben
+  Menge, sodass das Laden das Formular nicht verändert. Die Auswahllisten der Einstellungen kommen aus
+  `user/settingsOptions` (`UserSettingsOptions`, wie Mein Konto), die Lesend-Flags (posix/samba/WLAN) reisen im
+  Edit-DTO. Token-Erneuerung und „alle Geräte abmelden" sind Sofortaktionen außerhalb des Speicherns, die
+  Passwörter ändern `next/changePassword?userId=` bzw. `changeWlanPassword?userId=`. Kein Weg zurück;
+  `react/user/**` leitet `OrphanedLinkFilter` um.
 - **Team-Urlaubskalender** (`/next/vacationExport`, vorher React-UILayout `VacationExportPageRest`, gelöscht) –
   eigenständige Seite auf `VacationExportRest` (`/rs/vacationExport`: `initial`, `view`, `exportExcel` und die
   Lookups `employees`/`groups`). Neu ist die Anzeige im Fenster: die Urlaube (genehmigt, in Abstimmung) der
@@ -598,7 +611,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Tagesbreite (Automatisch, Fensterbreite, Schmal, Normal, Breit) wird mit der Auswahl gespeichert.
   Favoriten (`…/favorites/*`, `FavoritesMenu`) speichern benannte Auswahlen von Mitarbeitenden und Gruppen in
   derselben User-Pref; angewendet wird nur, was der Benutzer wählen darf. Behoben: Urlaube, die vor einem Blatt
-  begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um.
+  begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um. Nach dem Review: `view`
+  schneidet die Urlaube auf den angezeigten Zeitraum, `favorites` liefert nur die wählbaren Ids; die Grafik ist
+  `role="group"` mit fokussierbaren, benannten Balken; `initial` wird nie aus dem Cache übernommen (`gcTime: 0`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

@@ -110,9 +110,10 @@ class VacationExportRestTest : AbstractTestBase() {
         val view = vacationExportRest.view(request)
         assertEquals(91, view.days.size)
         assertEquals(1, view.rows.size)
-        // Only the one overlapping the quarter and neither rejected nor outside of it.
+        // Only the one overlapping the quarter and neither rejected nor outside of it, cut to the quarter.
         val vacations = view.rows[0].vacations
-        assertEquals(listOf(LocalDate.of(year, 3, 30)), vacations.map { it.startDate })
+        assertEquals(listOf(LocalDate.of(year, 4, 1)), vacations.map { it.startDate })
+        assertEquals(listOf(LocalDate.of(year, 4, 3)), vacations.map { it.endDate })
         assertEquals(VacationStatus.IN_PROGRESS, vacations[0].status)
 
         val initial = vacationExportRest.getInitial()
@@ -144,7 +145,8 @@ class VacationExportRestTest : AbstractTestBase() {
         val turn = vacationExportRest.view(request(LocalDate.of(year - 1, 12, 1), LocalDate.of(year, 1, 31)))
         assertEquals(LocalDate.of(year, 1, 1), turn.days.first().date)
         assertEquals(31, turn.days.size)
-        assertEquals(1, turn.rows.single().vacations.size)
+        // Its days of the previous year aren't told.
+        assertEquals(LocalDate.of(year, 1, 1), turn.rows.single().vacations.single().startDate)
         val initial = vacationExportRest.getInitial()
         assertEquals(LocalDate.of(year, 1, 1), initial.earliestDate)
         assertEquals("fit", initial.dayWidth)
@@ -174,6 +176,8 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(2, favorites.map { it.name }.toSet().size, "Names are unique.")
         val first = favorites.first { it.employeeIds.contains(colleague.id) }
         assertEquals(listOf(team.id), first.groupIds)
+        // As selectFavorite applies it: without the stranger, so the page's choice reads as the favorite.
+        assertEquals(listOf(colleague.id), first.employeeIds)
         assertEquals(favorites.map { it.id }, vacationExportRest.getInitial().favorites.map { it.id })
 
         // The stranger isn't of an own group: not applied.

@@ -47,7 +47,7 @@ export function ProblemTabContents({
     return (
       <>
         <TabsContent value="overview">{state}</TabsContent>
-        <TabsContent value="problems">{state}</TabsContent>
+        <TabsContent value="incidents">{state}</TabsContent>
       </>
     );
   }
@@ -73,7 +73,7 @@ export function ProblemTabContents({
               days: it.days,
             });
             setSearch("");
-            setTab("problems", {
+            setTab("incidents", {
               [SUBSYSTEM_PARAM]: null,
               [SCOPE_PARAM]: it.scope ?? null,
             });
@@ -84,7 +84,7 @@ export function ProblemTabContents({
               // too: the figure "open" counts them whenever they occurred.
               setFilter({ status, days: 0 });
               setSearch("");
-              setTab("problems", {
+              setTab("incidents", {
                 [SUBSYSTEM_PARAM]: it.id,
                 [SCOPE_PARAM]: null,
               });
@@ -95,7 +95,7 @@ export function ProblemTabContents({
             if (it.id === SCHEDULER_SUBSYSTEM) setTab("scheduler");
             else if (it.id === CACHES_SUBSYSTEM) setTab("caches");
             else
-              setTab("problems", {
+              setTab("incidents", {
                 [SUBSYSTEM_PARAM]: it.id,
                 [SCOPE_PARAM]: null,
               });
@@ -103,7 +103,7 @@ export function ProblemTabContents({
         />
       </TabsContent>
       <TabsContent
-        value="problems"
+        value="incidents"
         className="flex min-h-0 flex-col gap-3 text-sm"
       >
         {disabled}

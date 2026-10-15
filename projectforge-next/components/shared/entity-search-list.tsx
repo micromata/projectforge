@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/command";
 import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
 import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
+import { INACTIVE_REF_CLASS, isInactiveRef } from "@/lib/page-def/reference";
+import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import {
   EntitySearchFreeText,
@@ -170,6 +172,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
                 key={`recent-${entry.id}`}
                 value={`recent-${entry.id}`}
                 onSelect={() => pick(entry)}
+                className={cn(isInactiveRef(entry) && INACTIVE_REF_CLASS)}
               >
                 {entry.displayName}
               </CommandItem>
@@ -189,6 +192,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
                 key={entry.id}
                 value={String(entry.id)}
                 onSelect={() => pick(entry)}
+                className={cn(isInactiveRef(entry) && INACTIVE_REF_CLASS)}
               >
                 {entry.displayName}
               </CommandItem>

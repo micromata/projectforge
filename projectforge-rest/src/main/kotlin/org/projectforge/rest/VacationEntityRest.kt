@@ -33,6 +33,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
+import org.projectforge.common.DateFormatType
 import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -412,16 +413,88 @@ class VacationEntityRest :
             result.workingDays = VacationService.getVacationDays(startDate, endDate, dto.halfDayBegin, dto.halfDayEnd)
             result.workingDaysFormatted = VacationStats.format(result.workingDays)
         }
-        val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
-        // Without their comments: the substitutes' entries are read past the DAO's privacy check (VacationDao.afterLoad),
-        // and neither the chart nor the table shows them.
-        result.conflictingVacations = vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
-        result.conflict = vacationOverlaps.conflict
-        if (startDate != null && endDate != null) {
-            result.chartDays = chartDays(startDate, endDate, vacationOverlaps.uncoveredDays.toSet())
+        val user = ThreadLocalUserContext.loggedInUser!!
+        // A period the chart draws only: the overlaps of a mistyped (or crafted) decade aren't searched for.
+        if (startDate != null && endDate != null && inBarRange(vacationDO)) {
+            val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
+            val uncoveredDays = vacationOverlaps.uncoveredDays
+            // The substitutes' vacations are conflicts whoever they are: the entry needs them on duty.
+            result.conflict = vacationOverlaps.conflict
+            if (baseDao.hasHrRights(user)) {
+                // Without their comments: the substitutes' entries are read past the DAO's privacy check
+                // (VacationDao.afterLoad), and neither the chart nor the table shows them.
+                result.conflictingVacations =
+                    vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
+                result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
+            } else {
+                // The substitutes are posted, so anybody could name anybody: the vacations the user may read anyway
+                // (VacationDao.hasUserSelectAccess) are shown in full, all others reduced to their dates and status
+                // (reducedConflict), and only from visibleFrom on, as the list shows a colleague's vacations. So
+                // naming somebody tells no more than whether they are away while the entry's own period runs.
+                val visibleFrom = LocalDate.now().minusDays(VISIBLE_PAST_DAYS)
+                val readable = vacationOverlaps.otherVacations.filter { baseDao.hasUserSelectAccess(user, it, false) }
+                result.conflictingVacations = vacationOverlaps.otherVacations.mapNotNull { other ->
+                    if (readable.contains(other)) {
+                        Vacation(other).also { it.comment = null }
+                    } else {
+                        reducedConflict(other, maxOf(startDate, visibleFrom), endDate)
+                    }
+                }
+                // Before visibleFrom, a day is drawn uncovered only if the readable vacations alone say so.
+                val shownUncovered = uncoveredDays.filter { it >= visibleFrom } +
+                        visibleUncoveredDays(vacationDO, uncoveredDays.filter { it < visibleFrom }, readable)
+                result.chartDays = chartDays(startDate, endDate, shownUncovered.toSet())
+            }
         }
-        result.allowedStatus = baseDao.getAllowedStatus(ThreadLocalUserContext.loggedInUser!!, vacationDO)
+        result.allowedStatus = baseDao.getAllowedStatus(user, vacationDO)
         return result
+    }
+
+    /**
+     * A substitute's vacation the user may not read otherwise, as a conflict of the edited entry: only its days from
+     * [from] to [until] (the part of the entry's period the user may be told about) with their status; no id,
+     * comment, manager, substitutes or special flag. Null if nothing of it falls in there.
+     */
+    private fun reducedConflict(other: VacationDO, from: LocalDate, until: LocalDate): Vacation? {
+        val otherStart = other.startDate ?: return null
+        val otherEnd = other.endDate ?: return null
+        val start = maxOf(otherStart, from)
+        val end = minOf(otherEnd, until)
+        if (end < start) {
+            return null
+        }
+        return Vacation(
+            employee = caches.getEmployeeIfNotInitialized(other.employee)?.let { Employee().apply { copyFromMinimal(it) } },
+            startDate = start,
+            startDateFormatted = PFDayUtils.format(start, DateFormatType.DATE),
+            endDate = end,
+            endDateFormatted = PFDayUtils.format(end, DateFormatType.DATE),
+            // A half day cut off by the period isn't one of the days shown.
+            halfDayBegin = other.halfDayBegin == true && start == otherStart,
+            halfDayEnd = other.halfDayEnd == true && end == otherEnd,
+            status = other.status,
+            statusString = other.status?.let { translate(it.i18nKey) },
+        ).also {
+            it.workingDays = VacationService.getVacationDays(start, end, it.halfDayBegin, it.halfDayEnd)
+            it.workingDaysFormatted = VacationStats.format(it.workingDays)
+        }
+    }
+
+    /**
+     * The [uncovered] days (all substitutes away) that the [visible] vacations alone tell: those on which every
+     * substitute has one of them. As [VacationService.getVacationOverlaps] counts, restricted to what is shown.
+     */
+    private fun visibleUncoveredDays(
+        vacation: VacationDO,
+        uncovered: List<LocalDate>,
+        visible: List<VacationDO>,
+    ): List<LocalDate> {
+        val replacements = vacationService.collectAllReplacements(vacation)
+        return uncovered.filter { date ->
+            replacements.all { replacement ->
+                visible.any { it.employee?.id == replacement.id && it.isInBetween(date) }
+            }
+        }
     }
 
     /**
@@ -490,6 +563,9 @@ class VacationEntityRest :
     companion object {
         private const val CHART_MARGIN_DAYS = 3L
         private const val CHART_MAX_DAYS = 400L
+
+        /** The days back a colleague's vacation is visible (VacationDao.hasUserSelectAccess). */
+        private const val VISIBLE_PAST_DAYS = 31L
 
         /** A period the days bar draws (list and vacation account): not beyond [CHART_MAX_DAYS] (a mistyped year). */
         internal fun inBarRange(obj: VacationDO): Boolean {

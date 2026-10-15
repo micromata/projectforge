@@ -565,6 +565,13 @@ export interface ListMetaData {
    * edit page keeps the button.
    */
   legacyListInMenu?: boolean;
+  /**
+   * Whether the entity is small enough for a full re-index to take seconds, which then is the only
+   * re-index of the list, offered to every user (`BaseDao.isFullReindexSmall`, see ListGearMenu).
+   */
+  fullReindexOnly?: boolean;
+  /** The limit of `fullReindexOnly`, named by the explanation of the admins' full re-index entry. */
+  fullReindexMaxEntries?: number;
   /** The legacy edit page with `:id` for the id, e.g. `wa/orderBookEdit?id=:id`. */
   legacyEditPage?: string;
   /**

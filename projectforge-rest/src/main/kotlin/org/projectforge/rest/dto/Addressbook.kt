@@ -36,11 +36,10 @@ class Addressbook(
     var fullAccessUsers: List<User>? = null,
     var readonlyAccessGroups: List<Group>? = null,
     var readonlyAccessUsers: List<User>? = null,
-    var fullAccessGroupsAsString: String? = null,
-    var fullAccessUsersAsString: String? = null,
-    var readonlyAccessGroupsAsString: String? = null,
-    var readonlyAccessUsersAsString: String? = null,
-) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName) {
+    // Only owners and admins may save an address book (BaseUserGroupRight.hasUpdateAccess), not users with full access.
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName), EntityAccessSupport {
 
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyFrom(src: AddressbookDO) {
@@ -67,16 +66,13 @@ class Addressbook(
         ): Addressbook {
             val dto = Addressbook()
             dto.copyFrom(obj)
+            // Display names needed by the list and the multi autocompletion fields of the form:
             Group.restoreDisplayNames(dto.fullAccessGroups)
             Group.restoreDisplayNames(dto.readonlyAccessGroups)
 
             User.restoreDisplayNames(dto.fullAccessUsers)
             User.restoreDisplayNames(dto.readonlyAccessUsers)
-
-            dto.fullAccessUsersAsString = dto.fullAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
-            dto.readonlyAccessUsersAsString = dto.readonlyAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
-            dto.fullAccessGroupsAsString = dto.fullAccessGroups?.joinToString { it.displayName ?: "???" } ?: ""
-            dto.readonlyAccessUsersAsString = dto.readonlyAccessUsers?.joinToString { it.displayName ?: "???" } ?: ""
+            dto.owner?.let { User.restoreDisplayNames(listOf(it)) }
             return dto
         }
     }

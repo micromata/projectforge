@@ -1038,3 +1038,25 @@ span.row-blue {
   height: 0;
   pointer-events: none;
 }
+
+/*
+ * Printing (the print button of the team vacation calendar, or the browser's own): with the backgrounds the
+ * browser would otherwise leave out — the bars, weekends and holidays of a chart are nothing but background
+ * colours. The page format is the browser's own, but for the team vacation calendar (VacationExportPage),
+ * marked by `data-print-page`: landscape, its chart being wide. Named on <body>, not on the page's own box:
+ * anything after a box of a named page (the toasts, the portals in <body>) would start a page of the default
+ * format, an empty one. Not on <html>, which Chromium ignores.
+ */
+@page vacation-calendar {
+  size: A4 landscape;
+  margin: 10mm;
+}
+@media print {
+  html {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  body:has([data-print-page="vacation-calendar"]) {
+    page: vacation-calendar;
+  }
+}

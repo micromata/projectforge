@@ -135,7 +135,17 @@ constructor(
         }
     }
 
-    class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
+    /**
+     * A hit of [getAutoCompleteObjects]. [deleted] and [deactivated] are set only if true (null is not serialized),
+     * so a selection box can strike through a no longer active entry (e.g. a deactivated user), as a next list
+     * cell does for such a reference (`isInactiveRef`).
+     */
+    class DisplayObject(
+        val id: Any?,
+        override val displayName: String?,
+        val deleted: Boolean? = null,
+        val deactivated: Boolean? = null,
+    ) : DisplayNameCapable
 
     /**
      * Category should be unique and is e. g. used as react path. At default, it's the dir of the url defined in class annotation [RequestMapping].
@@ -310,6 +320,8 @@ constructor(
             legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
             // Whether that way back is offered in the gear menu instead of the prominent button, per entity.
             legacyListInMenu = NextMigration.legacyListInMenu(category),
+            // From EntityCountCache, so no count(*) per list load (see BaseDao.countReindexEntries).
+            fullReindexOnly = baseDao.isFullReindexSmall(),
             legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
             legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,
@@ -1192,7 +1204,14 @@ constructor(
         filter.searchFields = autoCompleteSearchFields!!
         maxResults?.let { filter.maxRows = it }
         val list = queryAutocompleteObjects(request, filter)
-        return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
+        return list.map {
+            DisplayObject(
+                it.id,
+                if (it is DisplayNameCapable) it.displayName else it.toString(),
+                deleted = it.deleted.takeIf { deleted -> deleted },
+                deactivated = it.deactivated.takeIf { deactivated -> deactivated },
+            )
+        }
     }
 
     /**
@@ -1250,21 +1269,27 @@ constructor(
      */
     @GetMapping("reindexNewest")
     fun reindexNewest(request: HttpServletRequest): ResponseAction {
-        startReindexOrRunIt(request, full = false)?.let { return it }
+        startReindexOrRunIt(request, full = false, adminRequired = false)?.let { return it }
         baseDao.rebuildDatabaseIndex4NewestEntries()
         return UIToast.createToast(translate("administration.reindexNewest.successful"), color = UIColor.SUCCESS)
     }
 
     /**
-     * Rebuilds the index by the search engine for all entries. Admins only: the run discards the index of the entity
-     * and builds it from scratch, which costs minutes and system performance on a large table. The classic frontend
-     * simply hides the menu entry, but projectforge-next builds its list pages itself, so the check has to be here.
+     * Rebuilds the index by the search engine for all entries. Admins only for a large entity: the run discards the
+     * index of the entity and builds it from scratch, which costs minutes and system performance on a large table.
+     * Below [BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS] entries it takes seconds, so every user may start it
+     * (see [BaseDao.isFullReindexAllowedForLoggedInUser]). The clients merely hide the menu entry, the check has to
+     * be here.
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GetMapping("reindexFull")
     fun reindexFull(request: HttpServletRequest): ResponseAction {
-        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
-        startReindexOrRunIt(request, full = true)?.let { return it }
+        // An admin's run stays admin-only to watch and cancel; a regular user's (small) run is their own.
+        val adminRequired = accessChecker.isLoggedInUserMemberOfAdminGroup
+        if (!adminRequired && !baseDao.isFullReindexSmall()) {
+            accessChecker.checkIsLoggedInUserMemberOfAdminGroup() // Throws the AccessException.
+        }
+        startReindexOrRunIt(request, full = true, adminRequired = adminRequired)?.let { return it }
         baseDao.rebuildDatabaseIndex()
         return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
     }
@@ -1275,7 +1300,7 @@ constructor(
      *
      * @return The response for projectforge-next, or null if the caller has to do the run synchronously.
      */
-    private fun startReindexOrRunIt(request: HttpServletRequest, full: Boolean): ResponseAction? {
+    private fun startReindexOrRunIt(request: HttpServletRequest, full: Boolean, adminRequired: Boolean): ResponseAction? {
         if (!RestAuthenticationUtils.isNextClient(request)) {
             return null
         }
@@ -1287,7 +1312,7 @@ constructor(
                 // The entity names restrict the change history of the partial run to the rows of this page (the
                 // entity and the children whose history it shows).
                 settings = DatabaseDao.createReindexSettings(!full, baseDao.historyEntityNames),
-                adminRequired = full,
+                adminRequired = adminRequired,
                 // The same key the list layout uses as its title — every entity has it.
                 title = translateMsg(i18nKey, translate("$i18nKeyPrefix.list")),
             )

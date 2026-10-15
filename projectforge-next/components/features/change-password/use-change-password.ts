@@ -22,11 +22,13 @@ const EMPTY: Record<ChangePasswordField, string> = {
 
 /**
  * The values, the field errors and the change of a change password page. On success the fields are emptied
- * and the date of the last change is reloaded, here and on the my-account page.
+ * and the date of the last change is reloaded, here and on the my-account page; [onChanged] follows (a
+ * dialog closes then).
  */
 export function useChangePassword(
   variant: PasswordVariant,
-  init: ChangePasswordInit
+  init: ChangePasswordInit,
+  onChanged?: () => void
 ) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -50,6 +52,7 @@ export function useChangePassword(
           void queryClient.invalidateQueries({
             queryKey: MY_ACCOUNT_QUERY_KEY,
           });
+        onChanged?.();
       } else if (result.kind === "rejected") {
         toast.error(result.message);
       } else {

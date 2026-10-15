@@ -16,7 +16,8 @@ import {
   type PeriodKind,
 } from "@/lib/date-period";
 import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
-import type { FormatContext } from "@/lib/format";
+import { isIsoDate } from "@/lib/date-period-math";
+import { formatDateRange, type FormatContext } from "@/lib/format";
 import { RsError } from "@/lib/rs/client";
 import {
   downloadVacationExportExcel,
@@ -38,8 +39,6 @@ import { useVacationExportFavorites } from "./use-vacation-export-favorites";
 /** The arts the team calendar pages through, the quarter first (the default). */
 const KINDS = periodKindsOf(["quarter", "year"]);
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
 /**
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
  * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
@@ -47,13 +46,21 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
  *
  * The employees and groups chosen are stored by the backend (shown again on the next visit); the period is
  * kept in the url (`?period=quarter&from=2026-10-01`).
+ *
+ * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
+ * itself is not printed, the names are in the chart.
  */
 export function VacationExportPage() {
   const t = useTranslations();
   const initial = useQuery({
     queryKey: [...VACATION_EXPORT_QUERY_KEY, "initial"],
     queryFn: ({ signal }) => fetchVacationExportInitial(signal),
+    // It only seeds the page's state, once: a cached answer from an earlier visit would show (and with the first
+    // view request store again) the choice and favorites of back then, over what was stored since. So it is
+    // never kept for the next visit, and not fetched anew under a page already seeded.
     staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   });
   return (
     <PageShell>
@@ -61,7 +68,11 @@ export function VacationExportPage() {
         category={t("menu.vacation._")}
         title={t("vacation.export.title")}
       />
-      <div className="flex flex-col gap-4 px-4 pb-6">
+      {/* Prints landscape (`@page vacation-calendar` in globals.css). */}
+      <div
+        className="flex flex-col gap-4 px-4 pb-6"
+        data-print-page="vacation-calendar"
+      >
         {initial.isPending && (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
         )}
@@ -98,10 +109,10 @@ function initialPeriod(
   };
   const kind = offered(params.get("period")) ?? offered(storedKind) ?? KINDS[0];
   const from = params.get("from");
-  const anchor =
-    from && ISO_DATE.test(from)
-      ? kind.beginOf(from, ctx)
-      : currentAnchorOf(kind, ctx);
+  // Only a day that exists: `2026-13-01` has the shape, but the backend can't read it.
+  const anchor = isIsoDate(from)
+    ? kind.beginOf(from, ctx)
+    : currentAnchorOf(kind, ctx);
   return clampPeriod({ kind, anchor }, min, ctx);
 }
 
@@ -170,6 +181,7 @@ function VacationExportContent({
     placeholderData: keepPreviousData,
     staleTime: 0,
   });
+  const hasRows = (view.data?.rows.length ?? 0) > 0;
   const excel = useExportDownload(() => downloadVacationExportExcel(body));
 
   function selectPeriod(kind: PeriodKind, anchor: string) {
@@ -189,12 +201,16 @@ function VacationExportContent({
         dayWidth={dayWidth}
         favorites={favorites}
         exporting={excel.isPending}
+        canPrint={hasSelection && hasRows}
         onEmployeesChange={setEmployees}
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}
         onExport={() => excel.mutate()}
       />
+      <p className="hidden text-sm tabular-nums print:block">
+        {formatDateRange(bounds.from, bounds.to, ctx)}
+      </p>
       {!hasSelection && (
         <p className="text-sm text-muted-foreground">
           {t("vacation.export.selectHint")}
@@ -203,20 +219,21 @@ function VacationExportContent({
       {hasSelection && view.isError && (
         <p className="text-sm text-destructive">{t("errorpage.title")}</p>
       )}
-      {hasSelection && view.isPending && (
-        <p className="text-sm text-muted-foreground">{t("loading")}</p>
-      )}
-      {hasSelection && view.data && view.data.rows.length > 0 && (
+      {/* Also while the answer of the choice before stands in for this one and has nothing to show — the
+          empty one of no choice at all, before the first pick: the area would stay blank until it comes. */}
+      {hasSelection &&
+        !view.isError &&
+        (view.isPending || (view.isPlaceholderData && !hasRows)) && (
+          <p className="text-sm text-muted-foreground">{t("loading")}</p>
+        )}
+      {hasSelection && view.data && hasRows && (
         <VacationTeamChart view={view.data} dayWidth={dayWidth} />
       )}
-      {hasSelection &&
-        view.data &&
-        view.data.rows.length === 0 &&
-        !view.isPlaceholderData && (
-          <p className="text-sm text-muted-foreground">
-            {t("datatable.no-records-found")}
-          </p>
-        )}
+      {hasSelection && view.data && !hasRows && !view.isPlaceholderData && (
+        <p className="text-sm text-muted-foreground">
+          {t("datatable.no-records-found")}
+        </p>
+      )}
     </>
   );
 }

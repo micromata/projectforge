@@ -43,23 +43,30 @@ export function PageShell({ children }: PageShellProps) {
     // an edit page falls below the fold — reachable only by scrolling the outer <main>, never the
     // inner form column. `100dvh` tracks the visible viewport, so the bar stays anchored at the true
     // bottom and <main> keeps no extra overflow to scroll.
-    <div className="relative flex h-dvh flex-col overflow-hidden">
-      <LogoRow />
-      <BrandStripe />
-      <TopNavigation />
-      {/* Here and not in the authenticated layout: the announcement belongs under the navigation of
-          every page, as in Wicket, and this shell is what every page of this app is built from. */}
-      <SystemAlertBanner />
-      <NotificationBanners />
+    // Printed (`print:`), the page is only its content, as long as it is: no header, navigation or status
+    // bar, and no box of the window's height clipping everything below the first page.
+    <div className="relative flex h-dvh flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
+      {/* `contents`: on screen as if the wrapper weren't there, the rows stay items of the column. */}
+      <div className="contents print:hidden">
+        <LogoRow />
+        <BrandStripe />
+        <TopNavigation />
+        {/* Here and not in the authenticated layout: the announcement belongs under the navigation of
+            every page, as in Wicket, and this shell is what every page of this app is built from. */}
+        <SystemAlertBanner />
+        <NotificationBanners />
+      </div>
       <main
-        className="flex min-h-0 flex-1 flex-col overflow-auto"
+        className="flex min-h-0 flex-1 flex-col overflow-auto print:block print:overflow-visible"
         onScroll={collapse.onScroll}
       >
         {children}
       </main>
       {/* Sibling of <main>, not inside it: shrink-0 keeps the strip pinned at the true bottom while
           <main> takes the remaining height, exactly as Wicket's footer sits below the scroll area. */}
-      <StatusBar />
+      <div className="contents print:hidden">
+        <StatusBar />
+      </div>
     </div>
   );
 }

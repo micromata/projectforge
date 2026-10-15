@@ -179,6 +179,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The address books: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the address book pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/addressBook", NextMigration.listUrl("addressBook"))
+        Assertions.assertEquals("next/addressBook/:id", NextMigration.standardEditPage("addressBook"))
+        Assertions.assertEquals("next/addressBook/new", NextMigration.newEntryUrl("addressBook"))
+        Assertions.assertNull(NextMigration.legacyListUrl("addressBook"))
+        Assertions.assertNull(NextMigration.legacyEditPage("addressBook"))
+        val link = NextMigration.orphanedLinks().single { it.category == "addressBook" }
+        Assertions.assertEquals("react/addressBook", link.legacyListPath)
+        Assertions.assertEquals("react/addressBook/edit", link.legacyEditPath)
+    }
+
+    /**
      * The team calendars: list and form are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link is still redirected onto next.
      */
@@ -192,6 +208,22 @@ class NextMigrationTest {
         val link = NextMigration.orphanedLinks().single { it.category == "teamCal" }
         Assertions.assertEquals("react/teamCal", link.legacyListPath)
         Assertions.assertEquals("react/teamCal/edit", link.legacyEditPath)
+    }
+
+    /**
+     * The users: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
+     * React link is still redirected onto next.
+     */
+    @Test
+    fun `the user pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/user", NextMigration.listUrl("user"))
+        Assertions.assertEquals("next/user/:id", NextMigration.standardEditPage("user"))
+        Assertions.assertEquals("next/user/new", NextMigration.newEntryUrl("user"))
+        Assertions.assertNull(NextMigration.legacyListUrl("user"))
+        Assertions.assertNull(NextMigration.legacyEditPage("user"))
+        val link = NextMigration.orphanedLinks().single { it.category == "user" }
+        Assertions.assertEquals("react/user", link.legacyListPath)
+        Assertions.assertEquals("react/user/edit", link.legacyEditPath)
     }
 
     /**

@@ -41,8 +41,9 @@ private val log = KotlinLogging.logger {}
  *
  * @param classes The entities to re-index, in this order (see BaseDao.reindexClasses).
  * @param settings Empty for a full run, or with a fromDate for the newest entries only.
- * @param adminRequired True for the full run: it purges the index before rebuilding it, so only admins may start,
- * watch and cancel it.
+ * @param adminRequired True for a full run started by an admin: it purges the index before rebuilding it, so only
+ * admins may watch and cancel it. A regular user may start a full run of a small entity only (see
+ * BaseDao.isFullReindexAllowedForLoggedInUser), which is then theirs to watch and cancel, like a partial run.
  */
 class ReindexJob(
     private val databaseDao: DatabaseDao,
@@ -113,7 +114,7 @@ class ReindexJob(
 
     override fun writeAccess(user: PFUserDO?): Boolean {
         user ?: return false
-        // Cancelling a full run leaves the index of the entity half rebuilt, so it belongs to admins only. Not
+        // Cancelling an admin's full run leaves the index of the entity half rebuilt, so it belongs to admins only. Not
         // accessChecker of AbstractJob: jobs are created with new and never autowired, so that field is an unset
         // lateinit.
         val isAdmin = UserGroupCache.getInstance().isUserMemberOfAdminGroup(user.id)

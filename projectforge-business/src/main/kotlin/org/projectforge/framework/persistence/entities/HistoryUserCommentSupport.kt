@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.entities
 /**
  * A DO object implementing this interface enables, that the user is able to enter a comment in the edit pages:
  * This comment is attached to the history entry.
- * Please refer UserPagesRest as an example.
+ * Please refer UserEntityRest as an example.
  * @see org.projectforge.framework.persistence.history.HistoryEntryDO.userComment
  */
 interface HistoryUserCommentSupport

@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.projectforge.NextMigration
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UILayout
@@ -78,6 +79,14 @@ class ListMetaData(
      * non-null [legacyListPage] - a page with no way back offers nothing either way.
      */
     val legacyListInMenu: Boolean,
+    /**
+     * Whether the full re-index is the only re-index of this list, offered to every user: the entity is small
+     * enough for a full run to take seconds (see `BaseDao.isFullReindexSmall`). Otherwise the list offers
+     * the re-index of the newest entries, and the full run to admins only.
+     */
+    val fullReindexOnly: Boolean = false,
+    /** The limit of [fullReindexOnly], named by the explanation of the admins' full re-index entry. */
+    val fullReindexMaxEntries: Long = BaseDao.FULL_REINDEX_MAX_ENTRIES_FOR_NON_ADMINS,
     /** The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, or null. */
     val legacyEditPage: String?,
     /**

@@ -32,9 +32,10 @@ export function reindexNewest(
 }
 
 /**
- * Rebuilds the whole search index of the entity, history included. Takes minutes on a large table
- * and affects the whole system, so the endpoint rejects everyone but admins (the menu hides the
- * entry as well, see UserStatus.adminUser).
+ * Rebuilds the whole search index of the entity. Takes minutes on a large table and affects the
+ * whole system, so there the endpoint rejects everyone but admins (the menu hides the entry as well,
+ * see UserStatus.adminUser). An entity with less than `ListMetaData.fullReindexMaxEntries` entries may
+ * be rebuilt by everybody (`ListMetaData.fullReindexOnly`).
  *
  * Answers with a job id like `reindexNewest`.
  */

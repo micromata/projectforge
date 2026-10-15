@@ -229,7 +229,22 @@ class NotificationParams(
     var passwordMaxAgeDays: Int = 90,
     /** [NotificationRuleType.TIMESHEETS_WITHOUT_KOST2]: the months looked at, the current month included. */
     var kost2MissingMonths: Int = 2,
+    /** All rule types: the link of the notifications ("Open" in the app). */
+    var linkMode: LinkMode = LinkMode.DEFAULT,
+    /** [LinkMode.MENU_ITEM]: the id of the menu item (`MenuItemDefId`) linked to. */
+    var linkMenuItem: String? = null,
 ) {
+    enum class LinkMode {
+        /** The page of the rule type, e.g. the time sheets (none for a manual rule). */
+        DEFAULT,
+
+        /** No link. */
+        NONE,
+
+        /** The page of the menu item [linkMenuItem]. */
+        MENU_ITEM,
+    }
+
     enum class ReferredMonth(val offset: Long) {
         CURRENT(0),
         PREVIOUS(-1);

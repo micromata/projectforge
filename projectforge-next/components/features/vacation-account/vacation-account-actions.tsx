@@ -55,7 +55,7 @@ export function VacationAccountActions({
           {t("menu.vacation._")}
         </MenuLink>
       </Button>
-      <Button asChild variant="ghost" size="sm" className="gap-1.5">
+      <Button asChild size="sm" className="gap-1.5">
         <MenuLink url={account.exportUrl}>
           <HugeiconsIcon icon={FileExportIcon} size={14} aria-hidden />
           {t("vacation.export.title")}

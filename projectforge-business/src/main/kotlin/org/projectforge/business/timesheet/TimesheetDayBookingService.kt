@@ -85,6 +85,8 @@ open class TimesheetDayBookingService {
         var kost2Id: Long? = null,
         var location: String? = null,
         var description: String? = null,
+        /** The reference of the time sheets, e.g. the vacation an automatic booking belongs to. */
+        var reference: String? = null,
         var startDate: LocalDate? = null,
         var endDate: LocalDate? = null,
         var startTime: LocalTime? = null,
@@ -312,6 +314,7 @@ open class TimesheetDayBookingService {
                 it.kost2 = kost2
                 it.location = request.location?.trim()?.ifEmpty { null }
                 it.description = request.description?.trim()?.ifEmpty { null }
+                it.reference = request.reference
                 it.startTime = start.utilDate
                 it.stopTime = stop.utilDate
             }

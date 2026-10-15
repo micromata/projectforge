@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Team vacation calendar: the vacations of the chosen employees and groups are now also shown on the page, per quarter or calendar year, with an adjustable width of the days (up to fitting the whole period into the window); the Excel export starts with the period shown. Choices of employees and groups can be saved as favorites. Users without HR or finance rights choose from their own groups only and no longer see previous years. Vacations beginning before a sheet of the Excel export are now shown on it, too.",
-  "de": "Team-Urlaubskalender: Die Urlaube der gewählten Mitarbeitenden und Gruppen werden jetzt auch direkt auf der Seite angezeigt, je Quartal oder Kalenderjahr und mit einstellbarer Tagesbreite (bis zum ganzen Zeitraum in Fensterbreite); der Excel-Export beginnt mit dem angezeigten Zeitraum. Auswahlen von Mitarbeitenden und Gruppen lassen sich als Favoriten speichern. Benutzer ohne HR- oder Finanzrechte wählen nur aus ihren eigenen Gruppen und sehen keine Vorjahre mehr. Urlaube, die vor einem Blatt des Excel-Exports beginnen, erscheinen jetzt auch darauf."
-}

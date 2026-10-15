@@ -25,6 +25,7 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
@@ -34,6 +35,8 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.test.HistoryTester
@@ -301,6 +304,111 @@ class VacationDaoTest : AbstractTestBase() {
             vacation
         )
         checkAccess(uninvolvedEmployee.user, vacation, "no access", false, false, false, false, false, vacation)
+    }
+
+    @Test
+    fun `the manager is the one of the stored entry`() {
+        lateinit var employee: EmployeeDO
+        lateinit var manager: EmployeeDO
+        lateinit var replacement: EmployeeDO
+        lateinit var uninvolved: EmployeeDO
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("takeover-normal")
+            manager = createEmployee("takeover-manager")
+            replacement = createEmployee("takeover-replacement")
+            uninvolved = createEmployee("takeover-uninvolved")
+        }
+        val past = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS, future = false)
+        val takenOver = createVacation(employee, uninvolved, replacement, VacationStatus.IN_PROGRESS, future = false)
+        // Made the manager by the posted entry, he could approve the stored one in a second step:
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(uninvolved.user!!, takenOver, past, false))
+        // Nor may the employee choose another manager for a past entry (who might approve it then):
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(employee.user!!, takenOver, past, false))
+        Assertions.assertTrue(vacationDao.hasUpdateAccess(manager.user!!, past, past, false))
+
+        val future = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
+        val otherManager = createVacation(employee, uninvolved, replacement, VacationStatus.IN_PROGRESS)
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(uninvolved.user!!, otherManager, future, false))
+        Assertions.assertFalse(vacationDao.hasUpdateAccess(manager.user!!, otherManager, future, false))
+        // The employee chooses the manager of an entry not yet begun:
+        Assertions.assertTrue(vacationDao.hasUpdateAccess(employee.user!!, otherManager, future, false))
+    }
+
+    @Test
+    fun `deleting decides on the stored entry`() {
+        lateinit var employee: EmployeeDO
+        lateinit var manager: EmployeeDO
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("delete-normal")
+            manager = createEmployee("delete-manager")
+        }
+        logon(TEST_HR_USER)
+        val approved = createVacation(employee, manager, manager, VacationStatus.APPROVED, future = false)
+        vacationDao.insert(approved)
+        logon(employee.user!!)
+        val posted = vacationDao.find(approved.id)!!
+        posted.status = VacationStatus.IN_PROGRESS // As if it weren't approved.
+        Assertions.assertFalse(vacationDao.hasDeleteAccess(employee.user!!, posted, approved, false))
+        suppressErrorLogs {
+            assertThrows<AccessException> { vacationDao.markAsDeleted(posted) }
+        }
+        logon(TEST_HR_USER)
+        vacationDao.find(approved.id)!!.let {
+            Assertions.assertFalse(it.deleted)
+            Assertions.assertEquals(VacationStatus.APPROVED, it.status)
+        }
+
+        // Deleted by HR, the posted changes aren't stored on the way:
+        val posted2 = vacationDao.find(approved.id)!!
+        posted2.status = VacationStatus.REJECTED
+        posted2.comment = "changed on delete"
+        vacationDao.markAsDeleted(posted2)
+        vacationDao.find(approved.id)!!.let {
+            Assertions.assertTrue(it.deleted)
+            Assertions.assertEquals(VacationStatus.APPROVED, it.status)
+            Assertions.assertNull(it.comment)
+        }
+    }
+
+    @Test
+    fun `undeleting validates the entry`() {
+        lateinit var employee: EmployeeDO
+        lateinit var manager: EmployeeDO
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("undelete-normal")
+            manager = createEmployee("undelete-manager")
+        }
+        logon(TEST_HR_USER)
+        val first = createVacation(employee, manager, manager, VacationStatus.IN_PROGRESS)
+        vacationDao.insert(first)
+        vacationDao.markAsDeleted(first)
+        // The days of the deleted entry are taken by another one:
+        vacationDao.insert(createVacation(employee, manager, manager, VacationStatus.IN_PROGRESS))
+        suppressErrorLogs {
+            val ex = assertThrows<UserException> { vacationDao.undelete(vacationDao.find(first.id)!!) }
+            Assertions.assertEquals(VacationValidator.Error.COLLISION.messageKey, ex.message)
+        }
+        Assertions.assertTrue(vacationDao.find(first.id)!!.deleted)
+    }
+
+    @Test
+    fun `special leave collides too`() {
+        lateinit var employee: EmployeeDO
+        lateinit var manager: EmployeeDO
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("special-normal")
+            manager = createEmployee("special-manager")
+        }
+        logon(TEST_HR_USER)
+        val special = createVacation(employee, manager, manager, VacationStatus.APPROVED)
+        special.special = true
+        vacationDao.insert(special)
+        suppressErrorLogs {
+            val ex = assertThrows<UserException> {
+                vacationDao.insert(createVacation(employee, manager, manager, VacationStatus.IN_PROGRESS))
+            }
+            Assertions.assertEquals(VacationValidator.Error.COLLISION.messageKey, ex.message)
+        }
     }
 
     private fun checkAccess(

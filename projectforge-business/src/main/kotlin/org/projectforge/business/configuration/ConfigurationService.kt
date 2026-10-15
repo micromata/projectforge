@@ -408,8 +408,9 @@ open class ConfigurationService {
     }
 
   /**
-   * Maximum number of past days the nightly job books approved vacation as time sheets for (at most
-   * [MAX_VACATION_AUTO_BOOKING_DAYS]), 0 if disabled (not configured).
+   * Number of past days the first run of the nightly job books approved vacation as time sheets for (at most
+   * [MAX_VACATION_AUTO_BOOKING_DAYS]; later runs catch up from the last successful one on, see
+   * [org.projectforge.business.timesheet.VacationTimesheetAutoBookingJob]), 0 if disabled (not configured).
    */
   open val vacationAutoBookingDays: Int
     get() {
@@ -554,7 +555,7 @@ open class ConfigurationService {
   }
 
   companion object {
-    /** Upper bound of [vacationAutoBookingDays]: the job books a week back at most. */
+    /** Upper bound of [vacationAutoBookingDays]: the first run of the job books a week back at most. */
     const val MAX_VACATION_AUTO_BOOKING_DAYS = 7L
 
     @Transient

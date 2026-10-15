@@ -75,6 +75,12 @@ class ProjectForge2FAInitializationTest {
         ?.contains("/rs/user/logoutAllDevicesOfUser") == true,
       "logoutAllDevicesOfUser has to be registered for ADMIN_WRITE.",
     )
+    // ... nor renewing their tokens:
+    Assertions.assertTrue(
+      my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN_WRITE)
+        ?.contains("/rs/user/resetToken") == true,
+      "resetToken has to be registered for ADMIN_WRITE.",
+    )
 
     Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_TEXT}"))
     Assertions.assertEquals(0L, my2FARequestHandler.getRemainingPeriod("/rs/user/notautosearch"), "New 2FA requested for /rs/user*.")

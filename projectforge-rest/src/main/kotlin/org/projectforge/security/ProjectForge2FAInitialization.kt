@@ -75,7 +75,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
-      UserPagesRest::class.java,
+      UserEntityRest::class.java,
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       AdminErrorsRest::class.java,
@@ -175,8 +175,13 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       MyAccountRest::class.java,
       // My2FASetupPageRest::class.java, // Check done by this page itself.
     )
-    // Logging other users out of all their devices is an admin operation on foreign accounts:
-    registerShortCutMethods(My2FAShortCut.ADMIN_WRITE, UserServicesRest::logoutAllDevicesOfUser)
+    // Logging other users out of all their devices and renewing their tokens are admin operations on foreign
+    // accounts:
+    registerShortCutMethods(
+      My2FAShortCut.ADMIN_WRITE,
+      UserServicesRest::logoutAllDevicesOfUser,
+      UserEntityRest::resetToken,
+    )
     registerShortCutClasses(
       My2FAShortCut.PASSWORD,
       ChangePasswordPageRest::class.java,

@@ -2,24 +2,12 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.6",
-    "date" : "2026-10-14",
+    "version" : "9.0.7",
+    "date" : "2026-10-15",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
-      "type" : "added",
-      "items" : [ {
-        "title" : "Zeitberichte ohne Kost2",
-        "items" : [ "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen.", "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben.", "Neuer Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (standardmäßig aus, nur bei freigeschalteter Kostenrechnung sichtbar): Hinweis beim Speichern und Benachrichtigungsregel greifen nur, wenn er aktiviert ist. Buchen ohne Kost2 bleibt möglich.", "Konfiguration: Die Liste lässt sich nach Bereich filtern (Pillen wie Finanzen oder Zeitberichte)." ]
-      } ]
-    }, {
-      "type" : "improved",
-      "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite.", "System-Dashboard: Stummgeschaltete Probleme lassen sich mit einem eigenen Statusfilter anzeigen, ein Klick auf die Anzahl stummgeschalteter, ignorierter oder erledigter Probleme einer Kennzahl oder Subsystem-Kachel listet genau diese, und ein Problem, das nach einer Statusänderung aus der Liste fällt, lässt sich über einen Hinweis wieder anzeigen.", "Benutzer:innen, alternative und frühere E-Mail-Adressen: Eine Adresse, die schon ein anderer User verwendet, wird abgelehnt, die Hauptadresse wird nicht doppelt gespeichert.", {
-        "title" : "Urlaubskonto: Tagesbalken",
-        "items" : [ "Die Urlaube im Urlaubskonto zeigen neben den Tagen ihren Zeitraum als Balken wie in der Urlaubsliste: Arbeitstage, Wochenenden und Feiertage sowie die Tage ohne anwesende Vertretung.", "Ein Urlaub über vier Wochen wird mit schmaleren Tagen in derselben Breite gezeichnet (bis zu 13 Wochen), statt nach vier Wochen abgeschnitten zu werden, auch in der Urlaubsliste." ]
-      }, "Team-Urlaubskalender: Die Urlaube der gewählten Mitarbeitenden und Gruppen werden jetzt auch direkt auf der Seite angezeigt, je Quartal oder Kalenderjahr und mit einstellbarer Tagesbreite (bis zum ganzen Zeitraum in Fensterbreite); der Excel-Export beginnt mit dem angezeigten Zeitraum. Auswahlen von Mitarbeitenden und Gruppen lassen sich als Favoriten speichern. Benutzer ohne HR- oder Finanzrechte wählen nur aus ihren eigenen Gruppen und sehen keine Vorjahre mehr. Urlaube, die vor einem Blatt des Excel-Exports beginnen, erscheinen jetzt auch darauf." ]
-    }, {
       "type" : "changed",
-      "items" : [ "Kalender: Liste und Formular der Teamkalender sind in die neue Oberfläche migriert. Ein gespeicherter Kalender zeigt seinen Abonnement-Link mit einem Schalter für die Erinnerungen, die Liste bietet im Export-Menü das Abonnement von Zeitberichten, Kalenderwochen und Feiertagen an.", "Urlaubsliste: Benutzer ohne HR- oder Finanzrechte sehen ihre eigenen Urlaube, die von ihnen zu genehmigenden oder zu vertretenden sowie die Urlaube ihrer Vertretungen, die sich mit den eigenen überschneiden, nicht mehr alle aktuellen Urlaube ihrer Gruppenkollegen." ]
+      "items" : [ "Adressbücher: Liste und Formular der Adressbücher sind in die neue Oberfläche migriert. Die Liste zeigt die Benutzer:innen und Gruppen mit Voll- und Lesezugriff in eigenen Spalten.", "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren." ]
     } ]
   },
   "groups" : [ {
@@ -74,6 +62,34 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-7",
+      "version" : "9.0.7",
+      "date" : "2026-10-14",
+      "title" : "ProjectForge 9.0.7 veröffentlicht",
+      "tag" : "9.0.7-RELEASE",
+      "published" : false,
+      "summary" : [ "**Benutzer** und **Teamkalender** in der neuen Oberfläche", "**Team-Urlaubskalender** auf der Seite, druckbar", "Hinweis und Benachrichtigung für Zeitberichte ohne Kost2", "Fix: zusammen mit Gruppen geänderte Rechte werden korrekt gespeichert", "Fix: strengere Zugriffsprüfungen bei Urlauben" ],
+      "overview" : [ "**Benutzer:** Liste und Formular in die neue Oberfläche umgezogen; die Rechte passen sich sofort an die zugeordneten Gruppen an, Tokens werden im Formular erneuert und Geräte abgemeldet, Passwörter in einem Dialog geändert; alternative E-Mail-Adressen anderer User werden abgelehnt.", "**Teamkalender:** Liste und Formular in die neue Oberfläche umgezogen, mit dem Abonnement-Link im Formular und den Abonnements von Zeitberichten, Kalenderwochen und Feiertagen im Export-Menü.", "**Team-Urlaubskalender:** Die Urlaube der gewählten Mitarbeitenden und Gruppen je Quartal oder Jahr mit einstellbarer Tagesbreite, in Seitenbreite druckbar, Auswahlen als Favoriten; Benutzer ohne HR- oder Finanzrechte wählen nur aus ihren eigenen Gruppen.", "**Urlaub:** Tagesbalken im Urlaubskonto, lange Urlaube in den Balken eingepasst; die Urlaubsliste von Benutzern ohne HR- oder Finanzrechte zeigt nur die für sie relevanten Urlaube.", "**Zeitberichte ohne Kost2:** optionaler Hinweis beim Speichern und tägliche Benachrichtigungsregel, eingeschaltet über einen neuen Konfigurationsparameter; die Konfigurationsliste lässt sich nach Bereich filtern.", "**System-Dashboard:** Stummgeschaltete, ignorierte und erledigte Probleme lassen sich über die Anzahlen der Kennzahlen und Subsystem-Kacheln anzeigen.", "**Fixes:** zusammen mit Gruppen geänderte Rechte, strengere Zugriffsprüfungen, Übertrag und Mails bei Urlauben, Excel-Export und automatische Buchung von Urlauben, Deckungsbeitrag für Kontakte von Aufträgen, Breite des Bearbeitungsdialogs im Kalender." ],
+      "sections" : [ {
+        "type" : "added",
+        "items" : [ {
+          "title" : "Zeitberichte ohne Kost2",
+          "items" : [ "Ein ohne Kost2 gespeicherter Zeitbericht (dem Strukturelement ist noch keine zugeordnet) zeigt einen Hinweis: Er fehlt im Lohn-Export, das Projektmanagement oder die Buchhaltung muss eine Kost2 zuordnen.", "Benachrichtigungen: neuer Regeltyp für Zeitberichte ohne Kost2 in den letzten Monaten. Täglich ausgeführt, kommt eine als erledigt markierte Benachrichtigung am nächsten Tag wieder und verschwindet von selbst, sobald alle diese Zeitberichte eine Kost2 haben.", "Neuer Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (standardmäßig aus, nur bei freigeschalteter Kostenrechnung sichtbar): Hinweis beim Speichern und Benachrichtigungsregel greifen nur, wenn er aktiviert ist. Buchen ohne Kost2 bleibt möglich.", "Konfiguration: Die Liste lässt sich nach Bereich filtern (Pillen wie Finanzen oder Zeitberichte)." ]
+        } ]
+      }, {
+        "type" : "improved",
+        "items" : [ "Kalender: Der Bearbeitungsdialog für Zeitberichte und Termine erstreckt sich auf großen Bildschirmen nicht mehr über die gesamte Breite.", "System-Dashboard: Stummgeschaltete Probleme lassen sich mit einem eigenen Statusfilter anzeigen, ein Klick auf die Anzahl stummgeschalteter, ignorierter oder erledigter Probleme einer Kennzahl oder Subsystem-Kachel listet genau diese, und ein Problem, das nach einer Statusänderung aus der Liste fällt, lässt sich über einen Hinweis wieder anzeigen.", "Benutzer:innen, alternative und frühere E-Mail-Adressen: Eine Adresse, die schon ein anderer User verwendet, wird abgelehnt, die Hauptadresse wird nicht doppelt gespeichert.", {
+          "title" : "Urlaubskonto: Tagesbalken",
+          "items" : [ "Die Urlaube im Urlaubskonto zeigen neben den Tagen ihren Zeitraum als Balken wie in der Urlaubsliste: Arbeitstage, Wochenenden und Feiertage sowie die Tage ohne anwesende Vertretung.", "Ein Urlaub über vier Wochen wird mit schmaleren Tagen in derselben Breite gezeichnet (bis zu 13 Wochen), statt nach vier Wochen abgeschnitten zu werden, auch in der Urlaubsliste." ]
+        }, "Team-Urlaubskalender: Die Urlaube der gewählten Mitarbeitenden und Gruppen werden jetzt auch direkt auf der Seite angezeigt, je Quartal oder Kalenderjahr und mit einstellbarer Tagesbreite (bis zum ganzen Zeitraum in Fensterbreite); der Excel-Export beginnt mit dem angezeigten Zeitraum, und der Kalender lässt sich in Seitenbreite drucken (oder als PDF speichern). Auswahlen von Mitarbeitenden und Gruppen lassen sich als Favoriten speichern. Benutzer ohne HR- oder Finanzrechte wählen nur aus ihren eigenen Gruppen und sehen keine Vorjahre mehr. Urlaube, die vor einem Blatt des Excel-Exports beginnen, erscheinen jetzt auch darauf." ]
+      }, {
+        "type" : "changed",
+        "items" : [ "Kalender: Liste und Formular der Teamkalender sind in die neue Oberfläche migriert. Ein gespeicherter Kalender zeigt seinen Abonnement-Link mit einem Schalter für die Erinnerungen, die Liste bietet im Export-Menü das Abonnement von Zeitberichten, Kalenderwochen und Feiertagen an.", "Benutzer: Liste und Formular der Benutzerverwaltung sind in die neue Oberfläche migriert. Die angebotenen Rechte passen sich sofort an die zugeordneten Gruppen an, Tokens lassen sich direkt im Formular erneuern und Geräte abmelden; Passwörter werden in einem Dialog geändert, hier wie auf der eigenen Kontoseite.", "Urlaubsliste: Benutzer ohne HR- oder Finanzrechte sehen ihre eigenen Urlaube, die von ihnen zu genehmigenden oder zu vertretenden sowie die Urlaube ihrer Vertretungen, die sich mit den eigenen überschneiden, nicht mehr alle aktuellen Urlaube ihrer Gruppenkollegen." ]
+      }, {
+        "type" : "fixed",
+        "items" : [ "Deckungsbeitrag: Ansprechpartner und weitere Kontakte eines Auftrags sehen den Deckungsbeitrag seines Projekts, wie im Auftragsbuch. Die Zugriffsprüfung von Aufträgen lädt deren Positionen und Zahlungspläne nicht mehr einzeln nach, z. B. für die Forecast-Grafik und den Deckungsbeitrag.", "Benutzer: Rechte, die zusammen mit den Gruppen geändert werden, werden jetzt korrekt gespeichert. Ein beim Gruppeneintritt gesetztes Recht ging verloren, und das Recht einer verlassenen Gruppe blieb gesetzt.", "Urlaub: strengere Zugriffsprüfungen (bei laufenden oder vergangenen Einträgen lässt sich kein anderer Manager mehr eintragen, Löschen und Wiederherstellen richten sich nach dem gespeicherten Eintrag und Wiederherstellen wird wieder geprüft, Urlaube von Vertretungen zählen immer als Konflikt, nur mit Zeitraum und Status, wo sie sonst nicht lesbar sind, Urlaubskontokorrekturen erfordern Schreibrecht); der Resturlaub des Vorjahres wird bei Urlauben über das Ende der Übertragsfrist richtig angerechnet und nach späteren Änderungen neu berechnet; Sonderurlaub zählt bei der Kollisionsprüfung mit; abgelehnte Urlaube erscheinen nicht mehr in Kalendern und Abos; der Kommentar geht nicht mehr per Mail an Vertretungen, entfernte Manager und Vertretungen werden benachrichtigt. Excel-Export: Wochenenden und Feiertage im Urlaub, Halbtage und halbe Arbeitstage werden richtig dargestellt, genehmigte Urlaube haben Vorrang vor solchen in Abstimmung. Automatische Urlaubsbuchung der Zeitberichte: nicht mehr vom Urlaub abgedeckte Tage werden entfernt, eine nicht buchbare Urlaubsaufgabe lässt den Lauf fehlschlagen statt Tage zu überspringen, der nächste erfolgreiche Lauf holt alle seither verpassten Tage nach, gebucht wird nach der Zeitzone des Benutzers. Das Urlaubskonto lädt schneller. Team-Urlaubskalender: für Screenreader lesbar, die gespeicherte Auswahl wird nicht mehr durch einen veralteten Seitenstand überschrieben." ]
+      } ]
+    }, {
       "id" : "9-0-6",
       "version" : "9.0.6",
       "date" : "2026-10-14",

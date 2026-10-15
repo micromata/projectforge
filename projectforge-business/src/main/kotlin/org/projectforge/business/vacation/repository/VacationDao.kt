@@ -35,6 +35,7 @@ import org.projectforge.business.vacation.VacationFilter
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
+import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationSendMailService
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationValidator
@@ -77,9 +78,14 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     @Autowired
     private lateinit var vacationSendMailService: VacationSendMailService
 
+    @Autowired
+    private lateinit var remainingLeaveDao: RemainingLeaveDao
+
     private lateinit var vacationService: VacationService
 
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+    private lateinit var vacationMenuCounterCache: VacationMenuCounterCache
 
     init {
         supportAfterUpdate = true
@@ -89,6 +95,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     private fun postConstruct() {
         vacationService = applicationContext.getBean(VacationService::class.java)
         conflictingVacationsCache = applicationContext.getBean(ConflictingVacationsCache::class.java)
+        vacationMenuCounterCache = applicationContext.getBean(VacationMenuCounterCache::class.java)
     }
 
     override val additionalSearchFields: Array<String>
@@ -148,21 +155,29 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (hasHrRights(user)) {
             return true // HR staff member are allowed to do everything.
         }
-        if (!isOwnEntry(user, obj) && !isManager(user, obj)) {
+        // On update, the role of the user is the one in the stored entry, not in the posted one: otherwise anybody
+        // could make himself the manager of an entry and approve it then.
+        val stored = dbObj ?: obj
+        if (!isOwnEntry(user, stored) && !isManager(user, stored)) {
             return throwOrReturnFalse(throwException)
         }
-        obj.startDate?.let { startDate ->
-            if (startDate.isBefore(LocalDate.now())) {
-                if (dbObj != null &&
-                    isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
-                    getAllowedStatus(user, dbObj).contains(obj.status)
-                ) {
-                    // Past entries may be modified on non-time period values, but on allowed status changes as well as on description.
-                    return true
-                }
-                // User aren't allowed to insert/update old entries.
-                return throwOrReturnFalse(throwException)
+        val managerChanged = dbObj != null && obj.manager?.id != dbObj.manager?.id
+        if (managerChanged && !isOwnEntry(user, stored)) {
+            // Only the employee chooses the manager.
+            return throwOrReturnFalse(throwException)
+        }
+        val today = LocalDate.now()
+        if (obj.startDate?.isBefore(today) == true || dbObj?.startDate?.isBefore(today) == true) {
+            if (dbObj != null &&
+                isTimePeriodAndEmployeeUnchanged(obj, dbObj) &&
+                !managerChanged && // Otherwise the employee may choose a manager approving the past entry.
+                getAllowedStatus(user, dbObj).contains(obj.status)
+            ) {
+                // Past entries may be modified on non-time period values, but on allowed status changes as well as on description.
+                return true
             }
+            // User aren't allowed to insert/update old entries.
+            return throwOrReturnFalse(throwException)
         }
         obj.status?.let {
             if (!getAllowedStatus(user, obj).contains(it)) {
@@ -278,7 +293,9 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         if (!isOwnEntry(user, obj, dbObj)) {
             return throwOrReturnFalse(throwException) // Normal user isn't allowed to insert foreign entries.
         }
-        return if (obj.status == VacationStatus.APPROVED && obj.startDate!!.isBefore(LocalDate.now())) {
+        // Decided on the stored entry: a client could post another status (see also resetToDbState).
+        val stored = dbObj ?: obj
+        return if (stored.status == VacationStatus.APPROVED && stored.startDate?.isBefore(LocalDate.now()) == true) {
             // The user isn't allowed to delete approved entries of the past.
             throwOrReturnFalse(throwException)
         } else true
@@ -372,26 +389,76 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         vacationService.validate(obj, dbObj, true)
     }
 
+    override fun onDelete(obj: VacationDO) {
+        resetToDbState(obj)
+    }
+
+    /**
+     * An undeleted entry is validated like a new one: meanwhile its days may be used by another entry.
+     */
+    override fun onUndelete(obj: VacationDO) {
+        resetToDbState(obj)
+        obj.deleted = false // The validator skips deleted entries.
+        vacationService.validate(obj, null, true)
+    }
+
+    /**
+     * Deleting and undeleting only flip the deleted flag of the stored entry: BaseDOPersistenceService would copy all
+     * posted values (status, period, ...) into it. The stored values replace the posted ones, so the access check
+     * decides on them (an approved entry of the past posted as in progress could be deleted otherwise) and nothing
+     * else changes on the way.
+     */
+    private fun resetToDbState(obj: VacationDO) {
+        // Attached: the transaction's own instance, the one BaseDOPersistenceService loads afterwards.
+        val dbObj = persistenceService.find(VacationDO::class.java, obj.id, attached = true) ?: return
+        if (dbObj === obj) {
+            return
+        }
+        obj.employee = dbObj.employee
+        obj.startDate = dbObj.startDate
+        obj.endDate = dbObj.endDate
+        obj.halfDayBegin = dbObj.halfDayBegin
+        obj.halfDayEnd = dbObj.halfDayEnd
+        obj.special = dbObj.special
+        obj.status = dbObj.status
+        obj.manager = dbObj.manager
+        obj.replacement = dbObj.replacement
+        obj.otherReplacements = dbObj.otherReplacements?.toMutableSet()
+        obj.comment = dbObj.comment
+    }
+
     // Every write expires the conflict cache: a vacation changes not only its own conflict, but also those of the
     // entries its employee substitutes for.
     override fun afterInsert(obj: VacationDO) {
-        conflictingVacationsCache.setExpired()
+        afterChange(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
     override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?, isModified: Boolean) {
-        conflictingVacationsCache.setExpired()
+        afterChange(obj, dbObj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj)
     }
 
     override fun afterDelete(obj: VacationDO) {
-        conflictingVacationsCache.setExpired()
+        afterChange(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE)
     }
 
     override fun afterUndelete(obj: VacationDO) {
-        conflictingVacationsCache.setExpired()
+        afterChange(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE)
+    }
+
+    /**
+     * Expires what depends on the vacations: the conflicts, the open applications of the managers (menu badge) and
+     * the stored carry into the current year, if a vacation of the previous year changed.
+     */
+    private fun afterChange(vararg vacations: VacationDO?) {
+        conflictingVacationsCache.setExpired()
+        vacationMenuCounterCache.setExpired()
+        vacations.filterNotNull().forEach {
+            remainingLeaveDao.invalidateCarry(it.employee?.id, it.startDate, it.endDate)
+        }
     }
 
 

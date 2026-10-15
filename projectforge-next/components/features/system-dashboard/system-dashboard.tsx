@@ -23,7 +23,7 @@ import { useProblemDashboard } from "./use-problem-dashboard";
 
 const ADMIN_TABS = [
   "overview",
-  "problems",
+  "incidents",
   "scheduler",
   "caches",
   "logs",
@@ -36,9 +36,9 @@ const USER_TABS = ["statistics"];
 /**
  * The system dashboard (`/next/systemDashboard`). For the admin group the problems the log aggregation counted -
  * every collected error and warning, grouped -, their trends and status: the overview tab shows the key figures and
- * the state of the active subsystems, a key figure or a subsystem's tile shows its problems in the problems tab. A
- * problem's detail explains it and changes its status (acknowledge, resolve, ignore, mute), which also decides what
- * the error digest reports. The digest links each problem as `?id=<id>`, which opens its detail. The statistics tab
+ * the state of the active subsystems, a key figure or a subsystem's tile shows its problems in the problems tab
+ * (`?tab=incidents`). A problem's detail explains it and changes its status (acknowledge, resolve, ignore, mute),
+ * which also decides what the error digest reports. The digest links each problem as `?id=<id>`, which opens its detail. The statistics tab
  * (`?tab=statistics`, the only one for other users) shows the system statistics, the scheduler tab
  * (`?tab=scheduler`) the scheduled jobs with their runs, the caches tab (`?tab=caches`) the caches with their
  * refreshes, the log viewer tab (`?tab=logs`, see [logViewerTab]) the log events in memory and in the log files.
@@ -57,7 +57,7 @@ export function SystemDashboard({
   const problems = useProblemDashboard();
   // Tab, subsystem and scope are kept in the url, so that the back button returns to the previous view. The tab a
   // link opened stays when its id is dropped.
-  const [linkedTab] = useState(problems.linkedId ? "problems" : "overview");
+  const [linkedTab] = useState(problems.linkedId ? "incidents" : "overview");
   const allowed = isLoading ? undefined : isAdmin ? ADMIN_TABS : USER_TABS;
   const [tab, setTab] = useTabParam(
     isLoading || isAdmin ? linkedTab : "statistics",
@@ -117,7 +117,7 @@ export function SystemDashboard({
               <TabsTrigger value="overview">
                 {t("system.admin.adminErrors.tab.overview")}
               </TabsTrigger>
-              <TabsTrigger value="problems">
+              <TabsTrigger value="incidents">
                 {t("system.admin.adminErrors.tab.problems")}
               </TabsTrigger>
               <TabsTrigger value="scheduler">

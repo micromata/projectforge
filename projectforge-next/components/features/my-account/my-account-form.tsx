@@ -6,9 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { EditPageShell } from "@/components/shared/edit-page-shell";
 import type { EditPageTab } from "@/components/shared/edit-page-tabs";
 import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
-import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import { InputField } from "@/components/shared/form/input-field";
+import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
 import { SelectField } from "@/components/shared/form/select-field";
 import { StringSuggestField } from "@/components/shared/form/string-suggest-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
@@ -288,41 +288,6 @@ function AccountSection({
         {data.groups}
       </ReadOnlyValue>
     </div>
-  );
-}
-
-/**
- * A value the user sees but doesn't edit here, with the label (and ⓘ) of the editable fields beside it, so
- * the card reads as one form (see FieldShell).
- */
-function ReadOnlyValue({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: ReactNode;
-}) {
-  const ids = useFieldIds();
-  return (
-    <FieldShell
-      label={label}
-      hint={hint}
-      readOnly
-      invalid={false}
-      errors={[]}
-      ids={ids}
-      className="min-w-0"
-    >
-      <p
-        id={ids.controlId}
-        aria-labelledby={ids.labelId}
-        className="min-h-7 py-1 text-sm break-words"
-      >
-        {children || "–"}
-      </p>
-    </FieldShell>
   );
 }
 

@@ -23,6 +23,9 @@
 
 package org.projectforge.business.vacation.service
 
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -94,6 +97,91 @@ class VacationExcelExporterTest {
       // The Q3 sheet doesn't contain it.
       Assertions.assertNotEquals("X", workbook.getSheet("Q3 2023").getRow(3).getCell(1)?.stringCellValue)
     }
+  }
+
+  /**
+   * Only working days of a vacation are painted (weekends and holidays inside keep their colour), 24.12. (a working
+   * day by default) isn't coloured as holiday, a half day end is lighter and marked by ½, and an approved vacation
+   * wins over an overlapping one in progress, whatever the order of the list.
+   */
+  @Test
+  fun cellStylesTest() {
+    val user = PFUserDO()
+    user.locale = Locale.ENGLISH
+    ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
+    runCatching { ConfigXml.getInstance() }.onFailure { ConfigXml.internalSetInstance("<config><holidays></holidays></config>") }
+    val employee = EmployeeDO().also {
+      it.user = PFUserDO().also { u ->
+        u.firstname = "Berta"
+        u.lastname = "Smith"
+      }
+    }
+    val approved = VacationDO().also {
+      it.employee = employee
+      it.startDate = LocalDate.of(2024, Month.DECEMBER, 20) // Friday
+      it.endDate = LocalDate.of(2024, Month.DECEMBER, 27) // Friday
+      it.halfDayEnd = true
+      it.status = VacationStatus.APPROVED
+    }
+    val inProgress = VacationDO().also {
+      it.employee = employee
+      it.startDate = LocalDate.of(2024, Month.DECEMBER, 23)
+      it.endDate = LocalDate.of(2024, Month.DECEMBER, 23)
+      it.status = VacationStatus.IN_PROGRESS
+    }
+    val excel = VacationExcelExporter.export(
+      LocalDate.of(2024, Month.OCTOBER, 1),
+      listOf(VacationService.VacationsByEmployee(employee, listOf(approved, inProgress))),
+    )
+    XSSFWorkbook(excel.inputStream()).use { workbook ->
+      val sheet = workbook.getSheet("Q4 2024")
+      val columns = dayColumns(sheet.getRow(1), LocalDate.of(2024, Month.OCTOBER, 1))
+      val employeeRow = sheet.getRow(3)
+      fun fill(day: Int) = employeeRow.getCell(columns.getValue(LocalDate.of(2024, Month.DECEMBER, day)))
+        .cellStyle.fillForegroundColor
+      fun text(day: Int) = employeeRow.getCell(columns.getValue(LocalDate.of(2024, Month.DECEMBER, day)))
+        .stringCellValue
+      Assertions.assertEquals(IndexedColors.GREEN.index, fill(20))
+      Assertions.assertEquals(IndexedColors.TAN.index, fill(21), "Saturday inside the vacation")
+      Assertions.assertEquals(IndexedColors.TAN.index, fill(22), "Sunday inside the vacation")
+      Assertions.assertEquals(IndexedColors.GREEN.index, fill(23), "approved wins over in progress")
+      Assertions.assertTrue(
+        fill(24) == IndexedColors.GREEN.index || fill(24) == IndexedColors.LIGHT_GREEN.index,
+        "24.12. is a (half) working day, so a vacation day",
+      )
+      Assertions.assertNotEquals(
+        IndexedColors.TAN.index,
+        sheet.getRow(1).getCell(columns.getValue(LocalDate.of(2024, Month.DECEMBER, 24))).cellStyle.fillForegroundColor,
+        "24.12. isn't coloured as holiday in the header",
+      )
+      Assertions.assertEquals(IndexedColors.TAN.index, fill(25), "holiday inside the vacation")
+      Assertions.assertEquals(IndexedColors.LIGHT_GREEN.index, fill(27), "half day end")
+      Assertions.assertEquals(VacationExcelExporter.HALF_DAY_MARKER, text(27))
+      Assertions.assertEquals("", text(20))
+    }
+    // The order of the list doesn't matter.
+    val start = PFDay.withDate(2024, Month.DECEMBER, 1)
+    val end = PFDay.withDate(2024, Month.DECEMBER, 31)
+    listOf(listOf(approved, inProgress), listOf(inProgress, approved)).forEach { vacations ->
+      val cells = VacationExcelExporter.vacationCells(vacations, start, end)
+      Assertions.assertEquals(VacationExcelExporter.VacationCell(approved = true, half = false), cells[LocalDate.of(2024, Month.DECEMBER, 23)])
+      Assertions.assertNull(cells[LocalDate.of(2024, Month.DECEMBER, 21)])
+      Assertions.assertEquals(VacationExcelExporter.VacationCell(approved = true, half = true), cells[LocalDate.of(2024, Month.DECEMBER, 27)])
+    }
+  }
+
+  /** The column of each day, read from the date row (day numbers, interrupted by the month separator columns). */
+  private fun dayColumns(dateRow: Row, firstDay: LocalDate): Map<LocalDate, Int> {
+    val map = mutableMapOf<LocalDate, Int>()
+    var day = firstDay
+    for (col in 0..dateRow.lastCellNum) {
+      val value = dateRow.getCell(col)?.takeIf { it.cellType == CellType.STRING }?.stringCellValue
+      if (value == "${day.dayOfMonth}") {
+        map[day] = col
+        day = day.plusDays(1)
+      }
+    }
+    return map
   }
 
   @AfterEach

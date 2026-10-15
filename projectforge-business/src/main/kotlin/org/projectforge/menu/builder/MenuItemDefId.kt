@@ -47,7 +47,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
     // Migrated to projectforge-next; wa/accountingRecordList is redirected by OrphanedLinkFilter.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
-    ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
+    ADDRESSBOOK_LIST("menu.addressbookList", getListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
@@ -127,7 +127,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // category's list (next/task, NextMigration.listUrl): the entity has two perspectives in projectforge-next.
     TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
-    USER_LIST("menu.userList", getReactListUrl("user")), //
+    USER_LIST("menu.userList", getListUrl("user")), //
     VACATION("menu.vacation", getListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", "next/vacationAccount"), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
