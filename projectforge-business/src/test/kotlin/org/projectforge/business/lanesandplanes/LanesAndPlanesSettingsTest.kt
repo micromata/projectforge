@@ -102,16 +102,12 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 " 50123401 Project - Travel costs ", "", "5012340 Too short", "501234011 Too long",
                 "50123401 Duplicate", "10050100", "x".repeat(103),
             ),
-            existingUserEmails = listOf(" Known@Example.org", "", "no email"),
-            confirmedEmailChanges = listOf(" New@Example.org", "", "no email"),
         )
         Assertions.assertEquals(
             mapOf("50123401" to "50123401 Project - Travel costs", "10050100" to "10050100"),
             settings.existingNamesByNumber,
             "The first name of a number wins.",
         )
-        Assertions.assertEquals(setOf("new@example.org", "no email"), settings.confirmedEmails)
-        Assertions.assertEquals(setOf("known@example.org", "no email"), settings.existingEmails)
         Assertions.assertEquals(
             listOf(
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:2:5012340 Too short",
@@ -119,10 +115,50 @@ class LanesAndPlanesSettingsTest : AbstractTestBase() {
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectDuplicate:4:50123401",
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectNumber:6:${"x".repeat(103)}",
                 "existingCostObjects:lanesAndPlanes.config.error.existingCostObjectLength:6:${"x".repeat(103)}",
-                "existingUserEmails:lanesAndPlanes.config.error.existingUserEmail:2:no email",
-                "confirmedEmailChanges:lanesAndPlanes.config.error.confirmedEmail:2:no email",
             ),
             settings.validate({ null }, { null }).map(::format).filter { !it.startsWith("accountingInvoiceProfileIds") },
+        )
+    }
+
+    @Test
+    fun userEmails() {
+        val parsed = LanesAndPlanesSettings.parse(
+            """{"existingUserEmails":["old@example.org"],"confirmedEmailChanges":["new@example.org"],""" +
+                    """"userEmails":[{"userId":1,"email":" lp@example.org "},{"userId":null,"email":""},{"userId":2}]}"""
+        )
+        Assertions.assertEquals(
+            mapOf(1L to "lp@example.org"), parsed.emailsByUserId,
+            "Removed settings are ignored, empty and incomplete rows skipped.",
+        )
+        val settings = LanesAndPlanesSettings(
+            accountingInvoiceProfileIds = listOf(1L),
+            additionalUsers = listOf(LanesAndPlanesSettings.AdditionalUser("ext@example.org", "Ext", "Accountant")),
+            userEmails = listOf(
+                LanesAndPlanesSettings.UserEmail(1, "a@example.org"),
+                LanesAndPlanesSettings.UserEmail(),
+                LanesAndPlanesSettings.UserEmail(null, "b@example.org"),
+                LanesAndPlanesSettings.UserEmail(1, "c@example.org"),
+                LanesAndPlanesSettings.UserEmail(2, "no email"),
+                LanesAndPlanesSettings.UserEmail(3, "Guest@Lanes-Planes.com"),
+                LanesAndPlanesSettings.UserEmail(4, "EXT@example.org"),
+                LanesAndPlanesSettings.UserEmail(5, "A@Example.org"),
+            ),
+        )
+        Assertions.assertEquals(
+            listOf(
+                "userEmails:lanesAndPlanes.config.error.userEmailUser:2:null",
+                "userEmails:lanesAndPlanes.config.error.userEmailUserDuplicate:3:null",
+                "userEmails:lanesAndPlanes.config.error.userEmailEmail:4:no email",
+                "userEmails:lanesAndPlanes.config.error.userEmailLanesAndPlanes:5:Guest@Lanes-Planes.com",
+                "userEmails:lanesAndPlanes.config.error.userEmailAdditionalUser:6:EXT@example.org",
+                "userEmails:lanesAndPlanes.config.error.userEmailDuplicate:7:A@Example.org",
+            ),
+            settings.validate({ null }, { null }).map(::format),
+        )
+        Assertions.assertEquals(
+            mapOf(1L to "a@example.org", 2L to "no email", 3L to "Guest@Lanes-Planes.com", 4L to "EXT@example.org", 5L to "A@Example.org"),
+            settings.emailsByUserId,
+            "The first entry of a user wins.",
         )
     }
 

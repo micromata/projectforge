@@ -24,15 +24,20 @@
 
 package org.projectforge.business.lanesandplanes
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationJsonValidators
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 /**
  * The settings of the Lanes & Planes push (configuration parameter `lanesAndPlanes`). Always available (unlike
@@ -40,6 +45,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 open class LanesAndPlanesSettingsService {
+    @Autowired
+    private lateinit var configurationDao: ConfigurationDao
+
     @Autowired
     private lateinit var kostCache: KostCache
 
@@ -53,6 +61,37 @@ open class LanesAndPlanesSettingsService {
     /** Read on every push: changes are sent by the next run. */
     open fun settings(): LanesAndPlanesSettings {
         return LanesAndPlanesSettings.parse(Configuration.instance.getStringValue(ConfigurationParam.LANES_AND_PLANES))
+    }
+
+    /**
+     * Adds the given emails (by user id) to [LanesAndPlanesSettings.userEmails], after a successful push: from now
+     * on these users are sent with this email, even if it changes in ProjectForge. Users already having an entry
+     * are left untouched, so a change in the editor meanwhile isn't overwritten. Nothing is written, if there is
+     * nothing new.
+     */
+    open fun addUserEmails(newEmails: Map<Long, String>) {
+        if (newEmails.isEmpty()) {
+            return
+        }
+        synchronized(this) {
+            val entry = configurationDao.getEntry(ConfigurationParam.LANES_AND_PLANES) ?: run {
+                configurationDao.checkAndUpdateDatabaseEntries()
+                configurationDao.getEntry(ConfigurationParam.LANES_AND_PLANES)
+            } ?: throw IllegalStateException("Configuration parameter ${ConfigurationParam.LANES_AND_PLANES.key} missing.")
+            val settings = LanesAndPlanesSettings.parse(entry.stringValue)
+            val known = settings.userEmails.mapNotNull { it.userId }.toSet()
+            val added = newEmails.filterKeys { it !in known }.map { (userId, email) ->
+                LanesAndPlanesSettings.UserEmail(userId, email)
+            }
+            if (added.isEmpty()) {
+                return
+            }
+            settings.userEmails = settings.userEmails.filter { !it.isEmpty } + added.sortedBy { it.userId }
+            entry.stringValue = JsonUtils.toJson(settings)
+            configurationDao.update(entry, checkAccess = false)
+            log.info { "Lanes & Planes: ${added.size} emails of pushed users stored in the configuration (users #${added.joinToString(", #") { "${it.userId}" }})." }
+        }
+        Configuration.instance.forceReload()
     }
 
     /** The translated errors of the given settings, each prefixed by the label of its field. */

@@ -54,13 +54,16 @@ private val log = KotlinLogging.logger {}
 @Service
 open class LanesAndPlanesPayloadBuilder {
     /**
-     * @param otherEmailsByIdent The alternative and former emails of the sent employees by ident (alternative
-     * ones first), see [LanesAndPlanesEmailHolds.apply].
+     * @param newUserEmails The emails of the sent employees without an entry in [LanesAndPlanesSettings.userEmails]
+     * by user id: stored there after a successful push, so they are kept, if the email changes in ProjectForge.
+     * @param differingEmails The number of employees sent with an email of the settings differing from the one
+     * in ProjectForge.
      */
     class Result(
         val request: LanesAndPlanesUsersRequest,
         val skippedUsers: Int,
-        val otherEmailsByIdent: Map<String, List<String>> = emptyMap(),
+        val newUserEmails: Map<Long, String> = emptyMap(),
+        val differingEmails: Int = 0,
     )
 
     @Autowired
@@ -87,21 +90,27 @@ open class LanesAndPlanesPayloadBuilder {
     open fun build(settings: LanesAndPlanesSettings): Result {
         var skipped = 0
         val emails = mutableSetOf<String>()
-        val employees = employeeService.selectAllActive(checkAccess = false).mapNotNull { employee ->
-            val user = employee.user?.takeIf { !it.deactivated && !it.deleted } ?: return@mapNotNull null
-            val email = user.email?.trim()?.takeIf { it.isNotEmpty() }
-            if (email == null || user.firstname.isNullOrBlank() || user.lastname.isNullOrBlank()) {
-                log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: first name, last name or email missing." }
-                skipped++
-                return@mapNotNull null
+        val emailsByUserId = settings.emailsByUserId
+        // Employees with an email of the settings first: that's the one L&P knows, so it isn't taken by another
+        // employee who happens to have it in ProjectForge.
+        val employees = employeeService.selectAllActive(checkAccess = false)
+            .sortedBy { it.user?.id !in emailsByUserId }
+            .mapNotNull { employee ->
+                val user = employee.user?.takeIf { !it.deactivated && !it.deleted } ?: return@mapNotNull null
+                // The email known to L&P wins: L&P identifies users by their email only.
+                val email = emailsByUserId[user.id] ?: user.email?.trim()?.takeIf { it.isNotEmpty() }
+                if (email == null || user.firstname.isNullOrBlank() || user.lastname.isNullOrBlank()) {
+                    log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: first name, last name or email missing." }
+                    skipped++
+                    return@mapNotNull null
+                }
+                if (!emails.add(email.lowercase())) {
+                    log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: email '$email' is used by another employee." }
+                    skipped++
+                    return@mapNotNull null
+                }
+                Triple(employee, user, email)
             }
-            if (!emails.add(email.lowercase())) {
-                log.warn { "Employee #${employee.id} (user '${user.username}') not sent to Lanes & Planes: email '$email' is used by another employee." }
-                skipped++
-                return@mapNotNull null
-            }
-            Triple(employee, user, email)
-        }
         val generalKost1 = getGeneralKost1(settings.generalKost1Numbers)
         val generalKost2 = getGeneralKost2(settings.generalKost2Numbers)
         val kost2ByUser = getBookableKost2(employees.map { it.second }, settings.kost2Regexes)
@@ -123,13 +132,16 @@ open class LanesAndPlanesPayloadBuilder {
             }
             createAdditionalUser(additional, email, settings)
         }
-        val otherEmailsByIdent = employees.associate { (_, user, _) ->
-            "${user.id}" to PFUserDO.splitEmails(user.alternativeEmails) + PFUserDO.splitEmails(user.formerEmails)
-        }.filterValues { it.isNotEmpty() }
+        val newUserEmails = employees.filter { (_, user, _) -> user.id !in emailsByUserId }
+            .associate { (_, user, email) -> user.id!! to email }
+        val differingEmails = employees.count { (_, user, email) ->
+            user.id in emailsByUserId && !email.equals(user.email?.trim(), ignoreCase = true)
+        }
         return Result(
             LanesAndPlanesUsersRequest((users + additionalUsers).sortedBy { it.email.lowercase() }),
             skipped,
-            otherEmailsByIdent,
+            newUserEmails,
+            differingEmails,
         )
     }
 

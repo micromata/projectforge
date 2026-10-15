@@ -26,6 +26,7 @@ package org.projectforge.business.lanesandplanes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
@@ -45,6 +46,9 @@ import java.util.zip.GZIPInputStream
 class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
     @Autowired
     private lateinit var payloadBuilder: LanesAndPlanesPayloadBuilder
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
 
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
@@ -157,6 +161,33 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
     }
 
     @Test
+    fun userEmails() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val mapped = addEmployee("lpMapped", "new.name@example.org")
+            val unmapped = addEmployee("lpUnmapped", "unmapped@example.org")
+            val collision = addEmployee("lpCollision", "lp.name@example.org")
+            val settings = LanesAndPlanesSettings(
+                accountingInvoiceProfileIds = listOf(1L),
+                userEmails = listOf(LanesAndPlanesSettings.UserEmail(mapped.id, "LP.Name@example.org")),
+            )
+            val result = payloadBuilder.build(settings)
+            val emailsByIdent = result.request.users.associate { it.ident to it.email }
+            Assertions.assertEquals("LP.Name@example.org", emailsByIdent["${mapped.id}"], "The email known to L&P wins.")
+            Assertions.assertEquals("unmapped@example.org", emailsByIdent["${unmapped.id}"])
+            Assertions.assertFalse(
+                emailsByIdent.containsKey("${collision.id}"),
+                "The email of the user is sent for another one (case-insensitive): skipped.",
+            )
+            Assertions.assertEquals("unmapped@example.org", result.newUserEmails[unmapped.id])
+            Assertions.assertFalse(result.newUserEmails.containsKey(mapped.id), "Already in the settings.")
+            Assertions.assertFalse(result.newUserEmails.containsKey(collision.id), "Not sent.")
+            Assertions.assertEquals(1, result.differingEmails)
+            null
+        }
+    }
+
+    @Test
     fun json() {
         val user = LanesAndPlanesUser(
             ident = "42",
@@ -182,6 +213,18 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
         )
         val unzipped = GZIPInputStream(LanesAndPlanesSyncService.gzip(json).inputStream()).readBytes().toString(Charsets.UTF_8)
         Assertions.assertEquals(json, unzipped)
+    }
+
+    private fun addEmployee(username: String, email: String): PFUserDO {
+        val user = PFUserDO().also {
+            it.username = username
+            it.firstname = "First"
+            it.lastname = username
+            it.email = email
+        }
+        initTestDB.addUser(user)
+        employeeDao.insert(EmployeeDO().also { it.user = user }, checkAccess = false)
+        return user
     }
 
     private fun kost1(nummernkreis: Int, bereich: Int, teilbereich: Int, description: String?) = Kost1DO().also {
