@@ -2621,6 +2621,7 @@
     "action": {
       "preview": "Preview",
       "testToMe": "Send test to me",
+      "testToMeInfo": "Sends the rule to yourself only, at once through all channels of its delivery (e-mail too), regardless of their delays.",
       "trigger": "Trigger now",
       "triggerConfirm": "Run the rule now for all recipients? Recipients already notified for the same period are not notified again."
     },
@@ -2709,6 +2710,14 @@
         "passwordMaxAgeDays": "The number of days must be at least 1."
       },
       "lastRun": "Last run",
+      "legend": {
+        "inactive": "Inactive (or deleted)"
+      },
+      "link": "\"Open\" button",
+      "linkMode": {
+        "DEFAULT": "Default of the trigger",
+        "NONE": "No button"
+      },
       "list": "Notification rules",
       "manualDone": "The recipient may mark it as done",
       "menuBadge": "Counter in the menu",
@@ -2724,6 +2733,9 @@
         "message": "Message"
       },
       "title": "Notification rules",
+      "trigger": {
+        "inactive": "The rule is inactive: activate and save it first."
+      },
       "warning": {
         "warnMissingKost2Off": "The configuration parameter \"Report time sheets without Kost2?\" is disabled (or cost-unit accounting is): this rule notifies nobody until it is enabled."
       }
@@ -2772,7 +2784,7 @@
     },
     "subject": "Subject",
     "subsystemDetail": "{arg0} active rule(s), {arg1} pending notification(s), {arg2} due delivery step(s)",
-    "testDelivered": "Test sent: {arg0}",
+    "testDelivered": "Test sent at once (regardless of the delays): {arg0}",
     "testFailed": "Not sent: {arg0}",
     "testMissingText": "Subject and text are required for a test.",
     "text": "Text",

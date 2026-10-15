@@ -2621,6 +2621,7 @@
     "action": {
       "preview": "Vorschau",
       "testToMe": "Test an mich",
+      "testToMeInfo": "Sendet die Regel nur an mich, sofort über alle Kanäle der Zustellung (auch per E-Mail), unabhängig von deren Verzögerungen.",
       "trigger": "Jetzt auslösen",
       "triggerConfirm": "Regel jetzt für alle Empfänger auslösen? Für denselben Zeitraum bereits Benachrichtigte werden nicht erneut benachrichtigt."
     },
@@ -2709,6 +2710,14 @@
         "passwordMaxAgeDays": "Die Anzahl der Tage muss mindestens 1 sein."
       },
       "lastRun": "Letzter Lauf",
+      "legend": {
+        "inactive": "Inaktiv (oder gelöscht)"
+      },
+      "link": "Button „Öffnen“",
+      "linkMode": {
+        "DEFAULT": "Standard des Auslösers",
+        "NONE": "Kein Button"
+      },
       "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
       "menuBadge": "Zähler im Menü",
@@ -2724,6 +2733,9 @@
         "message": "Nachricht"
       },
       "title": "Benachrichtigungsregeln",
+      "trigger": {
+        "inactive": "Die Regel ist inaktiv: zuerst aktivieren und speichern."
+      },
       "warning": {
         "warnMissingKost2Off": "Der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ (oder die Kostenrechnung) ist nicht aktiviert: Diese Regel benachrichtigt niemanden, bis er aktiviert ist."
       }
@@ -2772,7 +2784,7 @@
     },
     "subject": "Betreff",
     "subsystemDetail": "{arg0} aktive Regel(n), {arg1} offene Benachrichtigung(en), {arg2} fällige Zustellung(en)",
-    "testDelivered": "Test gesendet: {arg0}",
+    "testDelivered": "Test sofort gesendet (unabhängig von den Verzögerungen): {arg0}",
     "testFailed": "Nicht gesendet: {arg0}",
     "testMissingText": "Für einen Test werden Betreff und Text benötigt.",
     "text": "Text",
