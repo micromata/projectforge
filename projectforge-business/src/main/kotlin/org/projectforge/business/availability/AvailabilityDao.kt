@@ -23,8 +23,6 @@
 
 package org.projectforge.business.availability
 
-import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -34,7 +32,6 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -43,12 +40,6 @@ import java.time.LocalDate
  */
 @Service
 open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java) {
-    @Autowired
-    private lateinit var employeeDao: EmployeeDao
-
-    @Autowired
-    private lateinit var caches: PfCaches
-
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
@@ -68,7 +59,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
             return true
         }
         // Allow select access if users are in the same group.
-        if (obj.employee != null && accessChecker.areUsersInSameGroup(user, obj.employee!!.user)) {
+        if (obj.user != null && accessChecker.areUsersInSameGroup(user, obj.user)) {
             return true
         }
         return throwOrReturnFalse(throwException)
@@ -130,7 +121,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
 
     /**
      * Checks the period of the given entry: start and end date must be set, the end date mustn't be before the start
-     * date and no other entry of the same employee may overlap it.
+     * date and no other entry of the same user may overlap it.
      * @return The i18n key of the error or null, if the entry is valid.
      */
     open fun validate(obj: AvailabilityDO, throwException: Boolean = false): String? {
@@ -139,7 +130,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         val error = when {
             startDate == null || endDate == null -> ERROR_DATE_NOT_SET
             endDate.isBefore(startDate) -> ERROR_END_DATE_BEFORE_START_DATE
-            !obj.deleted && getOverlappingEntries(obj.employee?.id, startDate, endDate).any { it.id != obj.id } ->
+            !obj.deleted && getOverlappingEntries(obj.user?.id, startDate, endDate).any { it.id != obj.id } ->
                 ERROR_COLLISION
 
             else -> null
@@ -151,14 +142,14 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     /**
-     * The (not deleted) entries of the given employee overlapping the given period.
+     * The (not deleted) entries of the given user overlapping the given period.
      */
-    open fun getOverlappingEntries(employeeId: Long?, startDate: LocalDate, endDate: LocalDate): List<AvailabilityDO> {
-        employeeId ?: return emptyList()
+    open fun getOverlappingEntries(userId: Long?, startDate: LocalDate, endDate: LocalDate): List<AvailabilityDO> {
+        userId ?: return emptyList()
         return persistenceService.executeQuery(
-            "SELECT a FROM AvailabilityDO a WHERE a.employee.id = :employeeId AND a.endDate >= :startDate AND a.startDate <= :endDate AND a.deleted = false",
+            "SELECT a FROM AvailabilityDO a WHERE a.user.id = :userId AND a.endDate >= :startDate AND a.startDate <= :endDate AND a.deleted = false",
             AvailabilityDO::class.java,
-            Pair("employeeId", employeeId),
+            Pair("userId", userId),
             Pair("startDate", startDate),
             Pair("endDate", endDate),
         )
@@ -177,7 +168,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     /**
-     * The internal comment is personal data: it's only visible to the employee and to HR staff. Callers that serve
+     * The internal comment is personal data: it's only visible to the user and to HR staff. Callers that serve
      * entries from the shared [AvailabilityCache] must apply this check per logged-in user, because the cached comment
      * is intentionally kept raw (see [afterLoad]).
      */
@@ -190,8 +181,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     private fun isOwnEntry(user: PFUserDO, obj: AvailabilityDO): Boolean {
-        val employee = caches.getEmployeeIfNotInitialized(obj.employee) ?: return false
-        return employee.user?.id == user.id
+        return obj.user?.id != null && obj.user?.id == user.id
     }
 
     private fun throwOrReturnFalse(throwException: Boolean): Boolean {
@@ -206,10 +196,10 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
         const val ERROR_COLLISION = "availability.validate.collision"
 
-        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("employee.user.firstname", "employee.user.lastname")
+        private val ADDITIONAL_SEARCH_FIELDS = arrayOf("user.firstname", "user.lastname", "user.username")
         private val DEFAULT_SORT_PROPERTIES = arrayOf(
-            SortProperty("employee.user.firstname"),
-            SortProperty("employee.user.lastname"),
+            SortProperty("user.firstname"),
+            SortProperty("user.lastname"),
             SortProperty("startDate", SortOrder.DESCENDING)
         )
     }

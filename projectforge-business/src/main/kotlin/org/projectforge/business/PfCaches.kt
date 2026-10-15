@@ -166,12 +166,12 @@ class PfCaches {
     }
 
     /**
-     * Fills the employee of the given availability.
+     * Fills the user of the given availability.
      * @param availability The availability to fill.
      * @return The filled availability for chaining.
      */
     fun initialize(availability: AvailabilityDO): AvailabilityDO {
-        availability.employee = getEmployeeIfNotInitialized(availability.employee)
+        availability.user = getUserIfNotInitialized(availability.user)
         return availability
     }
 

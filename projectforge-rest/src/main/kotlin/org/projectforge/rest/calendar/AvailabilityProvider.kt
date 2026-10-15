@@ -25,7 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDao
-import org.projectforge.business.fibu.EmployeeCache
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
@@ -34,12 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * Provides the availability entries of employees for the calendar view. You may filter by ProjectForge groups.
+ * Provides the availability entries of users (employees and freelancers) for the calendar view. You may filter by ProjectForge groups.
  */
 @Component
 open class AvailabilityProvider {
     @Autowired
-    private lateinit var employeeCache: EmployeeCache
+    private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
     private lateinit var availabilityCache: AvailabilityCache
@@ -65,9 +65,9 @@ open class AvailabilityProvider {
         val availabilities =
             availabilityCache.getAvailabilityForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         availabilities.forEach { availability ->
-            val employeeUser = employeeCache.getUser(availability.employee)
+            val user = userGroupCache.getUser(availability.user?.id)
             val typeLabel = availability.type ?: translate("availability.title")
-            val title = "$typeLabel: ${employeeUser?.getFullname()}"
+            val title = "$typeLabel: ${user?.getFullname()}"
             if (!events.any {
                     it.title == title && FullCalendarEvent.samePeriod(it, availability.startDate, availability.endDate)
                 }) {
@@ -96,7 +96,7 @@ open class AvailabilityProvider {
                     tb.addPropRow(translate("availability.comment"), availability.comment, abbreviate = true)
                 }
                 // The cached internal comment is kept raw (AvailabilityDao.afterLoad), so apply the per-user privacy
-                // check here: it's personal data, only visible to the employee and to HR staff.
+                // check here: it's personal data, only visible to the user and to HR staff.
                 if (!availability.internalComment.isNullOrBlank() &&
                     availabilityDao.isInternalCommentVisibleFor(ThreadLocalUserContext.requiredLoggedInUser, availability)
                 ) {

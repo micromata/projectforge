@@ -17,6 +17,7 @@ export const HAND_BUILT_CATEGORIES = [
   "account",
   "accountingRecord",
   "addressCampaign",
+  "availability",
   "book",
   "calendar",
   "configuration",

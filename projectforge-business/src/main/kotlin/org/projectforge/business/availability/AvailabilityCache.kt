@@ -25,7 +25,6 @@ package org.projectforge.business.availability
 
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -42,9 +41,6 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<AvailabilityDO> {
-    @Autowired
-    private lateinit var employeeCache: EmployeeCache
-
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
@@ -83,15 +79,15 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
             if (!availabilityDao.hasSelectAccess(availability, ThreadLocalUserContext.requiredLoggedInUser)) {
                 continue
             }
-            val employeeUser = employeeCache.getUser(availability.employee) ?: continue
+            val userId = availability.user?.id ?: continue
             var match = groupIds?.any { gid ->
                 userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
-                    user.id == employeeUser.id
+                    user.id == userId
                 } ?: false
             } ?: false
             if (!match) {
                 match = userIds?.any { uid ->
-                    uid == employeeUser.id
+                    uid == userId
                 } ?: false
             }
             if (match) {
@@ -102,21 +98,21 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     /**
-     * The entries of the given employees overlapping the period, only those the logged-in user may see. The internal
+     * The entries of the given users overlapping the period, only those the logged-in user may see. The internal
      * comment is kept raw (see [AvailabilityDao.isInternalCommentVisibleFor]).
      */
-    open fun getAvailabilityForPeriodAndEmployees(
+    open fun getAvailabilityForPeriodAndUserIds(
         startDate: LocalDate, endDate: LocalDate,
-        employeeIds: Collection<Long>,
+        userIds: Collection<Long>,
     ): List<AvailabilityDO> {
-        if (employeeIds.isEmpty()) {
+        if (userIds.isEmpty()) {
             return emptyList()
         }
         checkRefresh()
-        val ids = employeeIds.toSet()
+        val ids = userIds.toSet()
         val user = ThreadLocalUserContext.requiredLoggedInUser
         return availabilities.filter { availability ->
-            availability.employee?.id in ids &&
+            availability.user?.id in ids &&
                     availability.endDate?.isBefore(startDate) == false &&
                     availability.startDate?.isAfter(endDate) == false &&
                     availabilityDao.hasSelectAccess(availability, user)

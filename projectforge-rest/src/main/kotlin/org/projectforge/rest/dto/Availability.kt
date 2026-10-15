@@ -30,7 +30,7 @@ import org.projectforge.framework.i18n.translate
 import java.time.LocalDate
 
 class Availability(
-    var employee: Employee? = null,
+    var user: User? = null,
     var startDate: LocalDate? = null,
     var endDate: LocalDate? = null,
     var type: String? = null,
@@ -40,6 +40,12 @@ class Availability(
     var locationAsString: String? = null,
     var comment: String? = null,
     var internalComment: String? = null,
+    /** Whether the logged-in user may choose the user (HR staff only). Read-only, edit view only. */
+    var userEditable: Boolean? = null,
+    /** Whether the internal comment is offered (to the user and HR staff only). Read-only, edit view only. */
+    var internalCommentVisible: Boolean? = null,
+    /** The configured types (and the stored one). Read-only, edit view only. */
+    var availableTypes: List<String>? = null,
 ) : BaseDTO<AvailabilityDO>() {
 
     override fun copyFrom(src: AvailabilityDO) {

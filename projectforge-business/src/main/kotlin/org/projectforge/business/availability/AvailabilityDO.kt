@@ -30,24 +30,25 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 
 /**
- * Represents an availability entry for an employee. An availability entry defines the time period
- * and the type of availability (e.g., parental leave, sick leave, workation).
+ * Represents an availability entry of a user. An availability entry defines the time period and the type of
+ * availability (e.g., parental leave, sick leave, workation). Of a user, not of an employee: freelancers without an
+ * employee record enter their availability, too.
  */
 @Entity
 @Indexed
 @Table(
-    name = "t_employee_availability",
+    name = "t_user_availability",
     indexes = [jakarta.persistence.Index(
-        name = "idx_fk_t_employee_availability_employee_id",
-        columnList = "employee_id"
+        name = "idx_fk_t_user_availability_user_id",
+        columnList = "user_id"
     )]
 )
 @NamedQueries(
@@ -59,13 +60,13 @@ import java.time.LocalDate
 @AUserRightId(value = "EMPLOYEE_AVAILABILITY", checkAccess = false)
 open class AvailabilityDO : DefaultBaseDO() {
 
-    @PropertyInfo(i18nKey = "availability.employee")
-    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @PropertyInfo(i18nKey = "availability.user")
+    @IndexedEmbedded(includeDepth = 1, includePaths = ["firstname", "lastname", "username"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "employee_id", nullable = false)
+    @get:JoinColumn(name = "user_id", nullable = false)
     @JsonSerialize(using = IdOnlySerializer::class)
-    open var employee: EmployeeDO? = null
+    open var user: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "availability.startDate")
     @get:Column(name = "start_date", nullable = false)
@@ -99,7 +100,7 @@ open class AvailabilityDO : DefaultBaseDO() {
     open var comment: String? = null
 
     /**
-     * Personal data: only visible to the employee and to HR staff, see [AvailabilityDao.isInternalCommentVisibleFor].
+     * Personal data: only visible to the user and to HR staff, see [AvailabilityDao.isInternalCommentVisibleFor].
      * Not indexed, so the full text search doesn't reveal it to others.
      */
     @PropertyInfo(i18nKey = "availability.internalComment", tooltip = "availability.internalComment.tooltip")

@@ -138,7 +138,7 @@ class VacationExportRestTest : AbstractTestBase() {
         val year = LocalDate.now().year + 2
         logon(TEST_HR_USER)
         availabilityDao.insert(AvailabilityDO().also {
-            it.employee = colleague
+            it.user = colleague.user
             it.startDate = LocalDate.of(year, 3, 25)
             it.endDate = LocalDate.of(year, 4, 10)
             it.type = "Workation"

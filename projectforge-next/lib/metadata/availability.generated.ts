@@ -25,11 +25,6 @@ export const AVAILABILITY_METADATA = {
       i18nKey: "deleted",
       required: false,
     },
-    employee: {
-      dataType: "EMPLOYEE",
-      i18nKey: "availability.employee",
-      required: false,
-    },
     endDate: {
       dataType: "DATE",
       i18nKey: "availability.endDate",
@@ -100,6 +95,11 @@ export const AVAILABILITY_METADATA = {
       i18nKey: "availability.type",
       required: false,
       maxLength: 100,
+    },
+    user: {
+      dataType: "USER",
+      i18nKey: "availability.user",
+      required: false,
     },
   },
 } as const satisfies EntityMetadata;

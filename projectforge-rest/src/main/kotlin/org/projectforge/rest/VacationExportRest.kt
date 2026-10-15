@@ -283,9 +283,14 @@ class VacationExportRest {
         if (request.showAvailabilities != true || employees.isEmpty()) {
             return emptyMap()
         }
-        return availabilityCache.getAvailabilityForPeriodAndEmployees(from, until, employees.mapNotNull { it.id })
+        // The entries are of users: keyed by the employee of the user here, as the rows of the calendar are.
+        val employeeIdByUserId = employees.mapNotNull { employee ->
+            val userId = employeeCache.getUser(employee)?.id ?: return@mapNotNull null
+            employee.id?.let { userId to it }
+        }.toMap()
+        return availabilityCache.getAvailabilityForPeriodAndUserIds(from, until, employeeIdByUserId.keys)
             .sortedBy { it.startDate }
-            .groupBy { it.employee!!.id!! }
+            .groupBy { employeeIdByUserId.getValue(it.user!!.id!!) }
     }
 
     /** The chosen employees and the members of the chosen groups: active ones the user may pick, each once. */

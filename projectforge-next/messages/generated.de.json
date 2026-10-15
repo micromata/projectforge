@@ -379,7 +379,6 @@
       "_": "Kommentar",
       "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
     },
-    "employee": "Mitarbeiter:in",
     "endDate": "Enddatum",
     "internalComment": {
       "_": "Interner Kommentar",
@@ -405,7 +404,8 @@
       "heading": "Verfügbarkeit",
       "list": "Verfügbarkeitsliste"
     },
-    "type": "Typ"
+    "type": "Typ",
+    "user": "Person"
   },
   "back": "Zurück",
   "book": {

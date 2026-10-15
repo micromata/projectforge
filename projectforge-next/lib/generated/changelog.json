@@ -9,7 +9,7 @@
       "type" : "added",
       "items" : [ {
         "title" : "Availability",
-        "items" : [ "New entries for periods of reduced availability (e.g. parental leave, workation) with type, reachability, location, a comment for the team and an internal comment only visible to the employee and HR staff. Overlapping entries of the same employee are rejected.", "Calendar: the availability entries of chosen groups and users can be shown, as the vacations.", "Team vacation calendar: optionally with the availability entries of the chosen employees, on screen and in the Excel export." ]
+        "items" : [ "New entries for periods of reduced availability (e.g. parental leave, workation) of any user, freelancers included, with type, reachability, location, a comment for the team and an internal comment only visible to the person concerned and HR staff. Overlapping entries of the same person are rejected.", "Calendar: the availability entries of chosen groups and users can be shown, as the vacations.", "Team vacation calendar: optionally with the availability entries of the chosen employees, on screen and in the Excel export." ]
       } ]
     }, {
       "type" : "changed",

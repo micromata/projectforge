@@ -379,11 +379,10 @@
       "_": "Comment",
       "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
     },
-    "employee": "Employee",
     "endDate": "End date",
     "internalComment": {
       "_": "Internal comment",
-      "tooltip": "Only visible to the employee and to HR staff."
+      "tooltip": "Only visible to the person concerned and to HR staff."
     },
     "location": {
       "_": "Location",
@@ -405,7 +404,8 @@
       "heading": "Availability",
       "list": "Availability list"
     },
-    "type": "Type"
+    "type": "Type",
+    "user": "Person"
   },
   "back": "Back",
   "book": {
