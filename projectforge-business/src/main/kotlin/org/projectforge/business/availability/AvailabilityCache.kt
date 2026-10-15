@@ -30,7 +30,6 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -45,9 +44,6 @@ private val log = KotlinLogging.logger {}
 open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<AvailabilityDO> {
     @Autowired
     private lateinit var employeeCache: EmployeeCache
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -105,18 +101,49 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         return result
     }
 
+    /**
+     * The entries of the given employees overlapping the period, only those the logged-in user may see. The internal
+     * comment is kept raw (see [AvailabilityDao.isInternalCommentVisibleFor]).
+     */
+    open fun getAvailabilityForPeriodAndEmployees(
+        startDate: LocalDate, endDate: LocalDate,
+        employeeIds: Collection<Long>,
+    ): List<AvailabilityDO> {
+        if (employeeIds.isEmpty()) {
+            return emptyList()
+        }
+        checkRefresh()
+        val ids = employeeIds.toSet()
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        return availabilities.filter { availability ->
+            availability.employee?.id in ids &&
+                    availability.endDate?.isBefore(startDate) == false &&
+                    availability.startDate?.isAfter(endDate) == false &&
+                    availabilityDao.hasSelectAccess(availability, user)
+        }
+    }
+
     override fun afterInsertOrModify(obj: AvailabilityDO, operationType: OperationType) {
         synchronized(availabilityMap) {
-            availabilityMap[obj.id] = obj
+            if (obj.deleted) {
+                availabilityMap.remove(obj.id)
+            } else {
+                availabilityMap[obj.id] = obj
+            }
             availabilities = availabilityMap.values.toList()
         }
     }
 
     override fun refresh() {
         log.info("Refreshing AvailabilityCache ...")
-        persistenceService.runIsolatedReadOnly {
+        // runReadOnlyForCacheMaintenance, not runIsolatedReadOnly: a refresh triggered from within a write transaction
+        // (e.g. a cache getter called mid-insert) mustn't open a second connection.
+        runReadOnlyForCacheMaintenance {
             val map = mutableMapOf<Long?, AvailabilityDO>()
-            availabilityDao.selectAll(checkAccess = false).forEach {
+            // Read without a logged-in user: the first fill runs on the thread of whoever asks first, and
+            // AvailabilityDao.afterLoad would hide the internal comments that user may not see - for everybody, as the
+            // cache is shared. The consumers check the internal comment per user (AvailabilityProvider).
+            withoutLoggedInUser { availabilityDao.selectAll(checkAccess = false) }.forEach {
                 if (!it.deleted) {
                     map[it.id] = it
                 }
@@ -125,5 +152,15 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
             availabilities = availabilityMap.values.toList()
         }
         log.info("Refreshing of AvailabilityCache done.")
+    }
+
+    private fun <T> withoutLoggedInUser(block: () -> T): T {
+        val userContext = ThreadLocalUserContext.userContext ?: return block()
+        ThreadLocalUserContext.clear()
+        try {
+            return block()
+        } finally {
+            ThreadLocalUserContext.userContext = userContext
+        }
     }
 }

@@ -6,6 +6,12 @@
     "date" : "2026-10-15",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ {
+        "title" : "Verfügbarkeit",
+        "items" : [ "Neue Einträge für Zeiträume eingeschränkter Verfügbarkeit (z. B. Elternzeit, Workation) mit Typ, Erreichbarkeit, Ort, einem Kommentar fürs Team und einem internen Kommentar, den nur die betroffene Person und HR sehen. Überlappende Einträge derselben Person werden abgelehnt.", "Kalender: Die Verfügbarkeitseinträge gewählter Gruppen und Personen können wie die Urlaube eingeblendet werden.", "Team-Urlaubskalender: auf Wunsch mit den Verfügbarkeitseinträgen der gewählten Personen, auf dem Bildschirm und im Excel-Export." ]
+      } ]
+    }, {
       "type" : "changed",
       "items" : [ "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren.", {
         "title" : "Benachrichtigungsregeln",

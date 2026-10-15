@@ -22,12 +22,26 @@ export interface ChartBar {
   endDate: string;
 }
 
+/** An availability entry on the team calendar: the columns it covers and what its tooltip says. */
+export interface AvailabilityBar {
+  key: string;
+  first: number;
+  last: number;
+  /** Type and status, e.g. "Workation (Reachable if needed)". */
+  label: string;
+  comment: string | null;
+  startDate: string;
+  endDate: string;
+}
+
 export interface ChartRow {
   key: string;
   name: string;
   /** The vacation being edited, the first row. */
   own: boolean;
   bars: ChartBar[];
+  /** Only on the team calendar, if asked for. */
+  availabilities?: AvailabilityBar[];
 }
 
 /** What the form holds for the vacation being edited. */
@@ -179,6 +193,16 @@ export function barLabel(
   return status ? `${period} (${status})` : period;
 }
 
+/** What an availability bar says to a screen reader and in its tooltip: whose, what, when and the comment. */
+export function availabilityLabel(
+  name: string,
+  bar: Pick<AvailabilityBar, "label" | "comment" | "startDate" | "endDate">,
+  formatDate: (iso: string) => string
+): string {
+  const text = `${name}: ${bar.label}, ${formatDate(bar.startDate)} – ${formatDate(bar.endDate)}`;
+  return bar.comment ? `${text} (${bar.comment})` : text;
+}
+
 /** The rows of the team calendar: every employee, also those without a vacation in the period. */
 export function teamChartRows(view: VacationExportView): ChartRow[] {
   return view.rows.map((row) => ({
@@ -196,5 +220,27 @@ export function teamChartRows(view: VacationExportView): ChartRow[] {
         })
       )
       .filter((bar): bar is ChartBar => bar != null),
+    availabilities: (row.availabilities ?? []).flatMap((a, i) => {
+      const bar = barOf(`${row.employee.id}-a${a.id ?? i}`, view.days, {
+        startDate: a.startDate ?? null,
+        endDate: a.endDate ?? null,
+        halfDayBegin: false,
+        halfDayEnd: false,
+        status: null,
+      });
+      return bar
+        ? [
+            {
+              key: bar.key,
+              first: bar.first,
+              last: bar.last,
+              label: a.label,
+              comment: a.comment ?? null,
+              startDate: bar.startDate,
+              endDate: bar.endDate,
+            },
+          ]
+        : [];
+    }),
   }));
 }

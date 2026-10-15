@@ -87,6 +87,8 @@ export interface CalendarFilter {
   timesheetUserId?: number | null;
   vacationGroupIds?: number[] | null;
   vacationUserIds?: number[] | null;
+  availabilityGroupIds?: number[] | null;
+  availabilityUserIds?: number[] | null;
   showBreaks?: boolean | null;
   showPlanning?: boolean | null;
   calendarIds?: number[];
@@ -108,6 +110,8 @@ export interface CalendarInit {
   activeCalendars?: StyledTeamCalendar[] | null;
   vacationGroups?: GroupRef[] | null;
   vacationUsers?: UserRef[] | null;
+  availabilityGroups?: GroupRef[] | null;
+  availabilityUsers?: UserRef[] | null;
   listOfDefaultCalendars?: TeamCalendar[] | null;
   styleMap?: CalendarStyleMap | null;
   translations?: Record<string, string> | null;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  availabilityLabel,
   barLabel,
   buildVacationChart,
   monthSpans,
@@ -173,6 +174,66 @@ describe("teamChartRows", () => {
       last: 8,
       status: "IN_PROGRESS",
     });
+  });
+});
+
+describe("teamChartRows with availabilities", () => {
+  it("draws the availability entries of a row, cut off at the period's edges, none if not sent", () => {
+    const rows = teamChartRows({
+      days: days(10),
+      rows: [
+        {
+          employee: { id: 7, displayName: "Remote" },
+          vacations: [],
+          availabilities: [
+            {
+              id: 90,
+              startDate: "2030-01-20",
+              endDate: "2030-02-02",
+              label: "Workation (Reachable if needed)",
+              comment: "Lisbon",
+            },
+            {
+              id: 91,
+              startDate: "2030-03-01",
+              endDate: "2030-03-05",
+              label: "Parental leave",
+            },
+          ],
+        },
+        { employee: { id: 8, displayName: "On duty" }, vacations: [] },
+      ],
+    });
+    expect(rows[0].availabilities).toEqual([
+      {
+        key: "7-a90",
+        first: 0,
+        last: 1,
+        label: "Workation (Reachable if needed)",
+        comment: "Lisbon",
+        startDate: "2030-01-20",
+        endDate: "2030-02-02",
+      },
+    ]);
+    expect(rows[1].availabilities).toEqual([]);
+  });
+});
+
+describe("availabilityLabel", () => {
+  const formatDate = (iso: string) => iso.split("-").reverse().join(".");
+  const bar = {
+    label: "Parental leave",
+    startDate: "2030-02-04",
+    endDate: "2030-02-08",
+  };
+
+  it("names whose entry it is, what, when and the comment if any", () => {
+    expect(
+      availabilityLabel("Ann", { ...bar, comment: "Back in March" }, formatDate)
+    ).toBe("Ann: Parental leave, 04.02.2030 – 08.02.2030 (Back in March)");
+    expect(
+      availabilityLabel("Ann", { ...bar, comment: null }, formatDate)
+    ).toBe("Ann: Parental leave, 04.02.2030 – 08.02.2030");
   });
 });
 

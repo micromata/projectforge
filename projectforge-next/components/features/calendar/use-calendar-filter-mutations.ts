@@ -3,6 +3,8 @@
 import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  changeAvailabilityGroups,
+  changeAvailabilityUsers,
   changeCalendarStyle,
   changeDefaultCalendar,
   changeFirstHour,
@@ -108,6 +110,14 @@ export function useCalendarFilterMutations() {
       changeVacationUsers: (userIds: number[]) => {
         patchFilter({ vacationUserIds: userIds });
         return run(changeVacationUsers(userIds), { events: true });
+      },
+      changeAvailabilityGroups: (groupIds: number[]) => {
+        patchFilter({ availabilityGroupIds: groupIds });
+        return run(changeAvailabilityGroups(groupIds), { events: true });
+      },
+      changeAvailabilityUsers: (userIds: number[]) => {
+        patchFilter({ availabilityUserIds: userIds });
+        return run(changeAvailabilityUsers(userIds), { events: true });
       },
       setActiveCalendars,
       /** Re-reads external subscriptions and drops the whole calendar cache, in place of a page reload. */

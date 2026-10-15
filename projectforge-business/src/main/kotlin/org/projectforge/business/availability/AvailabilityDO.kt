@@ -90,10 +90,21 @@ open class AvailabilityDO : DefaultBaseDO() {
     @get:Column(name = "location", length = 30)
     open var location: AvailabilityLocation? = null
 
-    @PropertyInfo(i18nKey = "availability.description")
+    /**
+     * Visible to everybody who may see the entry (e.g. colleagues of the same group in the calendar).
+     */
+    @PropertyInfo(i18nKey = "availability.comment", tooltip = "availability.comment.tooltip")
     @FullTextField
-    @get:Column(name = "description", length = 4000)
-    open var description: String? = null
+    @get:Column(name = "comment", length = 4000)
+    open var comment: String? = null
+
+    /**
+     * Personal data: only visible to the employee and to HR staff, see [AvailabilityDao.isInternalCommentVisibleFor].
+     * Not indexed, so the full text search doesn't reveal it to others.
+     */
+    @PropertyInfo(i18nKey = "availability.internalComment", tooltip = "availability.internalComment.tooltip")
+    @get:Column(name = "internal_comment", length = 4000)
+    open var internalComment: String? = null
 
     companion object {
         internal const val FIND_CURRENT_AND_FUTURE = "AvailabilityDO_FindCurrentAndFuture"

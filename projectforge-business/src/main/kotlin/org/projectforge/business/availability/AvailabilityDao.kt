@@ -27,13 +27,16 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 /**
  * DAO for availability entries.
@@ -109,6 +112,79 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         } else throwOrReturnFalse(throwException)
     }
 
+    override fun onInsert(obj: AvailabilityDO) {
+        validate(obj, throwException = true)
+    }
+
+    override fun onUpdate(obj: AvailabilityDO, dbObj: AvailabilityDO) {
+        validate(obj, throwException = true)
+    }
+
+    /**
+     * An undeleted entry is validated like a new one: meanwhile its period may be used by another entry.
+     */
+    override fun onUndelete(obj: AvailabilityDO) {
+        obj.deleted = false // The validation skips deleted entries.
+        validate(obj, throwException = true)
+    }
+
+    /**
+     * Checks the period of the given entry: start and end date must be set, the end date mustn't be before the start
+     * date and no other entry of the same employee may overlap it.
+     * @return The i18n key of the error or null, if the entry is valid.
+     */
+    open fun validate(obj: AvailabilityDO, throwException: Boolean = false): String? {
+        val startDate = obj.startDate
+        val endDate = obj.endDate
+        val error = when {
+            startDate == null || endDate == null -> ERROR_DATE_NOT_SET
+            endDate.isBefore(startDate) -> ERROR_END_DATE_BEFORE_START_DATE
+            !obj.deleted && getOverlappingEntries(obj.employee?.id, startDate, endDate).any { it.id != obj.id } ->
+                ERROR_COLLISION
+
+            else -> null
+        }
+        if (error != null && throwException) {
+            throw UserException(error)
+        }
+        return error
+    }
+
+    /**
+     * The (not deleted) entries of the given employee overlapping the given period.
+     */
+    open fun getOverlappingEntries(employeeId: Long?, startDate: LocalDate, endDate: LocalDate): List<AvailabilityDO> {
+        employeeId ?: return emptyList()
+        return persistenceService.executeQuery(
+            "SELECT a FROM AvailabilityDO a WHERE a.employee.id = :employeeId AND a.endDate >= :startDate AND a.startDate <= :endDate AND a.deleted = false",
+            AvailabilityDO::class.java,
+            Pair("employeeId", employeeId),
+            Pair("startDate", startDate),
+            Pair("endDate", endDate),
+        )
+    }
+
+    override fun afterLoad(obj: AvailabilityDO) {
+        if (!obj.internalComment.isNullOrBlank()) {
+            // No logged-in user means this runs during background cache maintenance (AvailabilityCache.refresh), where
+            // no per-user privacy decision can be made. Keep the raw comment in the shared cache; consumers serving
+            // cached entries (calendar, vacation export) apply isInternalCommentVisibleFor per logged-in user.
+            val user = ThreadLocalUserContext.loggedInUser ?: return
+            if (!isInternalCommentVisibleFor(user, obj)) {
+                obj.internalComment = null
+            }
+        }
+    }
+
+    /**
+     * The internal comment is personal data: it's only visible to the employee and to HR staff. Callers that serve
+     * entries from the shared [AvailabilityCache] must apply this check per logged-in user, because the cached comment
+     * is intentionally kept raw (see [afterLoad]).
+     */
+    open fun isInternalCommentVisibleFor(user: PFUserDO, obj: AvailabilityDO): Boolean {
+        return hasHrRights(user) || isOwnEntry(user, obj)
+    }
+
     open fun hasHrRights(user: PFUserDO?): Boolean {
         return accessChecker.hasRight(user, UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
     }
@@ -126,6 +202,10 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     companion object {
+        const val ERROR_DATE_NOT_SET = "availability.validate.dateNotSet"
+        const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
+        const val ERROR_COLLISION = "availability.validate.collision"
+
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("employee.user.firstname", "employee.user.lastname")
         private val DEFAULT_SORT_PROPERTIES = arrayOf(
             SortProperty("employee.user.firstname"),

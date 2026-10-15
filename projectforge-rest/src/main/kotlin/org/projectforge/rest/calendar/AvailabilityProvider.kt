@@ -24,8 +24,10 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +43,9 @@ open class AvailabilityProvider {
 
     @Autowired
     private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     /**
      * @param groupIds Null items should only occur on (de)serialization issues.
@@ -87,8 +92,15 @@ open class AvailabilityProvider {
                 availability.location?.let {
                     tb.addPropRow(translate("availability.location"), translate(it.i18nKey))
                 }
-                if (!availability.description.isNullOrBlank()) {
-                    tb.addPropRow(translate("availability.description"), availability.description, abbreviate = true)
+                if (!availability.comment.isNullOrBlank()) {
+                    tb.addPropRow(translate("availability.comment"), availability.comment, abbreviate = true)
+                }
+                // The cached internal comment is kept raw (AvailabilityDao.afterLoad), so apply the per-user privacy
+                // check here: it's personal data, only visible to the employee and to HR staff.
+                if (!availability.internalComment.isNullOrBlank() &&
+                    availabilityDao.isInternalCommentVisibleFor(ThreadLocalUserContext.requiredLoggedInUser, availability)
+                ) {
+                    tb.addPropRow(translate("availability.internalComment"), availability.internalComment, abbreviate = true)
                 }
                 event.setTooltip(title, tb)
                 events.add(event)

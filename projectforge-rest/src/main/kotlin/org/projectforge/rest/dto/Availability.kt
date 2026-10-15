@@ -38,7 +38,8 @@ class Availability(
     var statusAsString: String? = null,
     var location: AvailabilityLocation? = null,
     var locationAsString: String? = null,
-    var description: String? = null,
+    var comment: String? = null,
+    var internalComment: String? = null,
 ) : BaseDTO<AvailabilityDO>() {
 
     override fun copyFrom(src: AvailabilityDO) {

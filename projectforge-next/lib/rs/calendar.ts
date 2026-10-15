@@ -257,6 +257,30 @@ export function changeVacationUsers(
   );
 }
 
+/** Sets the groups whose members' availability entries are shown; body is a bare id array (`POST changeAvailabilityGroups`). */
+export function changeAvailabilityGroups(
+  groupIds: number[],
+  signal?: AbortSignal
+): Promise<CalendarInitPatch> {
+  return request<CalendarInitPatch>(
+    `${BASE}/changeAvailabilityGroups`,
+    { method: "POST", body: JSON.stringify(groupIds) },
+    signal
+  );
+}
+
+/** Sets the users whose availability entries are shown; body is a bare id array (`POST changeAvailabilityUsers`). */
+export function changeAvailabilityUsers(
+  userIds: number[],
+  signal?: AbortSignal
+): Promise<CalendarInitPatch> {
+  return request<CalendarInitPatch>(
+    `${BASE}/changeAvailabilityUsers`,
+    { method: "POST", body: JSON.stringify(userIds) },
+    signal
+  );
+}
+
 // --- Filter favourites ---
 
 /** Saves the current filter under a new name (`GET createNewFilter`). Answers `{filter, filterFavorites, isFilterModified}`. */

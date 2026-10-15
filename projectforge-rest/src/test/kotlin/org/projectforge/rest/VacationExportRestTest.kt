@@ -29,6 +29,9 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
@@ -50,6 +53,9 @@ import java.time.LocalDate
 class VacationExportRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var vacationExportRest: VacationExportRest
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -120,6 +126,44 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(listOf(colleague.id), initial.employees.map { it.id })
         assertEquals("quarter", initial.periodKind)
         assertFalse(initial.unrestricted)
+    }
+
+    @Test
+    fun `availabilities are shown only if asked for and only those the user may see`() {
+        val own = createEmployee("avail-own")
+        val colleague = createEmployee("avail-colleague")
+        val finance = createEmployee("avail-finance", finance = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.avail", own.user!!.username!!, colleague.user!!.username!!)
+        val year = LocalDate.now().year + 2
+        logon(TEST_HR_USER)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.employee = colleague
+            it.startDate = LocalDate.of(year, 3, 25)
+            it.endDate = LocalDate.of(year, 4, 10)
+            it.type = "Workation"
+            it.status = AvailabilityStatus.REACHABLE_IF_NEEDED
+            it.comment = "public"
+            it.internalComment = "internal"
+        })
+        val request = VacationExportRequest(
+            employeeIds = listOf(colleague.id!!), from = LocalDate.of(year, 4, 1), until = LocalDate.of(year, 6, 30),
+        )
+
+        logon(own.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not asked for.")
+        request.showAvailabilities = true
+        val availability = vacationExportRest.view(request).rows.single().availabilities.single()
+        // Cut to the quarter, with the public comment only (the dto has no internal one).
+        assertEquals(LocalDate.of(year, 4, 1), availability.startDate)
+        assertEquals(LocalDate.of(year, 4, 10), availability.endDate)
+        assertEquals("public", availability.comment)
+        assertTrue(availability.label.startsWith("Workation ("))
+        assertTrue(vacationExportRest.getInitial().showAvailabilities, "Stored for next time.")
+
+        // Finance staff may pick everybody, but see availability entries of their own groups only (none here).
+        logon(finance.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty())
     }
 
     @Test

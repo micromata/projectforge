@@ -98,6 +98,19 @@ class AvailabilityPagesRest :
     }
 
     /**
+     * Shows the period errors of [AvailabilityDao.validate] at the date fields; the dao checks them on the write, too.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Availability) {
+        super.validate(validationErrors, dto)
+        val availability = AvailabilityDO()
+        dto.copyTo(availability)
+        availabilityDao.validate(availability)?.let { error ->
+            val fieldId = if (error == AvailabilityDao.ERROR_DATE_NOT_SET && dto.startDate == null) "startDate" else "endDate"
+            validationErrors.add(ValidationError(translate(error), fieldId = fieldId))
+        }
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(
@@ -116,7 +129,7 @@ class AvailabilityPagesRest :
             .add(lc, "employee", "startDate", "endDate", "type")
             .add(lc, "statusAsString", lcField = "status")
             .add(lc, "locationAsString", lcField = "location")
-            .add(lc, "description")
+            .add(lc, "comment")
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -224,7 +237,14 @@ class AvailabilityPagesRest :
                             )
                     )
             )
-            .add(lc, "description")
+            .add(lc, "comment")
+        val availability = AvailabilityDO()
+        dto.copyTo(availability)
+        if (availability.employee == null ||
+            availabilityDao.isInternalCommentVisibleFor(ThreadLocalUserContext.requiredLoggedInUser, availability)
+        ) {
+            layout.add(lc, "internalComment")
+        }
 
         layout.watchFields.addAll(arrayOf("startDate", "endDate"))
         return LayoutUtils.processEditPage(layout, dto, this)

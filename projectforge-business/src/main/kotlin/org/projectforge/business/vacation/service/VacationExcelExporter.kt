@@ -33,7 +33,7 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.availability.AvailabilityDO
-import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.availability.label
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -263,7 +263,7 @@ object VacationExcelExporter {
         val availStart = PFDay.fromOrNull(availability.startDate)
         val availEnd = PFDay.fromOrNull(availability.endDate)
         if (availStart != null && availEnd != null) {
-          val label = getAvailabilityLabel(availability)
+          val label = availability.label
           val cols = mutableListOf<Int>()
           paranoiaCounter = 0
           var current: PFDay = if (availStart < startDate) startDate else availStart
@@ -329,28 +329,6 @@ object VacationExcelExporter {
       } else {
         // Single cell - just set value, no merge needed.
         row.getCell(firstCol).setCellValue(label)
-      }
-    }
-  }
-
-  /**
-   * Builds a human-readable label for an availability entry.
-   * Combines the type and status information.
-   */
-  private fun getAvailabilityLabel(availability: AvailabilityDO): String {
-    val type = availability.type
-    val status = availability.status
-    return if (!type.isNullOrBlank()) {
-      if (status != null && status != AvailabilityStatus.NOT_AVAILABLE) {
-        "$type (${translate(status.i18nKey)})"
-      } else {
-        type
-      }
-    } else {
-      if (status != null) {
-        translate(status.i18nKey)
-      } else {
-        translate("availability.title")
       }
     }
   }

@@ -112,6 +112,8 @@ export interface VacationExportRequest {
   dayWidth: string;
   from: string;
   until: string;
+  /** Shows and exports the availability entries of the same employees, too (stored for next time). */
+  showAvailabilities: boolean;
 }
 
 /** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
@@ -120,6 +122,7 @@ export interface VacationExportInitial {
   groups: VacationExportRef[];
   periodKind?: string | null;
   dayWidth?: string | null;
+  showAvailabilities: boolean;
   unrestricted: boolean;
   /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
   earliestDate?: string | null;
@@ -150,11 +153,25 @@ export interface VacationExportVacation {
   status?: VacationStatus | null;
 }
 
+/**
+ * An availability entry of the team vacation calendar (`VacationExportAvailability`), cut to the period shown.
+ * `label` is its type and status as the Excel export writes it; `comment` only the public one.
+ */
+export interface VacationExportAvailability {
+  id?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  label: string;
+  comment?: string | null;
+}
+
 /** The calendar of a period (`VacationExportView`): one row per employee, sorted by name. */
 export interface VacationExportView {
   days: VacationChartDay[];
   rows: {
     employee: VacationExportRef;
     vacations: VacationExportVacation[];
+    /** Empty unless the request asked for them (`showAvailabilities`). */
+    availabilities?: VacationExportAvailability[];
   }[];
 }

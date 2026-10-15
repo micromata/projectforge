@@ -374,6 +374,39 @@
   "attr": {
     "validSince": "Gültig ab"
   },
+  "availability": {
+    "comment": {
+      "_": "Kommentar",
+      "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
+    },
+    "employee": "Mitarbeiter:in",
+    "endDate": "Enddatum",
+    "internalComment": {
+      "_": "Interner Kommentar",
+      "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar."
+    },
+    "location": {
+      "_": "Ort",
+      "onSite": "Standort",
+      "remote": "Remote"
+    },
+    "startDate": "Startdatum",
+    "status": {
+      "_": "Verfügbarkeit",
+      "notAvailable": "Nicht verfügbar",
+      "reachableIfNeeded": "Bei Bedarf erreichbar",
+      "reachableIfUrgent": "Bei dringendem Bedarf erreichbar",
+      "remoteReachable": "Remote erreichbar"
+    },
+    "title": {
+      "_": "Verfügbarkeit",
+      "add": "Verfügbarkeitseintrag erstellen",
+      "edit": "Verfügbarkeitseintrag bearbeiten",
+      "heading": "Verfügbarkeit",
+      "list": "Verfügbarkeitsliste"
+    },
+    "type": "Typ"
+  },
   "back": "Zurück",
   "book": {
     "abstract": "Zusammenfassung",
@@ -435,6 +468,16 @@
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
+      "availability": {
+        "groups": {
+          "_": "Verfügbarkeits-Gruppen",
+          "tooltip": "Verfügbarkeit von Mitarbeitern in ausgewählten Gruppen anzeigen."
+        },
+        "users": {
+          "_": "Verfügbarkeits-Benutzer:in",
+          "tooltip": "Verfügbarkeit ausgewählter Mitarbeiter anzeigen."
+        }
+      },
       "vacation": {
         "groups": {
           "_": "Urlaubskalender Gruppen",
@@ -4703,6 +4746,10 @@
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
+      "showAvailabilities": {
+        "_": "Verfügbarkeiten",
+        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, soweit sie sichtbar sind."
+      },
       "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",

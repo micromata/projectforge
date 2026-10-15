@@ -24,6 +24,8 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.label
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import java.time.LocalDate
@@ -42,6 +44,7 @@ class VacationExportRef(
  *
  * @param periodKind The kind of period the page pages through (e.g. `quarter`), only stored for next time.
  * @param dayWidth The width of the chart's day columns (`auto`, `fit`, `narrow`, …), only stored for next time.
+ * @param showAvailabilities Shows and exports the availability entries of the same employees, too.
  */
 class VacationExportRequest(
     var employeeIds: List<Long>? = null,
@@ -50,6 +53,7 @@ class VacationExportRequest(
     var dayWidth: String? = null,
     var from: LocalDate? = null,
     var until: LocalDate? = null,
+    var showAvailabilities: Boolean? = null,
 )
 
 /**
@@ -64,6 +68,7 @@ class VacationExportInitial(
     val groups: List<VacationExportRef>,
     val periodKind: String?,
     val dayWidth: String?,
+    val showAvailabilities: Boolean,
     val unrestricted: Boolean,
     val earliestDate: LocalDate?,
     val favorites: List<VacationExportFavoriteInfo>,
@@ -92,10 +97,36 @@ class VacationExportView(
     val rows: List<VacationExportRow>,
 )
 
+/** @param availabilities Empty unless [VacationExportRequest.showAvailabilities]. */
 class VacationExportRow(
     val employee: VacationExportRef,
     val vacations: List<VacationExportVacation>,
+    val availabilities: List<VacationExportAvailability> = emptyList(),
 )
+
+/**
+ * An availability entry of the team vacation calendar, cut to the period shown as [VacationExportVacation.of]. Only
+ * the public comment: the internal one is for the employee and HR staff, not for the team.
+ *
+ * @param label The type and status, as the Excel export writes it (e.g. "Workation (Reachable if needed)").
+ */
+class VacationExportAvailability(
+    val id: Long?,
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+    val label: String,
+    val comment: String?,
+) {
+    companion object {
+        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate) = VacationExportAvailability(
+            obj.id,
+            obj.startDate?.let { maxOf(it, from) },
+            obj.endDate?.let { minOf(it, until) },
+            obj.label,
+            obj.comment?.takeIf { it.isNotBlank() },
+        )
+    }
+}
 
 class VacationExportVacation(
     val id: Long?,

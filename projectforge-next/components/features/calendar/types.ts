@@ -10,7 +10,7 @@ import type { CalendarViewKey } from "@/lib/rs/calendar-types";
  * as the React Query key (see `eventsKey`). The id arrays are sorted before they enter the key — the
  * cache must not fragment when the user only re-orders the calendar pills.
  *
- * `vacationGroupIds`/`vacationUserIds` are in the key but NOT in the POST body: the server takes those
+ * `vacationGroupIds`/`vacationUserIds` (and the availability ones) are in the key but NOT in the POST body: the server takes those
  * from the persisted filter (see `CalendarEventsFilter`), yet the events still change when they do, so
  * the key has to notice.
  */
@@ -23,6 +23,8 @@ export interface EventsRequest {
   showBreaks?: boolean | null;
   vacationGroupIds: number[];
   vacationUserIds: number[];
+  availabilityGroupIds: number[];
+  availabilityUserIds: number[];
   /** The resolved page theme; the server computes event text colours for it (see CalendarEventsFilter). */
   darkMode: boolean;
   /** Bumped by `?hash` and the manual refresh to force a refetch without any parameter change. */

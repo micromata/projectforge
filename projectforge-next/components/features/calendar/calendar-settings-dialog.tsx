@@ -35,7 +35,7 @@ interface CalendarSettingsDialogProps {
 
 /**
  * The gear dialog: the presentational settings that do not belong on the toolbar itself — default
- * calendar, whose timesheets to show, breaks, vacation overlays, the time-grid's slot size and first
+ * calendar, whose timesheets to show, breaks, vacation and availability overlays, the time-grid's slot size and first
  * hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
  * page). Each control fires its own `change*`/persist the moment it changes; the dialog holds no draft,
  * so there is no save button, exactly as the legacy settings modal.
@@ -158,6 +158,18 @@ export function CalendarSettingsDialog({
               users={init.vacationUsers ?? []}
               onGroupsChange={mutations.changeVacationGroups}
               onUsersChange={mutations.changeVacationUsers}
+            />
+          )}
+
+          {open && (
+            <CalendarVacationSelects
+              idPrefix="calendar-availability"
+              groupsLabel={t("calendar.filter.availability.groups._")}
+              usersLabel={t("calendar.filter.availability.users._")}
+              groups={init.availabilityGroups ?? []}
+              users={init.availabilityUsers ?? []}
+              onGroupsChange={mutations.changeAvailabilityGroups}
+              onUsersChange={mutations.changeAvailabilityUsers}
             />
           )}
 

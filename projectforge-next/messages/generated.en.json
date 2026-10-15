@@ -374,6 +374,39 @@
   "attr": {
     "validSince": "Valid since"
   },
+  "availability": {
+    "comment": {
+      "_": "Comment",
+      "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
+    },
+    "employee": "Employee",
+    "endDate": "End date",
+    "internalComment": {
+      "_": "Internal comment",
+      "tooltip": "Only visible to the employee and to HR staff."
+    },
+    "location": {
+      "_": "Location",
+      "onSite": "On-site",
+      "remote": "Remote"
+    },
+    "startDate": "Start date",
+    "status": {
+      "_": "Availability",
+      "notAvailable": "Not available",
+      "reachableIfNeeded": "Reachable if needed",
+      "reachableIfUrgent": "Reachable if urgent",
+      "remoteReachable": "Remotely reachable"
+    },
+    "title": {
+      "_": "Availability",
+      "add": "Create availability entry",
+      "edit": "Edit availability entry",
+      "heading": "Availability",
+      "list": "Availability list"
+    },
+    "type": "Type"
+  },
   "back": "Back",
   "book": {
     "abstract": "Abstract",
@@ -435,6 +468,16 @@
     "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
+      "availability": {
+        "groups": {
+          "_": "Availability groups",
+          "tooltip": "Show availability of employees in selected groups."
+        },
+        "users": {
+          "_": "Availability users",
+          "tooltip": "Show availability of selected employees."
+        }
+      },
       "vacation": {
         "groups": {
           "_": "Vacation groups",
@@ -4703,6 +4746,10 @@
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
       "selectHint": "Choose employees or groups to show their vacations.",
+      "showAvailabilities": {
+        "_": "Availabilities",
+        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as far as you may see them."
+      },
       "title": "Team vacation calendar"
     },
     "halfDay": "Half day",

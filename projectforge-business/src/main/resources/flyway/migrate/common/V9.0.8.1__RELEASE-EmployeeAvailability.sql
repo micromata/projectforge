@@ -11,7 +11,8 @@ CREATE TABLE t_employee_availability
     type                VARCHAR(100),
     availability_status VARCHAR(30),
     location            VARCHAR(30),
-    description         VARCHAR(4000),
+    comment             VARCHAR(4000),
+    internal_comment    VARCHAR(4000),
     CONSTRAINT t_employee_availability_pkey PRIMARY KEY (pk)
 );
 

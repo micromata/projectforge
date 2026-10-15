@@ -118,6 +118,8 @@ export function CalendarPage() {
             showBreaks: filter?.showBreaks,
             vacationGroupIds: filter?.vacationGroupIds ?? [],
             vacationUserIds: filter?.vacationUserIds ?? [],
+            availabilityGroupIds: filter?.availabilityGroupIds ?? [],
+            availabilityUserIds: filter?.availabilityUserIds ?? [],
             darkMode,
             nonce,
           }

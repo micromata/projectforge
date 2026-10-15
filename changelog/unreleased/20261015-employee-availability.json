@@ -1,0 +1,19 @@
+{
+  "type": "added",
+  "en": "Availability",
+  "de": "Verfügbarkeit",
+  "items": [
+    {
+      "en": "New entries for periods of reduced availability (e.g. parental leave, workation) with type, reachability, location, a comment for the team and an internal comment only visible to the employee and HR staff. Overlapping entries of the same employee are rejected.",
+      "de": "Neue Einträge für Zeiträume eingeschränkter Verfügbarkeit (z. B. Elternzeit, Workation) mit Typ, Erreichbarkeit, Ort, einem Kommentar fürs Team und einem internen Kommentar, den nur die betroffene Person und HR sehen. Überlappende Einträge derselben Person werden abgelehnt."
+    },
+    {
+      "en": "Calendar: the availability entries of chosen groups and users can be shown, as the vacations.",
+      "de": "Kalender: Die Verfügbarkeitseinträge gewählter Gruppen und Personen können wie die Urlaube eingeblendet werden."
+    },
+    {
+      "en": "Team vacation calendar: optionally with the availability entries of the chosen employees, on screen and in the Excel export.",
+      "de": "Team-Urlaubskalender: auf Wunsch mit den Verfügbarkeitseinträgen der gewählten Personen, auf dem Bildschirm und im Excel-Export."
+    }
+  ]
+}

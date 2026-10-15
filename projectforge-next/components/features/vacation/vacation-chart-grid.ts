@@ -25,6 +25,12 @@ export const GRID_CELL =
   "[grid-row:var(--chart-row)] [grid-column:var(--chart-col)]";
 
 /**
+ * An availability entry on the team calendar: a thin teal line at the bottom of the row, beneath the vacation bars,
+ * so both stay visible on the same day (light blue in the Excel export).
+ */
+export const AVAILABILITY_BAR_CLASS = "bg-brand-teal";
+
+/**
  * The vacation being edited in the primary colour — red on its days without any substitute on duty — the
  * substitutes' approved ones solid amber, the others pale. Brand colours, not the chart palette: those keep their
  * hue in dark mode, where the chart tokens turn grey.
