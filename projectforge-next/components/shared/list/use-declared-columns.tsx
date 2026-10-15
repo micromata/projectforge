@@ -13,7 +13,11 @@ import {
   labelKeyFor,
 } from "@/lib/page-def/define-page";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
-import { isInactiveRef, type InactiveFlags } from "@/lib/page-def/reference";
+import {
+  INACTIVE_REF_CLASS,
+  isInactiveRef,
+  type InactiveFlags,
+} from "@/lib/page-def/reference";
 import { declaredCell } from "./declared-cell";
 import { periodColumnDef } from "./declared-period-column";
 
@@ -124,9 +128,7 @@ export function useDeclaredColumns<
             ref &&
             typeof ref === "object" &&
             isInactiveRef(ref as InactiveFlags) ? (
-              <span className="line-through decoration-destructive decoration-2">
-                {rendered}
-              </span>
+              <span className={INACTIVE_REF_CLASS}>{rendered}</span>
             ) : (
               rendered
             );

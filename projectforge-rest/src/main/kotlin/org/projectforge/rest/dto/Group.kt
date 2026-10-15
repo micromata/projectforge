@@ -156,11 +156,17 @@ class Group(
         }
 
         /**
-         * Set display names of any existing group in the given list.
+         * Set display names of any existing group in the given list, and whether it is still active (deleted,
+         * deactivated): a no longer active group is struck through wherever shown as a reference.
          */
         fun restoreDisplayNames(groups: List<Group>?) {
             val caches = PfCaches.instance
-            groups?.forEach { it.displayName = caches.getGroup(it.id)?.displayName ?: "???" }
+            groups?.forEach { group ->
+                val groupDO = caches.getGroup(group.id)
+                group.displayName = groupDO?.displayName ?: "???"
+                group.deleted = groupDO?.deleted == true
+                group.deactivated = groupDO?.deactivated == true
+            }
         }
 
         /**

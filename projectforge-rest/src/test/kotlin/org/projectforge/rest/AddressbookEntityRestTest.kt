@@ -24,11 +24,15 @@
 package org.projectforge.rest
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.Addressbook
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -38,6 +42,9 @@ class AddressbookEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var addressbookEntityRest: AddressbookEntityRest
+
+    @Autowired
+    private lateinit var userService: UserService
 
     /** A new address book belongs to the logged-in user. */
     @Test
@@ -92,4 +99,25 @@ class AddressbookEntityRestTest : AbstractTestBase() {
         }
     }
 
+    /** A deactivated user is struck through in the access lists, so the form must learn it, also as a non-admin. */
+    @Test
+    fun `access lists tell a deactivated user from an active one`() {
+        logon(TEST_ADMIN_USER)
+        val deactivatedId = userService.insert(PFUserDO().also {
+            it.username = "AddressbookEntityRestTest-deactivated"
+            it.deactivated = true
+        }, false)
+        val owner = logon(TEST_USER)
+        val active = getUser(TEST_USER2)
+        val abId = addressbookDao.insert(AddressbookDO().also {
+            it.title = "Deactivated user test"
+            it.owner = owner
+            it.fullAccessUserIds = "${active.id},$deactivatedId"
+        })
+        val dto = addressbookEntityRest.transformFromDB(addressbookDao.find(abId)!!, editMode = true)
+        val users = dto.fullAccessUsers!!.associateBy { it.id }
+        assertTrue(users[deactivatedId]!!.deactivated)
+        assertFalse(users[active.id]!!.deactivated)
+        assertFalse(dto.owner!!.deactivated)
+    }
 }

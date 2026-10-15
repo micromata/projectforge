@@ -135,7 +135,17 @@ constructor(
         }
     }
 
-    class DisplayObject(val id: Any?, override val displayName: String?) : DisplayNameCapable
+    /**
+     * A hit of [getAutoCompleteObjects]. [deleted] and [deactivated] are set only if true (null is not serialized),
+     * so a selection box can strike through a no longer active entry (e.g. a deactivated user), as a next list
+     * cell does for such a reference (`isInactiveRef`).
+     */
+    class DisplayObject(
+        val id: Any?,
+        override val displayName: String?,
+        val deleted: Boolean? = null,
+        val deactivated: Boolean? = null,
+    ) : DisplayNameCapable
 
     /**
      * Category should be unique and is e. g. used as react path. At default, it's the dir of the url defined in class annotation [RequestMapping].
@@ -1194,7 +1204,14 @@ constructor(
         filter.searchFields = autoCompleteSearchFields!!
         maxResults?.let { filter.maxRows = it }
         val list = queryAutocompleteObjects(request, filter)
-        return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
+        return list.map {
+            DisplayObject(
+                it.id,
+                if (it is DisplayNameCapable) it.displayName else it.toString(),
+                deleted = it.deleted.takeIf { deleted -> deleted },
+                deactivated = it.deactivated.takeIf { deactivated -> deactivated },
+            )
+        }
     }
 
     /**
