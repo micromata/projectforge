@@ -27,6 +27,7 @@ package org.projectforge.rest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -91,6 +92,9 @@ private val log = KotlinLogging.logger {}
 class VacationExportRest {
     @Autowired
     private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache
@@ -234,11 +238,14 @@ class VacationExportRest {
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
             )
             val availabilities = availabilitiesByEmployee(request, employees, from, until)
+            val viewer = ThreadLocalUserContext.loggedInUser
             val rows = vacations.map { entry ->
                 VacationExportRow(
                     ref(entry.employee),
                     entry.vacations.map { VacationExportVacation.of(it, from, until) },
-                    availabilities[entry.employee.id].orEmpty().map { VacationExportAvailability.of(it, from, until) },
+                    availabilities[entry.employee.id].orEmpty().map {
+                        VacationExportAvailability.of(it, from, until, availabilityDao.labelFor(viewer, it))
+                    },
                 )
             }.sortedBy { it.employee.displayName?.lowercase() }
             VacationExportView(VacationChartDay.listOf(from, until), rows)
@@ -265,7 +272,10 @@ class VacationExportRest {
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
             )
             val availabilities = availabilitiesByEmployee(request, employees, periodBegin.date, periodEnd.date)
-            val excel = VacationExcelExporter.export(startDate, vacations, availabilities)
+            val viewer = ThreadLocalUserContext.loggedInUser
+            val excel = VacationExcelExporter.export(startDate, vacations, availabilities) {
+                availabilityDao.labelFor(viewer, it)
+            }
             RestUtils.downloadFile("${translate("vacation")}-${PFDateTime.now().format4Filenames()}.xlsx", excel)
         }
     }

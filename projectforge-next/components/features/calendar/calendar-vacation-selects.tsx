@@ -15,11 +15,6 @@ interface CalendarVacationSelectsProps {
   users: UserRef[];
   onGroupsChange: (ids: number[]) => void;
   onUsersChange: (ids: number[]) => void;
-  /** Prefix of the inputs' ids (`calendar-vacation`), distinct per use. */
-  idPrefix?: string;
-  /** The labels, the vacation ones by default (the availability pickers pass their own). */
-  groupsLabel?: string;
-  usersLabel?: string;
 }
 
 /** A minimal ref (`GroupRef`/`UserRef`) as the multi-select consumes it — `displayName` falls back to name/username. */
@@ -38,21 +33,14 @@ function toEntityRef(ref: GroupRef | UserRef): EntityRef {
  * chips are owned here because the backend answers a change with only `isFilterModified`, never the new
  * list — so the picks stay on screen without a round-trip. The change reports the bare id arrays the
  * `changeVacation*` endpoints expect.
- *
- * The availability pickers (`changeAvailability*`) are the same pair with their own labels and ids.
  */
 export function CalendarVacationSelects({
   groups,
   users,
   onGroupsChange,
   onUsersChange,
-  idPrefix = "calendar-vacation",
-  groupsLabel,
-  usersLabel,
 }: CalendarVacationSelectsProps) {
   const t = useTranslations();
-  const groupsText = groupsLabel ?? t("calendar.filter.vacation.groups._");
-  const usersText = usersLabel ?? t("calendar.filter.vacation.users._");
   const [groupRefs, setGroupRefs] = useState<EntityRef[]>(() =>
     groups.map(toEntityRef)
   );
@@ -66,11 +54,11 @@ export function CalendarVacationSelects({
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-3">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${idPrefix}-groups`} className="text-sm">
-          {groupsText}
+        <Label htmlFor="calendar-vacation-groups" className="text-sm">
+          {t("calendar.filter.vacation.groups._")}
         </Label>
         <EntityMultiAutocomplete
-          id={`${idPrefix}-groups`}
+          id="calendar-vacation-groups"
           url="group/autosearch?search=:search"
           value={groupRefs}
           onChange={(next) => {
@@ -78,15 +66,15 @@ export function CalendarVacationSelects({
             onGroupsChange(next.map((r) => r.id));
           }}
           removeLabel={remove}
-          aria-label={groupsText}
+          aria-label={t("calendar.filter.vacation.groups._")}
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${idPrefix}-users`} className="text-sm">
-          {usersText}
+        <Label htmlFor="calendar-vacation-users" className="text-sm">
+          {t("calendar.filter.vacation.users._")}
         </Label>
         <EntityMultiAutocomplete
-          id={`${idPrefix}-users`}
+          id="calendar-vacation-users"
           url="vacation/users?search=:search"
           value={userRefs}
           onChange={(next) => {
@@ -94,7 +82,7 @@ export function CalendarVacationSelects({
             onUsersChange(next.map((r) => r.id));
           }}
           removeLabel={remove}
-          aria-label={usersText}
+          aria-label={t("calendar.filter.vacation.users._")}
         />
       </div>
     </div>

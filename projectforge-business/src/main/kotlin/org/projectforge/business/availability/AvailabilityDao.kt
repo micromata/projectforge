@@ -176,6 +176,14 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         return hasHrRights(user) || isOwnEntry(user, obj)
     }
 
+    /**
+     * What the entry is called for the given viewer: its type for the user and HR staff ([label]), only its status for
+     * everybody else and without a viewer, e.g. in a calendar subscription ([neutralLabel]).
+     */
+    open fun labelFor(viewer: PFUserDO?, obj: AvailabilityDO): String {
+        return if (viewer != null && isInternalCommentVisibleFor(viewer, obj)) obj.label else obj.neutralLabel
+    }
+
     open fun hasHrRights(user: PFUserDO?): Boolean {
         return accessChecker.hasRight(user, UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
     }

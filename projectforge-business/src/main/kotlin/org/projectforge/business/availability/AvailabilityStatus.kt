@@ -25,11 +25,24 @@ package org.projectforge.business.availability
 
 import org.projectforge.common.i18n.I18nEnum
 
-enum class AvailabilityStatus(val key: String) : I18nEnum {
-    NOT_AVAILABLE("notAvailable"),
+/**
+ * @param absent The user is away, as on vacation: a substitute with such an entry isn't on duty (see
+ * VacationService.getVacationOverlaps). The other states are shown only, they don't make a conflict.
+ */
+enum class AvailabilityStatus(val key: String, val absent: Boolean = false) : I18nEnum {
+    NOT_AVAILABLE("notAvailable", absent = true),
     REMOTE_REACHABLE("remoteReachable"),
     REACHABLE_IF_NEEDED("reachableIfNeeded"),
     REACHABLE_IF_URGENT("reachableIfUrgent");
+
+    /** The kind of absence the calendar filter offers for entries of this state. */
+    val kind: AbsenceKind
+        get() = when (this) {
+            NOT_AVAILABLE -> AbsenceKind.NOT_AVAILABLE
+            REMOTE_REACHABLE -> AbsenceKind.REMOTE_REACHABLE
+            REACHABLE_IF_NEEDED -> AbsenceKind.REACHABLE_IF_NEEDED
+            REACHABLE_IF_URGENT -> AbsenceKind.REACHABLE_IF_URGENT
+        }
 
     override val i18nKey: String
         get() = "availability.status.$key"

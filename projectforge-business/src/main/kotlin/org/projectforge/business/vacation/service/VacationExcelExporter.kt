@@ -111,6 +111,14 @@ object VacationExcelExporter {
       alignment = HorizontalAlignment.CENTER,
       borderStyle = BorderStyle.THIN,
     )
+    // Not available (AvailabilityStatus.absent): away as on vacation, but told apart from it.
+    val absentStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "absentDay",
+      fillForegroundColor = IndexedColors.LIGHT_ORANGE,
+      alignment = HorizontalAlignment.CENTER,
+      borderStyle = BorderStyle.THIN,
+    )
     // Half vacation days (half day begin/end, or a half working day such as 24.12.) are lighter and marked by ½.
     val halfVacationStyle = ExcelUtils.createCellStyle(
       workbook,
@@ -149,13 +157,15 @@ object VacationExcelExporter {
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
     availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
+    /** What an availability entry is called for the user (AvailabilityDao.labelFor). */
+    labelOf: (AvailabilityDO) -> String = { it.label },
   ): ByteArray {
     log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->
-        createSheet(context, sheetData, vacationsByEmployee, availabilitiesByEmployee)
+        createSheet(context, sheetData, vacationsByEmployee, availabilitiesByEmployee, labelOf)
       }
       // Legend
       val sheet = workbook.createOrGetSheet(translate("legend"))
@@ -175,6 +185,9 @@ object VacationExcelExporter {
       row.getCell(0).setCellStyle(context.holidayAndWeekendStyle)
       row.getCell(1).setCellValue(translate("vacation.export.legend.holidayOrWeekend"))
       row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.absentStyle)
+      row.getCell(1).setCellValue(translate("availability.status.notAvailable"))
+      row = sheet.createRow()
       row.getCell(0).setCellStyle(context.availabilityStyle)
       row.getCell(1).setCellValue(translate("availability.title"))
       sheet.setColumnWidth(0, COL_WIDTH_DAY)
@@ -187,6 +200,7 @@ object VacationExcelExporter {
     sheetData: SheetData,
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
     availabilitiesByEmployee: Map<Long, List<AvailabilityDO>>,
+    labelOf: (AvailabilityDO) -> String,
   ) {
     val startDate = sheetData.startDate
     val endDate = sheetData.endDate
@@ -263,21 +277,22 @@ object VacationExcelExporter {
         val availStart = PFDay.fromOrNull(availability.startDate)
         val availEnd = PFDay.fromOrNull(availability.endDate)
         if (availStart != null && availEnd != null) {
-          val label = availability.label
+          val label = labelOf(availability)
+          val style = if (availability.status?.absent == true) context.absentStyle else context.availabilityStyle
           val cols = mutableListOf<Int>()
           paranoiaCounter = 0
           var current: PFDay = if (availStart < startDate) startDate else availStart
           while (current <= availEnd && current <= endDate && paranoiaCounter++ < 500) {
             val col = columnIndexMap[current.date]
             if (col != null && col !in occupiedCols) {
-              employeeRow.getCell(col).setCellStyle(context.availabilityStyle)
+              employeeRow.getCell(col).setCellStyle(style)
               cols.add(col)
               occupiedCols.add(col)
               hasEntries = true
             }
             current = current.plusDays(1)
           }
-          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, context.availabilityStyle)
+          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, style)
         }
       }
       if (hasEntries) {

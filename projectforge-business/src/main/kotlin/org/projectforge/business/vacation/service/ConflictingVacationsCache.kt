@@ -25,10 +25,14 @@ package org.projectforge.business.vacation.service
 
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -39,10 +43,11 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Cache with vacation conflicts (vacations of employee conflicting to vacations of substitutes / replacements).
- * Only current vacations or vacations in the future are considered.
+ * Only current vacations or vacations in the future are considered. A substitute's absent availability entry counts
+ * as a vacation (see [VacationService.getVacationOverlaps]), so any change of an availability entry expires the cache.
  */
 @Service
-class ConflictingVacationsCache() : AbstractCache() {
+class ConflictingVacationsCache() : AbstractCache(), BaseDOModifiedListener<AvailabilityDO> {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
@@ -74,6 +79,14 @@ class ConflictingVacationsCache() : AbstractCache() {
     private fun postConstruct() {
         this.vacationService = applicationContext.getBean(VacationService::class.java)
         this.vacationDao = applicationContext.getBean(VacationDao::class.java)
+        applicationContext.getBean(AvailabilityDao::class.java).register(this)
+    }
+
+    /**
+     * An absent entry of a substitute may make (or end) a conflict of any vacation: the whole cache is computed anew.
+     */
+    override fun afterInsertOrModify(obj: AvailabilityDO, operationType: OperationType) {
+        setExpired()
     }
 
     /**
@@ -150,6 +163,18 @@ class ConflictingVacationsCache() : AbstractCache() {
                 ).filter { it.status in VacationService.CONFLICT_STATUS && it.endDate?.isBefore(LocalDate.now()) == true }
             }
             val pool = all + earlierOfReplacements
+            // The substitutes' absent availability entries count as their vacations.
+            val periodBegin = all.mapNotNull { it.startDate }.minOrNull()
+            val periodEnd = all.mapNotNull { it.endDate }.maxOrNull()
+            val availabilities = if (periodBegin == null || periodEnd == null) {
+                emptyList()
+            } else {
+                vacationService.getAvailabilitiesOfEmployees(
+                    all.flatMap { vacationService.collectAllReplacements(it) }.distinctBy { it.id },
+                    periodBegin,
+                    periodEnd,
+                )
+            }
             val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
             val newAllConflictingVacations = mutableSetOf<Long>()
             // Now find conflicting entries:
@@ -158,7 +183,7 @@ class ConflictingVacationsCache() : AbstractCache() {
                 vacationService.collectAllReplacements(vacation).forEach { replacementEmployee ->
                     vacationsOfReplacements.addAll(pool.filter { it.employee?.id == replacementEmployee.id })
                 }
-                if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
+                if (vacationService.checkConflict(vacation, vacationsOfReplacements, availabilities)) {
                     ensureEmployeeList(newConflictingVacations, vacation.employee?.id).add(vacation)
                     vacation.id?.let {
                         newAllConflictingVacations.add(it)

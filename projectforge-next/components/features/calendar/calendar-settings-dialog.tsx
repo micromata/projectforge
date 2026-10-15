@@ -23,6 +23,7 @@ import {
   type CalendarInit,
 } from "@/lib/rs/calendar-types";
 import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
+import { CalendarAbsenceKinds } from "./calendar-absence-kinds";
 import { CalendarVacationSelects } from "./calendar-vacation-selects";
 import { CalendarColorSettings } from "./calendar-color-settings";
 
@@ -35,7 +36,7 @@ interface CalendarSettingsDialogProps {
 
 /**
  * The gear dialog: the presentational settings that do not belong on the toolbar itself — default
- * calendar, whose timesheets to show, breaks, vacation and availability overlays, the time-grid's slot size and first
+ * calendar, whose timesheets to show, breaks, absence overlays (vacations and availability entries), the time-grid's slot size and first
  * hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
  * page). Each control fires its own `change*`/persist the moment it changes; the dialog holds no draft,
  * so there is no save button, exactly as the legacy settings modal.
@@ -162,14 +163,9 @@ export function CalendarSettingsDialog({
           )}
 
           {open && (
-            <CalendarVacationSelects
-              idPrefix="calendar-availability"
-              groupsLabel={t("calendar.filter.availability.groups._")}
-              usersLabel={t("calendar.filter.availability.users._")}
-              groups={init.availabilityGroups ?? []}
-              users={init.availabilityUsers ?? []}
-              onGroupsChange={mutations.changeAvailabilityGroups}
-              onUsersChange={mutations.changeAvailabilityUsers}
+            <CalendarAbsenceKinds
+              kinds={filter?.absenceKinds}
+              onChange={mutations.changeAbsenceKinds}
             />
           )}
 

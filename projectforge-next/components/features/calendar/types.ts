@@ -3,14 +3,14 @@
  * are the derived, client-owned values the hooks and the panel pass around.
  */
 
-import type { CalendarViewKey } from "@/lib/rs/calendar-types";
+import type { AbsenceKind, CalendarViewKey } from "@/lib/rs/calendar-types";
 
 /**
  * The identity of one events request. Every field that changes the result is part of it, so it doubles
  * as the React Query key (see `eventsKey`). The id arrays are sorted before they enter the key — the
  * cache must not fragment when the user only re-orders the calendar pills.
  *
- * `vacationGroupIds`/`vacationUserIds` (and the availability ones) are in the key but NOT in the POST body: the server takes those
+ * `vacationGroupIds`/`vacationUserIds`/`absenceKinds` are in the key but NOT in the POST body: the server takes those
  * from the persisted filter (see `CalendarEventsFilter`), yet the events still change when they do, so
  * the key has to notice.
  */
@@ -23,8 +23,8 @@ export interface EventsRequest {
   showBreaks?: boolean | null;
   vacationGroupIds: number[];
   vacationUserIds: number[];
-  availabilityGroupIds: number[];
-  availabilityUserIds: number[];
+  /** What is shown of their absences; null for all (see `AbsenceKind`). */
+  absenceKinds: AbsenceKind[] | null;
   /** The resolved page theme; the server computes event text colours for it (see CalendarEventsFilter). */
   darkMode: boolean;
   /** Bumped by `?hash` and the manual refresh to force a refetch without any parameter change. */

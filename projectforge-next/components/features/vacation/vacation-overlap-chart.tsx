@@ -7,7 +7,7 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDateInput } from "@/lib/date-parse";
 import { cn } from "@/lib/utils";
-import { buildVacationChart } from "./vacation-chart-model";
+import { availabilityLabel, buildVacationChart } from "./vacation-chart-model";
 import { VacationChartFrame } from "./vacation-chart-frame";
 import { VacationChartLegend } from "./vacation-chart-legend";
 import { VacationChartRow } from "./vacation-chart-row";
@@ -17,7 +17,8 @@ import { useVacationStats } from "./use-vacation-stats";
 /**
  * The vacation being edited and the vacations of its substitutes overlapping it, as bars over the
  * calendar days (`chartDays`, the period with three days on either side): which substitute is away when,
- * and on which days nobody is on duty. The vacation itself follows the form as it is typed; the
+ * and on which days nobody is on duty. Their availability entries too: a not-available one counts as a vacation,
+ * the others (remote, reachable, …) are shown only. The vacation itself follows the form as it is typed; the
  * substitutes' come with the stats. Shown among the form's fields, above the comment; the section "vacations of
  * the replacements" holds the same vacations with all their details.
  */
@@ -40,9 +41,18 @@ export function VacationOverlapChart({ className }: { className?: string }) {
         [values.replacement, ...values.otherReplacements].filter(
           (e): e is NonNullable<typeof e> => e != null
         ),
-        stats?.conflictingVacations ?? []
+        stats?.conflictingVacations ?? [],
+        stats?.replacementAvailabilities ?? []
       ),
-    [days, values, stats?.conflictingVacations]
+    [
+      days,
+      values,
+      stats?.conflictingVacations,
+      stats?.replacementAvailabilities,
+    ]
+  );
+  const withAvailabilities = rows.some(
+    (row) => (row.availabilities?.length ?? 0) > 0
   );
   if (days.length === 0 || !values.startDate || !values.endDate) return null;
 
@@ -65,10 +75,15 @@ export function VacationOverlapChart({ className }: { className?: string }) {
             period={(bar) =>
               `${formatDateInput(bar.startDate, ctx)} – ${formatDateInput(bar.endDate, ctx)}`
             }
+            availabilityText={(bar) =>
+              availabilityLabel(row.name, bar, (iso) =>
+                formatDateInput(iso, ctx)
+              )
+            }
           />
         ))}
       </VacationChartFrame>
-      <VacationChartLegend />
+      <VacationChartLegend availabilities={withAvailabilities} />
     </figure>
   );
 }

@@ -25,8 +25,9 @@ export function eventsKey(request: EventsRequest) {
       showBreaks: request.showBreaks ?? null,
       vacationGroupIds: sorted(request.vacationGroupIds),
       vacationUserIds: sorted(request.vacationUserIds),
-      availabilityGroupIds: sorted(request.availabilityGroupIds),
-      availabilityUserIds: sorted(request.availabilityUserIds),
+      absenceKinds: request.absenceKinds
+        ? [...request.absenceKinds].sort()
+        : null,
       darkMode: request.darkMode,
       nonce: request.nonce,
     },

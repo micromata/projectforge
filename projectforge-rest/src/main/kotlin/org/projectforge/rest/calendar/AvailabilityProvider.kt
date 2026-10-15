@@ -23,8 +23,11 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -34,7 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * Provides the availability entries of users (employees and freelancers) for the calendar view. You may filter by ProjectForge groups.
+ * Provides the availability entries of users (employees and freelancers) for the calendar view. You may filter by
+ * ProjectForge groups. Part of the shared view of absences ([AbsenceProvider]).
  */
 @Component
 open class AvailabilityProvider {
@@ -58,16 +62,26 @@ open class AvailabilityProvider {
         groupIds: Set<Long?>?,
         userIds: Set<Long?>?,
         settings: CalendarSettings,
+        /** The states shown, by their kind ([AvailabilityStatus.kind]). */
+        kinds: Set<AbsenceKind> = AbsenceKind.entries.toSet(),
+        /** The style of absent entries ([AvailabilityStatus.absent]), drawn like vacations. */
+        absentStyle: CalendarStyle = settings.availabilityStyle,
+        otherStyle: CalendarStyle = settings.availabilityStyle,
     ) {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return
         }
+        val viewer = ThreadLocalUserContext.requiredLoggedInUser
         val availabilities =
             availabilityCache.getAvailabilityForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         availabilities.forEach { availability ->
+            val status = availability.status
+            if (status == null || !kinds.contains(status.kind)) {
+                return@forEach
+            }
             val user = userGroupCache.getUser(availability.user?.id)
-            val typeLabel = availability.type ?: translate("availability.title")
-            val title = "$typeLabel: ${user?.getFullname()}"
+            // The type only for the user and HR staff: it may be personal (e.g. sickness).
+            val title = "${availabilityDao.labelFor(viewer, availability)}: ${user?.getFullname()}"
             if (!events.any {
                     it.title == title && FullCalendarEvent.samePeriod(it, availability.startDate, availability.endDate)
                 }) {
@@ -78,17 +92,15 @@ open class AvailabilityProvider {
                     start = availability.startDate!!,
                     end = availability.endDate!!,
                     dbId = availability.id,
-                    style = settings.availabilityStyle,
-                    classNames = "availability-event",
+                    style = if (status.absent) absentStyle else otherStyle,
+                    classNames = if (status.absent) "availability-event availability-absent" else "availability-event",
                     calendarSettings = settings,
                 )
                 val startDate = PFDay.fromOrNull(availability.startDate)?.format() ?: ""
                 val endDate = PFDay.fromOrNull(availability.endDate)?.format() ?: ""
                 val tb = TooltipBuilder()
                     .addPropRow(translate("timePeriod"), "$startDate - $endDate")
-                availability.status?.let {
-                    tb.addPropRow(translate("availability.status"), translate(it.i18nKey))
-                }
+                tb.addPropRow(translate("availability.status"), translate(status.i18nKey))
                 availability.location?.let {
                     tb.addPropRow(translate("availability.location"), translate(it.i18nKey))
                 }
@@ -98,7 +110,7 @@ open class AvailabilityProvider {
                 // The cached internal comment is kept raw (AvailabilityDao.afterLoad), so apply the per-user privacy
                 // check here: it's personal data, only visible to the user and to HR staff.
                 if (!availability.internalComment.isNullOrBlank() &&
-                    availabilityDao.isInternalCommentVisibleFor(ThreadLocalUserContext.requiredLoggedInUser, availability)
+                    availabilityDao.isInternalCommentVisibleFor(viewer, availability)
                 ) {
                     tb.addPropRow(translate("availability.internalComment"), availability.internalComment, abbreviate = true)
                 }

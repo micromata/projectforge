@@ -30,6 +30,7 @@ import org.junit.jupiter.api.assertThrows
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -108,6 +109,26 @@ class AvailabilityDaoTest : AbstractTestBase() {
         availabilityDao.afterLoad(copy)
         Assertions.assertEquals("public", copy.comment)
         Assertions.assertNull(copy.internalComment)
+    }
+
+    @Test
+    fun `the type is named only for the user and HR staff, the status for everybody else`() {
+        val user = createUser("label-user")
+        val colleague = createUser("label-colleague")
+        val entry = create(user, LocalDate.of(2031, 3, 3), LocalDate.of(2031, 3, 7))
+        val typed = "Workation (${translate("availability.status.reachableIfNeeded")})"
+        Assertions.assertEquals(typed, availabilityDao.labelFor(user, entry))
+        Assertions.assertEquals(typed, availabilityDao.labelFor(getUser(TEST_HR_USER), entry))
+        Assertions.assertEquals(translate("availability.status.reachableIfNeeded"), availabilityDao.labelFor(colleague, entry))
+        Assertions.assertEquals(
+            translate("availability.status.reachableIfNeeded"), availabilityDao.labelFor(null, entry),
+            "Without a viewer (a calendar subscription)."
+        )
+        entry.status = AvailabilityStatus.NOT_AVAILABLE
+        Assertions.assertEquals("Workation", availabilityDao.labelFor(user, entry))
+        Assertions.assertEquals(translate("availability.status.notAvailable"), availabilityDao.labelFor(colleague, entry))
+        Assertions.assertTrue(AvailabilityStatus.NOT_AVAILABLE.absent)
+        Assertions.assertEquals(listOf(AvailabilityStatus.NOT_AVAILABLE), AvailabilityStatus.entries.filter { it.absent })
     }
 
     private fun assertError(expectedKey: String, block: () -> Unit) {

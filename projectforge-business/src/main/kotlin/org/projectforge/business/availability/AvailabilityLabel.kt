@@ -27,7 +27,14 @@ package org.projectforge.business.availability
 import org.projectforge.framework.i18n.translate
 
 /**
- * What an entry is called in the vacation export and the team calendar: its type, completed by the status if it's
+ * What an entry is called for everybody else but the user and HR staff (see [AvailabilityDao.labelFor]): only its
+ * status (e.g. "Not available"), as the type may be personal (e.g. sickness).
+ */
+val AvailabilityDO.neutralLabel: String
+    get() = status?.let { translate(it.i18nKey) } ?: translate("availability.title")
+
+/**
+ * What an entry is called for the user and HR staff in the vacation export and the calendar: its type, completed by the status if it's
  * more than "not available" (e.g. "Workation (Reachable if needed)"); without a type the status (or "Availability").
  */
 val AvailabilityDO.label: String

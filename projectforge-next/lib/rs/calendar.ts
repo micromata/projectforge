@@ -11,6 +11,7 @@
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
 import type {
+  AbsenceKind,
   CalendarActionParams,
   CalendarData,
   CalendarEventsFilter,
@@ -257,26 +258,17 @@ export function changeVacationUsers(
   );
 }
 
-/** Sets the groups whose members' availability entries are shown; body is a bare id array (`POST changeAvailabilityGroups`). */
-export function changeAvailabilityGroups(
-  groupIds: number[],
+/**
+ * Sets what is shown of the absences (`POST changeAbsenceKinds`); body is a bare array of `AbsenceKind`s, all of
+ * them meaning no restriction.
+ */
+export function changeAbsenceKinds(
+  kinds: AbsenceKind[],
   signal?: AbortSignal
 ): Promise<CalendarInitPatch> {
   return request<CalendarInitPatch>(
-    `${BASE}/changeAvailabilityGroups`,
-    { method: "POST", body: JSON.stringify(groupIds) },
-    signal
-  );
-}
-
-/** Sets the users whose availability entries are shown; body is a bare id array (`POST changeAvailabilityUsers`). */
-export function changeAvailabilityUsers(
-  userIds: number[],
-  signal?: AbortSignal
-): Promise<CalendarInitPatch> {
-  return request<CalendarInitPatch>(
-    `${BASE}/changeAvailabilityUsers`,
-    { method: "POST", body: JSON.stringify(userIds) },
+    `${BASE}/changeAbsenceKinds`,
+    { method: "POST", body: JSON.stringify(kinds) },
     signal
   );
 }

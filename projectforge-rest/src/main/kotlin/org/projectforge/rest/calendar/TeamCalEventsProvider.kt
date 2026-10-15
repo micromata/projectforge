@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
@@ -54,7 +55,7 @@ open class TeamCalEventsProvider() {
   private lateinit var teamEventDao: TeamEventDao
 
   @Autowired
-  private lateinit var vacationProvider: VacationProvider
+  private lateinit var absenceProvider: AbsenceProvider
 
   /**
    * @param teamCalendarIds Null items should only occur on (de)serialization issues.
@@ -198,7 +199,8 @@ open class TeamCalEventsProvider() {
       val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
       val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
-      vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style)
+      // All of them: a team calendar includes the absences (vacations and availability entries) of its people.
+      absenceProvider.addEvents(start, end, events, groupIds, userIds, AbsenceKind.entries.toSet(), settings, style)
     }
   }
 }

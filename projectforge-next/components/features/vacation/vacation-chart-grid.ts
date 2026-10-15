@@ -25,10 +25,17 @@ export const GRID_CELL =
   "[grid-row:var(--chart-row)] [grid-column:var(--chart-col)]";
 
 /**
- * An availability entry on the team calendar: a thin teal line at the bottom of the row, beneath the vacation bars,
- * so both stay visible on the same day (light blue in the Excel export).
+ * An availability entry (reachable, remote, …): a thin teal line at the bottom of the row, beneath the vacation
+ * bars, so both stay visible on the same day (light blue in the Excel export).
  */
 export const AVAILABILITY_BAR_CLASS = "bg-brand-teal";
+
+/**
+ * A not-available entry: away as on vacation, so a bar of the vacations' height, but striped teal to tell it
+ * apart from a vacation (light orange in the Excel export).
+ */
+export const ABSENT_BAR_CLASS =
+  "bg-[repeating-linear-gradient(135deg,var(--color-brand-teal)_0_3px,transparent_3px_6px)] border border-brand-teal";
 
 /**
  * The vacation being edited in the primary colour — red on its days without any substitute on duty — the

@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.Addressbook
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,9 +41,6 @@ class AddressbookEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var addressbookEntityRest: AddressbookEntityRest
-
-    @Autowired
-    private lateinit var userService: UserService
 
     /** A new address book belongs to the logged-in user. */
     @Test

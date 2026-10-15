@@ -119,6 +119,27 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         }
     }
 
+    /**
+     * The entries of the given users overlapping the period, whoever is logged in: for the conflicts of a vacation,
+     * which need its substitutes on duty (see VacationService.getVacationOverlaps), counting the absent ones
+     * ([AvailabilityStatus.absent]). Not to be shown as they are: the caller checks the access.
+     */
+    open fun getEntriesOfUsers(
+        userIds: Collection<Long>,
+        startDate: LocalDate, endDate: LocalDate,
+    ): List<AvailabilityDO> {
+        if (userIds.isEmpty()) {
+            return emptyList()
+        }
+        checkRefresh()
+        val ids = userIds.toSet()
+        return availabilities.filter { availability ->
+            availability.user?.id in ids &&
+                    availability.endDate?.isBefore(startDate) == false &&
+                    availability.startDate?.isAfter(endDate) == false
+        }
+    }
+
     override fun afterInsertOrModify(obj: AvailabilityDO, operationType: OperationType) {
         synchronized(availabilityMap) {
             if (obj.deleted) {

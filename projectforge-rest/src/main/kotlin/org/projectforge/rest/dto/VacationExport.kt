@@ -25,7 +25,6 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.availability.AvailabilityDO
-import org.projectforge.business.availability.label
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import java.time.LocalDate
@@ -108,7 +107,9 @@ class VacationExportRow(
  * An availability entry of the team vacation calendar, cut to the period shown as [VacationExportVacation.of]. Only
  * the public comment: the internal one is for the employee and HR staff, not for the team.
  *
- * @param label The type and status, as the Excel export writes it (e.g. "Workation (Reachable if needed)").
+ * @param label What the entry is called for the logged-in user, as the Excel export writes it
+ * (AvailabilityDao.labelFor: the type, e.g. "Workation (Reachable if needed)", only for the employee and HR staff).
+ * @param absent The employee is away (AvailabilityStatus.absent), as on vacation.
  */
 class VacationExportAvailability(
     val id: Long?,
@@ -116,14 +117,16 @@ class VacationExportAvailability(
     val endDate: LocalDate?,
     val label: String,
     val comment: String?,
+    val absent: Boolean = false,
 ) {
     companion object {
-        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate) = VacationExportAvailability(
+        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate, label: String) = VacationExportAvailability(
             obj.id,
             obj.startDate?.let { maxOf(it, from) },
             obj.endDate?.let { minOf(it, until) },
-            obj.label,
+            label,
             obj.comment?.takeIf { it.isNotBlank() },
+            obj.status?.absent == true,
         )
     }
 }

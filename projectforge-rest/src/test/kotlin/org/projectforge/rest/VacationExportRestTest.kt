@@ -43,6 +43,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -158,8 +159,13 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(LocalDate.of(year, 4, 1), availability.startDate)
         assertEquals(LocalDate.of(year, 4, 10), availability.endDate)
         assertEquals("public", availability.comment)
-        assertTrue(availability.label.startsWith("Workation ("))
+        // A colleague is told the status only, the type may be personal (AvailabilityDao.labelFor).
+        assertEquals(translate("availability.status.reachableIfNeeded"), availability.label)
+        assertFalse(availability.absent)
         assertTrue(vacationExportRest.getInitial().showAvailabilities, "Stored for next time.")
+        logon(colleague.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
+        logon(own.user!!)
 
         // Finance staff may pick everybody, but see availability entries of their own groups only (none here).
         logon(finance.user!!)

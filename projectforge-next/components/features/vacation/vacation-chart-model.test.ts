@@ -91,6 +91,48 @@ describe("buildVacationChart", () => {
     ]);
   });
 
+  it("adds the substitutes' availability entries, a not-available one as absent, also of somebody not chosen", () => {
+    const rows = buildVacationChart(
+      days(11),
+      own,
+      [{ id: 2, displayName: "Two" }],
+      [],
+      [
+        {
+          employee: { id: 2, displayName: "Two" },
+          startDate: "2030-02-05",
+          endDate: "2030-02-06",
+          label: "Not available",
+          absent: true,
+        },
+        {
+          employee: { id: 2, displayName: "Two" },
+          startDate: "2030-02-09",
+          endDate: "2030-03-01",
+          label: "Remotely reachable",
+        },
+        {
+          employee: { id: 4, displayName: "Four" },
+          startDate: "2030-02-01",
+          endDate: "2030-02-01",
+          label: "Not available",
+          absent: true,
+        },
+      ]
+    );
+    expect(rows.map((r) => r.name)).toEqual(["Own", "Two", "Four"]);
+    expect(
+      rows[1].availabilities?.map((a) => [a.first, a.last, a.absent, a.label])
+    ).toEqual([
+      [4, 5, true, "Not available"],
+      [8, 10, false, "Remotely reachable"],
+    ]);
+    expect(rows[1].bars).toEqual([]);
+    expect(rows[2].availabilities).toHaveLength(1);
+    // Without any entry, the row has none.
+    expect(rows[0].availabilities).toBeUndefined();
+  });
+
   it("cuts a vacation off at the edges, without half days there", () => {
     const rows = buildVacationChart(
       days(11),
@@ -211,6 +253,7 @@ describe("teamChartRows with availabilities", () => {
         last: 1,
         label: "Workation (Reachable if needed)",
         comment: "Lisbon",
+        absent: false,
         startDate: "2030-01-20",
         endDate: "2030-02-02",
       },

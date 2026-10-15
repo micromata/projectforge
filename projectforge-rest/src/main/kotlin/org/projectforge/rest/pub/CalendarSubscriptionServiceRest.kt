@@ -30,6 +30,8 @@ import org.projectforge.common.logging.error
 import org.projectforge.rest.core.RestLogEvents
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.neutralLabel
 import org.projectforge.business.teamcal.CalendarHelper
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -68,6 +70,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -97,6 +100,9 @@ class CalendarSubscriptionServiceRest {
 
     @Autowired
     private lateinit var vacationCache: VacationCache
+
+    @Autowired
+    private lateinit var availabilityCache: AvailabilityCache
 
     @GetMapping
     fun exportCalendar(request: HttpServletRequest): ResponseEntity<*> {
@@ -192,6 +198,7 @@ class CalendarSubscriptionServiceRest {
         eventFilter.startDate = eventDateFromLimit.utilDate
         val vacationEvents =
             mutableSetOf<Long>() // For avoiding multiple entries of vacation days. Ids of vacation event.
+        val availabilityEvents = mutableSetOf<Long>() // The same for the availability entries.
         val processedTeamCals = mutableListOf<TeamCalDO>()
         for (teamCalIdString in teamCalIds) {
             val calId = teamCalIdString.toLong()
@@ -230,10 +237,46 @@ class CalendarSubscriptionServiceRest {
                             )
                         }
                     }
+                    addAvailabilities(
+                        generator,
+                        eventDateFromLimit.localDate,
+                        eventDateUntilLimit.localDate,
+                        groupIds,
+                        userIds,
+                        availabilityEvents,
+                    )
                 }
             }
         }
         return processedTeamCals
+    }
+
+    /**
+     * The availability entries of the people of a team calendar (all of them, as the calendar view shows them,
+     * TeamCalEventsProvider) the subscribing user may see, always by their status only: a subscription may be read
+     * by anybody. Each entry once ([seen], by id).
+     */
+    internal fun addAvailabilities(
+        generator: ICalGenerator,
+        from: LocalDate,
+        until: LocalDate,
+        groupIds: Set<Long?>?,
+        userIds: Set<Long?>?,
+        seen: MutableSet<Long>,
+    ) {
+        availabilityCache.getAvailabilityForPeriodAndUsers(from, until, groupIds, userIds).forEach { availability ->
+            val id = availability.id ?: return@forEach
+            val startDate = availability.startDate ?: return@forEach
+            if (seen.add(id)) {
+                val name = userGroupCache.getUser(availability.user?.id)?.getFullname()
+                generator.addAllDayEvent(
+                    startDate,
+                    availability.endDate,
+                    "${availability.neutralLabel}: $name",
+                    "availability-$id",
+                )
+            }
+        }
     }
 
     /**

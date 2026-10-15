@@ -25,6 +25,9 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -42,6 +45,7 @@ import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
@@ -54,6 +58,7 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.rest.dto.VacationChartDay
+import org.projectforge.rest.dto.VacationReplacementAvailability
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UILabelledElement
@@ -106,6 +111,12 @@ class VacationEntityRest :
     @Autowired
     private lateinit var vacationService: VacationService
 
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
     /**
      * What the form shows beside its fields, as it follows the form ([stats]). The same names as in [Vacation],
      * whose fields the client updates with it.
@@ -118,6 +129,7 @@ class VacationEntityRest :
         var vacationDaysLeftAfterThis: BigDecimal? = null,
         var vacationDaysLeftAfterThisString: String? = null,
         var conflictingVacations: List<Vacation>? = null,
+        var replacementAvailabilities: List<VacationReplacementAvailability>? = null,
         var conflict: Boolean? = null,
         var allowedStatus: List<VacationStatus>? = null,
         var chartDays: List<VacationChartDay>? = null,
@@ -425,6 +437,9 @@ class VacationEntityRest :
                 // (VacationDao.afterLoad), and neither the chart nor the table shows them.
                 result.conflictingVacations =
                     vacationOverlaps.otherVacations.map { other -> Vacation(other).also { it.comment = null } }
+                result.replacementAvailabilities = vacationOverlaps.availabilities.mapNotNull {
+                    replacementAvailability(it, user, null, null)
+                }
                 result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
             } else {
                 // The substitutes are posted, so anybody could name anybody: the vacations the user may read anyway
@@ -440,9 +455,24 @@ class VacationEntityRest :
                         reducedConflict(other, maxOf(startDate, visibleFrom), endDate)
                     }
                 }
-                // Before visibleFrom, a day is drawn uncovered only if the readable vacations alone say so.
+                // The same for the substitutes' availability entries (AvailabilityDao.hasUserSelectAccess).
+                val readableAvailabilities =
+                    vacationOverlaps.availabilities.filter { availabilityDao.hasUserSelectAccess(user, it, false) }
+                result.replacementAvailabilities = vacationOverlaps.availabilities.mapNotNull { availability ->
+                    if (readableAvailabilities.contains(availability)) {
+                        replacementAvailability(availability, user, null, null)
+                    } else {
+                        replacementAvailability(availability, user, maxOf(startDate, visibleFrom), endDate)
+                    }
+                }
+                // Before visibleFrom, a day is drawn uncovered only if the readable entries alone say so.
                 val shownUncovered = uncoveredDays.filter { it >= visibleFrom } +
-                        visibleUncoveredDays(vacationDO, uncoveredDays.filter { it < visibleFrom }, readable)
+                        visibleUncoveredDays(
+                            vacationDO,
+                            uncoveredDays.filter { it < visibleFrom },
+                            readable,
+                            readableAvailabilities,
+                        )
                 result.chartDays = chartDays(startDate, endDate, shownUncovered.toSet())
             }
         }
@@ -481,18 +511,59 @@ class VacationEntityRest :
     }
 
     /**
-     * The [uncovered] days (all substitutes away) that the [visible] vacations alone tell: those on which every
-     * substitute has one of them. As [VacationService.getVacationOverlaps] counts, restricted to what is shown.
+     * A substitute's availability entry as the form shows it, called as the user may see it
+     * ([AvailabilityDao.labelFor]). Cut to the days from [from] to [until] if given (an entry the user may not read
+     * otherwise, as [reducedConflict]); null if nothing of it falls in there.
+     */
+    private fun replacementAvailability(
+        availability: AvailabilityDO,
+        user: PFUserDO,
+        from: LocalDate?,
+        until: LocalDate?,
+    ): VacationReplacementAvailability? {
+        val entryStart = availability.startDate ?: return null
+        val entryEnd = availability.endDate ?: return null
+        val start = from?.let { maxOf(entryStart, it) } ?: entryStart
+        val end = until?.let { minOf(entryEnd, it) } ?: entryEnd
+        if (end < start) {
+            return null
+        }
+        return VacationReplacementAvailability(
+            // With its user resolved (EmployeeCache.getEmployee), whose name the minimal copy takes.
+            employee = employeeCache.getEmployee(employeeCache.getEmployeeIdByUserId(availability.user?.id))
+                ?.let { Employee().apply { copyFromMinimal(it) } },
+            startDate = start,
+            startDateFormatted = PFDayUtils.format(start, DateFormatType.DATE),
+            endDate = end,
+            endDateFormatted = PFDayUtils.format(end, DateFormatType.DATE),
+            status = availability.status,
+            statusString = availability.status?.let { translate(it.i18nKey) },
+            label = availabilityDao.labelFor(user, availability),
+            absent = availability.status?.absent == true,
+        )
+    }
+
+    /**
+     * The [uncovered] days (all substitutes away) that the [visible] vacations and absent availability entries
+     * alone tell: those on which every substitute has one of them. As [VacationService.getVacationOverlaps] counts,
+     * restricted to what is shown.
      */
     private fun visibleUncoveredDays(
         vacation: VacationDO,
         uncovered: List<LocalDate>,
         visible: List<VacationDO>,
+        visibleAvailabilities: List<AvailabilityDO>,
     ): List<LocalDate> {
         val replacements = vacationService.collectAllReplacements(vacation)
+        val absent = visibleAvailabilities.filter { it.status?.absent == true }
         return uncovered.filter { date ->
             replacements.all { replacement ->
-                visible.any { it.employee?.id == replacement.id && it.isInBetween(date) }
+                visible.any { it.employee?.id == replacement.id && it.isInBetween(date) } ||
+                        absent.any { availability ->
+                            employeeCache.getEmployeeIdByUserId(availability.user?.id) == replacement.id &&
+                                    availability.startDate?.let { it <= date } == true &&
+                                    availability.endDate?.let { it >= date } == true
+                        }
             }
         }
     }
@@ -524,6 +595,7 @@ class VacationEntityRest :
         dto.vacationDaysLeftAfterThis = stats.vacationDaysLeftAfterThis
         dto.vacationDaysLeftAfterThisString = stats.vacationDaysLeftAfterThisString
         dto.conflictingVacations = stats.conflictingVacations
+        dto.replacementAvailabilities = stats.replacementAvailabilities
         dto.conflict = stats.conflict
         dto.allowedStatus = stats.allowedStatus
         dto.chartDays = stats.chartDays
