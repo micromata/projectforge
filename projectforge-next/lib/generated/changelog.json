@@ -7,7 +7,10 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "changed",
-      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators." ]
+      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators.", {
+        "title" : "Notification rules",
+        "items" : [ "Inactive rules are struck through in the list.", "Deactivating a rule ends its pending notifications: their delayed steps (e.g. the e-mail) are no longer sent.", "\"Trigger now\" is only available for active rules.", "Delivery steps: removing a step no longer changes the delay of the following one (it could become 0, i.e. sent at once).", "\"Send test to me\" states that the test goes out at once through all channels, e-mail too.", "Each rule chooses where the \"Open\" button of its notifications leads: the page of the trigger, any menu entry, or no button at all.", "\"Open\" is a button beside \"Confirm\" instead of a link below the text." ]
+      } ]
     } ]
   },
   "groups" : [ {

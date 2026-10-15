@@ -37,6 +37,8 @@ export function toFormValues(
     display: rule.display ?? "BANNER",
     manualDone: rule.manualDone ?? false,
     menuBadge: rule.menuBadge ?? null,
+    linkMode: rule.linkMode ?? "DEFAULT",
+    linkMenuItem: rule.linkMenuItem ?? null,
     subject: rule.subject ?? "",
     text: rule.text ?? "",
     editableByGroups: rule.editableByGroups ?? [],
