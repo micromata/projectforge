@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "changed",
-      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators." ]
+      "items" : [ "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators.", "Java 21 is required from version 9.1 on: ProjectForge is compiled for Java 21, the executable JAR no longer starts on Java 17. The Docker image already contains Java 21." ]
     } ]
   },
   "groups" : [ {

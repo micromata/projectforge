@@ -19,7 +19,7 @@ link:/docs/installation/[Installation]. The steps below are for developers who w
 
 What you need:
 
-* a JDK 17 or newer, JDK 21 recommended (the code is compiled for Java 17, see
+* a JDK 21 or newer (the code is compiled for Java 21, see
   link:/docs/technologies/[Technologies]),
 * git,
 * Node.js with npm, only for the Next.js dev server (`bin/pfDev.sh dev`); the Gradle build downloads its own
@@ -164,8 +164,8 @@ used as well, and new code is written in Kotlin.
 * Null safety.
 * Full interoperability with the existing Java code.
 
-Java and Kotlin sources are both compiled for Java 17 (`jvmTarget = 17`, see
-`buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 17 or
+Java and Kotlin sources are both compiled for Java 21 (`jvmTarget = 21`, see
+`buildSrc/src/main/kotlin/buildlogic.pf-module-conventions.gradle.kts`); the application runs on Java 21 or
 newer. Micromata runs ProjectForge in production on Java 21, the Docker image is based on Eclipse Temurin 21.
 
 === Entities (BaseDO)

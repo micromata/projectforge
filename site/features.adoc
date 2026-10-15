@@ -159,6 +159,6 @@ image::2026-SystemDashboard.png[System dashboard with the scheduled jobs,link=/u
 [[requirements]]
 == Technical requirements
 
-- Server: Docker image or executable JAR (Java 17 or newer) for Linux, macOS and Windows, see link:/docs/installation/[Installation].
+- Server: Docker image or executable JAR (Java 21 or newer) for Linux, macOS and Windows, see link:/docs/installation/[Installation].
 - Database: PostgreSQL for production, an embedded database for evaluation.
 - Users: a current web browser – nothing to install on the client.

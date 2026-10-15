@@ -34,7 +34,7 @@ Or simply use the fastest way: https://projectforge.org/docs/installation/[Insta
 ====
 
 1. Checkout: `git clone git@github.com:micromata/projectforge.git`
-2. For developing use a JDK 17 or newer (we use Java 21): `java -version`.
+2. For developing use a JDK 21 or newer: `java -version`.
 3. Build ProjectForge:
    `./gradlew build -x test` (or `./gradlew.bat build -x test` on Windows)
 4. Run ProjectForge:
@@ -58,8 +58,8 @@ To configure a different directory you have several options (*choose Your favori
 
 Please note the detailed documentations for administrators, developers as well as for users.
 
-Java 17 or newer is required since ProjectForge 8.0.
-ProjectForge is compiled for Java 17 and runs in production on Java 21 (the Docker image is based on Eclipse Temurin 21).
+Java 21 or newer is required since ProjectForge 9.1 (8.0 to 9.0.x: Java 17 or newer).
+ProjectForge is compiled for Java 21 and runs in production on Java 21 (the Docker image is based on Eclipse Temurin 21).
 
 === Quickstart with IntelliJ
 
