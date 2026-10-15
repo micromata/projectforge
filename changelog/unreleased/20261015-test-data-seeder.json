@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Setup with test data: new, larger sample data (customers, projects, orders, invoices, half a year of time sheets, vacations, calendar, liquidity planning) with dates relative to the day of the setup. The sample users get the admin password. The setup page shows the progress. The default plugins are active right after the setup, without a restart.",
+  "de": "Setup mit Testdaten: neue, umfangreichere Beispieldaten (Kunden, Projekte, Aufträge, Rechnungen, ein halbes Jahr Zeitberichte, Urlaube, Kalender, Liquiditätsplanung) mit Datumswerten relativ zum Tag des Setups. Die Beispielnutzer:innen erhalten das Admin-Passwort. Die Setup-Seite zeigt den Fortschritt an. Die Standard-Plugins sind direkt nach dem Setup aktiv, ohne Neustart."
+}

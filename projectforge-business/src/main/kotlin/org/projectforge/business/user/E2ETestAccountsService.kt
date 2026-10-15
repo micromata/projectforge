@@ -50,8 +50,8 @@ private val log = KotlinLogging.logger {}
  *
  * The suite runs against the **running** system, so it needs real accounts — and one per rights
  * situation, because a rejection is only reachable with a user who lacks the right. Creating those by
- * hand is the step every developer used to have to do (and the passwords of the users in
- * `data/pfTestdata.sql` are of no help: they are hashes of a clear text nobody has).
+ * hand is the step every developer used to have to do (and the sample users of the test data don't cover
+ * these rights situations).
  *
  * Therefore ProjectForge creates them itself, on every start **in development mode only**, and notes
  * the generated passwords in [FILENAME] in ProjectForge's home directory — the file
