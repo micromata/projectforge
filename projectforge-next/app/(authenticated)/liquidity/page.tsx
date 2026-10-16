@@ -36,7 +36,9 @@ export default function LiquidityPage() {
         <TabsContent value="entries" className="flex min-h-0 flex-col">
           <EntityListPage page={LIQUIDITY_PAGE} embedded />
         </TabsContent>
-        <TabsContent value="forecast" className="min-h-0 overflow-auto">
+        {/* min-h-64: on a short viewport the panel overflows <Tabs>, so <main> scrolls to it (see
+            OrderStatistics). */}
+        <TabsContent value="forecast" className="min-h-64 overflow-auto">
           <LiquidityForecastView />
         </TabsContent>
       </Tabs>
