@@ -86,7 +86,7 @@ class TestDataContext(
     /** The company task below the root task. */
     var companyTask: TaskDO? = null
 
-    /** Approved vacations (user name and period): no time sheets on these days. */
+    /** Approved vacations and days not available (user name and period): no time sheets on these days. */
     val absences = mutableListOf<Triple<String, LocalDate, LocalDate>>()
 
     /** Set by [TestDataSeeder] for the running contributor. */

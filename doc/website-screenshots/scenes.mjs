@@ -33,6 +33,11 @@ export default [
       await p.waitForTimeout(2000);
       await fixDayButton(p);
   } },
+  // The team with its vacations and availability entries (seeded selection, VacationExportTestDataContributor).
+  { name: "2026-TeamVacationCalendar", path: "/vacationExport", wait: 3000 },
+  // Alex's vacation is a conflict: the substitute Max isn't available on three of its days.
+  { name: "2026-Vacations", path: "/vacation", wait: 2500 },
+  { name: "2026-Availability", path: "/availability", wait: 2500 },
   { name: "2026-Timesheets", path: "/timesheet", act: removeEmployeeFilter },
   { name: "2026-TaskTree", path: "/taskTree", wait: 2500, act: async (p) => {
       // The tree remembers expanded nodes; expand Bluefin > Fleet Tracking Platform if not open yet.

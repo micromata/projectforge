@@ -432,10 +432,10 @@ class VacationExportRest {
         userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_NAME, VacationExportUserPref())
 
     companion object {
-        private const val USER_PREF_AREA = "vacation"
+        internal const val USER_PREF_AREA = "vacation"
 
         // Not "export": the removed React page stored another class there.
-        private const val USER_PREF_NAME = "teamCalendar"
+        internal const val USER_PREF_NAME = "teamCalendar"
 
         private const val MAX_RESULTS = 30
         private const val MAX_RESULTS_LIMIT = 500

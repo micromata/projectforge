@@ -34,6 +34,7 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -102,7 +103,12 @@ open class UserTestDataContributor : TestDataContributor {
                 groupDao.assignGroupByIds(user, groupIds, null, false)
             }
         }
-        addGroup(ctx, ORGANIZATION, "All employees", USERS.map { it.username })
+        // With the administrator: members of the same group see each other's vacations and availability entries, so
+        // the administrator's calendar, vacation list and team vacation calendar show those of the team.
+        addGroup(
+            ctx, ORGANIZATION, "All employees and the administrator",
+            USERS.map { it.username } + DatabaseService.DEFAULT_ADMIN_USER,
+        )
         addGroup(ctx, "Delivery leads", "Project leads with access to all projects", listOf("laura", "joe"))
     }
 
