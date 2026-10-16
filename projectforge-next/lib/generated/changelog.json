@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.7",
+    "date" : "2026-10-16",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "fixed",
+      "items" : [ "Vacations: managers can approve and reject vacations again; entries stored without half day information were refused with a missing HR right." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

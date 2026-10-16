@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.7",
+    "date" : "2026-10-16",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "fixed",
+      "items" : [ "Urlaube: Manager:innen können Urlaube wieder genehmigen und ablehnen; Einträge, die ohne Angabe zu halben Tagen gespeichert waren, wurden mit fehlendem HR-Recht abgewiesen." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

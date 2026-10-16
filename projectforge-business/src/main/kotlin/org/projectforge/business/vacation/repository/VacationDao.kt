@@ -208,13 +208,17 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         } else true
     }
 
+    /**
+     * The flags are compared as set or not: the half days are nullable columns (null for entries stored without them),
+     * whereas the form posts an unchecked box as false.
+     */
     private fun isTimePeriodAndEmployeeUnchanged(obj: VacationDO, dbObj: VacationDO): Boolean {
         return obj.startDate == dbObj.startDate &&
                 obj.endDate == dbObj.endDate &&
-                obj.special == dbObj.special &&
+                (obj.special == true) == (dbObj.special == true) &&
                 obj.employee?.id == dbObj.employee?.id &&
-                obj.halfDayBegin == dbObj.halfDayBegin &&
-                obj.halfDayEnd == dbObj.halfDayEnd
+                (obj.halfDayBegin == true) == (dbObj.halfDayBegin == true) &&
+                (obj.halfDayEnd == true) == (dbObj.halfDayEnd == true)
     }
 
     /**
