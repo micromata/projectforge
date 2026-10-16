@@ -91,18 +91,16 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
     meta.contributionMargin ? ["contributionMargin"] : []
   );
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    // No min-h-0 on this column and on <Tabs>: their content-based min-height carries the tab panel's
+    // floor (min-h-64) up to <main>, which then scrolls on a viewport too short for header and filter.
+    <div className="flex flex-1 flex-col">
       <div className="px-4 pt-2">
         <OrderStatisticsFilterBar
           elements={meta.filterElements}
           state={state}
         />
       </div>
-      <Tabs
-        value={tab}
-        onValueChange={setTab}
-        className="flex min-h-0 flex-1 flex-col"
-      >
+      <Tabs value={tab} onValueChange={setTab} className="flex flex-1 flex-col">
         <TabsList className="mx-4 mt-2 w-fit shrink-0">
           <TabsTrigger value="forecast">{t("forecast._")}</TabsTrigger>
           {meta.contributionMargin && (
@@ -111,7 +109,9 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
             </TabsTrigger>
           )}
         </TabsList>
-        <TabsContent value="forecast" className="min-h-0 overflow-auto">
+        {/* min-h-64 instead of min-h-0: the panel still shrinks below its content to scroll on its own,
+            but not below 16rem, so on a short viewport (phone landscape) the charts stay reachable. */}
+        <TabsContent value="forecast" className="min-h-64 overflow-auto">
           <OrderForecastChartsView
             filter={state.filter}
             planningDateHint={meta.planningDateHint}
@@ -120,7 +120,7 @@ function OrderStatistics({ meta }: { meta: OrderStatisticsMeta }) {
         {meta.contributionMargin && (
           <TabsContent
             value="contributionMargin"
-            className="min-h-0 overflow-auto"
+            className="min-h-64 overflow-auto"
           >
             <OrderContributionMarginView filter={state.filter} />
           </TabsContent>
