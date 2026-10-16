@@ -421,7 +421,10 @@
       "heading": "Availability",
       "list": "Availability list"
     },
-    "type": "Type",
+    "type": {
+      "_": "Type",
+      "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
+    },
     "user": "Person"
   },
   "back": "Back",

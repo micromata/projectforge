@@ -421,7 +421,10 @@
       "heading": "Verfügbarkeit",
       "list": "Verfügbarkeitsliste"
     },
-    "type": "Typ",
+    "type": {
+      "_": "Typ",
+      "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar, alle anderen sehen nur den Status."
+    },
     "user": "Person"
   },
   "back": "Zurück",

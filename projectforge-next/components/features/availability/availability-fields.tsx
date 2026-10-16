@@ -31,8 +31,12 @@ export function AvailabilityUserField({ className }: { className?: string }) {
   );
 }
 
-/** The type, one of the configured ones (`projectforge.availability.types`, `Availability.availableTypes`). */
+/**
+ * The type, one of the configured ones (`projectforge.availability.types`, `Availability.availableTypes`). Personal
+ * data like the internal comment (AvailabilityDao.afterLoad), as the hint tells.
+ */
 export function AvailabilityTypeField({ className }: { className?: string }) {
+  const t = useTranslations();
   const label = useFieldLabels(AVAILABILITY_METADATA);
   const data = useEntityData<AvailabilityDetail>();
   const readOnly = useFormReadOnly();
@@ -40,6 +44,7 @@ export function AvailabilityTypeField({ className }: { className?: string }) {
     <SelectField
       name="type"
       label={label("type")}
+      hint={t("availability.type.tooltip")}
       disabled={readOnly}
       clearable
       className={className}

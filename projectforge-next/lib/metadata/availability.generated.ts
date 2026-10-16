@@ -95,6 +95,7 @@ export const AVAILABILITY_METADATA = {
       i18nKey: "availability.type",
       required: false,
       maxLength: 100,
+      tooltipI18nKey: "availability.type.tooltip",
     },
     user: {
       dataType: "USER",

@@ -80,7 +80,7 @@ open class AvailabilityDO : DefaultBaseDO() {
      * Personal data like the internal comment (e.g. sickness): only visible to the user and to HR staff, see
      * [AvailabilityDao.afterLoad]. Not indexed, so the full text search doesn't reveal it to others.
      */
-    @PropertyInfo(i18nKey = "availability.type")
+    @PropertyInfo(i18nKey = "availability.type", tooltip = "availability.type.tooltip")
     @get:Column(name = "type", length = 100)
     open var type: String? = null
 
