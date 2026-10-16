@@ -188,7 +188,10 @@
       },
       "inputLabel": "E-Mail-Signatur oder Kontaktdaten einfügen:",
       "inputPlaceholder": "Adresstext hier einfügen...\n\nBeispiel:\nDr. Merle Musterfrau\nSenior Managerin\nBeispiel GmbH\nMusterstraße 1-5\n12345 Musterstadt\nTel: +49 30 12345678\nm.musterfrau@example.com",
-      "remapTo": "Zuordnen zu:"
+      "remapTo": "Zuordnen zu:",
+      "warning": {
+        "nameDifferent": "Name weicht von aktueller Adresse ab"
+      }
     },
     "phone": "Telefon",
     "phoneCall": {

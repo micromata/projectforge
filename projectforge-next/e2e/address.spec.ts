@@ -79,7 +79,9 @@ test.describe("address", { tag: "@lane-address" }, () => {
     ).toHaveValue("Mustermann");
   });
 
-  test("posts a new address on save", async ({ loggedInPage: page }) => {
+  test("posts a new address of an organization only on save", async ({
+    loggedInPage: page,
+  }) => {
     const format = await userFormat(page);
     let saveAttempted = false;
     await page.route("**/rs/address/saveorupdate*", (route) => {
@@ -88,9 +90,10 @@ test.describe("address", { tag: "@lane-address" }, () => {
     });
 
     await goto(page, "/address/new");
+    // No name: name, first name or organization will do (AddressSaveSupport.validate).
     await page
-      .getByRole("textbox", { name: label(format, "name"), exact: true })
-      .fill("e2e address");
+      .getByLabel(label(format, "organization"), { exact: true })
+      .fill("e2e organization");
     // The form of address is mandatory (AddressDO).
     await page
       .getByRole("combobox", { name: label(format, "address.form") })

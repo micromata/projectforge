@@ -136,13 +136,14 @@ class AddressSaveSupport {
             log.warn { "Import storage not found in session (expired?), importIndex=$importIndex." }
             return
         }
-        storage.reconcileImportStorage()
-        val entry = storage.getImportEntryByIndex(importIndex)
-        if (entry != null) {
-            entry.status = ImportEntry.Status.IMPORTED
-        } else {
+        // The entry is identified by its vCard entry: reconciling sorts the entries anew, the index may move.
+        val read = storage.getImportEntryByIndex(importIndex)?.read
+        if (read == null) {
             log.warn { "Import entry $importIndex not found, can't mark it as imported." }
+            return
         }
+        storage.reconcileImportStorage()
+        storage.pairEntries.find { it.read === read }?.status = ImportEntry.Status.IMPORTED
         AddressImportSupport.storeStorage(request, storage)
     }
 }

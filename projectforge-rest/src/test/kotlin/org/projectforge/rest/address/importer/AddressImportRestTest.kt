@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.rest.AddressSaveSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
@@ -37,6 +38,9 @@ import org.springframework.mock.web.MockMultipartFile
 class AddressImportRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var addressImportRest: AddressImportRest
+
+    @Autowired
+    private lateinit var addressSaveSupport: AddressSaveSupport
 
     @Test
     fun `an uploaded vcf file is matched against the database and kept in the session`() {
@@ -75,7 +79,37 @@ class AddressImportRestTest : AbstractTestBase() {
         assertTrue((response.body as Map<String, String>)["error"]!!.isNotBlank())
     }
 
+    @Test
+    fun `a saved entry is marked as imported by its vcard, also after reconciling anew`() {
+        logon(TEST_USER)
+        val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+        addressImportRest.upload(request, MockMultipartFile("file", "two.vcf", "text/vcard", TWO_VCARDS.toByteArray()))
+        val entries = addressImportRest.getState(request).entries
+        val index = entries.single { it.read?.name == "Zeta-AddressImportRestTest" }.id
+
+        addressSaveSupport.reconcileImport(request, index)
+        addressSaveSupport.reconcileImport(request, null) // No import entry: nothing happens.
+        AddressImportSupport.getStorage(request)!!.reconcileImportStorage()
+
+        val statuses = addressImportRest.getState(request).entries.associate { it.read?.name to it.status }
+        assertEquals("IMPORTED", statuses["Zeta-AddressImportRestTest"])
+        assertEquals("NEW", statuses["Alpha-AddressImportRestTest"])
+    }
+
     companion object {
+        private val TWO_VCARDS = """
+            BEGIN:VCARD
+            VERSION:3.0
+            N:Zeta-AddressImportRestTest;Zoe;;;
+            FN:Zoe Zeta-AddressImportRestTest
+            END:VCARD
+            BEGIN:VCARD
+            VERSION:3.0
+            N:Alpha-AddressImportRestTest;Anna;;;
+            FN:Anna Alpha-AddressImportRestTest
+            END:VCARD
+        """.trimIndent()
+
         private val VCARD = """
             BEGIN:VCARD
             VERSION:3.0

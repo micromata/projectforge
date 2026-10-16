@@ -14,11 +14,14 @@ import { AddressOfferRow } from "./address-offer-row";
 import {
   ADDRESS_BLOCKS,
   blockOf,
+  currentValueOf,
   EMAIL_FIELDS,
+  isNameMismatch,
   isEmailField,
   isPhoneField,
   PHONE_FIELDS,
   type AddressBlock,
+  type FormValues,
   type OfferedFields,
 } from "./text-parser-model";
 
@@ -30,10 +33,14 @@ interface Props {
   onFieldMapping: (field: string, target: string) => void;
   blockMappings: Partial<Record<AddressBlock, AddressBlock>>;
   onBlockMapping: (block: AddressBlock, target: AddressBlock) => void;
+  /** The current values of the form, which the offers are shown against. */
+  values: FormValues;
+  /** The form is one of a stored address: an offered name differing from its name is marked. */
+  existing: boolean;
 }
 
 /**
- * The offered fields of the text parser, each with a box to tick it and the value it would replace. A phone
+ * The offered fields of the text parser, each with a box to tick it and the value of the form it would replace. A phone
  * number or an e-mail may be moved to another kind (a mobile number the text called "phone"), an address block
  * as a whole to another block (a business address that is the postal one).
  */
@@ -45,9 +52,24 @@ export function AddressFieldSelector({
   onFieldMapping,
   blockMappings,
   onBlockMapping,
+  values,
+  existing,
 }: Props) {
   const t = useTranslations();
   const labelOf = useOfferLabels();
+  const compared = (field: string, offer: OfferedFields[string]) => {
+    const current = currentValueOf(
+      field,
+      offer,
+      values,
+      fieldMappings,
+      blockMappings
+    );
+    return {
+      current,
+      nameMismatch: isNameMismatch(field, offer, current, existing),
+    };
+  };
   const entries = Object.entries(offered);
   const single = entries.filter(([field]) => blockOf(field) === null);
 
@@ -65,6 +87,7 @@ export function AddressFieldSelector({
               key={field}
               field={field}
               offer={offer}
+              {...compared(field, offer)}
               checked={selection[field] === true}
               onToggle={() => onToggle(field)}
               label={
@@ -129,6 +152,7 @@ export function AddressFieldSelector({
                   key={field}
                   field={field}
                   offer={offer}
+                  {...compared(field, offer)}
                   checked={selection[field] === true}
                   onToggle={() => onToggle(field)}
                   label={labelOf(field)}

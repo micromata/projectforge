@@ -10,7 +10,20 @@ import { fromMetadata } from "@/lib/validation/from-metadata";
  * messaging): a save posts these values *as* the DTO, so a field left out here would reach `Address.copyTo` as
  * null and overwrite the stored one — the uid is what CardDAV clients know an address by.
  */
-const m = fromMetadata(ADDRESS_METADATA);
+/**
+ * The metadata the form renders and validates against: AddressDO marks the name as required, but name, first name
+ * or organization will do (AddressSaveSupport.validate, as the React form had it), so the form must not insist on
+ * the name.
+ */
+export const ADDRESS_FORM_METADATA = {
+  ...ADDRESS_METADATA,
+  fields: {
+    ...ADDRESS_METADATA.fields,
+    name: { ...ADDRESS_METADATA.fields.name, required: false },
+  },
+};
+
+const m = fromMetadata(ADDRESS_FORM_METADATA);
 
 const addressbookRef = z.looseObject({
   id: z.number(),
@@ -25,7 +38,7 @@ export const addressSchema = z.object({
   contactStatus: m.enumField("contactStatus"),
   addressbookList: z.array(addressbookRef),
   isFavoriteCard: z.boolean(),
-  name: m.requiredString("name"),
+  name: m.nullableString("name"),
   firstName: m.nullableString("firstName"),
   birthName: m.nullableString("birthName"),
   form: m.enumField("form"),

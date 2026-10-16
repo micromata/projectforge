@@ -94,7 +94,7 @@ class AddressImportRest {
      * Parses the uploaded VCF file, matches its vCards against the database and keeps the result in the session.
      * A refusal (empty file, wrong type, nothing parsed) is a 400 carrying `{ error }`.
      */
-    @AccessChecked("insert access to addresses (checkRight); matching reads the addresses the user may see")
+    @AccessChecked("insert access to addresses (checkRight); matching reads only the addresses the user may see (selectAll with checkAccess)")
     @PostMapping("upload")
     fun upload(request: HttpServletRequest, @RequestParam("file") file: MultipartFile): ResponseEntity<*> {
         checkRight()

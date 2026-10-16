@@ -23,8 +23,11 @@ export function AddressEditIntro() {
     queryKey: addressImportEntryQueryKey(importIndex ?? -1),
     queryFn: ({ signal }) => fetchAddressImportEntry(importIndex!, signal),
     enabled: importIndex !== null,
-    // The vCard of the entry stays what it is; its comparison is read once per visit of the form.
+    // The vCard of the entry stays what it is; its comparison is read once per visit of the form. Read anew on
+    // every visit though (dropped from the cache on leaving): reading it stages the entry's image in the session,
+    // whose single slot another entry may have taken meanwhile — and a new upload replaces the entries.
     staleTime: Infinity,
+    gcTime: 0,
     retry: false,
   });
   return (

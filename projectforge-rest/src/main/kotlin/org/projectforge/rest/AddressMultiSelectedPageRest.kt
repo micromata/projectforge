@@ -70,8 +70,17 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
 
     /**
      * The layout-free field set for projectforge-next, which renders the form itself. The communication language
-     * offers the languages already in use (as the address form does).
+     * offers the languages already in use first, then all others (the React form searched them via `acLang`).
      */
+    private fun languageValues(): List<UISelectValue<String>> {
+        val used = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) }
+        val usedIds = used.map { it.id }.toSet()
+        val others = addressServicesRest.getLanguages(null)
+            .filter { it.id.isNotBlank() && it.id !in usedIds }
+            .map { UISelectValue(it.id, it.displayName) }
+        return used + others
+    }
+
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         return listOf(
             MassUpdateFieldDeclaration("addressStatus", showDeleteOption = false),
@@ -79,7 +88,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
             MassUpdateFieldDeclaration(
                 "communicationLanguage",
                 showDeleteOption = true,
-                values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
+                values = languageValues(),
             ),
             MassUpdateFieldDeclaration("organization", showDeleteOption = true, showReplaceOption = false),
             MassUpdateFieldDeclaration("division", showDeleteOption = true, showReplaceOption = false),
@@ -141,7 +150,8 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
                     address.communicationLanguage = null
                 } else {
                     param.textValue?.let { textValue ->
-                        address.communicationLanguage = Locale.forLanguageTag(textValue)
+                        // The values are Locale.toString() ("de_DE"), which forLanguageTag reads with a hyphen only.
+                        address.communicationLanguage = Locale.forLanguageTag(textValue.replace('_', '-'))
                     }
                 }
             }

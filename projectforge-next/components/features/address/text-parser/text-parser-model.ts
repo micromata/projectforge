@@ -124,21 +124,31 @@ export function fieldsFromComparison(
       vcf === current ||
       (field === "communicationLanguage" && vcf === normalized(pair.db));
     if (!unchanged) {
-      result[field] = { value: vcf, confidence: "high", currentValue: current };
+      result[field] = {
+        value: vcf,
+        confidence: "high",
+        // The language as the vCard names it, see above; every other field is compared with the form.
+        currentValue:
+          field === "communicationLanguage" ? normalized(pair.db) : current,
+      };
     }
   }
   return result;
 }
 
-/** Every offered field starts ticked, except a name the form has one of already. */
+/**
+ * Every offered field starts ticked, except a name the form has one of already and a field the vCard leaves blank:
+ * emptying a field takes a tick of its own (the React form never emptied one).
+ */
 export function initialSelection(
   offered: OfferedFields,
   values: FormValues
 ): Record<string, boolean> {
   return Object.fromEntries(
-    Object.keys(offered).map((field) => [
+    Object.entries(offered).map(([field, offer]) => [
       field,
-      !(NAME_FIELDS.includes(field) && hasValue(values, field)),
+      normalized(offer.value) !== "" &&
+        !(NAME_FIELDS.includes(field) && hasValue(values, field)),
     ])
   );
 }
@@ -170,6 +180,40 @@ export function targetOf(
     return blockField(baseFieldOf(field), blockMappings[block] ?? block);
   }
   return fieldMappings[field] ?? field;
+}
+
+/**
+ * The value an offered field would replace: the form's value of the field it lands in — so moving a phone number
+ * to another kind or a block to another one shows what is there. Only the language comes with the offer, named
+ * as the offer names it (the form holds the locale, `de_DE`).
+ */
+export function currentValueOf(
+  field: string,
+  offer: ParsedAddressField,
+  values: FormValues,
+  fieldMappings: Record<string, string>,
+  blockMappings: Partial<Record<AddressBlock, AddressBlock>>
+): string {
+  if (field === "communicationLanguage") return normalized(offer.currentValue);
+  return normalized(values[targetOf(field, fieldMappings, blockMappings)]);
+}
+
+/**
+ * Whether an offered name differs from the one of a stored address: the text or vCard may be about somebody
+ * else, which the row warns about (as the React form did).
+ */
+export function isNameMismatch(
+  field: string,
+  offer: ParsedAddressField,
+  current: string,
+  existing: boolean
+): boolean {
+  return (
+    existing &&
+    NAME_FIELDS.includes(field) &&
+    current !== "" &&
+    current !== normalized(offer.value)
+  );
 }
 
 /** The ticked fields by the field they land in, with their values (blank for a field to be emptied). */

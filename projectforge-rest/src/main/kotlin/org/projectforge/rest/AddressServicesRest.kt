@@ -37,6 +37,7 @@ import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.LocaleUtils
@@ -568,12 +569,21 @@ class AddressServicesRest {
     }
 
     /**
-     * Helper function to parse Locale from language tag string.
-     * Uses LocaleUtils.parse() which handles language tags (e.g., "de", "en-US").
-     * Returns null if parsing fails.
+     * Helper function to parse Locale from a language tag ("de", "en-US"), its `toString` form ("de_DE", as a
+     * dropped vCard posts it) or its display name ("Deutsch (Deutschland)", as the comparison of a VCF import
+     * shows it, see AddressImportSupport). Returns null if parsing fails.
      */
     private fun tryParseLocale(value: String?): Locale? {
-        return LocaleUtils.parse(value)
+        if (value.isNullOrBlank()) return null
+        val trimmed = value.trim()
+        val displayLocales = listOf(Locale.getDefault(), ThreadLocalUserContext.locale, Locale.ENGLISH).distinct()
+        Locale.getAvailableLocales().find { locale ->
+            locale.language.isNotEmpty() && displayLocales.any { locale.getDisplayName(it).equals(trimmed, ignoreCase = true) }
+        }?.let { return it }
+        if (!trimmed.matches(Regex("[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})*"))) {
+            return null
+        }
+        return LocaleUtils.parse(trimmed.replace('_', '-'))
     }
 }
 

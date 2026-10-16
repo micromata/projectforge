@@ -35,7 +35,7 @@ export function AddressView({ id }: { id: number }) {
   const access = useReadAccessGuard("address", query.error);
   const returnTo = useSearchParams().get("returnTo");
   const back =
-    returnTo && RETURN_TARGETS[returnTo]
+    returnTo && Object.hasOwn(RETURN_TARGETS, returnTo)
       ? { route: returnTo, labelKey: RETURN_TARGETS[returnTo] }
       : { route: ADDRESS_ROUTE, labelKey: "address.title.list" };
   const view = query.data;

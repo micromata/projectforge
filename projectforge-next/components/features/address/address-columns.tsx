@@ -1,7 +1,7 @@
 "use client";
 
 import { useListMeta } from "@/hooks/use-list-meta";
-import type { ADDRESS_METADATA } from "@/lib/metadata/address.generated";
+import type { ADDRESS_FORM_METADATA } from "./address-schema";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
 import { addressImageUrl } from "@/lib/rs/address";
 import { AddressFavoriteToggle } from "./address-favorite-toggle";
@@ -14,7 +14,7 @@ import type { AddressListRow } from "./types";
  */
 export const ADDRESS_COLUMNS: ColumnDeclaration<
   AddressListRow,
-  typeof ADDRESS_METADATA
+  typeof ADDRESS_FORM_METADATA
 >[] = [
   {
     id: "isFavoriteCard",

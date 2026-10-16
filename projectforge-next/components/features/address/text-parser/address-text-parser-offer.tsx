@@ -1,10 +1,13 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormAlert } from "@/components/shared/form-alert";
+import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { AddressFieldSelector } from "./address-field-selector";
+import type { FormValues } from "./text-parser-model";
 import type { useAddressTextParser } from "./use-address-text-parser";
 
 type Parser = ReturnType<typeof useAddressTextParser>;
@@ -21,6 +24,12 @@ export function AddressTextParserOffer({
   onDiscard: () => void;
 }) {
   const t = useTranslations();
+  const form = useEntityEditForm();
+  // Live: the rows show what a field holds now, also after the user edited it with the offer open.
+  const values = useStore(
+    form.store,
+    (s: unknown) => (s as { values: FormValues }).values
+  );
   const offered = parser.offered ?? {};
   const empty = Object.keys(offered).length === 0 && !parser.image;
   return (
@@ -69,6 +78,8 @@ export function AddressTextParserOffer({
             onFieldMapping={parser.setFieldMapping}
             blockMappings={parser.blockMappings}
             onBlockMapping={parser.setBlockMapping}
+            values={values}
+            existing={values.id != null}
           />
           {parser.image && (
             <div className="flex items-center gap-3">

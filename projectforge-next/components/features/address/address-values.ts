@@ -48,7 +48,7 @@ export type AddressTextField = (typeof ADDRESS_TEXT_FIELDS)[number];
 /**
  * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`, see types.ts) arrives as `undefined`;
  * every value is normalised here, so no field ever holds `undefined` — which a controlled input would read as
- * "uncontrolled" and the schema as a missing value. The name is the one mandatory text and stays a string.
+ * "uncontrolled" and the schema as a missing value.
  */
 export function toFormValues(address: AddressDetail): AddressValues {
   const texts = Object.fromEntries(
@@ -56,7 +56,6 @@ export function toFormValues(address: AddressDetail): AddressValues {
   ) as Record<AddressTextField, string | null>;
   return {
     ...texts,
-    name: address.name ?? "",
     id: address.id ?? null,
     uid: address.uid ?? null,
     addressStatus: (address.addressStatus ??

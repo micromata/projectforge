@@ -1,5 +1,5 @@
-import { ADDRESS_METADATA } from "@/lib/metadata/address.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { ADDRESS_IMPORT_QUERY_KEY } from "@/lib/rs/address-import";
 import { AddressAddressbooksField } from "./address-addressbooks-field";
 import { ADDRESS_COLUMNS } from "./address-columns";
 import { AddressEditIntro } from "./address-edit-intro";
@@ -10,6 +10,7 @@ import { AddressListActions } from "./address-list-actions";
 import { AddressViewDialog } from "./address-view-dialog";
 import { ADDRESS_LIST_QUERY_KEY, ADDRESS_ROUTE } from "./address-routes";
 import {
+  ADDRESS_FORM_METADATA,
   addressSchema,
   ADDRESS_FIELDS,
   type AddressValues,
@@ -40,10 +41,10 @@ export const ADDRESS_PAGE = definePage<
   AddressListRow,
   AddressValues,
   AddressDetail,
-  typeof ADDRESS_METADATA
+  typeof ADDRESS_FORM_METADATA
 >({
   entity: "address",
-  metadata: ADDRESS_METADATA,
+  metadata: ADDRESS_FORM_METADATA,
   route: ADDRESS_ROUTE,
   queryKey: ADDRESS_LIST_QUERY_KEY,
   // Common > Addresses (MenuCreator, ADDRESS_LIST).
@@ -58,6 +59,9 @@ export const ADDRESS_PAGE = definePage<
   listActions: AddressListActions,
   gearMenuActions: AddressGearMenuActions,
   massUpdate: { endpoint: "addressSelected", route: "/address/mass-update" },
+  // A save from the form of an import entry marks it as imported (AddressSaveSupport.reconcileImport): the
+  // import page, which the form returns to, must read its state anew.
+  extraInvalidateKeys: [ADDRESS_IMPORT_QUERY_KEY],
   edit: {
     schema: addressSchema,
     fieldNames: ADDRESS_FIELDS,
@@ -141,7 +145,6 @@ export const ADDRESS_PAGE = definePage<
       {
         id: "postalAddress",
         titleKey: "address.heading.postalAddress",
-        collapsed: true,
         fields: [
           { custom: PostalAddressTextField },
           { custom: PostalAddressText2Field },
@@ -154,7 +157,6 @@ export const ADDRESS_PAGE = definePage<
       {
         id: "privateAddress",
         titleKey: "address.heading.privateAddress",
-        collapsed: true,
         fields: [
           { custom: PrivateAddressTextField },
           { custom: PrivateAddressText2Field },
@@ -172,7 +174,6 @@ export const ADDRESS_PAGE = definePage<
       {
         id: "publicKey",
         titleKey: "address.publicKey",
-        collapsed: true,
         fields: [
           { name: "fingerprint", span: 3 },
           { name: "publicKey", span: 3, rows: 6 },

@@ -188,7 +188,10 @@
       },
       "inputLabel": "Paste email signature or contact information:",
       "inputPlaceholder": "Paste address text here...\n\nExample:\nDr. Merle Musterfrau\nSenior Manager\nExample GmbH\nMusterstraße 1-5\n12345 Musterstadt\nTel: +49 30 12345678\nm.musterfrau@example.com",
-      "remapTo": "Map to:"
+      "remapTo": "Map to:",
+      "warning": {
+        "nameDifferent": "Name differs from current address"
+      }
     },
     "phone": "Phone",
     "phoneCall": {

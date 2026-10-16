@@ -15,6 +15,10 @@ interface Props {
   onToggle: () => void;
   /** The field's name, or a select moving it to another field. */
   label: ReactNode;
+  /** The value the offer would replace (see currentValueOf). */
+  current: string;
+  /** The offer is a name other than the stored address's, see isNameMismatch. */
+  nameMismatch?: boolean;
 }
 
 const CONFIDENCE_CLASS: Record<string, string> = {
@@ -26,7 +30,8 @@ const CONFIDENCE_CLASS: Record<string, string> = {
 /**
  * One offered field: the box to tick it, its name, and its value — next to the one it replaces, struck through,
  * where the form has another (the old → new of the import diff). A blank value empties the field. The confidence
- * of the text parser, if any, follows as a badge.
+ * of the text parser, if any, follows as a badge; a name differing from the stored address's is marked, the text
+ * may be about somebody else.
  */
 export function AddressOfferRow({
   field,
@@ -34,13 +39,20 @@ export function AddressOfferRow({
   checked,
   onToggle,
   label,
+  current,
+  nameMismatch,
 }: Props) {
   const t = useTranslations();
   const id = `address-offer-${field}`;
-  const current = offer.currentValue?.trim();
   const confidence = offer.confidence?.toLowerCase();
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+    <li
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-1 text-sm",
+        nameMismatch &&
+          "rounded-md border border-warning/50 bg-warning/10 px-2 py-1"
+      )}
+    >
       <Checkbox
         id={id}
         checked={checked}
@@ -68,6 +80,11 @@ export function AddressOfferRow({
         >
           {offer.value || "—"}
         </span>
+        {nameMismatch && (
+          <Badge className="bg-warning/15 text-warning">
+            {t("address.parseText.warning.nameDifferent")}
+          </Badge>
+        )}
         {confidence && CONFIDENCE_CLASS[confidence] && (
           <HintTooltip text={confidenceText(t, confidence)} openOnTap>
             <Badge className={CONFIDENCE_CLASS[confidence]}>{confidence}</Badge>

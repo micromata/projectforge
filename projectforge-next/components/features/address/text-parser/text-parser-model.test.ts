@@ -4,9 +4,11 @@ import {
   blockField,
   blockOf,
   changedFields,
+  currentValueOf,
   fieldsFromComparison,
   fieldsToApply,
   initialSelection,
+  isNameMismatch,
   selectAll,
   targetOf,
 } from "./text-parser-model";
@@ -67,6 +69,65 @@ describe("offers", () => {
     );
     expect(Object.keys(offered).sort()).toEqual(["city", "email"]);
     expect(offered.email.value).toBe("");
+    // A removal is offered, but not ticked in advance.
+    expect(initialSelection(offered, {})).toEqual({ city: true, email: false });
+  });
+
+  it("names the language as the vCard does, compared with the stored one", () => {
+    const offered = fieldsFromComparison(
+      { communicationLanguage: { vcf: "English", db: "German" } },
+      { communicationLanguage: "de" }
+    );
+    expect(offered.communicationLanguage.currentValue).toBe("German");
+  });
+
+  it("shows the value of the field an offer lands in", () => {
+    const values = {
+      businessPhone: "1",
+      mobilePhone: "2",
+      city: "Kassel",
+      privateCity: "Berlin",
+    };
+    const phone = { value: "3" };
+    expect(currentValueOf("businessPhone", phone, values, {}, {})).toBe("1");
+    expect(
+      currentValueOf(
+        "businessPhone",
+        phone,
+        values,
+        { businessPhone: "mobilePhone" },
+        {}
+      )
+    ).toBe("2");
+    expect(
+      currentValueOf(
+        "city",
+        { value: "Bonn" },
+        values,
+        {},
+        { business: "private" }
+      )
+    ).toBe("Berlin");
+    expect(
+      currentValueOf(
+        "communicationLanguage",
+        { value: "English", currentValue: "German" },
+        { communicationLanguage: "de" },
+        {},
+        {}
+      )
+    ).toBe("German");
+  });
+
+  it("warns about a name differing from the one of a stored address", () => {
+    const offer = { value: "Other" };
+    expect(isNameMismatch("name", offer, "Muster", true)).toBe(true);
+    expect(isNameMismatch("name", offer, "Muster", false)).toBe(false);
+    expect(isNameMismatch("name", offer, "", true)).toBe(false);
+    expect(isNameMismatch("name", { value: "Muster" }, "Muster", true)).toBe(
+      false
+    );
+    expect(isNameMismatch("city", offer, "Kassel", true)).toBe(false);
   });
 
   it("ticks everything but a name the form has already", () => {
