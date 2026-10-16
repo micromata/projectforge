@@ -49,6 +49,9 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
 ) {
     override val autoCompleteSearchFields = arrayOf("name", "iban", "bic", "bank", "description")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("name")
+
     override fun newBaseDTO(request: HttpServletRequest?): BankAccount {
         val account = super.newBaseDTO(request)
         User.getUser(ThreadLocalUserContext.loggedInUserId)?.let {

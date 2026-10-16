@@ -403,6 +403,9 @@ class EmployeePagesRest :
 
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("user.username", "user.firstname", "user.lastname")
+
     override fun queryAutocompleteObjects(
         request: HttpServletRequest,
         filter: BaseSearchFilter

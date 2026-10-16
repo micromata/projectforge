@@ -243,6 +243,9 @@ class AddressEntityRest : AbstractDTOEntityRest<AddressDO, Address, AddressDao>(
 
     override val autoCompleteSearchFields = arrayOf("name", "firstName", "organization", "city", "privateCity")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("name", "firstName")
+
     override fun addVariablesForListPage(): Map<String, Any> {
         return mapOf(
             "phoneCallEnabled" to sipgateConfiguration.isConfigured(),

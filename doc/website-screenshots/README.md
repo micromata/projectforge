@@ -1,10 +1,11 @@
 # Website screenshots
 
-Scripts for the screenshots of www.projectforge.org (`site/uploads/screenshots/2026-*.png`). They fill a dev
-instance with fictional sample data (company "Example Consulting", customers such as "Alpine Insurance AG",
-user "Laura Becker") and take the pictures with Playwright. No real customer or personal data is used.
+Scripts for the screenshots of www.projectforge.org (`site/uploads/screenshots/2026-*.png`). The pictures show
+the fictional sample data of a test system (company "Example Consulting", customers such as "Alpine Insurance
+AG", user "Laura Becker"), taken with Playwright. No real customer or personal data is used.
 
-The data was designed for 2026-10-13; the scripts shift all dates relative to today, so the pictures stay current.
+The sample data is created by the setup option "with test data" (`TestDataSeeder` in projectforge-business). It
+was designed for 2026-10-13; all dates are shifted relative to the day of the setup, so the pictures stay current.
 
 ## Prerequisites
 
@@ -14,22 +15,16 @@ The data was designed for 2026-10-13; the scripts shift all dates relative to to
 
 ## Steps
 
-1. Fresh instance with test data:
+1. Fresh instance with test data. The sample users get the admin password; the scripts log in as
+   `laura` / `Screenshots-2026!` (other credentials: `PF_USER`, `PF_PASSWORD`):
    ```
-   bin/pfDev.sh setup 5
+   bin/pfDev.sh setup 5 'Screenshots-2026!'
    bin/pfDev.sh run 5
    ```
-2. Seed with the full-access E2E account (the screenshot user doesn't exist yet), credentials from
-   `~/ProjectForge-5/testAccounts.txt`:
+2. Hide the plugins the pictures don't show (memo, to-do, ...); the change is applied on the next start:
    ```
    cd doc/website-screenshots
-   PF_USER=e2e-full-access PF_PASSWORD=… node run-script.mjs seed/01-users-customers-projects.kts
-   ```
-   From now on the default user `laura` / `Screenshots-2026!` is used:
-   ```
-   node run-script.mjs seed/02-plugins.kts
-   node run-script.mjs seed/03-vacations-timesheets.kts      # some minutes: ~700 time sheets
-   node run-script.mjs seed/04-orders-invoices.kts
+   node run-script.mjs menu-plugins.kts
    ```
 3. Stop the instance (`bin/pfDev.sh stop 5`) and prepare its home for the pictures:
    - append to `~/ProjectForge-5/projectforge.properties`:
@@ -47,14 +42,8 @@ The data was designed for 2026-10-13; the scripts shift all dates relative to to
      A later `emailEnabled=false` in the file wins, remove it.)
    - move customer specific texts away, if the home was copied from a productive one:
      `mv ~/ProjectForge-5/resources/CustomerI18nResources*.properties ~/ProjectForge-5/resources-disabled/`
-4. Start it again (`bin/pfDev.sh run 5`). The restart activates the plugin changes of step 2 and runs the plugin
-   migrations, which a fresh database gets only on its second start (needed by the liquidity entries). Then:
+4. Start it again (`bin/pfDev.sh run 5`) and upload the sample files into the data transfer area:
    ```
-   node run-script.mjs seed/05-cleanup-calendar-liquidity.kts
-   node run-script.mjs seed/06-task-budgets.kts
-   node run-script.mjs seed/07-calendar-leave-days.kts
-   node run-script.mjs seed/08-datatransfer-areas.kts
-   node run-script.mjs seed/09-remove-old-invoices.kts
    ./create-files.sh && node upload-files.mjs
    ```
 5. Take the pictures and copy them, resized, into the website:
@@ -65,7 +54,7 @@ The data was designed for 2026-10-13; the scripts shift all dates relative to to
    Single scenes: `node shoot.mjs /tmp/pf-screenshots 2026-Calendar,2026-Statistics`. Check every picture before
    copying it.
 
-The seed scripts are not idempotent: run them once on a fresh instance (`bin/pfDev.sh reset 5` starts over).
+To start over with fresh data: `bin/pfDev.sh reset 5`, then step 1.
 
 ## Scenes
 

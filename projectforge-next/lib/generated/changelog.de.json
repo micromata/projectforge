@@ -10,7 +10,7 @@
       "items" : [ "System-Dashboard: Die Wechselkurs-Schnittstelle wird täglich getestet und als Kachel unter den Schnittstellen angezeigt, damit eine Änderung der Schnittstelle früh auffällt. Im Scheduler-Tab lässt sich der Test sofort starten." ]
     }, {
       "type" : "improved",
-      "items" : [ "Auswahlboxen für Benutzer:innen und Gruppen: Deaktivierte oder gelöschte Benutzer:innen und Gruppen werden durchgestrichen angezeigt, in den gewählten Werten wie in den Suchergebnissen." ]
+      "items" : [ "Auswahlfelder (Gruppen, Benutzer, Mitarbeitende, Adressen, Adressbücher, Konten, Bankkonten): Einträge, deren Name zum Suchbegriff passt, werden zuerst angezeigt, vor Einträgen, die nur über andere Felder wie Organisation oder E-Mail gefunden werden. Gruppen, Benutzernamen, Projekte, Kundenkürzel, Adressbücher, Kalender und Bankkonten werden auch über Teile ihres Namens gefunden, z. B. PF_Controlling über „controlling“.", "Auswahlboxen für Benutzer:innen und Gruppen: Deaktivierte oder gelöschte Benutzer:innen und Gruppen werden durchgestrichen angezeigt, in den gewählten Werten wie in den Suchergebnissen." ]
     }, {
       "type" : "changed",
       "items" : [ {
@@ -19,7 +19,7 @@
       }, "Adressbücher: Liste und Formular der Adressbücher sind in die neue Oberfläche migriert. Die Liste zeigt die Benutzer:innen und Gruppen mit Voll- und Lesezugriff in eigenen Spalten.", "Listen: Bei Entitäten mit weniger als 100.000 Einträgen bietet das Zahnradmenü nur noch die Voll-Reindizierung des Suchindex an, für alle Benutzer — sie dauert dort nur wenige Sekunden. Größere Entitäten behalten die Reindizierung der neuesten Einträge und die volle für Administratoren.", {
         "title" : "Benachrichtigungsregeln",
         "items" : [ "Inaktive Regeln sind in der Liste durchgestrichen.", "Das Deaktivieren einer Regel beendet ihre offenen Benachrichtigungen: Deren verzögerte Schritte (z. B. die E-Mail) werden nicht mehr gesendet.", "„Jetzt auslösen“ ist nur noch bei aktiven Regeln möglich.", "Zustellung: Das Entfernen eines Schritts ändert nicht mehr die Verzögerung des folgenden (sie konnte 0 werden, also sofort gesendet).", "„Test an mich“ weist darauf hin, dass der Test sofort über alle Kanäle geht, auch per E-Mail.", "Je Regel ist wählbar, wohin der Button „Öffnen“ ihrer Benachrichtigungen führt: zur Seite des Auslösers, zu einem beliebigen Menüeintrag oder kein Button.", "„Öffnen“ ist ein Button neben „Bestätigen“ statt eines Links unter dem Text." ]
-      } ]
+      }, "Setup mit Testdaten: neue, umfangreichere Beispieldaten (Kunden, Projekte, Aufträge, Rechnungen, ein halbes Jahr Zeitberichte, Urlaube, Kalender, Liquiditätsplanung) mit Datumswerten relativ zum Tag des Setups. Die Beispielnutzer:innen erhalten das Admin-Passwort. Die Setup-Seite zeigt den Fortschritt an. Die Standard-Plugins sind direkt nach dem Setup aktiv, ohne Neustart." ]
     } ]
   },
   "groups" : [ {

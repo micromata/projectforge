@@ -339,6 +339,9 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
 
     override val autoCompleteSearchFields = arrayOf("name", "organization")
 
+    /** Groups named like the search term first, before the groups only of an organization named like it. */
+    override val autoCompletePrimarySearchFields = arrayOf("name")
+
     companion object {
         /** The posix gid range, as Wicket's GroupEditForm allowed it. */
         internal val GID_RANGE = 1..65535
