@@ -27,6 +27,8 @@ package org.projectforge.business.testdata
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.calendar.CalendarFilter
+import org.projectforge.business.teamcal.event.TeamEventDao
+import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserPrefService
@@ -34,6 +36,7 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.Date
 import java.util.TimeZone
 
 class TestDataSeederTest : AbstractTestBase() {
@@ -42,6 +45,9 @@ class TestDataSeederTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var testDataSeeder: TestDataSeeder
+
+    @Autowired
+    private lateinit var teamEventDao: TeamEventDao
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -91,6 +97,16 @@ class TestDataSeederTest : AbstractTestBase() {
         val filter = userPrefService.getEntry("calendar", Favorites.PREF_NAME_CURRENT, CalendarFilter::class.java, adminId)
         Assertions.assertEquals(adminId, filter?.timesheetUserId, "admin calendar filter")
         Assertions.assertEquals(2, filter?.calendarIds?.size)
+        // Recurring events fill the calendar later on, too.
+        logon(DatabaseService.DEFAULT_ADMIN_USER)
+        val inThreeMonths = ctx.today.plusMonths(3).atStartOfDay(ctx.zone)
+        val later = teamEventDao.getEventList(
+            TeamEventFilter().setTeamCals(filter!!.calendarIds.filterNotNull())
+                .setStartDate(Date.from(inThreeMonths.toInstant()))
+                .setEndDate(Date.from(inThreeMonths.plusWeeks(4).toInstant())),
+            true,
+        )
+        Assertions.assertEquals(4, later.count { it.subject == "Weekly planning" }, "weekly planning in 4 weeks")
         // Every invoice position refers to its order position.
         Assertions.assertEquals(
             0L,

@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.mail.SendMail
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -101,7 +102,8 @@ open class TestDataSeeder {
             val name = contributor::class.simpleName
             val started = System.currentTimeMillis()
             try {
-                persistenceService.runInTransaction { _ -> contributor.seed(ctx) }
+                // No mails to the sample users (e.g. on their vacations), even if mailing is configured.
+                SendMail.withoutMails { persistenceService.runInTransaction { _ -> contributor.seed(ctx) } }
                 // After the commit: users, groups and rights of this contributor are needed by the following ones.
                 userGroupCache.forceReload()
                 log.info { "Test data of $name inserted in ${System.currentTimeMillis() - started}ms." }

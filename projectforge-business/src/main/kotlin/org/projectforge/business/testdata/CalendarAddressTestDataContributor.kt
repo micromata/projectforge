@@ -63,7 +63,15 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
 
     override val order = 60
 
-    private class Event(val dayOffset: Long, val from: String, val to: String, val subject: String, val location: String)
+    /** [rrule]: recurrence rule (RFC 5545) without an end, so the calendar shows appointments later on, too. */
+    private class Event(
+        val dayOffset: Long,
+        val from: String,
+        val to: String,
+        val subject: String,
+        val location: String,
+        val rrule: String? = null,
+    )
 
     private class Contact(
         val form: FormOfAddress,
@@ -134,31 +142,35 @@ open class CalendarAddressTestDataContributor : TestDataContributor {
                 it.creator = creator
                 it.startDate = Date.from(day.atTime(LocalTime.parse(e.from)).atZone(ctx.zone).toInstant())
                 it.endDate = Date.from(day.atTime(LocalTime.parse(e.to)).atZone(ctx.zone).toInstant())
+                it.recurrenceRule = e.rrule
             }
             teamEventDao.insert(event, checkAccess = false)
         }
     }
 
     companion object {
+        private const val WEEKLY = "FREQ=WEEKLY"
+        private const val BIWEEKLY = "FREQ=WEEKLY;INTERVAL=2"
+        private const val MONTHLY = "FREQ=MONTHLY"
+
         private val EVENTS = listOf(
-            Event(0, "09:00", "09:30", "Weekly planning", "Office"),
+            Event(0, "09:00", "09:30", "Weekly planning", "Office", WEEKLY),
             Event(1, "10:00", "12:00", "Claims Portal: sprint review", "Alpine Insurance, Innsbruck"),
-            Event(1, "14:00", "15:00", "1:1 Alex", "Office"),
+            Event(1, "14:00", "15:00", "1:1 Alex", "Office", BIWEEKLY),
             Event(2, "09:30", "11:00", "Shop Relaunch: design walkthrough", "Remote"),
             Event(2, "13:00", "14:30", "Steering committee Fleet Tracking", "Bluefin Logistics, Hamburg"),
             Event(3, "10:00", "16:00", "Smart Meter workshop", "Greenfield Energy, Freiburg"),
-            Event(4, "11:00", "12:00", "Forecast review with finance", "Office"),
-            Event(4, "16:00", "17:30", "Team retrospective", "Office"),
-            Event(7, "09:00", "09:30", "Weekly planning", "Office"),
+            Event(4, "11:00", "12:00", "Forecast review with finance", "Office", MONTHLY),
+            Event(4, "16:00", "17:30", "Team retrospective", "Office", BIWEEKLY),
             Event(8, "13:00", "15:00", "Patient Scheduling: acceptance test", "Harbor Medical"),
             Event(9, "10:00", "11:30", "Customer App: kick-off", "Alpine Insurance, Innsbruck"),
             Event(11, "15:00", "16:00", "Release planning Fleet Tracking", "Remote"),
         )
 
         private val ADMIN_EVENTS = listOf(
-            Event(0, "07:00", "08:00", "Maintenance window: database update", "Remote"),
+            Event(0, "07:00", "08:00", "Maintenance window: database update", "Remote", MONTHLY),
             Event(2, "16:00", "17:00", "Access review with the team leads", "Office"),
-            Event(3, "08:00", "08:30", "Backup restore test", "Remote"),
+            Event(3, "08:00", "08:30", "Backup restore test", "Remote", WEEKLY),
             Event(8, "07:00", "08:30", "Security updates rollout", "Remote"),
             Event(10, "14:00", "15:00", "Onboarding of new employees", "Office"),
         )

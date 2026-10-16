@@ -498,10 +498,13 @@ class CalendarFilterServicesRest {
       state = CalendarFilterState()
       userPrefService.putEntry(PREF_AREA, PREF_NAME_STATE, state)
     }
-    if (state.startDate == null)
-      state.startDate = LocalDate.now()
     if (state.view == null)
       state.view = CalendarView.MONTH
+    if (state.startDate == null) {
+      // The month view stores the first day of its grid and the frontend moves a date which isn't the 1st into
+      // the following month (normalizeInitialDate), so today would show the next month.
+      state.startDate = if (state.view == CalendarView.MONTH) LocalDate.now().withDayOfMonth(1) else LocalDate.now()
+    }
     return state
   }
 

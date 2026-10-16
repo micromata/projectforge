@@ -17,7 +17,8 @@ interface SetupSubmitButtonProps {
 
 /**
  * Submit button of the setup form. The setup with test data takes a while, so while it runs the button shows a
- * spinner, the progress the server reports and the seconds passed, with a progress bar below.
+ * spinner, the progress the server reports and the seconds passed, with a progress bar above (below, it could end
+ * up outside the visible scroll area).
  */
 export function SetupSubmitButton({
   isSubmitting,
@@ -48,6 +49,9 @@ export function SetupSubmitButton({
 
   return (
     <>
+      {percent != null && (
+        <Progress value={percent} aria-label={submittingLabel} />
+      )}
       <Button
         type="submit"
         className="w-full gap-2"
@@ -59,9 +63,6 @@ export function SetupSubmitButton({
         )}
         {text}
       </Button>
-      {percent != null && (
-        <Progress value={percent} aria-label={submittingLabel} />
-      )}
     </>
   );
 }
