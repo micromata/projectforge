@@ -26,16 +26,23 @@ package org.projectforge.framework.persistence.database
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.scripting.ScriptParameterType
+import org.projectforge.business.testdata.TestDataContext
+import org.projectforge.business.testdata.TestDataContributor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+/**
+ * The demo scripts of the test data, see [org.projectforge.business.testdata.TestDataSeeder].
+ */
 @Service
-open class DatabaseInitTestDataService {
+open class DatabaseInitTestDataService : TestDataContributor {
 
     @Autowired
     private lateinit var scriptDao: ScriptDao
 
-    open fun initAdditionalTestData() {
+    override val order = 90
+
+    override fun seed(ctx: TestDataContext) {
         /* insertScript(
           "Booked person days per day",
           "Return an Excel sheet containing all (sub) tasks with the booked days per day for the given time period\n" +

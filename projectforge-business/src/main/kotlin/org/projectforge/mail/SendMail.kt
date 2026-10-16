@@ -179,6 +179,10 @@ open class SendMail {
       log.error { "No message object of type org.projectforge.mail.Mail given. E-Mail not sent." }
       return false
     }
+    if (suppressed.get() == true) {
+      log.debug { "Sending of mails is suppressed in this thread. Mail is ignored: ${composedMessage.subject}" }
+      return false
+    }
     if (!isConfigured) {
       log.error(MailLogEvents.NOT_CONFIGURED) { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
       return false
@@ -522,6 +526,23 @@ open class SendMail {
     }
 
   companion object {
+    private val suppressed = ThreadLocal<Boolean>()
+
+    /**
+     * Runs [block] without sending any mail from the current thread, e.g. while the test data of the setup are
+     * inserted (the DAOs would notify the sample users of their vacations otherwise). [send] returns false then,
+     * as if mailing weren't configured.
+     */
+    fun <T> withoutMails(block: () -> T): T {
+      val previous = suppressed.get()
+      suppressed.set(true)
+      try {
+        return block()
+      } finally {
+        if (previous == null) suppressed.remove() else suppressed.set(previous)
+      }
+    }
+
     private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
 
     private const val CHARSET = "UTF-8"

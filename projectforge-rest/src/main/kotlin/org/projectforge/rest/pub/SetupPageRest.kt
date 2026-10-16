@@ -63,6 +63,14 @@ open class SetupPageRest {
         val availableTimeZones: List<TimeZoneInfo> = emptyList(),
     )
 
+    /** Response for GET /rsPublic/setup/progress. */
+    data class SetupProgress(
+        /** True while a setup is running. */
+        val running: Boolean,
+        /** Progress in percent, null if no setup is running. */
+        val percent: Int? = null,
+    )
+
     /** Request body for POST /rsPublic/setup. */
     data class SetupRequest(
         val setupTarget: String = "TEST_DATA",
@@ -110,6 +118,17 @@ open class SetupPageRest {
             defaultTimeZone = TimeZone.getDefault().id,
             availableTimeZones = timeZones,
         )
+    }
+
+    /**
+     * The progress of a running setup, polled by the setup page while its POST is pending (the setup with test
+     * data takes some seconds).
+     */
+    @AccessChecked("PUBLIC: answers only the progress of a running setup in percent")
+    @GetMapping("progress")
+    fun getProgress(): SetupProgress {
+        val percent = setupService.progress
+        return SetupProgress(running = percent != null, percent = percent)
     }
 
     /**

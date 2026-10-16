@@ -26,23 +26,19 @@ package org.projectforge.business.admin
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.password.PasswordQualityService
+import org.projectforge.business.testdata.TestDataSeeder
 import org.projectforge.business.user.E2ETestAccountsService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.i18n.I18nKeyAndParams
-import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.core.PluginAdminService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
-import java.nio.charset.StandardCharsets
 import java.util.TimeZone
 
 private val log = KotlinLogging.logger {}
@@ -81,10 +77,7 @@ class SetupService {
     private lateinit var configurationDao: ConfigurationDao
 
     @Autowired
-    private lateinit var persistenceService: PfPersistenceService
-
-    @Autowired
-    private lateinit var databaseInitTestDataService: DatabaseInitTestDataService
+    private lateinit var testDataSeeder: TestDataSeeder
 
     @Autowired
     private lateinit var pluginAdminService: PluginAdminService
@@ -93,10 +86,14 @@ class SetupService {
     private lateinit var systemStatus: SystemStatus
 
     @Autowired
-    private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
     private lateinit var e2eTestAccountsService: E2ETestAccountsService
+
+    /**
+     * The progress of a running [finish] in percent (only the test data is measured), null if no setup is running.
+     */
+    @Volatile
+    var progress: Int? = null
+        private set
 
     /**
      * Validates setup parameters before [finish] is called.
@@ -157,33 +154,35 @@ class SetupService {
         sysopEMail: String?,
         feedbackEMail: String?,
     ): PFUserDO {
+        progress = 0
+        try {
+            return internalFinish(target, adminUsername, password, timeZone, calendarDomain, sysopEMail, feedbackEMail)
+        } finally {
+            progress = null
+        }
+    }
+
+    private fun internalFinish(
+        target: SetupTarget,
+        adminUsername: String,
+        password: String,
+        timeZone: TimeZone,
+        calendarDomain: String,
+        sysopEMail: String?,
+        feedbackEMail: String?,
+    ): PFUserDO {
         log.info { "Starting setup: target=$target, adminUsername=$adminUsername" }
         val adminUser = PFUserDO().also { it.username = adminUsername }
 
         databaseService.insertGlobalAddressbook()
 
-        if (target == SetupTarget.EMPTY_DATABASE) {
+        val testData = if (target == SetupTarget.EMPTY_DATABASE) {
             databaseService.initializeDefaultData(adminUser, timeZone)
+            null
         } else {
-            log.info { "Inserting test data..." }
-            persistenceService.runInNewTransaction { context ->
-                val script = applicationContext.getResource("classpath:data/pfTestdata.sql")
-                    .getContentAsString(StandardCharsets.UTF_8)
-                context.executeNativeScript(script)
-                if (databaseService.dialect == DatabaseDialect.PostgreSQL) {
-                    val pgScript = applicationContext.getResource("classpath:data/pfTestdataPostgres.sql")
-                        .getContentAsString(StandardCharsets.UTF_8)
-                    context.executeNativeScript(pgScript)
-                } else {
-                    val hsqlScript = applicationContext.getResource("classpath:data/pfTestdataHsqlDB.sql")
-                        .getContentAsString(StandardCharsets.UTF_8)
-                    context.executeNativeScript(hsqlScript)
-                }
-                null
-            }
-            Configuration.instance.forceReload()
-            databaseInitTestDataService.initAdditionalTestData()
-            databaseService.afterCreatedTestDb(false)
+            // The sample users get the admin's password, so they are usable right away.
+            testDataSeeder.seedCore(password, timeZone) { progress = (it * 90).toInt() }
+                .also { Configuration.instance.forceReload() }
         }
 
         val updatedAdmin = databaseService.updateAdminUser(adminUser, timeZone)
@@ -203,6 +202,11 @@ class SetupService {
         configure(ConfigurationParam.FEEDBACK_E_MAIL, feedbackEMail)
 
         pluginAdminService.afterSetup()
+        pluginAdminService.activatePluginsAfterSetup()
+        testData?.let {
+            testDataSeeder.seedPlugins(it) { fraction -> progress = 90 + (fraction * 9).toInt() }
+            databaseService.afterCreatedTestDb(false)
+        }
         // Skipped on start because the database was empty then.
         e2eTestAccountsService.syncAccounts()
 
