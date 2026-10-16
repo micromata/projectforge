@@ -8,8 +8,8 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
 /**
  * The availability entries against the live backend (see AVAILABILITY_PAGE and AvailabilityEntityRest). Nothing
- * is written but the stored choice of the team vacation calendar, which is put back. The form test posts a period
- * ending before it begins, which the server refuses before any write (AvailabilityEntityRest.validate).
+ * is written but the stored choice of the team vacation calendar, which is put back. The form test doesn't save; it
+ * posts a period ending before it begins, which the server refuses before any write (AvailabilityEntityRest.validate).
  */
 test.describe("availability", () => {
   test("shows the declared columns under the labels of AvailabilityDO", async ({
@@ -117,11 +117,10 @@ test.describe("availability", () => {
     }
   });
 
-  test("offers the configured types and the internal comment, and refuses an end before the start", async ({
+  test("offers the configured types and the internal comment, keeps the period a period and refuses an end before the start", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
-    const { t } = format;
     const newEntry = async (query = "") =>
       (await (
         await page.request.get(`/rs/availability/newEntry${query}`, {
@@ -166,26 +165,39 @@ test.describe("availability", () => {
     });
     await start.fill(formatDateInput(`${year}-02-10`, format.context));
     await start.press("Enter");
+    // A start without an end makes it a one-day period (usePeriodClamp).
+    await expect(end).toHaveValue(
+      formatDateInput(`${year}-02-10`, format.context)
+    );
+    // An end before the start moves the start onto it: the form can't post such a period.
     await end.fill(formatDateInput(`${year}-02-09`, format.context));
     await end.press("Enter");
+    await expect(start).toHaveValue(
+      formatDateInput(`${year}-02-09`, format.context)
+    );
 
-    const saved = page.waitForResponse("**/rs/availability/saveorupdate*");
-    await page.getByRole("button", { name: t("save") }).click();
-    // Refused by the server before any write (AvailabilityEntityRest.validate), at the end date. The message is
-    // translated by the server (it's not in the frontend's catalog), so it's taken from the answer.
-    const response = await saved;
+    // Posted anyway, it's refused by the server before any write (AvailabilityEntityRest.validate), at the end date.
+    const response = await page.request.put("/rs/availability/saveorupdate", {
+      headers: await writeHeaders(page.request),
+      data: {
+        data: {
+          user: { id: preset.user!.id },
+          status: "NOT_AVAILABLE",
+          startDate: `${year}-02-10`,
+          endDate: `${year}-02-09`,
+        },
+      },
+    });
     expect(response.status()).toBe(406);
-    const error = (
+    const errors = (
       (await response.json()) as {
         validationErrors: { fieldId?: string; message: string }[];
       }
-    ).validationErrors.find((e) => e.fieldId === "endDate");
-    expect(error, "a validation error at the end date").toBeTruthy();
-    await expect(
-      page.getByRole("alert").getByText(error!.message)
-    ).toBeVisible();
-    // Still on the form: nothing saved.
-    await expect(page).toHaveURL(/\/availability\/new/);
+    ).validationErrors;
+    expect(
+      errors.some((e) => e.fieldId === "endDate"),
+      "a validation error at the end date"
+    ).toBe(true);
   });
 });
 

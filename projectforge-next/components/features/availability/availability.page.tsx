@@ -1,5 +1,6 @@
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { PeriodClamp } from "@/components/shared/form/use-period-clamp";
 import {
   AvailabilityInternalCommentField,
   AvailabilityTypeField,
@@ -70,6 +71,8 @@ export const AVAILABILITY_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // HR staff may preset the user (`?user=<id>`, AvailabilityEntityRest.newBaseDTO).
     newEntryParams: ["user"],
+    // A start without an end makes a one-day period, as in the vacation form.
+    editIntro: PeriodClamp,
     // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts).
     returnTargets: [
       { route: "/availability", labelKey: "availability.title.list" },
