@@ -76,8 +76,7 @@ page. What was built instead — a **third filling of the same DTO**, beside `co
   the row generically; an entity opts in with `override fun newDTO() = Auftrag()`. `newDTO` exists
   because Kotlin cannot reach `DTO` at runtime (erasure), and resolving it from the generic supertype
   breaks for a page inheriting through an intermediate class. Override `createListRow` directly only
-  when building the row needs something the DTO cannot reach (as `AddressPagesRest` needs its image
-  cache).
+  when building the row needs something the DTO cannot reach.
 - `Auftrag.copyFrom4ListRow` — fills the 19 columns of `order.page.tsx`; `JsonInclude.NON_NULL` keeps
   the rest off the wire.
 
@@ -409,8 +408,7 @@ for.
   `COUNT` and skip materialization. Makes the _first_ page fast for the users who see everything, which
   is most finance users. Purely additive: if the preconditions don't hold, Stage 2's path runs.
 - Aggregate hook so `resultInfo` statistics work over the id list.
-- Remove `AddressPagesRest`'s `limitResultSize` ("first page only, no offset, no total") when address
-  gets `serverPaging`, or the two mechanisms fight and produce a 25-row `totalSize`.
+- Remove the now unused `limitResultSize` of `QueryFilter`/`DBFilter` (its only user, `AddressPagesRest`, is gone).
 
 ## Stage 6 — roll out — open
 

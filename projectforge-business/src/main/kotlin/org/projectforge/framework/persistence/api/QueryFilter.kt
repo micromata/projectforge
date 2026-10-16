@@ -107,7 +107,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     // var paginationPageSize: Int = 50
 
     // Workaround for old pagesrest, using UITable (instead of AgGrid).
-    // Used by AddressPagesRest.
+    // No longer set by any page since AddressPagesRest was removed; a candidate for removal.
     var limitResultSize: Int = Int.MAX_VALUE
 
     var sortAndLimitMaxRowsWhileSelect: Boolean = true

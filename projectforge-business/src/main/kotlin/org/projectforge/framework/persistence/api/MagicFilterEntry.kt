@@ -33,7 +33,7 @@ class MagicFilterEntry(
         var field: String? = null,
         stringValue: String? = null,
         /**
-         * Synthetic fields aren't handled automatically by [MagicFilterProcessor]. The handled manually (see AddressPagesRest).
+         * Synthetic fields aren't handled automatically by [MagicFilterProcessor]. They are handled manually (see AddressEntityRest.preProcessMagicFilter).
          */
         @JsonIgnore
         var synthetic: Boolean? = false) {

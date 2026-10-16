@@ -858,8 +858,8 @@ constructor(
      *
      * Answered by the DTO rather than by the page — `BaseDTO.copyFrom4ListRow` is where an entity says what
      * a row of it consists of, so [AbstractDTOEntityRest] implements this once for every DTO page. Override
-     * here only if building the row needs something the DTO cannot reach (as `AddressPagesRest` needs its
-     * image cache).
+     * here only if building the row needs something the DTO cannot reach (as a page needing a cache of
+     * its own might).
      *
      * The default is the full DTO, so this costs a page that overrides neither nothing.
      */
