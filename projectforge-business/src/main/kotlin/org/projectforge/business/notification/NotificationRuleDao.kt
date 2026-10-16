@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.Date
 
@@ -42,6 +43,9 @@ import java.util.Date
  */
 @Service
 open class NotificationRuleDao : BaseDao<NotificationRuleDO>(NotificationRuleDO::class.java) {
+    @Autowired
+    private lateinit var notificationDao: NotificationDao
+
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
 
@@ -73,9 +77,35 @@ open class NotificationRuleDao : BaseDao<NotificationRuleDO>(NotificationRuleDO:
         return userGroupCache.isUserMemberOfAdminGroup(user.id) || userGroupCache.isUserMemberOfFinanceGroup(user.id)
     }
 
-    /** The last run is maintained by the rule job only ([updateLastRun]), never by an edit (maybe stale). */
+    /** Every save path stores the forced option ([NotificationRuleDO.isManualDoneForced]). */
+    override fun onInsertOrModify(obj: NotificationRuleDO, operationType: OperationType) {
+        if (obj.isManualDoneForced) {
+            obj.manualDone = true
+        }
+    }
+
+    /**
+     * The last run is maintained by the rule job only ([updateLastRun]), never by an edit (maybe stale). A deactivated
+     * rule ends its pending notifications at once (not only by the next rule job).
+     */
     override fun onUpdate(obj: NotificationRuleDO, dbObj: NotificationRuleDO) {
         obj.lastRun = dbObj.lastRun
+        if (dbObj.active && !obj.active) {
+            expirePending(obj)
+        }
+    }
+
+    /** A deleted rule (also marked as deleted) ends its pending notifications at once. */
+    override fun afterDelete(obj: NotificationRuleDO) {
+        expirePending(obj)
+    }
+
+    /** Expires the pending notifications of the rule. */
+    open fun expirePending(rule: NotificationRuleDO): Int {
+        val id = rule.id ?: return 0
+        val pending = notificationDao.findPendingByRules(listOf(id))
+        pending.forEach { notificationDao.finish(it, NotificationStatus.EXPIRED) }
+        return pending.size
     }
 
     /** Is the user an admin or a finance member allowed by [NotificationRuleDO.editableByGroupIds]? */

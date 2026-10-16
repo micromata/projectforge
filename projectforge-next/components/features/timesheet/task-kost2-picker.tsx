@@ -93,6 +93,9 @@ export function TaskKost2Picker({
     queryFn: ({ signal }) => fetchTaskInfo(taskId!, signal),
     enabled: taskId != null,
     staleTime: Infinity,
+    // The consumption changes with every booking, and nothing invalidates the shared query on a saved or
+    // deleted time sheet: refetch it whenever the form opens, so the bar isn't the first fetch's figure.
+    refetchOnMount: showConsumption ? "always" : false,
   });
 
   const kost2List = info?.kost2List ?? [];

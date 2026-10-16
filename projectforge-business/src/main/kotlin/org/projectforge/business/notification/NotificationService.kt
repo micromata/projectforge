@@ -409,7 +409,7 @@ class NotificationService {
             it.recipientId = user.id
             it.severity = rule.severity
             it.display = rule.display
-            it.manualDone = rule.manualDone
+            it.manualDone = rule.manualDone || rule.isManualDoneForced
             it.menuBadge = rule.menuBadge?.takeIf { badge -> badge.isNotBlank() }
             it.title = NotificationTemplate.renderSubject(rule.subject, variables)
             it.body = NotificationTemplate.renderText(rule.text, variables)

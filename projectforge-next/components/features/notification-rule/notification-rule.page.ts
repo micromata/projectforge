@@ -2,6 +2,7 @@ import { NOTIFICATION_RULE_METADATA } from "@/lib/metadata/notification-rule.gen
 import { definePage } from "@/lib/page-def/define-page";
 import { DeliveryStepsField } from "./delivery-steps-field";
 import { LinkField } from "./link-field";
+import { ManualDoneField } from "./manual-done-field";
 import { MenuBadgeField } from "./menu-badge-field";
 import { NotificationRuleListActions } from "./notification-rule-list-actions";
 import {
@@ -115,7 +116,7 @@ export const NOTIFICATION_RULE_PAGE = definePage<
           { name: "display" },
           { custom: MenuBadgeField, span: 2 },
           { custom: LinkField, span: 2 },
-          { name: "manualDone", span: 4 },
+          { custom: ManualDoneField, span: 4 },
         ],
       },
       {

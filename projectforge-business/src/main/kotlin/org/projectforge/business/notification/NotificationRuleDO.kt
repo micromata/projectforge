@@ -138,6 +138,14 @@ open class NotificationRuleDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "last_run")
     open var lastRun: Date? = null
 
+    /**
+     * A manual rule has no condition, which could resolve a banner: its recipients must be able to mark it as done,
+     * otherwise it would stay forever.
+     */
+    @get:Transient
+    open val isManualDoneForced: Boolean
+        get() = ruleType == NotificationRuleType.MANUAL && display == NotificationDisplay.BANNER
+
     fun readSchedule(): NotificationSchedule = parse(schedule, NotificationSchedule::class.java) { NotificationSchedule() }
 
     fun readParams(): NotificationParams = parse(params, NotificationParams::class.java) { NotificationParams() }

@@ -207,11 +207,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
             val tuple = persistenceService.selectSingleResult(
-                "select $intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
+                "select $intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and deleted=false group by task.id",
                 Tuple::class.java,
                 Pair("taskId", taskId),
             )
-            // select intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id
+            // select intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and deleted=false group by task.id
                 ?: return TaskDurationInfo(0L, null, null)
             return TaskDurationInfo((tuple[0] as Number).toLong(), tuple[1] as Date?, tuple[2] as Date?)
         }
