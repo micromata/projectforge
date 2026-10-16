@@ -4,6 +4,7 @@ import { useListMeta } from "@/hooks/use-list-meta";
 import type { ADDRESS_FORM_METADATA } from "./address-schema";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
 import { addressImageUrl } from "@/lib/rs/address";
+import { AddressEditLink } from "./address-edit-link";
 import { AddressFavoriteToggle } from "./address-favorite-toggle";
 import { AddressPhoneLinks } from "./address-phone-links";
 import type { AddressListRow } from "./types";
@@ -21,15 +22,20 @@ export const ADDRESS_COLUMNS: ColumnDeclaration<
     labelKey: "address.filter.myFavorites",
     headerLabelKey: "address.columnHead.myFavorites",
     accessor: (row) => row.isFavoriteCard === true,
-    size: 48,
+    size: 72,
     sortable: false,
     filterKind: null,
     pinned: "left",
+    // The pencil beside the star opens the form straight away, as the edit column of the React list did; a click
+    // on the row opens the view. In the star's column, as a column of its own would need a header nobody reads.
     cell: ({ row }) => (
-      <AddressFavoriteToggle
-        addressId={row.original.id}
-        favorite={row.original.isFavoriteCard === true}
-      />
+      <span className="flex items-center">
+        <AddressFavoriteToggle
+          addressId={row.original.id}
+          favorite={row.original.isFavoriteCard === true}
+        />
+        <AddressEditLink addressId={row.original.id} />
+      </span>
     ),
   },
   { name: "name", size: 160, pinned: "left" },

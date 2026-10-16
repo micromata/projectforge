@@ -4,7 +4,16 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/components/data-table";
+import {
+  DataTable,
+  DataTableColumnHeader,
+  DataTableColumnPanel,
+  useColumnStatePersistence,
+  useDataTable,
+  useStoredColumnState,
+  useTableState,
+  type ColumnState,
+} from "@/components/data-table";
 import { ImportDiffCell } from "@/components/shared/import/import-diff-cell";
 import { rowClassForStatus } from "@/components/shared/import/import-model";
 import { ImportStatusCell } from "@/components/shared/import/import-status-cell";
@@ -15,25 +24,51 @@ import {
 } from "@/lib/rs/address-import";
 import { ADDRESS_IMPORT_COLUMNS } from "./address-import-columns";
 
-/** Large enough to hold any import on one page. */
-const ALL_ROWS_PAGE_SIZE = 100_000;
+/** The user prefs of the table (`AddressImportRest.columnStates` / `setColumnStates`). */
+const GRID = "addressImport";
 
 /**
  * The entries of the import. A click opens the entry in the address form — the stored address it matches, or a
  * new one — which compares the fields of the vCard with the stored ones; saving it there marks the entry as
  * imported. An imported entry stays clickable, for a second look.
+ *
+ * The status is filterable, the columns are stored in the user's prefs as the React page had it (rendered once
+ * the stored state has arrived, see CachesTable).
  */
 export function AddressImportTable({
   entries,
 }: {
   entries: AddressImportEntry[];
 }) {
+  const stored = useStoredColumnState(GRID);
+  if (stored.isPending) return null;
+  return <LoadedTable entries={entries} storedState={stored.data ?? {}} />;
+}
+
+function LoadedTable({
+  entries,
+  storedState,
+}: {
+  entries: AddressImportEntry[];
+  storedState: ColumnState;
+}) {
   const t = useTranslations();
   const router = useRouter();
   const columns = useMemo<ColumnDef<AddressImportEntry, unknown>[]>(() => {
     const status: ColumnDef<AddressImportEntry, unknown> = {
       id: "status",
-      header: t("status"),
+      accessorFn: (row) => row.statusAsString,
+      header: function StatusHeader({ column, table }) {
+        return (
+          <DataTableColumnHeader
+            column={column}
+            table={table}
+            filterKind="text"
+          >
+            {t("status")}
+          </DataTableColumnHeader>
+        );
+      },
       size: 140,
       enableSorting: false,
       meta: { label: t("status"), wrap: true },
@@ -88,26 +123,66 @@ export function AddressImportTable({
     ];
   }, [t]);
 
+  const state = useTableState({ restoredState: storedState });
+  const table = useDataTable<AddressImportEntry>({
+    columns,
+    data: entries,
+    sorting: state.sorting,
+    onSortingChange: state.setSorting,
+    columnFilters: state.columnFilters,
+    onColumnFiltersChange: state.setColumnFilters,
+    columnVisibility: state.columnVisibility,
+    onColumnVisibilityChange: state.setColumnVisibility,
+    columnPinning: state.columnPinning,
+    onColumnPinningChange: state.setColumnPinning,
+    columnSizing: state.columnSizing,
+    onColumnSizingChange: state.setColumnSizing,
+    columnOrder: state.columnOrder,
+    onColumnOrderChange: state.setColumnOrder,
+    enableColumnFilters: true,
+    enableColumnResizing: true,
+    manualPagination: true,
+    getRowId: (row) => String(row.id),
+  });
+  useColumnStatePersistence(GRID, {
+    sorting: state.sorting,
+    columnVisibility: state.columnVisibility,
+    columnPinning: state.columnPinning,
+    columnSizing: state.columnSizing,
+    columnOrder: state.columnOrder,
+  });
+  // Back to the columns as declared; the persistence then stores the empty state.
+  const resetColumns = () => {
+    state.setSorting([]);
+    state.setColumnVisibility({});
+    state.setColumnPinning({});
+    state.setColumnSizing({});
+    state.setColumnOrder([]);
+    state.setColumnFilters([]);
+  };
+
   return (
-    <DataTable<AddressImportEntry>
-      columns={columns}
-      data={entries}
-      getRowId={(row) => String(row.id)}
-      enableColumnFilters={false}
-      manualSorting={false}
-      showPagination={false}
-      initialPageSize={ALL_ROWS_PAGE_SIZE}
-      rowClassName={(row) =>
-        row.status === "IMPORTED" ? "row-grey" : rowClassForStatus(row.status)
-      }
-      onRowClick={(row) =>
-        router.push(
-          row.addressId != null
-            ? `/address/${row.addressId}/edit?importIndex=${row.id}`
-            : `/address/new?importIndex=${row.id}`
-        )
-      }
-      className="flex-1"
-    />
+    <>
+      <div className="flex justify-end">
+        <DataTableColumnPanel table={table} onReset={resetColumns} />
+      </div>
+      <DataTable<AddressImportEntry>
+        table={table}
+        columns={[]}
+        data={[]}
+        showPagination={false}
+        rowClassName={(row) =>
+          row.status === "IMPORTED" ? "row-grey" : rowClassForStatus(row.status)
+        }
+        onRowClick={(row) =>
+          router.push(
+            row.addressId != null
+              ? `/address/${row.addressId}/edit?importIndex=${row.id}`
+              : `/address/new?importIndex=${row.id}`
+          )
+        }
+        className="flex-1"
+      />
+    </>
   );
 }

@@ -78,6 +78,7 @@
       "vCardSingleExport": "Export vCard",
       "vCardsImport": {
         "clickToEdit": "Click on a row to edit the address and compare fields.",
+        "dataLoaded": "VCF data has been loaded. Select the fields you want to apply.",
         "description": "Here, vCards (.vcf file format) can be imported into the address book. Existing addresses are not duplicated, but simply supplemented (e.g., with phone numbers or email addresses).\n\nAddresses can then be compared and imported manually, even field by field.",
         "dropHint": "Drop VCF file here",
         "dropInfo": "Matching address will be selected automatically",

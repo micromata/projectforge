@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -29,6 +31,9 @@ interface Props {
  * The phone numbers of an address, each a link that dials it — through the phone call page of ProjectForge
  * where one is configured, else the device's own (`tel:`) — and the mobile numbers with a link to send a text
  * message. Shared by the list and the view.
+ *
+ * Hovering a number shows it large across the top of the window, as the React app did: to be read off the screen
+ * while dialling it on a desk phone.
  */
 export function AddressPhoneLinks({
   address,
@@ -39,10 +44,15 @@ export function AddressPhoneLinks({
   className,
 }: Props) {
   const t = useTranslations();
+  const [zoomed, setZoomed] = useState<{
+    number: string;
+    mobile: boolean;
+  } | null>(null);
   const numbers = phoneNumbersOf(address);
   if (numbers.length === 0) return null;
   return (
     <ul className={cn("flex flex-col gap-0.5", className)}>
+      {zoomed && <PhoneNumberZoom {...zoomed} />}
       {numbers.map((entry) => {
         const label = t(entry.labelKey);
         const callHref = phoneCallEnabled
@@ -53,7 +63,16 @@ export function AddressPhoneLinks({
             }).toString()}`
           : `tel:${entry.number}`;
         return (
-          <li key={entry.type} className="flex items-center gap-1.5">
+          <li
+            key={entry.type}
+            className="flex items-center gap-1.5"
+            // A mouse only: a tap would show the zoom without a "leave" to hide it again.
+            onPointerEnter={(event) =>
+              event.pointerType === "mouse" &&
+              setZoomed({ number: entry.number, mobile: entry.mobile })
+            }
+            onPointerLeave={() => setZoomed(null)}
+          >
             <HugeiconsIcon
               icon={entry.mobile ? SmartPhone01Icon : TelephoneIcon}
               size={14}
@@ -95,5 +114,28 @@ export function AddressPhoneLinks({
         );
       })}
     </ul>
+  );
+}
+
+/** The hovered number, large across the top of the window; it lets every click through. */
+function PhoneNumberZoom({
+  number,
+  mobile,
+}: {
+  number: string;
+  mobile: boolean;
+}) {
+  return createPortal(
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex h-32 animate-in items-center justify-center gap-6 bg-background/80 text-6xl font-bold tabular-nums backdrop-blur-sm backdrop-saturate-150 duration-300 fade-in-0 zoom-in-50 print:hidden"
+    >
+      <HugeiconsIcon
+        icon={mobile ? SmartPhone01Icon : TelephoneIcon}
+        size={56}
+      />
+      {number}
+    </div>,
+    document.body
   );
 }

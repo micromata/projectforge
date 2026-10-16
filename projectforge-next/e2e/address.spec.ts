@@ -49,6 +49,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
       (await rows.count()) === 0,
       "no address in the list of this account"
     );
+    // A cell after the star and the pencil (see the next test).
     await rows.first().getByRole("cell").nth(1).click();
     // As in the React list, the view opens over the list, which stays where it was.
     const dialog = page.getByRole("dialog");
@@ -59,6 +60,41 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await expect(
       page.getByText(t("address.heading.personalData")).first()
     ).toBeVisible();
+  });
+
+  test("opens the form from the pencil of a row, and zooms a hovered phone number", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    const list = page.waitForResponse("**/rs/address/list*");
+    await goto(page, "/address");
+    await list;
+    const rows = page.getByRole("row").filter({ has: page.getByRole("cell") });
+    await rows
+      .first()
+      .waitFor({ timeout: 5_000 })
+      .catch(() => undefined);
+    test.skip(
+      (await rows.count()) === 0,
+      "no address in the list of this account"
+    );
+
+    // A phone number, hovered, is shown large across the top of the window (as in the React list).
+    const phone = page.getByRole("cell").locator("li a").first();
+    if ((await phone.count()) > 0) {
+      const number = (await phone.textContent())!.trim();
+      await phone.hover();
+      await expect(page.getByText(number, { exact: true })).toHaveCount(2);
+      await page.mouse.move(0, 0);
+      await expect(page.getByText(number, { exact: true })).toHaveCount(1);
+    }
+
+    await rows
+      .first()
+      .getByRole("link", { name: t("edit") })
+      .click();
+    await expect(page).toHaveURL(/\/address\/\d+\/edit\?returnTo=\/address$/);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("takes the fields of a pasted signature over into the form", async ({
@@ -124,10 +160,24 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await expect(row).toBeVisible();
     await row.getByRole("cell").nth(1).click();
     await expect(page).toHaveURL(/\/address\/new\?importIndex=0$/);
-    // The form opens with the comparison of the vCard ticked for taking over.
+    // The form opens with the comparison of the vCard ticked for taking over, which is all the parser offers.
     await expect(page.getByText("E2e-Import-Nobody").first()).toBeVisible();
+    await expect(
+      page.getByText(format.t("address.book.vCardsImport.dataLoaded"))
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: format.t("apply") })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: format.t("cancel"), exact: true })
+    ).toHaveCount(1); // The form's own, not the parser's.
 
+    // The columns of the import table are stored per user.
+    const columnStates = page.waitForResponse(
+      "**/rs/addressImport/columnStates"
+    );
     await goto(page, "/address/import");
+    expect((await columnStates).status()).toBe(200);
     await page.getByRole("button", { name: format.t("cancel") }).click();
     await expect(page.locator('input[type="file"]')).toHaveCount(1);
   });

@@ -109,9 +109,11 @@ export function AddressTextParserOffer({
         </>
       )}
       <div className="flex gap-2">
-        <Button type="button" variant="outline" onClick={onDiscard}>
-          {t("cancel")}
-        </Button>
+        {!parser.importMode && (
+          <Button type="button" variant="outline" onClick={onDiscard}>
+            {t("cancel")}
+          </Button>
+        )}
         {!empty && (
           <Button
             type="button"

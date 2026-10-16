@@ -20,7 +20,8 @@ import { useAddressTextParser } from "./use-address-text-parser";
 /**
  * Takes data over into the form from a pasted text (an e-mail signature) or a dropped vCard — or, for an entry of
  * a VCF import, from its vCard, compared field by field with the stored address. Folded unless the form was opened
- * for an import entry: comparing is what it is open for then.
+ * for an import entry: comparing is what it is open for then, and the comparison is all it offers (no input, no
+ * cancel; after applying it stays, with what the form still differs in).
  */
 export function AddressTextParser({
   importEntry,
@@ -53,12 +54,19 @@ export function AddressTextParser({
         </span>
       </CollapsibleTrigger>
       <CollapsibleContent className="flex flex-col gap-4 px-4 pb-4">
+        {parser.importMode && (
+          <FormAlert tone="info">
+            {t("address.book.vCardsImport.dataLoaded")}
+          </FormAlert>
+        )}
         {parser.offered === null ? (
-          <AddressTextParserInput
-            busy={parser.busy}
-            onParseText={(text) => void parser.parseText(text)}
-            onParseVcf={(file) => void parser.parseVcf(file)}
-          />
+          !parser.importMode && (
+            <AddressTextParserInput
+              busy={parser.busy}
+              onParseText={(text) => void parser.parseText(text)}
+              onParseVcf={(file) => void parser.parseVcf(file)}
+            />
+          )
         ) : (
           <AddressTextParserOffer parser={parser} onDiscard={parser.discard} />
         )}

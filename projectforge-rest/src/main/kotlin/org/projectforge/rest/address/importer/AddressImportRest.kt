@@ -25,16 +25,21 @@ package org.projectforge.rest.address.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.AddressImageServicesRest
 import org.projectforge.rest.AddressServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.aggrid.AGGridSupport
+import org.projectforge.rest.core.aggrid.GridState
+import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
@@ -78,6 +83,9 @@ class AddressImportRest {
 
     @Autowired
     private lateinit var addressImageServicesRest: AddressImageServicesRest
+
+    @Autowired
+    private lateinit var agGridSupport: AGGridSupport
 
     /**
      * The import in the session, or an empty view if there is none.
@@ -187,6 +195,21 @@ class AddressImportRest {
         return ResponseEntity.ok().build()
     }
 
+    /** Stores the column state of the import table (order, width, visibility, pinning) in the user's prefs. */
+    @AccessChecked("own user prefs only")
+    @PostMapping(RestPaths.SET_COLUMN_STATES)
+    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
+        agGridSupport.storeGridState(GRID_CATEGORY, request)
+        return "OK"
+    }
+
+    /** The user's stored column state of the import table, or an empty one if there is none yet. */
+    @AccessChecked("own user prefs only")
+    @GetMapping(RestPaths.COLUMN_STATES)
+    fun getColumnStates(): GridState {
+        return agGridSupport.getGridState(GRID_CATEGORY) ?: GridState()
+    }
+
     private fun checkRight() {
         addressDao.checkLoggedInUserInsertAccess(AddressDO())
     }
@@ -198,5 +221,6 @@ class AddressImportRest {
     companion object {
         private val FILE_EXTENSIONS = arrayOf("vcf")
         private const val MAX_FILE_SIZE_MB = 10L
+        private const val GRID_CATEGORY = "addressImport"
     }
 }

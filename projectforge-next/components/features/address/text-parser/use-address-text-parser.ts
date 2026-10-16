@@ -146,12 +146,22 @@ export function useAddressTextParser(
         form.setFieldValue("imageDeleted", false);
       }
       toast.success(t("address.parseText.applied"));
+      if (importEntry) {
+        // The comparison stays, as in the React form: what is left of it is what the form still differs in.
+        offer(
+          fieldsFromComparison(importEntry.vcfComparisonData, values()),
+          null
+        );
+        return;
+      }
       setOffered(null);
       setImage(null);
       setWarnings([]);
     });
 
   return {
+    /** Opened for an entry of a VCF import: the comparison is all the parser offers, nothing to paste or drop. */
+    importMode: importEntry !== undefined,
     offered,
     warnings,
     selection,

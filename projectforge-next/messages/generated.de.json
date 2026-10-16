@@ -78,6 +78,7 @@
       "vCardSingleExport": "Export vCard",
       "vCardsImport": {
         "clickToEdit": "Ein Klick auf eine Zeile öffnet die Adresse zum Bearbeiten und zum Vergleichen der Felder.",
+        "dataLoaded": "VCF-Daten wurden geladen. Bitte die zu übernehmenden Felder auswählen.",
         "description": "Hier können vCards (Dateiformat .vcf) in das Adressbuch importiert werden. Bereits vorhandene Adressen werden nicht dupliziert, sondern nur ergänzt (z. B. um Telefonnummern oder E-Mail-Adressen).\n\nAdressen können anschließend abgeglichen und manuell, auch feldweise, importiert werden.",
         "dropHint": "VCF-Datei hier ablegen",
         "dropInfo": "Passende Adresse wird automatisch ausgewählt",
