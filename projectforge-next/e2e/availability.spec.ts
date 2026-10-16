@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 import { formatDateInput } from "../lib/date-parse";
 import { AVAILABILITY_METADATA } from "../lib/metadata/availability.generated";
 import { AVAILABILITY_PAGE } from "../components/features/availability/availability.page";
@@ -7,8 +8,8 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
 /**
  * The availability entries against the live backend (see AVAILABILITY_PAGE and AvailabilityEntityRest). Nothing
- * is written: the form test posts a period ending before it begins, which the server refuses before any write
- * (AvailabilityEntityRest.validate).
+ * is written but the stored choice of the team vacation calendar, which is put back. The form test posts a period
+ * ending before it begins, which the server refuses before any write (AvailabilityEntityRest.validate).
  */
 test.describe("availability", () => {
   test("shows the declared columns under the labels of AvailabilityDO", async ({
@@ -37,23 +38,52 @@ test.describe("availability", () => {
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
-    await goto(page, "/availability");
-    const link = page.getByRole("link", {
-      name: format.t("vacation.export.title"),
-    });
-    await expect(link).toHaveAttribute(
-      "href",
-      /\/vacationExport\?showAvailabilities=true$/
-    );
-    await link.click();
-    // Applied once and dropped from the url, so a reload keeps a choice made on the page.
-    await expect(page).toHaveURL(/\/vacationExport/);
-    await expect(page).not.toHaveURL(/showAvailabilities/);
-    await expect(
-      page.getByRole("checkbox", {
-        name: format.t("vacation.export.showAvailabilities._"),
-      })
-    ).toBeChecked();
+    const headers = { "X-PF-Frontend": "next" };
+    const initial = (await (
+      await page.request.get("/rs/vacationExport/initial", { headers })
+    ).json()) as {
+      employees: { id: number }[];
+      groups: { id: number }[];
+      periodKind?: string;
+      dayWidth?: string;
+      showAvailabilities: boolean;
+    };
+    // The choice is stored per user by every view: off first, so only the url can check the box.
+    const store = async (showAvailabilities: boolean) =>
+      page.request.post("/rs/vacationExport/view", {
+        headers: await writeHeaders(page.request),
+        data: {
+          employeeIds: initial.employees.map((e) => e.id),
+          groupIds: initial.groups.map((g) => g.id),
+          periodKind: initial.periodKind,
+          dayWidth: initial.dayWidth,
+          showAvailabilities,
+          from: "2030-01-01",
+          until: "2030-01-01",
+        },
+      });
+    try {
+      expect((await store(false)).ok()).toBe(true);
+      await goto(page, "/availability");
+      const link = page.getByRole("link", {
+        name: format.t("vacation.export.title"),
+      });
+      await expect(link).toHaveAttribute(
+        "href",
+        /\/vacationExport\?showAvailabilities=true$/
+      );
+      await link.click();
+      // Applied once and dropped from the url, so a reload keeps a choice made on the page.
+      await expect(page).toHaveURL(/\/vacationExport/);
+      await expect(page).not.toHaveURL(/showAvailabilities/);
+      await expect(
+        page.getByRole("checkbox", {
+          name: format.t("vacation.export.showAvailabilities._"),
+        })
+      ).toBeChecked();
+    } finally {
+      await store(initial.showAvailabilities);
+    }
   });
 
   test("links the vacation account, the vacation list and the availability entries with each other", async ({

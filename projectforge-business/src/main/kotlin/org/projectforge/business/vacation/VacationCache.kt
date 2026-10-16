@@ -79,7 +79,9 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     }
 
     /**
-     * Checks also the select access of the logged in user.
+     * The vacations of the members of the given groups and of the given users overlapping the period, rejected ones
+     * left out. Only of the users sharing a group with the logged-in user ([UserGroupCache.getGroupMateIds]) unless HR or
+     * finance staff ([VacationDao.hasLoggedInUserUnrestrictedVacationView]), and only those the logged-in user may see.
      * @param groupIds Null items should only occur on (de)serialization issues.
      * @param userIds Null items should only occur on (de)serialization issues.
      */
@@ -87,40 +89,27 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         startVacationDate: LocalDate, endVacationDate: LocalDate,
         groupIds: Set<Long?>?, userIds: Set<Long?>?
     ): List<VacationDO> {
-        checkRefresh()
-        val result = mutableListOf<VacationDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             log.info { "No groups given, therefore no vacation will be returned." }
-            return result
+            return emptyList()
         }
-        for (vacation in vacations) {
-            if (vacation.endDate?.isBefore(startVacationDate) == true ||
-                vacation.startDate?.isAfter(endVacationDate) == true
-            ) {
-                continue
-            }
-            if (vacation.status == VacationStatus.REJECTED) {
-                continue // Nobody is away: not shown in the calendar nor in its subscriptions.
-            }
-            if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
-                continue
-            }
-            val employeeUser = employeeCache.getUser(vacation.employee) ?: continue
-            var match = groupIds?.any { gid ->
-                userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
-                    user.id == employeeUser.id // The employee matches with one assigned user of the group.
-                } ?: false // Null doesn't match.
-            } ?: false // Null doesn't match
-            if (!match) { // Search for users
-                match = userIds?.any { uid ->
-                    uid == employeeUser.id // The employee matches with one given user.
-                } ?: false // Null doesn't match
-            }
-            if (match) {
-                result.add(vacation) // Employee is part of group, so return the vacation entry for this user.
-            }
+        checkRefresh()
+        val viewer = ThreadLocalUserContext.requiredLoggedInUser
+        val shownUserIds = userGroupCache.getMemberIds(groupIds, userIds)
+        if (!vacationDao.hasLoggedInUserUnrestrictedVacationView()) {
+            shownUserIds.retainAll(userGroupCache.getGroupMateIds(viewer))
         }
-        return result
+        if (shownUserIds.isEmpty()) {
+            return emptyList()
+        }
+        return vacations.filter { vacation ->
+            vacation.endDate?.isBefore(startVacationDate) == false &&
+                    vacation.startDate?.isAfter(endVacationDate) == false &&
+                    // Nobody is away: not shown in the calendar nor in its subscriptions.
+                    vacation.status != VacationStatus.REJECTED &&
+                    employeeCache.getUser(vacation.employee)?.id in shownUserIds &&
+                    vacationDao.hasSelectAccess(vacation, viewer)
+        }
     }
 
     override fun afterInsertOrModify(obj: VacationDO, operationType: OperationType) {

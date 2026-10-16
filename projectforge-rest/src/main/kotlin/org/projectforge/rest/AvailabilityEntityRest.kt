@@ -143,8 +143,9 @@ class AvailabilityEntityRest :
 
     /**
      * The user is mandatory (`required` of `@PropertyInfo` doesn't reach a reference, see
-     * [org.projectforge.ui.ElementsRegistry]); the period errors of [AvailabilityDao.validate] are shown at the date
-     * fields, the dao checks them on the write, too.
+     * [org.projectforge.ui.ElementsRegistry]); the errors of [AvailabilityDao.validate] are shown at their fields, the
+     * dao checks them on the write, too. Not for the entry of somebody else unless HR staff: the write is refused then
+     * anyway, and the collision check mustn't tell anybody when that person is away.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Availability) {
         super.validate(validationErrors, dto)
@@ -157,10 +158,17 @@ class AvailabilityEntityRest :
             )
             return
         }
+        if (!hasHrRights() && dto.user?.id != ThreadLocalUserContext.loggedInUserId) {
+            return // Refused by the access check of the write.
+        }
         val availability = AvailabilityDO()
         dto.copyTo(availability)
         baseDao.validate(availability)?.let { error ->
-            val fieldId = if (error == AvailabilityDao.ERROR_DATE_NOT_SET && dto.startDate == null) "startDate" else "endDate"
+            val fieldId = when {
+                error == AvailabilityDao.ERROR_STATUS_NOT_SET -> "status"
+                error == AvailabilityDao.ERROR_DATE_NOT_SET && dto.startDate == null -> "startDate"
+                else -> "endDate"
+            }
             validationErrors.add(ValidationError(translate(error), fieldId = fieldId))
         }
     }
@@ -197,6 +205,12 @@ class AvailabilityEntityRest :
         target: QueryFilter,
         source: MagicFilter
     ): List<CustomResultFilter<AvailabilityDO>>? {
+        if (!hasHrRights()) {
+            // The type and the internal comment are hidden from others (AvailabilityDao.afterLoad), but a filter or an
+            // order by them in the query would still tell their values by the rows returned.
+            source.entries.filter { it.field in PERSONAL_FIELDS }.forEach { it.synthetic = true }
+            source.sortProperties.removeIf { it.property in PERSONAL_FIELDS }
+        }
         // The entries overlapping the period, by their dates in the query: ending on or after its begin and beginning
         // on or before its end. Either bound may be open.
         source.entries.find { it.field == "period" }?.let { entry ->
@@ -227,4 +241,9 @@ class AvailabilityEntityRest :
     }
 
     private fun hasHrRights(): Boolean = baseDao.hasHrRights(ThreadLocalUserContext.loggedInUser)
+
+    companion object {
+        /** Only for the user and HR staff (see [AvailabilityDao.isInternalCommentVisibleFor]). */
+        private val PERSONAL_FIELDS = setOf("type", "internalComment")
+    }
 }

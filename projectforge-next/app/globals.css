@@ -809,6 +809,22 @@ span.row-blue {
   font-weight: 600;
 }
 
+/*
+ * Availability entries (AvailabilityProvider): a not-available one is drawn in the vacations' colour, striped to
+ * tell it apart from a vacation (as ABSENT_BAR_CLASS in the vacation charts), in the text colour, so it stays as
+ * legible in light and dark mode; the others (reachable, remote, …) have a dashed border.
+ */
+.pf-calendar .fc-event.availability-absent {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in oklab, currentColor 14%, transparent) 0 4px,
+    transparent 4px 8px
+  );
+}
+.pf-calendar .fc-event.availability-event:not(.availability-absent) {
+  border-style: dashed;
+}
+
 /* Weekend/holiday background events shade the whole day column/cell. */
 .pf-calendar .fc-holiday-weekend,
 .pf-calendar .fc-bg-event.fc-holiday-weekend {

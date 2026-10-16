@@ -91,6 +91,7 @@ const UNKNOWN_STATS: VacationFormStats = {
   conflictingVacations: null,
   conflict: null,
   chartDays: null,
+  replacementAvailabilities: null,
   unavailable: true,
 };
 

@@ -33,6 +33,10 @@ import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.User
@@ -104,6 +108,45 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         dto.user = User().also { it.id = own.id }
         dto.endDate = dto.startDate
         assertTrue(errors(dto).isEmpty())
+        dto.status = null
+        assertEquals(listOf("status"), errors(dto).map { it.fieldId })
+    }
+
+    @Test
+    fun `the validation tells nothing about the entries of somebody else, nor do filter and order of the list`() {
+        val own = createUser("probe")
+        val other = createUser("probe-other")
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.probe", own.username!!, other.username!!)
+        logon(TEST_HR_USER)
+        val start = LocalDate.of(2033, 4, 4)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = other
+            it.startDate = start
+            it.endDate = start.plusDays(4)
+            it.type = "Sickness"
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+            it.internalComment = "internal"
+        })
+        val probe = Availability().also {
+            it.user = User().also { user -> user.id = other.id }
+            it.startDate = start
+            it.endDate = start
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+        }
+        assertEquals(listOf("endDate"), errors(probe).map { it.fieldId }, "HR staff: the collision.")
+        logon(own)
+        assertTrue(errors(probe).isEmpty(), "Refused by the write instead.")
+
+        val filter = MagicFilter().also {
+            it.entries.add(MagicFilterEntry("type", "Sickness"))
+            it.entries.add(MagicFilterEntry("internalComment", "internal"))
+            it.sortProperties.add(SortProperty("internalComment"))
+            it.sortProperties.add(SortProperty("startDate"))
+        }
+        availabilityEntityRest.preProcessMagicFilter(QueryFilter(), filter)
+        assertTrue(filter.entries.all { it.synthetic == true }, "Not applied to the query.")
+        assertEquals(listOf("startDate"), filter.sortProperties.map { it.property })
     }
 
     private fun errors(dto: Availability): List<ValidationError> =

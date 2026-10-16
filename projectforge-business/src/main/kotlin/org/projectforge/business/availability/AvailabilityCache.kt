@@ -26,6 +26,7 @@ package org.projectforge.business.availability
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -47,6 +48,9 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
 
+    @Autowired
+    private lateinit var vacationDao: VacationDao
+
     /** Guards [availabilityMap] and [modifiedDuringRefresh]. */
     private val lock = Any()
 
@@ -67,7 +71,9 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     /**
-     * Checks also the select access of the logged in user.
+     * The entries of the members of the given groups and of the given users overlapping the period. Only of the users
+     * sharing a group with the logged-in user ([UserGroupCache.getGroupMateIds]) unless HR or finance staff
+     * ([VacationDao.hasLoggedInUserUnrestrictedVacationView]), and only those the logged-in user may see.
      * @param groupIds Null items should only occur on (de)serialization issues.
      * @param userIds Null items should only occur on (de)serialization issues.
      */
@@ -75,36 +81,24 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         startDate: LocalDate, endDate: LocalDate,
         groupIds: Set<Long?>?, userIds: Set<Long?>?
     ): List<AvailabilityDO> {
-        checkRefresh()
-        val result = mutableListOf<AvailabilityDO>()
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            return result
+            return emptyList()
         }
-        for (availability in availabilities) {
-            if (availability.endDate?.isBefore(startDate) == true ||
-                availability.startDate?.isAfter(endDate) == true
-            ) {
-                continue
-            }
-            if (!availabilityDao.hasSelectAccess(availability, ThreadLocalUserContext.requiredLoggedInUser)) {
-                continue
-            }
-            val userId = availability.user?.id ?: continue
-            var match = groupIds?.any { gid ->
-                userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
-                    user.id == userId
-                } ?: false
-            } ?: false
-            if (!match) {
-                match = userIds?.any { uid ->
-                    uid == userId
-                } ?: false
-            }
-            if (match) {
-                result.add(availability)
-            }
+        checkRefresh()
+        val viewer = ThreadLocalUserContext.requiredLoggedInUser
+        val shownUserIds = userGroupCache.getMemberIds(groupIds, userIds)
+        if (!vacationDao.hasLoggedInUserUnrestrictedVacationView()) {
+            shownUserIds.retainAll(userGroupCache.getGroupMateIds(viewer))
         }
-        return result
+        if (shownUserIds.isEmpty()) {
+            return emptyList()
+        }
+        return availabilities.filter { availability ->
+            availability.user?.id in shownUserIds &&
+                    availability.endDate?.isBefore(startDate) == false &&
+                    availability.startDate?.isAfter(endDate) == false &&
+                    availabilityDao.hasSelectAccess(availability, viewer)
+        }
     }
 
     /**

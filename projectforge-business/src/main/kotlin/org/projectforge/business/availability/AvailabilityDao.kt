@@ -115,22 +115,30 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     /**
-     * An undeleted entry is validated like a new one: meanwhile its period may be used by another entry.
+     * An undeleted entry is validated like a new one: meanwhile its period may be used by another entry. Its user is
+     * the stored one: the access check of an undelete looks at the posted entry only, whose user may have been replaced
+     * by the own one to take over (and then read the history of) the deleted entry of somebody else.
      */
     override fun onUndelete(obj: AvailabilityDO) {
+        // Attached: the transaction's own instance, the one BaseDOPersistenceService loads afterwards.
+        persistenceService.find(AvailabilityDO::class.java, obj.id, attached = true)
+            ?.takeIf { it !== obj }
+            ?.let { obj.user = it.user }
         obj.deleted = false // The validation skips deleted entries.
         validate(obj, throwException = true)
     }
 
     /**
-     * Checks the period of the given entry: start and end date must be set, the end date mustn't be before the start
-     * date and no other entry of the same user may overlap it.
+     * Checks the given entry: user and status must be set, start and end date as well, the end date mustn't be before
+     * the start date and no other entry of the same user may overlap it.
      * @return The i18n key of the error or null, if the entry is valid.
      */
     open fun validate(obj: AvailabilityDO, throwException: Boolean = false): String? {
         val startDate = obj.startDate
         val endDate = obj.endDate
         val error = when {
+            obj.user?.id == null -> ERROR_USER_NOT_SET
+            obj.status == null -> ERROR_STATUS_NOT_SET
             startDate == null || endDate == null -> ERROR_DATE_NOT_SET
             endDate.isBefore(startDate) -> ERROR_END_DATE_BEFORE_START_DATE
             !obj.deleted && getOverlappingEntries(obj.user?.id, startDate, endDate).any { it.id != obj.id } ->
@@ -215,6 +223,8 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         const val ERROR_DATE_NOT_SET = "availability.validate.dateNotSet"
         const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
         const val ERROR_COLLISION = "availability.validate.collision"
+        const val ERROR_STATUS_NOT_SET = "availability.validate.statusNotSet"
+        const val ERROR_USER_NOT_SET = "availability.validate.userNotSet"
 
         /** How long the entries of others stay visible to the members of their groups after their end date. */
         const val VISIBLE_PAST_DAYS = 31L

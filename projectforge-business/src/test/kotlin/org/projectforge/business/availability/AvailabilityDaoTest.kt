@@ -105,6 +105,41 @@ class AvailabilityDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `nobody takes over the deleted entry of somebody else by undeleting it as the own one`() {
+        val owner = createUser("undelete-owner")
+        val other = createUser("undelete-other")
+        logon(owner)
+        val entry = create(owner, LocalDate.of(2032, 5, 3), LocalDate.of(2032, 5, 7))
+        availabilityDao.insert(entry)
+        availabilityDao.markAsDeleted(entry)
+        logon(other)
+        val posted = create(other, entry.startDate!!, entry.endDate!!).also { it.id = entry.id }
+        assertThrows<AccessException> { availabilityDao.undelete(posted) }
+        logon(TEST_HR_USER)
+        availabilityDao.find(entry.id)!!.let {
+            Assertions.assertEquals(owner.id, it.user?.id)
+            Assertions.assertTrue(it.deleted)
+        }
+        // The owner may undelete it.
+        logon(owner)
+        availabilityDao.undelete(create(owner, entry.startDate!!, entry.endDate!!).also { it.id = entry.id })
+        Assertions.assertFalse(availabilityDao.find(entry.id)!!.deleted)
+    }
+
+    @Test
+    fun `user and status are mandatory`() {
+        logon(TEST_HR_USER)
+        val user = createUser("mandatory")
+        val start = LocalDate.of(2030, 8, 3)
+        assertError(AvailabilityDao.ERROR_USER_NOT_SET) {
+            availabilityDao.insert(create(user, start, start).also { it.user = null })
+        }
+        assertError(AvailabilityDao.ERROR_STATUS_NOT_SET) {
+            availabilityDao.insert(create(user, start, start).also { it.status = null })
+        }
+    }
+
+    @Test
     fun `type and internal comment are only visible to the user and HR staff`() {
         logon(TEST_HR_USER)
         val user = createUser("comment")

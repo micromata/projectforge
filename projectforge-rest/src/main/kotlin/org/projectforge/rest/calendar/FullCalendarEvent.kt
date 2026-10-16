@@ -182,10 +182,14 @@ class FullCalendarEvent(
   }
 
   companion object {
+    /**
+     * Whether the all-day event spans the given days, [end] inclusive: an all-day event ends on the day after (see
+     * [createAllDayEvent]).
+     */
     fun samePeriod(event: FullCalendarEvent, start: LocalDate?, end: LocalDate?): Boolean {
       start ?: return false
       end ?: return false
-      return event.start?.day == start && event.end?.day == end
+      return event.start?.day == start && event.end?.day == end.plusDays(1)
     }
 
     /**

@@ -5,7 +5,7 @@ import { writeHeaders } from "./fixtures/seed";
 /**
  * The team vacation calendar against the live backend (see VacationExportRest).
  *
- * Nothing is written but the choice of employees and groups, which the backend stores per user: the one stored
+ * Nothing is written but the choice of employees, groups and period, which the backend stores per user: the one stored
  * before is put back at the end. In the vacation lane, as it reads the vacation entries.
  *
  * Put back is the choice as `initial` answers it, i.e. without the ids the user may no longer pick (deactivated
@@ -26,6 +26,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       groups: { id: number }[];
       periodKind?: string;
       dayWidth?: string;
+      showAvailabilities: boolean;
     };
     const store = async (
       employeeIds: number[],
@@ -41,6 +42,8 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
           groupIds,
           periodKind,
           dayWidth,
+          // Stored with the rest: kept as it was.
+          showAvailabilities: initial.showAvailabilities,
           from: "2030-01-01",
           until: "2030-01-01",
         },

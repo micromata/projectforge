@@ -141,6 +141,47 @@ class AbsenceProviderTest : AbstractTestBase() {
         assertFalse(summaries.any { it?.contains("Sickness") == true })
     }
 
+    @Test
+    fun `only of the people sharing a group with the viewer unless HR staff, each once`() {
+        val employee = createEmployee("mates-employee")
+        val hr = createEmployee("mates-hr", hrAccess = true)
+        val colleague = createUser("mates-colleague")
+        val stranger = createUser("mates-stranger")
+        logon(TEST_ADMIN_USER)
+        val group = initTestDB.addGroup("$PREFIX.mates", employee.user!!.username!!, colleague.username!!)
+        val monday = LocalDate.of(LocalDate.now().year + 6, 5, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        val vacationId = vacationDao.insert(VacationDO().also {
+            it.employee = employee
+            it.manager = hr
+            it.replacement = hr
+            it.startDate = monday
+            it.endDate = monday.plusDays(1)
+            it.status = VacationStatus.APPROVED
+            it.special = true
+        })
+        val availabilityId =
+            availabilityDao.insert(availability(employee.user!!, monday.plusDays(3), AvailabilityStatus.NOT_AVAILABLE))
+        val settings = CalendarSettings()
+        // Twice, as by the absence filter and a team calendar with the same people.
+        fun events(): List<FullCalendarEvent> = mutableListOf<FullCalendarEvent>().also { events ->
+            repeat(2) {
+                absenceProvider.addEvents(
+                    PFDateTime.from(monday.minusDays(1)), PFDateTime.from(monday.plusDays(14)), events,
+                    groupIds = setOf(group.id), userIds = setOf(employee.user!!.id), kinds = AbsenceKind.entries.toSet(),
+                    settings = settings,
+                )
+            }
+        }
+
+        logon(colleague)
+        assertEquals(listOf(vacationId, availabilityId), events().map { it.extendedProps?.dbId })
+        logon(stranger)
+        assertTrue(events().isEmpty(), "Not of the same group.")
+        logon(hr.user!!)
+        assertEquals(2, events().size, "HR staff: of everybody.")
+    }
+
     private fun availability(user: PFUserDO, startDate: LocalDate, status: AvailabilityStatus) = AvailabilityDO().also {
         it.user = user
         it.startDate = startDate

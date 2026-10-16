@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.service
 
+import org.hibernate.Hibernate
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityStatus
@@ -575,8 +576,13 @@ open class VacationService {
         return availabilityCache.getEntriesOfUsers(userIds, periodBegin, periodEnd)
     }
 
+    /**
+     * A substitute is often an uninitialized proxy (VacationDO.replacement), or posted by its id only: then by the
+     * employee's id from the cache. The user of a proxy would be loaded one by one otherwise (or fail outside a session).
+     */
     private fun userIdOf(employee: EmployeeDO): Long? {
-        return employee.user?.id ?: employeeCache.getEmployee(employee.id)?.user?.id
+        return employee.takeIf { Hibernate.isInitialized(it) }?.user?.id
+            ?: employeeCache.getUserByEmployee(employee.id)?.id
     }
 
     /**
