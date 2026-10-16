@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -43,10 +43,10 @@ const KINDS = periodKindsOf(["quarter", "year"]);
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
  * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
  * with a sheet per period (VacationExcelExporter) starting with the period shown. Optionally with the availability
- * entries of the same employees (those the user may see), in the chart and the workbook.
+ * entries of the same employees, as their vacations, in the chart and the workbook.
  *
- * The employees and groups chosen (and whether availabilities are shown) are stored by the backend (shown again on the next visit); the period is
- * kept in the url (`?period=quarter&from=2026-10-01`).
+ * The employees and groups chosen and whether availabilities are shown are stored by the backend (shown again on
+ * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`).
  *
  * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
  * itself is not printed, the names are in the chart.
@@ -146,6 +146,14 @@ function VacationExportContent({
     () =>
       params.get("showAvailabilities") === "true" || initial.showAvailabilities
   );
+  // Applied once: kept in the url, a reload or going back would turn them on again against a choice made here.
+  useEffect(() => {
+    if (params.get("showAvailabilities") !== null) {
+      updateSearchParams({ showAvailabilities: null }, "replace");
+    }
+    // Only on mount: the parameter is read by the initial state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const min = initial.earliestDate ?? null;
   const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>
     chartWidthOf(initial.dayWidth)

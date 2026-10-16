@@ -85,7 +85,27 @@ class AvailabilityDaoTest : AbstractTestBase() {
     }
 
     @Test
-    fun `internal comment is only visible to the user and HR staff`() {
+    fun `nobody takes over or deletes the entry of somebody else by posting it as the own one`() {
+        val owner = createUser("takeover-owner")
+        val other = createUser("takeover-other")
+        logon(owner)
+        val entry = create(owner, LocalDate.of(2032, 4, 5), LocalDate.of(2032, 4, 9))
+        availabilityDao.insert(entry)
+        logon(other)
+        val posted = create(other, entry.startDate!!, entry.endDate!!).also { it.id = entry.id }
+        assertThrows<AccessException> { availabilityDao.update(posted) }
+        assertThrows<AccessException> { availabilityDao.markAsDeleted(posted) }
+        logon(TEST_HR_USER)
+        val stored = availabilityDao.find(entry.id)!!
+        Assertions.assertEquals(owner.id, stored.user?.id)
+        Assertions.assertFalse(stored.deleted)
+        // HR staff may change the user.
+        availabilityDao.update(posted)
+        Assertions.assertEquals(other.id, availabilityDao.find(entry.id)!!.user?.id)
+    }
+
+    @Test
+    fun `type and internal comment are only visible to the user and HR staff`() {
         logon(TEST_HR_USER)
         val user = createUser("comment")
         val colleague = createUser("comment-colleague")
@@ -99,7 +119,10 @@ class AvailabilityDaoTest : AbstractTestBase() {
 
         Assertions.assertEquals("internal", availabilityDao.find(entry.id)!!.internalComment)
         logon(user)
-        Assertions.assertEquals("internal", availabilityDao.find(entry.id)!!.internalComment)
+        availabilityDao.find(entry.id)!!.let {
+            Assertions.assertEquals("internal", it.internalComment)
+            Assertions.assertEquals("Workation", it.type)
+        }
         // A colleague (e.g. of the same group) reading it: the public comment only.
         logon(colleague)
         val copy = create(user, entry.startDate!!, entry.endDate!!).also {
@@ -109,6 +132,7 @@ class AvailabilityDaoTest : AbstractTestBase() {
         availabilityDao.afterLoad(copy)
         Assertions.assertEquals("public", copy.comment)
         Assertions.assertNull(copy.internalComment)
+        Assertions.assertNull(copy.type)
     }
 
     @Test

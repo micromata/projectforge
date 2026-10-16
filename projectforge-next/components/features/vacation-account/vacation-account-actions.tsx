@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -7,6 +8,7 @@ import {
   FileExportIcon,
   LeftToRightListBulletIcon,
   PlusSignIcon,
+  UserStatusIcon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { MenuLink } from "@/components/shared/menu-link";
@@ -14,8 +16,8 @@ import type { VacationAccount } from "./types";
 
 /**
  * The actions of the vacation account: a new vacation of the employee shown, the remaining leave recalculated
- * (HR staff, only while the stored carry differs from what was left of the previous year), the vacation list and
- * the export of the team vacation calendars. While another employee's account loads (`switching`), the two
+ * (HR staff, only while the stored carry differs from what was left of the previous year), the vacation list, the
+ * availability entries (the other absences) and the export of the team vacation calendars. While another employee's account loads (`switching`), the two
  * actions on the employee are disabled: they would still act on the one shown.
  */
 export function VacationAccountActions({
@@ -54,6 +56,12 @@ export function VacationAccountActions({
           />
           {t("menu.vacation._")}
         </MenuLink>
+      </Button>
+      <Button asChild variant="ghost" size="sm" className="gap-1.5">
+        <Link href="/availability">
+          <HugeiconsIcon icon={UserStatusIcon} size={14} aria-hidden />
+          {t("menu.availability")}
+        </Link>
       </Button>
       <Button asChild size="sm" className="gap-1.5">
         <MenuLink url={account.exportUrl}>

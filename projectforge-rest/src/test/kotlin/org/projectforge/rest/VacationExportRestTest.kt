@@ -167,12 +167,13 @@ class VacationExportRestTest : AbstractTestBase() {
         assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
         logon(own.user!!)
 
-        // Finance staff may pick everybody and see their availability entries as their vacations, but not the type.
+        // Finance staff may pick everybody and see their availability entries as their vacations, but neither the type
+        // nor the comment (not visible to them in the availability list).
         logon(finance.user!!)
-        assertEquals(
-            translate("availability.status.reachableIfNeeded"),
-            vacationExportRest.view(request).rows.single().availabilities.single().label,
-        )
+        vacationExportRest.view(request).rows.single().availabilities.single().let {
+            assertEquals(translate("availability.status.reachableIfNeeded"), it.label)
+            assertNull(it.comment)
+        }
     }
 
     @Test

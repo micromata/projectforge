@@ -76,8 +76,11 @@ open class AvailabilityDO : DefaultBaseDO() {
     @get:Column(name = "end_date", nullable = false)
     open var endDate: LocalDate? = null
 
+    /**
+     * Personal data like the internal comment (e.g. sickness): only visible to the user and to HR staff, see
+     * [AvailabilityDao.afterLoad]. Not indexed, so the full text search doesn't reveal it to others.
+     */
     @PropertyInfo(i18nKey = "availability.type")
-    @FullTextField
     @get:Column(name = "type", length = 100)
     open var type: String? = null
 

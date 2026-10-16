@@ -82,7 +82,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         dbObj: AvailabilityDO?,
         throwException: Boolean
     ): Boolean {
-        if (hasHrRights(user) || isOwnEntry(user, obj)) {
+        if (hasHrRights(user) || isOwnEntry(user, obj, dbObj)) {
             return true
         }
         return throwOrReturnFalse(throwException)
@@ -94,7 +94,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         dbObj: AvailabilityDO?,
         throwException: Boolean
     ): Boolean {
-        if (hasHrRights(user) || isOwnEntry(user, obj)) {
+        if (hasHrRights(user) || isOwnEntry(user, obj, dbObj)) {
             return true
         }
         return throwOrReturnFalse(throwException)
@@ -158,15 +158,16 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         )
     }
 
+    /**
+     * The type (e.g. sickness) and the internal comment are personal data: not sent to anybody else than the user and
+     * HR staff ([isInternalCommentVisibleFor]). Without a logged-in user no per-user decision can be made, they are
+     * kept; consumers serving cached entries (calendar, vacation export) decide per logged-in user ([labelFor]).
+     */
     override fun afterLoad(obj: AvailabilityDO) {
-        if (!obj.internalComment.isNullOrBlank()) {
-            // No logged-in user means this runs during background cache maintenance (AvailabilityCache.refresh), where
-            // no per-user privacy decision can be made. Keep the raw comment in the shared cache; consumers serving
-            // cached entries (calendar, vacation export) apply isInternalCommentVisibleFor per logged-in user.
-            val user = ThreadLocalUserContext.loggedInUser ?: return
-            if (!isInternalCommentVisibleFor(user, obj)) {
-                obj.internalComment = null
-            }
+        val user = ThreadLocalUserContext.loggedInUser ?: return
+        if (!isInternalCommentVisibleFor(user, obj)) {
+            obj.type = null
+            obj.internalComment = null
         }
     }
 
@@ -193,6 +194,14 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
 
     private fun isOwnEntry(user: PFUserDO, obj: AvailabilityDO): Boolean {
         return obj.user?.id != null && obj.user?.id == user.id
+    }
+
+    /**
+     * The given entry and its stored version (if any) are both the user's own: the posted entry alone isn't enough,
+     * its user may have been replaced by the user's own to take over or delete the entry of somebody else.
+     */
+    private fun isOwnEntry(user: PFUserDO, obj: AvailabilityDO, dbObj: AvailabilityDO?): Boolean {
+        return isOwnEntry(user, obj) && (dbObj == null || isOwnEntry(user, dbObj))
     }
 
     private fun throwOrReturnFalse(throwException: Boolean): Boolean {

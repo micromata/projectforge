@@ -1,7 +1,12 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, label } from "./fixtures/format";
-import { markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
+import {
+  markAsDeleted,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
 import { ABSENCE_KINDS, CALENDAR_GRID_SIZES } from "../lib/rs/calendar-types";
 import type {
   CalendarInit,
@@ -326,16 +331,8 @@ async function readInit(page: Page): Promise<CalendarInit> {
 
 /** Shows all kinds of absences again (`POST changeAbsenceKinds`, with the session's CSRF token). */
 async function showAllAbsenceKinds(page: Page): Promise<void> {
-  const status = await page.request.get("/rs/userStatus", {
-    headers: { "X-PF-Frontend": "next" },
-  });
-  const { csrfToken } = (await status.json()) as { csrfToken: string };
   const res = await page.request.post("/rs/calendar/changeAbsenceKinds", {
-    headers: {
-      "X-PF-Frontend": "next",
-      "X-PF-CSRF-Token": csrfToken,
-      "Content-Type": "application/json",
-    },
+    headers: await writeHeaders(page.request),
     data: [...ABSENCE_KINDS],
   });
   expect(res.ok()).toBe(true);

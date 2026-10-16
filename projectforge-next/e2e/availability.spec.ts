@@ -38,15 +38,53 @@ test.describe("availability", () => {
   }) => {
     const format = await userFormat(page);
     await goto(page, "/availability");
-    await page
-      .getByRole("link", { name: format.t("vacation.export.title") })
-      .click();
-    await expect(page).toHaveURL(/\/vacationExport\?showAvailabilities=true/);
+    const link = page.getByRole("link", {
+      name: format.t("vacation.export.title"),
+    });
+    await expect(link).toHaveAttribute(
+      "href",
+      /\/vacationExport\?showAvailabilities=true$/
+    );
+    await link.click();
+    // Applied once and dropped from the url, so a reload keeps a choice made on the page.
+    await expect(page).toHaveURL(/\/vacationExport/);
+    await expect(page).not.toHaveURL(/showAvailabilities/);
     await expect(
       page.getByRole("checkbox", {
         name: format.t("vacation.export.showAvailabilities._"),
       })
     ).toBeChecked();
+  });
+
+  test("links the vacation account, the vacation list and the availability entries with each other", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    const linkTo = (name: string) =>
+      page.getByRole("link", { name, exact: true });
+    await goto(page, "/availability");
+    await expect(linkTo(t("menu.vacation.leaveaccount"))).toHaveAttribute(
+      "href",
+      /\/vacationAccount$/
+    );
+    await goto(page, "/vacation");
+    await expect(linkTo(t("menu.availability"))).toHaveAttribute(
+      "href",
+      /\/availability$/
+    );
+    // The account's actions only with an employee (a slot database's full access user has none).
+    const account = (await (
+      await page.request.get("/rs/vacationAccount", {
+        headers: { "X-PF-Frontend": "next" },
+      })
+    ).json()) as { employee?: { id: number } };
+    if (account.employee) {
+      await goto(page, "/vacationAccount");
+      await expect(linkTo(t("menu.availability"))).toHaveAttribute(
+        "href",
+        /\/availability$/
+      );
+    }
   });
 
   test("offers the configured types and the internal comment, and refuses an end before the start", async ({

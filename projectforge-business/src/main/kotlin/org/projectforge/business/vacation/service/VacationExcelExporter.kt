@@ -33,7 +33,7 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.availability.AvailabilityDO
-import org.projectforge.business.availability.label
+import org.projectforge.business.availability.neutralLabel
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -157,8 +157,8 @@ object VacationExcelExporter {
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
     availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
-    /** What an availability entry is called for the user (AvailabilityDao.labelFor). */
-    labelOf: (AvailabilityDO) -> String = { it.label },
+    /** What an availability entry is called for the user (AvailabilityDao.labelFor); by default only its status. */
+    labelOf: (AvailabilityDO) -> String = { it.neutralLabel },
   ): ByteArray {
     log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->

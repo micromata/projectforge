@@ -47,8 +47,18 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
 
+    /** Guards [availabilityMap] and [modifiedDuringRefresh]. */
+    private val lock = Any()
+
     private var availabilityMap = mutableMapOf<Long?, AvailabilityDO>()
 
+    /**
+     * The entries inserted or modified while a [refresh] reads the database: its result may lack them (read before
+     * their commit), so they are applied to it afterwards. Null while no refresh is running.
+     */
+    private var modifiedDuringRefresh: MutableMap<Long?, AvailabilityDO>? = null
+
+    @Volatile
     private var availabilities = listOf<AvailabilityDO>() // Thread safe
 
     @PostConstruct
@@ -141,13 +151,18 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     override fun afterInsertOrModify(obj: AvailabilityDO, operationType: OperationType) {
-        synchronized(availabilityMap) {
-            if (obj.deleted) {
-                availabilityMap.remove(obj.id)
-            } else {
-                availabilityMap[obj.id] = obj
-            }
+        synchronized(lock) {
+            modifiedDuringRefresh?.put(obj.id, obj)
+            apply(availabilityMap, obj)
             availabilities = availabilityMap.values.toList()
+        }
+    }
+
+    private fun apply(map: MutableMap<Long?, AvailabilityDO>, obj: AvailabilityDO) {
+        if (obj.deleted) {
+            map.remove(obj.id)
+        } else {
+            map[obj.id] = obj
         }
     }
 
@@ -155,18 +170,30 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         log.info("Refreshing AvailabilityCache ...")
         // runReadOnlyForCacheMaintenance, not runIsolatedReadOnly: a refresh triggered from within a write transaction
         // (e.g. a cache getter called mid-insert) mustn't open a second connection.
-        runReadOnlyForCacheMaintenance {
-            val map = mutableMapOf<Long?, AvailabilityDO>()
-            // Read without a logged-in user: the first fill runs on the thread of whoever asks first, and
-            // AvailabilityDao.afterLoad would hide the internal comments that user may not see - for everybody, as the
-            // cache is shared. The consumers check the internal comment per user (AvailabilityProvider).
-            withoutLoggedInUser { availabilityDao.selectAll(checkAccess = false) }.forEach {
-                if (!it.deleted) {
-                    map[it.id] = it
+        synchronized(lock) {
+            modifiedDuringRefresh = mutableMapOf()
+        }
+        try {
+            runReadOnlyForCacheMaintenance {
+                val map = mutableMapOf<Long?, AvailabilityDO>()
+                // Read without a logged-in user: the first fill runs on the thread of whoever asks first, and
+                // AvailabilityDao.afterLoad would hide the type and internal comment that user may not see - for
+                // everybody, as the cache is shared. The consumers decide per user (AvailabilityDao.labelFor).
+                withoutLoggedInUser { availabilityDao.selectAll(checkAccess = false) }.forEach {
+                    if (!it.deleted) {
+                        map[it.id] = it
+                    }
+                }
+                synchronized(lock) {
+                    modifiedDuringRefresh?.values?.forEach { apply(map, it) }
+                    availabilityMap = map
+                    availabilities = availabilityMap.values.toList()
                 }
             }
-            availabilityMap = map
-            availabilities = availabilityMap.values.toList()
+        } finally {
+            synchronized(lock) {
+                modifiedDuringRefresh = null
+            }
         }
         log.info("Refreshing of AvailabilityCache done.")
     }

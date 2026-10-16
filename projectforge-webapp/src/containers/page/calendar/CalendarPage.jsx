@@ -35,8 +35,6 @@ function CalendarPage() {
         isFilterModified: false,
         vacationGroups: [],
         vacationUsers: [],
-        availabilityGroups: [],
-        availabilityUsers: [],
     });
 
     React.useEffect(() => {
@@ -80,20 +78,6 @@ function CalendarPage() {
         setState((prevState) => ({
             ...prevState,
             vacationUsers: newVacationUsers,
-        }));
-    };
-
-    const onAvailabilityGroupsChange = (newAvailabilityGroups) => {
-        setState((prevState) => ({
-            ...prevState,
-            availabilityGroups: newAvailabilityGroups,
-        }));
-    };
-
-    const onAvailabilityUsersChange = (newAvailabilityUsers) => {
-        setState((prevState) => ({
-            ...prevState,
-            availabilityUsers: newAvailabilityUsers,
         }));
     };
 
@@ -155,8 +139,6 @@ function CalendarPage() {
             isFilterModified: newState.isFilterModified || (newState.isFilterModified === undefined && prevState.isFilterModified),
             vacationGroups: newState.vacationGroups || prevState.vacationGroups,
             vacationUsers: newState.vacationUsers || prevState.vacationUsers,
-            availabilityGroups: newState.availabilityGroups || prevState.availabilityGroups,
-            availabilityUsers: newState.availabilityUsers || prevState.availabilityUsers,
         }));
     };
 
@@ -335,12 +317,8 @@ function CalendarPage() {
                                         onFirstHourChange={onFirstHourChange}
                                         onVacationGroupsChange={onVacationGroupsChange}
                                         onVacationUsersChange={onVacationUsersChange}
-                                        onAvailabilityGroupsChange={onAvailabilityGroupsChange}
-                                        onAvailabilityUsersChange={onAvailabilityUsersChange}
                                         vacationGroups={state.vacationGroups}
                                         vacationUsers={state.vacationUsers}
-                                        availabilityGroups={state.availabilityGroups}
-                                        availabilityUsers={state.availabilityUsers}
                                         refresh={refresh}
                                     />
                                 </Col>
@@ -361,8 +339,6 @@ function CalendarPage() {
                             translations={translations}
                             vacationGroups={state.vacationGroups}
                             vacationUsers={state.vacationUsers}
-                            availabilityGroups={state.availabilityGroups}
-                            availabilityUsers={state.availabilityUsers}
                         />
                     )}
                 </CalendarContext.Provider>

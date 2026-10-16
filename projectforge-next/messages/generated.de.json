@@ -2537,6 +2537,7 @@
     "2FASetup": "2. Faktor einrichten",
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
+    "availability": "Verfügbarkeit",
     "calendar": "Kalender",
     "changePassword": "Passwort ändern",
     "changeWlanPassword": "WLAN/Samba Passwort ändern",
@@ -4757,7 +4758,7 @@
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
       "showAvailabilities": {
         "_": "Verfügbarkeiten",
-        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, soweit sie sichtbar sind."
+        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, wie ihre Urlaube. Die Kommentare nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
       },
       "title": "Team-Urlaubskalender"
     },

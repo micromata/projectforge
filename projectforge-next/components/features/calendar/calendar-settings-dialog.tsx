@@ -36,8 +36,8 @@ interface CalendarSettingsDialogProps {
 
 /**
  * The gear dialog: the presentational settings that do not belong on the toolbar itself — default
- * calendar, whose timesheets to show, breaks, absence overlays (vacations and availability entries), the time-grid's slot size and first
- * hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
+ * calendar, whose timesheets to show, breaks, absence overlays (vacations and availability entries), the
+ * time-grid's slot size and first hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
  * page). Each control fires its own `change*`/persist the moment it changes; the dialog holds no draft,
  * so there is no save button, exactly as the legacy settings modal.
  */

@@ -27,8 +27,9 @@ import type { useVacationExportFavorites } from "./use-vacation-export-favorites
 /**
  * What the team vacation calendar shows: the employees and groups (the lookups offer only what the user may
  * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
- * columns, whether the availability entries are shown too (in the chart and the export), the Excel export of the same choice and the print of the calendar shown (`canPrint`: one is shown).
- * The favorites hold named choices of employees and groups. Not printed itself (see VacationExportPage).
+ * columns, whether the availability entries are shown too (in the chart and the export), the Excel export of the
+ * same choice and the print of the calendar shown (`canPrint`: one is shown). The favorites hold named choices of
+ * employees and groups. Not printed itself (see VacationExportPage).
  */
 export function VacationExportFilterRow({
   kinds,

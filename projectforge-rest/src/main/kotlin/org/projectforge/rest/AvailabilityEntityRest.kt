@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController
  * - the user is changeable by HR staff only ([Availability.userEditable]),
  * - the types offered are the configured ones ([AvailabilityConfig], [Availability.availableTypes]),
  * - the internal comment is offered to the user and HR staff only ([Availability.internalCommentVisible]); for
- *   anybody else the dao doesn't send it ([AvailabilityDao.afterLoad]).
+ *   anybody else the dao doesn't send it nor the type ([AvailabilityDao.afterLoad]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/availability")
@@ -85,9 +85,13 @@ class AvailabilityEntityRest :
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    /** Status and location are shown translated: sorted as displayed, not by the enum's name. */
+    /**
+     * Status and location are shown translated: sorted as displayed, not by the enum's name. The type as shown, too:
+     * the order of the database would reveal the types hidden from the viewer ([AvailabilityDao.afterLoad]).
+     */
     override val computedSortProperties: Map<String, (AvailabilityDO) -> Comparable<*>?>
         get() = mapOf(
+            "type" to { obj -> obj.type },
             "status" to { obj -> obj.status?.let { translate(it.i18nKey) } },
             "location" to { obj -> obj.location?.let { translate(it.i18nKey) } },
         )

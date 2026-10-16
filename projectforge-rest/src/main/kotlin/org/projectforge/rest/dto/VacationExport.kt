@@ -109,6 +109,8 @@ class VacationExportRow(
  *
  * @param label What the entry is called for the logged-in user, as the Excel export writes it
  * (AvailabilityDao.labelFor: the type, e.g. "Workation (Reachable if needed)", only for the employee and HR staff).
+ * @param comment The public comment, only for those who may see the entry itself (AvailabilityDao.hasUserSelectAccess):
+ * the calendar shows the entries as the vacations, also to finance staff and back to 1 January.
  * @param absent The employee is away (AvailabilityStatus.absent), as on vacation.
  */
 class VacationExportAvailability(
@@ -120,14 +122,15 @@ class VacationExportAvailability(
     val absent: Boolean = false,
 ) {
     companion object {
-        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate, label: String) = VacationExportAvailability(
-            obj.id,
-            obj.startDate?.let { maxOf(it, from) },
-            obj.endDate?.let { minOf(it, until) },
-            label,
-            obj.comment?.takeIf { it.isNotBlank() },
-            obj.status?.absent == true,
-        )
+        fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate, label: String, comment: String?) =
+            VacationExportAvailability(
+                obj.id,
+                obj.startDate?.let { maxOf(it, from) },
+                obj.endDate?.let { minOf(it, until) },
+                label,
+                comment?.takeIf { it.isNotBlank() },
+                obj.status?.absent == true,
+            )
     }
 }
 

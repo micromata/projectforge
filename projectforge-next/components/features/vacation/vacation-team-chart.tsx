@@ -20,9 +20,9 @@ import {
 
 /**
  * The team vacation calendar: one row per employee with their vacations as bars over the days of the period,
- * approved ones solid, those in progress pale and dashed, and — if asked for — their availability entries as thin
- * lines beneath. The axis and rows are the vacation form's chart
- * (VacationChartFrame, VacationChartRow), its day columns as wide as chosen (`auto`: narrow beyond a quarter).
+ * approved ones solid, those in progress pale and dashed, and — if asked for — their availability entries: thin
+ * lines beneath, not-available ones striped bars. The axis and rows are the vacation form's chart (VacationChartFrame,
+ * VacationChartRow), its day columns as wide as chosen (`auto`: narrow beyond a quarter).
  *
  * The chart is the page's content, so it is its own text alternative: a group of the employees' names and their
  * bars, each focusable and named with its period and status (barLabel), the axis hidden from screen readers.

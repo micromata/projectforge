@@ -85,7 +85,8 @@ private val log = KotlinLogging.logger {}
  *
  * With [VacationExportRequest.showAvailabilities], the availability entries of the same employees are shown and
  * exported, too: as their vacations, for the same employees and period. Their type is shown to the user and HR staff
- * only, anybody else gets the neutral title ([AvailabilityDao.labelFor]).
+ * only, anybody else gets the neutral title ([AvailabilityDao.labelFor]); their comment only who may see the entry
+ * itself ([AvailabilityDao.hasUserSelectAccess]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")
@@ -244,7 +245,10 @@ class VacationExportRest {
                     ref(entry.employee),
                     entry.vacations.map { VacationExportVacation.of(it, from, until) },
                     availabilities[entry.employee.id].orEmpty().map {
-                        VacationExportAvailability.of(it, from, until, availabilityDao.labelFor(viewer, it))
+                        val comment = it.comment.takeIf { _ ->
+                            viewer != null && availabilityDao.hasUserSelectAccess(viewer, it, false)
+                        }
+                        VacationExportAvailability.of(it, from, until, availabilityDao.labelFor(viewer, it), comment)
                     },
                 )
             }.sortedBy { it.employee.displayName?.lowercase() }

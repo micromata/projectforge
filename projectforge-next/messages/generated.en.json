@@ -2537,6 +2537,7 @@
     "2FASetup": "Two-factor authentication",
     "addNewEntry": "New entry",
     "administration": "Administration",
+    "availability": "Availability",
     "calendar": "Calendar",
     "changePassword": "Change password",
     "changeWlanPassword": "Change WLAN/Samba password",
@@ -4757,7 +4758,7 @@
       "selectHint": "Choose employees or groups to show their vacations.",
       "showAvailabilities": {
         "_": "Availabilities",
-        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as far as you may see them."
+        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as their vacations. Their comments only if the entries are visible in the availability list, too."
       },
       "title": "Team vacation calendar"
     },
