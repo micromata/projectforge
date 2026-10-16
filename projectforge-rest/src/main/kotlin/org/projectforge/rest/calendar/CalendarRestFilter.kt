@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.availability.AbsenceKind
 import java.util.*
 
 /**
@@ -56,6 +57,12 @@ class CalendarRestFilter(
    * Null items should only occur on (de)serialization issues.
    */
   var vacationUserIds: MutableSet<Long?>? = null,
+
+  /**
+   * What is shown of the absences of the employees and users above: vacations and availability entries by their
+   * state. Null for all of them.
+   */
+  var absenceKinds: MutableSet<AbsenceKind>? = null,
   /**
    *  The team calendarIds to display.
    * Null items should only occur on (de)serialization issues.

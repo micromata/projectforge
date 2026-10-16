@@ -1,0 +1,225 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.calendar
+
+import net.fortuna.ical4j.data.CalendarBuilder
+import net.fortuna.ical4j.model.Component
+import net.fortuna.ical4j.model.component.VEvent
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.teamcal.ical.ICalGenerator
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.springframework.beans.factory.annotation.Autowired
+import java.io.ByteArrayInputStream
+import java.time.LocalDate
+
+/**
+ * The shared view of absences: vacations and availability entries of the chosen people, as far as the kinds ask
+ * for them, with the type of an entry named only for its user and HR staff - in the calendar and in the
+ * subscription of a team calendar.
+ */
+class AbsenceProviderTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var absenceProvider: AbsenceProvider
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var calendarSubscriptionServiceRest: CalendarSubscriptionServiceRest
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var groupDao: GroupDao
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
+
+    @Test
+    fun `vacations and availability entries by their kind, the type for the user only`() {
+        val employee = createEmployee("employee")
+        val hr = createEmployee("hr", hrAccess = true)
+        val freelancer = createUser("freelancer")
+        val colleague = createUser("colleague")
+        logon(TEST_ADMIN_USER)
+        val group = initTestDB.addGroup(
+            "$PREFIX.team", employee.user!!.username!!, freelancer.username!!, colleague.username!!,
+        )
+        val monday = LocalDate.of(LocalDate.now().year + 5, 3, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        vacationDao.insert(VacationDO().also {
+            it.employee = employee
+            it.manager = hr
+            it.replacement = hr
+            it.startDate = monday
+            it.endDate = monday.plusDays(1)
+            it.status = VacationStatus.APPROVED
+            it.special = true
+        })
+        val absentId = availabilityDao.insert(availability(freelancer, monday, AvailabilityStatus.NOT_AVAILABLE))
+        val remoteId = availabilityDao.insert(availability(employee.user!!, monday.plusDays(3), AvailabilityStatus.REMOTE_REACHABLE))
+        val settings = CalendarSettings()
+        fun events(kinds: Set<AbsenceKind> = AbsenceKind.entries.toSet()): List<FullCalendarEvent> =
+            mutableListOf<FullCalendarEvent>().also { events ->
+                absenceProvider.addEvents(
+                    PFDateTime.from(monday.minusDays(1)), PFDateTime.from(monday.plusDays(14)), events,
+                    groupIds = setOf(group.id), userIds = null, kinds = kinds, settings = settings,
+                )
+            }
+
+        logon(colleague)
+        events().let { events ->
+            assertEquals(3, events.size)
+            val absent = events.single { it.extendedProps?.dbId == absentId }
+            assertTrue(absent.title!!.startsWith(translate("availability.status.notAvailable")))
+            assertFalse(absent.title!!.contains("Sickness"), "The type is personal.")
+            // Drawn like a vacation, the others in the availability colour.
+            val vacation = events.single { it.extendedProps?.category == FullCalendarEvent.Category.VACATION.string }
+            assertEquals(vacation.backgroundColor, absent.backgroundColor)
+            assertNotEquals(vacation.backgroundColor, events.single { it.extendedProps?.dbId == remoteId }.backgroundColor)
+        }
+        assertEquals(1, events(setOf(AbsenceKind.VACATION)).size)
+        assertEquals(listOf(remoteId), events(setOf(AbsenceKind.REMOTE_REACHABLE)).map { it.extendedProps?.dbId })
+        assertTrue(events(emptySet()).isEmpty())
+
+        logon(freelancer)
+        assertTrue(events().single { it.extendedProps?.dbId == absentId }.title!!.startsWith("Sickness"))
+
+        // A team calendar's subscription: all entries, by their status only, whoever subscribes.
+        val generator = ICalGenerator()
+        calendarSubscriptionServiceRest.addAvailabilities(
+            generator, monday, monday.plusDays(14), setOf(group.id), null, mutableSetOf(),
+        )
+        val summaries = CalendarBuilder().build(ByteArrayInputStream(generator.asByteArray!!))
+            .getComponents<VEvent>(Component.VEVENT).map { it.summary?.value }
+        assertEquals(2, summaries.size)
+        assertTrue(summaries.contains("${translate("availability.status.notAvailable")}: ${freelancer.getFullname()}"))
+        assertFalse(summaries.any { it?.contains("Sickness") == true })
+    }
+
+    @Test
+    fun `only of the people sharing a group with the viewer, of the managed ones and of everybody for HR staff, each once`() {
+        val employee = createEmployee("mates-employee")
+        val hr = createEmployee("mates-hr", hrAccess = true)
+        val manager = createEmployee("mates-manager")
+        val colleague = createUser("mates-colleague")
+        val stranger = createUser("mates-stranger")
+        logon(TEST_ADMIN_USER)
+        val group = initTestDB.addGroup("$PREFIX.mates", employee.user!!.username!!, colleague.username!!)
+        val monday = LocalDate.of(LocalDate.now().year + 6, 5, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(hr.user!!)
+        val vacationId = vacationDao.insert(VacationDO().also {
+            it.employee = employee
+            it.manager = manager
+            it.replacement = hr
+            it.startDate = monday
+            it.endDate = monday.plusDays(1)
+            it.status = VacationStatus.APPROVED
+            it.special = true
+        })
+        val availabilityId =
+            availabilityDao.insert(availability(employee.user!!, monday.plusDays(3), AvailabilityStatus.NOT_AVAILABLE))
+        val settings = CalendarSettings()
+        // Twice, as by the absence filter and a team calendar with the same people.
+        fun events(): List<FullCalendarEvent> = mutableListOf<FullCalendarEvent>().also { events ->
+            repeat(2) {
+                absenceProvider.addEvents(
+                    PFDateTime.from(monday.minusDays(1)), PFDateTime.from(monday.plusDays(14)), events,
+                    groupIds = setOf(group.id), userIds = setOf(employee.user!!.id), kinds = AbsenceKind.entries.toSet(),
+                    settings = settings,
+                )
+            }
+        }
+
+        logon(colleague)
+        assertEquals(listOf(vacationId, availabilityId), events().map { it.extendedProps?.dbId })
+        logon(stranger)
+        assertTrue(events().isEmpty(), "Not of the same group.")
+        logon(manager.user!!)
+        assertEquals(listOf(vacationId), events().map { it.extendedProps?.dbId }, "The manager of the vacation only.")
+        logon(hr.user!!)
+        assertEquals(2, events().size, "HR staff: of everybody.")
+    }
+
+    private fun availability(user: PFUserDO, startDate: LocalDate, status: AvailabilityStatus) = AvailabilityDO().also {
+        it.user = user
+        it.startDate = startDate
+        it.endDate = startDate.plusDays(1)
+        it.status = status
+        it.type = "Sickness"
+    }
+
+    private fun createUser(name: String, hrAccess: Boolean = false): PFUserDO {
+        val user = PFUserDO()
+        user.firstname = "$PREFIX.$name"
+        user.lastname = "$name.lastname"
+        user.username = "$PREFIX.$name.username"
+        if (hrAccess) {
+            user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
+        }
+        initTestDB.addUser(user)
+        // The HR right is available to members of the HR group only.
+        if (hrAccess) {
+            val group = getGroup(ProjectForgeGroup.HR_GROUP.toString())
+            group.assignedUsers!!.add(user)
+            groupDao.update(group)
+        }
+        return user
+    }
+
+    private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
+        logon(TEST_ADMIN_USER)
+        val employee = EmployeeDO()
+        employee.user = createUser(name, hrAccess)
+        employeeDao.insert(employee, checkAccess = false)
+        return employee
+    }
+
+    companion object {
+        private const val PREFIX = "AbsenceProviderTest"
+    }
+}

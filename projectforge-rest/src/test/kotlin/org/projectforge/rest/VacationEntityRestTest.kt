@@ -30,6 +30,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -82,6 +85,9 @@ class VacationEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
@@ -593,6 +599,63 @@ class VacationEntityRestTest : AbstractTestBase() {
         assertTrue(conflictingVacationsCache.hasConflict(ownId))
         val opened = vacationEntityRest.transformFromDB(vacationDao.find(ownId)!!, editMode = true)
         assertEquals(true, opened.conflict)
+    }
+
+    @Test
+    fun `a substitute not available makes a conflict, a reachable one is shown only`() {
+        val own = createEmployee("absent-own")
+        val other = createEmployee("absent-other")
+        val hr = createEmployee("absent-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 9, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val friday = monday.plusDays(4)
+        logon(hr.user!!)
+        val ownId = vacationDao.insert(vacation(own, replacement = other, monday, friday))
+        conflictingVacationsCache.forceReload()
+        assertFalse(conflictingVacationsCache.hasConflict(ownId))
+
+        // The substitute not available on three days: a conflict, without anybody opening the vacation.
+        val availabilityId = availabilityDao.insert(AvailabilityDO().also {
+            it.user = other.user
+            it.startDate = monday
+            it.endDate = monday.plusDays(2)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+            it.type = "Sickness"
+        })
+        assertTrue(conflictingVacationsCache.hasConflict(ownId))
+        fun stats() = vacationEntityRest.stats(
+            PostData(
+                Vacation(
+                    employee = Employee(own.id), startDate = monday, endDate = friday,
+                    manager = Employee(other.id), replacement = Employee(other.id),
+                ), watchFieldsTriggered = null, serverData = null
+            )
+        )
+        // HR staff see the type.
+        stats().replacementAvailabilities!!.single().let {
+            assertEquals("Sickness", it.label)
+            assertEquals(other.id, it.employee?.id)
+        }
+        logon(own.user!!)
+        stats().let {
+            assertEquals(true, it.conflict)
+            assertEquals(3, it.chartDays!!.count { day -> day.uncovered })
+            val entry = it.replacementAvailabilities!!.single()
+            assertEquals(true, entry.absent)
+            assertEquals(monday, entry.startDate)
+            assertEquals(translate("availability.status.notAvailable"), entry.label, "Not the type: it's personal.")
+        }
+
+        // Remotely reachable: on duty, the entry is told only.
+        logon(hr.user!!)
+        availabilityDao.update(availabilityDao.find(availabilityId)!!.also {
+            it.status = AvailabilityStatus.REMOTE_REACHABLE
+        })
+        assertFalse(conflictingVacationsCache.hasConflict(ownId))
+        logon(own.user!!)
+        stats().let {
+            assertEquals(false, it.conflict)
+            assertEquals(false, it.replacementAvailabilities!!.single().absent)
+        }
     }
 
     private fun vacation(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -42,10 +42,11 @@ const KINDS = periodKindsOf(["quarter", "year"]);
 /**
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
  * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
- * with a sheet per period (VacationExcelExporter) starting with the period shown.
+ * with a sheet per period (VacationExcelExporter) starting with the period shown. Optionally with the availability
+ * entries of the same employees, as their vacations, in the chart and the workbook.
  *
- * The employees and groups chosen are stored by the backend (shown again on the next visit); the period is
- * kept in the url (`?period=quarter&from=2026-10-01`).
+ * The employees and groups chosen and whether availabilities are shown are stored by the backend (shown again on
+ * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`).
  *
  * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
  * itself is not printed, the names are in the chart.
@@ -140,6 +141,19 @@ function VacationExportContent({
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
   );
+  // `?showAvailabilities=true` (the availability list) turns them on, otherwise the stored choice.
+  const [showAvailabilities, setShowAvailabilities] = useState(
+    () =>
+      params.get("showAvailabilities") === "true" || initial.showAvailabilities
+  );
+  // Applied once: kept in the url, a reload or going back would turn them on again against a choice made here.
+  useEffect(() => {
+    if (params.get("showAvailabilities") !== null) {
+      updateSearchParams({ showAvailabilities: null }, "replace");
+    }
+    // Only on mount: the parameter is read by the initial state above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const min = initial.earliestDate ?? null;
   const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>
     chartWidthOf(initial.dayWidth)
@@ -169,6 +183,7 @@ function VacationExportContent({
     dayWidth,
     from: bounds.from,
     until: bounds.to,
+    showAvailabilities,
   };
   const hasSelection = employees.length > 0 || groups.length > 0;
 
@@ -199,6 +214,7 @@ function VacationExportContent({
         period={period}
         min={min}
         dayWidth={dayWidth}
+        showAvailabilities={showAvailabilities}
         favorites={favorites}
         exporting={excel.isPending}
         canPrint={hasSelection && hasRows}
@@ -206,6 +222,7 @@ function VacationExportContent({
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}
+        onShowAvailabilitiesChange={setShowAvailabilities}
         onExport={() => excel.mutate()}
       />
       <p className="hidden text-sm tabular-nums print:block">
@@ -227,7 +244,11 @@ function VacationExportContent({
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
         )}
       {hasSelection && view.data && hasRows && (
-        <VacationTeamChart view={view.data} dayWidth={dayWidth} />
+        <VacationTeamChart
+          view={view.data}
+          dayWidth={dayWidth}
+          showAvailabilities={showAvailabilities}
+        />
       )}
       {hasSelection && view.data && !hasRows && !view.isPlaceholderData && (
         <p className="text-sm text-muted-foreground">

@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  changeAbsenceKinds,
   changeCalendarStyle,
   changeDefaultCalendar,
   changeFirstHour,
@@ -15,10 +16,12 @@ import {
   setCalendarVisibility,
   storeCalendarState,
 } from "@/lib/rs/calendar";
-import type {
-  CalendarInit,
-  StyledTeamCalendar,
-  UserRef,
+import {
+  ABSENCE_KINDS,
+  type AbsenceKind,
+  type CalendarInit,
+  type StyledTeamCalendar,
+  type UserRef,
 } from "@/lib/rs/calendar-types";
 import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
 
@@ -108,6 +111,13 @@ export function useCalendarFilterMutations() {
       changeVacationUsers: (userIds: number[]) => {
         patchFilter({ vacationUserIds: userIds });
         return run(changeVacationUsers(userIds), { events: true });
+      },
+      /** All kinds are stored as none chosen (null), as the server does. */
+      changeAbsenceKinds: (kinds: AbsenceKind[]) => {
+        patchFilter({
+          absenceKinds: kinds.length < ABSENCE_KINDS.length ? kinds : null,
+        });
+        return run(changeAbsenceKinds(kinds), { events: true });
       },
       setActiveCalendars,
       /** Re-reads external subscriptions and drops the whole calendar cache, in place of a page reload. */

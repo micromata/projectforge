@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
@@ -67,6 +68,8 @@ class CalendarFilterServicesRest {
     var activeCalendars: MutableList<StyledTeamCalendar>? = null,
     var vacationGroups: List<Group>? = null,
     var vacationUsers: List<User>? = null,
+    /** What is shown of their absences (see [CalendarFilter.absenceKinds]); null for all. */
+    var absenceKinds: List<AbsenceKind>? = null,
     /**
      * This is the list of possible default calendars (with full access). The user may choose one which is
      * used as default if creating a new event. The pseudo calendar -1 for own time sheets is
@@ -164,6 +167,7 @@ class CalendarFilterServicesRest {
       }
       user
     }?.filter { it.id != null }
+    initial.absenceKinds = currentFilter.absenceKinds?.sorted()
 
     val favorites = getFilterFavorites()
     initial.filterFavorites = favorites.idTitleList
@@ -196,6 +200,8 @@ class CalendarFilterServicesRest {
       "calendar.filter.vacation.groups.tooltip",
       "calendar.filter.vacation.users",
       "calendar.filter.vacation.users.tooltip",
+      "calendar.filter.absenceKinds",
+      "calendar.filter.absenceKinds.tooltip",
       "calendar.filter.visible",
       "calendar.defaultCalendar",
       "calendar.defaultCalendar.tooltip",
@@ -368,6 +374,16 @@ class CalendarFilterServicesRest {
   fun changeVacationUsers(@RequestBody userIds: Set<Long>?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.vacationUserIds = userIds
+    return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
+  }
+
+  /**
+   * What is shown of the absences: all kinds for null or all of them, none for an empty set.
+   */
+  @PostMapping("changeAbsenceKinds")
+  fun changeAbsenceKinds(@RequestBody kinds: Set<AbsenceKind>?): Map<String, Any> {
+    val currentFilter = getCurrentFilter()
+    currentFilter.absenceKinds = kinds?.takeIf { it.size < AbsenceKind.entries.size }
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 

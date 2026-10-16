@@ -11,6 +11,7 @@
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
 import type {
+  AbsenceKind,
   CalendarActionParams,
   CalendarData,
   CalendarEventsFilter,
@@ -253,6 +254,21 @@ export function changeVacationUsers(
   return request<CalendarInitPatch>(
     `${BASE}/changeVacationUsers`,
     { method: "POST", body: JSON.stringify(userIds) },
+    signal
+  );
+}
+
+/**
+ * Sets what is shown of the absences (`POST changeAbsenceKinds`); body is a bare array of `AbsenceKind`s, all of
+ * them meaning no restriction.
+ */
+export function changeAbsenceKinds(
+  kinds: AbsenceKind[],
+  signal?: AbortSignal
+): Promise<CalendarInitPatch> {
+  return request<CalendarInitPatch>(
+    `${BASE}/changeAbsenceKinds`,
+    { method: "POST", body: JSON.stringify(kinds) },
     signal
   );
 }

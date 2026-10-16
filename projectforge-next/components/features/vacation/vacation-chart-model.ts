@@ -3,6 +3,7 @@ import type {
   VacationChartDay,
   VacationDetail,
   VacationExportView,
+  VacationReplacementAvailability,
   VacationStatus,
 } from "./types";
 
@@ -22,12 +23,28 @@ export interface ChartBar {
   endDate: string;
 }
 
+/** An availability entry on the chart: the columns it covers and what its tooltip says. */
+export interface AvailabilityBar {
+  key: string;
+  first: number;
+  last: number;
+  /** Type and status (e.g. "Workation (Reachable if needed)") for the person and HR staff, the status for others. */
+  label: string;
+  comment: string | null;
+  /** Not available: away as on vacation, a bar of its own; the other entries are thin lines. */
+  absent: boolean;
+  startDate: string;
+  endDate: string;
+}
+
 export interface ChartRow {
   key: string;
   name: string;
   /** The vacation being edited, the first row. */
   own: boolean;
   bars: ChartBar[];
+  /** The substitutes' on the form, the employees' on the team calendar if asked for. */
+  availabilities?: AvailabilityBar[];
 }
 
 /** What the form holds for the vacation being edited. */
@@ -110,15 +127,50 @@ export function splitByConflict(
   }));
 }
 
+/** An availability entry as a bar of the chart; null if it lies beside the axis. */
+function availabilityBarOf(
+  key: string,
+  days: VacationChartDay[],
+  entry: {
+    startDate?: string | null;
+    endDate?: string | null;
+    label?: string | null;
+    comment?: string | null;
+    absent?: boolean;
+  }
+): AvailabilityBar | null {
+  const bar = barOf(key, days, {
+    startDate: entry.startDate ?? null,
+    endDate: entry.endDate ?? null,
+    halfDayBegin: false,
+    halfDayEnd: false,
+    status: null,
+  });
+  return bar
+    ? {
+        key: bar.key,
+        first: bar.first,
+        last: bar.last,
+        label: entry.label ?? "",
+        comment: entry.comment ?? null,
+        absent: entry.absent === true,
+        startDate: bar.startDate,
+        endDate: bar.endDate,
+      }
+    : null;
+}
+
 /**
  * The rows of the chart: the vacation being edited first, then every substitute — the replacement and the
- * further ones, also those without a vacation (they are on duty) — with their vacations overlapping it.
+ * further ones, also those without a vacation (they are on duty) — with their vacations and availability entries
+ * overlapping it.
  */
 export function buildVacationChart(
   days: VacationChartDay[],
   own: OwnVacation,
   substitutes: EmployeeRef[],
-  vacations: VacationDetail[]
+  vacations: VacationDetail[],
+  availabilities: VacationReplacementAvailability[] = []
 ): ChartRow[] {
   const ownBar = barOf("own", days, own);
   const rows: ChartRow[] = [
@@ -132,7 +184,7 @@ export function buildVacationChart(
   const people = new Map<number, string>();
   for (const s of substitutes) people.set(s.id, s.displayName ?? "");
   // A vacation of somebody not (or no longer) chosen still shows, under its own employee.
-  for (const v of vacations) {
+  for (const v of [...vacations, ...availabilities]) {
     if (v.employee && !people.has(v.employee.id)) {
       people.set(v.employee.id, v.employee.displayName ?? "");
     }
@@ -142,7 +194,17 @@ export function buildVacationChart(
       .filter((v) => v.employee?.id === id)
       .map((v, i) => barOf(`${id}-${v.id ?? i}`, days, v))
       .filter((b): b is ChartBar => b != null);
-    rows.push({ key: String(id), name, own: false, bars });
+    const entries = availabilities
+      .filter((a) => a.employee?.id === id)
+      .map((a, i) => availabilityBarOf(`${id}-a${i}`, days, a))
+      .filter((b): b is AvailabilityBar => b != null);
+    rows.push({
+      key: String(id),
+      name,
+      own: false,
+      bars,
+      ...(entries.length > 0 && { availabilities: entries }),
+    });
   }
   return rows;
 }
@@ -179,8 +241,24 @@ export function barLabel(
   return status ? `${period} (${status})` : period;
 }
 
-/** The rows of the team calendar: every employee, also those without a vacation in the period. */
-export function teamChartRows(view: VacationExportView): ChartRow[] {
+/** What an availability bar says to a screen reader and in its tooltip: whose, what, when and the comment. */
+export function availabilityLabel(
+  name: string,
+  bar: Pick<AvailabilityBar, "label" | "comment" | "startDate" | "endDate">,
+  formatDate: (iso: string) => string
+): string {
+  const text = `${name}: ${bar.label}, ${formatDate(bar.startDate)} – ${formatDate(bar.endDate)}`;
+  return bar.comment ? `${text} (${bar.comment})` : text;
+}
+
+/**
+ * The rows of the team calendar: every employee, also those without a vacation in the period. Their availability
+ * entries only if [showAvailabilities]: the view of the previous choice may still be shown while the next one loads.
+ */
+export function teamChartRows(
+  view: VacationExportView,
+  showAvailabilities = true
+): ChartRow[] {
   return view.rows.map((row) => ({
     key: String(row.employee.id),
     name: row.employee.displayName ?? "",
@@ -196,5 +274,10 @@ export function teamChartRows(view: VacationExportView): ChartRow[] {
         })
       )
       .filter((bar): bar is ChartBar => bar != null),
+    availabilities: (showAvailabilities ? (row.availabilities ?? []) : [])
+      .map((a, i) =>
+        availabilityBarOf(`${row.employee.id}-a${a.id ?? i}`, view.days, a)
+      )
+      .filter((bar): bar is AvailabilityBar => bar != null),
   }));
 }

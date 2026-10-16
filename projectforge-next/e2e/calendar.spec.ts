@@ -1,8 +1,13 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, label } from "./fixtures/format";
-import { markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
-import { CALENDAR_GRID_SIZES } from "../lib/rs/calendar-types";
+import {
+  markAsDeleted,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
+import { ABSENCE_KINDS, CALENDAR_GRID_SIZES } from "../lib/rs/calendar-types";
 import type {
   CalendarInit,
   StyledTeamCalendar,
@@ -117,6 +122,62 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
 
     // Leave the account's setting as it was found.
     await calendarGet(page, `changeGridSize?size=${original}`);
+  });
+
+  test("remembers which absences are shown across a reload", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, "/calendar");
+    await expect(page.locator(".pf-calendar")).toBeVisible();
+    const format = await userFormat(page);
+    // Starts from all kinds (null), as a fresh filter does, whatever an aborted run left.
+    await showAllAbsenceKinds(page);
+    await page.reload();
+    expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+
+    const toggle = async () => {
+      await page
+        .getByRole("button", {
+          name: format.t("calendar.view.settings.tooltip"),
+        })
+        .click();
+      const kinds = page.getByRole("group", {
+        name: format.t("calendar.filter.absenceKinds._"),
+      });
+      // All five kinds, here the remotely reachable ones.
+      await expect(kinds.getByRole("button")).toHaveCount(5);
+      const remote = kinds.getByRole("button", {
+        name: format.t("availability.status.remoteReachable"),
+      });
+      const pressed = await remote.getAttribute("aria-pressed");
+      const changed = page.waitForResponse("**/rs/calendar/changeAbsenceKinds");
+      await remote.click();
+      await changed;
+      await page.keyboard.press("Escape");
+      return pressed;
+    };
+
+    try {
+      expect(await toggle()).toBe("true");
+      await page.reload();
+      // A set on the server, in no particular order.
+      expect(
+        [...((await readInit(page)).filter?.absenceKinds ?? [])].sort()
+      ).toEqual(
+        [
+          "VACATION",
+          "NOT_AVAILABLE",
+          "REACHABLE_IF_NEEDED",
+          "REACHABLE_IF_URGENT",
+        ].sort()
+      );
+      // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.
+      expect(await toggle()).toBe("false");
+      expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+    } finally {
+      // Also if it failed halfway: the account shows all kinds again.
+      await showAllAbsenceKinds(page);
+    }
   });
 
   test("remembers a hidden calendar across a reload", async ({
@@ -271,6 +332,15 @@ async function readInit(page: Page): Promise<CalendarInit> {
     headers: { "X-PF-Frontend": "next" },
   });
   return (await res.json()) as CalendarInit;
+}
+
+/** Shows all kinds of absences again (`POST changeAbsenceKinds`, with the session's CSRF token). */
+async function showAllAbsenceKinds(page: Page): Promise<void> {
+  const res = await page.request.post("/rs/calendar/changeAbsenceKinds", {
+    headers: await writeHeaders(page.request),
+    data: [...ABSENCE_KINDS],
+  });
+  expect(res.ok()).toBe(true);
 }
 
 /** Fires one of the `change*` / `setVisibility` GET endpoints — used to set up and to restore state. */

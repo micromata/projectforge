@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PrinterIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
@@ -26,8 +27,9 @@ import type { useVacationExportFavorites } from "./use-vacation-export-favorites
 /**
  * What the team vacation calendar shows: the employees and groups (the lookups offer only what the user may
  * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
- * columns, the Excel export of the same choice and the print of the calendar shown (`canPrint`: one is shown).
- * The favorites hold named choices of employees and groups. Not printed itself (see VacationExportPage).
+ * columns, whether the availability entries are shown too (in the chart and the export), the Excel export of the
+ * same choice and the print of the calendar shown (`canPrint`: one is shown). The favorites hold named choices of
+ * employees and groups. Not printed itself (see VacationExportPage).
  */
 export function VacationExportFilterRow({
   kinds,
@@ -36,6 +38,7 @@ export function VacationExportFilterRow({
   period,
   min,
   dayWidth,
+  showAvailabilities,
   favorites,
   exporting,
   canPrint,
@@ -43,6 +46,7 @@ export function VacationExportFilterRow({
   onGroupsChange,
   onPeriodChange,
   onDayWidthChange,
+  onShowAvailabilitiesChange,
   onExport,
 }: {
   kinds: readonly PeriodKind[];
@@ -51,6 +55,7 @@ export function VacationExportFilterRow({
   period: Period;
   min: string | null;
   dayWidth: VacationChartWidth;
+  showAvailabilities: boolean;
   favorites: ReturnType<typeof useVacationExportFavorites>;
   exporting: boolean;
   canPrint: boolean;
@@ -58,6 +63,7 @@ export function VacationExportFilterRow({
   onGroupsChange: (value: EntityRef[]) => void;
   onPeriodChange: (kind: PeriodKind, anchor: string) => void;
   onDayWidthChange: (value: VacationChartWidth) => void;
+  onShowAvailabilitiesChange: (value: boolean) => void;
   onExport: () => void;
 }) {
   const t = useTranslations();
@@ -104,6 +110,23 @@ export function VacationExportFilterRow({
         </div>
       </div>
       <VacationChartWidthSelect value={dayWidth} onChange={onDayWidthChange} />
+      <HintTooltip text={t("vacation.export.showAvailabilities.tooltip")}>
+        <div className="flex h-8 items-center gap-2">
+          <Checkbox
+            id="vacation-export-show-availabilities"
+            checked={showAvailabilities}
+            onCheckedChange={(value) =>
+              onShowAvailabilitiesChange(value === true)
+            }
+          />
+          <Label
+            htmlFor="vacation-export-show-availabilities"
+            className="text-sm font-normal"
+          >
+            {t("vacation.export.showAvailabilities._")}
+          </Label>
+        </div>
+      </HintTooltip>
       <FavoritesMenu
         favorites={favorites.favorites}
         currentId={favorites.currentId}

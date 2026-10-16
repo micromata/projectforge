@@ -49,6 +49,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getListUrl("address")), //
+    AVAILABILITY("menu.availability", getListUrl("availability")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //

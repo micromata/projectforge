@@ -73,6 +73,19 @@ export interface CalendarFilterFavorite {
 }
 
 /**
+ * What the shared view of absences shows (`AbsenceKind`): the vacations and the availability entries by their
+ * status. Only vacations and `NOT_AVAILABLE` are absences for the substitutes of a vacation.
+ */
+export const ABSENCE_KINDS = [
+  "VACATION",
+  "NOT_AVAILABLE",
+  "REMOTE_REACHABLE",
+  "REACHABLE_IF_NEEDED",
+  "REACHABLE_IF_URGENT",
+] as const;
+export type AbsenceKind = (typeof ABSENCE_KINDS)[number];
+
+/**
  * The persisted filter (`org.projectforge.business.calendar.CalendarFilter`). `view` and the visible
  * date do NOT live here — they are on {@link CalendarInit}. `gridSize`, `firstHour` and
  * `otherTimesheetUsersEnabled` are non-null on the wire.
@@ -87,6 +100,8 @@ export interface CalendarFilter {
   timesheetUserId?: number | null;
   vacationGroupIds?: number[] | null;
   vacationUserIds?: number[] | null;
+  /** What is shown of the absences of the vacation groups/users (`CalendarFilter.absenceKinds`); null for all. */
+  absenceKinds?: AbsenceKind[] | null;
   showBreaks?: boolean | null;
   showPlanning?: boolean | null;
   calendarIds?: number[];

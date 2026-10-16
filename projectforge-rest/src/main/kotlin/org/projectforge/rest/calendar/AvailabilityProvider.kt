@@ -1,0 +1,122 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.calendar
+
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.calendar.CalendarStyle
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+
+/**
+ * Provides the availability entries of users (employees and freelancers) for the calendar view. You may filter by
+ * ProjectForge groups. Part of the shared view of absences ([AbsenceProvider]).
+ */
+@Component
+open class AvailabilityProvider {
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
+    /**
+     * @param groupIds Null items should only occur on (de)serialization issues.
+     * @param userIds Null items should only occur on (de)serialization issues.
+     */
+    open fun addEvents(
+        start: PFDateTime,
+        end: PFDateTime,
+        events: MutableList<FullCalendarEvent>,
+        groupIds: Set<Long?>?,
+        userIds: Set<Long?>?,
+        settings: CalendarSettings,
+        /** The states shown, by their kind ([AvailabilityStatus.kind]). */
+        kinds: Set<AbsenceKind> = AbsenceKind.entries.toSet(),
+        /** The style of absent entries ([AvailabilityStatus.absent]), drawn like vacations. */
+        absentStyle: CalendarStyle = settings.availabilityStyle,
+        otherStyle: CalendarStyle = settings.availabilityStyle,
+    ) {
+        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
+            return
+        }
+        val viewer = ThreadLocalUserContext.requiredLoggedInUser
+        val availabilities =
+            availabilityCache.getAvailabilityForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
+        availabilities.forEach { availability ->
+            val status = availability.status
+            if (status == null || !kinds.contains(status.kind)) {
+                return@forEach
+            }
+            val user = userGroupCache.getUser(availability.user?.id)
+            // The type only for the user and HR staff: it may be personal (e.g. sickness).
+            val title = "${availabilityDao.labelFor(viewer, availability)}: ${user?.getFullname()}"
+            if (!events.any {
+                    it.title == title && FullCalendarEvent.samePeriod(it, availability.startDate, availability.endDate)
+                }) {
+                val event = FullCalendarEvent.createAllDayEvent(
+                    id = availability.id,
+                    category = FullCalendarEvent.Category.AVAILABILITY,
+                    title = title,
+                    start = availability.startDate!!,
+                    end = availability.endDate!!,
+                    dbId = availability.id,
+                    style = if (status.absent) absentStyle else otherStyle,
+                    classNames = if (status.absent) "availability-event availability-absent" else "availability-event",
+                    calendarSettings = settings,
+                )
+                val startDate = PFDay.fromOrNull(availability.startDate)?.format() ?: ""
+                val endDate = PFDay.fromOrNull(availability.endDate)?.format() ?: ""
+                val tb = TooltipBuilder()
+                    .addPropRow(translate("timePeriod"), "$startDate - $endDate")
+                tb.addPropRow(translate("availability.status"), translate(status.i18nKey))
+                availability.location?.let {
+                    tb.addPropRow(translate("availability.location"), translate(it.i18nKey))
+                }
+                if (!availability.comment.isNullOrBlank()) {
+                    tb.addPropRow(translate("availability.comment"), availability.comment, abbreviate = true)
+                }
+                // The cached internal comment is kept raw (AvailabilityDao.afterLoad), so apply the per-user privacy
+                // check here: it's personal data, only visible to the user and to HR staff.
+                if (!availability.internalComment.isNullOrBlank() &&
+                    availabilityDao.isInternalCommentVisibleFor(viewer, availability)
+                ) {
+                    tb.addPropRow(translate("availability.internalComment"), availability.internalComment, abbreviate = true)
+                }
+                event.setTooltip(title, tb)
+                events.add(event)
+            }
+        }
+    }
+}

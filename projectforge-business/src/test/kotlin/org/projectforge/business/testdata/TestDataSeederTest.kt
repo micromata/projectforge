@@ -26,12 +26,15 @@ package org.projectforge.business.testdata
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
@@ -40,6 +43,12 @@ import java.util.Date
 import java.util.TimeZone
 
 class TestDataSeederTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
     @Autowired
     private lateinit var databaseService: DatabaseService
 
@@ -54,6 +63,9 @@ class TestDataSeederTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userPrefService: UserPrefService
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
     /** The seeder needs an empty database, as the setup does. */
     override fun initDb() {
@@ -88,6 +100,7 @@ class TestDataSeederTest : AbstractTestBase() {
         Assertions.assertTrue(count("RechnungDO") > 50, "invoices")
         Assertions.assertTrue(count("EingangsrechnungDO") > 30, "incoming invoices")
         Assertions.assertEquals(9L, count("VacationDO"), "vacations (refused ones are logged)")
+        Assertions.assertEquals(6L, count("AvailabilityDO"), "availability entries")
         Assertions.assertTrue(count("TeamEventDO") >= 10, "calendar events")
         Assertions.assertEquals(8L, count("AddressDO"))
         // The administrator's calendar shows own time sheets and events right after the setup.
@@ -107,6 +120,27 @@ class TestDataSeederTest : AbstractTestBase() {
             true,
         )
         Assertions.assertEquals(4, later.count { it.subject == "Weekly planning" }, "weekly planning in 4 weeks")
+        // The administrator shares a group with the team: sees its availability entries (and vacations).
+        val employeeUserIds = ctx.employees.values.mapNotNull { it.user?.id }
+        Assertions.assertEquals(
+            6,
+            availabilityCache.getAvailabilityForPeriodAndUsers(
+                ctx.today.minusDays(7), ctx.today.plusMonths(4), null, employeeUserIds.toSet(),
+            ).size,
+            "availability entries visible to the admin",
+        )
+        // The substitute Max isn't available during Alex's vacation, but remotely reachable during Julia's.
+        val vacations = vacationDao.selectAll(checkAccess = false)
+        val alex = ctx.employee("alex").id
+        val julia = ctx.employee("julia").id
+        Assertions.assertTrue(
+            conflictingVacationsCache.hasConflict(vacations.single { it.employee?.id == alex }),
+            "Alex's vacation is a conflict",
+        )
+        Assertions.assertFalse(
+            conflictingVacationsCache.hasConflict(vacations.single { it.employee?.id == julia }),
+            "Julia's vacation is no conflict",
+        )
         // Every invoice position refers to its order position.
         Assertions.assertEquals(
             0L,

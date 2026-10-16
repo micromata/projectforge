@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
@@ -91,37 +91,6 @@ const UNKNOWN_STATS: VacationFormStats = {
   conflictingVacations: null,
   conflict: null,
   chartDays: null,
+  replacementAvailabilities: null,
   unavailable: true,
 };
-
-/**
- * Keeps the period a period, as the React form did: a start after the end (or without one) moves the end
- * onto it, an end before the start (or without one) moves the start. Only the end the user did *not* just
- * change is touched.
- */
-export function useVacationPeriodClamp() {
-  const form = useEntityEditForm();
-  const { startDate, endDate } = useStore(
-    form.store,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => {
-      const v = state.values as VacationValues;
-      return { startDate: v.startDate, endDate: v.endDate };
-    }
-  );
-  const previous = useRef({ startDate, endDate });
-  useEffect(() => {
-    const before = previous.current;
-    previous.current = { startDate, endDate };
-    // ISO dates (yyyy-MM-dd) compare as strings.
-    if (startDate && startDate !== before.startDate) {
-      if (!endDate || endDate < startDate) {
-        form.setFieldValue("endDate", startDate);
-      }
-    } else if (endDate && endDate !== before.endDate) {
-      if (!startDate || endDate < startDate) {
-        form.setFieldValue("startDate", endDate);
-      }
-    }
-  }, [startDate, endDate, form]);
-}

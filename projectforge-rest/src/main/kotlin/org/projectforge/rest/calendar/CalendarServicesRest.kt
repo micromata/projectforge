@@ -25,6 +25,7 @@ package org.projectforge.rest.calendar
 
 import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
 import org.projectforge.business.calendar.TeamCalendar
@@ -111,7 +112,7 @@ class CalendarServicesRest {
     private lateinit var userPrefService: UserPrefService
 
     @Autowired
-    private lateinit var vacationProvider: VacationProvider
+    private lateinit var absenceProvider: AbsenceProvider
 
     @PostMapping("events")
     fun getEvents(@RequestBody filter: CalendarRestFilter): ResponseEntity<Any> {
@@ -122,6 +123,7 @@ class CalendarServicesRest {
         val currentFilter = calendarFilterServicesRest.getCurrentFilter()
         filter.vacationGroupIds = currentFilter.vacationGroupIds?.toMutableSet()
         filter.vacationUserIds = currentFilter.vacationUserIds?.toMutableSet()
+        filter.absenceKinds = currentFilter.absenceKinds?.toMutableSet()
         return ResponseEntity(buildEvents(filter), HttpStatus.OK)
     }
 
@@ -315,12 +317,13 @@ class CalendarServicesRest {
                 )
             )
         }
-        vacationProvider.addEvents(
+        absenceProvider.addEvents(
             range.start,
             range.end!!,
             events,
             filter.vacationGroupIds,
             filter.vacationUserIds,
+            AbsenceKind.orAll(filter.absenceKinds),
             settings,
         )
 

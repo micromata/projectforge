@@ -29,6 +29,9 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
@@ -40,6 +43,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -50,6 +54,9 @@ import java.time.LocalDate
 class VacationExportRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var vacationExportRest: VacationExportRest
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -120,6 +127,53 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(listOf(colleague.id), initial.employees.map { it.id })
         assertEquals("quarter", initial.periodKind)
         assertFalse(initial.unrestricted)
+    }
+
+    @Test
+    fun `availabilities are shown only if asked for, as the vacations of the same employees`() {
+        val own = createEmployee("avail-own")
+        val colleague = createEmployee("avail-colleague")
+        val finance = createEmployee("avail-finance", finance = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.avail", own.user!!.username!!, colleague.user!!.username!!)
+        val year = LocalDate.now().year + 2
+        logon(TEST_HR_USER)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = colleague.user
+            it.startDate = LocalDate.of(year, 3, 25)
+            it.endDate = LocalDate.of(year, 4, 10)
+            it.type = "Workation"
+            it.status = AvailabilityStatus.REACHABLE_IF_NEEDED
+            it.comment = "public"
+            it.internalComment = "internal"
+        })
+        val request = VacationExportRequest(
+            employeeIds = listOf(colleague.id!!), from = LocalDate.of(year, 4, 1), until = LocalDate.of(year, 6, 30),
+        )
+
+        logon(own.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not asked for.")
+        request.showAvailabilities = true
+        val availability = vacationExportRest.view(request).rows.single().availabilities.single()
+        // Cut to the quarter, with the public comment only (the dto has no internal one).
+        assertEquals(LocalDate.of(year, 4, 1), availability.startDate)
+        assertEquals(LocalDate.of(year, 4, 10), availability.endDate)
+        assertEquals("public", availability.comment)
+        // A colleague is told the status only, the type may be personal (AvailabilityDao.labelFor).
+        assertEquals(translate("availability.status.reachableIfNeeded"), availability.label)
+        assertFalse(availability.absent)
+        assertTrue(vacationExportRest.getInitial().showAvailabilities, "Stored for next time.")
+        logon(colleague.user!!)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
+        logon(own.user!!)
+
+        // Finance staff may pick everybody and see their availability entries as their vacations, but neither the type
+        // nor the comment (not visible to them in the availability list).
+        logon(finance.user!!)
+        vacationExportRest.view(request).rows.single().availabilities.single().let {
+            assertEquals(translate("availability.status.reachableIfNeeded"), it.label)
+            assertNull(it.comment)
+        }
     }
 
     @Test

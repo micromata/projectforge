@@ -3,9 +3,15 @@
 import type { CSSProperties } from "react";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
-import type { ChartBar, ChartRow } from "./vacation-chart-model";
+import type {
+  AvailabilityBar,
+  ChartBar,
+  ChartRow,
+} from "./vacation-chart-model";
 import type { VacationChartDay } from "./types";
 import {
+  ABSENT_BAR_CLASS,
+  AVAILABILITY_BAR_CLASS,
   barClassName,
   dayClassName,
   GRID_CELL,
@@ -16,6 +22,10 @@ import {
  * A row of the vacation chart: the name, the day columns' backgrounds and the bars of the vacations on top,
  * each spanning its days of the grid. A half day at a visible end leaves half of that day's column free.
  *
+ * The availability entries are thin lines at the bottom of the row, beneath the vacations; a not-available one
+ * (away as on vacation) is a striped bar of the vacations' height, beneath them, too: on days of both, the vacation
+ * is shown (and its tooltip reached).
+ *
  * @param focusable The bars take the keyboard focus, which opens their tooltip, and are named by it (`period`) —
  * for a chart that is its own text alternative (VacationChartFrame with role `group`).
  */
@@ -24,12 +34,14 @@ export function VacationChartRow({
   gridRow,
   days,
   period,
+  availabilityText,
   focusable = false,
 }: {
   row: ChartRow;
   gridRow: number;
   days: VacationChartDay[];
   period: (bar: ChartBar) => string;
+  availabilityText?: (bar: AvailabilityBar) => string;
   focusable?: boolean;
 }) {
   return (
@@ -79,6 +91,28 @@ export function VacationChartRow({
                 barClassName(row.own, bar.status === "APPROVED", bar.conflict)
               )}
               style={style}
+            />
+          </HintTooltip>
+        );
+      })}
+      {row.availabilities?.map((bar) => {
+        const label = availabilityText?.(bar) ?? bar.label;
+        return (
+          <HintTooltip key={bar.key} text={label} plain>
+            <div
+              {...(focusable && {
+                role: "img",
+                tabIndex: 0,
+                "aria-label": label,
+              })}
+              className={cn(
+                GRID_CELL,
+                "rounded-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+                bar.absent
+                  ? cn("z-[8] h-2.5 self-center", ABSENT_BAR_CLASS)
+                  : cn("z-[5] mb-px h-1 self-end", AVAILABILITY_BAR_CLASS)
+              )}
+              style={gridCell(gridRow, bar.first + 2, bar.last + 2)}
             />
           </HintTooltip>
         );

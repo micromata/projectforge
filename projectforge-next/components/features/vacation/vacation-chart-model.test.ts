@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  availabilityLabel,
   barLabel,
   buildVacationChart,
   monthSpans,
@@ -90,6 +91,48 @@ describe("buildVacationChart", () => {
     ]);
   });
 
+  it("adds the substitutes' availability entries, a not-available one as absent, also of somebody not chosen", () => {
+    const rows = buildVacationChart(
+      days(11),
+      own,
+      [{ id: 2, displayName: "Two" }],
+      [],
+      [
+        {
+          employee: { id: 2, displayName: "Two" },
+          startDate: "2030-02-05",
+          endDate: "2030-02-06",
+          label: "Not available",
+          absent: true,
+        },
+        {
+          employee: { id: 2, displayName: "Two" },
+          startDate: "2030-02-09",
+          endDate: "2030-03-01",
+          label: "Remotely reachable",
+        },
+        {
+          employee: { id: 4, displayName: "Four" },
+          startDate: "2030-02-01",
+          endDate: "2030-02-01",
+          label: "Not available",
+          absent: true,
+        },
+      ]
+    );
+    expect(rows.map((r) => r.name)).toEqual(["Own", "Two", "Four"]);
+    expect(
+      rows[1].availabilities?.map((a) => [a.first, a.last, a.absent, a.label])
+    ).toEqual([
+      [4, 5, true, "Not available"],
+      [8, 10, false, "Remotely reachable"],
+    ]);
+    expect(rows[1].bars).toEqual([]);
+    expect(rows[2].availabilities).toHaveLength(1);
+    // Without any entry, the row has none.
+    expect(rows[0].availabilities).toBeUndefined();
+  });
+
   it("cuts a vacation off at the edges, without half days there", () => {
     const rows = buildVacationChart(
       days(11),
@@ -173,6 +216,91 @@ describe("teamChartRows", () => {
       last: 8,
       status: "IN_PROGRESS",
     });
+  });
+});
+
+describe("teamChartRows with availabilities", () => {
+  it("draws the availability entries of a row, cut off at the period's edges, none if not sent", () => {
+    const rows = teamChartRows({
+      days: days(10),
+      rows: [
+        {
+          employee: { id: 7, displayName: "Remote" },
+          vacations: [],
+          availabilities: [
+            {
+              id: 90,
+              startDate: "2030-01-20",
+              endDate: "2030-02-02",
+              label: "Workation (Reachable if needed)",
+              comment: "Lisbon",
+            },
+            {
+              id: 91,
+              startDate: "2030-03-01",
+              endDate: "2030-03-05",
+              label: "Parental leave",
+            },
+          ],
+        },
+        { employee: { id: 8, displayName: "On duty" }, vacations: [] },
+      ],
+    });
+    expect(rows[0].availabilities).toEqual([
+      {
+        key: "7-a90",
+        first: 0,
+        last: 1,
+        label: "Workation (Reachable if needed)",
+        comment: "Lisbon",
+        absent: false,
+        startDate: "2030-01-20",
+        endDate: "2030-02-02",
+      },
+    ]);
+    expect(rows[1].availabilities).toEqual([]);
+  });
+
+  it("leaves them out unless asked for, also if the view still holds them", () => {
+    const rows = teamChartRows(
+      {
+        days: days(10),
+        rows: [
+          {
+            employee: { id: 7, displayName: "Remote" },
+            vacations: [],
+            availabilities: [
+              {
+                id: 90,
+                startDate: "2030-02-01",
+                endDate: "2030-02-02",
+                label: "Workation",
+              },
+            ],
+          },
+        ],
+      },
+      false
+    );
+    expect(rows[0].availabilities).toEqual([]);
+  });
+});
+
+describe("availabilityLabel", () => {
+  const formatDate = (iso: string) => iso.split("-").reverse().join(".");
+  const bar = {
+    label: "Parental leave",
+    startDate: "2030-02-04",
+    endDate: "2030-02-08",
+  };
+
+  it("names whose entry it is, what, when and the comment if any", () => {
+    expect(
+      availabilityLabel("Ann", { ...bar, comment: "Back in March" }, formatDate)
+    ).toBe("Ann: Parental leave, 04.02.2030 – 08.02.2030 (Back in March)");
+    expect(
+      availabilityLabel("Ann", { ...bar, comment: null }, formatDate)
+    ).toBe("Ann: Parental leave, 04.02.2030 – 08.02.2030");
   });
 });
 

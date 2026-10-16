@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationMode
@@ -67,6 +68,11 @@ class Vacation(
      * view.
      */
     var conflictingVacations: List<Vacation>? = null,
+    /**
+     * Availability entries of substitutes overlapping this vacation: the absent ones count as their vacations (see
+     * [conflict]), the others are shown only. Only set in detail view.
+     */
+    var replacementAvailabilities: List<VacationReplacementAvailability>? = null,
     /**
      * If at least one day of the vacation period isn't covered by any substitute (replacement).
      */
@@ -150,3 +156,21 @@ class VacationChartDay(
         }
     }
 }
+
+/**
+ * An availability entry of a substitute of a vacation, as its form shows it: who, when and how reachable.
+ * @param label What the entry is called for the logged-in user (AvailabilityDao.labelFor): its type only for the
+ * substitute and HR staff.
+ * @param absent The substitute is away (AvailabilityStatus.absent), as on vacation.
+ */
+class VacationReplacementAvailability(
+    var employee: Employee? = null,
+    var startDate: LocalDate? = null,
+    var startDateFormatted: String? = null,
+    var endDate: LocalDate? = null,
+    var endDateFormatted: String? = null,
+    var status: AvailabilityStatus? = null,
+    var statusString: String? = null,
+    var label: String? = null,
+    var absent: Boolean = false,
+)

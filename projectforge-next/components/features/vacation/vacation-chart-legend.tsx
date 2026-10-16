@@ -2,13 +2,25 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { barClassName, dayClassName } from "./vacation-chart-grid";
+import {
+  ABSENT_BAR_CLASS,
+  AVAILABILITY_BAR_CLASS,
+  barClassName,
+  dayClassName,
+} from "./vacation-chart-grid";
 
 /**
  * What the colours of the vacation chart mean (see VacationOverlapChart). The team calendar (`team`,
- * VacationTeamChart) has neither a vacation being edited nor uncovered days.
+ * VacationTeamChart) has neither a vacation being edited nor uncovered days, but may show availability entries
+ * (`availabilities`), as the form does for the substitutes' ones.
  */
-export function VacationChartLegend({ team = false }: { team?: boolean }) {
+export function VacationChartLegend({
+  team = false,
+  availabilities = false,
+}: {
+  team?: boolean;
+  availabilities?: boolean;
+}) {
   const t = useTranslations();
   const items = [
     ...(team
@@ -35,6 +47,18 @@ export function VacationChartLegend({ team = false }: { team?: boolean }) {
             label: t("vacation.chart.uncovered"),
           },
         ]),
+    ...(availabilities
+      ? [
+          {
+            className: ABSENT_BAR_CLASS,
+            label: t("availability.status.notAvailable"),
+          },
+          {
+            className: AVAILABILITY_BAR_CLASS,
+            label: t("availability.title._"),
+          },
+        ]
+      : []),
     {
       className: dayClassName({ workingDay: false }),
       label: t("vacation.chart.nonWorkingDay"),

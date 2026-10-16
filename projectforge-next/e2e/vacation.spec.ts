@@ -90,7 +90,7 @@ test.describe("vacation", { tag: "@lane-vacation" }, () => {
     });
     await start.fill(dateInput(format, monday));
     await start.press("Enter");
-    // A start without an end makes it a one-day period (useVacationPeriodClamp).
+    // A start without an end makes it a one-day period (usePeriodClamp).
     await expect(end).toHaveValue(dateInput(format, monday));
     await end.fill(dateInput(format, friday));
     await end.press("Enter");

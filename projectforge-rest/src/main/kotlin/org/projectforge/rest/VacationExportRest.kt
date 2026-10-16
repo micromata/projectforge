@@ -25,6 +25,9 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -46,6 +49,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.VacationChartDay
+import org.projectforge.rest.dto.VacationExportAvailability
 import org.projectforge.rest.dto.VacationExportFavoriteInfo
 import org.projectforge.rest.dto.VacationExportInitial
 import org.projectforge.rest.dto.VacationExportRef
@@ -78,10 +82,21 @@ private val log = KotlinLogging.logger {}
  * anybody else only their own groups and the employees of these groups, and nothing before 1 January of the current
  * year (no previous years). The endpoints drop whatever else is asked for, so the restriction doesn't depend on the
  * pickers ([employees], [groups]) and the page's paging.
+ *
+ * With [VacationExportRequest.showAvailabilities], the availability entries of the same employees are shown and
+ * exported, too: as their vacations, for the same employees and period. Their type is shown to the user and HR staff
+ * only, anybody else gets the neutral title ([AvailabilityDao.labelFor]); their comment only who may see the entry
+ * itself ([AvailabilityDao.hasUserSelectAccess]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")
 class VacationExportRest {
+    @Autowired
+    private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
     @Autowired
     private lateinit var employeeCache: EmployeeCache
 
@@ -112,6 +127,7 @@ class VacationExportRest {
                 groups = selection.groups,
                 periodKind = pref.periodKind,
                 dayWidth = pref.dayWidth,
+                showAvailabilities = pref.showAvailabilities == true,
                 unrestricted = access.unrestricted,
                 earliestDate = access.earliestDate,
                 favorites = favoriteInfos(pref, access),
@@ -222,8 +238,19 @@ class VacationExportRest {
                 employees, from, until, withSpecial = true, trimVacations = false,
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
             )
+            val availabilities = availabilitiesByEmployee(request, employees, from, until)
+            val viewer = ThreadLocalUserContext.loggedInUser
             val rows = vacations.map { entry ->
-                VacationExportRow(ref(entry.employee), entry.vacations.map { VacationExportVacation.of(it, from, until) })
+                VacationExportRow(
+                    ref(entry.employee),
+                    entry.vacations.map { VacationExportVacation.of(it, from, until) },
+                    availabilities[entry.employee.id].orEmpty().map {
+                        val comment = it.comment.takeIf { _ ->
+                            viewer != null && availabilityDao.hasUserSelectAccess(viewer, it, false)
+                        }
+                        VacationExportAvailability.of(it, from, until, availabilityDao.labelFor(viewer, it), comment)
+                    },
+                )
             }.sortedBy { it.employee.displayName?.lowercase() }
             VacationExportView(VacationChartDay.listOf(from, until), rows)
         }
@@ -248,9 +275,37 @@ class VacationExportRest {
                 employees, periodBegin.date, periodEnd.date, withSpecial = true, trimVacations = false,
                 VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
             )
-            val excel = VacationExcelExporter.export(startDate, vacations)
+            val availabilities = availabilitiesByEmployee(request, employees, periodBegin.date, periodEnd.date)
+            val viewer = ThreadLocalUserContext.loggedInUser
+            val excel = VacationExcelExporter.export(startDate, vacations, availabilities) {
+                availabilityDao.labelFor(viewer, it)
+            }
             RestUtils.downloadFile("${translate("vacation")}-${PFDateTime.now().format4Filenames()}.xlsx", excel)
         }
+    }
+
+    /**
+     * The availability entries of [employees] overlapping the period; empty unless
+     * [VacationExportRequest.showAvailabilities]. Visible as the vacations: [employees] and the period are already
+     * restricted by [Access].
+     */
+    private fun availabilitiesByEmployee(
+        request: VacationExportRequest,
+        employees: List<EmployeeDO>,
+        from: LocalDate,
+        until: LocalDate,
+    ): Map<Long, List<AvailabilityDO>> {
+        if (request.showAvailabilities != true || employees.isEmpty()) {
+            return emptyMap()
+        }
+        // The entries are of users: keyed by the employee of the user here, as the rows of the calendar are.
+        val employeeIdByUserId = employees.mapNotNull { employee ->
+            val userId = employeeCache.getUser(employee)?.id ?: return@mapNotNull null
+            employee.id?.let { userId to it }
+        }.toMap()
+        return availabilityCache.getEntriesOfUsers(employeeIdByUserId.keys, from, until)
+            .sortedBy { it.startDate }
+            .groupBy { employeeIdByUserId.getValue(it.user!!.id!!) }
     }
 
     /** The chosen employees and the members of the chosen groups: active ones the user may pick, each once. */
@@ -354,6 +409,7 @@ class VacationExportRest {
         pref.groupIds = request.groupIds?.distinct()
         pref.periodKind = request.periodKind
         pref.dayWidth = request.dayWidth
+        pref.showAvailabilities = request.showAvailabilities
     }
 
     class VacationExportUserPref(
@@ -361,6 +417,7 @@ class VacationExportRest {
         var groupIds: List<Long>? = null,
         var periodKind: String? = null,
         var dayWidth: String? = null,
+        var showAvailabilities: Boolean? = null,
         var favorites: List<VacationExportFavorite>? = null,
     )
 
@@ -375,10 +432,10 @@ class VacationExportRest {
         userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_NAME, VacationExportUserPref())
 
     companion object {
-        private const val USER_PREF_AREA = "vacation"
+        internal const val USER_PREF_AREA = "vacation"
 
         // Not "export": the removed React page stored another class there.
-        private const val USER_PREF_NAME = "teamCalendar"
+        internal const val USER_PREF_NAME = "teamCalendar"
 
         private const val MAX_RESULTS = 30
         private const val MAX_RESULTS_LIMIT = 500

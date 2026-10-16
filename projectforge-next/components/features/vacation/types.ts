@@ -43,6 +43,8 @@ export interface VacationFormStats {
   vacationDaysLeftAfterThisString?: string | null;
   /** The vacations of the replacements overlapping this one. */
   conflictingVacations?: VacationDetail[] | null;
+  /** The availability entries of the replacements overlapping this one; the absent ones count as vacations. */
+  replacementAvailabilities?: VacationReplacementAvailability[] | null;
   /** At least one day of the period without any replacement on duty. */
   conflict?: boolean | null;
   /** The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). */
@@ -112,6 +114,8 @@ export interface VacationExportRequest {
   dayWidth: string;
   from: string;
   until: string;
+  /** Shows and exports the availability entries of the same employees, too (stored for next time). */
+  showAvailabilities: boolean;
 }
 
 /** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
@@ -120,6 +124,7 @@ export interface VacationExportInitial {
   groups: VacationExportRef[];
   periodKind?: string | null;
   dayWidth?: string | null;
+  showAvailabilities: boolean;
   unrestricted: boolean;
   /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
   earliestDate?: string | null;
@@ -150,11 +155,43 @@ export interface VacationExportVacation {
   status?: VacationStatus | null;
 }
 
+/**
+ * An availability entry of the team vacation calendar (`VacationExportAvailability`), cut to the period shown.
+ * `label` is what the Excel export writes (its type only for the employee and HR staff); `comment` only the public
+ * one; `absent` (not available) is away as on vacation.
+ */
+export interface VacationExportAvailability {
+  id?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  label: string;
+  comment?: string | null;
+  absent?: boolean;
+}
+
+/**
+ * An availability entry of a replacement (`VacationReplacementAvailability`): `label` is its type only for the
+ * replacement and HR staff, its status for everybody else; `absent` (not available) counts as a vacation.
+ */
+export interface VacationReplacementAvailability {
+  employee?: EmployeeRef | null;
+  startDate?: string | null;
+  startDateFormatted?: string | null;
+  endDate?: string | null;
+  endDateFormatted?: string | null;
+  status?: string | null;
+  statusString?: string | null;
+  label?: string | null;
+  absent?: boolean;
+}
+
 /** The calendar of a period (`VacationExportView`): one row per employee, sorted by name. */
 export interface VacationExportView {
   days: VacationChartDay[];
   rows: {
     employee: VacationExportRef;
     vacations: VacationExportVacation[];
+    /** Empty unless the request asked for them (`showAvailabilities`). */
+    availabilities?: VacationExportAvailability[];
   }[];
 }

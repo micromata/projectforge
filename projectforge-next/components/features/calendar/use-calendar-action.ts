@@ -58,6 +58,9 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
     case "vacation":
       // Save and cancel return to the calendar (see VACATION_PAGE.returnTargets, whose default is the list).
       return id != null ? `/vacation/${id}?returnTo=/calendar` : null;
+    case "availability":
+      // Save and cancel return to the calendar (see AVAILABILITY_PAGE.returnTargets, whose default is the list).
+      return id != null ? `/availability/${id}?returnTo=/calendar` : null;
     case "address":
       // A birthday opens the view of the address, whose "back" returns to the calendar (see AddressView).
       return id != null ? `/address/${id}?returnTo=/calendar` : null;

@@ -601,6 +601,16 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // The availability entries (AvailabilityEntityRest, components/features/availability): hand built, migrated
+        // from React before they were ever released, so no way back is offered; the legacy app is kept for the
+        // redirect of React links only.
+        "availability" to NextPage(
+            route = "availability",
+            editRoute = "availability/$ID_PLACEHOLDER",
+            newEntryRoute = "availability/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // The scripts every user may execute by the script configuration (MyScriptEntityRest,
         // MyScriptExecuteRest): a list whose row leads to the execution (`myscript/:id`), there is no form.
         // Migrated from React like "script", see there.
