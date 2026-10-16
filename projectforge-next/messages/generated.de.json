@@ -49,6 +49,7 @@
   },
   "add": "Hinzufügen",
   "address": {
+    "addAddress": "Adresse hinzufügen",
     "addressStatus": {
       "_": "Adressstatus",
       "leaved": "Unternehmen verlassen",
@@ -58,6 +59,7 @@
     "addressText": "Adresse",
     "addressText2": "Adresse 2",
     "addressbooks": "Adressbücher",
+    "addresses": "Adressen",
     "birthName": "Geburtsname",
     "birthday": "Geburtstag",
     "book": {
@@ -215,6 +217,7 @@
     "private": "privat",
     "privateEmail": "Private E-Mail",
     "publicKey": "Public key",
+    "removeAddress": "Adresse entfernen",
     "sendSms": {
       "message": "Nachricht",
       "phoneNumber": "Mobilfunknummer",

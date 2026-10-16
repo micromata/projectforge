@@ -49,6 +49,7 @@
   },
   "add": "Add",
   "address": {
+    "addAddress": "Add address",
     "addressStatus": {
       "_": "Address status",
       "leaved": "company left",
@@ -58,6 +59,7 @@
     "addressText": "Address",
     "addressText2": "Address 2",
     "addressbooks": "Addressbooks",
+    "addresses": "Addresses",
     "birthName": "Birth name",
     "birthday": "Birthday",
     "book": {
@@ -215,6 +217,7 @@
     "private": "private",
     "privateEmail": "Private e-mail",
     "publicKey": "Public key",
+    "removeAddress": "Remove address",
     "sendSms": {
       "message": "Message",
       "phoneNumber": "Cellular number",

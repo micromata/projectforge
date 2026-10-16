@@ -141,6 +141,40 @@ test.describe("address", { tag: "@lane-address" }, () => {
     ).toHaveValue("Mustermann");
   });
 
+  test("adds and removes the kinds of addresses in their one card", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/address/new");
+    const business = t("address.heading.businessAddress");
+    const postal = t("address.heading.postalAddress");
+    const privateAddress = t("address.heading.privateAddress");
+    const block = (heading: string) =>
+      page.getByRole("group", { name: heading, exact: true });
+    const add = page.getByRole("button", { name: t("address.addAddress") });
+
+    // A new address starts with the business address; the picker offers the other two.
+    await expect(block(business)).toBeVisible();
+    await add.click();
+    await expect(page.getByRole("menuitem")).toHaveText([
+      postal,
+      privateAddress,
+    ]);
+    await page.getByRole("menuitem", { name: privateAddress }).click();
+    await expect(block(privateAddress)).toBeVisible();
+    await add.click();
+    await expect(page.getByRole("menuitem")).toHaveText([postal]);
+    await page.keyboard.press("Escape");
+
+    await block(privateAddress)
+      .getByRole("button", {
+        name: `${t("address.removeAddress")}: ${privateAddress}`,
+      })
+      .click();
+    await expect(block(privateAddress)).toHaveCount(0);
+    await expect(block(business)).toBeVisible();
+  });
+
   test("posts a new address of an organization only on save", async ({
     loggedInPage: page,
   }) => {

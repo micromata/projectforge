@@ -1,6 +1,10 @@
 import { definePage } from "@/lib/page-def/define-page";
 import { ADDRESS_IMPORT_QUERY_KEY } from "@/lib/rs/address-import";
-import { AddressAddressbooksField } from "./address-addressbooks-field";
+import {
+  AddressAddressbooksField,
+  AddressFavoriteField,
+} from "./address-addressbooks-field";
+import { AddressBlocksField } from "./address-blocks-field";
 import { ADDRESS_COLUMNS } from "./address-columns";
 import { AddressEditIntro } from "./address-edit-intro";
 import { AddressGearMenuActions } from "./address-gear-menu-actions";
@@ -15,15 +19,7 @@ import {
   ADDRESS_FIELDS,
   type AddressValues,
 } from "./address-schema";
-import {
-  AddressOrganizationField,
-  AddressText2Field,
-  AddressTextField,
-  PostalAddressText2Field,
-  PostalAddressTextField,
-  PrivateAddressText2Field,
-  PrivateAddressTextField,
-} from "./address-suggest-fields";
+import { AddressOrganizationField } from "./address-suggest-fields";
 import { emptyAddressValues, toFormValues } from "./address-values";
 import type { AddressDetail, AddressListRow } from "./types";
 
@@ -34,8 +30,9 @@ import type { AddressDetail, AddressListRow } from "./types";
  *
  * The list follows the former server side layout (`AddressPagesRest`): the filters (my favorites, doublets, with
  * images, my entries) come from the backend, a favorite of the logged-in user is tinted. The form has the fields
- * of the former form in the same cards; custom are the address books with the favorite flag, the language, the
- * image and the fields completed from other addresses.
+ * of the former form in the same cards, except the three addresses, which share one (AddressBlocksField); custom
+ * are the address books with the favorite flag, the language, the image and the fields completed from other
+ * addresses.
  */
 export const ADDRESS_PAGE = definePage<
   AddressListRow,
@@ -86,6 +83,7 @@ export const ADDRESS_PAGE = definePage<
         fields: [
           { name: "addressStatus" },
           { name: "contactStatus" },
+          { custom: AddressFavoriteField },
           { custom: AddressAddressbooksField, span: 3 },
         ],
       },
@@ -131,40 +129,11 @@ export const ADDRESS_PAGE = definePage<
         ],
       },
       {
-        id: "businessAddress",
-        titleKey: "address.heading.businessAddress",
-        fields: [
-          { custom: AddressTextField },
-          { custom: AddressText2Field },
-          { name: "zipCode", startsRow: true },
-          { name: "city" },
-          { name: "country", startsRow: true },
-          { name: "state" },
-        ],
-      },
-      {
-        id: "postalAddress",
-        titleKey: "address.heading.postalAddress",
-        fields: [
-          { custom: PostalAddressTextField },
-          { custom: PostalAddressText2Field },
-          { name: "postalZipCode", startsRow: true },
-          { name: "postalCity" },
-          { name: "postalCountry", startsRow: true },
-          { name: "postalState" },
-        ],
-      },
-      {
-        id: "privateAddress",
-        titleKey: "address.heading.privateAddress",
-        fields: [
-          { custom: PrivateAddressTextField },
-          { custom: PrivateAddressText2Field },
-          { name: "privateZipCode", startsRow: true },
-          { name: "privateCity" },
-          { name: "privateCountry", startsRow: true },
-          { name: "privateState" },
-        ],
+        // The business, postal and private address in one card: only the kinds holding a value are shown,
+        // further ones are added there (AddressBlocksField).
+        id: "addresses",
+        titleKey: "address.addresses",
+        fields: [{ custom: AddressBlocksField, span: 3 }],
       },
       {
         id: "image",
