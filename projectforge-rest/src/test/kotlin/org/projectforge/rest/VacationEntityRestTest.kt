@@ -54,12 +54,16 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
+import org.springframework.http.ResponseEntity
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -84,6 +88,9 @@ class VacationEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     @Test
     fun `a new entry is of the own employee unless HR staff presets another one`() {
@@ -496,6 +503,47 @@ class VacationEntityRestTest : AbstractTestBase() {
         stats(colleague, monday.minusDays(500), friday).let {
             assertNull(it.conflictingVacations)
             assertNull(it.chartDays)
+        }
+    }
+
+    @Test
+    fun `the manager approves and rejects an entry as the form posts it`() {
+        val own = createEmployee("approve-own")
+        val manager = createEmployee("approve-manager")
+        val hr = createEmployee("approve-hr", hrAccess = true)
+        val monday = LocalDate.of(LocalDate.now().year + 8, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        val today = LocalDate.now()
+        logon(hr.user!!)
+        // Stored without the half day flags (nullable columns, e.g. entries of the former pages), as applied for.
+        fun insert(start: LocalDate, end: LocalDate) = vacationDao.insert(vacation(own, replacement = hr, start, end).also {
+            it.manager = manager
+            it.status = VacationStatus.IN_PROGRESS
+            it.special = false
+        })
+        val futureId = insert(monday, monday.plusDays(4))
+        val runningId = insert(today.minusDays(2), today.plusDays(2)) // Begun already: the manager still approves it.
+
+        logon(manager.user!!)
+        fun save(id: Long?, status: VacationStatus): ResponseEntity<ResponseAction> {
+            // As the form posts the opened entry: the half day checkboxes unchecked, i.e. false (vacation-values.ts).
+            val dto = vacationEntityRest.transformFromDB(vacationDao.find(id)!!, editMode = true).also {
+                it.halfDayBegin = it.halfDayBegin == true
+                it.halfDayEnd = it.halfDayEnd == true
+                it.special = it.special == true
+                it.status = status
+            }
+            val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+            val postData = PostData(dto, watchFieldsTriggered = null, serverData = sessionCsrfService.createServerData(request))
+            return vacationEntityRest.saveOrUpdate(request, postData)
+        }
+        listOf(
+            futureId to VacationStatus.APPROVED,
+            futureId to VacationStatus.REJECTED,
+            runningId to VacationStatus.APPROVED,
+        ).forEach { (id, status) ->
+            val response = save(id, status)
+            assertEquals(200, response.statusCode.value(), "$status: ${response.body?.validationErrors?.map { it.message }}")
+            assertEquals(status, vacationDao.find(id)!!.status)
         }
     }
 

@@ -133,6 +133,8 @@ export interface NotificationLogEntry {
     attempts: number;
     error?: string | null;
   }[];
+  /** May the logged-in user end it (pending and editor of its rule)? */
+  finishable?: boolean;
 }
 
 export function fetchNotificationVariables(
@@ -195,6 +197,24 @@ export function fetchNotificationLog(
     `/rs/notificationRule/${ruleId}/notifications`,
     { method: "GET" },
     signal
+  );
+}
+
+/** Ends the pending notification (expired), for editors of its rule. */
+export function finishNotification(id: number): Promise<NotificationLogEntry> {
+  return request<NotificationLogEntry>(
+    `/rs/notificationRule/notifications/${id}/finish`,
+    { method: "POST" }
+  );
+}
+
+/** Ends all pending notifications of the rule (expired), for its editors. */
+export function finishPendingNotifications(
+  ruleId: number
+): Promise<{ finished: number }> {
+  return request<{ finished: number }>(
+    `/rs/notificationRule/${ruleId}/finishPending`,
+    { method: "POST" }
   );
 }
 

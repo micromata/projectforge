@@ -1,0 +1,19 @@
+{
+  "type": "fixed",
+  "en": "Notification rules",
+  "de": "Benachrichtigungsregeln",
+  "items": [
+    {
+      "en": "A manual rule shown as \"Banner until done\" always lets its recipients mark the banner as done: nothing else finished it, so it stayed forever.",
+      "de": "Eine manuelle Regel mit der Anzeige „Banner bis erledigt“ lässt ihre Empfänger:innen den Banner immer als erledigt markieren: Sonst beendete ihn nichts, er blieb für immer stehen."
+    },
+    {
+      "en": "Deactivating or deleting a rule ends its pending notifications at once, not only with the next hourly run.",
+      "de": "Das Deaktivieren oder Löschen einer Regel beendet ihre offenen Benachrichtigungen sofort, nicht erst beim nächsten stündlichen Lauf."
+    },
+    {
+      "en": "Editors of a rule can end pending notifications in the log of sent notifications, one by one or all of a rule.",
+      "de": "Bearbeiter:innen einer Regel können offene Benachrichtigungen im Protokoll der versendeten Benachrichtigungen beenden, einzeln oder alle einer Regel."
+    }
+  ]
+}

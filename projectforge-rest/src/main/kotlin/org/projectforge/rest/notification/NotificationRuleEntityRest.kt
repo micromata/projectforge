@@ -24,6 +24,7 @@
 
 package org.projectforge.rest.notification
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.notification.NotificationChannel
@@ -59,12 +60,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Date
 
+private val log = KotlinLogging.logger {}
+
 /**
  * The layout-free REST endpoint of the rules of the notification system, serving the hand-built projectforge-next
  * page (components/features/notification-rule), for admins and finance (see [NotificationRuleDao.hasAccess]).
  *
  * Besides the standard list/edit endpoints: the preview, a test to oneself (both of the maybe unsaved rule of the
- * form), the trigger of a saved rule and the log of its notifications.
+ * form), the trigger of a saved rule and the log of its notifications, in which editors may end pending ones.
  */
 @RestController
 @RequestMapping("${Rest.URL}/notificationRule")
@@ -107,7 +110,11 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
         val doneAt: Date?,
         val resolvedAt: Date?,
         val deliverySteps: List<DeliveryStepEntry>,
+        /** May the logged-in user end it: pending and editor of its rule? */
+        val finishable: Boolean = false,
     )
+
+    class FinishResult(val finished: Int)
 
     class DeliveryStepEntry(
         val channel: NotificationChannel,
@@ -259,8 +266,46 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     @GetMapping("{id}/notifications")
     fun getNotifications(@PathVariable("id") id: Long): List<NotificationEntry> {
         val rule = baseDao.find(id) ?: return emptyList()
+        val editor = baseDao.isEditor(ThreadLocalUserContext.requiredLoggedInUser, rule)
         return notificationDao.select(NotificationDao.Filter(ruleId = rule.id, maxResults = MAX_LOG_ENTRIES))
-            .map { toEntry(it, rule.name) }
+            .map { toEntry(it, rule.name, editor) }
+    }
+
+    /**
+     * Ends all pending notifications of the rule (expired), e.g. banners nobody can mark as done. For editors of the
+     * rule.
+     */
+    @AccessChecked("DAO: NotificationRuleDao.find (select access) + isEditor of the rule + not restricted/demo")
+    @PostMapping("{id}/finishPending")
+    fun finishPending(@PathVariable("id") id: Long): FinishResult {
+        val rule = findAsEditor(id)
+        accessChecker.checkRestrictedOrDemoUser()
+        val finished = baseDao.expirePending(rule)
+        log.info { "Notification rule #${rule.id} '${rule.name}': $finished pending notification(s) ended by hand." }
+        return FinishResult(finished)
+    }
+
+    /**
+     * Ends the pending notification (expired). For editors of its rule (also of a deleted one), for a notification
+     * without rule (a test) for all rule editors.
+     */
+    @AccessChecked("DAO: NotificationRuleDao.checkLoggedInUserInsertAccess (admin/finance) + isEditor of the rule + not restricted/demo")
+    @PostMapping("notifications/{notificationId}/finish")
+    fun finish(@PathVariable("notificationId") notificationId: Long): NotificationEntry {
+        checkInsertAccess()
+        accessChecker.checkRestrictedOrDemoUser()
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val notification = notificationDao.findById(notificationId)
+            ?: throw IllegalArgumentException("Notification #$notificationId not found.")
+        val rule = baseDao.findInternal(notification.ruleId)
+        if (!baseDao.isEditor(user, rule)) {
+            throw AccessException(user, "access.exception.noAccess")
+        }
+        if (notification.status.isPending) {
+            notificationDao.finish(notification, NotificationStatus.EXPIRED)
+            log.info { "Notification #${notification.id} of rule #${notification.ruleId} ended by hand." }
+        }
+        return toEntry(notification, rule?.name, editor = true)
     }
 
     /**
@@ -275,11 +320,17 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
     ): List<NotificationEntry> {
         baseDao.checkLoggedInUserSelectAccess()
         val filter = NotificationDao.Filter(recipientId = recipientId, statuses = statuses, maxResults = MAX_LOG_ENTRIES)
-        val ruleNames = baseDao.selectAllInternal().associate { it.id to it.name }
-        return notificationDao.select(filter).map { toEntry(it, ruleNames[it.ruleId]) }
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val rules = baseDao.selectAllInternal().associateBy { it.id }
+        // Rules not found (deleted) restrict nobody: their notifications may be ended by every rule editor.
+        val editorOfOthers = baseDao.isEditor(user, null)
+        return notificationDao.select(filter).map {
+            val rule = rules[it.ruleId]
+            toEntry(it, rule?.name, editor = if (rule == null) editorOfOthers else baseDao.isEditor(user, rule))
+        }
     }
 
-    private fun toEntry(notification: NotificationDO, ruleName: String?): NotificationEntry {
+    private fun toEntry(notification: NotificationDO, ruleName: String?, editor: Boolean): NotificationEntry {
         return NotificationEntry(
             id = notification.id,
             ruleName = ruleName,
@@ -296,6 +347,7 @@ class NotificationRuleEntityRest : AbstractDTOEntityRest<NotificationRuleDO, Not
             deliverySteps = notification.readDeliveryState().steps.map {
                 DeliveryStepEntry(it.channel, it.dueAt, it.sentAt, it.skipped, it.failed, it.attempts, it.error)
             },
+            finishable = editor && notification.status.isPending,
         )
     }
 

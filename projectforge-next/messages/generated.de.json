@@ -2693,6 +2693,11 @@
     "error": {
       "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
     },
+    "finish": "Beenden",
+    "finishConfirm": "Diese Benachrichtigung beenden? Sie wird als abgelaufen markiert und verschwindet beim Empfänger.",
+    "finishPending": "Alle offenen beenden",
+    "finishPendingConfirm": "Alle offenen Benachrichtigungen dieser Regel beenden? Sie werden als abgelaufen markiert und verschwinden bei den Empfängern.",
+    "finished": "{arg0} Benachrichtigung(en) beendet.",
     "log": "Versendete Benachrichtigungen",
     "logEmpty": "Noch keine Benachrichtigungen versendet.",
     "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
@@ -2756,6 +2761,7 @@
       },
       "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "manualDoneForced": "Bei einer manuellen Regel mit Banner immer erlaubt: sonst beendet nichts den Banner.",
       "menuBadge": "Zähler im Menü",
       "name": "Name",
       "newTitle": "Neue Benachrichtigungsregel",
