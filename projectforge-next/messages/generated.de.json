@@ -236,7 +236,7 @@
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, die weiteren User, die keine Mitarbeitenden sind, die Namen der in Lanes & Planes schon bestehenden Kostenstellen und Kostenträger und die bestätigten E-Mail-Änderungen. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
+          "description": "Einstellungen der Übertragung der Mitarbeitenden an das Reisemanagement Lanes & Planes: die Rechnungsprofil-IDs, die allgemeinen Kost1, die allen Usern als Kostenstellen übertragen werden, die allgemeinen Kost2, die allen Usern als Kostenträger übertragen werden, die Muster der Kost2, die den Usern übertragen werden, die sie bebuchen dürfen, die weiteren User, die keine Mitarbeitenden sind, die Namen der in Lanes & Planes schon bestehenden Kostenstellen und Kostenträger und die E-Mails der Mitarbeitenden in Lanes & Planes. Die technischen Einstellungen (Aktivierung, API-Key, Probelauf) stehen in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Meldung des Tages",
@@ -2289,18 +2289,10 @@
         "lastName": "Nachname",
         "tooltip": "User von Lanes & Planes, die keine Mitarbeitenden sind, z. B. eine externe Buchhaltung. Werden nur mit Name, E-Mail und Rechnungsprofilen übertragen, ihre Rolle, Manager und Kostenstellen bleiben also erhalten. Ohne Eintrag würden sie von der Übertragung deaktiviert, und hat einer von ihnen Verantwortlichkeiten (z. B. als Buchhaltung), schlägt die ganze Übertragung fehl. Für den Service-Admin von Lanes & Planes und Gastprofile nicht nötig: Der Import lässt sie unberührt."
       },
-      "confirmedEmailChanges": {
-        "_": "Bestätigte E-Mail-Änderungen",
-        "tooltip": "Lanes & Planes erkennt User nur an ihrer E-Mail. Ändert sich die E-Mail von Mitarbeitenden, wird weiter die alte übertragen (siehe Problem-Dashboard), sonst würde der User deaktiviert und neu angelegt. Die E-Mail zuerst in Lanes & Planes von Hand ändern, dann die neue E-Mail hier eintragen. Nach der nächsten Übertragung kann der Eintrag entfernt werden."
-      },
       "existingCostObjects": {
         "_": "Bestehende Namen in Lanes & Planes",
         "textHint": "Ein Name pro Zeile oder die kommagetrennte Liste der Spalte cost_centers des User-Exports.",
         "tooltip": "Kostenstellen und Kostenträger, die es in Lanes & Planes schon gibt (z. B. von Hand angelegt), genau so benannt wie dort, beginnend mit der Nummer ohne Punkte, z. B. 50123401 Projekt - Reisekosten. Ein Kost1 oder Kost2 mit dieser Nummer wird mit diesem Namen als ident und Name übertragen, Lanes & Planes verwendet ihn also weiter. Lanes & Planes lässt einen Namen kein zweites Mal zu (auch gelöschte Einträge zählen): Ohne diesen Eintrag schlägt der Import für alle User mit diesem Kost fehl."
-      },
-      "existingUserEmails": {
-        "_": "Bestehende User in Lanes & Planes (E-Mails)",
-        "tooltip": "Die E-Mails der User in Lanes & Planes, aus der Spalte email des User-Exports (CSV) eingefügt, da die Schnittstelle keine User lesen kann. Mitarbeitende, die noch nicht übertragen wurden und deren E-Mail hier fehlt, werden mit einer hier gelisteten alternativen oder früheren E-Mail des Users übertragen, sonst würde Lanes & Planes den User neu anlegen. Wie eine geänderte E-Mail wird sie beibehalten, bis die E-Mail in Lanes & Planes geändert und unten bestätigt wurde. Leer: keine Prüfung."
       },
       "generalKost1": {
         "_": "Allgemeine Kost1 (Kostenstellen)",
@@ -2313,7 +2305,7 @@
       "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Vorgaben, die ihn beim Speichern ersetzen.",
       "kost2Patterns": {
         "_": "Muster der bebuchbaren Kost2",
-        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen."
+        "tooltip": "Die Kost2, auf die ein User Zeitberichte buchen darf, werden nur als Kostenträger (cost_units) übertragen, wenn sie zu einem dieser Muster passen: * steht für beliebige Zeichen, ? für genau eines, z. B. 5.*.02. Ohne Muster werden alle bebuchbaren Kost2 übertragen. Mehrere Muster in einer Zeile, durch Komma getrennt (z. B. 5.*.19, 5.*.20): pro Projekt wird nur die Kost2 des ersten passenden Musters übertragen."
       },
       "kostNotFound": "nicht gefunden",
       "mode": {
@@ -2321,8 +2313,14 @@
         "text": "Text"
       },
       "remove": "{arg0} entfernen",
-      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User · {arg4} bestehende Namen",
-      "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt."
+      "summary": "{arg0} allgemeine Kost1 · {arg1} allgemeine Kost2 · {arg2} Muster · {arg3} weitere User · {arg4} bestehende Namen · {arg5} E-Mails in Lanes & Planes",
+      "textHint": "Ein Eintrag pro Zeile oder durch Komma oder Semikolon getrennt, z. B. aus einer CSV-Datei eingefügt.",
+      "userEmails": {
+        "_": "E-Mails in Lanes & Planes",
+        "email": "E-Mail in Lanes & Planes",
+        "tooltip": "Lanes & Planes erkennt User nur an ihrer E-Mail. Mitarbeitende werden immer mit der hier eingetragenen E-Mail übertragen, auch wenn sich die E-Mail in ProjectForge ändert (z. B. nach einer Heirat): Sonst würde Lanes & Planes den User deaktivieren und neu anlegen. Vor der ersten Übertragung nur die Mitarbeitenden eintragen, deren E-Mail in Lanes & Planes von ProjectForge abweicht (siehe User-Export von Lanes & Planes). Jede Übertragung ergänzt die Mitarbeitenden, die ohne Eintrag übertragen wurden. Soll sich eine E-Mail ändern, zuerst in Lanes & Planes von Hand ändern, dann hier.",
+        "user": "User"
+      }
     }
   },
   "lastUpdate": "letzte Änderung",
@@ -2657,6 +2655,11 @@
     "error": {
       "manualDoneNotAllowed": "Diese Benachrichtigung wird automatisch beendet, sobald ihr Anlass erledigt ist."
     },
+    "finish": "Beenden",
+    "finishConfirm": "Diese Benachrichtigung beenden? Sie wird als abgelaufen markiert und verschwindet beim Empfänger.",
+    "finishPending": "Alle offenen beenden",
+    "finishPendingConfirm": "Alle offenen Benachrichtigungen dieser Regel beenden? Sie werden als abgelaufen markiert und verschwinden bei den Empfängern.",
+    "finished": "{arg0} Benachrichtigung(en) beendet.",
     "log": "Versendete Benachrichtigungen",
     "logEmpty": "Noch keine Benachrichtigungen versendet.",
     "logEmptyFilter": "Keine Benachrichtigungen passen zum Filter.",
@@ -2720,6 +2723,7 @@
       },
       "list": "Benachrichtigungsregeln",
       "manualDone": "Empfänger dürfen sie als erledigt markieren",
+      "manualDoneForced": "Bei einer manuellen Regel mit Banner immer erlaubt: sonst beendet nichts den Banner.",
       "menuBadge": "Zähler im Menü",
       "name": "Name",
       "newTitle": "Neue Benachrichtigungsregel",

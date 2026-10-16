@@ -228,8 +228,31 @@ class NotificationServiceTest : AbstractTestBase() {
         notificationService.trigger(rule)
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
         notificationRuleDao.markAsDeleted(rule, checkAccess = false)
-        notificationService.resolvePending(LocalDate.now())
+        // At once, not only by the next rule job:
         assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(notification.id)!!.status)
+    }
+
+    @Test
+    fun manualBannerTest() {
+        val user = initTestDB.addUser("notification-manual-banner-user")
+        val rule = insertRule(NotificationRuleType.MANUAL, user, NotificationDelivery()) { it.display = NotificationDisplay.BANNER }
+        assertTrue(notificationRuleDao.findInternal(rule.id)!!.manualDone, "Forced for a manual banner.")
+        notificationService.trigger(rule)
+        val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
+        assertTrue(notification.isManualDoneAllowed)
+        // Acknowledged, the banner stays until done:
+        notificationDao.acknowledge(notification.id!!, user)
+        assertTrue(notificationDao.findById(notification.id)!!.isVisibleInApp)
+        assertEquals(NotificationStatus.DONE, notificationDao.done(notification.id!!, user)!!.status)
+        assertTrue(notificationDao.findVisible(user.id!!).isEmpty())
+
+        // Ended by an editor:
+        notificationService.trigger(rule)
+        Thread.sleep(2) // The period of a manual run is its time in millis.
+        notificationService.trigger(rule)
+        assertEquals(2, notificationRuleDao.expirePending(rule))
+        assertTrue(notificationDao.findVisible(user.id!!).isEmpty())
+        assertEquals(0, notificationRuleDao.expirePending(rule))
     }
 
     @Test
@@ -246,6 +269,7 @@ class NotificationServiceTest : AbstractTestBase() {
         val notification = notificationDao.select(NotificationDao.Filter(ruleId = rule.id)).single()
         rule.active = false
         notificationRuleDao.update(rule, checkAccess = false)
+        assertEquals(NotificationStatus.EXPIRED, notificationDao.findById(notification.id)!!.status, "At once.")
         // The delivery job sends no mail of a deactivated rule, even before the next rule job:
         notificationService.runDeliveryJob(Date(notification.created!!.time + 120 * 60_000L))
         val expired = notificationDao.findById(notification.id)!!
@@ -320,7 +344,12 @@ class NotificationServiceTest : AbstractTestBase() {
         assertTrue(failed, "Exception expected.")
     }
 
-    private fun insertRule(type: NotificationRuleType, recipient: PFUserDO, delivery: NotificationDelivery): NotificationRuleDO {
+    private fun insertRule(
+        type: NotificationRuleType,
+        recipient: PFUserDO,
+        delivery: NotificationDelivery,
+        init: (NotificationRuleDO) -> Unit = {},
+    ): NotificationRuleDO {
         val rule = NotificationRuleDO()
         rule.name = "Test rule $type ${recipient.username}"
         rule.active = true
@@ -339,6 +368,7 @@ class NotificationServiceTest : AbstractTestBase() {
         } else {
             "<p>Hello {{fullName}}</p>"
         }
+        init(rule)
         notificationRuleDao.insert(rule, checkAccess = false)
         return rule
     }
