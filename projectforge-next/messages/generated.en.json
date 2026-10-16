@@ -2760,6 +2760,11 @@
     "error": {
       "manualDoneNotAllowed": "This notification is finished automatically as soon as its cause is resolved."
     },
+    "finish": "End",
+    "finishConfirm": "End this notification? It is marked as expired and disappears for its recipient.",
+    "finishPending": "End all pending",
+    "finishPendingConfirm": "End all pending notifications of this rule? They are marked as expired and disappear for their recipients.",
+    "finished": "{arg0} notification(s) ended.",
     "log": "Sent notifications",
     "logEmpty": "No notifications sent yet.",
     "logEmptyFilter": "No notifications match the filter.",
@@ -2823,6 +2828,7 @@
       },
       "list": "Notification rules",
       "manualDone": "The recipient may mark it as done",
+      "manualDoneForced": "Always allowed for a manual rule with banner: nothing else finishes the banner.",
       "menuBadge": "Counter in the menu",
       "name": "Name",
       "newTitle": "New notification rule",

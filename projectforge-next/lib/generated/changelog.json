@@ -15,14 +15,17 @@
       "type" : "changed",
       "items" : [ {
         "title" : "Addresses",
-        "items" : [ "List, view and form of the addresses are migrated to the new interface, including the import of vCards, the takeover of data from a pasted text or a vCard, the image, the exports (Excel, vCards, CardDAV access) and the mass update.", "The favorite star of an address can be switched directly in the list and in the view.", "An uploaded image is no longer lost if the form is saved more than a minute after the upload." ]
+        "items" : [ "List, view and form of the addresses are migrated to the new interface, including the import of vCards, the takeover of data from a pasted text or a vCard, the image, the exports (Excel, vCards, CardDAV access) and the mass update.", "The favorite star of an address can be switched directly in the list and in the view.", "Calling a phone number of an address and sending it a text message open in a dialog over the list or the view.", "An uploaded image is no longer lost if the form is saved more than a minute after the upload." ]
       }, "Addressbooks: the list and the form of the address books are migrated to the new interface. The list shows the users and groups with full and read-only access in columns of their own.", "Lists: for entities with fewer than 100,000 entries, the gear menu offers only the full re-index of the search index, for every user — it takes just seconds there. Larger entities keep the re-index of the newest entries, and the full one for administrators.", {
         "title" : "Notification rules",
         "items" : [ "Inactive rules are struck through in the list.", "Deactivating a rule ends its pending notifications: their delayed steps (e.g. the e-mail) are no longer sent.", "\"Trigger now\" is only available for active rules.", "Delivery steps: removing a step no longer changes the delay of the following one (it could become 0, i.e. sent at once).", "\"Send test to me\" states that the test goes out at once through all channels, e-mail too.", "Each rule chooses where the \"Open\" button of its notifications leads: the page of the trigger, any menu entry, or no button at all.", "\"Open\" is a button beside \"Confirm\" instead of a link below the text." ]
       }, "Setup with test data: new, larger sample data (customers, projects, orders, invoices, half a year of time sheets, vacations, calendar, liquidity planning) with dates relative to the day of the setup. The sample users get the admin password. The setup page shows the progress. The default plugins are active right after the setup, without a restart." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Order statistics: on a low screen (e.g. a phone in landscape) the page scrolls, so the charts can be reached." ]
+      "items" : [ "Time sheet form: the consumption bar of the task is up to date after booking and no longer counts deleted time sheets.", {
+        "title" : "Notification rules",
+        "items" : [ "A manual rule shown as \"Banner until done\" always lets its recipients mark the banner as done: nothing else finished it, so it stayed forever.", "Deactivating or deleting a rule ends its pending notifications at once, not only with the next hourly run.", "Editors of a rule can end pending notifications in the log of sent notifications, one by one or all of a rule." ]
+      }, "Order statistics: on a low screen (e.g. a phone in landscape) the page scrolls, so the charts can be reached.", "Vacations: managers can approve and reject vacations again; entries stored without half day information were refused with a missing HR right." ]
     } ]
   },
   "groups" : [ {

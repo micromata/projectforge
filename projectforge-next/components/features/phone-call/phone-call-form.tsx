@@ -10,6 +10,7 @@ import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SuggestInput } from "@/components/shared/suggest-input";
+import { DialogFrame } from "@/components/shared/dialog-frame";
 import { SectionCard } from "@/components/shared/section-card";
 import { toast } from "@/lib/toast";
 import { RsError } from "@/lib/rs/client";
@@ -25,7 +26,17 @@ import { leafKeyOf } from "@/lib/leaf-key";
  * the backend's (SipgateDirectCallService), so there is no entity and no client-side rule beyond "a number
  * and a phone are chosen". The resolved address (if any) is shown beside the form with its clickable numbers.
  */
-export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
+export function PhoneCallForm({
+  initial,
+  inDialog,
+  onDone,
+}: {
+  initial: PhoneCallInitialData;
+  /** Rendered in PhoneCallDialog: no cards of its own, the dialog is the frame. */
+  inDialog?: boolean;
+  /** Called once a call was placed, e.g. to close the dialog. */
+  onDone?: () => void;
+}) {
   const t = useTranslations();
   const [phoneNumber, setPhoneNumber] = useState(initial.phoneNumber ?? "");
   const [myPhoneId, setMyPhoneId] = useState(
@@ -49,21 +60,26 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
         // Remembered with the number, so the recent entry names the contact and restores the panel.
         addressId: activeAddress?.id,
       }),
-    onSuccess: (result) =>
-      result.success
-        ? toast.success(result.message)
-        : toast.error(result.message),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(result.message);
+        onDone?.();
+      } else {
+        toast.error(result.message);
+      }
+    },
     onError: (error) =>
       toast.error(error instanceof RsError ? error.message : String(error)),
   });
+  const Card = inDialog ? DialogFrame : SectionCard;
 
   if (!initial.sipgateConfigured) {
     return (
-      <SectionCard className="mx-auto w-full max-w-2xl">
+      <Card className="mx-auto w-full max-w-2xl">
         <p className="text-sm text-muted-foreground">
           {t("address.directCall.noPhoneDefined")}
         </p>
-      </SectionCard>
+      </Card>
     );
   }
 
@@ -72,7 +88,7 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row">
-      <SectionCard className="min-w-0 flex-1">
+      <Card className="min-w-0 flex-1">
         <div className="flex flex-col gap-4">
           <Field>
             <div className="flex items-start gap-1">
@@ -160,10 +176,11 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
             {t("address.directCall.call")}
           </Button>
         </div>
-      </SectionCard>
+      </Card>
 
       {activeAddress && (
         <PhoneCallAddressPanel
+          inDialog={inDialog}
           address={activeAddress}
           onPick={(number) => {
             setPhoneNumber(number);

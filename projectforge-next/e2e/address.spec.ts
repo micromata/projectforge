@@ -62,7 +62,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
     ).toBeVisible();
   });
 
-  test("opens the form from the pencil of a row, and zooms a hovered phone number", async ({
+  test("opens the form from the pencil of a row, zooms a hovered phone number and calls it in a dialog", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
@@ -87,6 +87,32 @@ test.describe("address", { tag: "@lane-address" }, () => {
       await expect(page.getByText(number, { exact: true })).toHaveCount(2);
       await page.mouse.move(0, 0);
       await expect(page.getByText(number, { exact: true })).toHaveCount(1);
+    }
+
+    // The direct call and the text message open in a dialog over the list (where configured), as in React.
+    const call = page.locator('a[href*="/phoneCall?"]').first();
+    if ((await call.count()) > 0) {
+      await call.click();
+      await expect(
+        page
+          .getByRole("dialog")
+          .getByRole("heading", { name: t("address.phoneCall.title") })
+      ).toBeVisible();
+      await expect(page).toHaveURL(/\/address$/);
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
+    const sms = page.locator('a[href*="/sendTextMessage?"]').first();
+    if ((await sms.count()) > 0) {
+      await sms.click();
+      await expect(
+        page
+          .getByRole("dialog")
+          .getByRole("heading", { name: t("address.sendSms.title") })
+      ).toBeVisible();
+      await expect(page).toHaveURL(/\/address$/);
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
     }
 
     await rows
