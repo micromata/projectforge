@@ -19,10 +19,10 @@
       }, "Setup with test data: new, larger sample data (customers, projects, orders, invoices, half a year of time sheets, vacations, calendar, liquidity planning) with dates relative to the day of the setup. The sample users get the admin password. The setup page shows the progress. The default plugins are active right after the setup, without a restart." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Time sheet form: the consumption bar of the task is up to date after booking and no longer counts deleted time sheets.", {
         "title" : "Notification rules",
         "items" : [ "A manual rule shown as \"Banner until done\" always lets its recipients mark the banner as done: nothing else finished it, so it stayed forever.", "Deactivating or deleting a rule ends its pending notifications at once, not only with the next hourly run.", "Editors of a rule can end pending notifications in the log of sent notifications, one by one or all of a rule." ]
-      }, "Order statistics: on a low screen (e.g. a phone in landscape) the page scrolls, so the charts can be reached." ]
+      }, "Order statistics: on a low screen (e.g. a phone in landscape) the page scrolls, so the charts can be reached.", "Vacations: managers can approve and reject vacations again; entries stored without half day information were refused with a missing HR right." ]
     } ]
   },
   "groups" : [ {

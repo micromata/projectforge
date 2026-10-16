@@ -19,10 +19,10 @@
       }, "Setup mit Testdaten: neue, umfangreichere Beispieldaten (Kunden, Projekte, Aufträge, Rechnungen, ein halbes Jahr Zeitberichte, Urlaube, Kalender, Liquiditätsplanung) mit Datumswerten relativ zum Tag des Setups. Die Beispielnutzer:innen erhalten das Admin-Passwort. Die Setup-Seite zeigt den Fortschritt an. Die Standard-Plugins sind direkt nach dem Setup aktiv, ohne Neustart." ]
     }, {
       "type" : "fixed",
-      "items" : [ {
+      "items" : [ "Zeitbericht-Formular: Der Verbrauchsbalken der Aufgabe ist nach dem Buchen aktuell und zählt gelöschte Zeitberichte nicht mehr mit.", {
         "title" : "Benachrichtigungsregeln",
         "items" : [ "Eine manuelle Regel mit der Anzeige „Banner bis erledigt“ lässt ihre Empfänger:innen den Banner immer als erledigt markieren: Sonst beendete ihn nichts, er blieb für immer stehen.", "Das Deaktivieren oder Löschen einer Regel beendet ihre offenen Benachrichtigungen sofort, nicht erst beim nächsten stündlichen Lauf.", "Bearbeiter:innen einer Regel können offene Benachrichtigungen im Protokoll der versendeten Benachrichtigungen beenden, einzeln oder alle einer Regel." ]
-      }, "Auftragsstatistik: Auf einem niedrigen Bildschirm (etwa einem Smartphone im Querformat) scrollt die Seite, sodass die Grafiken erreichbar sind." ]
+      }, "Auftragsstatistik: Auf einem niedrigen Bildschirm (etwa einem Smartphone im Querformat) scrollt die Seite, sodass die Grafiken erreichbar sind.", "Urlaube: Manager:innen können Urlaube wieder genehmigen und ablehnen; Einträge, die ohne Angabe zu halben Tagen gespeichert waren, wurden mit fehlendem HR-Recht abgewiesen." ]
     } ]
   },
   "groups" : [ {
