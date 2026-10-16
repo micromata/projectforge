@@ -68,7 +68,7 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
     }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 

@@ -20,6 +20,14 @@ export interface SetupState {
   availableTimeZones: TimeZoneInfo[];
 }
 
+/** Response for GET /rsPublic/setup/progress. */
+export interface SetupProgress {
+  /** True while a setup is running. */
+  running: boolean;
+  /** Progress in percent, null if no setup is running. */
+  percent?: number | null;
+}
+
 /** Request body for POST /rsPublic/setup. */
 export interface SetupPayload {
   setupTarget: "EMPTY_DATABASE" | "TEST_DATA";
@@ -45,6 +53,16 @@ export interface SetupResult {
 
 export function fetchSetupState(signal?: AbortSignal): Promise<SetupState> {
   return request<SetupState>(`${SETUP_PATH}/status`, { method: "GET" }, signal);
+}
+
+export function fetchSetupProgress(
+  signal?: AbortSignal
+): Promise<SetupProgress> {
+  return request<SetupProgress>(
+    `${SETUP_PATH}/progress`,
+    { method: "GET" },
+    signal
+  );
 }
 
 export function submitSetup(

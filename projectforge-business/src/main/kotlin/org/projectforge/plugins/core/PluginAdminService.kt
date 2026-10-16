@@ -197,6 +197,15 @@ open class PluginAdminService {
         }
     }
 
+    /**
+     * Activates the plugins stored as active by [afterSetup] right away, so a fresh system has them (and their
+     * database migrations) without a restart. Plugins already active (forced by projectforge.plugins.active) are
+     * left alone.
+     */
+    open fun activatePluginsAfterSetup() {
+        initializeActivePlugins(onlyConfiguredActive = true, skipInitialized = true)
+    }
+
     open fun initializeAllPluginsForUnitTest() {
         WicketSupport.register(applicationContext)
         initializeActivePlugins(false)
@@ -220,7 +229,7 @@ open class PluginAdminService {
             }
         }
 
-    private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
+    private fun initializeActivePlugins(onlyConfiguredActive: Boolean, skipInitialized: Boolean = false) {
         val plugins = allPlugins
         val forced = forcedActivePlugins
         val activatedPluginsByConfig = if (forced != null) {
@@ -241,6 +250,9 @@ open class PluginAdminService {
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
                 log.info { "Skipping not activated plugin '${plugin.info.name}'." }
+                continue
+            }
+            if (skipInitialized && plugin.initialized) {
                 continue
             }
             log.info { "Processing activated plugin: '${plugin.info.name}'." }

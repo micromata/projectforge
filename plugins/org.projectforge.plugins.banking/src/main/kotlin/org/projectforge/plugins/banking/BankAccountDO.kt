@@ -73,7 +73,7 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
   override var owner: PFUserDO? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.name", type = PropertyType.INPUT)
-  @FullTextField
+  @FullTextField(analyzer = "wordPartsAnalyzer")
   @get:Column(length = Constants.LENGTH_TITLE, nullable = false)
   open var name: String? = null
 

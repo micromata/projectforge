@@ -60,7 +60,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSupp
         get() = "$name"
 
     @PropertyInfo(i18nKey = "name")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer") // Finds "PF_Controlling" by "controlling".
     @get:Column(length = 100)
     open var name: String? = null
 

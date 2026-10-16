@@ -24,8 +24,11 @@
 package org.projectforge.framework.persistence.search
 
 import org.apache.lucene.analysis.classic.ClassicTokenizerFactory
+import org.apache.lucene.analysis.core.FlattenGraphFilterFactory
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory
 import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory
 import org.apache.lucene.analysis.synonym.SynonymGraphFilterFactory
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurationContext
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer
@@ -47,6 +50,22 @@ class MyAnalysisConfigurer : LuceneAnalysisConfigurer {
             .param("synonyms", "luceneSynonyms.txt")
             .param("ignoreCase", "true")
             .param("expand", "true")
+
+        // Technical names such as group names ("PF_Controlling", "a.b"): the standard tokenizer keeps a word with
+        // an underscore or a dot between letters as one term, so "controlling" didn't find "PF_Controlling".
+        // The word parts are indexed additionally, the original term is preserved: "controlling", "pf",
+        // "pf_con*" and "PF_Controlling" all match. Case changes and digits don't split ("MyGroup1" stays).
+        context.analyzer("wordPartsAnalyzer")
+            .custom()
+            .tokenizer(StandardTokenizerFactory::class.java)
+            .tokenFilter(WordDelimiterGraphFilterFactory::class.java)
+            .param("preserveOriginal", "1")
+            .param("generateWordParts", "1")
+            .param("generateNumberParts", "1")
+            .param("splitOnCaseChange", "0")
+            .param("splitOnNumerics", "0")
+            .tokenFilter(FlattenGraphFilterFactory::class.java) // Required after a graph filter at index time.
+            .tokenFilter(LowerCaseFilterFactory::class.java)
 
         // Analyzer that preserves JIRA issue patterns (e.g., ACME-1234)
         // Uses WhitespaceTokenizer to keep JIRA issues as single tokens

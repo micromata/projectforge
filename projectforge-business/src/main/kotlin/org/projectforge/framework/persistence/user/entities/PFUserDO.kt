@@ -76,7 +76,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
      * The unique username.
      */
     @PropertyInfo(i18nKey = "user.username")
-    @FullTextField
+    @FullTextField(analyzer = "wordPartsAnalyzer")
     @get:Column(length = 255, nullable = false)
     open var username: String? = null
 

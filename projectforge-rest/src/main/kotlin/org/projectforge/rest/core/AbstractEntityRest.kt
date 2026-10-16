@@ -201,6 +201,17 @@ constructor(
      */
     open val autoCompleteSearchFields: Array<String>? = null
 
+    /**
+     * Optional subset of [autoCompleteSearchFields] (typically the name): entries found by these fields are listed
+     * before the ones found only by the other [autoCompleteSearchFields]. Searching `micromat` for groups shall offer
+     * the group `micromaten` first, not all groups of the organization `Micromata`.
+     *
+     * Needed because the prefix queries of the type-ahead are constant-score (no relevance between a name and an
+     * organization hit) and the result is cut at `maxResults` in index order: a name hit could be dropped entirely.
+     * If null, all [autoCompleteSearchFields] are searched at once, as before.
+     */
+    open val autoCompletePrimarySearchFields: Array<String>? = null
+
     open val addNewEntryUrl: String by lazy { NextMigration.newEntryUrl(category) }
 
     /**
@@ -1188,30 +1199,60 @@ constructor(
                 "No autoCompleteSearchFields are configured by the developers for this entity."
             )
         }
-        val filter = createAutoCompleteObjectsFilter(request)
+        val words = searchString?.split(' ', '\t', '\n')?.filter { it.isNotBlank() }
         // Every word required, and each of them matched either as typed or as the terms the index holds for it:
         // 'dhl-pop' is two terms in the index, and 'dhl-pop*' - a wildcard term, which Lucene doesn't tokenize -
         // used to match nothing at all (see [SearchStringTokenizer]). A word the caller already marked as
         // required carries a syntax of its own and stays untouched, as before.
-        val modifiedSearchString = searchString
-            ?.split(' ', '\t', '\n')
-            ?.filter { it.isNotBlank() }
+        val modifiedSearchString = words
             ?.joinToString(" ") {
                 if (it.startsWith("+")) it else SearchStringTokenizer.expandWord(it, required = true)
             }
             ?.takeIf { it.isNotBlank() }
-        filter.searchString = modifiedSearchString
-        filter.searchFields = autoCompleteSearchFields!!
-        maxResults?.let { filter.maxRows = it }
-        val list = queryAutocompleteObjects(request, filter)
+        val primaryFields = autoCompletePrimarySearchFields
+        val list = if (primaryFields.isNullOrEmpty() || modifiedSearchString == null) {
+            queryAutocompleteObjects(request, modifiedSearchString, autoCompleteSearchFields!!, maxResults)
+        } else {
+            // Labels starting with the first typed word first, the rest of the primary hits in their default order.
+            val firstWord = words!!.first().removePrefix("+").lowercase()
+            val primary = queryAutocompleteObjects(request, modifiedSearchString, primaryFields, maxResults)
+                .sortedBy { obj -> if (autoCompleteLabel(obj)?.lowercase()?.startsWith(firstWord) == true) 0 else 1 }
+            if (maxResults != null && primary.size >= maxResults) {
+                primary
+            } else {
+                val ids = primary.mapTo(HashSet()) { it.id }
+                // Enough rows to fill up maxResults even if all the primary hits are among them.
+                val othersMax = maxResults?.let { it + primary.size }
+                val others = queryAutocompleteObjects(request, modifiedSearchString, autoCompleteSearchFields!!, othersMax)
+                    .filter { it.id !in ids }
+                (primary + others).let { all -> maxResults?.let { all.take(it) } ?: all }
+            }
+        }
         return list.map {
             DisplayObject(
                 it.id,
-                if (it is DisplayNameCapable) it.displayName else it.toString(),
+                autoCompleteLabel(it),
                 deleted = it.deleted.takeIf { deleted -> deleted },
                 deactivated = it.deactivated.takeIf { deactivated -> deactivated },
             )
         }
+    }
+
+    private fun queryAutocompleteObjects(
+        request: HttpServletRequest,
+        searchString: String?,
+        searchFields: Array<String>,
+        maxResults: Int?,
+    ): List<O> {
+        val filter = createAutoCompleteObjectsFilter(request)
+        filter.searchString = searchString
+        filter.searchFields = searchFields
+        maxResults?.let { filter.maxRows = it }
+        return queryAutocompleteObjects(request, filter)
+    }
+
+    private fun autoCompleteLabel(obj: O): String? {
+        return if (obj is DisplayNameCapable) obj.displayName else obj.toString()
     }
 
     /**

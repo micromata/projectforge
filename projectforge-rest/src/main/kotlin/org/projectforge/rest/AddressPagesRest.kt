@@ -745,6 +745,9 @@ class AddressPagesRest
 
     override val autoCompleteSearchFields = arrayOf("name", "firstName", "organization", "city", "privateCity")
 
+    /** Name hits first, see [autoCompletePrimarySearchFields]. */
+    override val autoCompletePrimarySearchFields = arrayOf("name", "firstName")
+
     override fun addVariablesForListPage(): Map<String, Any>? {
         return mutableMapOf(
             "phoneCallEnabled" to sipgateConfiguration.isConfigured(),
