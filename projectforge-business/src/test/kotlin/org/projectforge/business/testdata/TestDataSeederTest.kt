@@ -124,8 +124,8 @@ class TestDataSeederTest : AbstractTestBase() {
         val employeeUserIds = ctx.employees.values.mapNotNull { it.user?.id }
         Assertions.assertEquals(
             6,
-            availabilityCache.getAvailabilityForPeriodAndUserIds(
-                ctx.today.minusDays(7), ctx.today.plusMonths(4), employeeUserIds,
+            availabilityCache.getAvailabilityForPeriodAndUsers(
+                ctx.today.minusDays(7), ctx.today.plusMonths(4), null, employeeUserIds.toSet(),
             ).size,
             "availability entries visible to the admin",
         )

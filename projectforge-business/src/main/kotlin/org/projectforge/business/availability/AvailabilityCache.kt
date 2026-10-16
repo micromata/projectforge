@@ -26,7 +26,6 @@ package org.projectforge.business.availability
 import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -48,9 +47,6 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
 
-    @Autowired
-    private lateinit var vacationDao: VacationDao
-
     /** Guards [availabilityMap] and [modifiedDuringRefresh]. */
     private val lock = Any()
 
@@ -71,9 +67,8 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     /**
-     * The entries of the members of the given groups and of the given users overlapping the period. Only of the users
-     * sharing a group with the logged-in user ([UserGroupCache.getGroupMateIds]) unless HR or finance staff
-     * ([VacationDao.hasLoggedInUserUnrestrictedVacationView]), and only those the logged-in user may see.
+     * The entries of the members of the given groups and of the given users overlapping the period, only those the
+     * logged-in user may see ([AvailabilityDao.hasUserSelectAccess]: group mates up to VISIBLE_PAST_DAYS, HR staff all).
      * @param groupIds Null items should only occur on (de)serialization issues.
      * @param userIds Null items should only occur on (de)serialization issues.
      */
@@ -87,9 +82,6 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         checkRefresh()
         val viewer = ThreadLocalUserContext.requiredLoggedInUser
         val shownUserIds = userGroupCache.getMemberIds(groupIds, userIds)
-        if (!vacationDao.hasLoggedInUserUnrestrictedVacationView()) {
-            shownUserIds.retainAll(userGroupCache.getGroupMateIds(viewer))
-        }
         if (shownUserIds.isEmpty()) {
             return emptyList()
         }
@@ -98,28 +90,6 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
                     availability.endDate?.isBefore(startDate) == false &&
                     availability.startDate?.isAfter(endDate) == false &&
                     availabilityDao.hasSelectAccess(availability, viewer)
-        }
-    }
-
-    /**
-     * The entries of the given users overlapping the period, only those the logged-in user may see. The internal
-     * comment is kept raw (see [AvailabilityDao.isInternalCommentVisibleFor]).
-     */
-    open fun getAvailabilityForPeriodAndUserIds(
-        startDate: LocalDate, endDate: LocalDate,
-        userIds: Collection<Long>,
-    ): List<AvailabilityDO> {
-        if (userIds.isEmpty()) {
-            return emptyList()
-        }
-        checkRefresh()
-        val ids = userIds.toSet()
-        val user = ThreadLocalUserContext.requiredLoggedInUser
-        return availabilities.filter { availability ->
-            availability.user?.id in ids &&
-                    availability.endDate?.isBefore(startDate) == false &&
-                    availability.startDate?.isAfter(endDate) == false &&
-                    availabilityDao.hasSelectAccess(availability, user)
         }
     }
 

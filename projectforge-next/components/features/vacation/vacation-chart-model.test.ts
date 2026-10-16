@@ -260,6 +260,30 @@ describe("teamChartRows with availabilities", () => {
     ]);
     expect(rows[1].availabilities).toEqual([]);
   });
+
+  it("leaves them out unless asked for, also if the view still holds them", () => {
+    const rows = teamChartRows(
+      {
+        days: days(10),
+        rows: [
+          {
+            employee: { id: 7, displayName: "Remote" },
+            vacations: [],
+            availabilities: [
+              {
+                id: 90,
+                startDate: "2030-02-01",
+                endDate: "2030-02-02",
+                label: "Workation",
+              },
+            ],
+          },
+        ],
+      },
+      false
+    );
+    expect(rows[0].availabilities).toEqual([]);
+  });
 });
 
 describe("availabilityLabel", () => {

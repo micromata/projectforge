@@ -112,6 +112,9 @@ class AvailabilityDaoTest : AbstractTestBase() {
         val entry = create(owner, LocalDate.of(2032, 5, 3), LocalDate.of(2032, 5, 7))
         availabilityDao.insert(entry)
         availabilityDao.markAsDeleted(entry)
+        // Its period taken meanwhile: a stranger learns nothing of it, the access is refused first.
+        val successor = create(owner, entry.startDate!!, entry.startDate!!)
+        availabilityDao.insert(successor)
         logon(other)
         val posted = create(other, entry.startDate!!, entry.endDate!!).also { it.id = entry.id }
         assertThrows<AccessException> { availabilityDao.undelete(posted) }
@@ -122,6 +125,7 @@ class AvailabilityDaoTest : AbstractTestBase() {
         }
         // The owner may undelete it.
         logon(owner)
+        availabilityDao.markAsDeleted(successor)
         availabilityDao.undelete(create(owner, entry.startDate!!, entry.endDate!!).also { it.id = entry.id })
         Assertions.assertFalse(availabilityDao.find(entry.id)!!.deleted)
     }

@@ -251,8 +251,14 @@ export function availabilityLabel(
   return bar.comment ? `${text} (${bar.comment})` : text;
 }
 
-/** The rows of the team calendar: every employee, also those without a vacation in the period. */
-export function teamChartRows(view: VacationExportView): ChartRow[] {
+/**
+ * The rows of the team calendar: every employee, also those without a vacation in the period. Their availability
+ * entries only if [showAvailabilities]: the view of the previous choice may still be shown while the next one loads.
+ */
+export function teamChartRows(
+  view: VacationExportView,
+  showAvailabilities = true
+): ChartRow[] {
   return view.rows.map((row) => ({
     key: String(row.employee.id),
     name: row.employee.displayName ?? "",
@@ -268,7 +274,7 @@ export function teamChartRows(view: VacationExportView): ChartRow[] {
         })
       )
       .filter((bar): bar is ChartBar => bar != null),
-    availabilities: (row.availabilities ?? [])
+    availabilities: (showAvailabilities ? (row.availabilities ?? []) : [])
       .map((a, i) =>
         availabilityBarOf(`${row.employee.id}-a${a.id ?? i}`, view.days, a)
       )

@@ -157,22 +157,27 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
       return pressed;
     };
 
-    expect(await toggle()).toBe("true");
-    await page.reload();
-    // A set on the server, in no particular order.
-    expect(
-      [...((await readInit(page)).filter?.absenceKinds ?? [])].sort()
-    ).toEqual(
-      [
-        "VACATION",
-        "NOT_AVAILABLE",
-        "REACHABLE_IF_NEEDED",
-        "REACHABLE_IF_URGENT",
-      ].sort()
-    );
-    // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.
-    expect(await toggle()).toBe("false");
-    expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+    try {
+      expect(await toggle()).toBe("true");
+      await page.reload();
+      // A set on the server, in no particular order.
+      expect(
+        [...((await readInit(page)).filter?.absenceKinds ?? [])].sort()
+      ).toEqual(
+        [
+          "VACATION",
+          "NOT_AVAILABLE",
+          "REACHABLE_IF_NEEDED",
+          "REACHABLE_IF_URGENT",
+        ].sort()
+      );
+      // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.
+      expect(await toggle()).toBe("false");
+      expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();
+    } finally {
+      // Also if it failed halfway: the account shows all kinds again.
+      await showAllAbsenceKinds(page);
+    }
   });
 
   test("remembers a hidden calendar across a reload", async ({

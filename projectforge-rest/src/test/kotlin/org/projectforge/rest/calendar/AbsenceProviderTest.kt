@@ -142,9 +142,10 @@ class AbsenceProviderTest : AbstractTestBase() {
     }
 
     @Test
-    fun `only of the people sharing a group with the viewer unless HR staff, each once`() {
+    fun `only of the people sharing a group with the viewer, of the managed ones and of everybody for HR staff, each once`() {
         val employee = createEmployee("mates-employee")
         val hr = createEmployee("mates-hr", hrAccess = true)
+        val manager = createEmployee("mates-manager")
         val colleague = createUser("mates-colleague")
         val stranger = createUser("mates-stranger")
         logon(TEST_ADMIN_USER)
@@ -153,7 +154,7 @@ class AbsenceProviderTest : AbstractTestBase() {
         logon(hr.user!!)
         val vacationId = vacationDao.insert(VacationDO().also {
             it.employee = employee
-            it.manager = hr
+            it.manager = manager
             it.replacement = hr
             it.startDate = monday
             it.endDate = monday.plusDays(1)
@@ -178,6 +179,8 @@ class AbsenceProviderTest : AbstractTestBase() {
         assertEquals(listOf(vacationId, availabilityId), events().map { it.extendedProps?.dbId })
         logon(stranger)
         assertTrue(events().isEmpty(), "Not of the same group.")
+        logon(manager.user!!)
+        assertEquals(listOf(vacationId), events().map { it.extendedProps?.dbId }, "The manager of the vacation only.")
         logon(hr.user!!)
         assertEquals(2, events().size, "HR staff: of everybody.")
     }

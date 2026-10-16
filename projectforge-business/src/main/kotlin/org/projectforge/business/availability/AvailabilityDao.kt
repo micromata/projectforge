@@ -125,7 +125,11 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
             ?.takeIf { it !== obj }
             ?.let { obj.user = it.user }
         obj.deleted = false // The validation skips deleted entries.
-        validate(obj, throwException = true)
+        validate(obj)?.let { error ->
+            // The access check follows this hook: who may not undelete the entry mustn't learn of an overlap either.
+            ThreadLocalUserContext.loggedInUser?.let { hasInsertAccess(it, obj, throwException = true) }
+            throw UserException(error)
+        }
     }
 
     /**

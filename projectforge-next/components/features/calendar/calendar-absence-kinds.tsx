@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
+import { FieldHint } from "@/components/shared/form/field-hint";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ABSENCE_KINDS, type AbsenceKind } from "@/lib/rs/calendar-types";
 import { cn } from "@/lib/utils";
@@ -37,13 +38,15 @@ export function CalendarAbsenceKinds({
   ]);
   return (
     <div className="flex flex-col gap-1.5">
-      <Label
-        id="calendar-absence-kinds"
-        className="text-sm"
-        title={t("calendar.filter.absenceKinds.tooltip")}
-      >
-        {t("calendar.filter.absenceKinds._")}
-      </Label>
+      <div className="flex items-center gap-1.5">
+        <Label id="calendar-absence-kinds" className="text-sm">
+          {t("calendar.filter.absenceKinds._")}
+        </Label>
+        <FieldHint
+          hint={t("calendar.filter.absenceKinds.tooltip")}
+          label={t("calendar.filter.absenceKinds._")}
+        />
+      </div>
       <ToggleGroup
         type="multiple"
         variant="outline"

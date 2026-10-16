@@ -12,8 +12,8 @@
       "de": "Vertretungen eines Urlaubs: Wer nicht verfügbar ist, gilt wie im Urlaub als abwesend und führt zum Konflikt; andere Einträge (z. B. remote erreichbar) zeigt die Urlaubsseite an, ohne Konflikt."
     },
     {
-      "en": "Calendar: one shared view of absences – the chosen groups and persons show their vacations and availability entries, with a choice of what to show (vacations, not available, remotely reachable etc.), only of persons sharing at least one group with the viewer (HR and finance staff: of everybody). The type of an entry is shown only to the person concerned and HR staff, the status to everybody else.",
-      "de": "Kalender: eine gemeinsame Sicht auf Abwesenheiten – für die gewählten Gruppen und Personen werden Urlaube und Verfügbarkeitseinträge angezeigt, mit Auswahl, was zu sehen ist (Urlaube, nicht verfügbar, remote erreichbar usw.), nur von Personen, die mindestens eine Gruppe mit der betrachtenden Person teilen (HR und Buchhaltung: von allen). Den Typ eines Eintrags sehen nur die betroffene Person und HR, alle anderen den Status."
+      "en": "Calendar: one shared view of absences – the chosen groups and persons show their vacations and availability entries, with a choice of what to show (vacations, not available, remotely reachable etc.), only of persons sharing at least one group with the viewer (HR staff: of everybody). The type of an entry is shown only to the person concerned and HR staff, the status to everybody else.",
+      "de": "Kalender: eine gemeinsame Sicht auf Abwesenheiten – für die gewählten Gruppen und Personen werden Urlaube und Verfügbarkeitseinträge angezeigt, mit Auswahl, was zu sehen ist (Urlaube, nicht verfügbar, remote erreichbar usw.), nur von Personen, die mindestens eine Gruppe mit der betrachtenden Person teilen (HR: von allen). Den Typ eines Eintrags sehen nur die betroffene Person und HR, alle anderen den Status."
     },
     {
       "en": "Team calendars including leave days and their subscriptions (ICS) also show the availability entries, in the subscription always by their status only.",

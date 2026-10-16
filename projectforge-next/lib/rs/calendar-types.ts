@@ -123,7 +123,6 @@ export interface CalendarInit {
   activeCalendars?: StyledTeamCalendar[] | null;
   vacationGroups?: GroupRef[] | null;
   vacationUsers?: UserRef[] | null;
-  absenceKinds?: AbsenceKind[] | null;
   listOfDefaultCalendars?: TeamCalendar[] | null;
   styleMap?: CalendarStyleMap | null;
   translations?: Record<string, string> | null;

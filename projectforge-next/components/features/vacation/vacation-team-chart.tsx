@@ -42,7 +42,10 @@ export function VacationTeamChart({
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
-  const rows = useMemo(() => teamChartRows(view), [view]);
+  const rows = useMemo(
+    () => teamChartRows(view, showAvailabilities),
+    [view, showAvailabilities]
+  );
   useEffect(() => {
     const root = document.documentElement;
     let dark = false;

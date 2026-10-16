@@ -80,8 +80,8 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
 
     /**
      * The vacations of the members of the given groups and of the given users overlapping the period, rejected ones
-     * left out. Only of the users sharing a group with the logged-in user ([UserGroupCache.getGroupMateIds]) unless HR or
-     * finance staff ([VacationDao.hasLoggedInUserUnrestrictedVacationView]), and only those the logged-in user may see.
+     * left out, only those the logged-in user may see ([VacationDao.hasUserSelectAccess]: e.g. group mates, but also
+     * the manager and the substitutes of a vacation).
      * @param groupIds Null items should only occur on (de)serialization issues.
      * @param userIds Null items should only occur on (de)serialization issues.
      */
@@ -96,9 +96,6 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         checkRefresh()
         val viewer = ThreadLocalUserContext.requiredLoggedInUser
         val shownUserIds = userGroupCache.getMemberIds(groupIds, userIds)
-        if (!vacationDao.hasLoggedInUserUnrestrictedVacationView()) {
-            shownUserIds.retainAll(userGroupCache.getGroupMateIds(viewer))
-        }
         if (shownUserIds.isEmpty()) {
             return emptyList()
         }
