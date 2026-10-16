@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.SystemStatus
-import org.projectforge.rest.AddressPagesRest
+import org.projectforge.rest.AddressEntityRest
 import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.admin.LogViewerRest
 
@@ -44,7 +44,7 @@ class RestResolverTest {
     SystemStatus.internalSet4JunitTests(true) // For receiving exceptions on failure instead of log error messages.
     assertEquals(
       "/rs/address/exportAsExcel",
-      RestResolver.getRestMethodUrl(AddressPagesRest::class.java, AddressPagesRest::exportAsExcel)
+      RestResolver.getRestMethodUrl(AddressEntityRest::class.java, AddressEntityRest::exportAsExcel)
     )
     assertEquals("/rs/logViewer/query", RestResolver.getRestMethodUrl(LogViewerRest::query))
     assertEquals("/rs/logViewer/query", RestResolver.getRestMethodUrl(AdminLogViewerRest::query))
@@ -55,10 +55,10 @@ class RestResolverTest {
   }
 
   private fun test(expected: String, subPath: String? = null, params: Map<String, Any?>? = null) {
-    assertEquals(expected, RestResolver.getRestUrl(AddressPagesRest::class.java, subPath, true, params = params))
+    assertEquals(expected, RestResolver.getRestUrl(AddressEntityRest::class.java, subPath, true, params = params))
     assertEquals(
       "/rs/$expected",
-      RestResolver.getRestUrl(AddressPagesRest::class.java, subPath, false, params = params)
+      RestResolver.getRestUrl(AddressEntityRest::class.java, subPath, false, params = params)
     )
   }
 }

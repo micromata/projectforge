@@ -432,13 +432,38 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/group/8", redirectOf("/wa/groupEdit", mapOf("id" to "8")))
     }
 
+    /**
+     * The addresses are next's: list and form by the generic redirect of a migrated React page, the view and the
+     * VCF import (dynamic React pages without a category of their own) by their own rule. The React form the
+     * address campaigns open as a modal lives under `addressLegacy` and is left alone, reload included.
+     */
+    @Test
+    fun `address links are redirected to next, the form of the address campaigns is not`() {
+        Assertions.assertEquals("/next/address", redirectOf("/react/address"))
+        Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42"))
+        Assertions.assertEquals("/next/address/42/edit", redirectOf("/react/address/edit/42", mapOf("modal" to "true")))
+        Assertions.assertEquals("/next/address/new", redirectOf("/react/address/edit"))
+        Assertions.assertEquals("/next/address/42", redirectOf("/react/addressView/dynamic/42"))
+        Assertions.assertEquals("/next/address/42", redirectOf("/react/addressView/dynamic", mapOf("id" to "42")))
+        Assertions.assertEquals("/next/address", redirectOf("/react/addressView/dynamic/4x"))
+        Assertions.assertEquals(
+            "/next/address/42?returnTo=/calendar",
+            redirectOf("/react/calendar/addressView/dynamic/42", mapOf("returnToCaller" to "/react/calendar")),
+        )
+        Assertions.assertEquals("/next/address/import", redirectOf("/react/addressImportUpload/dynamic"))
+        Assertions.assertNull(redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
+        // Siblings sharing the prefix are pages of their own.
+        Assertions.assertEquals("/next/addressBook", redirectOf("/react/addressBook"))
+        Assertions.assertNull(redirectOf("/react/addressCampaignValue"))
+    }
+
     /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */
     @Test
     fun `any other wicket url is redirected to the next start page`() {
         Assertions.assertEquals("/next/", redirectOf("/wa"))
         Assertions.assertEquals("/next/", redirectOf("/wa/anything"))
         Assertions.assertEquals("/next/", redirectOf("/wa/wicket/page", mapOf("3" to "")))
-        Assertions.assertNull(redirectOf("/react/address"))
+        Assertions.assertNull(redirectOf("/react/contract"))
         Assertions.assertNull(redirectOf("/next/task"))
         Assertions.assertNull(redirectOf("/water"))
     }

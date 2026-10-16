@@ -390,6 +390,9 @@ class AddressCampaignValuePagesRest :
                 pinnedAndLocked = UIAgGridColumnDef.Orientation.LEFT
             )
             .add(lc, "value", headerName = "value")
+            // Both open the React form of the address as a modal: this page is still React, and the address form
+            // of projectforge-next can't be shown here. The form is served under a category of its own
+            // (AddressLegacyPagesRest), as the category address itself is migrated.
             .add(
                 UIAgGridColumnDef(
                     "organization",
@@ -398,7 +401,7 @@ class AddressCampaignValuePagesRest :
                     cellRenderer = "OpenModalLinkCell",
                 ).apply {
                     cellRendererParams = mapOf(
-                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "urlPattern" to "/react/addressLegacy/edit/{addressId}",
                         "placeholder" to translate("emptyInBrackets")
                     )
                 }
@@ -412,7 +415,7 @@ class AddressCampaignValuePagesRest :
                     cellRenderer = "OpenModalLinkCell",
                 ).apply {
                     cellRendererParams = mapOf(
-                        "urlPattern" to "/react/address/edit/{addressId}",
+                        "urlPattern" to "/react/addressLegacy/edit/{addressId}",
                         "multiline" to true,
                         "placeholder" to translate("emptyInBrackets")
                     )

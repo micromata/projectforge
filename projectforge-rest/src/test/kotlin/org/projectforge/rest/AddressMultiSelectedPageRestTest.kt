@@ -36,9 +36,8 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
-import org.projectforge.ui.UIFieldset
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.mock.web.MockHttpServletRequest
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -67,59 +66,36 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
     // =========================================================================
 
     @Test
-    fun `fillForm should create layout with all expected fields`() {
+    fun `meta should declare the fields of the next form in their order`() {
         logon(ADMIN)
-        val layout = UILayout("test")
-        val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-        val selectedIds = listOf<Long>()
-
-        addressMultiSelectedPageRest.fillForm(mockRequest, layout, massUpdateData, selectedIds, mutableMapOf())
-
-        assertNotNull(layout)
-        assertTrue(layout.layout.isNotEmpty(), "Layout should contain elements")
+        val meta = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest())
+        val fields = meta.fields.map { it.field }
+        assertEquals(
+            listOf(
+                "addressStatus", "contactStatus", "communicationLanguage", "organization", "division", "website",
+                "addressText", "addressText2", "zipCode", "city", "country", "state",
+                "postalAddressText", "postalAddressText2", "postalZipCode", "postalCity", "postalCountry", "postalState",
+                "comment",
+            ),
+            fields,
+        )
     }
 
     @Test
-    fun `fillForm should create addressStatus field`() {
+    fun `meta should offer the statuses as selects that can't be emptied`() {
         logon(ADMIN)
-        val layout = UILayout("test")
-        val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-
-        addressMultiSelectedPageRest.fillForm(mockRequest, layout, massUpdateData, listOf(), mutableMapOf())
-
-        // Verify addressStatus is created
-        assertNotNull(massUpdateData["addressStatus"])
-    }
-
-    @Test
-    fun `fillForm should create contactStatus field`() {
-        logon(ADMIN)
-        val layout = UILayout("test")
-        val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-
-        addressMultiSelectedPageRest.fillForm(mockRequest, layout, massUpdateData, listOf(), mutableMapOf())
-
-        // Verify contactStatus is created
-        assertNotNull(massUpdateData["contactStatus"])
-    }
-
-    @Test
-    fun `fillForm should create collapsible fieldsets for business and postal addresses`() {
-        logon(ADMIN)
-        val layout = UILayout("test")
-        val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-
-        addressMultiSelectedPageRest.fillForm(mockRequest, layout, massUpdateData, listOf(), mutableMapOf())
-
-        // Find fieldsets in layout
-        val fieldsets = layout.getAllElements().filterIsInstance<UIFieldset>()
-
-        // Verify at least 2 fieldsets exist (business and postal)
-        assertTrue(fieldsets.size >= 2, "Should have at least business and postal address fieldsets")
-
-        // Verify fieldsets have collapsed=true
-        val collapsibleFieldsets = fieldsets.filter { it.collapsed == true }
-        assertTrue(collapsibleFieldsets.isNotEmpty(), "Should have collapsible fieldsets")
+        val fields = addressMultiSelectedPageRest.requestMeta(MockHttpServletRequest()).fields.associateBy { it.field }
+        listOf("addressStatus", "contactStatus").forEach { name ->
+            val field = fields[name]!!
+            assertEquals("textValue", field.valueProperty, name)
+            assertFalse(field.deleteOption, name)
+            assertFalse(field.values.isNullOrEmpty(), name)
+        }
+        assertEquals("textValue", fields["communicationLanguage"]!!.valueProperty)
+        assertTrue(fields["communicationLanguage"]!!.deleteOption)
+        // The comment is a text area, which offers appending.
+        assertTrue(fields["comment"]!!.appendOption)
+        assertFalse(fields["organization"]!!.replaceOption)
     }
 
     @Test

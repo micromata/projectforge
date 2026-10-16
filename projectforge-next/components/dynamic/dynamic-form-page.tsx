@@ -10,7 +10,7 @@ import { isHandBuilt } from "@/lib/hand-built-categories";
 /**
  * Renders any server-laid-out page from `/rs/{category}/{type}[?…]`, shared by the two-segment route
  * (`/next/timesheet/edit?startDate=…`, a new entry carrying its defaults in the query string) and the
- * three-segment route (`/next/address/edit/42`). Category, type and id are read from the url at runtime
+ * three-segment route (`/next/contract/edit/42`). Category, type and id are read from the url at runtime
  * because the static export cannot pre-render one file per entity (see use-route-params.ts).
  *
  * `category === undefined` means the url doesn't match the caller's route (the prerender pass, or the

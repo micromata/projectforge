@@ -64,7 +64,7 @@ class NextMigrationTest {
         // menu links are built with and without leading slash.
         Assertions.assertTrue(NextMigration.isNextUrl(NextMigration.listUrl("order")))
         Assertions.assertTrue(NextMigration.isNextUrl("/${NextMigration.listUrl("cost1")}"))
-        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("address")))
+        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("contract")))
         Assertions.assertFalse(NextMigration.isNextUrl("wa/cost2List"))
         Assertions.assertFalse(NextMigration.isNextUrl(null))
     }
@@ -86,7 +86,7 @@ class NextMigrationTest {
             NextMigration.nextEditPage("book"),
         )
         // Not migrated at all, so there is no next form to name.
-        Assertions.assertNull(NextMigration.nextEditPage("address"))
+        Assertions.assertNull(NextMigration.nextEditPage("contract"))
     }
 
     /**
@@ -192,6 +192,26 @@ class NextMigrationTest {
         val link = NextMigration.orphanedLinks().single { it.category == "addressBook" }
         Assertions.assertEquals("react/addressBook", link.legacyListPath)
         Assertions.assertEquals("react/addressBook/edit", link.legacyEditPath)
+    }
+
+    /**
+     * The addresses: list, view and form are next's, the form a sub route of the view. There is no way back (the
+     * React form left for the address campaigns has a category of its own, `addressLegacy`), but a bookmarked React
+     * link is still redirected onto next.
+     */
+    @Test
+    fun `the address pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/address", NextMigration.listUrl("address"))
+        Assertions.assertEquals("next/address/:id/edit", NextMigration.standardEditPage("address"))
+        Assertions.assertEquals("next/address/new", NextMigration.newEntryUrl("address"))
+        Assertions.assertNull(NextMigration.legacyListUrl("address"))
+        Assertions.assertNull(NextMigration.legacyEditPage("address"))
+        Assertions.assertFalse(NextMigration.isMigrated("addressLegacy"))
+        Assertions.assertEquals("react/addressLegacy/edit/:id", NextMigration.standardEditPage("addressLegacy"))
+        val link = NextMigration.orphanedLinks().single { it.category == "address" }
+        Assertions.assertEquals("react/address", link.legacyListPath)
+        Assertions.assertEquals("react/address/edit", link.legacyEditPath)
+        Assertions.assertEquals("/next/address/:id/edit", link.nextEditUrl)
     }
 
     /**

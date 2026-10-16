@@ -144,6 +144,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to a removed Wicket calendar page was redirected.
         } else if (redirectGoneReactPage(servletResponse, uri)) {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
+        } else if (redirectAddressPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to the React view or import page of the addresses was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
         } else if (redirectScriptExecutePage(servletRequest, servletResponse, uri)) {
@@ -313,6 +315,39 @@ class OrphanedLinkFilter : Filter {
             else -> listUrl
         }
         redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The dynamic React pages of the addresses, which have no category of their own in [NextMigration] (the list
+     * and the form are bent by [redirectMigratedPage]): the view `react/addressView/dynamic/<id>` (also `?id=`, and
+     * `react/calendar/addressView/...` as the React calendar opened it for a birthday) leads to the view of
+     * projectforge-next, the VCF import `react/addressImportUpload/dynamic` to its import page. Checked before
+     * [redirectMigratedPage], whose `calendar` entry would take the calendar variant for a calendar link. Ids are
+     * interpolated into the Location header, so only numbers are accepted.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectAddressPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val listUrl = "/${NextMigration.listUrl("address")}"
+        if (uri.endsWith("/react/addressImportUpload") || uri.contains("/react/addressImportUpload/")) {
+            redirect(response, uri, "$listUrl/import")
+            return true
+        }
+        val page = listOf("react/calendar/addressView", "react/addressView").find { containsPath(uri, it) }
+            ?: return false
+        val id = uri.substringAfter("/$page/dynamic/", "").substringBefore('/').toLongOrNull()
+            ?: request.getParameter("id")?.toLongOrNull()
+        val target = when {
+            id == null -> listUrl
+            page.startsWith("react/calendar/") -> "$listUrl/$id?returnTo=/calendar"
+            else -> "$listUrl/$id"
+        }
+        redirect(response, uri, target)
         return true
     }
 

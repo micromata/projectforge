@@ -30,33 +30,33 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.NextMigration
-import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
+import org.projectforge.rest.orga.ContractPagesRest
 
 class PageResolverTest {
     @Test
     fun resolveTest() {
-        assertEquals("react/address", PagesResolver.getListPageUrl(AddressPagesRest::class.java))
-        assertEquals("react/address?str=test", PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test")))
+        assertEquals("react/contract", PagesResolver.getListPageUrl(ContractPagesRest::class.java))
+        assertEquals("react/contract?str=test", PagesResolver.getListPageUrl(ContractPagesRest::class.java, mapOf("str" to "test")))
 
-        var result = PagesResolver.getListPageUrl(AddressPagesRest::class.java, mapOf("str" to "test", "id" to 5))
-        assertEquals("react/address?str=test&id=5".length, result.length)
+        var result = PagesResolver.getListPageUrl(ContractPagesRest::class.java, mapOf("str" to "test", "id" to 5))
+        assertEquals("react/contract?str=test&id=5".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("id=5"))
-        assertTrue(result.startsWith("react/address?"))
+        assertTrue(result.startsWith("react/contract?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("react/address/edit", PagesResolver.getEditPageUrl(AddressPagesRest::class.java))
-        assertEquals("react/address/edit/42", PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42))
+        assertEquals("react/contract/edit", PagesResolver.getEditPageUrl(ContractPagesRest::class.java))
+        assertEquals("react/contract/edit/42", PagesResolver.getEditPageUrl(ContractPagesRest::class.java, 42))
 
-        result = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
-        assertEquals("react/address/edit/42?str=test&p2=test2".length, result.length)
+        result = PagesResolver.getEditPageUrl(ContractPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
+        assertEquals("react/contract/edit/42?str=test&p2=test2".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("p2=test2"))
-        assertTrue(result.startsWith("react/address/edit/42?"))
+        assertTrue(result.startsWith("react/contract/edit/42?"))
         assertTrue(result.contains("&"))
 
         assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
@@ -79,15 +79,15 @@ class PageResolverTest {
         assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
         assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
         // Not migrated: unchanged, and the category is used as the route.
-        assertFalse(NextMigration.isMigrated("address"))
-        assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
-        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        assertFalse(NextMigration.isMigrated("contract"))
+        assertEquals("react/contract/edit", NextMigration.newEntryUrl("contract"))
+        assertEquals("react/contract/edit/:id", NextMigration.standardEditPage("contract"))
     }
 
     /**
      * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
      * entry* url with an id appended, which is what it used to be built from. For the generic React
-     * shape both happen to be the same (`react/address/edit` + `/id`), so the difference only shows
+     * shape both happen to be the same (`react/contract/edit` + `/id`), so the difference only shows
      * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
      * form.
      */
@@ -99,7 +99,7 @@ class PageResolverTest {
             NextMigration.standardEditPage("book"),
             "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
         )
-        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        assertEquals("react/contract/edit/:id", NextMigration.standardEditPage("contract"))
         // group has been hand built in projectforge-next since, and follows book's shape.
         assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
     }
@@ -117,7 +117,7 @@ class PageResolverTest {
         assertNull(NextMigration.legacyEditPage("book"))
         assertNull(NextMigration.legacyNewEntryUrl("book"))
         // Not migrated: the legacy page is the page itself.
-        assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
-        assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))
+        assertEquals(NextMigration.listUrl("contract"), NextMigration.legacyListUrl("contract"))
+        assertEquals(NextMigration.standardEditPage("contract"), NextMigration.legacyEditPage("contract"))
     }
 }

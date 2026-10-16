@@ -276,6 +276,9 @@ function DeclaredList<
   // declarative and cannot hold state; it survives period stepping (only the filter values change) and
   // resets when the page is left, which is what "on demand" asks for.
   const [previousYearComparison, setPreviousYearComparison] = useState(false);
+  // The entry a row click opened in the page's own dialog (see PageDef.rowDialog), null while none is.
+  const [dialogId, setDialogId] = useState<number | null>(null);
+  const RowDialog = page.rowDialog;
   const buildFilter = useCallback(
     (base: MagicFilter): MagicFilter =>
       previousYearComparison
@@ -457,6 +460,7 @@ function DeclaredList<
                 // virtual series occurrence) to a route of its own; anything else opens the entry.
                 const to = page.onRowClick?.(row);
                 if (to) navigateInGesture(router, to);
+                else if (RowDialog) setDialogId(row.id);
                 else targets.openEntry(row.id);
               }
             : undefined
@@ -480,6 +484,9 @@ function DeclaredList<
         }
         className="flex-1"
       />
+      {RowDialog && dialogId !== null && (
+        <RowDialog id={dialogId} onClose={() => setDialogId(null)} />
+      )}
     </ListPageShell>
   );
   return embedded ? content : <PageShell>{content}</PageShell>;

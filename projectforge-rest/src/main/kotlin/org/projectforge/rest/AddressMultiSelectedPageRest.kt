@@ -54,7 +54,7 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var addressPagesRest: AddressPagesRest
+    private lateinit var addressEntityRest: AddressEntityRest
 
     @Autowired
     private lateinit var addressServicesRest: AddressServicesRest
@@ -65,110 +65,39 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
 
     @PostConstruct
     private fun postConstruct() {
-        pagesRest = addressPagesRest
+        pagesRest = addressEntityRest
     }
 
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        val addresses = addressDao.select(selectedIds)
-        val numberOfAddresses = addresses?.size ?: 0
-
-        // Status fields - manually created to ensure they're optional in mass update context
-        val addressStatus = UISelect(
-            "addressStatus.textValue", layoutContext,
-            label = "address.addressStatus",
-            values = AddressStatus.values().map { UISelectValue(it.name, translate(it.i18nKey)) }
-        )
-        layout.add(createInputFieldRow("addressStatus", addressStatus, massUpdateData))
-
-        val contactStatus = UISelect(
-            "contactStatus.textValue", layoutContext,
-            label = "address.contactStatus",
-            values = ContactStatus.values().map { UISelectValue(it.name, translate(it.i18nKey)) }
-        )
-        layout.add(createInputFieldRow("contactStatus", contactStatus, massUpdateData))
-
-        // Favorite
-        /*layout.add(
-            createInputFieldRow(
-                "isFavoriteCard",
-                UICheckbox("isFavoriteCard.booleanValue", label = "favorite"),
-                massUpdateData,
-                showDeleteOption = false,
-            )
-        )*/
-
-        // Communication language
-        val communicationLanguage = UISelect(
-            "communicationLanguage.textValue", layoutContext,
-            label = "address.communicationLanguage",
-            values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
-            autoCompletion = AutoCompletion<String>(url = "address/acLang?search=:search")
-        )
-        layout.add(createInputFieldRow("communicationLanguage", communicationLanguage, massUpdateData, showDeleteOption = true))
-
-        // Organization, division, website - hide delete and replace options
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "organization",
-            "division",
-            "website",
-            showDeleteOption = true,
-            showReplaceOption = false,
-        )
-
-        // Business address fields
-        layout.add(UIFieldset(title = "address.heading.businessAddress", collapsed = true).also { fieldset ->
-            createAndAddFields(
-                layoutContext,
-                massUpdateData,
-                fieldset,
-                "addressText",
-                "addressText2",
-                "zipCode",
-                "city",
-                "country",
-                "state",
-                showAppendOption = false,
+    /**
+     * The layout-free field set for projectforge-next, which renders the form itself. The communication language
+     * offers the languages already in use (as the address form does).
+     */
+    override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+        return listOf(
+            MassUpdateFieldDeclaration("addressStatus", showDeleteOption = false),
+            MassUpdateFieldDeclaration("contactStatus", showDeleteOption = false),
+            MassUpdateFieldDeclaration(
+                "communicationLanguage",
                 showDeleteOption = true,
-                showReplaceOption = false,
-            )
-        }
+                values = addressServicesRest.getUsedLanguages().map { UISelectValue(it.value, it.label) },
+            ),
+            MassUpdateFieldDeclaration("organization", showDeleteOption = true, showReplaceOption = false),
+            MassUpdateFieldDeclaration("division", showDeleteOption = true, showReplaceOption = false),
+            MassUpdateFieldDeclaration("website", showDeleteOption = true, showReplaceOption = false),
+            // Business address
+            *addressFields("addressText", "addressText2", "zipCode", "city", "country", "state"),
+            // Postal address
+            *addressFields(
+                "postalAddressText", "postalAddressText2", "postalZipCode", "postalCity", "postalCountry", "postalState",
+            ),
+            MassUpdateFieldDeclaration("comment", minLengthOfTextArea = 1001),
         )
+    }
 
-        // Postal address fields
-        layout.add(UIFieldset(title = "address.heading.postalAddress", collapsed = true).also { fieldset ->
-            createAndAddFields(
-                layoutContext,
-                massUpdateData,
-                fieldset,
-                "postalAddressText",
-                "postalAddressText2",
-                "postalZipCode",
-                "postalCity",
-                "postalCountry",
-                "postalState",
-                showAppendOption = false,
-                showDeleteOption = true,
-                showReplaceOption = false,
-            )
-        })
-
-        // Comment
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "comment",
-            minLengthOfTextArea = 1001,
-        )
+    private fun addressFields(vararg fields: String): Array<MassUpdateFieldDeclaration> {
+        return fields.map {
+            MassUpdateFieldDeclaration(it, showDeleteOption = true, showReplaceOption = false)
+        }.toTypedArray()
     }
 
     override fun proceedMassUpdate(

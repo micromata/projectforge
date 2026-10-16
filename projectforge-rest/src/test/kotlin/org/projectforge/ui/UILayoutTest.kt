@@ -30,15 +30,15 @@ import org.mockito.Mockito
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.rest.AddressPagesRest
-import org.projectforge.rest.dto.Address
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.rest.AddressLegacyPagesRest
+import org.projectforge.rest.dto.Address
 import org.springframework.beans.factory.annotation.Autowired
 import jakarta.servlet.http.HttpServletRequest
 
 class UILayoutTest : AbstractTestBase() {
     @Autowired
-    lateinit var addressRest: AddressPagesRest
+    lateinit var addressRest: AddressLegacyPagesRest
 
     @Test
     fun testAddressEditLayout() {
@@ -80,7 +80,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("forceDelete", jsonValidator.get("actions[1].id"))
         assertEquals("markAsDeleted", jsonValidator.get("actions[2].id"))
-        // AddressPagesRest declares CloneSupport, so cloning is offered before saving.
+        // AddressLegacyPagesRest declares CloneSupport, so cloning is offered before saving.
         assertEquals("clone", jsonValidator.get("actions[3].id"))
         assertEquals("update", jsonValidator.get("actions[4].id"))
         assertEquals(5, jsonValidator.getList("actions")?.size)

@@ -303,7 +303,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
   (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
   `fieldDeclarations()`. `fillForm` und die deprecated UILayout-Endpunkte (`dynamic`, `massUpdate`,
-  `selected`) bedienen nur noch die nicht migrierten Seiten Adresse und AddressCampaignValue.
+  `selected`) bedienen nur noch die nicht migrierte Seite AddressCampaignValue.
 - **Excel-Export** generisch: `lib/rs/list-export.ts` (`downloadListExcel`).
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
@@ -395,7 +395,7 @@ Client ist die Brücke bis dahin.
 
 Fertig: **Auftragsbuch** (`order`), **Debitorenrechnungen** (`outgoingInvoice`),
 **Kreditorenrechnungen** (`incomingInvoice`), **Strukturelemente/Aufgabenbaum** (`task`),
-**Gruppen** (`group`), **Benutzer** (`user`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`), **Adressbücher** (`addressBook`). **Offen:** **Kalenderseite** (Detailplan
+**Gruppen** (`group`), **Benutzer** (`user`), **Wochenplanung** (`hrPlanning`), **Teamkalender** (`teamCal`), **Adressbücher** (`addressBook`), **Adressen** (`address`). **Offen:** **Kalenderseite** (Detailplan
 [MIGRATION-calendar.md](MIGRATION-calendar.md), Phasen A/B/D umgesetzt, C offen).
 
 Alle handgebauten Seiten laufen über `PageDef` und die geteilten Bausteine oben. Was pro
@@ -585,6 +585,23 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Die Abo-Url eines externen Kalenders bekommt nur das Formular von Nutzern mit Schreibrecht (sonst die
   anonymisierte), deshalb trägt das Formular jedes DTO-Feld zurück. `CalendarSubscriptionPanel` teilen sich
   Kalender-Abo-Dialog und Formular. `react/teamCal/**` und die Wicket-Klassen-Urls leitet `OrphanedLinkFilter` um.
+- **Adressen** (`address`, Liste + Ansicht + Formular + VCF-Import, vorher React-UILayout `AddressPagesRest`,
+  `AddressViewPageRest`, `AddressImportUploadPageRest`, gelöscht) – layoutfrei über `AddressEntityRest` (`/rs/address`).
+  Ein Zeilenklick, ein Suchtreffer und ein Geburtstag im Kalender öffnen die **Ansicht** `next/address/{id}`
+  (`getStandardEditPage`, `GET address/view/{id}`; Rückweg per `?returnTo=` aus Kalender/Telefonwahl), das Formular ist
+  `next/address/{id}/edit` (wie bei den Scripten). Speichern/Favorit/Bild/Import-Abgleich teilen sich beide Controller
+  über `AddressSaveSupport`. Das Bild wartet in der Session auf das Speichern (`uploadImage/-1`, Vorschau
+  `uploadedImage`, Löschen nur über `imageDeleted`; TTL jetzt 30 statt 1 Minute). Der **Textparser** (Signatur einfügen
+  oder vCard ablegen) ist `editIntro` des Formulars (`parseText`/`parseVcf`/`applyParsedData`, Bild per
+  `applyVcfImage`). Der **VCF-Import** `next/address/import` (`AddressImportRest`) ist kein Bulk-Commit: jede Zeile öffnet
+  das Formular mit `?importIndex=`, das den Vergleich lädt (`addressImport/entry/{n}`) und den Eintrag beim Speichern als
+  importiert markiert. Der Favoriten-Stern schaltet direkt (`address/favorite/{id}`). Die Liste lädt die ganze Treffermenge
+  (die Seitengrößen-Kürzung `limitResultSize` des React-Layouts entfällt). **Weiterhin in React:** das Formular für die
+  Adresskampagnen-Werte (`AddressCampaignValuePagesRest` öffnet es als Modal) – unter eigener Kategorie
+  `addressLegacy` (`AddressLegacyPagesRest`, `react/addressLegacy/edit/{id}?modal=true`), damit `OrphanedLinkFilter`,
+  React-Legacy-Banner und `PagesResolver` es nicht nach next biegen; fällt mit der Migration der Kampagnen-Werte weg.
+  `react/address/**`, `react/addressView/**`, `react/calendar/addressView/**` und `react/addressImportUpload/**` leitet
+  `OrphanedLinkFilter` um. Der generische Routen-Platzhalter von `[category]` heißt jetzt `generic` (war `address`).
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei
   über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
   für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des

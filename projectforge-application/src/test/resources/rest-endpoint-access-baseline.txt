@@ -28,19 +28,10 @@ org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#openEditModal
 org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#update
 org.projectforge.plugins.merlin.rest.MerlinVariablePageRest#watchFields
 org.projectforge.plugins.skillmatrix.SkillMatrixServicesRest#exportFavoritesExcel
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#cancel
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#getForm
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#getImportImagePreview
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#resetGridState
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#updateColumnStates
-org.projectforge.rest.address.importer.AddressImportUploadPageRest#upload
 org.projectforge.rest.AddressImageServicesRest#deleteImage
 org.projectforge.rest.AddressImageServicesRest#getImage
 org.projectforge.rest.AddressImageServicesRest#getImagePreview
 org.projectforge.rest.AddressImageServicesRest#uploadFile
-org.projectforge.rest.AddressPagesRest#applyParsedData
-org.projectforge.rest.AddressPagesRest#exportAsExcel
-org.projectforge.rest.AddressPagesRest#parseText
 org.projectforge.rest.AddressServicesRest#downloadAppleScript
 org.projectforge.rest.AddressServicesRest#exportFavoritesExcel
 org.projectforge.rest.AddressServicesRest#exportFavoritesVCards
@@ -49,8 +40,6 @@ org.projectforge.rest.AddressServicesRest#getLanguages
 org.projectforge.rest.AddressServicesRest#getUsedLanguages
 org.projectforge.rest.AddressServicesRest#getVcfImagePreview
 org.projectforge.rest.AddressServicesRest#parseVcf
-org.projectforge.rest.AddressViewPageRest#getForm
-org.projectforge.rest.AddressViewPageRest#watchFields
 org.projectforge.rest.admin.AdminRest#extractSerializedSettings
 org.projectforge.rest.AttachmentPageRest#getForm
 org.projectforge.rest.AttachmentPageRest#watchFields
@@ -92,7 +81,6 @@ org.projectforge.rest.calendar.CalendarSettingsPageRest#watchFields
 org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest#getLayout
 org.projectforge.rest.calendar.TeamEventEntityRest#switch2Timesheet
 org.projectforge.rest.calendar.VacationServicesRest#getVacationUserObjects
-org.projectforge.rest.CardDAVInfoPageRest#getForm
 org.projectforge.rest.core.AbstractPagesRest#getItemAndLayout
 org.projectforge.rest.core.AbstractPagesRest#requestInitialList
 org.projectforge.rest.core.AbstractPagesRest#resetGridState

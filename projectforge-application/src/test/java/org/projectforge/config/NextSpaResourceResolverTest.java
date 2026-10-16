@@ -55,8 +55,8 @@ class NextSpaResourceResolverTest {
             {"routes": [
               {"page": "/book/[id]", "regex": "^/book/([^/]+?)(?:/)?$", "shellDir": "book/new"},
               {"page": "/book/[id]/history", "regex": "^/book/([^/]+?)/history(?:/)?$", "shellDir": "book/new/history"},
-              {"page": "/[category]", "regex": "^/([^/]+?)(?:/)?$", "shellDir": "address"},
-              {"page": "/[category]/[type]/[...params]", "regex": "^/([^/]+?)/([^/]+?)/(.+?)(?:/)?$", "shellDir": "address/edit/new"}
+              {"page": "/[category]", "regex": "^/([^/]+?)(?:/)?$", "shellDir": "generic"},
+              {"page": "/[category]/[type]/[...params]", "regex": "^/([^/]+?)/([^/]+?)/(.+?)(?:/)?$", "shellDir": "generic/edit/new"}
             ]}
             """;
 
@@ -76,9 +76,9 @@ class NextSpaResourceResolverTest {
         write(dir, "book/new/__next._tree.txt", "book edit tree");
         write(dir, "book/new/history/index.html", "book history shell");
         // The shell of the server laid out list, /[category].
-        write(dir, "address/index.html", "dynamic list shell");
-        write(dir, "address/index.txt", "dynamic list payload");
-        write(dir, "address/edit/new/index.html", "dynamic edit shell");
+        write(dir, "generic/index.html", "dynamic list shell");
+        write(dir, "generic/index.txt", "dynamic list payload");
+        write(dir, "generic/edit/new/index.html", "dynamic edit shell");
         write(dir, "_next/static/chunks/main.js", "asset");
         write(dir, "index.html", "start page");
         // A trailing slash, as Spring's resource location has one: createRelative resolves against

@@ -209,6 +209,20 @@ object NextMigration {
             legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage",
             offerLegacyLink = false,
         ),
+        // Hand built list, view and form of the addresses (AddressEntityRest, components/features/address), migrated
+        // from React together with the VCF import (next/address/import, AddressImportRest). A row, a search hit and a
+        // calendar birthday open the view (`address/:id`, see AddressEntityRest.getStandardEditPage); the form is a
+        // sub route of it, as for `script`. There is no way back. The React form is still served, but under a
+        // category of its own (AddressLegacyPagesRest, `react/addressLegacy/edit/:id`), for the address campaign
+        // values only, which open it as a modal; the legacy app is kept for the redirect of bookmarked React links
+        // (react/address/**, and react/addressView/** by OrphanedLinkFilter.redirectAddressPage).
+        "address" to NextPage(
+            route = "address",
+            editRoute = "address/$ID_PLACEHOLDER/edit",
+            newEntryRoute = "address/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built list and edit page of the address books (AddressbookEntityRest, components/features/addressBook),
         // migrated from React. The React pages are gone (no UILayout served any more), so there is no way back; the
         // legacy app is kept for the redirect of bookmarked React links only.

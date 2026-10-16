@@ -33,6 +33,7 @@ import org.projectforge.jcr.FileInfo
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -106,8 +107,20 @@ class AddressImageServicesRest {
         val session = request.getSession(false)
         // Store processed image in session with actual type
         val image = SessionImage(filename, imageResult.imageType, imageResult.bytes)
-        ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, image, 1)
+        ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, image, SESSION_IMAGE_TTL_MINUTES)
         return ResponseEntity("OK", HttpStatus.OK)
+    }
+
+    /**
+     * The image uploaded to the session and not saved yet ([uploadFile], or taken over from a vCard by
+     * `AddressServicesRest.applyVcfImage`), for the preview of the form.
+     */
+    @AccessChecked("own session only")
+    @GetMapping("uploadedImage")
+    fun getUploadedImage(request: HttpServletRequest): ResponseEntity<Resource> {
+        val image = ExpiringSessionAttributes.getAttribute(request.getSession(false), SESSION_IMAGE_ATTR)
+                as? SessionImage ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        return RestUtils.downloadFile("uploadedImage.${image.imageType.extension}", ByteArrayResource(image.bytes))
     }
 
     /**
@@ -163,6 +176,12 @@ class AddressImageServicesRest {
 
     companion object {
         internal const val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+
+        /**
+         * How long an uploaded image waits in the session for the save of the form, in minutes. Long enough for a
+         * form filled in at leisure: a shorter time lost the image silently on the save.
+         */
+        internal const val SESSION_IMAGE_TTL_MINUTES = 30
         private const val MAX_IMAGE_SIZE_SPRING_PROPERTY = "projectforge.address.maxImageSize"
 
         /**

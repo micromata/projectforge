@@ -807,6 +807,13 @@ export interface PageDef<
    */
   onRowClick?: (row: Row) => string | undefined;
   /**
+   * Opens a row in a dialog over the list instead of navigating to its page — the address view, which the
+   * legacy React list showed as a modal: a quick look (a phone number, an e-mail) that leaves the list, its
+   * filter and its scroll position where they were. The page of the entry stays what direct links (a search
+   * hit, a link of another page) open. [onRowClick] wins where it names a route.
+   */
+  rowDialog?: ComponentType<{ id: number; onClose: () => void }>;
+  /**
    * The form of this list is another entity's, declared by a page of its own under the same [route] —
    * for a list whose rows are the *parts* of what is edited: the HR planning list shows the entries of
    * the planned weeks (`hrPlanningEntry`), and the add button and a row open the week itself

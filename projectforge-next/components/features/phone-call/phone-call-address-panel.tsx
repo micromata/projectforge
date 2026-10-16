@@ -47,7 +47,7 @@ export function PhoneCallAddressPanel({
   onPick: (number: string) => void;
 }) {
   const t = useTranslations();
-  // The address view still lives in the legacy React app; a plain anchor leaves this app with a full load.
+  // The view of the address (`/next/address/{id}?returnTo=/phoneCall`, see PhoneCallRest.addressInfo).
   const viewHref = toAbsoluteUrl(resolveMenuUrl(address.viewUrl));
   return (
     <SectionCard className="w-full md:w-96 md:shrink-0">

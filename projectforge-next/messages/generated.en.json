@@ -60,8 +60,50 @@
     "addressbooks": "Addressbooks",
     "birthName": "Birth name",
     "birthday": "Birthday",
+    "book": {
+      "export": {
+        "_": "Excel-Export",
+        "appleScript4Notes": {
+          "_": "Apple-Script",
+          "tooltip": "For removing notes (with multiple entries) of the from ProjectForge exported addresses (s. Handbuch). Afterwards you should import the addresses again for getting the correct notes from ProjectForge."
+        },
+        "tooltip": "Exports the filtered address list (only favorites) as Excel table with all fields. A complete list due to data privacy reasons only available for the accounting staff members."
+      },
+      "vCardExport": {
+        "_": "Export vCards",
+        "tooltip": {
+          "content": "Export vCards (addresses) of marked addresses for importing into external address applications (such as Apple address book). Please do not forget to set encoding to utf-8 in your address applications."
+        }
+      },
+      "vCardSingleExport": "Export vCard",
+      "vCardsImport": {
+        "clickToEdit": "Click on a row to edit the address and compare fields.",
+        "description": "Here, vCards (.vcf file format) can be imported into the address book. Existing addresses are not duplicated, but simply supplemented (e.g., with phone numbers or email addresses).\n\nAddresses can then be compared and imported manually, even field by field.",
+        "dropHint": "Drop VCF file here",
+        "dropInfo": "Matching address will be selected automatically",
+        "dropLabel": "Or drop VCF file",
+        "error": {
+          "parsing": "Error parsing VCF file"
+        },
+        "imageTooLarge": "The image of the vCard is too large to be taken over.",
+        "importImage": "Take over the image",
+        "title": "Import of vcards (.vcf)",
+        "wrongFileType": "Wrong file type. Please use \".vcf\" only."
+      }
+    },
     "business": "business",
+    "cardDAV": {
+      "infopage": {
+        "description": "You may use the CardDAV service of ProjectForge by creating a CardDAV account in your address book software (such as Apple's address book).",
+        "description2": "Only your favorite addresses will be synchronized. If you delete any address, they will not be deleted on the server, they will only be removed from you personal favorites.",
+        "description3": "Insert and update of addresses is only possible through ProjectForge's web app due to avoiding doublets etc.",
+        "title": "How to use CardDAV service"
+      }
+    },
     "city": "City",
+    "columnHead": {
+      "myFavorites": "F"
+    },
     "communicationLanguage": "Language of communication",
     "contactStatus": {
       "_": "Contact status",
@@ -82,6 +124,12 @@
     },
     "division": "Division",
     "emails": "e-mails",
+    "favorites": {
+      "info": "You may synchronize your favorite addresses via CardDAV with your address book app or export them as Excel etc."
+    },
+    "filter": {
+      "myFavorites": "my favorites"
+    },
     "fingerprint": "Finger print",
     "form": {
       "_": "Form",
@@ -90,6 +138,17 @@
       "miss": "Miss",
       "mister": "Mister",
       "unknown": "unknown"
+    },
+    "heading": {
+      "businessAddress": "Business address",
+      "businessContact": "Business contact",
+      "personalData": "Personal data",
+      "postalAddress": "Postal address",
+      "privateAddress": "Private address"
+    },
+    "image": "Image",
+    "import": {
+      "entryExpired": "This entry of the import is no longer available (an import is kept for 30 minutes). Please upload the VCF file again."
     },
     "myCurrentCallerId": {
       "_": "Caller id",
@@ -103,6 +162,34 @@
         "content": "Define your phone ids (internal phone number of the phone system). After you can make a direct phone call on the selected phone by simply clicking on the desired phone number below."
       }
     },
+    "parseText": {
+      "addressBlock": "Address Block",
+      "addressType": {
+        "business": "Business Address",
+        "postal": "Postal/Mailing Address",
+        "private": "Private Address"
+      },
+      "applied": "Fields successfully applied",
+      "button": {
+        "_": "Import Data (Text/VCard)",
+        "tooltip": "Paste email signatures or other text, or drop a VCard file to import address data"
+      },
+      "confidence": {
+        "high": "High confidence - value is very likely correct",
+        "low": "Low confidence - manual review recommended",
+        "medium": "Medium confidence - please verify"
+      },
+      "error": {
+        "emptyInput": "Please enter text to parse"
+      },
+      "fieldsParsed": "Parsed Fields",
+      "info": {
+        "noChanges": "No new or changed fields detected. All parsed values match current form data."
+      },
+      "inputLabel": "Paste email signature or contact information:",
+      "inputPlaceholder": "Paste address text here...\n\nExample:\nDr. Merle Musterfrau\nSenior Manager\nExample GmbH\nMusterstraße 1-5\n12345 Musterstadt\nTel: +49 30 12345678\nm.musterfrau@example.com",
+      "remapTo": "Map to:"
+    },
     "phone": "Phone",
     "phoneCall": {
       "number": {
@@ -111,6 +198,7 @@
       },
       "title": "Direct calling telephone system"
     },
+    "phoneNumbers": "Phone numbers",
     "phoneType": {
       "business": "Business phone",
       "fax": "Fax",
@@ -121,6 +209,7 @@
     "positionText": "Position",
     "postal": "postal",
     "private": "private",
+    "privateEmail": "Private e-mail",
     "publicKey": "Public key",
     "sendSms": {
       "message": "Message",
@@ -129,7 +218,18 @@
       "title": "Send text message"
     },
     "state": "State",
-    "title": "Title",
+    "title": {
+      "_": "Title",
+      "add": "Add new address",
+      "list": "Address list"
+    },
+    "validation": {
+      "duplicateFound": "Possible Duplicate Found",
+      "duplicateWarning": "The following address(es) with this name already exist:"
+    },
+    "view": {
+      "title": "View address"
+    },
     "website": "Website",
     "zipCode": "Zip code"
   },
@@ -236,7 +336,7 @@
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
-          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, the additional users who aren't employees, the names of the cost centers and cost units already existing in Lanes & Planes and the confirmed email changes. The technical settings (activation, API key, dry run) are in projectforge.properties."
+          "description": "Settings of the push of the employees to the travel management Lanes & Planes: the invoice profile ids, the general Kost1 sent to all users as cost centers, the general Kost2 sent to all users as cost units, the patterns of the Kost2 sent to the users who may book them, the additional users who aren't employees, the names of the cost centers and cost units already existing in Lanes & Planes and the emails of the employees in Lanes & Planes. The technical settings (activation, API key, dry run) are in projectforge.properties."
         },
         "messageOfTheDay": {
           "_": "Message of the day",
@@ -662,6 +762,7 @@
         "reconcile": "Reconcile",
         "selectAll": "Select all"
       },
+      "additionalChanges": "Additional changes",
       "clearStorage": "Clear"
     },
     "recurrence": {
@@ -2289,18 +2390,10 @@
         "lastName": "Last name",
         "tooltip": "Users of Lanes & Planes who aren't employees, e.g. an external accountant. Sent with name, email and invoice profiles only, so their role, managers and cost centers are kept. Otherwise they would be deactivated by the push, and if one of them has responsibilities (e.g. as accountant), the whole push fails. Not needed for the service admin of Lanes & Planes and for guest profiles: the import doesn't touch them."
       },
-      "confirmedEmailChanges": {
-        "_": "Confirmed email changes",
-        "tooltip": "Lanes & Planes identifies users by their email only. If the email of an employee changes, the old one is still sent (see the problem dashboard), otherwise the user would be deactivated and created anew. Change the email in Lanes & Planes by hand first, then enter the new email here. The entry can be removed after the next push."
-      },
       "existingCostObjects": {
         "_": "Existing names in Lanes & Planes",
         "textHint": "One name per line, or the comma separated list of the column cost_centers of the user export.",
         "tooltip": "Cost centers and cost units already existing in Lanes & Planes (e.g. entered by hand), exactly as named there, starting with the number without dots, e.g. 50123401 Project - Travel costs. A Kost1 or Kost2 with this number is sent with this name as ident and name, so Lanes & Planes reuses it. Lanes & Planes doesn't accept a name a second time (deleted entries included): without this entry the import of every user with this Kost fails."
-      },
-      "existingUserEmails": {
-        "_": "Existing users in Lanes & Planes (emails)",
-        "tooltip": "The emails of the users in Lanes & Planes, pasted from the column email of the user export (CSV), as the interface can't read users. An employee not sent yet whose email isn't listed, but one of the alternative or former emails of the user, is sent with that one, otherwise Lanes & Planes would create the user anew. Like a changed email it is held back until the email was changed in Lanes & Planes and confirmed below. Empty: not checked."
       },
       "generalKost1": {
         "_": "General Kost1 (cost centers)",
@@ -2313,7 +2406,7 @@
       "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
       "kost2Patterns": {
         "_": "Patterns of the bookable Kost2",
-        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent."
+        "tooltip": "The Kost2 a user may book time sheets on are sent to the user as cost units (cost_units) only if they match one of these patterns: * stands for any characters, ? for a single one, e.g. 5.*.02. Without patterns, all bookable Kost2 are sent. Several patterns in one row, separated by comma (e.g. 5.*.19, 5.*.20): per project only the Kost2 of the first matching pattern is sent."
       },
       "kostNotFound": "not found",
       "mode": {
@@ -2321,8 +2414,14 @@
         "text": "Text"
       },
       "remove": "Remove {arg0}",
-      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users · {arg4} existing names",
-      "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file."
+      "summary": "{arg0} general Kost1 · {arg1} general Kost2 · {arg2} patterns · {arg3} additional users · {arg4} existing names · {arg5} emails in Lanes & Planes",
+      "textHint": "One entry per line, or separated by commas or semicolons, e.g. pasted from a CSV file.",
+      "userEmails": {
+        "_": "Emails in Lanes & Planes",
+        "email": "Email in Lanes & Planes",
+        "tooltip": "Lanes & Planes identifies users by their email only. An employee is always sent with the email entered here, even if the email changes in ProjectForge (e.g. after a marriage): otherwise Lanes & Planes would deactivate the user and create a new one. Before the first push, enter only the employees whose email in Lanes & Planes differs from ProjectForge (see the user export of Lanes & Planes). Every push adds the employees sent without an entry. To change an email, change it in Lanes & Planes by hand first, then here.",
+        "user": "User"
+      }
     }
   },
   "lastUpdate": "last modification",
@@ -2868,6 +2967,7 @@
     }
   },
   "organization": "Organization",
+  "parse": "Parse",
   "password": {
     "_": "Password",
     "forgotten": {
@@ -3528,6 +3628,7 @@
   },
   "preview": "Preview",
   "print": "Print",
+  "printView": "print view",
   "priority": {
     "_": "Priority",
     "high": "high",

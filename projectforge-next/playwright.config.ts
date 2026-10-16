@@ -37,6 +37,7 @@ const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:8080";
  * A new spec therefore runs safely without a tag, only slowly; tagging it is an opt-in.
  */
 const LANES = [
+  "address",
   "addressBook",
   "book",
   "order",
