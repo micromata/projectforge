@@ -52,10 +52,10 @@ test.describe("availability", () => {
       groups: { id: number }[];
       periodKind?: string;
       dayWidth?: string;
-      showAvailabilities: boolean;
+      absenceKinds: string[];
     };
-    // The choice is stored per user by every view: off first, so only the url can check the box.
-    const store = async (showAvailabilities: boolean) =>
+    // The choice is stored per user by every view: the vacations only first, so only the url can turn on the rest.
+    const store = async (absenceKinds: string[]) =>
       page.request.post("/rs/vacationExport/view", {
         headers: await writeHeaders(page.request),
         data: {
@@ -63,32 +63,39 @@ test.describe("availability", () => {
           groupIds: initial.groups.map((g) => g.id),
           periodKind: initial.periodKind,
           dayWidth: initial.dayWidth,
-          showAvailabilities,
+          absenceKinds,
           from: "2030-01-01",
           until: "2030-01-01",
         },
       });
     try {
-      expect((await store(false)).ok()).toBe(true);
+      expect((await store(["VACATION"])).ok()).toBe(true);
       await goto(page, "/availability");
       const link = page.getByRole("link", {
         name: format.t("vacation.export.title"),
       });
       await expect(link).toHaveAttribute(
         "href",
-        /\/vacationExport\?showAvailabilities=true$/
+        /\/vacationExport\?absenceKinds=all$/
       );
       await link.click();
       // Applied once and dropped from the url, so a reload keeps a choice made on the page.
       await expect(page).toHaveURL(/\/vacationExport/);
-      await expect(page).not.toHaveURL(/showAvailabilities/);
-      await expect(
-        page.getByRole("checkbox", {
-          name: format.t("vacation.export.showAvailabilities._"),
-        })
-      ).toBeChecked();
+      await expect(page).not.toHaveURL(/absenceKinds/);
+      const kinds = page.getByRole("group", {
+        name: format.t("vacation.export.absenceKinds._"),
+      });
+      for (const key of [
+        "vacation._",
+        "availability.status.notAvailable",
+        "availability.status.reachableIfUrgent",
+      ]) {
+        await expect(
+          kinds.getByRole("button", { name: format.t(key), exact: true })
+        ).toHaveAttribute("aria-pressed", "true");
+      }
     } finally {
-      await store(initial.showAvailabilities);
+      await store(initial.absenceKinds);
     }
   });
 

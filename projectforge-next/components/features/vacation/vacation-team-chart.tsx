@@ -12,6 +12,7 @@ import { teamChartRows } from "./vacation-chart-model";
 import { AbsenceChartFrame } from "@/components/shared/absence-chart/absence-chart-frame";
 import { AbsenceChartLegend } from "@/components/shared/absence-chart/absence-chart-legend";
 import { AbsenceChartRow } from "@/components/shared/absence-chart/absence-chart-row";
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { VacationExportView } from "./types";
 import {
   resolveChartWidth,
@@ -34,17 +35,18 @@ import {
 export function VacationTeamChart({
   view,
   dayWidth,
-  showAvailabilities = false,
+  absenceKinds,
 }: {
   view: VacationExportView;
   dayWidth: ChartWidth;
-  showAvailabilities?: boolean;
+  /** The absences shown, those of the view only (it may be the answer of the choice before, still shown). */
+  absenceKinds: readonly AbsenceKind[];
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const rows = useMemo(
-    () => teamChartRows(view, showAvailabilities),
-    [view, showAvailabilities]
+    () => teamChartRows(view, absenceKinds),
+    [view, absenceKinds]
   );
   useEffect(() => {
     const root = document.documentElement;
@@ -102,7 +104,10 @@ export function VacationTeamChart({
           />
         ))}
       </AbsenceChartFrame>
-      <AbsenceChartLegend team availabilities={showAvailabilities} />
+      <AbsenceChartLegend
+        team
+        availabilities={absenceKinds.some((kind) => kind !== "VACATION")}
+      />
     </figure>
   );
 }

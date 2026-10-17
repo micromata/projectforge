@@ -23,65 +23,43 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.availability.AbsenceKind
-import org.projectforge.business.availability.AvailabilityCache
-import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AbsenceService
+import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.calendar.CalendarStyle
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * Provides the availability entries of users (employees and freelancers) for the calendar view. You may filter by
- * ProjectForge groups. Part of the shared view of absences ([AbsenceProvider]).
+ * Builds the calendar events of availability entries of users (employees and freelancers), as [AbsenceProvider] got
+ * them ([AbsenceService]).
  */
 @Component
 open class AvailabilityProvider {
     @Autowired
-    private lateinit var userGroupCache: UserGroupCache
-
-    @Autowired
-    private lateinit var availabilityCache: AvailabilityCache
-
-    @Autowired
-    private lateinit var availabilityDao: AvailabilityDao
+    private lateinit var absenceService: AbsenceService
 
     /**
-     * @param groupIds Null items should only occur on (de)serialization issues.
-     * @param userIds Null items should only occur on (de)serialization issues.
+     * Adds an event for each of the given entries, but not twice for the same title and period (e.g. of two team
+     * calendars).
      */
     open fun addEvents(
-        start: PFDateTime,
-        end: PFDateTime,
+        availabilities: List<AvailabilityDO>,
         events: MutableList<FullCalendarEvent>,
-        groupIds: Set<Long?>?,
-        userIds: Set<Long?>?,
         settings: CalendarSettings,
-        /** The states shown, by their kind ([AvailabilityStatus.kind]). */
-        kinds: Set<AbsenceKind> = AbsenceKind.entries.toSet(),
         /** The style of absent entries ([AvailabilityStatus.absent]), drawn like vacations. */
         absentStyle: CalendarStyle = settings.availabilityStyle,
         otherStyle: CalendarStyle = settings.availabilityStyle,
     ) {
-        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            return
-        }
         val viewer = ThreadLocalUserContext.requiredLoggedInUser
-        val availabilities =
-            availabilityCache.getAvailabilityForPeriodAndUsers(start.beginOfDay.localDate, end.localDate, groupIds, userIds)
         availabilities.forEach { availability ->
-            val status = availability.status
-            if (status == null || !kinds.contains(status.kind)) {
-                return@forEach
-            }
-            val user = userGroupCache.getUser(availability.user?.id)
+            val status = availability.status ?: return@forEach
+            val user = absenceService.userOf(availability)
             // The type only for the user and HR staff: it may be personal (e.g. sickness).
-            val title = "${availabilityDao.labelFor(viewer, availability)}: ${user?.getFullname()}"
+            val title = "${absenceService.labelFor(viewer, availability)}: ${user?.getFullname()}"
             if (!events.any {
                     it.title == title && FullCalendarEvent.samePeriod(it, availability.startDate, availability.endDate)
                 }) {
@@ -104,14 +82,12 @@ open class AvailabilityProvider {
                 availability.location?.let {
                     tb.addPropRow(translate("availability.location"), translate(it.i18nKey))
                 }
-                if (!availability.comment.isNullOrBlank()) {
+                if (absenceService.isCommentVisible(viewer, availability)) {
                     tb.addPropRow(translate("availability.comment"), availability.comment, abbreviate = true)
                 }
-                // The cached internal comment is kept raw (AvailabilityDao.afterLoad), so apply the per-user privacy
-                // check here: it's personal data, only visible to the user and to HR staff.
-                if (!availability.internalComment.isNullOrBlank() &&
-                    availabilityDao.isInternalCommentVisibleFor(viewer, availability)
-                ) {
+                // The cached internal comment is kept raw (AvailabilityDao.afterLoad): it's personal data, only
+                // visible to the user and to HR staff.
+                if (absenceService.isInternalCommentVisible(viewer, availability)) {
                     tb.addPropRow(translate("availability.internalComment"), availability.internalComment, abbreviate = true)
                 }
                 event.setTooltip(title, tb)

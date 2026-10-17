@@ -35,7 +35,6 @@ import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.availability.ConflictingAvailabilitiesCache
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.vacation.VacationCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -105,9 +104,6 @@ class AvailabilityEntityRest :
 
     @Autowired
     private lateinit var substituteAbsenceReducer: SubstituteAbsenceReducer
-
-    @Autowired
-    private lateinit var vacationCache: VacationCache
 
     @Autowired
     private lateinit var vacationService: VacationService
@@ -220,7 +216,6 @@ class AvailabilityEntityRest :
         val entry = AvailabilityDO()
         dto.copyTo(entry)
         val absences = vacationService.getSubstituteAbsences(substituteIds, startDate, endDate)
-        vacationCache.hydrate(absences.vacations) // Their employees from the caches: no lazy load.
         val uncoveredDays = vacationService.uncoveredDaysOfAvailability(entry, absences, substituteIds)
         result.conflict = uncoveredDays.isNotEmpty()
         val shown = substituteAbsenceReducer.reduce(

@@ -611,7 +611,7 @@
     "filter": {
       "absenceKinds": {
         "_": "Show",
-        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation."
+        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation. Not for the team calendars: they show the absences they include."
       },
       "vacation": {
         "groups": {
@@ -3440,6 +3440,11 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Absences shown",
+        "tooltip": "Which absences of the people above the calendar includes: vacations, not available, remotely reachable etc. Applies to the calendar view and to the subscription of the calendar."
+      },
+      "absences": "Absences",
       "access": {
         "_": "Access right",
         "groups": "Groups",
@@ -4867,6 +4872,10 @@
       "sendmail": "Something went wrong while sending a mail for application for leave"
     },
     "export": {
+      "absenceKinds": {
+        "_": "Show",
+        "tooltip": "Which absences of the chosen employees are shown and exported: vacations and the availability entries by their status (e.g. parental leave, workation). The comments of availability entries only if the entries are visible in the availability list, too."
+      },
       "dayWidth": {
         "_": "Day width",
         "auto": "Automatic",
@@ -4889,10 +4898,6 @@
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
       "selectHint": "Choose employees or groups to show their vacations.",
-      "showAvailabilities": {
-        "_": "Availabilities",
-        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as their vacations. Their comments only if the entries are visible in the availability list, too."
-      },
       "title": "Team vacation calendar"
     },
     "halfDay": "Half day",

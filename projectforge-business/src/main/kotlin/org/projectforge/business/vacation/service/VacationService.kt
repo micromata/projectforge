@@ -24,6 +24,8 @@
 package org.projectforge.business.vacation.service
 
 import org.hibernate.Hibernate
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityStatus
@@ -91,6 +93,9 @@ open class VacationService {
     private lateinit var availabilityCache: AvailabilityCache
 
     @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
     private lateinit var remainingLeaveDao: RemainingLeaveDao
 
     @Autowired
@@ -148,12 +153,6 @@ open class VacationService {
          * The availability entries of all substitutes overlapping the requested vacation, the absent ones
          * ([AvailabilityStatus.absent]) counting as their vacations, the others shown only.
          */
-        val availabilities: List<AvailabilityDO> = emptyList(),
-    )
-
-    /** The absences of the substitutes of availability entries, see [getSubstituteAbsences]. */
-    class SubstituteAbsences(
-        val vacations: List<VacationDO> = emptyList(),
         val availabilities: List<AvailabilityDO> = emptyList(),
     )
 
@@ -658,25 +657,22 @@ open class VacationService {
     /**
      * The vacations (not rejected, special ones included) and availability entries of the given users overlapping the
      * period, whoever is logged in: the absences of the substitutes of availability entries (see
-     * [uncoveredDaysOfAvailability]). The vacations by the users' employees; a user without one (a freelancer) has
-     * availability entries only. Not to be shown as they are: the caller checks the access.
+     * [uncoveredDaysOfAvailability]), by [AbsenceService.getAbsences]. The vacations by the users' employees; a user
+     * without one (a freelancer) has availability entries only. Not to be shown as they are: the caller checks the
+     * access.
      */
     open fun getSubstituteAbsences(
         userIds: Collection<Long>,
         periodBegin: LocalDate,
         periodEnd: LocalDate,
-    ): SubstituteAbsences {
-        if (userIds.isEmpty()) {
-            return SubstituteAbsences()
-        }
-        val employeeIds = userIds.mapNotNull { employeeCache.getEmployeeIdByUserId(it) }
-        val vacations = if (employeeIds.isEmpty()) {
-            emptyList()
-        } else {
-            vacationDao.getVacationsOfEmployeesForPeriod(employeeIds, periodBegin, periodEnd)
-                .filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
-        }
-        return SubstituteAbsences(vacations, availabilityCache.getEntriesOfUsers(userIds, periodBegin, periodEnd))
+    ): AbsenceService.Absences {
+        return absenceService.getAbsences(
+            periodBegin,
+            periodEnd,
+            AbsenceKind.entries.toSet(),
+            userIds = userIds,
+            visibility = AbsenceService.Visibility.PRE_AUTHORIZED,
+        )
     }
 
     /**
@@ -688,7 +684,7 @@ open class VacationService {
     @JvmOverloads
     open fun uncoveredDaysOfAvailability(
         entry: AvailabilityDO,
-        absences: SubstituteAbsences,
+        absences: AbsenceService.Absences,
         substituteIds: Collection<Long> = entry.substitutes.orEmpty().mapNotNull { it.id },
     ): List<LocalDate> {
         val startDate = entry.startDate ?: return emptyList()

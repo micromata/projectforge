@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.testdata.TestDataContext
 import org.projectforge.business.testdata.TestDataContributor
 import org.projectforge.business.testdata.UserTestDataContributor
@@ -46,7 +47,7 @@ open class VacationExportTestDataContributor : TestDataContributor {
     override fun seed(ctx: TestDataContext) {
         val groupId = ctx.groups[UserTestDataContributor.ORGANIZATION]?.id ?: return
         listOf(DatabaseService.DEFAULT_ADMIN_USER, "laura").forEach { username ->
-            val pref = VacationExportRest.VacationExportUserPref(groupIds = listOf(groupId), showAvailabilities = true)
+            val pref = VacationExportRest.VacationExportUserPref(groupIds = listOf(groupId), absenceKinds = AbsenceKind.entries)
             // Same key as VacationExportRest.getUserPref, written directly, because nobody is logged in.
             userPrefDao.insertOrUpdate(
                 ctx.user(username).id!!,

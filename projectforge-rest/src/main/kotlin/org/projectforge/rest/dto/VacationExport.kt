@@ -24,7 +24,9 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import java.time.LocalDate
@@ -43,7 +45,8 @@ class VacationExportRef(
  *
  * @param periodKind The kind of period the page pages through (e.g. `quarter`), only stored for next time.
  * @param dayWidth The width of the chart's day columns (`auto`, `fit`, `narrow`, …), only stored for next time.
- * @param showAvailabilities Shows and exports the availability entries of the same employees, too.
+ * @param absenceKinds What is shown and exported of the employees' absences: their vacations and their availability
+ * entries by their state. Null: the vacations only.
  */
 class VacationExportRequest(
     var employeeIds: List<Long>? = null,
@@ -52,7 +55,7 @@ class VacationExportRequest(
     var dayWidth: String? = null,
     var from: LocalDate? = null,
     var until: LocalDate? = null,
-    var showAvailabilities: Boolean? = null,
+    var absenceKinds: List<AbsenceKind>? = null,
 )
 
 /**
@@ -61,13 +64,14 @@ class VacationExportRequest(
  * @param unrestricted HR and finance staff, who may pick everybody; anybody else picks only from their own groups.
  * @param earliestDate The first day shown and exported: 1 January of the current year for anybody but HR and
  * finance staff (null: no limit), who don't see the vacations of previous years.
+ * @param absenceKinds The kinds of absences chosen last time ([VacationExportRequest.absenceKinds]), never empty.
  */
 class VacationExportInitial(
     val employees: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
     val periodKind: String?,
     val dayWidth: String?,
-    val showAvailabilities: Boolean,
+    val absenceKinds: List<AbsenceKind>,
     val unrestricted: Boolean,
     val earliestDate: LocalDate?,
     val favorites: List<VacationExportFavoriteInfo>,
@@ -96,7 +100,10 @@ class VacationExportView(
     val rows: List<VacationExportRow>,
 )
 
-/** @param availabilities Empty unless [VacationExportRequest.showAvailabilities]. */
+/**
+ * @param vacations Empty unless [VacationExportRequest.absenceKinds] ask for them.
+ * @param availabilities Only those of the states [VacationExportRequest.absenceKinds] ask for.
+ */
 class VacationExportRow(
     val employee: VacationExportRef,
     val vacations: List<VacationExportVacation>,
@@ -112,6 +119,7 @@ class VacationExportRow(
  * @param comment The public comment, only for those who may see the entry itself (AvailabilityDao.hasUserSelectAccess):
  * the calendar shows the entries as the vacations, also to finance staff and back to 1 January.
  * @param absent The employee is away (AvailabilityStatus.absent), as on vacation.
+ * @param status The entry's state: what the page filters by while the next view loads.
  */
 class VacationExportAvailability(
     val id: Long?,
@@ -120,6 +128,7 @@ class VacationExportAvailability(
     val label: String,
     val comment: String?,
     val absent: Boolean = false,
+    val status: AvailabilityStatus? = null,
 ) {
     companion object {
         fun of(obj: AvailabilityDO, from: LocalDate, until: LocalDate, label: String, comment: String?) =
@@ -130,6 +139,7 @@ class VacationExportAvailability(
                 label,
                 comment?.takeIf { it.isNotBlank() },
                 obj.status?.absent == true,
+                obj.status,
             )
     }
 }

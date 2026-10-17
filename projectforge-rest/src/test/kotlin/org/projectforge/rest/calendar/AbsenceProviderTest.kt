@@ -129,14 +129,15 @@ class AbsenceProviderTest : AbstractTestBase() {
         logon(freelancer)
         assertTrue(events().single { it.extendedProps?.dbId == absentId }.title!!.startsWith("Sickness"))
 
-        // A team calendar's subscription: all entries, by their status only, whoever subscribes.
+        // A team calendar's subscription: the entries of its kinds, by their status only, whoever subscribes.
         val generator = ICalGenerator()
-        calendarSubscriptionServiceRest.addAvailabilities(
-            generator, monday, monday.plusDays(14), setOf(group.id), null, mutableSetOf(),
+        val kinds = AbsenceKind.entries.toSet() - AbsenceKind.VACATION
+        calendarSubscriptionServiceRest.addAbsences(
+            generator, monday, monday.plusDays(14), setOf(group.id), null, kinds, mutableSetOf(),
         )
         val summaries = CalendarBuilder().build(ByteArrayInputStream(generator.asByteArray!!))
             .getComponents<VEvent>(Component.VEVENT).map { it.summary?.value }
-        assertEquals(2, summaries.size)
+        assertEquals(2, summaries.size, "Not the vacation, not asked for.")
         assertTrue(summaries.contains("${translate("availability.status.notAvailable")}: ${freelancer.getFullname()}"))
         assertFalse(summaries.any { it?.contains("Sickness") == true })
     }

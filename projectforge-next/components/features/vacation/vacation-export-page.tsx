@@ -18,6 +18,11 @@ import {
 import { boundsOfPeriod, currentAnchorOf } from "@/lib/date-period-bounds";
 import { isIsoDate } from "@/lib/date-period-math";
 import { formatDateRange, type FormatContext } from "@/lib/format";
+import {
+  ABSENCE_KINDS,
+  sortAbsenceKinds,
+  type AbsenceKind,
+} from "@/lib/rs/absence-kinds";
 import { RsError } from "@/lib/rs/client";
 import {
   downloadVacationExportExcel,
@@ -130,6 +135,19 @@ function clampPeriod(
   return { kind: period.kind, anchor: currentAnchorOf(period.kind, ctx) };
 }
 
+/**
+ * The kinds of the url: `all` (linked from the availability list), a comma separated list or the former
+ * `?showAvailabilities=true` (all of them); null if it asks for none.
+ */
+function absenceKindsOfUrl(params: URLSearchParams): AbsenceKind[] | null {
+  const value = params.get("absenceKinds");
+  if (value === "all" || params.get("showAvailabilities") === "true") {
+    return [...ABSENCE_KINDS];
+  }
+  const kinds = sortAbsenceKinds(value?.split(","));
+  return kinds.length > 0 ? kinds : null;
+}
+
 function VacationExportContent({
   initial,
 }: {
@@ -144,15 +162,20 @@ function VacationExportContent({
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
   );
-  // `?showAvailabilities=true` (the availability list) turns them on, otherwise the stored choice.
-  const [showAvailabilities, setShowAvailabilities] = useState(
-    () =>
-      params.get("showAvailabilities") === "true" || initial.showAvailabilities
+  // `?absenceKinds=all` (the availability list) or a list of kinds, otherwise the stored choice.
+  const [absenceKinds, setAbsenceKinds] = useState<AbsenceKind[]>(
+    () => absenceKindsOfUrl(params) ?? sortAbsenceKinds(initial.absenceKinds)
   );
-  // Applied once: kept in the url, a reload or going back would turn them on again against a choice made here.
+  // Applied once: kept in the url, a reload or going back would apply it again against a choice made here.
   useEffect(() => {
-    if (params.get("showAvailabilities") !== null) {
-      updateSearchParams({ showAvailabilities: null }, "replace");
+    if (
+      params.get("absenceKinds") !== null ||
+      params.get("showAvailabilities") !== null
+    ) {
+      updateSearchParams(
+        { absenceKinds: null, showAvailabilities: null },
+        "replace"
+      );
     }
     // Only on mount: the parameter is read by the initial state above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -186,7 +209,7 @@ function VacationExportContent({
     dayWidth,
     from: bounds.from,
     until: bounds.to,
-    showAvailabilities,
+    absenceKinds,
   };
   const hasSelection = employees.length > 0 || groups.length > 0;
 
@@ -217,7 +240,7 @@ function VacationExportContent({
         period={period}
         min={min}
         dayWidth={dayWidth}
-        showAvailabilities={showAvailabilities}
+        absenceKinds={absenceKinds}
         favorites={favorites}
         exporting={excel.isPending}
         canPrint={hasSelection && hasRows}
@@ -225,7 +248,7 @@ function VacationExportContent({
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}
-        onShowAvailabilitiesChange={setShowAvailabilities}
+        onAbsenceKindsChange={setAbsenceKinds}
         onExport={() => excel.mutate()}
       />
       <p className="hidden text-sm tabular-nums print:block">
@@ -250,7 +273,7 @@ function VacationExportContent({
         <VacationTeamChart
           view={view.data}
           dayWidth={dayWidth}
-          showAvailabilities={showAvailabilities}
+          absenceKinds={absenceKinds}
         />
       )}
       {hasSelection && view.data && !hasRows && !view.isPlaceholderData && (

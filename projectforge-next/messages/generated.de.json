@@ -611,7 +611,7 @@
     "filter": {
       "absenceKinds": {
         "_": "Anzeigen",
-        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend."
+        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend. Nicht für die Team-Kalender: Sie zeigen die Abwesenheiten, die sie enthalten."
       },
       "vacation": {
         "groups": {
@@ -3440,6 +3440,11 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Angezeigte Abwesenheiten",
+        "tooltip": "Welche Abwesenheiten der oben gewählten Personen der Kalender enthält: Urlaube, nicht verfügbar, remote erreichbar usw. Gilt für die Kalenderansicht und das Abonnement des Kalenders."
+      },
+      "absences": "Abwesenheiten",
       "access": {
         "_": "Zugriffsrecht",
         "groups": "Gruppen",
@@ -4867,6 +4872,10 @@
       "sendmail": "Es ist ein Problem beim Senden der Urlaubseintragsmail aufgetreten."
     },
     "export": {
+      "absenceKinds": {
+        "_": "Anzeigen",
+        "tooltip": "Welche Abwesenheiten der gewählten Personen angezeigt und exportiert werden: Urlaube und die Verfügbarkeitseinträge nach ihrem Status (z. B. Elternzeit, Workation). Die Kommentare der Verfügbarkeitseinträge nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
+      },
       "dayWidth": {
         "_": "Tagesbreite",
         "auto": "Automatisch",
@@ -4889,10 +4898,6 @@
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
-      "showAvailabilities": {
-        "_": "Verfügbarkeiten",
-        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, wie ihre Urlaube. Die Kommentare nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
-      },
       "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",

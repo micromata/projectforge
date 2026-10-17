@@ -434,7 +434,10 @@ class GatewaySyncPushService(
     /**
      * What the ICS of a team calendar depends on besides the calendar: the events the user sees and how
      * (TeamEventRight.hasSelectAccess: owner, full and readonly access see all fields, minimal access sees cleared
-     * events) and the locale (title of the included vacation days). Requires the user context of the user.
+     * events) and the locale (title of the included vacation days). A calendar including absences of people
+     * ([TeamCalDO.includesAbsences]) depends on the user, too: which of them the user may see is decided for each one
+     * (AbsenceService: group mates, HR staff, managers and substitutes), so its ICS is not shared with anybody else.
+     * Requires the user context of the user.
      */
     private fun teamCalIcsKey(cal: TeamCalDO, user: PFUserDO): String {
         val userId = user.id
@@ -443,7 +446,8 @@ class GatewaySyncPushService(
             teamCalRight.hasMinimalAccess(cal, userId) -> "minimal"
             else -> "none"
         }
-        return "${cal.id}:$access:${ThreadLocalUserContext.locale}"
+        val viewer = if (cal.includesAbsences) ":user-$userId" else ""
+        return "${cal.id}:$access:${ThreadLocalUserContext.locale}$viewer"
     }
 
     /**

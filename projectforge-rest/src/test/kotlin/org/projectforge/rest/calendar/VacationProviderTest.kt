@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
@@ -59,7 +60,7 @@ class VacationProviderTest : AbstractTestBase() {
     private lateinit var vacationDao: VacationDao
 
     @Autowired
-    private lateinit var vacationProvider: VacationProvider
+    private lateinit var absenceProvider: AbsenceProvider
 
     @Test
     fun `the calendar shows no rejected vacations and the comments to whom they belong only`() {
@@ -81,9 +82,10 @@ class VacationProviderTest : AbstractTestBase() {
         logon(colleague.user!!)
         vacationCache.forceReload()
         fun events(): List<FullCalendarEvent> = mutableListOf<FullCalendarEvent>().also { events ->
-            vacationProvider.addEvents(
+            absenceProvider.addEvents(
                 PFDateTime.from(monday.minusDays(1)), PFDateTime.from(monday.plusDays(14)), events,
-                groupIds = null, userIds = setOf(owner.user!!.id), settings = CalendarSettings(),
+                groupIds = null, userIds = setOf(owner.user!!.id), kinds = setOf(AbsenceKind.VACATION),
+                settings = CalendarSettings(),
             )
         }
         events().let {

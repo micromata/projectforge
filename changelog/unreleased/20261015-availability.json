@@ -20,12 +20,12 @@
       "de": "Kalender: eine gemeinsame Sicht auf Abwesenheiten – für die gewählten Gruppen und Personen werden Urlaube und Verfügbarkeitseinträge angezeigt, mit Auswahl, was zu sehen ist (Urlaube, nicht verfügbar, remote erreichbar usw.), nur von Personen, die mindestens eine Gruppe mit der betrachtenden Person teilen (HR: von allen). Den Typ eines Eintrags sehen nur die betroffene Person und HR, alle anderen den Status."
     },
     {
-      "en": "Team calendars including leave days and their subscriptions (ICS) also show the availability entries, in the subscription always by their status only.",
-      "de": "Team-Kalender mit eingebundenen Urlaubstagen und ihre Abonnements (ICS) zeigen auch die Verfügbarkeitseinträge, im Abonnement immer nur mit Status."
+      "en": "Team calendars including leave days and their subscriptions (ICS) also show the availability entries, in the subscription always by their status only. Each team calendar chooses which absences it includes (vacations, not available, remotely reachable etc.; all by default), in the calendar view and in its subscription alike.",
+      "de": "Team-Kalender mit eingebundenen Urlaubstagen und ihre Abonnements (ICS) zeigen auch die Verfügbarkeitseinträge, im Abonnement immer nur mit Status. Jeder Team-Kalender legt fest, welche Abwesenheiten er enthält (Urlaube, nicht verfügbar, remote erreichbar usw.; standardmäßig alle), in der Kalenderansicht wie im Abonnement."
     },
     {
-      "en": "Team vacation calendar: optionally with the availability entries of the chosen employees, on screen and in the Excel export; not available ones as absences, their comments only for those who may see the entries themselves.",
-      "de": "Team-Urlaubskalender: auf Wunsch mit den Verfügbarkeitseinträgen der gewählten Personen, auf dem Bildschirm und im Excel-Export; nicht verfügbare als Abwesenheit, ihre Kommentare nur für diejenigen, die die Einträge selbst sehen dürfen."
+      "en": "Team vacation calendar: with the same choice of absences (vacations and the availability entries by their status) for the chosen employees, on screen and in the Excel export; not available ones as absences, their comments only for those who may see the entries themselves.",
+      "de": "Team-Urlaubskalender: mit derselben Auswahl der Abwesenheiten (Urlaube und die Verfügbarkeitseinträge nach Status) für die gewählten Personen, auf dem Bildschirm und im Excel-Export; nicht verfügbare als Abwesenheit, ihre Kommentare nur für diejenigen, die die Einträge selbst sehen dürfen."
     }
   ]
 }

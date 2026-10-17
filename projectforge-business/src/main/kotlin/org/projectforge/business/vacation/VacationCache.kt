@@ -109,6 +109,28 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
         }
     }
 
+    /**
+     * The vacations of the given users overlapping the period, rejected ones left out, whoever is logged in: for a
+     * caller that has restricted the users and the period itself (see AbsenceService.Visibility.PRE_AUTHORIZED).
+     * The entries are the cached ones: not to be changed.
+     */
+    open fun getVacationsOfUsers(
+        userIds: Collection<Long>,
+        startDate: LocalDate, endDate: LocalDate,
+    ): List<VacationDO> {
+        if (userIds.isEmpty()) {
+            return emptyList()
+        }
+        checkRefresh()
+        val ids = userIds.toSet()
+        return vacations.filter { vacation ->
+            vacation.endDate?.isBefore(startDate) == false &&
+                    vacation.startDate?.isAfter(endDate) == false &&
+                    vacation.status != VacationStatus.REJECTED &&
+                    employeeCache.getUser(vacation.employee)?.id in ids
+        }
+    }
+
     override fun afterInsertOrModify(obj: VacationDO, operationType: OperationType) {
         val id = obj.id ?: return
         // obj is detached here and its lazy associations mustn't be touched (see BaseDOModifiedListener). Only the

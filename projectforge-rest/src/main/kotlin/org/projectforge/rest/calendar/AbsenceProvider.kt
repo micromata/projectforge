@@ -24,18 +24,23 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * The shared view of the absences of employees and users for the calendar and the team calendars: their vacations
- * ([VacationProvider]) and their availability entries ([AvailabilityProvider]), as far as the given kinds ask for
- * them. An absent entry (not available) looks like a vacation, the others in the availability color.
+ * The shared view of the absences of employees and users for the calendar and the team calendars, as [AbsenceService]
+ * tells them (as far as the logged-in user may see them and the given kinds ask for them): their vacations
+ * ([VacationProvider]) and their availability entries ([AvailabilityProvider]). An absent entry (not available) looks
+ * like a vacation, the others in the availability color.
  */
 @Component
 open class AbsenceProvider {
+    @Autowired
+    private lateinit var absenceService: AbsenceService
+
     @Autowired
     private lateinit var availabilityProvider: AvailabilityProvider
 
@@ -61,13 +66,11 @@ open class AbsenceProvider {
         if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
             return // Nothing to do
         }
+        val absences = absenceService.getAbsences(start.beginOfDay.localDate, end.localDate, kinds, groupIds, userIds)
         val absentStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
-        if (kinds.contains(AbsenceKind.VACATION)) {
-            vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, absentStyle)
-        }
+        vacationProvider.addEvents(absences.vacations, events, settings, absentStyle)
         availabilityProvider.addEvents(
-            start, end, events, groupIds, userIds, settings,
-            kinds = kinds,
+            absences.availabilities, events, settings,
             absentStyle = absentStyle,
             otherStyle = style ?: settings.availabilityStyle,
         )

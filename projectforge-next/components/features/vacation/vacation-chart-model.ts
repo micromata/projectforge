@@ -1,4 +1,9 @@
 import {
+  ABSENCE_KINDS,
+  absenceKindOfStatus,
+  type AbsenceKind,
+} from "@/lib/rs/absence-kinds";
+import {
   availabilityBarOf,
   barOf,
   buildAbsenceChart,
@@ -50,18 +55,24 @@ export function buildVacationChart(
 }
 
 /**
- * The rows of the team calendar: every employee, also those without a vacation in the period. Their availability
- * entries only if [showAvailabilities]: the view of the previous choice may still be shown while the next one loads.
+ * The rows of the team calendar: every employee, also those without a vacation in the period. Only the absences of
+ * [kinds] (vacations, availability entries by their status): the view of the previous choice may still be shown
+ * while the next one loads.
  */
 export function teamChartRows(
   view: VacationExportView,
-  showAvailabilities = true
+  kinds: readonly AbsenceKind[] = ABSENCE_KINDS
 ): ChartRow[] {
+  const showVacations = kinds.includes("VACATION");
+  const shown = (status: string | null | undefined) => {
+    const kind = absenceKindOfStatus(status);
+    return kind != null && kinds.includes(kind);
+  };
   return view.rows.map((row) => ({
     key: String(row.employee.id),
     name: row.employee.displayName ?? "",
     own: false,
-    bars: row.vacations
+    bars: (showVacations ? row.vacations : [])
       .map((v, i) =>
         barOf(`${row.employee.id}-${v.id ?? i}`, view.days, {
           startDate: v.startDate ?? null,
@@ -72,7 +83,8 @@ export function teamChartRows(
         })
       )
       .filter((bar): bar is ChartBar => bar != null),
-    availabilities: (showAvailabilities ? (row.availabilities ?? []) : [])
+    availabilities: (row.availabilities ?? [])
+      .filter((a) => shown(a.status))
       .map((a, i) =>
         availabilityBarOf(`${row.employee.id}-a${a.id ?? i}`, view.days, a)
       )

@@ -5,6 +5,7 @@ import type {
   ChartDay,
   SubstituteAvailability,
 } from "@/components/shared/absence-chart/absence-chart-model";
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 
 /** The constants of org.projectforge.business.vacation.model.VacationStatus, from the metadata. */
@@ -111,8 +112,8 @@ export interface VacationExportRequest {
   dayWidth: string;
   from: string;
   until: string;
-  /** Shows and exports the availability entries of the same employees, too (stored for next time). */
-  showAvailabilities: boolean;
+  /** The absences shown and exported: vacations, availability entries by their status (stored for next time). */
+  absenceKinds: AbsenceKind[];
 }
 
 /** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
@@ -121,7 +122,8 @@ export interface VacationExportInitial {
   groups: VacationExportRef[];
   periodKind?: string | null;
   dayWidth?: string | null;
-  showAvailabilities: boolean;
+  /** The absences chosen last time, never empty. */
+  absenceKinds: AbsenceKind[];
   unrestricted: boolean;
   /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
   earliestDate?: string | null;
@@ -164,6 +166,8 @@ export interface VacationExportAvailability {
   label: string;
   comment?: string | null;
   absent?: boolean;
+  /** `AvailabilityStatus`: the chart filters by it while the next view loads. */
+  status?: string | null;
 }
 
 /**
@@ -178,7 +182,7 @@ export interface VacationExportView {
   rows: {
     employee: VacationExportRef;
     vacations: VacationExportVacation[];
-    /** Empty unless the request asked for them (`showAvailabilities`). */
+    /** Only of the states the request asked for (`absenceKinds`), as the vacations. */
     availabilities?: VacationExportAvailability[];
   }[];
 }

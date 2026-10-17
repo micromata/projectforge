@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ABSENCE_KINDS } from "@/lib/rs/absence-kinds";
 import { TEAM_CAL_METADATA } from "@/lib/metadata/team-cal.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 
@@ -32,6 +33,8 @@ export const teamCalSchema = z.object({
   minimalAccessGroups: z.array(ref),
   includeLeaveDaysForUsers: z.array(ref),
   includeLeaveDaysForGroups: z.array(ref),
+  // All of them are stored as null (TeamCal.copyTo), as for the calendars stored before.
+  absenceKinds: z.array(z.enum(ABSENCE_KINDS)).min(1),
   externalSubscription: m.booleanField("externalSubscription"),
   externalSubscriptionUrl: m.nullableString("externalSubscriptionUrl"),
   externalSubscriptionUpdateInterval: m.intField(
