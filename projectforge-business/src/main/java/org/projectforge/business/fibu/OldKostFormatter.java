@@ -161,13 +161,7 @@ public class OldKostFormatter {
       return "";
     }
     final StringBuilder sb = new StringBuilder();
-    sb.append(kost2.getNummernkreis()).append(".").append(format3Digits(kost2.getBereich())).append(".")
-            .append(format2Digits(kost2.getTeilbereich())).append(".");
-    if (kost2.getKost2Art() != null) {
-      sb.append(format2Digits(kost2.getKost2Art().getId()));
-    } else {
-      sb.append("--");
-    }
+    sb.append(KostFormatter.formatKost2Number(kost2));
     sb.append(": ");
     if (kost2.getProjekt() != null) {
       if (kost2.getKost2Art() != null) {
@@ -182,24 +176,15 @@ public class OldKostFormatter {
 
   /**
    * @param kost2
-   * @param numberFormat If false, then delimiter '.' will be used: "#.###.##.##", otherwise unformmatted number will be
-   *                     returned: ########.
+   * @param numberFormat If false, then delimiter '.' will be used with the segments of the number range (e.g.
+   *                     "#.###.##.##"), otherwise unformatted number will be returned: ########.
    * @return
    */
   public static String format(final Kost2DO kost2, final boolean numberFormat) {
     if (kost2 == null) {
       return "";
     }
-    final String delimiter = (numberFormat) ? "" : ".";
-    final StringBuilder buf = new StringBuilder();
-    buf.append(kost2.getNummernkreis()).append(delimiter).append(format3Digits(kost2.getBereich())).append(delimiter)
-            .append(format2Digits(kost2.getTeilbereich())).append(delimiter);
-    if (kost2.getKost2Art() != null) {
-      buf.append(format2Digits(kost2.getKost2Art().getId()));
-    } else {
-      buf.append("--");
-    }
-    return buf.toString();
+    return KostFormatter.formatKost2Number(kost2, (numberFormat) ? "" : ".");
   }
 
   /**

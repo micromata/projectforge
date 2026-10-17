@@ -26,7 +26,6 @@ package org.projectforge.business.fibu.kost
 import jakarta.persistence.criteria.JoinType
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
-import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
@@ -88,11 +87,11 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     }
 
     /**
-     * @param kostString Format ######## or #.###.##.## is supported.
+     * @param kostString 8 digits or the segments of the number range, see [KostHelper.parseKost2String].
      * @see .getKost2
      */
     fun getKost2(kostString: String?): Kost2DO? {
-        val kost = parseKostString(kostString) ?: return null
+        val kost = KostHelper.parseKost2String(kostString) ?: return null
         return getKost2(kost[0], kost[1], kost[2], kost[3].toLong())
     }
 

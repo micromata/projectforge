@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.OldKostFormatter.format2Digits
 import org.projectforge.business.fibu.OldKostFormatter.format3Digits
 import org.projectforge.business.fibu.kost.*
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.common.extensions.format3Digits
 import org.projectforge.framework.i18n.translate
@@ -164,14 +165,7 @@ class KostFormatter {
             ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
-        sb.append(useKost2.nummernkreis).append(delimiter)
-            .append(format3Digits(useKost2.bereich)).append(delimiter)
-            .append(format2Digits(useKost2.teilbereich)).append(delimiter)
-        if (useKost2.kost2Art != null) {
-            sb.append(format2Digits(useKost2.kost2Art!!.id))
-        } else {
-            sb.append("--")
-        }
+        sb.append(formatKost2Number(useKost2, delimiter))
         val useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
@@ -319,6 +313,18 @@ class KostFormatter {
          */
         fun getKostAsInt(nummernkreis: Int, bereich: Int, teilbereich: Int, endziffer: Long): Int {
             return getKostAsInt(nummernkreis, bereich, teilbereich, endziffer.toInt())
+        }
+
+        /**
+         * The Kost2 number segmented by its number range, e.g. "5.123.45.67" or "1.2345.6.78".
+         * @param delimiter "" for the 8-digit number.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun formatKost2Number(kost2: Kost2DO, delimiter: String = "."): String {
+            return NumberRangeService.current.formatKost2(
+                kost2.nummernkreis, kost2.bereich, kost2.teilbereich, kost2.kost2Art?.id, delimiter,
+            )
         }
 
         /**

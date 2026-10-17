@@ -109,11 +109,11 @@ class KostCache : AbstractCache() {
     }
 
     /**
-     * @param kostString Format ######## or #.###.##.## is supported.
+     * @param kostString 8 digits or the segments of the number range, see [KostHelper.parseKost2String].
      * @see .getKost2
      */
     fun getKost2(kostString: String?): Kost2DO? {
-        val kost = parseKostString(kostString) ?: return null
+        val kost = KostHelper.parseKost2String(kostString) ?: return null
         return getKost2(kost[0], kost[1], kost[2], kost[3])
     }
 
