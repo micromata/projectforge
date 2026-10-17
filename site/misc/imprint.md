@@ -16,7 +16,7 @@ Menuhinstraße 8<br>
 53113 Bonn
 
 ### Geschäftsführung
-Kai Reinhard, Alexander Podlich, Stéphanie Naujock
+Kai Reinhard, Alexander Podlich
 
 V.i.S.d.P.:<br>
 Kai Reinhard<br>
