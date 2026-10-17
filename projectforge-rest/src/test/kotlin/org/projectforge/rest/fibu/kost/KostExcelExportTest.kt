@@ -113,9 +113,9 @@ class KostExcelExportTest : AbstractTestBase() {
         }
         Kost2DO().also { kost ->
             kost.projekt = project
-            kost.nummernkreis = project.nummernkreis
+            kost.nummernkreis = project.nummernkreis!!
             kost.bereich = project.bereich!!
-            kost.teilbereich = project.nummer
+            kost.teilbereich = project.teilbereich!!
             kost.kost2Art = art
             kost.description = "Kost2 Excel export"
             kost.comment = "A comment"

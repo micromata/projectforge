@@ -26,6 +26,8 @@ package org.projectforge.business.fibu
 import org.hibernate.Hibernate
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.numberrange.NumberRangeService
+import org.projectforge.business.fibu.numberrange.NumberRangeViolation
 import org.projectforge.business.orga.VisitorbookEntryDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
@@ -54,6 +56,9 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     @Autowired
     private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var numberRangeService: NumberRangeService
 
     @Autowired
     private lateinit var groupDao: GroupDao
@@ -137,6 +142,14 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         )
     }
 
+    open fun getProjektByProjektnummer(projektnummer: Int): ProjektDO? {
+        return persistenceService.selectSingleResult(
+            "SELECT p FROM ProjektDO p WHERE p.projektnummer = :projektnummer",
+            ProjektDO::class.java,
+            Pair("projektnummer", projektnummer),
+        )
+    }
+
     fun getProjekt(intern_kost2_4: Int, nummer: Int): ProjektDO? {
         return persistenceService.selectNamedSingleResult(
             ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
@@ -158,7 +171,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         } else if (myFilter.isNotEnded) {
             queryFilter.add(or(ne("status", ProjektStatus.ENDED), isNull("status")))
         }
-        queryFilter.addOrder(asc("internKost2_4")).addOrder(asc("kunde.nummer")).addOrder(asc("nummer"))
+        queryFilter.addOrder(asc("projektnummer"))
         return select(queryFilter)
     }
 
@@ -173,13 +186,93 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: ProjektDO, operationType: OperationType) {
-        if (obj.kunde != null) {
-            // Ein Kundenprojekt kann keine interne Kundennummer haben:
-            obj.internKost2_4 = null
-        }
         if (obj.status == ProjektStatus.NONE) {
             obj.status = null
         }
+        if (operationType == OperationType.INSERT || operationType == OperationType.UPDATE) {
+            assignProjektnummer(obj)
+            // Legacy field, the local number of a project without customer covers all digits (see ProjektDO):
+            obj.internKost2_4 = null
+        }
+    }
+
+    /**
+     * Sets [ProjektDO.projektnummer]:
+     * - customer of a number range: computed from customer and local [ProjektDO.nummer],
+     * - otherwise the given number (or the next free one, if not given). A given number of a range without
+     *   customers (e.g. 412345 for internal projects) sets the local number of a project without customer. A free
+     *   number must not lie in the numbers of a range.
+     *
+     * @throws UserException if the numbers don't fit the configured number ranges or the number is already used.
+     */
+    internal fun assignProjektnummer(obj: ProjektDO) {
+        val numberRanges = numberRangeService.numberRanges
+        val kundeNummer = obj.kunde?.nummer
+        val customerRange = numberRanges.rangeForCustomer(kundeNummer)
+        if (customerRange != null) {
+            if (obj.nummer !in 0..customerRange.maxLocalNumber) {
+                throw UserException(LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY, customerRange.maxLocalNumber)
+            }
+            obj.projektnummer = numberRanges.projectNumber(customerRange, kundeNummer, obj.nummer)
+        } else {
+            if (kundeNummer != null) {
+                numberRanges.validateCustomerNumber(kundeNummer)?.let { throw UserException(it.i18nKey) }
+            }
+            val projektnummer = obj.projektnummer
+                ?: legacyProjektnummer(obj.kunde != null, obj.internKost2_4, obj.nummer)
+                ?: nextFreeProjektnummer(obj.kunde == null)
+            val range = numberRanges.rangeForProjectNumber(projektnummer)
+            if (range != null) {
+                if (obj.kunde != null || range.hasCustomers) {
+                    throw UserException(NumberRangeViolation.FREE_NUMBER_IN_RANGE.i18nKey)
+                }
+                obj.nummer = numberRanges.localNumber(projektnummer)!!
+            } else {
+                numberRanges.validateFreeProjectNumber(projektnummer)?.let { throw UserException(it.i18nKey) }
+            }
+            obj.projektnummer = projektnummer
+        }
+        val other = persistenceService.selectSingleResult(
+            "SELECT p.id FROM ProjektDO p WHERE p.projektnummer = :projektnummer",
+            java.lang.Long::class.java,
+            Pair("projektnummer", obj.projektnummer),
+        )
+        // Scalar query: doesn't load (and detach) another project instance inside the update.
+        if (other != null && other.toLong() != obj.id) {
+            throw UserException(PROJEKTNUMMER_EXISTS_I18N_KEY, obj.projektnummer)
+        }
+    }
+
+    /**
+     * A project without customer and project number may be given in the positional Kost2 format: legacy
+     * [ProjektDO.internKost2_4] as digits 2-4 and [ProjektDO.nummer] as digits 5-6 (e.g. 4.123.45), if exactly one
+     * range without customers is configured.
+     */
+    open fun legacyProjektnummer(hasKunde: Boolean, internKost2_4: Int?, nummer: Int): Int? {
+        if (hasKunde || internKost2_4 == null || internKost2_4 !in 0..999 || nummer !in 0..99) {
+            return null
+        }
+        val range = numberRangeService.numberRanges.rangeWithoutCustomers ?: return null
+        return range.firstProjectNumber + internKost2_4 * 100 + nummer
+    }
+
+    /**
+     * Without customer the next free number of the range without customers (if configured), otherwise the next
+     * free number above all free project numbers.
+     */
+    private fun nextFreeProjektnummer(withoutCustomer: Boolean): Int {
+        val numberRanges = numberRangeService.numberRanges
+        val used = persistenceService.executeQuery(
+            "SELECT p.projektnummer FROM ProjektDO p WHERE p.projektnummer IS NOT NULL",
+            Integer::class.java,
+        ).map { it.toInt() }
+        if (withoutCustomer) {
+            numberRanges.rangeWithoutCustomers?.let { range ->
+                val usedLocal = used.filter { range.containsProjectNumber(it) }.map { it - range.firstProjectNumber }
+                numberRanges.nextFreeLocalNumber(range, usedLocal)?.let { return range.firstProjectNumber + it }
+            }
+        }
+        return (used.filter { numberRanges.rangeForProjectNumber(it) == null }.maxOrNull() ?: 0) + 1
     }
 
     /**
@@ -204,8 +297,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     private fun isNumberChanged(obj: ProjektDO, dbObj: ProjektDO): Boolean {
-        return obj.nummernkreis != dbObj.nummernkreis || obj.bereich != dbObj.bereich ||
-                obj.teilbereich != dbObj.teilbereich
+        return obj.projektnummer != dbObj.projektnummer
     }
 
     override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {
@@ -254,6 +346,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_PROJECT
 
         const val NUMBER_LOCKED_I18N_KEY = "fibu.projekt.validation.numberLocked"
+        const val PROJEKTNUMMER_EXISTS_I18N_KEY = "fibu.projekt.validation.projektnummerExists"
+        const val LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY = "fibu.projekt.validation.localNumberOutOfRange"
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
             "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",

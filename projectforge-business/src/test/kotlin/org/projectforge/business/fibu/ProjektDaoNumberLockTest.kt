@@ -51,12 +51,11 @@ class ProjektDaoNumberLockTest : AbstractTestBase() {
             logon(TEST_FINANCE_USER)
             val id = projektDao.insert(ProjektDO().also {
                 it.name = "ProjektDaoNumberLockTest"
-                it.internKost2_4 = 987
-                it.nummer = 41
+                it.projektnummer = 498741
             })
             // No cost 2 unit yet: a typo in the number may still be fixed.
             Assertions.assertFalse(projektDao.isNumberLocked(id))
-            projektDao.update(projektDao.find(id)!!.also { it.nummer = 42 })
+            projektDao.update(projektDao.find(id)!!.also { it.projektnummer = 498742 })
 
             val kost2 = Kost2DO().also { it.kost2Art = Kost2ArtDO().withId(1L) }
             kost2Dao.setProjekt(kost2, id)
@@ -64,15 +63,13 @@ class ProjektDaoNumberLockTest : AbstractTestBase() {
             Assertions.assertTrue(projektDao.isNumberLocked(id))
 
             val ex = assertThrows<UserException> {
-                projektDao.update(projektDao.find(id)!!.also { it.nummer = 43 })
+                projektDao.update(projektDao.find(id)!!.also { it.projektnummer = 498743 })
             }
             Assertions.assertEquals(ProjektDao.NUMBER_LOCKED_I18N_KEY, ex.i18nKey)
-            assertThrows<UserException> {
-                projektDao.update(projektDao.find(id)!!.also { it.internKost2_4 = 986 })
-            }
             // Everything else stays editable.
             projektDao.update(projektDao.find(id)!!.also { it.description = "still editable" })
-            Assertions.assertEquals(42, projektDao.find(id)!!.nummer)
+            Assertions.assertEquals(498742, projektDao.find(id)!!.projektnummer)
+            Assertions.assertEquals(98742, projektDao.find(id)!!.nummer)
             null
         }
     }

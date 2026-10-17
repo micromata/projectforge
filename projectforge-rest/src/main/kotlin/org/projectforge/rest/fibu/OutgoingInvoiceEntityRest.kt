@@ -446,11 +446,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * (`RechnungCostEditTablePanel.newKostZuweisung` takes the first one).
      *
      * Answered by the project rather than looked up in the browser: which cost units belong to a project
-     * follows from its number range, area and number ([ProjektDO.nummernkreis] and friends), and the invoice
-     * DTO carries its project the `copyFromMinimal` way, which omits all three.
+     * follows from its project number ([ProjektDO.nummernkreis] and friends), and the invoice DTO carries its
+     * project the `copyFromMinimal` way, which omits it.
      *
-     * An empty list where the project has no area — [KostCache] cannot be asked without one, and a project
-     * in that state has no cost units to offer.
+     * An empty list where the project number belongs to no number range — such a project has no cost units.
      */
     @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("activeKost2")
@@ -459,8 +458,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
         checkSingleInvoiceDetailAccess()
         val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
-        val bereich = projekt.bereich ?: return emptyList()
-        return kostCache.getActiveKost2(projekt.nummernkreis, bereich, projekt.teilbereich)
+        val nummernkreis = projekt.nummernkreis ?: return emptyList()
+        return kostCache.getActiveKost2(nummernkreis, projekt.bereich!!, projekt.teilbereich!!)
             .sorted()
             .map { Kost2(it) }
     }
@@ -469,20 +468,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Whether a cost unit belongs to the project (or, for an invoice naming none, to the customer) of the
      * invoice — the question `RechnungEditForm.onRenderCostRow` answers by outlining the field in Wicket.
      *
-     * Server side for the same reason [getActiveKost2] is: the comparison is over the number range, the area
-     * and the number of the project or the customer, and neither `Project` nor `Customer` carries those on
-     * the wire (`Customer` has no number range at all). Three integers the caches hold anyway against
-     * widening two DTOs other pages use — and the rule stays next to Wicket's copy of it.
+     * Server side for the same reason [getActiveKost2] is: the comparison needs the project of the cost unit and
+     * its customer, which the caches hold anyway.
      *
      * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
      * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
      *
-     * **One deliberate difference.** For an invoice naming only a customer, Wicket compares the customer
-     * number against `Kost2DO.teilbereich` — digits 5-6, which are the *project* number — and leaves
-     * `bereich`, the digits a customer number actually occupies ([KundeDO.kost]), uncompared. So it warns
-     * about nearly every cost unit of a customer-only invoice, and stays quiet about cost units of other
-     * customers. Here the customer number is compared against `bereich`, which is the question the form is
-     * asking.
+     * The cost unit matches if it belongs to the project of the invoice or, for an invoice naming only a
+     * customer, to a project of this customer. Compared by the assigned project, not by the digits: where the
+     * customer number lies in the Kost2 depends on the configured number range.
      */
     @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("kost2Check")
@@ -495,27 +489,14 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         checkSingleInvoiceDetailAccess()
         val kost2 = kostCache.getKost2(kost2Id) ?: return Kost2Check(matchesInvoice = true)
         // The project wins over the customer, as the Wicket form reads them: a project already names its
-        // customer, and its area narrows the answer further.
+        // customer and narrows the answer further.
+        val kost2Projekt = projektCache.getProjekt(kost2.projekt?.id)
         val projekt = projektCache.getProjekt(projektId)
-        val numberRange: Int
-        // -1 means "don't compare": a customer names the digits 2-4 of a cost unit but not the 5-6.
-        var area = -1
-        var number = -1
         if (projekt != null) {
-            numberRange = projekt.nummernkreis
-            area = projekt.bereich ?: -1
-            number = projekt.nummer
-        } else {
-            val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
-            numberRange = kunde.nummernkreis
-            area = kunde.nummer?.toInt() ?: return Kost2Check(matchesInvoice = true)
+            return Kost2Check(matchesInvoice = kost2Projekt?.id == projekt.id)
         }
-        val differs = when {
-            numberRange >= 0 && kost2.nummernkreis != numberRange -> true
-            area >= 0 && kost2.bereich != area -> true
-            else -> number >= 0 && kost2.teilbereich != number
-        }
-        return Kost2Check(matchesInvoice = !differs)
+        val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
+        return Kost2Check(matchesInvoice = kost2Projekt?.kunde?.nummer == kunde.nummer)
     }
 
     /**

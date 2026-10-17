@@ -197,6 +197,31 @@ class NumberRanges(
     }
 
     /**
+     * @param formatted If true, a customer of a range is shown by the first two Kost2 segments of its projects
+     * ("5.123", "1.2345"), otherwise by its number padded to the digits of the range ("123", "12345").
+     * Free customer numbers are shown unchanged.
+     */
+    fun formatCustomerNumber(customerNumber: Long, formatted: Boolean = true): String {
+        val range = rangeForCustomer(customerNumber) ?: return customerNumber.toString()
+        if (!formatted) {
+            return customerNumber.toString().padStart(range.customerMax.toString().length, '0')
+        }
+        val projectNumber = projectNumber(range, customerNumber, 0)
+        return formatProjectNumber(projectNumber).split('.').take(2).joinToString(".")
+    }
+
+    /**
+     * @param formatted If true, a project number of a range is segmented ("5.123.45", "1.2345.6"), otherwise the
+     * 6-digit number is returned. Free project numbers are shown unchanged.
+     */
+    fun formatProjectNumber(projectNumber: Int, formatted: Boolean): String {
+        if (!formatted || rangeForProjectNumber(projectNumber) == null) {
+            return projectNumber.toString()
+        }
+        return formatProjectNumber(projectNumber)
+    }
+
+    /**
      * Parses 8 digits ("12345678") or the delimited form matching the segments of the prefix ("1.2345.6.78" for
      * segments 1,4,1,2; "5.123.45.67" for 1,3,2,2).
      * @return [nummernkreis, bereich, teilbereich, kost2Art] in the positional storage format, null if not parse-able.

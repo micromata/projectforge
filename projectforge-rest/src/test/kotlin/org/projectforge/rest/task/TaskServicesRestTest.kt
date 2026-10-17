@@ -158,9 +158,9 @@ class TaskServicesRestTest : AbstractTestBase() {
 
     private fun insertKost2(projekt: ProjektDO, kost2Art: Long): Kost2DO {
         val kost2 = Kost2DO()
-        kost2.nummernkreis = 4
-        kost2.bereich = projekt.internKost2_4!!
-        kost2.teilbereich = projekt.nummer
+        kost2.nummernkreis = projekt.nummernkreis!!
+        kost2.bereich = projekt.bereich!!
+        kost2.teilbereich = projekt.teilbereich!!
         kost2.projekt = projekt
         kost2.kost2Art = Kost2ArtDO().withId(kost2Art)
         return kost2Dao.find(kost2Dao.insert(kost2))!!

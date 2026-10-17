@@ -61,8 +61,8 @@ class KostFormatterTest : AbstractTestBase() {
         Assertions.assertEquals("??????", kostFormatter.formatProjekt(null, KostFormatter.FormatType.NUMBER))
 
         val projekt = ProjektDO()
-        projekt.nummer = 42
-        projekt.internKost2_4 = 17
+        projekt.nummer = 1742
+        projekt.projektnummer = 401742 // Internal project 4.017.42 (ProjektDao sets it on save).
         projekt.name = "Project name very long name of the project with a lot of text to test the formatter"
         Assertions.assertEquals("4.017.42", kostFormatter.formatProjekt(projekt))
         Assertions.assertEquals("401742", kostFormatter.formatProjekt(projekt, KostFormatter.FormatType.NUMBER))
@@ -79,6 +79,8 @@ class KostFormatterTest : AbstractTestBase() {
             kostFormatter.formatProjekt(projekt, KostFormatter.FormatType.LONG)
         )
         projekt.kunde = kunde
+        projekt.nummer = 42
+        projekt.projektnummer = 520442
         Assertions.assertEquals("5.204.42", kostFormatter.formatProjekt(projekt))
         Assertions.assertEquals("520442", kostFormatter.formatProjekt(projekt, KostFormatter.FormatType.NUMBER))
         Assertions.assertEquals(

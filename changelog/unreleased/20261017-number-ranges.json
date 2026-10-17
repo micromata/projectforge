@@ -1,0 +1,19 @@
+{
+  "type": "changed",
+  "en": "Customers and projects independent of cost units",
+  "de": "Kunden und Projekte unabhängig von Kostenträgern",
+  "items": [
+    {
+      "en": "Each project has a system-wide unique project number. Customers and projects can be used without cost units (Kost2), with free numbers.",
+      "de": "Jedes Projekt hat eine systemweit eindeutige Projektnummer. Kunden und Projekte sind auch ohne Kostenträger (Kost2) nutzbar, mit frei vergebenen Nummern."
+    },
+    {
+      "en": "Number ranges for customers and projects and their mapping to Kost2 are configured in application.properties (projectforge.fibu.number-ranges.*), including the number of project digits per customer and the segments of the Kost2 numbers, e.g. 1.####.#.##.",
+      "de": "Nummernkreise für Kunden und Projekte und ihre Zuordnung zu Kost2 werden in der application.properties konfiguriert (projectforge.fibu.number-ranges.*), einschließlich der Stellenzahl der Projekte je Kunde und der Segmente der Kost2-Nummern, z. B. 1.####.#.##."
+    },
+    {
+      "en": "Installations using cost units with the former fixed ranges 4.###.##.## (internal) and 5.###.##.## (customers 0-999) have to configure them as number ranges, see NumberRangeConfig.",
+      "de": "Installationen, die Kostenträger mit den bisher fest hinterlegten Kreisen 4.###.##.## (intern) und 5.###.##.## (Kunden 0-999) nutzen, müssen diese als Nummernkreise konfigurieren, siehe NumberRangeConfig."
+    }
+  ]
+}

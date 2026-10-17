@@ -56,20 +56,21 @@ public class TaskKostTest extends AbstractTestBase {
         persistenceService.runInTransaction(context ->
         {
             logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
+            // Kost2 without project: prefix 3 belongs to no number range (application-test.properties).
             Kost2DO kost = new Kost2DO();
-            kost.setNummernkreis(1);
+            kost.setNummernkreis(3);
             kost.setBereich(137);
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(1L));
             final Kost2DO kost2a = kost2Dao
-                    .find(kost2Dao.insert(kost)); // Kost2: 1.137.05.01
+                    .find(kost2Dao.insert(kost)); // Kost2: 3.137.05.01
             kost = new Kost2DO();
-            kost.setNummernkreis(1);
+            kost.setNummernkreis(3);
             kost.setBereich(137);
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(2L));
             final Kost2DO kost2b = kost2Dao
-                    .find(kost2Dao.insert(kost)); // Kost2: 1.137.05.02
+                    .find(kost2Dao.insert(kost)); // Kost2: 3.137.05.02
             kost = new Kost2DO();
             kost.setNummernkreis(2);
             kost.setBereich(423);
@@ -78,26 +79,26 @@ public class TaskKostTest extends AbstractTestBase {
             final Kost2DO kost2c = kost2Dao
                     .find(kost2Dao.insert(kost)); // Kost2: 2.423.12.01
             final TaskDO task = initTestDB.addTask("kost2test2", "root");
-            task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
+            task.setKost2BlackWhiteList("3.137.05.01, 3.137.05.02, 2.423.12.01");
             taskDao.update(task);
             List<Kost2DO> list = taskTree.getKost2List(task.getId());
             assertEquals(3, list.size());
-            assertKost2(kost2a, list.get(0));
-            assertKost2(kost2b, list.get(1));
-            assertKost2(kost2c, list.get(2));
-            task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
+            assertKost2(kost2c, list.get(0)); // Sorted: 2.423.12.01 first
+            assertKost2(kost2a, list.get(1));
+            assertKost2(kost2b, list.get(2));
+            task.setKost2BlackWhiteList("3.137.05.01, 3.137.05.02, 2.423.12.01");
             task.setKost2IsBlackList(true);
             taskDao.update(task);
             list = taskTree.getKost2List(task.getId());
             assertNull(list);
-            task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01, jwe9jdkjn");
+            task.setKost2BlackWhiteList("3.137.05.01, 3.137.05.02, 2.423.12.01, jwe9jdkjn");
             task.setKost2IsBlackList(false);
             taskDao.update(task);
             list = taskTree.getKost2List(task.getId());
             assertEquals(3, list.size());
-            assertKost2(kost2a, list.get(0));
-            assertKost2(kost2b, list.get(1));
-            assertKost2(kost2c, list.get(2));
+            assertKost2(kost2c, list.get(0));
+            assertKost2(kost2a, list.get(1));
+            assertKost2(kost2b, list.get(2));
             return null;
         });
     }

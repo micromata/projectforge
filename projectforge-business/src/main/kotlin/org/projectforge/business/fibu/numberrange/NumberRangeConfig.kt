@@ -23,9 +23,6 @@
 
 package org.projectforge.business.fibu.numberrange
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-
 /**
  * Number ranges (Nummernkreise) of customers and projects and their mapping to Kost2. Nothing is predefined: without
  * any configured range, customer and project numbers are free.
@@ -46,11 +43,10 @@ import org.springframework.context.annotation.Configuration
  * projectforge.fibu.number-ranges.ranges[2].project-digits=1
  * projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
  * ```
- * See [NumberRange] for the meaning of the fields.
+ * See [NumberRange] for the meaning of the fields. Bound by [NumberRangeService] from the environment (prefix
+ * [PREFIX]).
  */
-@Configuration
-@ConfigurationProperties(prefix = "projectforge.fibu.number-ranges")
-open class NumberRangeConfig {
+class NumberRangeConfig {
     /**
      * If false, every customer number must lie in a configured range (protects against typos). Ignored if no range is
      * configured.
@@ -61,4 +57,8 @@ open class NumberRangeConfig {
     var defaultSegments: List<Int> = NumberRange.DEFAULT_SEGMENTS
 
     var ranges: MutableList<NumberRange> = mutableListOf()
+
+    companion object {
+        const val PREFIX = "projectforge.fibu.number-ranges"
+    }
 }

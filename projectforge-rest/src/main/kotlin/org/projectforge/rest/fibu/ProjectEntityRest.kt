@@ -30,6 +30,9 @@ import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.ProjektStatus
+import org.projectforge.business.fibu.numberrange.NumberRangeService
+import org.projectforge.business.fibu.numberrange.NumberRangeViolation
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.kost.ProjektKost2Service
@@ -101,6 +104,9 @@ class ProjectEntityRest
 
     @Autowired
     private lateinit var projektKost2Service: ProjektKost2Service
+
+    @Autowired
+    private lateinit var numberRangeService: NumberRangeService
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
@@ -328,18 +334,34 @@ class ProjectEntityRest
     }
 
     /**
-     * The number of a project must be free within its customer, or within its internal range (4.xxx) for a
-     * project without customer — both are unique constraints of [ProjektDO]. Checked here as a field error,
-     * so the hand built form marks the number instead of failing with the database's exception. The former
-     * Wicket `ProjektEditForm` checked the customer case only.
+     * The number of a project must be free within its customer (unique constraint of [ProjektDO]) and its
+     * project number must fit the configured number ranges and be free system-wide. Checked here as field
+     * errors, so the hand built form marks the number instead of failing with the DAO's exception.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Project) {
         super.validate(validationErrors, dto)
         val kundeId = dto.customer?.id
+        val kunde = kundeId?.let { caches.getKunde(it) }
+        val numberRanges = numberRangeService.numberRanges
+        val customerRange = numberRanges.rangeForCustomer(kunde?.nummer)
+        val projektnummer = if (customerRange != null) {
+            if (dto.nummer !in 0..customerRange.maxLocalNumber) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg(ProjektDao.LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY, customerRange.maxLocalNumber),
+                        fieldId = ProjektDO::nummer.name,
+                    )
+                )
+                return
+            }
+            numberRanges.projectNumber(customerRange, kunde?.nummer, dto.nummer)
+        } else {
+            dto.projektnummer ?: baseDao.legacyProjektnummer(kunde != null, dto.internKost2_4, dto.nummer)
+        }
         // The form shows number and customer read-only then; this catches a stale form or a direct REST
         // call as a field error rather than ProjektDao.onUpdate's exception.
         val stored = dto.id?.let { caches.getProjekt(it) }
-        if (stored != null && baseDao.isNumberLocked(stored.id) && isNumberChanged(dto, stored)) {
+        if (stored != null && baseDao.isNumberLocked(stored.id) && projektnummer != stored.projektnummer) {
             validationErrors.add(
                 ValidationError(
                     translate(ProjektDao.NUMBER_LOCKED_I18N_KEY),
@@ -348,41 +370,59 @@ class ProjectEntityRest
             )
             return
         }
-        val other = if (kundeId != null) {
-            caches.getKunde(kundeId)?.let { baseDao.getProjekt(it, dto.nummer.toLong()) }
-        } else {
-            dto.internKost2_4?.let { baseDao.getProjekt(it, dto.nummer) }
+        if (kunde != null) {
+            baseDao.getProjekt(kunde, dto.nummer.toLong())?.let { other ->
+                if (other.id != dto.id) {
+                    validationErrors.add(
+                        ValidationError(
+                            translate("fibu.projekt.validation.numbernotfreeforcustomer"),
+                            fieldId = ProjektDO::nummer.name,
+                        )
+                    )
+                }
+            }
         }
-        if (other != null && other.id != dto.id) {
+        if (customerRange == null) {
+            // Free project number (or a number of a range without customers), see ProjektDao.assignProjektnummer:
+            kunde?.nummer?.let { numberRanges.validateCustomerNumber(it) }?.let { violation ->
+                validationErrors.add(ValidationError(translate(violation.i18nKey), fieldId = "customer"))
+                return
+            }
+            if (projektnummer != null) {
+                val range = numberRanges.rangeForProjectNumber(projektnummer)
+                val violation = if (range != null) {
+                    if (kunde != null || range.hasCustomers) NumberRangeViolation.FREE_NUMBER_IN_RANGE else null
+                } else {
+                    numberRanges.validateFreeProjectNumber(projektnummer)
+                }
+                violation?.let {
+                    validationErrors.add(
+                        ValidationError(translate(it.i18nKey), fieldId = ProjektDO::projektnummer.name)
+                    )
+                    return
+                }
+            }
+        }
+        projektnummer?.let { baseDao.getProjektByProjektnummer(it) }?.let { other ->
+            if (other.id != dto.id) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg(ProjektDao.PROJEKTNUMMER_EXISTS_I18N_KEY, projektnummer),
+                        fieldId = ProjektDO::projektnummer.name,
+                    )
+                )
+            }
+        }
+        // Cost 2 units take their number from the project number, which must belong to a number range then.
+        val inRange = projektnummer?.let { numberRanges.rangeForProjectNumber(it) } != null
+        if (!inRange && dto.kost2Arts?.any { it.selected && !it.existsAlready } == true) {
             validationErrors.add(
                 ValidationError(
-                    translate("fibu.projekt.validation.numbernotfreeforcustomer"),
-                    fieldId = ProjektDO::nummer.name,
+                    translate(Kost2Dao.PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY),
+                    fieldId = ProjektDO::projektnummer.name,
                 )
             )
         }
-        // A cost 2 unit takes its range (bereich) from the project: the customer's number, or the internal
-        // range. Without either, no cost 2 unit can be created (Kost2Dao.setProjekt).
-        if (kundeId == null && dto.internKost2_4 == null && dto.kost2Arts?.any { it.selected && !it.existsAlready } == true) {
-            validationErrors.add(
-                ValidationError(
-                    translateMsg("validation.error.fieldRequired", translate("fibu.projekt.internKost2_4")),
-                    fieldId = ProjektDO::internKost2_4.name,
-                )
-            )
-        }
-    }
-
-    /**
-     * Customer (or the internal range of a project without one) and number, as they make up the cost 2
-     * numbers. `internKost2_4` of a customer project is dropped on save (ProjektDao.onInsertOrModify).
-     */
-    private fun isNumberChanged(dto: Project, stored: ProjektDO): Boolean {
-        val kundeId = dto.customer?.id
-        // Via the cache: the kunde of a cached ProjektDO may be a lazy proxy (see Project.copyFromMinimal).
-        val storedKundeId = caches.getKundeIfNotInitialized(stored.kunde)?.nummer
-        return kundeId != storedKundeId || dto.nummer != stored.nummer ||
-                (kundeId == null && dto.internKost2_4 != stored.internKost2_4)
     }
 
     /**

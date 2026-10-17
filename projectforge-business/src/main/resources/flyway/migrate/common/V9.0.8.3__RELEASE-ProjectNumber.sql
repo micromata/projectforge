@@ -1,0 +1,28 @@
+-- System-wide unique project number (customers and projects independent of Kost2, number ranges configured in
+-- application.properties: projectforge.fibu.number-ranges.*).
+-- The existing projects get the number of the formerly hard-coded number ranges their Kost2 were built of:
+-- customer projects 5.<customer 0-999>.<nummer 0-99> = 500000 + customer * 100 + nummer,
+-- internal projects 4.<intern_kost2_4 0-999>.<nummer 0-99> = 400000 + intern_kost2_4 * 100 + nummer.
+-- Projects not fitting these ranges keep NULL and get a free number on their next save.
+ALTER TABLE t_fibu_projekt
+    ADD COLUMN projektnummer INTEGER;
+
+UPDATE t_fibu_projekt
+SET projektnummer = 500000 + kunde_id * 100 + nummer
+WHERE kunde_id BETWEEN 0 AND 999
+  AND nummer BETWEEN 0 AND 99;
+
+UPDATE t_fibu_projekt
+SET projektnummer = 400000 + intern_kost2_4 * 100 + nummer
+WHERE kunde_id IS NULL
+  AND intern_kost2_4 BETWEEN 0 AND 999
+  AND nummer BETWEEN 0 AND 99;
+
+-- The local number of a project without customer covers all digits after the prefix (intern_kost2_4 is legacy):
+UPDATE t_fibu_projekt
+SET nummer = projektnummer - 400000
+WHERE kunde_id IS NULL
+  AND projektnummer IS NOT NULL;
+
+ALTER TABLE t_fibu_projekt
+    ADD CONSTRAINT unique_t_fibu_projekt_projektnummer UNIQUE (projektnummer);

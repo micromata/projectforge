@@ -91,12 +91,12 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             Assertions.assertNull(result[withoutAccess.id], "No task access, no Kost2.")
             Assertions.assertEquals(
                 listOf(kost2b.formattedNumber),
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.02"))))[withAccess.id]
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("3.*.02"))))[withAccess.id]
                     ?.map { it.formattedNumber },
                 "Filtered by pattern.",
             )
             Assertions.assertNull(
-                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("1.*.03"))))[withAccess.id],
+                payloadBuilder.getBookableKost2(listOf(withAccess), listOf(listOf(LanesAndPlanesSettings.globToRegex("3.*.03"))))[withAccess.id],
                 "Kost2 3 matches, but isn't bookable.",
             )
             val otherProject = addKost2(2, teilbereich = 6)
@@ -104,7 +104,7 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
             alternatives.kost2BlackWhiteList = otherProject.formattedNumber
             taskDao.update(alternatives)
             initTestDB.createGroupTaskAccess(group, alternatives, AccessType.OWN_TIMESHEETS, true, true, true, true)
-            val groups = listOf(listOf("1.*.01", "1.*.02").map { LanesAndPlanesSettings.globToRegex(it) })
+            val groups = listOf(listOf("3.*.01", "3.*.02").map { LanesAndPlanesSettings.globToRegex(it) })
             Assertions.assertEquals(
                 listOf(kost2a.formattedNumber, otherProject.formattedNumber),
                 payloadBuilder.getBookableKost2(listOf(withAccess), groups)[withAccess.id]?.map { it.formattedNumber }?.sorted(),
@@ -271,7 +271,7 @@ class LanesAndPlanesPayloadBuilderTest : AbstractTestBase() {
 
     private fun addKost2(kost2ArtId: Long, status: KostentraegerStatus? = null, teilbereich: Int = 5): Kost2DO {
         val kost2 = Kost2DO()
-        kost2.nummernkreis = 1
+        kost2.nummernkreis = 3 // No number range (application-test.properties), so no project needed.
         kost2.bereich = 731
         kost2.teilbereich = teilbereich
         kost2.kost2Art = Kost2ArtDO().withId(kost2ArtId)

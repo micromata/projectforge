@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
+import org.projectforge.business.fibu.numberrange.NumberRangeService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
@@ -34,8 +35,8 @@ public class OldKostFormatter {
   public static final int MAX_VALUE = 99999999;
 
   /**
-   * @return Id im dreistelligen Format: "001" - "999" oder "???" wenn id null ist.
-   * @see #format3Digits(Number)
+   * @return The customer number, padded to the digits of its number range (e.g. "001" - "999"), or "???" if null.
+   * @see org.projectforge.business.fibu.numberrange.NumberRanges#formatCustomerNumber(long, boolean)
    */
   public static String format(final KundeDO kunde) {
     if (kunde == null) {
@@ -48,13 +49,13 @@ public class OldKostFormatter {
     if (kundeId == null) {
       return "???";
     }
-    return format3Digits(kundeId);
+    return NumberRangeService.getCurrent().formatCustomerNumber(kundeId.longValue(), false);
   }
 
   /**
    * Ruft format(projekt, false) auf.
    *
-   * @return "5." + format(kunde) + "." + 3 stellige Projekt-Id;
+   * @return e.g. "5.123.45" or "1.2345.6" (number range) or the free project number.
    * @see #format(ProjektDO, boolean)
    */
   public static String format(final ProjektDO projekt) {
@@ -63,24 +64,14 @@ public class OldKostFormatter {
 
   /**
    * @param numberFormat Wenn true, dann werden die Trennpunkte nicht angegeben.
-   * @return nummernkreis + format(kunde)/projekt.getBereich() + "." + 3 stellige Projekt-Id;
-   * @see StringUtils#leftPad(String, int, char)
-   * @see #format(KundeDO)
+   * @return The project number segmented by its number range, see {@link KostFormatter#formatProjektNumber(ProjektDO, boolean)}.
    */
   public static String format(final ProjektDO projekt, final boolean numberFormat) {
     if (projekt == null) {
-      return "?.???.???";
+      return "?.???.??";
     }
-    final String delimiter = (numberFormat) ? "" : ".";
-    final StringBuilder buf = new StringBuilder();
-    buf.append(String.valueOf(projekt.getNummernkreis())).append(delimiter);
-    if (projekt.getKunde() != null) {
-      buf.append(format(projekt.getKunde()));
-    } else {
-      buf.append(format3Digits(projekt.getBereich()));
-    }
-    buf.append(delimiter).append(format2Digits(projekt.getNummer()));
-    return buf.toString();
+    final String result = KostFormatter.formatProjektNumber(projekt, !numberFormat);
+    return result != null ? result : "?.???.??";
   }
 
   /**

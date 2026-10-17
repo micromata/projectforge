@@ -498,6 +498,42 @@
   "attr": {
     "validSince": "Valid since"
   },
+  "availability": {
+    "comment": {
+      "_": "Comment",
+      "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
+    },
+    "endDate": "End date",
+    "internalComment": {
+      "_": "Internal comment",
+      "tooltip": "Only visible to the person concerned and to HR staff."
+    },
+    "location": {
+      "_": "Location",
+      "onSite": "On-site",
+      "remote": "Remote"
+    },
+    "startDate": "Start date",
+    "status": {
+      "_": "Availability",
+      "notAvailable": "Not available",
+      "reachableIfNeeded": "Reachable if needed",
+      "reachableIfUrgent": "Reachable if urgent",
+      "remoteReachable": "Remotely reachable"
+    },
+    "title": {
+      "_": "Availability",
+      "add": "Create availability entry",
+      "edit": "Edit availability entry",
+      "heading": "Availability",
+      "list": "Availability list"
+    },
+    "type": {
+      "_": "Type",
+      "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
+    },
+    "user": "Person"
+  },
   "back": "Back",
   "book": {
     "abstract": "Abstract",
@@ -559,14 +595,18 @@
     "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
+      "absenceKinds": {
+        "_": "Show",
+        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation."
+      },
       "vacation": {
         "groups": {
-          "_": "Vacation groups",
-          "tooltip": "For these groups any vacation of their users will be displayed."
+          "_": "Absences: groups",
+          "tooltip": "For the members of these groups the absences are shown: vacations and availability entries."
         },
         "users": {
-          "_": "Vacation users",
-          "tooltip": "For these users any vacation will be displayed."
+          "_": "Absences: persons",
+          "tooltip": "For these persons the absences are shown: vacations and availability entries."
         }
       },
       "visible": "visible"
@@ -1567,7 +1607,8 @@
       "_": "Cost 2",
       "art": "Type",
       "error": {
-        "projektNeededForNummernkreis": "The project is required for number range 4 and 5."
+        "projektNeededForNummernkreis": "The project is required for cost units of a number range.",
+        "projektWithoutNumberRange": "Cost units (Kost2) can only be created for projects of a number range: the number of the project belongs to no configured number range."
       },
       "id": "Cost 2 id",
       "kost2s": "cost 2 ids",
@@ -1748,6 +1789,7 @@
       "pleaseSelectProjekt": "Please choose project",
       "projektManagerGroup": "Group of project managers",
       "projekte": "Projects",
+      "projektnummer": "Project number",
       "status": {
         "acquisition": "acquisition",
         "build": "build phase",
@@ -1764,8 +1806,10 @@
         "list": "List of projects"
       },
       "validation": {
+        "localNumberOutOfRange": "The number must be between 0 and {arg0} in the number range of the customer.",
         "numberLocked": "Number and customer can no longer be changed: the project already has cost units (Kost2), which carry this number.",
-        "numbernotfreeforcustomer": "Number already exists for other customer project"
+        "numbernotfreeforcustomer": "Number already exists for other customer project",
+        "projektnummerExists": "Project number {arg0} is already used by another project."
       },
       "wizard": {
         "notYetAvailable": "Wizard not yet available. Please note: You need only and only project objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
@@ -2608,6 +2652,7 @@
     "2FASetup": "Two-factor authentication",
     "addNewEntry": "New entry",
     "administration": "Administration",
+    "availability": "Availability",
     "calendar": "Calendar",
     "changePassword": "Change password",
     "changeWlanPassword": "Change WLAN/Samba password",
@@ -4802,7 +4847,7 @@
       "uncovered": "No substitute"
     },
     "conflict": {
-      "info": "A conflict exists: At least at one day no substitute is available. Please choose other or further substitutes."
+      "info": "A conflict exists: At least at one day no substitute is available (on vacation or not available). Please choose other or further substitutes."
     },
     "conflicts": "Conflicts",
     "countPerDay": "vacation hours per day",
@@ -4834,6 +4879,10 @@
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
       "selectHint": "Choose employees or groups to show their vacations.",
+      "showAvailabilities": {
+        "_": "Availabilities",
+        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as their vacations. Their comments only if the entries are visible in the availability list, too."
+      },
       "title": "Team vacation calendar"
     },
     "halfDay": "Half day",

@@ -30,14 +30,16 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.common.NumberToStringValueBridge
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 
 /**
- * Jeder Kunde bei Micromata hat eine Kundennummer. Die Kundennummer ist Bestandteil von KOST2 (2.-4. Ziffer). Aufträge
- * aus dem Auftragsbuch, sowie Rechnungen etc. werden Kunden zugeordnet.
+ * Every customer has a customer number. If it belongs to a configured number range, it is part of the project
+ * numbers and Kost2 of its projects (see [org.projectforge.business.fibu.numberrange.NumberRanges]); otherwise it is
+ * free. Orders, invoices etc. are assigned to customers.
  *
  * @author Kai Reinhard
  */
@@ -115,8 +117,9 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     open var konto: KontoDO? = null
 
     /**
-     * @return "5.###" ("5.<kunde id>")</kunde>
-     * */
+     * @return e.g. "5.123" or "1.2345" for customers of a number range, the plain number otherwise.
+     * @see KostFormatter.formatKunde
+     */
     open val kost: String
         @JsonIgnore
         @PropertyInfo(i18nKey = "fibu.kunde.nummer")
@@ -126,13 +129,11 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         get() = KostFormatter.instance.formatKunde(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
-     * 1. Ziffer des Kostenträgers: Ist für Kunden immer 5.
-     *
-     * @return 5
+     * Digit 1 of the Kost2 of the customer's projects (the prefix of its number range), null for free numbers.
      */
-    val nummernkreis: Int
+    val nummernkreis: Int?
         @Transient
-        get() = 5
+        get() = NumberRangeService.current.rangeForCustomer(nummer)?.prefix
 
     /**
      * @return Identifier if exists otherwise name of project.
@@ -142,8 +143,4 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         get() = if (StringUtils.isNotBlank(this.identifier)) {
             this.identifier
         } else this.name
-
-    companion object {
-        const val MAX_ID = 999L
-    }
 }

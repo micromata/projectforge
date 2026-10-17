@@ -244,11 +244,9 @@ class InitTestDB {
         kost2ArtIds.forEach { id ->
             val kost2 = Kost2DO()
             kost2.projekt = projekt
-            kost2.nummernkreis = 5
-            if (kunde != null) {
-                kost2.bereich = kunde.id!!.toInt()
-            }
-            kost2.teilbereich = projekt.nummer
+            kost2.nummernkreis = projekt.nummernkreis!!
+            kost2.bereich = projekt.bereich!!
+            kost2.teilbereich = projekt.teilbereich!!
             kost2Dao.setKost2Art(kost2, id)
             kost2Dao.insert(kost2)
         }

@@ -77,6 +77,11 @@ export const PROJEKT_METADATA = {
       i18nKey: "fibu.projekt.projektManagerGroup",
       required: false,
     },
+    projektnummer: {
+      dataType: "INT",
+      i18nKey: "fibu.projekt.projektnummer",
+      required: false,
+    },
     salesManager: {
       dataType: "USER",
       i18nKey: "fibu.salesManager",

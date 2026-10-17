@@ -79,9 +79,9 @@ class ProjectKost2ArtsMassUpdateTest : AbstractTestBase() {
         }
         Kost2DO().also {
             it.projekt = project
-            it.nummernkreis = project.nummernkreis
+            it.nummernkreis = project.nummernkreis!!
             it.bereich = project.bereich!!
-            it.teilbereich = project.nummer
+            it.teilbereich = project.teilbereich!!
             it.kost2Art = arts[0]
             kost2Dao.insert(it, checkAccess = false)
         }

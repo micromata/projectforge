@@ -36,6 +36,11 @@ class Project(
     id: Long? = null,
     displayName: String? = null,
     var nummer: Int = 0,
+    /**
+     * System-wide unique project number: computed for customers of a number range, entered otherwise (see
+     * [ProjektDO.projektnummer]).
+     */
+    var projektnummer: Int? = null,
     var name: String? = null,
     var identifier: String? = null,
     var description: String? = null,

@@ -498,6 +498,42 @@
   "attr": {
     "validSince": "Gültig ab"
   },
+  "availability": {
+    "comment": {
+      "_": "Kommentar",
+      "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
+    },
+    "endDate": "Enddatum",
+    "internalComment": {
+      "_": "Interner Kommentar",
+      "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar."
+    },
+    "location": {
+      "_": "Ort",
+      "onSite": "Standort",
+      "remote": "Remote"
+    },
+    "startDate": "Startdatum",
+    "status": {
+      "_": "Verfügbarkeit",
+      "notAvailable": "Nicht verfügbar",
+      "reachableIfNeeded": "Bei Bedarf erreichbar",
+      "reachableIfUrgent": "Bei dringendem Bedarf erreichbar",
+      "remoteReachable": "Remote erreichbar"
+    },
+    "title": {
+      "_": "Verfügbarkeit",
+      "add": "Verfügbarkeitseintrag erstellen",
+      "edit": "Verfügbarkeitseintrag bearbeiten",
+      "heading": "Verfügbarkeit",
+      "list": "Verfügbarkeitsliste"
+    },
+    "type": {
+      "_": "Typ",
+      "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar, alle anderen sehen nur den Status."
+    },
+    "user": "Person"
+  },
   "back": "Zurück",
   "book": {
     "abstract": "Zusammenfassung",
@@ -559,14 +595,18 @@
     "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
+      "absenceKinds": {
+        "_": "Anzeigen",
+        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend."
+      },
       "vacation": {
         "groups": {
-          "_": "Urlaubskalender Gruppen",
-          "tooltip": "Für Mitglieder dieser Gruppen werden die Urlaube angezeigt."
+          "_": "Abwesenheiten: Gruppen",
+          "tooltip": "Für Mitglieder dieser Gruppen werden die Abwesenheiten angezeigt: Urlaube und Verfügbarkeitseinträge."
         },
         "users": {
-          "_": "Urlaubskalender Benutzer:in",
-          "tooltip": "Für diese Personen werden die Urlaube angezeigt."
+          "_": "Abwesenheiten: Personen",
+          "tooltip": "Für diese Personen werden die Abwesenheiten angezeigt: Urlaube und Verfügbarkeitseinträge."
         }
       },
       "visible": "sichtbar"
@@ -1567,7 +1607,8 @@
       "_": "Kost2",
       "art": "Art",
       "error": {
-        "projektNeededForNummernkreis": "Das Projekt muss für die Nummernkreise 4 und 5 zwingend angegeben sein."
+        "projektNeededForNummernkreis": "Für Kostenträger eines Nummernkreises muss das Projekt angegeben sein.",
+        "projektWithoutNumberRange": "Kostenträger (Kost2) gibt es nur für Projekte eines Nummernkreises: Die Nummer des Projekts gehört zu keinem konfigurierten Nummernkreis."
       },
       "id": "Kost2-ID",
       "kost2s": "Kost2s",
@@ -1748,6 +1789,7 @@
       "pleaseSelectProjekt": "Bitte Projekt wählen",
       "projektManagerGroup": "Projektmanagergruppe",
       "projekte": "Projekte",
+      "projektnummer": "Projektnummer",
       "status": {
         "acquisition": "Akquise",
         "build": "Entwicklungsphase",
@@ -1764,8 +1806,10 @@
         "list": "Projekte"
       },
       "validation": {
+        "localNumberOutOfRange": "Die Nummer muss im Nummernkreis des Kunden zwischen 0 und {arg0} liegen.",
         "numberLocked": "Nummer und Kunde können nicht mehr geändert werden: Das Projekt hat bereits Kostenträger (Kost2), die diese Nummer tragen.",
-        "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben"
+        "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben",
+        "projektnummerExists": "Die Projektnummer {arg0} ist bereits an ein anderes Projekt vergeben."
       },
       "wizard": {
         "notYetAvailable": "Der Assistent ist noch nicht verfügbar. Bitte beachten: Projektobjekte werden aktuell nur und nur für Kostenträgerrechnungen benötigt (s. Dokumentation). Bitte benutzen den Strukturbaum, um eine Kunden-Projekt-Hierarchie abzubilden."
@@ -2608,6 +2652,7 @@
     "2FASetup": "2. Faktor einrichten",
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
+    "availability": "Verfügbarkeit",
     "calendar": "Kalender",
     "changePassword": "Passwort ändern",
     "changeWlanPassword": "WLAN/Samba Passwort ändern",
@@ -4802,7 +4847,7 @@
       "uncovered": "Keine Vertretung"
     },
     "conflict": {
-      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung. Bitte andere oder weitere Vertretungen auswählen."
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung (Urlaub oder nicht verfügbar). Bitte andere oder weitere Vertretungen auswählen."
     },
     "conflicts": "Konflikte",
     "countPerDay": "Urlaubsstunden pro Urlaubstag",
@@ -4834,6 +4879,10 @@
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
+      "showAvailabilities": {
+        "_": "Verfügbarkeiten",
+        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, wie ihre Urlaube. Die Kommentare nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
+      },
       "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",

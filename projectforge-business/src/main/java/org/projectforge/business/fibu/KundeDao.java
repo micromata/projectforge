@@ -24,6 +24,8 @@
 package org.projectforge.business.fibu;
 
 import org.jetbrains.annotations.NotNull;
+import org.projectforge.business.fibu.numberrange.NumberRangeService;
+import org.projectforge.business.fibu.numberrange.NumberRangeViolation;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.OperationType;
@@ -113,6 +115,11 @@ public class KundeDao extends BaseDao<KundeDO> {
 
     @Override
     public void onInsert(KundeDO obj) {
+        final NumberRangeViolation violation = NumberRangeService.getCurrent().validateCustomerNumber(obj.getNummer());
+        if (violation != null) {
+            obj.setCreated(null);
+            throw new UserException(violation.getI18nKey());
+        }
         if (doesNumberAlreadyExist(obj)) {
             obj.setCreated(null);
             throw new UserException("fibu.kunde.validation.existingCustomerNr");
