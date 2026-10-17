@@ -39,7 +39,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
     const list = page.waitForResponse("**/rs/address/list*");
     await goto(page, "/address");
     await list;
-    const rows = page.getByRole("row").filter({ has: page.getByRole("cell") });
+    const rows = page.locator(ROW);
     // The list starts with the user's favorites, which a test account may not have.
     await rows
       .first()
@@ -69,7 +69,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
     const list = page.waitForResponse("**/rs/address/list*");
     await goto(page, "/address");
     await list;
-    const rows = page.getByRole("row").filter({ has: page.getByRole("cell") });
+    const rows = page.locator(ROW);
     await rows
       .first()
       .waitFor({ timeout: 5_000 })
@@ -254,6 +254,12 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await expect(page).toHaveURL(/\/next\/address\/1$/);
   });
 });
+
+/**
+ * A row of the loaded list: the `data-row-id` tells it from the skeleton rows shown while the list loads
+ * and from the row of the empty list (see DataTable), which have cells as well.
+ */
+const ROW = "tbody tr[data-row-id]";
 
 function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
