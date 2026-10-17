@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chartWidthOf, resolveChartWidth } from "./vacation-chart-width";
+import { chartWidthOf, resolveChartWidth } from "./absence-chart-width";
 
 describe("resolveChartWidth", () => {
   it("draws a quarter normal and a year narrow by default", () => {

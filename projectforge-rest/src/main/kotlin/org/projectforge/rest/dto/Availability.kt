@@ -27,6 +27,7 @@ import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityLocation
 import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 
 class Availability(
@@ -46,15 +47,30 @@ class Availability(
     var internalCommentVisible: Boolean? = null,
     /** The configured types (and the stored one). Read-only, edit view only. */
     var availableTypes: List<String>? = null,
+    /** Optional: who stands in for the user during the period. */
+    var substitutes: List<User>? = null,
+    var substitutesAsString: String? = null,
+    /** On a day of the period all substitutes are away (ConflictingAvailabilitiesCache). Read-only. */
+    var conflict: Boolean? = null,
+    /** The substitutes' vacations overlapping the period, as the user may see them. Read-only, edit view only. */
+    var substituteVacations: List<Vacation>? = null,
+    /** The substitutes' availability entries overlapping the period, ditto. Read-only, edit view only. */
+    var substituteAvailabilities: List<VacationReplacementAvailability>? = null,
+    /** The days of the chart of the substitutes' absences. Read-only, edit view only. */
+    var chartDays: List<VacationChartDay>? = null,
 ) : BaseDTO<AvailabilityDO>() {
 
     override fun copyFrom(src: AvailabilityDO) {
         super.copyFrom(src)
         status?.let { statusAsString = translate(it.i18nKey) }
         location?.let { locationAsString = translate(it.i18nKey) }
+        substitutes = src.substitutes?.map { User().apply { copyFromMinimal(it) } }?.sortedBy { it.displayName }
+        substitutesAsString = substitutes?.joinToString { it.displayName ?: "???" }
     }
 
+    /** The substitutes by their ids only. */
     override fun copyTo(dest: AvailabilityDO) {
         super.copyTo(dest)
+        dest.substitutes = substitutes?.mapNotNull { it.id }?.map { id -> PFUserDO().also { it.id = id } }?.toMutableSet()
     }
 }

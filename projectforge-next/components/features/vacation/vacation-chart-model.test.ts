@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   availabilityLabel,
   barLabel,
-  buildVacationChart,
   monthSpans,
+} from "@/components/shared/absence-chart/absence-chart-model";
+import {
+  buildVacationChart,
   teamChartRows,
   type OwnVacation,
 } from "./vacation-chart-model";

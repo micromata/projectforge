@@ -158,13 +158,17 @@ class VacationChartDay(
 }
 
 /**
- * An availability entry of a substitute of a vacation, as its form shows it: who, when and how reachable.
+ * An availability entry of a substitute of a vacation or an availability entry, as its form shows it: who, when and
+ * how reachable.
+ * @param employee The substitute's employee, none for a freelancer.
+ * @param user The substitute.
  * @param label What the entry is called for the logged-in user (AvailabilityDao.labelFor): its type only for the
  * substitute and HR staff.
  * @param absent The substitute is away (AvailabilityStatus.absent), as on vacation.
  */
 class VacationReplacementAvailability(
     var employee: Employee? = null,
+    var user: User? = null,
     var startDate: LocalDate? = null,
     var startDateFormatted: String? = null,
     var endDate: LocalDate? = null,

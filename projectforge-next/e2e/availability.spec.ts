@@ -1,6 +1,11 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
-import { writeHeaders } from "./fixtures/seed";
+import {
+  fetchEntity,
+  insert,
+  markAsDeleted,
+  writeHeaders,
+} from "./fixtures/seed";
 import { formatDateInput } from "../lib/date-parse";
 import { AVAILABILITY_METADATA } from "../lib/metadata/availability.generated";
 import { AVAILABILITY_PAGE } from "../components/features/availability/availability.page";
@@ -8,8 +13,9 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
 /**
  * The availability entries against the live backend (see AVAILABILITY_PAGE and AvailabilityEntityRest). Nothing
- * is written but the stored choice of the team vacation calendar, which is put back. The form test doesn't save; it
- * posts a period ending before it begins, which the server refuses before any write (AvailabilityEntityRest.validate).
+ * is written but the stored choice of the team vacation calendar, which is put back, and the two entries of the
+ * substitutes' test, marked as deleted afterwards. The form test doesn't save; it posts a period ending before it
+ * begins, which the server refuses before any write (AvailabilityEntityRest.validate).
  */
 test.describe("availability", () => {
   test("shows the declared columns under the labels of AvailabilityDO", async ({
@@ -198,6 +204,77 @@ test.describe("availability", () => {
       errors.some((e) => e.fieldId === "endDate"),
       "a validation error at the end date"
     ).toBe(true);
+  });
+
+  test("shows the conflict of an entry whose substitute isn't available, with the substitute's absence", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const own = (
+      (await (
+        await page.request.get("/rs/availability/newEntry", {
+          headers: { "X-PF-Frontend": "next" },
+        })
+      ).json()) as { user?: { id: number } }
+    ).user;
+    expect(own, "preset with the logged-in user").toBeTruthy();
+    const users = (await (
+      await page.request.get("/rs/user/autosearch?search=", {
+        headers: { "X-PF-Frontend": "next" },
+      })
+    ).json()) as { id: number; displayName?: string }[];
+    const substitute = users.find((u) => u.id !== own!.id);
+    test.skip(!substitute, "no other user to stand in");
+    // Years ahead, so no stored entry of either is in the way; the full access user may enter both (HR right).
+    const year = new Date().getFullYear() + 7;
+    const period = { startDate: `${year}-03-04`, endDate: `${year}-03-08` };
+    const created: number[] = [];
+    try {
+      created.push(
+        await insert(page.request, "availability", {
+          user: { id: substitute!.id },
+          status: "NOT_AVAILABLE",
+          ...period,
+        })
+      );
+      const id = await insert(page.request, "availability", {
+        user: { id: own!.id },
+        status: "REMOTE_REACHABLE",
+        substitutes: [{ id: substitute!.id }],
+        ...period,
+      });
+      created.push(id);
+      const stored = await fetchEntity<{ conflict?: boolean }>(
+        page.request,
+        "availability",
+        id
+      );
+      expect(stored.conflict, "flagged by the conflict cache").toBe(true);
+
+      await goto(page, `/availability/${id}`);
+      await expect(
+        page.getByText(format.t("availability.conflict.info"))
+      ).toBeVisible();
+      const chart = page.getByRole("img", {
+        name: format.t("availability.chart.ariaLabel"),
+      });
+      await expect(chart).toBeVisible();
+      await expect(
+        chart.getByText(substitute!.displayName ?? "").first()
+      ).toBeVisible();
+      // The substitute's entry in the table of the absences, by its status.
+      await expect(
+        page
+          .getByRole("cell", {
+            name: format.t("availability.status.notAvailable"),
+          })
+          .first()
+      ).toBeVisible();
+    } finally {
+      for (const entryId of created.reverse()) {
+        await markAsDeleted(page.request, "availability", entryId);
+      }
+    }
   });
 });
 

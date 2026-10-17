@@ -18,6 +18,7 @@ export function toFormValues(
     location: availability.location ?? null,
     comment: availability.comment ?? null,
     internalComment: availability.internalComment ?? null,
+    substitutes: availability.substitutes ?? [],
   };
 }
 

@@ -23,6 +23,7 @@
 
 package org.projectforge.business.availability
 
+import org.hibernate.Hibernate
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -134,7 +135,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
 
     /**
      * Checks the given entry: user and status must be set, start and end date as well, the end date mustn't be before
-     * the start date and no other entry of the same user may overlap it.
+     * the start date, the user isn't a substitute of the own entry and no other entry of the same user may overlap it.
      * @return The i18n key of the error or null, if the entry is valid.
      */
     open fun validate(obj: AvailabilityDO, throwException: Boolean = false): String? {
@@ -145,6 +146,10 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
             obj.status == null -> ERROR_STATUS_NOT_SET
             startDate == null || endDate == null -> ERROR_DATE_NOT_SET
             endDate.isBefore(startDate) -> ERROR_END_DATE_BEFORE_START_DATE
+            // A lazy set not loaded (e.g. of a stored entry) was checked when it was saved.
+            Hibernate.isInitialized(obj.substitutes) && obj.substitutes?.any { it.id == obj.user?.id } == true ->
+                ERROR_SUBSTITUTE_SELF
+
             !obj.deleted && getOverlappingEntries(obj.user?.id, startDate, endDate).any { it.id != obj.id } ->
                 ERROR_COLLISION
 
@@ -228,6 +233,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
         const val ERROR_COLLISION = "availability.validate.collision"
         const val ERROR_STATUS_NOT_SET = "availability.validate.statusNotSet"
+        const val ERROR_SUBSTITUTE_SELF = "availability.validate.substituteSelf"
         const val ERROR_USER_NOT_SET = "availability.validate.userNotSet"
 
         /** How long the entries of others stay visible to the members of their groups after their end date. */

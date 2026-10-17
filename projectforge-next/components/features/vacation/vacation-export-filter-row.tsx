@@ -21,7 +21,7 @@ import {
   VACATION_EXPORT_GROUPS_URL,
 } from "@/lib/rs/vacation-export";
 import { VacationChartWidthSelect } from "./vacation-chart-width-select";
-import type { VacationChartWidth } from "./vacation-chart-width";
+import type { ChartWidth } from "@/components/shared/absence-chart/absence-chart-width";
 import type { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /**
@@ -54,7 +54,7 @@ export function VacationExportFilterRow({
   groups: EntityRef[];
   period: Period;
   min: string | null;
-  dayWidth: VacationChartWidth;
+  dayWidth: ChartWidth;
   showAvailabilities: boolean;
   favorites: ReturnType<typeof useVacationExportFavorites>;
   exporting: boolean;
@@ -62,7 +62,7 @@ export function VacationExportFilterRow({
   onEmployeesChange: (value: EntityRef[]) => void;
   onGroupsChange: (value: EntityRef[]) => void;
   onPeriodChange: (kind: PeriodKind, anchor: string) => void;
-  onDayWidthChange: (value: VacationChartWidth) => void;
+  onDayWidthChange: (value: ChartWidth) => void;
   onShowAvailabilitiesChange: (value: boolean) => void;
   onExport: () => void;
 }) {

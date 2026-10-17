@@ -30,8 +30,13 @@ import org.projectforge.business.availability.AvailabilityConfig
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.availability.AvailabilityLocation
+import org.projectforge.business.availability.AvailabilityConflictsFilter
 import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.availability.ConflictingAvailabilitiesCache
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.vacation.VacationCache
+import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -44,15 +49,23 @@ import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Availability
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.Vacation
+import org.projectforge.rest.dto.VacationChartDay
+import org.projectforge.rest.dto.VacationReplacementAvailability
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -66,7 +79,9 @@ import org.springframework.web.bind.annotation.RestController
  * - the user is changeable by HR staff only ([Availability.userEditable]),
  * - the types offered are the configured ones ([AvailabilityConfig], [Availability.availableTypes]),
  * - the internal comment is offered to the user and HR staff only ([Availability.internalCommentVisible]); for
- *   anybody else the dao doesn't send it nor the type ([AvailabilityDao.afterLoad]).
+ *   anybody else the dao doesn't send it nor the type ([AvailabilityDao.afterLoad]),
+ * - optional substitutes: an entry is in conflict if all of them are away on a day of it, shown in the form with
+ *   their absences ([stats]), in the list and by the menu's badge ([ConflictingAvailabilitiesCache]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/availability")
@@ -83,7 +98,33 @@ class AvailabilityEntityRest :
     private lateinit var caches: PfCaches
 
     @Autowired
+    private lateinit var conflictingAvailabilitiesCache: ConflictingAvailabilitiesCache
+
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var substituteAbsenceReducer: SubstituteAbsenceReducer
+
+    @Autowired
+    private lateinit var vacationCache: VacationCache
+
+    @Autowired
+    private lateinit var vacationService: VacationService
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    /**
+     * What the form shows of the substitutes' absences, as it follows the form ([stats]). The same names as in
+     * [Availability], whose fields the client updates with it.
+     */
+    class AvailabilityFormStats(
+        var conflict: Boolean? = null,
+        var substituteVacations: List<Vacation>? = null,
+        var substituteAvailabilities: List<VacationReplacementAvailability>? = null,
+        var chartDays: List<VacationChartDay>? = null,
+    )
 
     /**
      * Status and location are shown translated: sorted as displayed, not by the enum's name. The type as shown, too:
@@ -106,8 +147,12 @@ class AvailabilityEntityRest :
         val availability = Availability()
         caches.initialize(obj)
         availability.copyFrom(obj)
+        if (conflictingAvailabilitiesCache.hasConflict(obj.id)) {
+            availability.conflict = true
+        }
         if (editMode) {
             applyFormInfo(availability, obj)
+            applyStats(availability, computeStats(availability))
         }
         return availability
     }
@@ -142,6 +187,71 @@ class AvailabilityEntityRest :
     }
 
     /**
+     * What the form shows of the substitutes' absences for the state the user is editing: their vacations and
+     * availability entries overlapping the period (as far as the user may be told, see [SubstituteAbsenceReducer]) and
+     * whether a day is left without any of them on duty. Nothing is written.
+     *
+     * The user is the entry's as far as the logged-in user may see it: HR staff the posted one, anybody else the stored
+     * entry's user (read-checked) or the own one for a new entry; it is no substitute of its own entry.
+     */
+    @AccessChecked("DAO: select access; user: HR the posted one, else the stored entry's (find) or the own one")
+    @PostMapping("stats")
+    fun stats(@RequestBody postData: PostData<Availability>): AvailabilityFormStats {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val dto = postData.data
+        if (!hasHrRights()) {
+            val userDO = dto.id?.let { baseDao.find(it) }?.user ?: ThreadLocalUserContext.loggedInUser
+            dto.user = caches.getUserIfNotInitialized(userDO)?.let { User().apply { copyFromMinimal(it) } }
+        }
+        return computeStats(dto)
+    }
+
+    private fun computeStats(dto: Availability): AvailabilityFormStats {
+        val result = AvailabilityFormStats()
+        val startDate = dto.startDate
+        val endDate = dto.endDate
+        val substituteIds = dto.substitutes.orEmpty().mapNotNull { it.id }.filter { it != dto.user?.id }.distinct()
+        // A period the chart draws only: the absences of a mistyped (or crafted) decade aren't searched for.
+        if (startDate == null || endDate == null || substituteIds.isEmpty() ||
+            !SubstituteAbsenceReducer.inChartRange(startDate, endDate)
+        ) {
+            return result
+        }
+        val entry = AvailabilityDO()
+        dto.copyTo(entry)
+        val absences = vacationService.getSubstituteAbsences(substituteIds, startDate, endDate)
+        vacationCache.hydrate(absences.vacations) // Their employees from the caches: no lazy load.
+        val uncoveredDays = vacationService.uncoveredDaysOfAvailability(entry, absences, substituteIds)
+        result.conflict = uncoveredDays.isNotEmpty()
+        val shown = substituteAbsenceReducer.reduce(
+            ThreadLocalUserContext.requiredLoggedInUser,
+            startDate,
+            endDate,
+            substituteIds.map { SubstituteAbsenceReducer.Substitute(employeeCache.getEmployeeIdByUserId(it), it) },
+            absences.vacations.sortedBy { it.startDate },
+            absences.availabilities.filter { it.id != dto.id }.sortedBy { it.startDate },
+            uncoveredDays,
+        )
+        // The substitutes are users: the chart's rows are keyed by them, so a vacation tells its employee's user.
+        shown.substituteVacations?.forEach { vacation ->
+            vacation.employee?.let { employee ->
+                employee.user = employeeCache.getUserByEmployee(employee.id)?.let { User(it.id, it.displayName) }
+            }
+        }
+        result.substituteVacations = shown.substituteVacations
+        result.substituteAvailabilities = shown.substituteAvailabilities
+        result.chartDays = shown.chartDays
+        return result
+    }
+
+    private fun applyStats(dto: Availability, stats: AvailabilityFormStats) {
+        dto.conflict = stats.conflict ?: dto.conflict
+        dto.substituteVacations = stats.substituteVacations
+        dto.substituteAvailabilities = stats.substituteAvailabilities
+        dto.chartDays = stats.chartDays
+    }
+
+    /**
      * The user is mandatory (`required` of `@PropertyInfo` doesn't reach a reference, see
      * [org.projectforge.ui.ElementsRegistry]); the errors of [AvailabilityDao.validate] are shown at their fields, the
      * dao checks them on the write, too. Not for the entry of somebody else unless HR staff: the write is refused then
@@ -166,6 +276,7 @@ class AvailabilityEntityRest :
         baseDao.validate(availability)?.let { error ->
             val fieldId = when {
                 error == AvailabilityDao.ERROR_STATUS_NOT_SET -> "status"
+                error == AvailabilityDao.ERROR_SUBSTITUTE_SELF -> "substitutes"
                 error == AvailabilityDao.ERROR_DATE_NOT_SET && dto.startDate == null -> "startDate"
                 else -> "endDate"
             }
@@ -181,6 +292,9 @@ class AvailabilityEntityRest :
         elements.add(
             UIFilterListElement("location", label = translate("availability.location"), defaultFilter = true)
                 .buildValues(AvailabilityLocation::class.java)
+        )
+        elements.add(
+            UIFilterBooleanElement("conflicts", label = translate("availability.conflicts"), defaultFilter = true)
         )
         elements.add(
             UIFilterElement(
@@ -204,7 +318,14 @@ class AvailabilityEntityRest :
     override fun preProcessMagicFilter(
         target: QueryFilter,
         source: MagicFilter
-    ): List<CustomResultFilter<AvailabilityDO>>? {
+    ): List<CustomResultFilter<AvailabilityDO>> {
+        val filters = mutableListOf<CustomResultFilter<AvailabilityDO>>()
+        source.entries.find { it.field == "conflicts" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(AvailabilityConflictsFilter())
+            }
+        }
         if (!hasHrRights()) {
             // The type and the internal comment are hidden from others (AvailabilityDao.afterLoad), but a filter or an
             // order by them in the query would still tell their values by the rows returned.
@@ -225,7 +346,7 @@ class AvailabilityEntityRest :
                 target.add(QueryFilter.eq("user.id", it))
             }
         }
-        return null
+        return filters
     }
 
     /** The list starts with the entries overlapping the current calendar year (the pinned period). */

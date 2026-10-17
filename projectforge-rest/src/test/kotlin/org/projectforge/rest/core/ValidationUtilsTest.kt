@@ -26,10 +26,14 @@ package org.projectforge.rest.core
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AvailabilityDO
+import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.test.TestSetup
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.ui.ValidationError
+import java.time.LocalDate
 
 /**
  * The rules under test are declared exactly once, in [BookDO]: `@PropertyInfo(required = true)` on
@@ -99,6 +103,22 @@ class ValidationUtilsTest {
 
     book.authors = "x".repeat(1001)
     assertEquals(1, ValidationUtils.validateFields(book).size)
+  }
+
+  /**
+   * The substitutes of an availability entry are references (many-to-many), posted by their ids only: not rows of the
+   * form to validate, whose required user name would be missing.
+   */
+  @Test
+  fun `references of a many-to-many collection are no rows to validate`() {
+    val entry = AvailabilityDO().also {
+      it.user = PFUserDO().also { user -> user.id = 1 }
+      it.startDate = LocalDate.of(2030, 1, 1)
+      it.endDate = LocalDate.of(2030, 1, 2)
+      it.status = AvailabilityStatus.NOT_AVAILABLE
+      it.substitutes = mutableSetOf(PFUserDO().also { user -> user.id = 2 })
+    }
+    assertEquals(0, ValidationUtils.validateFields(entry).size, ValidationUtils.validateFields(entry).describe())
   }
 
   private fun validBook() = BookDO().also {

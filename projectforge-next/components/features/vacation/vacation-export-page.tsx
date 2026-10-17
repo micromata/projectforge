@@ -33,7 +33,10 @@ import type {
 } from "./types";
 import { VacationExportFilterRow } from "./vacation-export-filter-row";
 import { VacationTeamChart } from "./vacation-team-chart";
-import { chartWidthOf, type VacationChartWidth } from "./vacation-chart-width";
+import {
+  chartWidthOf,
+  type ChartWidth,
+} from "@/components/shared/absence-chart/absence-chart-width";
 import { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /** The arts the team calendar pages through, the quarter first (the default). */
@@ -155,7 +158,7 @@ function VacationExportContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const min = initial.earliestDate ?? null;
-  const [dayWidth, setDayWidth] = useState<VacationChartWidth>(() =>
+  const [dayWidth, setDayWidth] = useState<ChartWidth>(() =>
     chartWidthOf(initial.dayWidth)
   );
   const [period, setPeriod] = useState<Period>(() =>

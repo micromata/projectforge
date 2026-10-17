@@ -27,6 +27,7 @@ import org.hibernate.Hibernate
 import org.projectforge.business.availability.AvailabilityCache
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.availability.SubstituteCoverage
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
@@ -147,6 +148,12 @@ open class VacationService {
          * The availability entries of all substitutes overlapping the requested vacation, the absent ones
          * ([AvailabilityStatus.absent]) counting as their vacations, the others shown only.
          */
+        val availabilities: List<AvailabilityDO> = emptyList(),
+    )
+
+    /** The absences of the substitutes of availability entries, see [getSubstituteAbsences]. */
+    class SubstituteAbsences(
+        val vacations: List<VacationDO> = emptyList(),
         val availabilities: List<AvailabilityDO> = emptyList(),
     )
 
@@ -635,26 +642,69 @@ open class VacationService {
         // The periods each substitute is away.
         val absencesByReplacement = allReplacements.map { replacement ->
             val vacations = vacationsOfReplacements.filter { it.employee?.id == replacement.id }
-                .map { it.startDate to it.endDate }
+                .map { SubstituteCoverage.Absence(it.startDate, it.endDate) }
             val userId = if (absentEntries.isEmpty()) null else userIdOf(replacement)
             val absent = if (userId == null) {
                 emptyList()
             } else {
-                absentEntries.filter { it.user?.id == userId }.map { it.startDate to it.endDate }
+                absentEntries.filter { it.user?.id == userId }
+                    .map { SubstituteCoverage.Absence(it.startDate, it.endDate) }
             }
             vacations + absent
         }
-        if (absencesByReplacement.any { it.isEmpty() }) {
-            return emptySequence() // A substitute who isn't away in the period is on duty all the time.
+        return SubstituteCoverage.uncoveredDays(startDate, endDate, absencesByReplacement)
+    }
+
+    /**
+     * The vacations (not rejected, special ones included) and availability entries of the given users overlapping the
+     * period, whoever is logged in: the absences of the substitutes of availability entries (see
+     * [uncoveredDaysOfAvailability]). The vacations by the users' employees; a user without one (a freelancer) has
+     * availability entries only. Not to be shown as they are: the caller checks the access.
+     */
+    open fun getSubstituteAbsences(
+        userIds: Collection<Long>,
+        periodBegin: LocalDate,
+        periodEnd: LocalDate,
+    ): SubstituteAbsences {
+        if (userIds.isEmpty()) {
+            return SubstituteAbsences()
         }
-        return generateSequence(startDate) { it.plusDays(1) }
-            .takeWhile { it <= endDate }
-            .take(10000) // Paranoia limit against endless periods.
-            .filter { date ->
-                absencesByReplacement.all { periods ->
-                    periods.any { (start, end) -> start != null && end != null && date in start..end }
-                }
-            }
+        val employeeIds = userIds.mapNotNull { employeeCache.getEmployeeIdByUserId(it) }
+        val vacations = if (employeeIds.isEmpty()) {
+            emptyList()
+        } else {
+            vacationDao.getVacationsOfEmployeesForPeriod(employeeIds, periodBegin, periodEnd)
+                .filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
+        }
+        return SubstituteAbsences(vacations, availabilityCache.getEntriesOfUsers(userIds, periodBegin, periodEnd))
+    }
+
+    /**
+     * The days of the given availability entry on which none of its substitutes is on duty: each of them is on vacation
+     * or not available ([AvailabilityStatus.absent]) by the given absences (see [getSubstituteAbsences]). As for a
+     * vacation (see [uncoveredDays]): none, if a substitute isn't away at all.
+     * @param substituteIds The users standing in, by default the entry's substitutes.
+     */
+    @JvmOverloads
+    open fun uncoveredDaysOfAvailability(
+        entry: AvailabilityDO,
+        absences: SubstituteAbsences,
+        substituteIds: Collection<Long> = entry.substitutes.orEmpty().mapNotNull { it.id },
+    ): List<LocalDate> {
+        val startDate = entry.startDate ?: return emptyList()
+        val endDate = entry.endDate ?: return emptyList()
+        val absencesBySubstitute = substituteIds.distinct().filter { it != entry.user?.id }.map { userId ->
+            val employeeId = employeeCache.getEmployeeIdByUserId(userId)
+            val vacations = if (employeeId == null) {
+                emptyList()
+            } else {
+                absences.vacations.filter { it.employee?.id == employeeId }
+            }.map { SubstituteCoverage.Absence(it.startDate, it.endDate) }
+            vacations + absences.availabilities
+                .filter { it.user?.id == userId && it.status?.absent == true && it.id != entry.id }
+                .map { SubstituteCoverage.Absence(it.startDate, it.endDate) }
+        }
+        return SubstituteCoverage.uncoveredDays(startDate, endDate, absencesBySubstitute).toList()
     }
 
     /**

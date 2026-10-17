@@ -25,6 +25,7 @@ package org.projectforge.menu.builder
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
+import org.projectforge.business.availability.ConflictingAvailabilitiesCache
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
@@ -113,6 +114,9 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
+
+    @Autowired
+    private lateinit var conflictingAvailabilitiesCache: ConflictingAvailabilitiesCache
 
     private var initialized = false
 
@@ -265,7 +269,13 @@ open class MenuCreator {
                 MenuItemDef(MenuItemDefId.VACATION,
                     badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.loggedInUser) })
             )
-            .add(MenuItemDef(MenuItemDefId.AVAILABILITY))
+            .add(
+                MenuItemDef(MenuItemDefId.AVAILABILITY,
+                    // The own entries none of whose substitutes is on duty on a day.
+                    badgeCounter = {
+                        conflictingAvailabilitiesCache.numberOfConflicts(ThreadLocalUserContext.loggedInUserId)
+                    })
+            )
             .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
             .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))

@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -114,7 +115,34 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         }
     }
 
+    /**
+     * The cached (not deleted) entry of the given id with its substitutes resolved, or null. Its lazy associations are
+     * replaced by the instances of [UserGroupCache] (see [hydrate]), so reading them needs no session.
+     */
+    open fun getEntry(id: Long?): AvailabilityDO? {
+        id ?: return null
+        checkRefresh()
+        return synchronized(lock) { availabilityMap[id] }
+    }
+
+    /**
+     * The cached (not deleted) entries with at least one substitute ending on or after the given day: whose
+     * substitutes may be away (see ConflictingAvailabilitiesCache).
+     */
+    open fun getEntriesWithSubstitutes(endingFrom: LocalDate): List<AvailabilityDO> {
+        checkRefresh()
+        return availabilities.filter {
+            !it.substitutes.isNullOrEmpty() && it.endDate?.isBefore(endingFrom) == false
+        }
+    }
+
     override fun afterInsertOrModify(obj: AvailabilityDO, operationType: OperationType) {
+        val id = obj.id
+        if (id != null && !obj.deleted) {
+            // obj may be detached: its lazy substitutes mustn't be touched. They are read from the join table within
+            // the write transaction (runReadOnlyForCacheMaintenance reuses its connection, see VacationCache).
+            runReadOnlyForCacheMaintenance { context -> hydrate(obj, loadSubstituteIds(context, id)[id]) }
+        }
         synchronized(lock) {
             modifiedDuringRefresh?.put(obj.id, obj)
             apply(availabilityMap, obj)
@@ -138,7 +166,7 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
             modifiedDuringRefresh = mutableMapOf()
         }
         try {
-            runReadOnlyForCacheMaintenance {
+            runReadOnlyForCacheMaintenance { context ->
                 val map = mutableMapOf<Long?, AvailabilityDO>()
                 // Read without a logged-in user: the first fill runs on the thread of whoever asks first, and
                 // AvailabilityDao.afterLoad would hide the type and internal comment that user may not see - for
@@ -148,6 +176,9 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
                         map[it.id] = it
                     }
                 }
+                // The substitutes of all entries in one query, instead of one lazy collection init per entry.
+                val substituteIds = loadSubstituteIds(context)
+                map.values.forEach { hydrate(it, substituteIds[it.id]) }
                 synchronized(lock) {
                     modifiedDuringRefresh?.values?.forEach { apply(map, it) }
                     availabilityMap = map
@@ -170,5 +201,34 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
         } finally {
             ThreadLocalUserContext.userContext = userContext
         }
+    }
+
+    /**
+     * Replaces the lazy user proxy and the lazy substitutes of the given entry by the instances of [UserGroupCache]:
+     * serving it hits neither the database nor a LazyInitializationException. The proxy's id is read without
+     * initializing it.
+     */
+    private fun hydrate(entry: AvailabilityDO, substituteIds: Set<Long>?) {
+        entry.user = userGroupCache.getUser(entry.user?.id) ?: entry.user
+        entry.substitutes = substituteIds?.mapNotNull { userGroupCache.getUser(it) }?.toMutableSet()
+    }
+
+    /**
+     * The substitutes' user ids per entry, straight from the join table.
+     * @param entryId When given, only the rows of this entry are read.
+     */
+    private fun loadSubstituteIds(context: PfPersistenceContext, entryId: Long? = null): Map<Long, Set<Long>> {
+        val sql = "SELECT availability_id, user_id FROM t_user_availability_substitute"
+        val query = if (entryId == null) {
+            context.em.createNativeQuery(sql)
+        } else {
+            context.em.createNativeQuery("$sql WHERE availability_id = :entryId").setParameter("entryId", entryId)
+        }
+        val result = mutableMapOf<Long, MutableSet<Long>>()
+        @Suppress("UNCHECKED_CAST")
+        (query.resultList as List<Array<Any?>>).forEach { row ->
+            result.getOrPut((row[0] as Number).toLong()) { mutableSetOf() }.add((row[1] as Number).toLong())
+        }
+        return result
     }
 }

@@ -6,7 +6,7 @@
  * - `fit`: the whole period in the width of the window, without the day numbers.
  * - `narrow`: day numbers without the weekday; `normal` and `wide` with both.
  */
-export const VACATION_CHART_WIDTHS = [
+export const CHART_WIDTHS = [
   "auto",
   "fit",
   "narrow",
@@ -14,16 +14,16 @@ export const VACATION_CHART_WIDTHS = [
   "wide",
 ] as const;
 
-export type VacationChartWidth = (typeof VACATION_CHART_WIDTHS)[number];
+export type ChartWidth = (typeof CHART_WIDTHS)[number];
 
 /** A width as drawn: `auto` resolved. */
-export type VacationChartDayWidth = Exclude<VacationChartWidth, "auto">;
+export type ChartDayWidth = Exclude<ChartWidth, "auto">;
 
 /** The longest period `auto` draws `normal`: a quarter. */
 const AUTO_NORMAL_MAX_DAYS = 92;
 
 /** The minimum width of a day column; `fit` has none, the columns share the window's width. */
-export const DAY_COLUMN_MIN_WIDTH: Record<VacationChartDayWidth, string> = {
+export const DAY_COLUMN_MIN_WIDTH: Record<ChartDayWidth, string> = {
   fit: "0px",
   narrow: "0.875rem",
   normal: "1.25rem",
@@ -31,16 +31,14 @@ export const DAY_COLUMN_MIN_WIDTH: Record<VacationChartDayWidth, string> = {
 };
 
 /** The width stored, or `auto` for none or one no longer offered. */
-export function chartWidthOf(
-  value: string | null | undefined
-): VacationChartWidth {
-  return VACATION_CHART_WIDTHS.find((w) => w === value) ?? "auto";
+export function chartWidthOf(value: string | null | undefined): ChartWidth {
+  return CHART_WIDTHS.find((w) => w === value) ?? "auto";
 }
 
 export function resolveChartWidth(
-  width: VacationChartWidth,
+  width: ChartWidth,
   dayCount: number
-): VacationChartDayWidth {
+): ChartDayWidth {
   if (width !== "auto") return width;
   return dayCount > AUTO_NORMAL_MAX_DAYS ? "narrow" : "normal";
 }

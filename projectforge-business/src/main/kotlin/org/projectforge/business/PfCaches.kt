@@ -166,12 +166,14 @@ class PfCaches {
     }
 
     /**
-     * Fills the user of the given availability.
+     * Fills the user and the substitutes of the given availability.
      * @param availability The availability to fill.
      * @return The filled availability for chaining.
      */
     fun initialize(availability: AvailabilityDO): AvailabilityDO {
         availability.user = getUserIfNotInitialized(availability.user)
+        availability.substitutes =
+            availability.substitutes?.mapNotNull { getUserIfNotInitialized(it) }?.toMutableSet()
         return availability
     }
 
