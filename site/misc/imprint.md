@@ -11,10 +11,6 @@ Marie-Calm-Str. 1-5<br>
 34131 Kassel<br>
 Germany
 
-#### Niederlassung:
-Menuhinstraße 8<br>
-53113 Bonn
-
 ### Geschäftsführung
 Kai Reinhard, Alexander Podlich
 
@@ -24,8 +20,7 @@ Marie-Calm-Straße 1-5<br>
 34131 Kassel
 
 ### Kontakt
-Web: [www.projectforge.org](https://www.projectforge.org)<br>
-E-Mail: k.reinhard at micromata.com
+Web: [www.projectforge.org](https://www.projectforge.org)
 
 Tel: +49 561 31 67 93-0<br>
 Fax: +49 561 31 67 93-11

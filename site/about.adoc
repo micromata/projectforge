@@ -12,8 +12,7 @@ Kai Reinhard +
 Micromata GmbH +
 Marie-Calm-Str. 1-5 +
 34131 Kassel +
-Germany +
-k.reinhard at micromata.com +
+Germany
 
 https://www.projectforge.org
 
