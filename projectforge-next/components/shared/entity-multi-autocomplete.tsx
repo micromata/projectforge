@@ -16,6 +16,7 @@ import { compareText } from "@/lib/format";
 import { INACTIVE_REF_CLASS, isInactiveRef } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
+import type { InactiveMode } from "@/hooks/use-show-inactive";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
 
@@ -28,6 +29,8 @@ export interface EntityMultiAutocompleteProps {
   minChars?: number;
   /** Further request parameters of that search, see [EntitySearchList]. */
   params?: Record<string, unknown>;
+  /** How inactive entries are offered, see [InactiveMode]. */
+  inactive?: InactiveMode;
   id?: string;
   /** Accessible name of the trigger, when no `<label htmlFor>` names it. */
   "aria-label"?: string;
@@ -62,6 +65,7 @@ export function EntityMultiAutocomplete({
   onChange,
   minChars,
   params,
+  inactive,
   id,
   className,
   removeLabel,
@@ -158,6 +162,7 @@ export function EntityMultiAutocomplete({
         <EntitySearchList
           url={url}
           params={params}
+          inactive={inactive}
           minChars={minChars}
           active={open}
           // Adding is a series, not a single act: the search stays open with its term and the cursor

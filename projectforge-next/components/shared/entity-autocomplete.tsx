@@ -19,6 +19,7 @@ import {
   type InactiveFlags,
 } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
+import type { InactiveMode } from "@/hooks/use-show-inactive";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
 import { useTypeToOpen } from "./use-type-to-open";
@@ -87,6 +88,8 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * names are much longer than the field is wide (the long cost 2 names in a row of cost assignments).
    */
   popoverClassName?: string;
+  /** How inactive entries are offered, see [InactiveMode]; the current value stays choosable anyway. */
+  inactive?: InactiveMode;
 }
 
 /**
@@ -112,6 +115,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   required,
   emphasized,
   popoverClassName,
+  inactive,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -193,8 +197,12 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           minChars={minChars}
           active={open}
           initialSearch={initialSearch}
+          inactive={inactive}
+          current={value}
           onPick={(entry) => {
-            onChange(entry);
+            // Re-picking the current value changes nothing; it may be the bare {id, displayName} the
+            // list put on top (see EntitySearchList.current), which must not replace the richer value.
+            if (entry.id !== value?.id) onChange(entry);
             onOpenChange(false);
           }}
         />

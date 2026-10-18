@@ -27,8 +27,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -36,6 +38,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.fibu.CustomerPagesRest
 import org.projectforge.rest.fibu.ProjectEntityRest
+import org.projectforge.ui.AutoCompletion
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
@@ -197,12 +200,86 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * A deactivated user is offered only on request ([AutoCompletion.SHOW_INACTIVE_PARAM]), and only to the
+     * members of [AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS] - never to anybody else.
+     */
+    @Test
+    fun deactivatedUserTest() {
+        logon(ADMIN_USER)
+        val word = "deactquux${PREFIX!!.lowercase()}"
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "deact-$PREFIX"
+            it.lastname = word
+            it.deactivated = true
+        })
+        // Controlling may select deactivated users (UserDao.hasUserSelectAccess), but isn't privileged here:
+        logon(TEST_CONTROLLING_USER)
+        Assertions.assertTrue(autoComplete(userEntityRest, word).none { it.id == user.id })
+        Assertions.assertTrue(
+            autoComplete(userEntityRest, word, showInactive = true).none { it.id == user.id },
+            "Not for a user outside the privileged groups, whatever the request asks for.",
+        )
+        logon(TEST_FINANCE_USER)
+        Assertions.assertTrue(autoComplete(userEntityRest, word).none { it.id == user.id }, "Hidden by default.")
+        val hit = autoComplete(userEntityRest, word, showInactive = true).single { it.id == user.id }
+        Assertions.assertEquals(true, hit.deactivated)
+    }
+
+    /** An ended project is offered only on request, and marked as inactive then. */
+    @Test
+    fun endedProjectTest() {
+        logon(TEST_FINANCE_USER)
+        val word = "endedprj${PREFIX!!.lowercase()}"
+        val ended = ProjektDO().also {
+            it.name = "$word ended"
+            it.internKost2_4 = 996
+            it.nummer = 96
+            it.status = ProjektStatus.ENDED
+        }
+        projektDao.insert(ended)
+        val running = ProjektDO().also {
+            it.name = "$word running"
+            it.internKost2_4 = 995
+            it.nummer = 95
+            it.status = ProjektStatus.BUILD
+        }
+        projektDao.insert(running)
+        Assertions.assertEquals(listOf(running.id), autoComplete(projectEntityRest, word).map { it.id })
+        val all = autoComplete(projectEntityRest, word, showInactive = true)
+        Assertions.assertEquals(setOf(running.id, ended.id), all.map { it.id }.toSet())
+        Assertions.assertEquals(true, all.single { it.id == ended.id }.deactivated)
+        Assertions.assertNull(all.single { it.id == running.id }.deactivated)
+    }
+
+    /** A customer no longer in business is offered only on request. */
+    @Test
+    fun endedCustomerTest() {
+        logon(TEST_FINANCE_USER)
+        val word = "endedcust${PREFIX!!.lowercase()}"
+        val customer = KundeDO().also {
+            it.name = "$word gmbh"
+            it.id = 4712L
+            it.status = KundeStatus.ENDED
+        }
+        kundeDao.insert(customer)
+        Assertions.assertTrue(autoComplete(customerPagesRest, word).none { it.id == customer.id })
+        Assertions.assertEquals(
+            true,
+            autoComplete(customerPagesRest, word, showInactive = true).single { it.id == customer.id }.deactivated,
+        )
+    }
+
     private fun autoComplete(
         rest: AbstractEntityRest<*, *, *>,
         searchString: String,
+        showInactive: Boolean = false,
     ): List<AbstractEntityRest.DisplayObject> {
         return rest.getAutoCompleteObjects(
-            MockHttpServletRequest().also { it.setSession(MockHttpSession()) },
+            MockHttpServletRequest().also {
+                it.setSession(MockHttpSession())
+                if (showInactive) it.setParameter(AutoCompletion.SHOW_INACTIVE_PARAM, "true")
+            },
             searchString,
             30,
         )

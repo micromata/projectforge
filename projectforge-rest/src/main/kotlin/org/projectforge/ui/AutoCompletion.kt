@@ -24,6 +24,7 @@
 package org.projectforge.ui
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.business.user.ProjectForgeGroup
 
 private val log = KotlinLogging.logger {}
 
@@ -88,7 +89,26 @@ class AutoCompletion<T>(
   companion object {
     const val AUTOCOMPLETE_TEXT = "autocomplete"
     const val AUTOCOMPLETE_OBJECT = "autosearch"
+    /** Legacy alias of [SHOW_INACTIVE_PARAM], still sent by the UILayout based clients. */
     const val SHOW_ALL_PARAM = "showAll"
+
+    /**
+     * Request parameter of `autosearch`: also offer inactive entries (deactivated users, employees who left
+     * more than three months ago, ended projects, customers and cost units). Off by default, see
+     * [org.projectforge.rest.core.AbstractEntityRest.showInactive].
+     */
+    const val SHOW_INACTIVE_PARAM = "showInactive"
+
+    /**
+     * Groups whose members may see inactive persons (users and employees) in the pickers. Everybody else
+     * never gets them, whatever the request asks for; an already chosen one is kept by the client.
+     */
+    val SHOW_INACTIVE_PERSONS_GROUPS = arrayOf(
+      ProjectForgeGroup.HR_GROUP,
+      ProjectForgeGroup.FINANCE_GROUP,
+      ProjectForgeGroup.ORGA_TEAM,
+      ProjectForgeGroup.ADMIN_GROUP,
+    )
 
     /**
      * @return category/autosearch?search=:search)

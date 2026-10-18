@@ -24,11 +24,13 @@
 package org.projectforge.rest.fibu
 
 import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -121,4 +123,20 @@ class CustomerPagesRest
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
+
+    /**
+     * Customers no longer in business (ended, non-active, non-existent) only on request
+     * ([org.projectforge.ui.AutoCompletion.SHOW_INACTIVE_PARAM]).
+     */
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<KundeDO> {
+        val list = super.queryAutocompleteObjects(request, filter)
+        return if (showInactive(request)) list else list.filter { !isInactiveAutoCompleteEntry(it) }
+    }
+
+    override fun isInactiveAutoCompleteEntry(obj: KundeDO): Boolean =
+        super.isInactiveAutoCompleteEntry(obj) || obj.status in INACTIVE_STATUS
+
+    private companion object {
+        val INACTIVE_STATUS = setOf(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
+    }
 }

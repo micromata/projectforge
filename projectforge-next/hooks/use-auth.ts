@@ -36,6 +36,8 @@ export function useAuth() {
     isAuthenticated: !!query.data?.userData,
     /** Member of the admin group — gates menu entries this app declares itself. */
     isAdmin: !!query.data?.adminUser,
+    /** Member of HR, finance, orga or admin: may show inactive users/employees in pickers (useShowInactive). */
+    mayShowInactivePersons: !!query.data?.showInactivePersons,
     /** JIRA config for client-side issue linking, null where JIRA is not configured (see JiraConfig). */
     jira: query.data?.jira ?? null,
     /** The summary of the notifications visible in the app, null before the status is loaded. */

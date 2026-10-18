@@ -142,6 +142,11 @@ class MonthlyEmployeeReportRow(
     val sum: String,
     /** Monthly time saved by AI for this row (formatted). */
     val aiTimeSavings: String,
+    /**
+     * A task row booked without Kost2, marked only while the db-param `timesheet.warnMissingKost2` is on
+     * (see [org.projectforge.framework.configuration.Configuration.isWarnMissingKost2]).
+     */
+    val missingKost2: Boolean = false,
 )
 
 /**

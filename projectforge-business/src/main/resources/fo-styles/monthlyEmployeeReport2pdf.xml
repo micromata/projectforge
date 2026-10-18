@@ -107,7 +107,11 @@
       <!-- Task entries (without kost2 information). -->
       <groovy>for (entry in report.taskEntries) {</groovy>
       <tr>
+        <groovy>if (missingKost2TaskIds.contains(entry.value.id)) {</groovy>
+        <td number-columns-spanned="4" color="#990000">${entry.key} (${missingKost2Label})</td>
+        <groovy>} else {</groovy>
         <td number-columns-spanned="4">${entry.key}</td>
+        <groovy>}</groovy>
         <groovy>for (week in report.weeks) {
           taskEntry = week.taskEntries[entry.value.id]
         </groovy>
