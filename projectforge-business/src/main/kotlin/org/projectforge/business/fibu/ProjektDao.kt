@@ -222,7 +222,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
             }
             val projektnummer = obj.projektnummer
                 ?: legacyProjektnummer(obj.kunde != null, obj.internKost2_4, obj.nummer)
-                ?: nextFreeProjektnummer(obj.kunde == null)
+                ?: nextFreeProjektnummer(obj)
             val range = numberRanges.rangeForProjectNumber(projektnummer)
             if (range != null) {
                 if (obj.kunde != null || range.hasCustomers) {
@@ -244,6 +244,11 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         // Scalar query: doesn't load (and detach) another project instance inside the update.
         if (other != null && other.toLong() != obj.id) {
             throw UserException(PROJEKTNUMMER_EXISTS_I18N_KEY, obj.projektnummer)
+        }
+        // Another project of the customer may still hold a free number as local number (e.g. one left without project
+        // number by the migration), and the local numbers are unique per customer, deleted ones included:
+        if (customerRange == null && localNumbersOfCustomer(obj).contains(obj.nummer)) {
+            throw UserException(NUMBER_EXISTS_FOR_CUSTOMER_I18N_KEY)
         }
     }
 
@@ -281,9 +286,10 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     /**
      * Without customer the next free number of the range without customers (if configured), otherwise the next
-     * free number above all free project numbers.
+     * free number above all free project numbers, which no other project of the customer has as local number.
      */
-    private fun nextFreeProjektnummer(withoutCustomer: Boolean): Int {
+    private fun nextFreeProjektnummer(obj: ProjektDO): Int {
+        val withoutCustomer = obj.kunde == null
         val numberRanges = numberRangeService.numberRanges
         val used = persistenceService.executeQuery(
             "SELECT p.projektnummer FROM ProjektDO p WHERE p.projektnummer IS NOT NULL",
@@ -295,7 +301,22 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
                 numberRanges.nextFreeLocalNumber(range, usedLocal)?.let { return range.firstProjectNumber + it }
             }
         }
-        return (used.filter { numberRanges.rangeForProjectNumber(it) == null }.maxOrNull() ?: 0) + 1
+        var next = (used.filter { numberRanges.rangeForProjectNumber(it) == null }.maxOrNull() ?: 0) + 1
+        val localNumbers = localNumbersOfCustomer(obj)
+        while (localNumbers.contains(next)) {
+            next++
+        }
+        return next
+    }
+
+    /** The local numbers of the other projects of the customer of [obj], deleted ones included (none without customer). */
+    private fun localNumbersOfCustomer(obj: ProjektDO): Set<Int> {
+        val kundeId = obj.kunde?.id ?: return emptySet()
+        return persistenceService.executeQuery(
+            "SELECT p.id, p.nummer FROM ProjektDO p WHERE p.kunde.id = :kundeId",
+            Array<Any>::class.java,
+            Pair("kundeId", kundeId),
+        ).filter { (it[0] as Number).toLong() != obj.id }.map { (it[1] as Number).toInt() }.toSet()
     }
 
     /**
@@ -393,6 +414,9 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
         const val NUMBER_LOCKED_I18N_KEY = "fibu.projekt.validation.numberLocked"
         const val PROJEKTNUMMER_EXISTS_I18N_KEY = "fibu.projekt.validation.projektnummerExists"
+
+        /** The local number is unique per customer (constraint of nummer and kunde). */
+        const val NUMBER_EXISTS_FOR_CUSTOMER_I18N_KEY = "fibu.projekt.validation.numbernotfreeforcustomer"
         const val LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY = "fibu.projekt.validation.localNumberOutOfRange"
 
         /** The unique constraint of [ProjektDO.projektnummer] (Flyway V9.0.8.4). */

@@ -188,6 +188,29 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a free project number skips the local numbers of the customer's projects without project number`() {
+        persistenceService.runInTransaction { context ->
+            logon(TEST_FINANCE_USER)
+            val customer = insertKunde(4712)
+            val first = insertProjekt(customer, nummer = 1)
+            val taken = first.projektnummer!!
+            // As left by the migration (or its rollback): the local number stays, the project number is gone.
+            context.executeUpdate(
+                "UPDATE ProjektDO p SET p.projektnummer = NULL WHERE p.id = :id",
+                Pair("id", first.id),
+            )
+            context.em.clear()
+            val next = insertProjekt(customer, nummer = 2)
+            assertEquals(taken + 1, next.projektnummer)
+            assertEquals(taken + 1, next.nummer)
+            // Given by hand, the number is rejected as local number of the customer instead of failing on flush:
+            val ex = assertThrows<UserException> { insertProjekt(customer, nummer = 3, projektnummer = taken) }
+            assertEquals(ProjektDao.NUMBER_EXISTS_FOR_CUSTOMER_I18N_KEY, ex.i18nKey)
+            null
+        }
+    }
+
+    @Test
     fun `a collision on the unique project number is told by the constraint in any cause`() {
         // Two projects saved at the same time pass the check of assignProjektnummer, the second fails on flush:
         val hsqldb = RuntimeException(
