@@ -8,7 +8,7 @@ import type { AddressCampaignValueStatistics } from "./types";
 /**
  * The selected campaign above the list (and above the selection of the mass update), as the React list showed
  * it in its alert box — or, while none is selected, that the list stays empty until one is picked in the
- * campaign filter.
+ * campaign filter. Beside it the comparison campaign, and that an inactive campaign can't be changed any more.
  */
 export function AddressCampaignValueCampaignLine({
   statistics,
@@ -34,6 +34,22 @@ export function AddressCampaignValueCampaignLine({
             {t(leafKeyOf("plugins.marketing.addressCampaign", t.has))}:
           </span>{" "}
           <span className="font-semibold text-brand-pink">{title}</span>
+          {statistics.campaignActive === false && (
+            <span className="ml-3 text-warning">
+              {t("plugins.marketing.addressCampaign.inactiveReadOnly")}
+            </span>
+          )}
+          {statistics.comparisonCampaignTitle && (
+            <>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <span className="text-muted-foreground">
+                {t("plugins.marketing.addressCampaignValue.comparison")}:
+              </span>{" "}
+              <span className="font-semibold">
+                {statistics.comparisonCampaignTitle}
+              </span>
+            </>
+          )}
         </>
       ) : (
         t("plugins.marketing.addressCampaign.noCampaignSelected")

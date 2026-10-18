@@ -58,8 +58,26 @@ public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampa
     if (operationType.isIn(OperationType.SELECT, OperationType.INSERT) && obj == null) {
       return addressDao.hasInsertAccess(user);
     }
+    if (operationType.isWriteType() && (isOfInactiveCampaign(obj) || isOfInactiveCampaign(oldObj))) {
+      // The values of an inactive (closed) campaign are kept as they are.
+      return false;
+    }
     return addressDao.hasAccess(user, obj != null ? obj.getAddress() : null,
         oldObj != null ? oldObj.getAddress() : null, operationType,
         false);
+  }
+
+  /**
+   * Asks the stored campaign: the value may only carry an id stub of it (a new value built by the rest
+   * endpoint), whose active flag would always be the default.
+   */
+  private boolean isOfInactiveCampaign(final AddressCampaignValueDO obj)
+  {
+    if (obj == null || obj.getAddressCampaign() == null || obj.getAddressCampaign().getId() == null) {
+      return false;
+    }
+    final AddressCampaignDO campaign = WicketSupport.get(AddressCampaignDao.class)
+        .find(obj.getAddressCampaign().getId(), false, false);
+    return campaign != null && !campaign.getActive();
   }
 }

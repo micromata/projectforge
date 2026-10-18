@@ -514,6 +514,9 @@
     },
     "conflicts": "Conflicts",
     "endDate": "End date",
+    "entry": {
+      "add": "Add entry"
+    },
     "internalComment": {
       "_": "Internal comment",
       "tooltip": "Only visible to the person concerned and to HR staff."
@@ -548,7 +551,8 @@
       "_": "Type",
       "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
     },
-    "user": "Person"
+    "user": "Person",
+    "workingDays": "Working days"
   },
   "back": "Back",
   "book": {
@@ -1671,6 +1675,9 @@
         "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
       },
       "kunden": "Customers",
+      "legend": {
+        "inactive": "Ended, non-active or non-existent"
+      },
       "list": {
         "select": {
           "title": "Select customer"
@@ -1786,6 +1793,9 @@
       "lastActivity": "Last activity",
       "lastOrder": "Last order",
       "lastTimesheet": "Last time sheet",
+      "legend": {
+        "ended": "Ended"
+      },
       "leiter": "Project manager",
       "list": {
         "select": {
@@ -2152,6 +2162,7 @@
     "timeFrom": "From (time)",
     "timeTo": "To (time)",
     "title": "Filter",
+    "typeToSearch": "Type to search…",
     "value": "Value",
     "valueNotSet": "(not set)",
     "valueTo": "To"
@@ -2889,7 +2900,7 @@
       },
       "lastRun": "Last run",
       "legend": {
-        "inactive": "Inactive (or deleted)"
+        "inactive": "Inactive"
       },
       "link": "\"Open\" button",
       "linkMode": {
@@ -3402,12 +3413,17 @@
     "marketing": {
       "addressCampaign": {
         "_": "Address campaign",
+        "active": "Active",
         "edit": {
           "warning": {
             "doNotChangeValues": "A modification of the values can delete existing values which are already assigned to addresses!"
           }
         },
+        "inactiveReadOnly": "Inactive: the values of this campaign can't be changed any more.",
         "lastUpdateOfAddress": "Last update of address",
+        "legend": {
+          "inactive": "Inactive (values can't be changed any more)"
+        },
         "noCampaignSelected": "No address campaign selected.",
         "title": {
           "add": "Add new address campaign",
@@ -3420,6 +3436,13 @@
       },
       "addressCampaignValue": {
         "_": "Address campaign value",
+        "adopt": "Adopt",
+        "adoptComments": "also adopt the comments (appended to an existing one)",
+        "adoptOnlyEmpty": "only where no value is set yet",
+        "adoptValues": "Adopt the values of the comparison campaign",
+        "comparison": "Comparison",
+        "comparisonComment": "Comparison comment",
+        "comparisonValue": "Comparison value",
         "error": {
           "addressOrCampaignNotGiven": "Address or address campaign is not given."
         },
@@ -3921,6 +3944,7 @@
       "selectedOf": "{arg0} of {arg1} selected",
       "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
     },
+    "inactive": "inactive",
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
@@ -4948,6 +4972,7 @@
     },
     "leaveOfYear": "Leave account of year {arg0}",
     "leaveaccount": {
+      "availabilities": "Availability entries",
       "title": "Leave account"
     },
     "mail": {
@@ -4979,6 +5004,14 @@
     "previousyearleave": "Previous year leave",
     "previousyearleaveunused": "Unused previous year leave until {arg0}",
     "previousyearleaveused": "Previous year leave used",
+    "quickView": {
+      "button": "Who is available?",
+      "empty": "No absences in this period.",
+      "selectHint": "Choose a person to see their vacations and availability entries of the coming weeks.",
+      "title": "Availability at a glance",
+      "user": "Person",
+      "weeks": "Weeks"
+    },
     "recalculateRemainingLeave": "Recalculate remaining leave",
     "remainingLeaveFromYear": "Remaining leave from {arg0}.",
     "remainingLeaveFromYearUnused": "Unused remaining leave from {arg0}.",

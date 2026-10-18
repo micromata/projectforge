@@ -59,6 +59,14 @@ open class AddressCampaignDO : DefaultBaseDO() {
     @get:Column(length = Constants.LENGTH_COMMENT)
     open var comment: String? = null
 
+    /**
+     * An inactive campaign is closed: its address values can't be changed any more (see
+     * [AddressCampaignValueRight]), so a finished campaign stays as it was, e.g. as comparison of the next one.
+     */
+    @PropertyInfo(i18nKey = "plugins.marketing.addressCampaign.active")
+    @get:Column(name = "active", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'true'")
+    open var active: Boolean = true
+
     val valuesArray: Array<String>?
         @Transient
         get() = getValuesArray(values)

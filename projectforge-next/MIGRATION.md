@@ -619,6 +619,12 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   für die laufende Kampagne, als Weg zurück: dieselbe Seite unter eigener Kategorie `addressCampaignValueLegacy`
   (`NextPage.legacyCategory`: der Weg zurück führt dorthin, `OrphanedLinkFilter`/`hasNextVersion` bleiben bei den alten
   `react/addressCampaignValue`-Urls); React zeigt die zuletzt in next gewählte Kampagne (User-Pref-Bereich `addressCampaignValue`), next selbst nur die seines Filters – ohne Kampagne im Filter ist die Liste leer.
+  **Vergleichskampagne** (Filter `comparisonCampaignId`, z. B. das Vorjahr): Spalten Vergleichswert/-bemerkung
+  (`revealedByFilter`), Filter auf den Vergleichswert und „Nur Unterschiede“ (`ComparisonResultFilters.kt`), in der
+  Massenänderung „Werte der Vergleichskampagne übernehmen“ (Custom-Feld `adoptComparison`, optional Bemerkungen /
+  nur leere), im Formular ein Hinweis mit „Übernehmen“. **Inaktive Kampagnen** (`AddressCampaignDO.active`,
+  Plugin-Flyway `flyway/marketing/migrate/common/V9.0.8.1__…`): `AddressCampaignValueRight` verweigert Schreiben
+  (auch React-Legacy), Formular schreibgeschützt, Massenänderung mit klarer Meldung abgewiesen.
   Nach der Kampagne löschen: `AddressCampaignValuePagesRest`, `AddressCampaignValueLegacyMultiSelectedPageRest`,
   `AddressLegacyPagesRest`, `legacyCategory` am Eintrag.
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei

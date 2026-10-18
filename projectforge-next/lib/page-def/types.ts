@@ -44,6 +44,13 @@ interface ColumnBase<Row> {
   minSize?: number;
   /** Extra classes of the default cell; ignored when `cell` is given. */
   className?: string;
+  /**
+   * Extra classes of the table cell itself (`<td>`), for every renderer: a tinted background that sets a
+   * column apart from the others — the comparison campaign's values beside the campaign's own (see
+   * ADDRESS_CAMPAIGN_VALUE_PAGE). A background given here replaces the cell's opaque default, so it is meant
+   * for a column that is never pinned.
+   */
+  cellClassName?: string;
   /** Overrides the alignment derived from the data type (numbers right, everything else left). */
   align?: "left" | "right";
   /**

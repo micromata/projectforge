@@ -13,6 +13,8 @@ export interface AddressCampaignDetail {
   /** The semicolon separated values an address can be given in this campaign, e.g. "Yes; No". */
   values?: string | null;
   comment?: string | null;
+  /** An inactive campaign is closed: the values of its addresses can't be changed any more. */
+  active?: boolean | null;
   created?: string | null;
   lastUpdate?: string | null;
 }

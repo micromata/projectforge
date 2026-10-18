@@ -92,9 +92,16 @@ class AddressCampaignValueEntityRest :
     ) {
     /**
      * What the list shows above the table (`ResultSet.statistics`): the selected campaign, or none if no
-     * campaign is selected yet (the list is empty then).
+     * campaign is selected yet (the list is empty then), whether its values may still be changed, and the
+     * comparison campaign, if one is selected.
      */
-    class Statistics(val campaignId: Long?, val campaignTitle: String?)
+    class Statistics(
+        val campaignId: Long?,
+        val campaignTitle: String?,
+        val campaignActive: Boolean? = null,
+        val comparisonCampaignId: Long? = null,
+        val comparisonCampaignTitle: String? = null,
+    )
 
     @Autowired
     private lateinit var addressCampaignDao: AddressCampaignDao
@@ -126,22 +133,66 @@ class AddressCampaignValueEntityRest :
          */
         private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
         private const val EMPTY_VALUE = "__EMPTY__"
+
+        /** A second campaign whose values are shown beside the selected one's (e.g. last year's), see [comparisonValuesOf]. */
+        private const val FILTER_COMPARISON_CAMPAIGN_ID = "comparisonCampaignId"
+        private const val FILTER_COMPARISON_VALUE = "comparisonValue"
+        private const val FILTER_ONLY_DIFFERENCES = "onlyDifferences"
     }
 
     /**
-     * The campaign selector (required for all queries), the values of the selected campaign and the address filters.
+     * The campaign selector (required for all queries), the values of the selected campaign, the comparison campaign
+     * with the filters on its values, and the address filters.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        val campaigns = addressCampaignDao.select(deleted = false)
+        // The active campaigns first: an inactive one is closed (marked by the client), and mostly of interest as
+        // comparison.
+        val campaigns = addressCampaignDao.select(deleted = false).sortedBy { !it.active }
+        val campaignValues = campaigns.map {
+            UISelectValue(it.id.toString(), it.title ?: "unknown", inactive = if (it.active) null else true)
+        }
         elements.add(
             UIFilterListElement(
                 id = FILTER_CAMPAIGN_ID,
-                values = campaigns.map { UISelectValue(it.id.toString(), it.title ?: "unknown") },
+                values = campaignValues,
                 label = translate("plugins.marketing.addressCampaign"),
                 multi = false,
                 defaultFilter = true,
             )
         )
+        val currentFilter = getCurrentFilter()
+        val campaignId = campaignIdOf(currentFilter)
+        elements.add(
+            UIFilterListElement(
+                id = FILTER_COMPARISON_CAMPAIGN_ID,
+                values = campaignValues.filter { it.id != campaignId?.toString() },
+                label = translate("plugins.marketing.addressCampaignValue.comparisonCampaign"),
+                multi = false,
+                defaultFilter = true,
+            )
+        )
+        comparisonCampaignIdOf(currentFilter)?.let { addressCampaignDao.find(it) }?.let { comparison ->
+            comparison.valuesArray?.takeIf { it.isNotEmpty() }?.let { values ->
+                elements.add(
+                    UIFilterListElement(
+                        id = FILTER_COMPARISON_VALUE,
+                        values = listOf(UISelectValue(EMPTY_VALUE, translate("filter.emptyValue"))) +
+                                values.map { UISelectValue(it, it) },
+                        label = translate("plugins.marketing.addressCampaignValue.comparisonValue"),
+                        multi = true,
+                        defaultFilter = true,
+                    )
+                )
+            }
+            elements.add(
+                UIFilterElement(
+                    FILTER_ONLY_DIFFERENCES,
+                    UIFilterElement.FilterType.BOOLEAN,
+                    translate("plugins.marketing.addressCampaignValue.onlyDifferences"),
+                    defaultFilter = true,
+                )
+            )
+        }
         // The values depend on the selected campaign, so the list meta is reloaded when it changes (reloadUI).
         getAddressCampaignDO()?.valuesArray?.let { values ->
             if (values.isNotEmpty()) {
@@ -278,6 +329,23 @@ class AddressCampaignValueEntityRest :
                 filters.add(ValueResultFilter(selectedValues, includeEmpty))
             }
         }
+        // The comparison campaign: its values are looked up once for both of its filters.
+        source.entries.find { it.field == FILTER_COMPARISON_CAMPAIGN_ID }?.synthetic = true
+        val comparisonValueEntry = source.entries.find { it.field == FILTER_COMPARISON_VALUE }
+        comparisonValueEntry?.synthetic = true
+        val onlyDifferencesEntry = source.entries.find { it.field == FILTER_ONLY_DIFFERENCES }
+        onlyDifferencesEntry?.synthetic = true
+        comparisonCampaignIdOf(source)?.let { comparisonId ->
+            val comparisonValues by lazy { comparisonValuesOf(comparisonId) }
+            comparisonValueEntry?.value?.values?.takeIf { it.isNotEmpty() }?.let { values ->
+                val selectedValues = values.toMutableList()
+                val includeEmpty = selectedValues.remove(EMPTY_VALUE)
+                filters.add(ComparisonValueResultFilter(comparisonValues, selectedValues, includeEmpty))
+            }
+            if (onlyDifferencesEntry?.isTrueValue == true) {
+                filters.add(ComparisonDifferenceResultFilter(comparisonValues))
+            }
+        }
         return filters.ifEmpty { null }
     }
 
@@ -291,20 +359,44 @@ class AddressCampaignValueEntityRest :
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
         // The stored filter is still the previous one here (the list saves the new one afterwards).
-        val previousCampaignId = campaignIdOf(getCurrentFilter())
+        val previousFilter = getCurrentFilter()
         val campaignId = campaignIdOf(source)
-        if (previousCampaignId != campaignId) {
-            // The value filter offers the values of the selected campaign (or none without one).
+        val comparisonCampaignId = comparisonCampaignIdOf(source)
+        if (campaignIdOf(previousFilter) != campaignId || comparisonCampaignIdOf(previousFilter) != comparisonCampaignId) {
+            // The value filters offer the values of the selected campaigns (or none without one), and the comparison
+            // campaign is chosen among the others.
             source.extended["reloadUI"] = true
         }
         if (campaignId != null) {
             userPrefService.putEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
             source.extended["campaignId"] = campaignId
         }
+        comparisonCampaignId?.let { source.extended["comparisonCampaignId"] = it }
     }
 
-    private fun campaignIdOf(filter: MagicFilter): Long? {
-        return filter.entries.find { it.field == FILTER_CAMPAIGN_ID }?.value?.values?.firstOrNull()?.toLongOrNull()
+    private fun campaignIdOf(filter: MagicFilter): Long? = selectedIdOf(filter, FILTER_CAMPAIGN_ID)
+
+    /** The comparison campaign of the filter, unless it is the selected campaign itself. */
+    private fun comparisonCampaignIdOf(filter: MagicFilter): Long? =
+        selectedIdOf(filter, FILTER_COMPARISON_CAMPAIGN_ID)?.takeIf { it != campaignIdOf(filter) }
+
+    private fun selectedIdOf(filter: MagicFilter, field: String): Long? {
+        return filter.entries.find { it.field == field }?.value?.values?.firstOrNull()?.toLongOrNull()
+    }
+
+    /** The (not deleted) values of a campaign by address id. */
+    private fun comparisonValuesOf(campaignId: Long): Map<Long, AddressCampaignValueDO> {
+        return baseDao.getAddressCampaignValuesByAddressId(mutableMapOf(), campaignId)
+    }
+
+    /** The comparison campaign of the user's current filter, if any (see [AddressCampaignValueMultiSelectedPageRest]). */
+    internal fun getComparisonCampaignDO(): AddressCampaignDO? {
+        return comparisonCampaignIdOf(getCurrentFilter())?.let { addressCampaignDao.find(it) }
+    }
+
+    /** The values of the comparison campaign of the user's current filter by address id, empty without one. */
+    internal fun getComparisonValues(): Map<Long, AddressCampaignValueDO> {
+        return comparisonCampaignIdOf(getCurrentFilter())?.let { comparisonValuesOf(it) } ?: emptyMap()
     }
 
     /**
@@ -336,12 +428,21 @@ class AddressCampaignValueEntityRest :
         magicFilter: MagicFilter,
     ): ResultSet<*> {
         val campaign = (magicFilter.extended["campaignId"] as? Long)?.let { addressCampaignDao.find(it) }
-        resultSet.statistics = Statistics(campaign?.id, campaign?.title)
+        val comparison = (magicFilter.extended["comparisonCampaignId"] as? Long)?.let { addressCampaignDao.find(it) }
+        resultSet.statistics = Statistics(
+            campaign?.id,
+            campaign?.title,
+            campaign?.active,
+            comparison?.id,
+            comparison?.title,
+        )
         val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
         val personalAddressMap = personalAddressDao.personalAddressByAddressId
+        val comparisonValues = comparison?.id?.let { comparisonValuesOf(it) } ?: emptyMap()
         @Suppress("UNCHECKED_CAST")
         (newResultSet.resultSet as List<AddressCampaignValue>).forEach { entry ->
             entry.isFavoriteCard = personalAddressMap[entry.addressId]?.isFavorite
+            entry.addressId?.let { comparisonValues[it] }?.let { entry.setComparison(it) }
         }
         if (magicFilter.extended["reloadUI"] == true) {
             newResultSet.reloadUI = true
@@ -397,16 +498,44 @@ class AddressCampaignValueEntityRest :
         return dbObj
     }
 
+    /**
+     * The form (an edited value, or a new one) shows the value the address has in the comparison campaign of the
+     * list, to be adopted (see the edit intro of projectforge-next). A list row gets it in [postProcessResultSet],
+     * looked up once for all rows.
+     */
     override fun transformFromDB(obj: AddressCampaignValueDO, editMode: Boolean): AddressCampaignValue {
         val dto = AddressCampaignValue()
         dto.copyFrom(obj)
+        if (obj.id == null && obj.addressCampaign?.active == false) {
+            // A new value of an inactive campaign can't be saved (AddressCampaignValueRight); a stored one gets
+            // its flags from getById.
+            dto.writeAccess = false
+            dto.deleteAccess = false
+        }
+        if (editMode || obj.id == null) {
+            getComparisonCampaignDO()?.takeIf { it.id != obj.addressCampaign?.id }?.let { comparison ->
+                dto.comparisonCampaignTitle = comparison.title
+                baseDao.get(obj.address?.id, comparison.id)?.takeIf { !it.deleted }?.let { dto.setComparison(it) }
+            }
+        }
         return dto
     }
 
-    /** A new value belongs to an address and a campaign (see [newBaseDO]): without them, there is nothing to save. */
+    /**
+     * A new value belongs to an address and a campaign (see [newBaseDO]): without them, there is nothing to save.
+     * The value of an inactive campaign can't be changed: refused by [AddressCampaignValueRight] anyway, said here
+     * with the reason instead of the general missing right.
+     */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: AddressCampaignValue) {
         if (dto.id == null && (dto.addressId == null || dto.addressCampaign?.id == null)) {
-            validationErrors.add(ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven"))
+            validationErrors.add(ValidationError.create("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven"))
+            return
+        }
+        // The stored campaign of a stored value, not the posted one.
+        val campaignId = dto.id?.takeIf { it > 0 }?.let { baseDao.find(it)?.addressCampaign?.id }
+            ?: dto.addressCampaign?.id
+        if (campaignId?.let { addressCampaignDao.find(it) }?.active == false) {
+            validationErrors.add(ValidationError.create("plugins.marketing.addressCampaign.error.inactive"))
         }
     }
 

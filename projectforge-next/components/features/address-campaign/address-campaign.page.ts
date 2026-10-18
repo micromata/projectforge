@@ -1,4 +1,5 @@
 import { ADDRESS_CAMPAIGN_METADATA } from "@/lib/metadata/address-campaign.generated";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { definePage } from "@/lib/page-def/define-page";
 import {
   addressCampaignSchema,
@@ -45,7 +46,12 @@ export const ADDRESS_CAMPAIGN_PAGE = definePage<
     { name: "title", size: 260, className: "font-semibold" },
     { name: "values", size: 320 },
     { name: "comment", size: 400 },
+    { name: "active", size: 90 },
   ],
+  // An inactive campaign is closed (its values can't be changed any more) and reads struck through.
+  inactiveLabelKey: "plugins.marketing.addressCampaign.legend.inactive",
+  rowClassName: (row) =>
+    row.active === false ? INACTIVE_ROW_CLASS : undefined,
   edit: {
     schema: addressCampaignSchema,
     fieldNames: ADDRESS_CAMPAIGN_FIELDS,
@@ -62,6 +68,7 @@ export const ADDRESS_CAMPAIGN_PAGE = definePage<
           { name: "title", span: 3, emphasized: true },
           { custom: AddressCampaignValuesField, span: 3 },
           { name: "comment", span: 3, rows: 4 },
+          { name: "active" },
         ],
       },
     ],

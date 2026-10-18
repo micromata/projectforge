@@ -34,6 +34,9 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.i18n.translate
+import org.projectforge.common.i18n.UserException
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UISelectValue
@@ -74,20 +77,58 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
     /**
      * The value as select of the values of the selected campaign (built at runtime, hence
-     * [MassUpdateFieldDeclaration.values]), and the comment.
+     * [MassUpdateFieldDeclaration.values]), and the comment. With a comparison campaign selected in the list,
+     * also the adoption of its values ([ADOPT_COMPARISON], rendered by the client itself).
      */
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         val values = addressCampaignValueEntityRest.getAddressCampaignDO()?.valuesArray?.map { UISelectValue(it, it) }
-        return listOf(
+        val declarations = mutableListOf(
             MassUpdateFieldDeclaration("value", showDeleteOption = true, values = values ?: emptyList()),
             MassUpdateFieldDeclaration("comment", showAppendOption = true),
         )
+        if (addressCampaignValueEntityRest.getComparisonCampaignDO() != null) {
+            declarations.add(MassUpdateFieldDeclaration(ADOPT_COMPARISON, custom = true))
+        }
+        return declarations
     }
 
-    /** The selected campaign, shown above the selection (the same line as above the list). */
+    /** The selected campaign and the comparison campaign, shown above the selection (as above the list). */
     override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
         val campaign = addressCampaignValueEntityRest.getAddressCampaignDO()
-        return AddressCampaignValueEntityRest.Statistics(campaign?.id, campaign?.title)
+        val comparison = addressCampaignValueEntityRest.getComparisonCampaignDO()
+        return AddressCampaignValueEntityRest.Statistics(
+            campaign?.id,
+            campaign?.title,
+            campaign?.active,
+            comparison?.id,
+            comparison?.title,
+        )
+    }
+
+    /** The adoption has no entity property, so no label of the registry. */
+    override fun getFieldTranslation(field: String): String {
+        if (field == ADOPT_COMPARISON) {
+            return translate("plugins.marketing.addressCampaignValue.comparisonCampaign")
+        }
+        return super.getFieldTranslation(field)
+    }
+
+    override fun describePreviewChange(
+        field: String,
+        param: MassUpdateParameter,
+        label: String,
+        value: String?,
+    ): String? {
+        if (field != ADOPT_COMPARISON) {
+            return null
+        }
+        val options = AdoptOptions.of(param) ?: return null
+        val comparisonTitle = addressCampaignValueEntityRest.getComparisonCampaignDO()?.title ?: ""
+        return listOfNotNull(
+            translateMsg("plugins.marketing.addressCampaignValue.adoptPreview", comparisonTitle),
+            if (options.comment) translate("plugins.marketing.addressCampaignValue.adoptComments") else null,
+            if (options.onlyEmpty) translate("plugins.marketing.addressCampaignValue.adoptOnlyEmpty") else null,
+        ).joinToString(", ")
     }
 
     override fun proceedMassUpdate(
@@ -98,12 +139,25 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         val params = massUpdateContext.massUpdateParams
         val addressCampaignDO = addressCampaignValueEntityRest.getAddressCampaignDO()
             ?: return showValidationErrors(
-                ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
+                ValidationError.create("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
             )
+        if (!addressCampaignDO.active) {
+            // Refused by AddressCampaignValueRight row by row anyway; said once, and why.
+            return showValidationErrors(ValidationError.create("plugins.marketing.addressCampaign.error.inactive"))
+        }
+        val adopt = params[ADOPT_COMPARISON]?.let { AdoptOptions.of(it) }
+        if (adopt != null && params["value"]?.hasAction == true) {
+            return showValidationErrors(ValidationError.create("plugins.marketing.addressCampaignValue.error.adoptAndSet"))
+        }
+        val adoption = adopt?.let {
+            Adoption(it, addressCampaignValueEntityRest.getComparisonValues(), addressCampaignDO.valuesArray)
+        }
+        // No property of the value: whether a row changed is told by the adoption (markCurrentModified).
+        massUpdateContext.ignoreFieldsForModificationCheck = listOf(ADOPT_COMPARISON)
         params["value"]?.textValue?.let { value ->
             if (value.isNotEmpty() && addressCampaignDO.valuesArray?.contains(value) != true) {
                 return showValidationErrors(
-                    ValidationError("plugins.marketing.addressCampaignValue.error.unknownValue", "value.textValue")
+                    ValidationError.create("plugins.marketing.addressCampaignValue.error.unknownValue", "value.textValue")
                 )
             }
         }
@@ -118,7 +172,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         }
         if (realCampaignValueIds.isNotEmpty()) {
             addressCampaignValueDao.select(realCampaignValueIds)?.forEach { addressCampaignValueDO ->
-                update(addressCampaignValueDO, params, massUpdateContext) {
+                update(addressCampaignValueDO, params, adoption, massUpdateContext) {
                     addressCampaignValueDO.deleted = false
                     addressCampaignValueDao.update(addressCampaignValueDO)
                 }
@@ -132,11 +186,12 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
                         addressCampaignValueDao.setAddress(it, address.id!!)
                         it.addressCampaign = addressCampaignDO
                     }
-                update(addressCampaignValueDO, params, massUpdateContext) {
+                update(addressCampaignValueDO, params, adoption, massUpdateContext) {
                     if ((addressCampaignValueDO.id ?: 0) > 0) {
                         addressCampaignValueDO.deleted = false
                         addressCampaignValueDao.update(addressCampaignValueDO)
-                    } else {
+                    } else if (addressCampaignValueDO.value != null || addressCampaignValueDO.comment != null) {
+                        // Not an empty value for an address the run had nothing for (e.g. nothing to adopt).
                         addressCampaignValueDao.insert(addressCampaignValueDO)
                     }
                 }
@@ -148,6 +203,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
     private fun update(
         addressCampaignValueDO: AddressCampaignValueDO,
         params: Map<String, MassUpdateParameter>,
+        adoption: Adoption?,
         massUpdateContext: MassUpdateContext<AddressCampaignValue>,
         update: () -> Unit,
     ) {
@@ -166,10 +222,94 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
                 addressCampaignValue.value = value
             }
         }
+        val adopted = adoption?.apply(addressCampaignValueDO, addressCampaignValue)
         massUpdateContext.commitUpdate(
             identifier4Message = "${addressCampaignValue.firstName} ${addressCampaignValue.fullLastName} ${addressCampaignValue.organization}",
             addressCampaignValue,
-            update = update,
+            update = {
+                // Reported for this row (MassUpdateContext.addError), the rest of the run goes on.
+                adopted?.unknownValue?.let {
+                    throw UserException("plugins.marketing.addressCampaignValue.error.unknownComparisonValue", it)
+                }
+                update()
+                if (adopted?.changed == true) {
+                    // The adoption has no field of its own the modification check could compare.
+                    massUpdateContext.markCurrentModified()
+                }
+            },
         )
+    }
+
+    /**
+     * The choices of the client's [ADOPT_COMPARISON] control, posted as the param's text value: `value`, plus
+     * `comment` (adopt the comment as well) and `onlyEmpty` (only rows without a value of their own), comma separated.
+     */
+    private class AdoptOptions(val comment: Boolean, val onlyEmpty: Boolean) {
+        companion object {
+            fun of(param: MassUpdateParameter): AdoptOptions? {
+                val options = param.textValue?.split(",")?.map { it.trim() } ?: return null
+                if (!options.contains("value")) {
+                    return null
+                }
+                return AdoptOptions(comment = options.contains("comment"), onlyEmpty = options.contains("onlyEmpty"))
+            }
+        }
+    }
+
+    /**
+     * Adopts the value (and the comment) the address has in the comparison campaign: a value only where the
+     * comparison campaign has one; a comment is appended to the row's own on a new line (see [appendComment]).
+     */
+    private class Adoption(
+        val options: AdoptOptions,
+        val comparisonValues: Map<Long, AddressCampaignValueDO>,
+        val campaignValues: Array<String>?,
+    ) {
+        /**
+         * @return Whether anything was adopted, or the comparison value the campaign doesn't know (nothing
+         * adopted then).
+         */
+        fun apply(dbObj: AddressCampaignValueDO, dto: AddressCampaignValue): Result {
+            val comparison = dbObj.address?.id?.let { comparisonValues[it] } ?: return Result()
+            if (options.onlyEmpty && dbObj.shownValue != null) {
+                return Result()
+            }
+            var changed = false
+            comparison.shownValue?.let { value ->
+                if (campaignValues?.contains(value) != true) {
+                    return Result(unknownValue = value)
+                }
+                changed = dbObj.shownValue != value
+                dbObj.value = value
+                dto.value = value
+            }
+            appendComment(dbObj.comment, comparison.comment)?.takeIf { options.comment }?.let { comment ->
+                dbObj.comment = comment
+                dto.comment = comment
+                changed = true
+            }
+            return Result(changed = changed)
+        }
+
+        class Result(val changed: Boolean = false, val unknownValue: String? = null)
+    }
+
+    companion object {
+        /**
+         * The comment with the comparison's appended on a new line (or the comparison's alone, without one of its
+         * own), null if there is nothing to adopt: no comparison comment, or one the comment already contains
+         * (adopted before).
+         */
+        internal fun appendComment(own: String?, comparison: String?): String? {
+            val adopt = comparison?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+            val current = own?.trimEnd()?.takeIf { it.isNotBlank() } ?: return adopt
+            if (current.contains(adopt)) {
+                return null
+            }
+            return "$current\n$adopt"
+        }
+
+        /** The client's control adopting the values of the comparison campaign, see [AdoptOptions]. */
+        const val ADOPT_COMPARISON = "adoptComparison"
     }
 }

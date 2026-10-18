@@ -514,6 +514,9 @@
     },
     "conflicts": "Konflikte",
     "endDate": "Enddatum",
+    "entry": {
+      "add": "Eintrag hinzufügen"
+    },
     "internalComment": {
       "_": "Interner Kommentar",
       "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar."
@@ -548,7 +551,8 @@
       "_": "Typ",
       "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar, alle anderen sehen nur den Status."
     },
-    "user": "Person"
+    "user": "Person",
+    "workingDays": "Arbeitstage"
   },
   "back": "Zurück",
   "book": {
@@ -1671,6 +1675,9 @@
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
       },
       "kunden": "Kunden",
+      "legend": {
+        "inactive": "Beendet, nicht aktiv oder nicht mehr existent"
+      },
       "list": {
         "select": {
           "title": "Kunde wählen"
@@ -1786,6 +1793,9 @@
       "lastActivity": "Letzte Aktivität",
       "lastOrder": "Letzter Auftrag",
       "lastTimesheet": "Letzte Zeitbuchung",
+      "legend": {
+        "ended": "Beendet"
+      },
       "leiter": "Projektmanagement",
       "list": {
         "select": {
@@ -2152,6 +2162,7 @@
     "timeFrom": "Von (Uhrzeit)",
     "timeTo": "Bis (Uhrzeit)",
     "title": "Filter",
+    "typeToSearch": "Zum Suchen tippen…",
     "value": "Wert",
     "valueNotSet": "(nicht gesetzt)",
     "valueTo": "Bis"
@@ -2889,7 +2900,7 @@
       },
       "lastRun": "Letzter Lauf",
       "legend": {
-        "inactive": "Inaktiv (oder gelöscht)"
+        "inactive": "Inaktiv"
       },
       "link": "Button „Öffnen“",
       "linkMode": {
@@ -3402,12 +3413,17 @@
     "marketing": {
       "addressCampaign": {
         "_": "Adresskampagne",
+        "active": "Aktiv",
         "edit": {
           "warning": {
             "doNotChangeValues": "Nachträgliches Ändern der Label kann bisherige Adresszuordnungen löschen!"
           }
         },
+        "inactiveReadOnly": "Inaktiv: Die Werte dieser Kampagne können nicht mehr geändert werden.",
         "lastUpdateOfAddress": "Adressänderung",
+        "legend": {
+          "inactive": "Inaktiv (Werte können nicht mehr geändert werden)"
+        },
         "noCampaignSelected": "Keine Adresskampagne ausgewählt.",
         "title": {
           "add": "Adresskampagne hinzufügen",
@@ -3420,6 +3436,13 @@
       },
       "addressCampaignValue": {
         "_": "Adresskampagnenwert",
+        "adopt": "Übernehmen",
+        "adoptComments": "auch die Bemerkungen übernehmen (an eine vorhandene angehängt)",
+        "adoptOnlyEmpty": "nur wo noch kein Wert gesetzt ist",
+        "adoptValues": "Werte der Vergleichskampagne übernehmen",
+        "comparison": "Vergleich",
+        "comparisonComment": "Vergleichsbemerkung",
+        "comparisonValue": "Vergleichswert",
         "error": {
           "addressOrCampaignNotGiven": "Adresse oder die Adresskampagne sind nicht gegeben."
         },
@@ -3921,6 +3944,7 @@
       "selectedOf": "{arg0} von {arg1} ausgewählt",
       "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
     },
+    "inactive": "inaktiv",
     "placeholder": "Auswählen..."
   },
   "selectAll": "Alle auswählen",
@@ -4948,6 +4972,7 @@
     },
     "leaveOfYear": "Urlaubskonto im Jahr {arg0}",
     "leaveaccount": {
+      "availabilities": "Verfügbarkeitseinträge",
       "title": "Urlaubskonto"
     },
     "mail": {
@@ -4979,6 +5004,14 @@
     "previousyearleave": "Resturlaub aus dem Vorjahr",
     "previousyearleaveunused": "Ungenutzer Resturlaub zum {arg0}",
     "previousyearleaveused": "Genutzter Resturlaub aus dem Vorjahr",
+    "quickView": {
+      "button": "Wer ist verfügbar?",
+      "empty": "Keine Abwesenheiten in diesem Zeitraum.",
+      "selectHint": "Person auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "title": "Verfügbarkeit auf einen Blick",
+      "user": "Person",
+      "weeks": "Wochen"
+    },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
     "remainingLeaveFromYear": "Resturlaub aus dem Jahr {arg0}",
     "remainingLeaveFromYearUnused": "Ungenutzer Resturlaub aus dem Jahr {arg0}",

@@ -127,6 +127,10 @@ class AddressCampaignValueLegacyMultiSelectedPageRest : AbstractMultiSelectedPag
                 ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
             )
         }
+        if (!addressCampaignDO.active) {
+            // Refused by AddressCampaignValueRight row by row anyway; said once, and why.
+            return showValidationErrors(ValidationError.create("plugins.marketing.addressCampaign.error.inactive"))
+        }
 
         // Split selected IDs into positive (existing campaign values) and negative (address IDs)
         val realCampaignValueIds = mutableListOf<Long>()

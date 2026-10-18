@@ -37,7 +37,11 @@ test.describe("address campaign values", { tag: "@parallel" }, () => {
     await expect(
       page.getByLabel(t("menu.addNewEntry"), { exact: true })
     ).toHaveCount(0);
-    for (const column of ADDRESS_CAMPAIGN_VALUE_PAGE.columns) {
+    // The comparison columns only appear with a comparison campaign in the filter, which the reset clears.
+    const columns = ADDRESS_CAMPAIGN_VALUE_PAGE.columns.filter(
+      (column) => !column.revealedByFilter
+    );
+    for (const column of columns) {
       const key = columnHeaderKeyOf(column, ADDRESS_CAMPAIGN_VALUE_METADATA);
       await expect(
         // The accessible name goes on with the header's buttons ("… Filter …"); "Adresse" must not match

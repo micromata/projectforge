@@ -82,6 +82,7 @@ export function useDeclaredColumns<
           align,
           filterKind: filterKind ?? undefined,
           wrap: declaration.wrap,
+          cellClassName: declaration.cellClassName,
         },
         // Left to the table's default (sortable) unless the declaration opts out — see
         // ColumnBase.sortable.

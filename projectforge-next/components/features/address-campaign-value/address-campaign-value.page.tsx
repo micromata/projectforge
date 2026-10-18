@@ -27,6 +27,8 @@ export const ADDRESS_CAMPAIGN_VALUE_ENTITY = "addressCampaignValue";
 export const ADDRESS_CAMPAIGN_VALUE_LIST_QUERY_KEY = [
   "addressCampaignValue",
 ] as const;
+/** The tint of the comparison campaign's columns: a neutral grey, apart from the teal of the favorite rows. */
+const COMPARISON_CELL_CLASS = "bg-muted/60";
 /** Route of the list; the edit page hangs below it as `/address-campaign-value/{id}`. */
 export const ADDRESS_CAMPAIGN_VALUE_ROUTE = "/address-campaign-value";
 
@@ -73,6 +75,29 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
       pinned: "left",
     },
     { name: "value", size: 140, className: "font-semibold" },
+    // The value of the comparison campaign (e.g. last year's), only while one is selected in the filter. Both
+    // comparison columns are tinted to set them apart from the campaign's own; a comparison value that differs
+    // from the row's value stands out — what is still to be decided or adopted.
+    {
+      id: "comparisonValue",
+      labelKey: "plugins.marketing.addressCampaignValue.comparisonValue",
+      accessor: (row) => row.comparisonValue ?? null,
+      size: 140,
+      sortable: false,
+      revealedByFilter: "comparisonCampaignId",
+      cellClassName: COMPARISON_CELL_CLASS,
+      cell: ({ row }) => {
+        const { comparisonValue, value } = row.original;
+        if (!comparisonValue) return null;
+        return comparisonValue === (value || null) ? (
+          <span className="text-muted-foreground">{comparisonValue}</span>
+        ) : (
+          <span className="font-semibold text-brand-pink">
+            {comparisonValue}
+          </span>
+        );
+      },
+    },
     {
       id: "organization",
       labelKey: "organization",
@@ -122,6 +147,16 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
       size: 110,
     },
     { name: "comment", size: 280, wrap: true },
+    {
+      id: "comparisonComment",
+      labelKey: "plugins.marketing.addressCampaignValue.comparisonComment",
+      accessor: (row) => row.comparisonComment ?? null,
+      size: 240,
+      wrap: true,
+      sortable: false,
+      revealedByFilter: "comparisonCampaignId",
+      cellClassName: COMPARISON_CELL_CLASS,
+    },
   ],
   // The React list's row colours: an address that can't be mailed to reads red, a favorite of the user blue.
   legend: [

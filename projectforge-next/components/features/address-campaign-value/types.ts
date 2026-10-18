@@ -17,6 +17,8 @@ export interface AddressCampaignValueDetail {
     id?: number | null;
     title?: string | null;
     valuesArray?: string[] | null;
+    /** An inactive campaign is closed: its values are read only (AddressCampaignValueRight). */
+    active?: boolean | null;
   } | null;
   addressId?: number | null;
   name?: string | null;
@@ -40,6 +42,13 @@ export interface AddressCampaignValueDetail {
   /** "3 days ago" of lastUpdate / lastUpdateOfAddress, translated by the backend. */
   timeAgo?: string | null;
   timeAgoOfAddress?: string | null;
+  /**
+   * The value and comment the address has in the comparison campaign the list shows beside this one (filter
+   * `comparisonCampaignId`), and — for the form only — that campaign's title.
+   */
+  comparisonValue?: string | null;
+  comparisonComment?: string | null;
+  comparisonCampaignTitle?: string | null;
 }
 
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
@@ -51,6 +60,10 @@ export interface AddressCampaignValueListRow extends AddressCampaignValueDetail 
 export interface AddressCampaignValueStatistics {
   campaignId?: number | null;
   campaignTitle?: string | null;
+  /** false for an inactive campaign, whose values can't be changed any more. */
+  campaignActive?: boolean | null;
+  comparisonCampaignId?: number | null;
+  comparisonCampaignTitle?: string | null;
 }
 
 /**

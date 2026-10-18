@@ -30,6 +30,7 @@ export const addressCampaignSchema = z.object({
       ),
     }),
   comment: m.nullableString("comment"),
+  active: m.booleanField("active"),
 });
 
 export type AddressCampaignValues = z.infer<typeof addressCampaignSchema>;
