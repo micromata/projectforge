@@ -33,17 +33,18 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
@@ -51,20 +52,31 @@ import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.*
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Employees (list + form in projectforge-next, `/next/employee`), including the time-dependent attributes
+ * (status, weekly working hours, annual leave days) of an employee, see [EmployeeValidSinceAttrDO].
+ */
 @RestController
 @RequestMapping("${Rest.URL}/employee")
-class EmployeePagesRest :
-    AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
+class EmployeeEntityRest :
+    AbstractDTOEntityRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
+
+    /**
+     * Response of the valid-since attribute endpoints: the fresh entries of the modified attribute type.
+     */
+    class ValidSinceAttrEntries(val entries: List<EmployeeValidSinceAttr>)
 
     @Autowired
     private lateinit var caches: PfCaches
@@ -108,6 +120,13 @@ class EmployeePagesRest :
         employee.status = obj.status
         employee.annualLeave = obj.annualLeave
         employee.weeklyWorkingHours = obj.weeklyWorkingHours
+        if (editMode) {
+            obj.id?.let { id ->
+                employee.statusEntries = selectEntries(id, EmployeeValidSinceAttrType.STATUS)
+                employee.weeklyWorkingHoursEntries = selectEntries(id, EmployeeValidSinceAttrType.WEEKLY_HOURS)
+                employee.annualLeaveEntries = selectEntries(id, EmployeeValidSinceAttrType.ANNUAL_LEAVE)
+            }
+        }
         return employee
     }
 
@@ -115,51 +134,6 @@ class EmployeePagesRest :
         val employeeDO = EmployeeDO()
         dto.copyTo(employeeDO)
         return employeeDO
-    }
-
-    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: Employee, userAccess: UILayout.UserAccess) {
-        dto.id?.let { id ->
-            dto.statusEntries = employeeService.selectStatusEntries(id).map { EmployeeValidSinceAttr(it) }
-            dto.weeklyWorkingHoursEntries =
-                employeeService.selectWeeklyWorkingHoursEntries(id).map { EmployeeValidSinceAttr(it) }
-            dto.annualLeaveEntries =
-                employeeService.selectAnnualLeaveDayEntries(id).map { EmployeeValidSinceAttr(it) }
-        }
-    }
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            userAccess = userAccess,
-        )
-            // Name	Vorname	Status	Personalnummer	Kost1	Kreditorenkonto	Position	Team	Eintrittsdatum	Austrittsdatum	Wochenstunden	Bemerkung
-            .add(
-                lc,
-                "user.firstname",
-                "user.lastname",
-                "status",
-                "staffNumber",
-                "kost1",
-                "konto",
-                "position",
-                "abteilung",
-                "eintrittsDatum",
-                "austrittsDatum",
-                "weeklyWorkingHours",
-                "comment"
-            )
-        layout.excelExportSupported = true
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -280,125 +254,130 @@ class EmployeePagesRest :
     }
 
     /**
-     * LAYOUT Edit page
+     * Inserts a time-dependent attribute (status, weekly working hours or annual leave days) of an employee.
      */
-    override fun createEditLayout(dto: Employee, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(
-                UIRow()
-                    .add(
-                        UICol()
-                            .add(lc, "user", "kost1", "abteilung", "position")
-                    )
-                    .add(
-                        UICol()
-                            .add(lc, "staffNumber")
-                            .add(
-                                UISelect<Long>(
-                                    "konto",
-                                    lc,
-                                    label = "fibu.employee.konto",
-                                    tooltip = "fibu.employee.konto.tooltip",
-                                    autoCompletion = AutoCompletion<Long>(url = AutoCompletion.getAutoCompletionUrl("account")),
-                                )
-                            )
-                            .add(lc, "eintrittsDatum", "austrittsDatum")
-                    )
-            )
-            .add(
-                UIRow()
-                    .add(UICol().add(lc, "comment"))
-            )
-        if (dto.id == null) {
-            layout.add(UIAlert("fibu.employee.insert.hint", color = UIColor.INFO))
-        } else {
-            val attrLc = LayoutContext(EmployeeValidSinceAttrDO::class.java)
-            layout.layoutBelowActions
-                .add(
-                    UIRow()
-                        .add(
-                            UICol().add(
-                                UIFieldset(title = "fibu.employee.urlaubstage")
-                                    .add(
-                                        UIAgGrid("annualLeaveEntries")
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "days"))
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
-                                            .withRowClickRedirectUrl(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE),
-                                                openModal = true,
-                                            )
-                                    ).add(
-                                        UIButton.createAddButton(
-                                            responseAction = ResponseAction(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE, true),
-                                                targetType = TargetType.MODAL
-                                            ),
-                                            default = false,
-                                        )
-                                    )
-                            )
-                        )
-                        .add(
-                            UICol().add(
-                                UIFieldset(title = "fibu.employee.wochenstunden")
-                                    .add(
-                                        UIAgGrid("weeklyWorkingHoursEntries")
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "fibu.employee.sollstunden"))
-                                            .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
-                                            .withRowClickRedirectUrl(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS),
-                                                openModal = true,
-                                            )
-                                    ).add(
-                                        UIButton.createAddButton(
-                                            responseAction = ResponseAction(
-                                                createModalUrl(dto, EmployeeValidSinceAttrType.WEEKLY_HOURS, true),
-                                                targetType = TargetType.MODAL
-                                            ),
-                                            default = false,
-                                        )
-                                    )
-                            )
-                        )
-                )
-            layout.layoutBelowActions
-                .add(
-                    UIRow()
-                        .add(
-                            UICol()
-                                .add(
-                                    UIFieldset(title = "fibu.employee.status")
-                                        .add(
-                                            UIAgGrid("statusEntries")
-                                                .add(UIAgGridColumnDef.createCol(attrLc, "validSince"))
-                                                .add(UIAgGridColumnDef.createCol(attrLc, "value", headerName = "status"))
-                                                .add(UIAgGridColumnDef.createCol(attrLc, "comment"))
-                                                .withRowClickRedirectUrl(
-                                                    createModalUrl(dto, EmployeeValidSinceAttrType.STATUS),
-                                                    openModal = true,
-                                                )
-                                        ).add(
-                                            UIButton.createAddButton(
-                                                responseAction = ResponseAction(
-                                                    createModalUrl(dto, EmployeeValidSinceAttrType.STATUS, true),
-                                                    targetType = TargetType.MODAL
-                                                ),
-                                                default = false,
-                                            )
-                                        )
-                                )
-                        )
-                )
-        }
-        return LayoutUtils.processEditPage(layout, dto, this)
+    @AccessChecked("EmployeeService: insert access to the employee (EmployeeDao)")
+    @PostMapping("validSinceAttr/insert")
+    fun insertValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
+        val dto = postData.data
+        requiredFields(dto, idNull = true)
+        validate(dto)?.let { return it }
+        employeeService.insert(employeeId = dto.employeeId!!, attrDO = dto.cloneAsDO())
+        return entriesResponse(dto)
     }
 
-    override fun onAfterSave(request: HttpServletRequest, obj: EmployeeDO, postData: PostData<Employee>): ResponseAction {
-        // Redirect to edit page after insert for allowing user to add vacation, status and weekly hours entries.
-        return ResponseAction(PagesResolver.getEditPageUrl(EmployeePagesRest::class.java, obj.id, absolute = true))
-            .addVariable("id", obj.id ?: -1)
+    /**
+     * Updates a time-dependent attribute of an employee.
+     */
+    @AccessChecked("EmployeeService: update access to the employee (EmployeeDao)")
+    @PostMapping("validSinceAttr/update")
+    fun updateValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
+        val dto = postData.data
+        requiredFields(dto)
+        validate(dto)?.let { return it }
+        employeeService.updateValidSinceAttr(employeeId = dto.employeeId, attrDO = dto.cloneAsDO())
+        return entriesResponse(dto)
+    }
+
+    /**
+     * Marks a time-dependent attribute of an employee as deleted.
+     */
+    @AccessChecked("EmployeeService: update access to the employee (EmployeeDao)")
+    @PostMapping("validSinceAttr/delete")
+    fun deleteValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
+        val dto = postData.data
+        requiredFields(dto)
+        employeeService.markValidSinceAttrAsDeleted(employeeId = dto.employeeId, attrId = dto.id)
+        return entriesResponse(dto)
+    }
+
+    private fun selectEntries(employeeId: Long, type: EmployeeValidSinceAttrType): List<EmployeeValidSinceAttr> {
+        val entries = when (type) {
+            EmployeeValidSinceAttrType.STATUS -> employeeService.selectStatusEntries(employeeId)
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> employeeService.selectWeeklyWorkingHoursEntries(employeeId)
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> employeeService.selectAnnualLeaveDayEntries(employeeId)
+        }
+        return entries.map { EmployeeValidSinceAttr(it) }
+    }
+
+    private fun entriesResponse(dto: EmployeeValidSinceAttr): ResponseEntity<ValidSinceAttrEntries> {
+        return ResponseEntity.ok(ValidSinceAttrEntries(selectEntries(dto.employeeId!!, dto.type!!)))
+    }
+
+    private fun requiredFields(dto: EmployeeValidSinceAttr, idNull: Boolean = false) {
+        if (idNull) {
+            require(dto.id == null) { "Can't insert EmployeeValidSinceAttr entry with given id." }
+        } else {
+            requireNotNull(dto.id) { "Can't update/delete EmployeeValidSinceAttr entry without id." }
+        }
+        requireNotNull(dto.employeeId) { "Can't modify EmployeeValidSinceAttr entry without employeeId." }
+        requireNotNull(dto.type) { "Can't modify EmployeeValidSinceAttr entry without type." }
+    }
+
+    private fun validate(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction>? {
+        val validationErrors = mutableListOf<ValidationError>()
+        when (dto.type) {
+            EmployeeValidSinceAttrType.STATUS -> {
+                if (EmployeeStatus.safeValueOf(dto.value) == null) {
+                    validationErrors.add(
+                        ValidationError.createFieldRequired(fieldId = "value", fieldName = translate("fibu.employee.status"))
+                    )
+                }
+            }
+
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
+                val annualLeave = dto.value?.toIntOrNull()
+                if (annualLeave == null) {
+                    validationErrors.add(
+                        ValidationError.createFieldRequired(
+                            fieldId = "value",
+                            fieldName = translate("fibu.employee.urlaubstage")
+                        )
+                    )
+                } else if (annualLeave < 0 || annualLeave > 100) {
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                            fieldId = "value",
+                        )
+                    )
+                }
+            }
+
+            EmployeeValidSinceAttrType.WEEKLY_HOURS -> {
+                val weeklyWorkingHours = dto.value?.toBigDecimalOrNull()
+                if (weeklyWorkingHours == null) {
+                    validationErrors.add(
+                        ValidationError.createFieldRequired(
+                            fieldId = "value",
+                            fieldName = translate("fibu.employee.wochenstunden")
+                        )
+                    )
+                } else if (weeklyWorkingHours < BigDecimal.ZERO || weeklyWorkingHours > NumberHelper.HUNDRED) {
+                    validationErrors.add(
+                        ValidationError(
+                            translateMsg("validation.error.range.integerOutOfRange", "0", "100"),
+                            fieldId = "value",
+                        )
+                    )
+                }
+            }
+
+            null -> throw IllegalArgumentException("Unknown type: ${dto.type}")
+        }
+        if (dto.validSince == null) {
+            validationErrors.add(
+                ValidationError.createFieldRequired(EmployeeValidSinceAttrDO::class.java, fieldId = "validSince")
+            )
+        } else {
+            employeeService.validate(dto.cloneAsDO())?.let { msg ->
+                validationErrors.add(ValidationError.create(msg))
+            }
+        }
+        if (validationErrors.isNotEmpty()) {
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
+        return null
     }
 
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
@@ -425,20 +404,4 @@ class EmployeePagesRest :
 
     override fun isShowInactiveAllowed(): Boolean =
         accessChecker.isLoggedInUserMemberOfGroup(*AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS)
-
-    private fun createModalUrl(
-        employee: Employee,
-        type: EmployeeValidSinceAttrType,
-        newEntry: Boolean = false
-    ): String {
-        return PagesResolver.getDynamicPageUrl(
-            EmployeeValidSinceAttrPageRest::class.java,
-            id = if (newEntry) "-1" else "{id}",
-            params = mapOf(
-                "employeeId" to employee.id,
-                "type" to type,
-            ),
-            absolute = true,
-        )
-    }
 }

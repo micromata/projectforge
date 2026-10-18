@@ -101,7 +101,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       LeaveAccountEntryPagesRest::class.java,
       HRPlanningEntityRest::class.java,
       HRPlanningEntryEntityRest::class.java,
-      EmployeePagesRest::class.java,
+      EmployeeEntityRest::class.java,
     )
 
     registerShortCutValues(

@@ -75,7 +75,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
-    EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
+    // Migrated to projectforge-next; the React pages were removed.
+    EMPLOYEE_LIST("menu.fibu.employees", getListUrl("employee")), //
     // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
     // The import is reached as a button in the salary list.
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //

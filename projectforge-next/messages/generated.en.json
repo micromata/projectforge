@@ -498,6 +498,7 @@
     "short": "Att."
   },
   "attr": {
+    "currentlyValid": "Currently valid",
     "validSince": "Valid since"
   },
   "availability": {

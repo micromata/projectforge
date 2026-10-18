@@ -290,6 +290,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
+     * there is no way back, but a bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the employee pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/employee", NextMigration.listUrl("employee"))
+        Assertions.assertEquals("next/employee/:id", NextMigration.standardEditPage("employee"))
+        Assertions.assertEquals("next/employee/new", NextMigration.newEntryUrl("employee"))
+        Assertions.assertNull(NextMigration.legacyListUrl("employee"))
+        Assertions.assertNull(NextMigration.legacyEditPage("employee"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("employee"))
+        val link = NextMigration.orphanedLinks().single { it.category == "employee" }
+        Assertions.assertEquals("react/employee", link.legacyListPath)
+        Assertions.assertEquals("react/employee/edit", link.legacyEditPath)
+    }
+
+    /**
      * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
      * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
      */

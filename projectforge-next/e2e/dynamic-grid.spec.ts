@@ -6,33 +6,33 @@ import type { Page } from "@playwright/test";
 /**
  * The server-laid-out list page (`components/dynamic/components/grid/`) against the live backend.
  *
- * `employee` is the check page for it (the vacation list was, until it was migrated): its layout carries
- * the parts the adapter has to translate — `valueGetter` (`data?.user?.firstname`), DATE formatter
- * columns, explicit widths and a `rowClickRedirectUrl` ending in `/id`. The list is read-only, so no test
- * data is created; the persistence test does write the account's column state and resets it again at the
- * end.
+ * `contract` is the check page for it (the vacation list was, then the employee list, until both were
+ * migrated): its layout carries the parts the adapter has to translate — a DATE formatter column, explicit
+ * widths and a `rowClickRedirectUrl` ending in `/id`. The list is read-only, so no test data is created;
+ * the persistence test does write the account's column state and resets it again at the end.
  *
- * An employee cannot be created from here (it needs a user of its own), so the cases that need a row skip
- * when the list is empty rather than failing — see [requireRows]. Nothing of the rows is named in this
- * file: what is asserted is their *shape* (a date is a date, a nested name is a name), never a value.
+ * No contract is created from here, so the cases that need a row skip when the list is empty rather than
+ * failing — see [requireRows]. Nothing of the rows is named in this file: what is asserted is their
+ * *shape* (a date is a date, a text is a text), never a value.
  */
-const LIST = "/employee";
+const LIST = "/contract";
 
 /**
  * The layout sends its column labels as text (`headerName`), already translated — so the expectation
  * translates the same keys rather than spelling out one language's word (see projectforge-next/CLAUDE.md).
- * These are the keys `PFUserDO` and `EmployeeDO` carry as `@PropertyInfo(i18nKey = …)`, which is where `lc`
- * takes the header names from.
+ * These are the keys `ContractDO` carries as `@PropertyInfo(i18nKey = …)`, which is where `lc` takes the
+ * header names from.
  */
-const FIRST_NAME_KEY = "firstName";
-const JOIN_DATE_KEY = "fibu.employee.eintrittsdatum";
-const COMMENT_KEY = "comment";
+const TITLE_KEY = "title";
+// `date` is a text *and* a parent key, so the text itself is `date._` (the generator nests it).
+const DATE_KEY = "date._";
+const CO_CONTRACTOR_KEY = "legalAffaires.contract.coContractorA";
 
 /**
  * Skips the case when the list has no row, and answers the rows otherwise.
  *
- * Only a spec whose entity it can create may insist on data. Employees are not among those, so "the list
- * is empty" is a statement about the database rather than about the code under test.
+ * Only a spec whose entity it creates may insist on data. This one creates no contract, so "the list is
+ * empty" is a statement about the database rather than about the code under test.
  */
 async function requireRows(page: Page) {
   const rows = listRows(page);
@@ -43,7 +43,7 @@ async function requireRows(page: Page) {
     .waitFor({ state: "visible", timeout: 20_000 })
     .then(() => 1)
     .catch(() => 0);
-  test.skip(count === 0, "no employee in this database");
+  test.skip(count === 0, "no contract in this database");
   return rows;
 }
 
@@ -90,7 +90,7 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
   // that hides a column would otherwise dictate what the next one (or the next run) sees. Resetting
   // through the endpoint rather than through the UI keeps it independent of a failed assertion.
   test.beforeEach(async ({ loggedInPage: page }) => {
-    await page.request.get("/rs/employee/resetGridState/");
+    await page.request.get("/rs/contract/resetGridState/");
   });
 
   test("renders the layout's columns, formatted values and row colours", async ({
@@ -99,27 +99,26 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
     const { t } = await userFormat(page);
     await goto(page, LIST);
 
-    // The header proves the column defs survived the adapter, including the one whose value comes
-    // from a valueGetter rather than from its own field.
-    await headerCell(page, t(FIRST_NAME_KEY));
-    await headerCell(page, t(JOIN_DATE_KEY));
-    await headerCell(page, t(COMMENT_KEY));
+    // The header proves the column defs survived the adapter.
+    await headerCell(page, t(TITLE_KEY));
+    await headerCell(page, t(DATE_KEY));
+    await headerCell(page, t(CO_CONTRACTOR_KEY));
 
     const rows = await requireRows(page);
 
-    // valueGetter: the first name cell must show the nested user's name, not "[object Object]" or
-    // JSON — that is what the replaced hand-written table did.
-    const firstName = rows.first().locator("td").first();
-    await expect(firstName).not.toHaveText(/object|\{/i);
-    await expect(firstName).toHaveText(/\p{L}/u);
+    // A cell shows its value as text, not "[object Object]" or JSON — that is what the replaced
+    // hand-written table did.
+    const titleColumn = await columnIndex(page, t(TITLE_KEY));
+    const title = rows.first().locator(`td:nth-child(${titleColumn})`);
+    await expect(title).not.toHaveText(/object Object|\{/i);
 
-    // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every join date is a
-    // German date and never an ISO string — or empty, an employee may have none.
-    // Located by its header rather than by a fixed position: EmployeePagesRest.createListLayout gains a
+    // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every date is a German
+    // date and never an ISO string — or empty, a contract may have none.
+    // Located by its header rather than by a fixed position: ContractPagesRest.createListLayout may gain a
     // column now and then, and a stale index reads another column's text.
-    const joinDateColumn = await columnIndex(page, t(JOIN_DATE_KEY));
-    const joinDates = listRows(page).locator(`td:nth-child(${joinDateColumn})`);
-    for (const text of await joinDates.allInnerTexts()) {
+    const dateColumn = await columnIndex(page, t(DATE_KEY));
+    const dates = listRows(page).locator(`td:nth-child(${dateColumn})`);
+    for (const text of await dates.allInnerTexts()) {
       expect(text.trim()).toMatch(/^(\d{2}\.\d{2}\.\d{4})?$/);
     }
 
@@ -141,10 +140,10 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
     const rows = await requireRows(page);
 
     await rows.first().click();
-    // `rowClickRedirectUrl` is "/react/employee/edit/id": employee is not in NextMigration.MIGRATED,
+    // `rowClickRedirectUrl` is "/react/contract/edit/id": contract is not in NextMigration.MIGRATED,
     // so the row leads into the legacy frontend — with the row's id substituted for the trailing
     // "/id" segment (applyRowId).
-    await expect(page).toHaveURL(/\/react\/employee\/edit\/\d+/, {
+    await expect(page).toHaveURL(/\/react\/contract\/edit\/\d+/, {
       timeout: 20_000,
     });
   });
@@ -163,7 +162,7 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
 
     // Sorting: a click on the header cell sorts (DataTable sorts on the whole cell), which posts to
     // onColumnStatesChangedUrl.
-    await (await headerCell(page, t(FIRST_NAME_KEY))).click();
+    await (await headerCell(page, t(TITLE_KEY))).click();
     const sortedFirst = await listRows(page)
       .first()
       .locator("td")
@@ -175,23 +174,23 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
     // shows the state from before the click.
     const panel = page.getByRole("button", { name: t("columns._") });
     await panel.click();
-    const checkbox = page.locator("#col-comment");
+    const checkbox = page.locator("#col-coContractorA");
     await expect(checkbox).toHaveAttribute("data-state", "checked");
-    const stored = columnStateStored(page, '"comment":false');
+    const stored = columnStateStored(page, '"coContractorA":false');
     await checkbox.click();
     await expect(checkbox).toHaveAttribute("data-state", "unchecked");
     await page.keyboard.press("Escape");
     await expect(
-      page.locator("th").filter({ hasText: t(COMMENT_KEY) })
+      page.locator("th").filter({ hasText: t(CO_CONTRACTOR_KEY) })
     ).toHaveCount(0);
     await stored;
 
     // The reload is the actual assertion: the state has to come back through the *layout* response,
     // which the backend rewrites in restoreColumnsFromUserPref — nothing is stored in the client.
     await page.reload({ waitUntil: "domcontentloaded" });
-    await headerCell(page, t(FIRST_NAME_KEY));
+    await headerCell(page, t(TITLE_KEY));
     await expect(
-      page.locator("th").filter({ hasText: t(COMMENT_KEY) })
+      page.locator("th").filter({ hasText: t(CO_CONTRACTOR_KEY) })
     ).toHaveCount(0);
     await expect(listRows(page).first().locator("td").first()).toHaveText(
       sortedFirst
@@ -209,11 +208,11 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
       ),
       page.getByRole("button", { name: t("columns.reset") }).click(),
     ]);
-    await expect(page.locator("#col-comment")).toHaveAttribute(
+    await expect(page.locator("#col-coContractorA")).toHaveAttribute(
       "data-state",
       "checked"
     );
     await page.keyboard.press("Escape");
-    await headerCell(page, t(COMMENT_KEY));
+    await headerCell(page, t(CO_CONTRACTOR_KEY));
   });
 });

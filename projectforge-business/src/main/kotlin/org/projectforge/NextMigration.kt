@@ -347,6 +347,17 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the employees (EmployeeEntityRest, components/features/employee),
+        // migrated from React; the time-dependent attributes (status, weekly hours, annual leave) are edited in
+        // dialogs of the form (`employee/validSinceAttr/...`). The React pages are gone (no UILayout served any
+        // more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.
+        "employee" to NextPage(
+            route = "employee",
+            editRoute = "employee/$ID_PLACEHOLDER",
+            newEntryRoute = "employee/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList).
         // EmployeeSalaryEntityRest serves no layout, so there is no React page. The Wicket pages (the salary
         // import included, now a button in the next list) have been removed: the way back is no longer
