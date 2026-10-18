@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MenuLink } from "@/components/shared/menu-link";
-import { VacationDaysBar } from "@/components/features/vacation/vacation-days-bar";
+import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
@@ -74,13 +74,11 @@ export function VacationEntriesTable({
                 </TableCell>
                 <TableCell>{vacation.statusString}</TableCell>
                 <TableCell>
-                  {/* As in the vacation list: beside the number the period as a bar (VacationDaysBar). */}
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 shrink-0 text-right tabular-nums">
-                      {vacation.workingDaysFormatted}
-                    </span>
-                    <VacationDaysBar row={vacation} />
-                  </div>
+                  {/* As in the vacation list: beside the number the period as a bar. */}
+                  <AbsenceDaysCell
+                    formatted={vacation.workingDaysFormatted}
+                    row={vacation}
+                  />
                 </TableCell>
                 <TableCell>{vacation.specialFormatted}</TableCell>
                 <TableCell>{vacation.replacement}</TableCell>

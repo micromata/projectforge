@@ -26,8 +26,11 @@ package org.projectforge.rest.dto
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityLocation
 import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class Availability(
@@ -57,6 +60,13 @@ class Availability(
      * isn't told to the logged-in user (AbsenceVisibility). Read-only.
      */
     var startHidden: Boolean? = null,
+    /** The working days of the period (weekends and holidays not counted), as of a vacation. Read-only. */
+    var workingDays: BigDecimal? = null,
+    var workingDaysFormatted: String? = null,
+    /** The weekends and holidays of the period, for the list's days bar; null for one it doesn't draw. List only. */
+    var nonWorkingDays: List<LocalDate>? = null,
+    /** The days without any substitute on duty, for the list's days bar; only on a conflict. List only. */
+    var uncoveredDays: List<LocalDate>? = null,
     /** The substitutes' vacations overlapping the period, as the user may see them. Read-only, edit view only. */
     var substituteVacations: List<Vacation>? = null,
     /** The substitutes' availability entries overlapping the period, ditto. Read-only, edit view only. */
@@ -69,6 +79,12 @@ class Availability(
         super.copyFrom(src)
         status?.let { statusAsString = translate(it.i18nKey) }
         location?.let { locationAsString = translate(it.i18nKey) }
+        val start = startDate
+        val end = endDate
+        if (start != null && end != null) {
+            workingDays = VacationService.getVacationDays(start, end)
+            workingDaysFormatted = VacationStats.format(workingDays)
+        }
         substitutes = src.substitutes?.map { User().apply { copyFromMinimal(it) } }?.sortedBy { it.displayName }
         substitutesAsString = substitutes?.joinToString { it.displayName ?: "???" }
     }

@@ -1,22 +1,25 @@
 import { shiftDateByDays } from "@/lib/date-parse";
 
-/** How a day of the list's bar is drawn. */
+/** How a day of the bar of an absence (a vacation, an availability entry) is drawn. */
 export type BarDayKind = "work" | "off" | "uncovered";
 
 export interface BarDay {
   date: string;
   kind: BarDayKind;
-  /** Half a day at the beginning or the end of the vacation: half the segment. */
+  /** Half a day at the beginning or the end of a vacation: half the segment. */
   half: boolean;
 }
 
 export interface DaysBar {
   days: BarDay[];
-  /** The vacation is longer than the bar shows. */
+  /** The absence is longer than the bar shows. */
   truncated: boolean;
 }
 
-/** What the bar is drawn from: a row of the vacation list or of the vacation account. ISO dates. */
+/**
+ * What the bar is drawn from: a row of the vacation or availability list or of the vacation account. ISO dates; an
+ * availability entry has no half days.
+ */
 export interface DaysBarSource {
   startDate?: string | null;
   endDate?: string | null;
@@ -34,7 +37,7 @@ export const BAR_SCALE_DAYS = 28;
 
 /**
  * Days drawn at most: a longer vacation than [BAR_SCALE_DAYS] is squeezed into the same width with narrower
- * segments (VacationDaysBar), up to 13 weeks; beyond that it is cut off.
+ * segments (AbsenceDaysBar), up to 13 weeks; beyond that it is cut off.
  */
 export const BAR_MAX_DAYS = 91;
 
