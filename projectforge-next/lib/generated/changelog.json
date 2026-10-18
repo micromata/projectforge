@@ -1,17 +1,5 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
-  "unreleased" : {
-    "id" : "unreleased",
-    "version" : "9.0.8",
-    "date" : "2026-10-19",
-    "title" : "Not yet released",
-    "summary" : [ "Hotfix release", "Fix: saving an address campaign or an account no longer creates a copy", "Fix: orders and invoices whose positions are all deleted are refused" ],
-    "overview" : [ "**Address campaigns and accounts:** saving an existing entry in the new interface no longer adds a copy of it (e.g. setting a campaign inactive); campaign titles are unique.", "**Orders and invoices:** an entry whose positions were all deleted is refused on saving instead of being stored without positions.", "**Further fixes:** search term of multiple choice selection boxes, column headings of the availability entries in the leave account, build date in the footer." ],
-    "sections" : [ {
-      "type" : "fixed",
-      "items" : [ "Address campaigns and accounts: saving an existing entry no longer creates a copy of it (e.g. when setting a campaign inactive). A campaign's title must not be taken by another campaign.", "Footer: the build date is shown without a zone suffix (2026-10-19 instead of 2026-10-19Z).", "Orders, invoices and creditor invoices: an entry whose positions were all deleted is refused on saving instead of being stored without positions.", "Selection boxes with multiple choice: after a pick the search term stays selected, so typing the next name replaces it instead of being appended to it.", "Leave account: the columns type, availability, location and comment of the availability entries show their headings instead of text keys." ]
-    } ]
-  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -64,6 +52,19 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-9",
+      "version" : "9.0.9",
+      "date" : "2026-10-19",
+      "title" : "ProjectForge 9.0.9 released",
+      "tag" : "9.0.9-RELEASE",
+      "published" : false,
+      "summary" : [ "Hotfix release", "Fix: saving an address campaign or an account no longer creates a copy", "Fix: orders and invoices whose positions are all deleted are refused" ],
+      "overview" : [ "**Address campaigns and accounts:** saving an existing entry in the new interface no longer adds a copy of it (e.g. setting a campaign inactive); campaign titles are unique.", "**Orders and invoices:** an entry whose positions were all deleted is refused on saving instead of being stored without positions.", "**Further fixes:** search term of multiple choice selection boxes, column headings of the availability entries in the leave account, build date in the footer." ],
+      "sections" : [ {
+        "type" : "fixed",
+        "items" : [ "Address campaigns and accounts: saving an existing entry no longer creates a copy of it (e.g. when setting a campaign inactive). A campaign's title must not be taken by another campaign.", "Footer: the build date is shown without a zone suffix (2026-10-19 instead of 2026-10-19Z).", "Orders, invoices and creditor invoices: an entry whose positions were all deleted is refused on saving instead of being stored without positions.", "Selection boxes with multiple choice: after a pick the search term stays selected, so typing the next name replaces it instead of being appended to it.", "Leave account: the columns type, availability, location and comment of the availability entries show their headings instead of text keys." ]
+      } ]
+    }, {
       "id" : "9-0-8",
       "version" : "9.0.8",
       "date" : "2026-10-19",

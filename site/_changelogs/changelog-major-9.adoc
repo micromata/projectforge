@@ -1,13 +1,45 @@
 ---
 title: "ProjectForge 9"
 date: 2026-10-19
-sort_key: "2026-10-19 0037"
+sort_key: "2026-10-19 0038"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-9.changelog-release]
+=== ProjectForge 9.0.9 released
+
+[.changelog-source]
+__2026-10-19, tag https://github.com/micromata/projectforge/tree/9.0.9-RELEASE[9.0.9-RELEASE]__ +++{% include release-pills.html tag="9.0.9-RELEASE" docker="9.0.9" mini=true %}+++
+
+- Hotfix release
+- Fix: saving an address campaign or an account no longer creates a copy
+- Fix: orders and invoices whose positions are all deleted are refused
+
+.Overview
+[%collapsible]
+====
+- **Address campaigns and accounts:** saving an existing entry in the new interface no longer adds a copy of it (e.g. setting a campaign inactive); campaign titles are unique.
+- **Orders and invoices:** an entry whose positions were all deleted is refused on saving instead of being stored without positions.
+- **Further fixes:** search term of multiple choice selection boxes, column headings of the availability entries in the leave account, build date in the footer.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Address campaigns and accounts: saving an existing entry no longer creates a copy of it (e.g. when setting a campaign inactive). A campaign's title must not be taken by another campaign.
+- Footer: the build date is shown without a zone suffix (2026-10-19 instead of 2026-10-19Z).
+- Orders, invoices and creditor invoices: an entry whose positions were all deleted is refused on saving instead of being stored without positions.
+- Selection boxes with multiple choice: after a pick the search term stays selected, so typing the next name replaces it instead of being appended to it.
+- Leave account: the columns type, availability, location and comment of the availability entries show their headings instead of text keys.
+====
 
 [discrete#release-9-0-8.changelog-release]
 === ProjectForge 9.0.8 released
