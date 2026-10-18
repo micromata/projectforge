@@ -75,7 +75,7 @@ open class DataTransferNotificationMailService {
   ): Int {
     // First detect all recipients by checking all audit entries:
     val recipients = mutableSetOf<Long>()
-    val observerIds = StringHelper.splitToLongs(area.observerIds, ",")
+    val observerIds = StringHelper.splitToLongs(area.observerIds, ",", false)
     auditEntries.forEach { audit ->
       registerRecipients(audit, observerIds, recipients)
     }
