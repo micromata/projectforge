@@ -49,6 +49,7 @@
   },
   "add": "Hinzufügen",
   "address": {
+    "_": "Adresse",
     "addAddress": "Adresse hinzufügen",
     "addressStatus": {
       "_": "Adressstatus",
@@ -131,6 +132,7 @@
       "info": "Favoriten können über CardDAV mit einem Adressbuch synchronisiert werden oder als Excel exportiert werden."
     },
     "filter": {
+      "invalidAddresses": "Fehlerhafte Adressen",
       "myFavorites": "meine Favoriten"
     },
     "fingerprint": "Fingerprint",
@@ -857,6 +859,10 @@
       }
     }
   },
+  "contact": {
+    "firstname": "Vorname",
+    "name": "Nachname"
+  },
   "contactPerson": "Ansprechpartner:in",
   "contactPersons": "Ansprechpartner:innen",
   "copied": "Kopiert",
@@ -935,6 +941,7 @@
   },
   "edit": "Bearbeiten",
   "email": "E-Mail",
+  "emptyInBrackets": "<leer>",
   "error": {
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",
@@ -1543,7 +1550,6 @@
       "wochenstunden": "Wochenstunden",
       "zipCode": "PLZ"
     },
-    "employees": "Mitarbeitende",
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
     "konto": {
@@ -3434,11 +3440,18 @@
     "marketing": {
       "addressCampaign": {
         "_": "Adresskampagne",
+        "active": "Aktiv",
         "edit": {
           "warning": {
             "doNotChangeValues": "Nachträgliches Ändern der Label kann bisherige Adresszuordnungen löschen!"
           }
         },
+        "inactiveReadOnly": "Inaktiv: Die Werte dieser Kampagne können nicht mehr geändert werden.",
+        "lastUpdateOfAddress": "Adressänderung",
+        "legend": {
+          "inactive": "Inaktiv (Werte können nicht mehr geändert werden)"
+        },
+        "noCampaignSelected": "Keine Adresskampagne ausgewählt.",
         "title": {
           "add": "Adresskampagne hinzufügen",
           "list": "Adresskampagnen"
@@ -3446,6 +3459,23 @@
         "values": {
           "format": "Bitte eine Werteliste eingeben (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
           "invalidFormat": "Ungültiges Format, das Format ist: Wert 1; Wert 2; Wert 3"
+        }
+      },
+      "addressCampaignValue": {
+        "_": "Adresskampagnenwert",
+        "adopt": "Übernehmen",
+        "adoptComments": "auch die Bemerkungen übernehmen (an eine vorhandene angehängt)",
+        "adoptOnlyEmpty": "nur wo noch kein Wert gesetzt ist",
+        "adoptValues": "Werte der Vergleichskampagne übernehmen",
+        "comparison": "Vergleich",
+        "comparisonComment": "Vergleichsbemerkung",
+        "comparisonValue": "Vergleichswert",
+        "error": {
+          "addressOrCampaignNotGiven": "Adresse oder die Adresskampagne sind nicht gegeben."
+        },
+        "title": {
+          "add": "Adresskampagnenwert hinzufügen",
+          "list": "Liste der Adressen für Kampagnen"
         }
       }
     },
@@ -3941,6 +3971,7 @@
       "selectedOf": "{arg0} von {arg1} ausgewählt",
       "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
     },
+    "inactive": "inaktiv",
     "placeholder": "Auswählen..."
   },
   "selectAll": "Alle auswählen",
@@ -4938,6 +4969,7 @@
       "legend": {
         "holidayOrWeekend": "Wochenende oder Feiertag"
       },
+      "persons": "Personen",
       "print": {
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
@@ -5003,9 +5035,11 @@
     "quickView": {
       "button": "Wer ist verfügbar?",
       "empty": "Keine Abwesenheiten in diesem Zeitraum.",
-      "selectHint": "Person auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "selectHint": "Eine oder mehrere Personen auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "teamCalendar": "Team-Kalender",
+      "teamCalendarHint": "Gruppen und längere Zeiträume im Team-Urlaubskalender auswählen.",
       "title": "Verfügbarkeit auf einen Blick",
-      "user": "Person",
+      "user": "Personen",
       "weeks": "Wochen"
     },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",

@@ -49,6 +49,7 @@
   },
   "add": "Add",
   "address": {
+    "_": "Address",
     "addAddress": "Add address",
     "addressStatus": {
       "_": "Address status",
@@ -131,6 +132,7 @@
       "info": "You may synchronize your favorite addresses via CardDAV with your address book app or export them as Excel etc."
     },
     "filter": {
+      "invalidAddresses": "Invalid addresses",
       "myFavorites": "my favorites"
     },
     "fingerprint": "Finger print",
@@ -857,6 +859,10 @@
       }
     }
   },
+  "contact": {
+    "firstname": "Firstname",
+    "name": "Name"
+  },
   "contactPerson": "Contact person",
   "contactPersons": "Contact persons",
   "copied": "Copied",
@@ -935,6 +941,7 @@
   },
   "edit": "Edit",
   "email": "E-mail",
+  "emptyInBrackets": "<empty>",
   "error": {
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
@@ -1543,7 +1550,6 @@
       "wochenstunden": "Hours per week",
       "zipCode": "Zip code"
     },
-    "employees": "Employees",
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
     "konto": {
@@ -3434,11 +3440,18 @@
     "marketing": {
       "addressCampaign": {
         "_": "Address campaign",
+        "active": "Active",
         "edit": {
           "warning": {
             "doNotChangeValues": "A modification of the values can delete existing values which are already assigned to addresses!"
           }
         },
+        "inactiveReadOnly": "Inactive: the values of this campaign can't be changed any more.",
+        "lastUpdateOfAddress": "Last update of address",
+        "legend": {
+          "inactive": "Inactive (values can't be changed any more)"
+        },
+        "noCampaignSelected": "No address campaign selected.",
         "title": {
           "add": "Add new address campaign",
           "list": "Address campaign list"
@@ -3446,6 +3459,23 @@
         "values": {
           "format": "Please enter a list of semicolon separated values: value 1; value 2; value 3",
           "invalidFormat": "Invalid format: expected format is: value 1; value 2; value 3"
+        }
+      },
+      "addressCampaignValue": {
+        "_": "Address campaign value",
+        "adopt": "Adopt",
+        "adoptComments": "also adopt the comments (appended to an existing one)",
+        "adoptOnlyEmpty": "only where no value is set yet",
+        "adoptValues": "Adopt the values of the comparison campaign",
+        "comparison": "Comparison",
+        "comparisonComment": "Comparison comment",
+        "comparisonValue": "Comparison value",
+        "error": {
+          "addressOrCampaignNotGiven": "Address or address campaign is not given."
+        },
+        "title": {
+          "add": "Add new address campaign value",
+          "list": "Address campaign value list"
         }
       }
     },
@@ -3941,6 +3971,7 @@
       "selectedOf": "{arg0} of {arg1} selected",
       "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
     },
+    "inactive": "inactive",
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
@@ -4938,6 +4969,7 @@
       "legend": {
         "holidayOrWeekend": "Weekend or holiday"
       },
+      "persons": "People",
       "print": {
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
@@ -5003,9 +5035,11 @@
     "quickView": {
       "button": "Who is available?",
       "empty": "No absences in this period.",
-      "selectHint": "Choose a person to see their vacations and availability entries of the coming weeks.",
+      "selectHint": "Choose one or more people to see their vacations and availability entries of the coming weeks.",
+      "teamCalendar": "Team calendar",
+      "teamCalendarHint": "Choose groups and longer periods in the team vacation calendar.",
       "title": "Availability at a glance",
-      "user": "Person",
+      "user": "People",
       "weeks": "Weeks"
     },
     "recalculateRemainingLeave": "Recalculate remaining leave",
