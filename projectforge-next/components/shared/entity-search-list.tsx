@@ -44,8 +44,8 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
   onPick: (entry: T) => void;
   /**
    * Whether the caller collects several entries (see [EntityMultiAutocomplete]) rather than closing on
-   * the first one: the term and the cursor stay after a pick, so the next of the same search (the
-   * second „ACME" customer) is a click away instead of typed again.
+   * the first one: the term stays after a pick, selected, so the next of the same search (the second
+   * „ACME" customer) is a click away instead of typed again, and typing another name replaces it.
    */
   collecting?: boolean;
   /**
@@ -157,8 +157,10 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
     onPick(entry);
     if (collecting) {
       // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item that was
-      // clicked, so typing on would go nowhere.
+      // clicked, so typing on would go nowhere. The term is selected, not cleared: the other matches
+      // stay a click away, and typing the next name replaces it instead of being appended to it.
       searchRef.current?.focus();
+      searchRef.current?.select();
     } else {
       // A single pick is done: what was searched for has been found.
       setSearch("");

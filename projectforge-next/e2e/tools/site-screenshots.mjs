@@ -52,8 +52,6 @@ async function open(page, appPath) {
  */
 async function pick(page, trigger, text) {
   if (trigger) await trigger.click();
-  // A multiple choice keeps the search of the previous pick.
-  await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type(text, { delay: 30 });
   await page
     .getByRole("option", { name: new RegExp(text) })
