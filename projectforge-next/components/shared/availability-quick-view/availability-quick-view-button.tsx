@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { UserSearch01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { cn } from "@/lib/utils";
 import { AvailabilityQuickViewDialog } from "./availability-quick-view-dialog";
 
 /**
@@ -14,6 +15,11 @@ import { AvailabilityQuickViewDialog } from "./availability-quick-view-dialog";
  * (the calendar's), the text is its tooltip then. The dialog is mounted only while open, so each opening starts with
  * an empty choice.
  */
+
+/** Framed and in the primary colour, as the calendar's BookDaysButton: a quieter ghost button was easy to miss. */
+const HIGHLIGHT_CLASS =
+  "border-primary/60 text-primary hover:bg-primary/10 hover:text-primary";
+
 export function AvailabilityQuickViewButton({
   iconOnly = false,
   size = "default",
@@ -30,21 +36,26 @@ export function AvailabilityQuickViewButton({
         <HintTooltip text={label} plain>
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
-            className="size-9"
+            className={cn("size-9", HIGHLIGHT_CLASS)}
             aria-label={label}
             onClick={() => setOpen(true)}
           >
-            <HugeiconsIcon icon={UserSearch01Icon} size={20} aria-hidden />
+            <HugeiconsIcon
+              icon={UserSearch01Icon}
+              size={20}
+              strokeWidth={2}
+              aria-hidden
+            />
           </Button>
         </HintTooltip>
       ) : (
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size={size}
-          className="gap-1.5"
+          className={cn("gap-1.5", HIGHLIGHT_CLASS)}
           onClick={() => setOpen(true)}
         >
           <HugeiconsIcon
