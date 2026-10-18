@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Address campaign values: a comparison campaign (e.g. last year's) shows its values and comments beside the selected campaign's, with filters on its values and on the differences. Its values can be adopted for a selection in the mass update or one by one in the form. Address campaigns can be set inactive: their values can't be changed any more.",
+  "de": "Adressen für Kampagnen: Eine Vergleichskampagne (z. B. die des Vorjahres) zeigt ihre Werte und Bemerkungen neben denen der gewählten Kampagne, mit Filtern auf ihre Werte und auf die Unterschiede. Ihre Werte lassen sich für eine Auswahl per Massenänderung oder einzeln im Formular übernehmen. Adresskampagnen können auf inaktiv gesetzt werden: Ihre Werte sind dann nicht mehr änderbar."
+}

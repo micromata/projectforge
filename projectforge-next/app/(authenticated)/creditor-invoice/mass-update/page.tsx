@@ -25,6 +25,7 @@ export default function CreditorInvoiceMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={CREDITOR_INVOICE_PAGE.entity}
           metadata={CREDITOR_INVOICE_PAGE.metadata}
           columns={CREDITOR_INVOICE_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

@@ -47,6 +47,8 @@ export interface EntityMultiAutocompleteProps {
    * (see [useCurrentUserRef]). Hidden while the user is picked already: there is nothing to add then.
    */
   selectMe?: EntityRef | null;
+  /** Opens the search at once while nothing is picked — for a dialog that is about picking (see [EntityAutocomplete]). */
+  autoOpen?: boolean;
 }
 
 /**
@@ -71,11 +73,12 @@ export function EntityMultiAutocomplete({
   removeLabel,
   sorted,
   selectMe,
+  autoOpen,
   "aria-label": ariaLabel,
 }: EntityMultiAutocompleteProps) {
   const t = useTranslations();
   const format = useFormatContext();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!autoOpen && value.length === 0);
   const chips = sorted
     ? [...value].sort((a, b) =>
         compareText(a.displayName, b.displayName, format)

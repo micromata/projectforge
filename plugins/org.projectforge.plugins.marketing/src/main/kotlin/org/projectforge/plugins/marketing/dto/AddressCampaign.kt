@@ -31,7 +31,9 @@ class AddressCampaign(
   var title: String? = null,
   /** The raw, semicolon separated values as stored (and edited), e.g. "Value 1; Value 2". */
   var values: String? = null,
-  var comment: String? = null
+  var comment: String? = null,
+  /** See [AddressCampaignDO.active]. */
+  var active: Boolean = true,
 ) : BaseDTO<AddressCampaignDO>() {
   /**
    * The parsed [values] (see [AddressCampaignDO.getValuesArray]), offered as the choices of a campaign value.
@@ -47,5 +49,6 @@ class AddressCampaign(
     title = src.title
     values = src.values
     comment = src.comment
+    active = src.active
   }
 }

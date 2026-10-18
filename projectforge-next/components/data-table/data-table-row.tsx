@@ -137,7 +137,8 @@ export function DataTableRow<TData>({
             // numbers, and both column paths write it (useDeclaredColumns, columnDefAdapter).
             cell.column.columnDef.meta?.align === "right" && "text-right",
             columnLines && "border-r",
-            pinnedClass(cell.column, suspendPinning)
+            pinnedClass(cell.column, suspendPinning),
+            cell.column.columnDef.meta?.cellClassName
           )}
         >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}

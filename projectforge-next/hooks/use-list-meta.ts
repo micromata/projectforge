@@ -26,11 +26,19 @@ export function useListMeta(
    * the server's last-used filter; the other consumers (filter fields, access flags, edit targets)
    * leave it off and simply pick up whatever that refetch produced.
    */
-  { alwaysFresh = false }: { alwaysFresh?: boolean } = {}
+  {
+    alwaysFresh = false,
+    enabled = true,
+  }: {
+    alwaysFresh?: boolean;
+    /** Off for a caller that only sometimes has an entity to ask for (see SelectedEntriesTable). */
+    enabled?: boolean;
+  } = {}
 ) {
   return useQuery<ListMetaData>({
     queryKey: ["listMeta", entity],
     queryFn: ({ signal }) => fetchListMeta(entity, signal),
+    enabled,
     // The filter fields only change with a release, not while the user works.
     staleTime: Infinity,
     // But the remembered filter does change while the user works, so its observer overrides the

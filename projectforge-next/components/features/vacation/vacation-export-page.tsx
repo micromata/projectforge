@@ -49,11 +49,11 @@ const KINDS = periodKindsOf(["quarter", "year"]);
 
 /**
  * The team vacation calendar (`/next/vacationExport`), successor of the React page `react/vacationExport/dynamic`:
- * the vacations of the chosen employees and groups, shown per quarter or calendar year, and as Excel workbook
+ * the vacations of the chosen users and groups, shown per quarter or calendar year, and as Excel workbook
  * with a sheet per period (VacationExcelExporter) starting with the period shown. Optionally with the availability
- * entries of the same employees, as their vacations, in the chart and the workbook.
+ * entries of the same users, as their vacations, in the chart and the workbook.
  *
- * The employees and groups chosen and whether availabilities are shown are stored by the backend (shown again on
+ * The users and groups chosen and whether availabilities are shown are stored by the backend (shown again on
  * the next visit); the period is kept in the url (`?period=quarter&from=2026-10-01`).
  *
  * Printed (the filter row's print button), it is the title, the period and the calendar shown: the choice
@@ -156,8 +156,8 @@ function VacationExportContent({
   const t = useTranslations();
   const ctx = useFormatContext();
   const params = useSearchParams();
-  const [employees, setEmployees] = useState<EntityRef[]>(() =>
-    initial.employees.map(toRef)
+  const [users, setUsers] = useState<EntityRef[]>(() =>
+    initial.users.map(toRef)
   );
   const [groups, setGroups] = useState<EntityRef[]>(() =>
     initial.groups.map(toRef)
@@ -194,16 +194,16 @@ function VacationExportContent({
   );
   const favorites = useVacationExportFavorites({
     initial: initial.favorites,
-    employees,
+    users,
     groups,
-    apply: (nextEmployees, nextGroups) => {
-      setEmployees(nextEmployees.map(toRef));
+    apply: (nextUsers, nextGroups) => {
+      setUsers(nextUsers.map(toRef));
       setGroups(nextGroups.map(toRef));
     },
   });
   const bounds = boundsOfPeriod(period.kind, period.anchor, ctx);
   const body: VacationExportRequest = {
-    employeeIds: employees.map((e) => e.id),
+    userIds: users.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
     periodKind: period.kind.id,
     dayWidth,
@@ -211,7 +211,7 @@ function VacationExportContent({
     until: bounds.to,
     absenceKinds,
   };
-  const hasSelection = employees.length > 0 || groups.length > 0;
+  const hasSelection = users.length > 0 || groups.length > 0;
 
   // Also asked with nothing chosen: the backend stores the choice, an emptied one included.
   const view = useQuery({
@@ -235,7 +235,7 @@ function VacationExportContent({
     <>
       <VacationExportFilterRow
         kinds={KINDS}
-        employees={employees}
+        users={users}
         groups={groups}
         period={period}
         min={min}
@@ -244,7 +244,7 @@ function VacationExportContent({
         favorites={favorites}
         exporting={excel.isPending}
         canPrint={hasSelection && hasRows}
-        onEmployeesChange={setEmployees}
+        onUsersChange={setUsers}
         onGroupsChange={setGroups}
         onPeriodChange={selectPeriod}
         onDayWidthChange={setDayWidth}

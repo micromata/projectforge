@@ -19,6 +19,7 @@ export const HAND_BUILT_CATEGORIES = [
   "address",
   "addressBook",
   "addressCampaign",
+  "addressCampaignValue",
   "availability",
   "book",
   "calendar",

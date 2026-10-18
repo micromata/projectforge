@@ -32,6 +32,7 @@ export default function ProjectMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={PROJECT_PAGE.entity}
           metadata={PROJECT_PAGE.metadata}
           columns={PROJECT_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

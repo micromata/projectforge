@@ -23,6 +23,11 @@
 
 package org.projectforge.ui
 
+/**
+ * @param inactive True for a value no longer live but still selectable, e.g. a closed (inactive) address
+ *   campaign: offered muted with an "inactive" badge by projectforge-next. Left out of the JSON otherwise.
+ */
 data class UISelectValue<T>(
         val id: T,
-        val displayName: String)
+        val displayName: String,
+        val inactive: Boolean? = null)

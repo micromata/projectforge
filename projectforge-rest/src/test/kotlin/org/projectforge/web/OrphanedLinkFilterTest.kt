@@ -454,7 +454,18 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/react/addressLegacy/edit/5", mapOf("modal" to "true")))
         // Siblings sharing the prefix are pages of their own.
         Assertions.assertEquals("/next/addressBook", redirectOf("/react/addressBook"))
-        Assertions.assertNull(redirectOf("/react/addressCampaignValue"))
+    }
+
+    /**
+     * The address campaign values are next's, but their React page is kept for the running campaign under a
+     * category of its own (`addressCampaignValueLegacy`), which is left alone.
+     */
+    @Test
+    fun `address campaign value links are redirected to next, the legacy page is not`() {
+        Assertions.assertEquals("/next/address-campaign-value", redirectOf("/react/addressCampaignValue"))
+        Assertions.assertEquals("/next/address-campaign-value/42", redirectOf("/react/addressCampaignValue/edit/42"))
+        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy"))
+        Assertions.assertNull(redirectOf("/react/addressCampaignValueLegacy/edit/42"))
     }
 
     /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */

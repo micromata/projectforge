@@ -88,8 +88,16 @@ export function ValueCombobox({
               )}
               {selected.map((value) => {
                 const label = labelOf(options, value);
+                // A picked inactive value (a closed campaign) reads muted here as well.
+                const inactive = options.find(
+                  (it) => it.value === value
+                )?.inactive;
                 return multi ? (
-                  <Badge key={value} variant="secondary">
+                  <Badge
+                    key={value}
+                    variant="secondary"
+                    className={cn(inactive && "text-muted-foreground")}
+                  >
                     {label}
                     <span
                       role="button"
@@ -104,7 +112,12 @@ export function ValueCombobox({
                     </span>
                   </Badge>
                 ) : (
-                  <span key={value}>{label}</span>
+                  <span
+                    key={value}
+                    className={cn(inactive && "text-muted-foreground")}
+                  >
+                    {label}
+                  </span>
                 );
               })}
             </span>

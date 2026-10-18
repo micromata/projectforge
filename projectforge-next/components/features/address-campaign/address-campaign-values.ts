@@ -13,6 +13,8 @@ export function toFormValues(
     title: campaign.title ?? "",
     values: campaign.values ?? "",
     comment: campaign.comment ?? null,
+    // A new campaign is active, as AddressCampaignDO is by default.
+    active: campaign.active ?? true,
   };
 }
 

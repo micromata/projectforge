@@ -21,6 +21,7 @@ export default function InvoiceMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={INVOICE_PAGE.entity}
           metadata={INVOICE_PAGE.metadata}
           columns={INVOICE_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

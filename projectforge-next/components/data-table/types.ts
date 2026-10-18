@@ -46,6 +46,8 @@ declare module "@tanstack/react-table" {
      * unpinned or dragged (AG-Grid's `lockPosition`).
      */
     pinnedLocked?: boolean;
+    /** Extra classes of the cell (`<td>`) itself, e.g. a tinted background (see ColumnBase.cellClassName). */
+    cellClassName?: string;
   }
 }
 

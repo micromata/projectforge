@@ -8,6 +8,11 @@ export const ADDRESS_CAMPAIGN_METADATA = {
   entity: "AddressCampaignDO",
   historizable: true,
   fields: {
+    active: {
+      dataType: "BOOLEAN",
+      i18nKey: "plugins.marketing.addressCampaign.active",
+      required: false,
+    },
     comment: {
       dataType: "STRING",
       i18nKey: "comment",

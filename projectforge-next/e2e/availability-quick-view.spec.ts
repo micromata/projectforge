@@ -31,6 +31,10 @@ test.describe("availability quick view", { tag: "@parallel" }, () => {
     await dialog
       .getByRole("button", { name: new RegExp(`: ${escape(name)}$`) })
       .click();
+    // Picked, the user stands in the picker as a chip, removable.
+    await expect(
+      dialog.getByRole("button", { name: `${format.t("delete")}: ${name}` })
+    ).toBeVisible();
 
     const chart = dialog.getByRole("group", {
       name: format.t("vacation.quickView.title"),
@@ -49,6 +53,13 @@ test.describe("availability quick view", { tag: "@parallel" }, () => {
     const view = (await (await answer).json()) as { days: unknown[] };
     expect(view.days).toHaveLength(28);
     await expect(chart).toBeVisible();
+
+    // For groups the team vacation calendar, a page of its own (linked in the header): the dialog closes on the way.
+    await dialog
+      .getByRole("link", { name: format.t("vacation.quickView.teamCalendar") })
+      .click();
+    await expect(page).toHaveURL(/\/vacationExport/);
+    await expect(dialog).toBeHidden();
   });
 });
 

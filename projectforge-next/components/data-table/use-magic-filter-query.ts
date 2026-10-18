@@ -1,15 +1,24 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import type {
   OnChangeFn,
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import { fetchList, fetchListPage } from "@/lib/rs/client";
+import { fetchList, fetchListMeta, fetchListPage } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
-import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
+import type {
+  ListMetaData,
+  MagicFilter,
+  MagicFilterEntry,
+  ResultSet,
+} from "@/lib/rs/types";
 import { DEFAULT_PAGE_SIZE, useStorablePageSize } from "./page-size-options";
 
 interface UseMagicFilterQueryOptions {
@@ -240,6 +249,35 @@ export function useMagicFilterQuery<O>({
     refetchOnWindowFocus: "always",
     enabled,
   });
+
+  // The filter fields of the list meta may depend on the filter itself: the address campaign values offer the
+  // values of the campaign just selected (`ResultSet.reloadUI`, set by the backend when that changed). The meta
+  // is cached forever otherwise (see useListMeta), so its filter fields are asked again and patched into the
+  // cache. Not by invalidating it: a refetch of the meta holds the list page back behind its spinner (see
+  // useRememberedFilter), which remounts the list and would see this same answer again. Only the filter fields
+  // are taken over; the filter the user set stays as is (but for values the fields no longer offer, see
+  // useListFilters).
+  // Not for a cached answer while the list is asked anew (staleTime 0, see above): the backend stores the filter
+  // with that request, so until it is answered the meta would still be the previous campaign's.
+  const queryClient = useQueryClient();
+  const reloadUI =
+    query.data?.reloadUI === true && !query.isFetching ? query.data : undefined;
+  useEffect(() => {
+    if (!reloadUI) return;
+    const controller = new AbortController();
+    fetchListMeta(entity, controller.signal)
+      .then((fresh) =>
+        queryClient.setQueryData<ListMetaData>(
+          ["listMeta", entity],
+          (previous) =>
+            previous
+              ? { ...previous, filterElements: fresh.filterElements }
+              : previous
+        )
+      )
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [reloadUI, queryClient, entity]);
 
   const allRows = query.data?.resultSet;
   // Stable identity while no result is in: a fresh [] would rebuild the table's rows.

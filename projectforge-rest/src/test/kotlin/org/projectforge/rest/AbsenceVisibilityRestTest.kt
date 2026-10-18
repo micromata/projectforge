@@ -350,7 +350,7 @@ class AbsenceVisibilityRestTest : AbstractTestBase() {
         logon(TEST_HR_USER)
         insertAvailability(colleague.user!!, today.minusDays(5), today.plusDays(5))
         val request = VacationExportRequest(
-            employeeIds = listOf(colleague.id!!), from = today.minusDays(20), until = today.plusDays(20),
+            userIds = listOf(colleague.user!!.id!!), from = today.minusDays(20), until = today.plusDays(20),
             absenceKinds = AbsenceKind.entries,
         )
         // The period of the export begins with 1 January for anybody but HR and finance staff.

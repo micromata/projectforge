@@ -29,13 +29,23 @@ interface Props {
    * form returns to the list rather than to the page of the view.
    */
   inDialog?: boolean;
+  /**
+   * In the dialog: the list the form returns to — the address list by default, another list that opens the dialog
+   * (the address campaign values) names itself, and must be one of the form's `returnTargets`.
+   */
+  returnTo?: string;
 }
 
 /**
  * The buttons of the address view: back, the address as vCard, print, and the form — the last only for a user who
  * may change the address (`writeAccess`).
  */
-export function AddressViewActions({ address, back, inDialog }: Props) {
+export function AddressViewActions({
+  address,
+  back,
+  inDialog,
+  returnTo = ADDRESS_ROUTE,
+}: Props) {
   const t = useTranslations();
   const vCard = useExportDownload(() => downloadAddressVCard(address.id!));
   return (
@@ -75,7 +85,7 @@ export function AddressViewActions({ address, back, inDialog }: Props) {
           <Link
             href={
               inDialog
-                ? `${addressEditRoute(address.id)}?returnTo=${ADDRESS_ROUTE}`
+                ? `${addressEditRoute(address.id)}?returnTo=${returnTo}`
                 : addressEditRoute(address.id)
             }
           >

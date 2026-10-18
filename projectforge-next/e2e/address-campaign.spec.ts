@@ -38,6 +38,17 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
     }
   });
 
+  test("offers a new campaign as active", async ({ loggedInPage: page }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/address-campaign/new");
+    // An inactive campaign is closed: its values can't be changed any more (AddressCampaignValueRight).
+    await expect(
+      page.getByRole("checkbox", {
+        name: t("plugins.marketing.addressCampaign.active"),
+      })
+    ).toBeChecked();
+  });
+
   test("refuses to save a campaign without title and values", async ({
     loggedInPage: page,
   }) => {

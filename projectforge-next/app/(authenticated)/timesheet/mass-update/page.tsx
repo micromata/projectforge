@@ -36,6 +36,7 @@ export default function TimesheetMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={TIMESHEET_PAGE.entity}
           metadata={TIMESHEET_PAGE.metadata}
           columns={TIMESHEET_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which is
