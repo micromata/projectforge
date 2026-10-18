@@ -55,7 +55,7 @@
   },
   "order": {
     "legend": {
-      "deleted": "Gelöscht / abgelehnt / ersetzt",
+      "rejected": "Abgelehnt / ersetzt",
       "toBeInvoiced": "Zu fakturieren",
       "commissioned": "Beauftragt / LOI"
     },

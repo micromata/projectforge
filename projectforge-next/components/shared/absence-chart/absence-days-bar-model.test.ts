@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BAR_MAX_DAYS, dateRanges, daysBar } from "./vacation-days-bar-model";
+import { BAR_MAX_DAYS, dateRanges, daysBar } from "./absence-days-bar-model";
 
 describe("daysBar", () => {
   it("marks weekends, uncovered days and the half day at the end", () => {

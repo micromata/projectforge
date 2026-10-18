@@ -428,10 +428,20 @@
 .row-deleted > td {
   background-image: linear-gradient(var(--row-deleted), var(--row-deleted));
   /* The same red-pencil strike a struck reference cell uses (line-through decoration-destructive
-   * decoration-2 in use-declared-columns), so a deleted row and a deleted reference read alike. */
+   * decoration-2, DELETED_REF_CLASS in lib/page-def/reference.ts), so a deleted row and a deleted reference
+   * read alike. */
   text-decoration-line: line-through;
   text-decoration-color: var(--destructive);
   text-decoration-thickness: 2px;
+}
+/* A row no longer live but not deleted (an ended project, a cancelled invoice, ...): struck through thin and
+ * grey on dimmed text, without a tint — quieter than a deleted row, and the same look as a deactivated
+ * reference (DEACTIVATED_REF_CLASS in lib/page-def/reference.ts). */
+.row-inactive > td {
+  color: var(--muted-foreground);
+  text-decoration-line: line-through;
+  text-decoration-color: var(--muted-foreground);
+  text-decoration-thickness: 1px;
 }
 /* The box of the vacation chart (VacationOverlapChart), faintly set off from the card it sits on, and its
  * sticky names' column: the same tint, but opaque over the card, so the bars scrolling beneath don't show. */
@@ -549,6 +559,10 @@ span.row-green {
 }
 span.row-blue {
   background-color: var(--brand-teal);
+}
+/* An inactive row has no tint, so its chip stays empty: the plain border the legend draws around it. */
+span.row-inactive {
+  background-color: transparent;
 }
 
 /*

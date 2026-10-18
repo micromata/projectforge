@@ -18,9 +18,25 @@ export function isInactiveRef(ref?: InactiveFlags | null): boolean {
   return !!ref && (ref.deleted === true || ref.deactivated === true);
 }
 
-/**
- * How a no longer live reference reads: struck through — in a list cell as in a selection box, its chips,
- * its picked value and its hits alike.
- */
-export const INACTIVE_REF_CLASS =
+/** How a deleted reference reads: the red-pencil strike of a deleted row (`.row-deleted` in globals.css). */
+export const DELETED_REF_CLASS =
   "line-through decoration-destructive decoration-2";
+
+/**
+ * How a deactivated reference reads (an ended project, a deactivated user): struck through thin and grey on
+ * dimmed text, as an inactive row (`.row-inactive` in globals.css) — quieter than a deleted one.
+ */
+export const DEACTIVATED_REF_CLASS =
+  "line-through decoration-muted-foreground decoration-1 text-muted-foreground";
+
+/**
+ * The class a no longer live reference is shown with — in a list cell as in a selection box, its chips,
+ * its picked value and its hits alike; undefined for a live one. Deleted wins over deactivated.
+ */
+export function inactiveRefClass(
+  ref?: InactiveFlags | null
+): string | undefined {
+  if (ref?.deleted === true) return DELETED_REF_CLASS;
+  if (ref?.deactivated === true) return DEACTIVATED_REF_CLASS;
+  return undefined;
+}

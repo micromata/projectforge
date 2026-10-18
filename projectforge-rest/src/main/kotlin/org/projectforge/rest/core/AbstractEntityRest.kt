@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.persistence.search.SearchStringTokenizer
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -68,6 +69,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.io.Serializable
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 private val log = KotlinLogging.logger {}
 
@@ -133,6 +136,36 @@ constructor(
             historizableMap[clazz] = result
             return result
         }
+
+        private val listRequestCounter = AtomicLong()
+
+        /**
+         * The latest list request per user and category ("<category>:<userId>"), see [takeListRequestTicket].
+         * In the companion, not in the bean: a final method of a CGLIB-proxied bean would see the proxy's
+         * uninitialized field.
+         */
+        private val latestListRequests = ConcurrentHashMap<String, Long>()
+    }
+
+    /**
+     * A ticket for a list request on its arrival, before its query runs. The filter of a list request is
+     * stored as the user's current one only after the query ([isLatestListRequest]), so without the ticket
+     * an outdated request finishing late would win: paging a year back and at once forth again (2026 →
+     * 2025 → 2026) aborts the 2025 request in the browser, but the server still finishes it, possibly after
+     * the 2026 one, and the list then returns from an entry with 2025.
+     */
+    private fun takeListRequestTicket(): Pair<String, Long> {
+        val key = "$category:${ThreadLocalUserContext.loggedInUserId}"
+        val ticket = listRequestCounter.incrementAndGet()
+        latestListRequests.merge(key, ticket, ::maxOf)
+        return key to ticket
+    }
+
+    /**
+     * True, if no list request of the same user and category has arrived since the one of [ticket].
+     */
+    private fun isLatestListRequest(ticket: Pair<String, Long>): Boolean {
+        return latestListRequests[ticket.first] == ticket.second
     }
 
     /**
@@ -614,9 +647,10 @@ constructor(
     ): ResultSet<*> {
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
+        val ticket = takeListRequestTicket()
         val list = getList(request, this, baseDao, filter)
         // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
-        if (doNotStore != true) {
+        if (doNotStore != true && isLatestListRequest(ticket)) {
             saveCurrentFilter(filter)
         }
         val resultSet = postProcessResultSet(list, request, filter)
@@ -659,9 +693,10 @@ constructor(
         val filter = body.filter
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
+        val ticket = takeListRequestTicket()
         val list = getListPage(request, this, baseDao, listPageCache, filter, body.offset, body.limit, body.refresh)
         // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
-        if (!body.doNotStore) {
+        if (!body.doNotStore && isLatestListRequest(ticket)) {
             saveCurrentFilter(filter)
         }
         val resultSet = postProcessResultSet(list, request, filter)

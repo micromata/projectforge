@@ -29,7 +29,8 @@ import java.time.LocalDate
 /**
  * The vacation account ("Urlaubskonto") of an employee, for the page of projectforge-next
  * (`org.projectforge.rest.VacationAccountRest`): the statistics of the previous, current and next year, the
- * vacations of these years and the leave account entries of the previous and current year.
+ * vacations of these years, the leave account entries of the previous and current year and the availability entries of
+ * the three years.
  *
  * Every value is formatted for the logged-in user already; the urls are paths of the app (`/next/…`, `/react/…`).
  */
@@ -52,6 +53,13 @@ class VacationAccount(
     val workingHoursStatistics: String? = null,
     /** A new vacation of this employee; its form returns here. */
     val newVacationUrl: String? = null,
+    /**
+     * The availability entries of the employee's user overlapping the previous, current and next year, newest first:
+     * the other absences, apart from the vacations.
+     */
+    val availabilities: List<VacationAccountAvailability> = emptyList(),
+    /** A new availability entry of the employee's user; its form returns here. Null for an employee without a user. */
+    val newAvailabilityUrl: String? = null,
     val vacationListUrl: String,
     val exportUrl: String,
 )
@@ -98,6 +106,32 @@ class VacationAccountLeaveEntry(
     val dateFormatted: String?,
     val amountFormatted: String?,
     val description: String?,
+    /** Its form, which returns here. */
+    val editUrl: String,
+)
+
+class VacationAccountAvailability(
+    val id: Long?,
+    val startDateFormatted: String?,
+    val endDateFormatted: String?,
+    /** For the user and HR staff only (AvailabilityDao.isInternalCommentVisibleFor), as everywhere. */
+    val type: String?,
+    val statusString: String?,
+    val locationString: String?,
+    val comment: String?,
+    /** The names of the substitutes, comma separated. */
+    val substitutes: String?,
+    /** At least one day from today on without any substitute on duty (`ConflictingAvailabilitiesCache`). */
+    val conflict: Boolean,
+    /** Its working days (weekends and holidays not counted), as of a vacation. */
+    val workingDaysFormatted: String?,
+    /** The period and its days for the days bar, as in the availability list. */
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+    /** Its weekends and holidays; null for a period the bar doesn't draw. */
+    val nonWorkingDays: List<LocalDate>?,
+    /** Its days without any substitute on duty, only on a conflict (from today on for anybody but HR staff). */
+    val uncoveredDays: List<LocalDate>?,
     /** Its form, which returns here. */
     val editUrl: String,
 )

@@ -1,5 +1,7 @@
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
+import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
 import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
 import { AvailabilityConflictNotice } from "./availability-conflict-notice";
 import {
@@ -39,6 +41,8 @@ export const AVAILABILITY_PAGE = definePage<
   metadata: AVAILABILITY_METADATA,
   route: "/availability",
   queryKey: AVAILABILITY_LIST_QUERY_KEY,
+  // The vacation account lists the entries, too.
+  extraInvalidateKeys: [VACATION_ACCOUNT_QUERY_KEY],
   // Where the entry sits in the main menu: Common (MenuCreator, MenuItemDefId.AVAILABILITY).
   categoryKey: "menu.common",
   titleKey: "availability.title.list",
@@ -60,6 +64,20 @@ export const AVAILABILITY_PAGE = definePage<
       ),
     },
     { name: "endDate", size: 110 },
+    {
+      // Computed from the period, sorted by that number on the server (AvailabilityEntityRest.computedSortProperties).
+      // Beside the number the period as a bar, red on the days without any substitute on duty, as in the vacation list.
+      id: "workingDaysFormatted",
+      labelKey: "availability.workingDays",
+      size: 220,
+      accessor: (row) => row.workingDaysFormatted ?? "",
+      cell: ({ row }) => (
+        <AbsenceDaysCell
+          formatted={row.original.workingDaysFormatted}
+          row={row.original}
+        />
+      ),
+    },
     { name: "type", size: 140 },
     // Sorted as displayed, by their translation (AvailabilityEntityRest.computedSortProperties).
     { name: "status", size: 170 },
@@ -101,10 +119,12 @@ export const AVAILABILITY_PAGE = definePage<
     // The warning of a day without any substitute on duty; a start without an end makes a one-day period, as in
     // the vacation form.
     editIntro: AvailabilityConflictNotice,
-    // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts).
+    // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts), the
+    // vacation account with `?returnTo=/vacationAccount` (VacationAccountRest.availabilityEditUrl).
     returnTargets: [
       { route: "/availability", labelKey: "availability.title.list" },
       { route: "/calendar", labelKey: "menu.calendar" },
+      { route: "/vacationAccount", labelKey: "menu.vacation.leaveaccount" },
     ],
     sections: [
       {

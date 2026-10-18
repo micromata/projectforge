@@ -137,7 +137,11 @@ export function EntityEditBody<
   // Whether this user may see this entity at all — a different question than the write access below.
   const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
-  const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
+  const deleteMutation = useDeleteEntity<Data>(
+    page.entity,
+    page.metadata.historizable,
+    writeOptions
+  );
   const forceDeleteMutation = useForceDeleteEntity<Data>(
     page.entity,
     writeOptions
@@ -394,6 +398,7 @@ export function EntityEditBody<
         showClone={Boolean(edit.clone && id != null && canInsert)}
         // On `id` rather than `data`: a new entry has data too (the `fetchNew` preset).
         showDelete={Boolean(id != null && data && access.delete)}
+        deletePermanent={!page.metadata.historizable}
         // The irrevocable delete, beside the ordinary one: only where the entity opts in
         // (EditDef.forceDelete → isForceDeletionSupport) and the same access the mark-as-deleted needs,
         // and never while an entry is already deleted (undelete takes that place).

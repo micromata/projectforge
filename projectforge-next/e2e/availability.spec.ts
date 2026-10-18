@@ -13,8 +13,9 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
 /**
  * The availability entries against the live backend (see AVAILABILITY_PAGE and AvailabilityEntityRest). Nothing
- * is written but the stored choice of the team vacation calendar, which is put back, and the two entries of the
- * substitutes' test, marked as deleted afterwards. The form test doesn't save; it posts a period ending before it
+ * is written but the stored choice of the team vacation calendar, which is put back, the entries of the substitutes'
+ * and the vacation account's test, marked as deleted afterwards, and the employee the vacation account shows next
+ * (put back if there was one). The form test doesn't save; it posts a period ending before it
  * begins, which the server refuses before any write (AvailabilityEntityRest.validate).
  */
 test.describe("availability", () => {
@@ -127,6 +128,88 @@ test.describe("availability", () => {
         "href",
         /\/availability$/
       );
+    }
+  });
+
+  test("lists an employee's entries in the vacation account and adds one from there", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    const account = async (query = "") =>
+      (await (
+        await page.request.get(`/rs/vacationAccount${query}`, {
+          headers: { "X-PF-Frontend": "next" },
+        })
+      ).json()) as {
+        employee?: { id: number };
+        hrAccess: boolean;
+        newAvailabilityUrl?: string;
+      };
+    const before = await account();
+    // The own account, else (a slot database's full access user has no employee) an employee HR staff pick: the
+    // backend stores the one shown as the one shown next time, restorable to an employee only.
+    let employeeId = before.employee?.id;
+    let shown = before;
+    if (!before.employee && before.hrAccess) {
+      const employees = (await (
+        await page.request.get("/rs/employee/autosearch?search=", {
+          headers: { "X-PF-Frontend": "next" },
+        })
+      ).json()) as { id: number }[];
+      for (const employee of employees.slice(0, 20)) {
+        const candidate = await account(`?employeeId=${employee.id}`);
+        if (candidate.newAvailabilityUrl) {
+          employeeId = employee.id;
+          shown = candidate;
+          break;
+        }
+      }
+    }
+    const userId = shown.newAvailabilityUrl?.match(/[?&]user=(\d+)/)?.[1];
+    test.skip(!employeeId || !userId, "no employee with a user to show");
+    const comment = `e2e vacation account ${Date.now()}`;
+    // Late in the next year, the last one the account shows: no stored entry of the employee in the way.
+    const year = new Date().getFullYear() + 1;
+    const id = await insert(page.request, "availability", {
+      user: { id: Number(userId) },
+      status: "REMOTE_REACHABLE",
+      startDate: `${year}-12-28`,
+      endDate: `${year}-12-29`,
+      comment,
+    });
+    try {
+      await goto(page, `/vacationAccount?employeeId=${employeeId}`);
+      await expect(
+        page.getByRole("heading", {
+          name: t("vacation.leaveaccount.availabilities"),
+        })
+      ).toBeVisible();
+      const row = page.getByRole("row").filter({ hasText: comment });
+      await expect(row).toBeVisible();
+      await expect(row.getByRole("link")).toHaveAttribute(
+        "href",
+        new RegExp(`/availability/${id}\\?returnTo=%2FvacationAccount$`)
+      );
+
+      // A new entry of the employee's user, whose form returns here.
+      await page
+        .getByRole("link", { name: t("availability.entry.add"), exact: true })
+        .click();
+      await expect(page).toHaveURL(
+        new RegExp(
+          `/availability/new\\?user=${userId}&returnTo=%2FvacationAccount`
+        )
+      );
+      await page
+        .getByRole("button", { name: t("cancel"), exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/vacationAccount/);
+      await expect(row).toBeVisible();
+    } finally {
+      await markAsDeleted(page.request, "availability", id);
+      if (before.employee) {
+        await account(`?employeeId=${before.employee.id}`);
+      }
     }
   });
 

@@ -1,5 +1,6 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { TERM_KIND_IDS } from "@/lib/date-period";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
@@ -238,7 +239,7 @@ export const ORDER_PAGE = definePage<
   // the untyped `ResultSet.statistics` becomes what `OrderEntityRest.OrderStatistics` sends — see
   // PageDef.statistics for why this is the place for it.
   // Mirrors AuftragListPage's CellItemListener (first match wins):
-  // 1. deleted / ABGELEHNT / ERSETZT → row-deleted (struck-through grey)
+  // 1. ABGELEHNT / ERSETZT → row-inactive (struck through thin and grey; a deleted order stays row-deleted)
   // 2. toBeInvoiced → row-red  (highest business priority: something must be invoiced)
   // 3. BEAUFTRAGT or LOI → row-green  (active order)
   // 4. ESKALATION → row-red
@@ -246,14 +247,14 @@ export const ORDER_PAGE = definePage<
   // about as "the month/quarter/year from here", and "Jahr bis heute" only confuses in a book of
   // commitments that run into the future.
   filterPeriodKinds: ["termMonth", "termThreeMonths", "termYear"],
-  deletedLabelKey: "order.legend.deleted",
+  inactiveLabelKey: "order.legend.rejected",
   legend: [
     { className: "row-red", labelKey: "order.legend.toBeInvoiced" },
     { className: "row-green", labelKey: "order.legend.commissioned" },
   ],
   rowClassName: (row) => {
     if (row.status === "ABGELEHNT" || row.status === "ERSETZT")
-      return "row-deleted";
+      return INACTIVE_ROW_CLASS;
     if (row.toBeInvoiced) return "row-red";
     if (row.status === "BEAUFTRAGT" || row.status === "LOI") return "row-green";
     if (row.status === "ESKALATION") return "row-red";

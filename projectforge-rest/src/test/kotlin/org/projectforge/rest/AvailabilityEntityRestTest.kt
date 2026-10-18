@@ -39,17 +39,20 @@ import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
+import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class AvailabilityEntityRestTest : AbstractTestBase() {
@@ -213,6 +216,60 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         val filter = MagicFilter().also { it.entries.add(MagicFilterEntry("conflicts", "true")) }
         val filters = availabilityEntityRest.preProcessMagicFilter(QueryFilter(), filter)
         assertTrue(filters.any { it is AvailabilityConflictsFilter })
+    }
+
+    @Test
+    fun `the list tells the working days, the weekends and the days without any substitute on duty`() {
+        val own = createUser("bar-own")
+        val substitute = createUser("bar-substitute") // A freelancer: availability entries only.
+        val other = createUser("bar-other")
+        // Monday to Sunday of a week of February, years ahead; the substitute isn't available Wednesday to Friday.
+        val monday = LocalDate.of(LocalDate.now().year + 4, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(TEST_HR_USER)
+        val ownId = availabilityDao.insert(AvailabilityDO().also {
+            it.user = own
+            it.startDate = monday
+            it.endDate = monday.plusDays(6)
+            it.status = AvailabilityStatus.REMOTE_REACHABLE
+            it.substitutes = mutableSetOf(substitute)
+        })
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = substitute
+            it.startDate = monday.plusDays(2)
+            it.endDate = monday.plusDays(4)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+        })
+        val freeId = availabilityDao.insert(AvailabilityDO().also {
+            it.user = other
+            it.startDate = monday
+            it.endDate = monday.plusDays(1)
+            it.status = AvailabilityStatus.REMOTE_REACHABLE
+        })
+        fun rows(): Map<Long?, Availability> {
+            // Through the list: its rows get their uncovered days all at once (postProcessResultSet).
+            val filter = MagicFilter()
+            filter.entries.add(MagicFilterEntry("period").also {
+                it.value.fromValue = monday.toString(); it.value.toValue = monday.plusDays(6).toString()
+            })
+            return availabilityEntityRest.listPage(
+                MockHttpServletRequest(), AbstractEntityRest.ListPageRequest(filter = filter, refresh = true)
+            ).resultSet.map { it as Availability }.associateBy { it.id }
+        }
+
+        rows().let { rows ->
+            val listed = rows[ownId]!!
+            assertEquals(true, listed.conflict)
+            assertEquals(0, BigDecimal(5).compareTo(listed.workingDays), "Monday to Friday.")
+            assertEquals(VacationStats.format(listed.workingDays), listed.workingDaysFormatted)
+            assertEquals(listOf(monday.plusDays(5), monday.plusDays(6)), listed.nonWorkingDays)
+            assertEquals((2L..4L).map { monday.plusDays(it) }, listed.uncoveredDays)
+            val free = rows[freeId]!!
+            assertEquals(0, BigDecimal(2).compareTo(free.workingDays))
+            assertNull(free.uncoveredDays, "No substitutes, no conflict.")
+            assertEquals(emptyList<LocalDate>(), free.nonWorkingDays)
+        }
+        logon(own)
+        assertEquals((2L..4L).map { monday.plusDays(it) }, rows()[ownId]!!.uncoveredDays, "The own entry, days ahead.")
     }
 
     private fun errors(dto: Availability): List<ValidationError> =

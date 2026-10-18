@@ -24,6 +24,10 @@
 package org.projectforge.rest
 
 import org.projectforge.Constants
+import org.projectforge.business.availability.AbsenceService
+import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.ConflictingAvailabilitiesCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.service.UserPrefService
@@ -35,17 +39,21 @@ import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStatsFormatted
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.LeaveAccountEntry
 import org.projectforge.rest.dto.Vacation
 import org.projectforge.rest.dto.VacationAccount
+import org.projectforge.rest.dto.VacationAccountAvailability
 import org.projectforge.rest.dto.VacationAccountEmployee
 import org.projectforge.rest.dto.VacationAccountLeaveEntry
 import org.projectforge.rest.dto.VacationAccountVacation
@@ -57,13 +65,15 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.time.Month
 import java.time.Year
 
 /**
  * The vacation account ("Urlaubskonto") of projectforge-next, successor of the React UILayout page
  * `VacationAccountPageRest` (`react/vacationAccount/dynamic`, removed). A non-entity, standalone page like the HR
- * view: the statistics, vacations and leave account entries of one employee as plain JSON ([VacationAccount]).
+ * view: the statistics, vacations, leave account entries and availability entries of one employee as plain JSON
+ * ([VacationAccount]).
  *
  * HR staff ([VacationService.hasLoggedInUserHRVacationAccess]) may show any employee — the one asked for, else the
  * one shown last (stored per user), else their own; everybody else always sees their own. Not 2FA-gated (the
@@ -72,6 +82,18 @@ import java.time.Year
 @RestController
 @RequestMapping("${Rest.URL}/vacationAccount")
 class VacationAccountRest {
+    @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
+    private lateinit var availabilityCache: AvailabilityCache
+
+    @Autowired
+    private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var conflictingAvailabilitiesCache: ConflictingAvailabilitiesCache
+
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
 
@@ -166,6 +188,8 @@ class VacationAccountRest {
                 vacationService.getAverageWorkingTimeStats(it, PFDay.fromOrNull(employee.eintrittsDatum)).localizedMessage
             },
             newVacationUrl = vacationEditUrl(null, mapOf("employee" to employeeId)),
+            availabilities = employee.user?.id?.let { readAvailabilities(it, year) }.orEmpty(),
+            newAvailabilityUrl = employee.user?.id?.let { availabilityEditUrl(null, mapOf("user" to it)) },
             vacationListUrl = vacationListUrl,
             exportUrl = exportUrl,
         )
@@ -209,6 +233,59 @@ class VacationAccountRest {
                 )
             }
     }
+
+    /**
+     * The availability entries of the user overlapping the previous, current and next year, newest first. The account
+     * is the own one or shown to HR staff, who see the entries in full (AbsenceService.shownTo); the cached entries
+     * have their users and substitutes resolved.
+     */
+    private fun readAvailabilities(userId: Long, year: Int): List<VacationAccountAvailability> {
+        val viewer = ThreadLocalUserContext.requiredLoggedInUser
+        val from = PFDay.of(year - 1, Month.JANUARY, 1).localDate
+        val until = PFDay.of(year + 1, Month.JANUARY, 1).endOfYear.localDate
+        val entries = availabilityCache.getEntriesOfUsers(setOf(userId), from, until)
+            .mapNotNull { absenceService.shownTo(viewer, it) }
+            .sortedByDescending { it.startDate }
+        // The days bar's red days, of all flagged entries at once (as the availability list does): from today on only
+        // for anybody but HR staff, as the conflict flag counts them.
+        val today = if (vacationService.hasLoggedInUserHRVacationAccess()) null else LocalDate.now()
+        val uncovered = entries
+            .filter {
+                conflictingAvailabilitiesCache.hasConflict(it.id) &&
+                        SubstituteAbsenceReducer.inChartRange(it.startDate, it.endDate)
+            }
+            .takeIf { it.isNotEmpty() }
+            ?.let { vacationService.getUncoveredDaysOfAvailabilities(it) }
+            .orEmpty()
+            .mapValues { (_, days) -> if (today == null) days else days.filter { it >= today } }
+        return entries
+            .map { entry ->
+                val dto = Availability().also { it.copyFrom(entry) }
+                VacationAccountAvailability(
+                    id = entry.id,
+                    startDateFormatted = PFDayUtils.format(entry.startDate, DateFormatType.DATE),
+                    endDateFormatted = PFDayUtils.format(entry.endDate, DateFormatType.DATE),
+                    type = entry.type?.takeIf { availabilityDao.isInternalCommentVisibleFor(viewer, entry) },
+                    statusString = entry.status?.let { translate(it.i18nKey) },
+                    locationString = entry.location?.let { translate(it.i18nKey) },
+                    comment = entry.comment,
+                    substitutes = dto.substitutesAsString,
+                    conflict = conflictingAvailabilitiesCache.hasConflict(entry.id),
+                    workingDaysFormatted = dto.workingDaysFormatted,
+                    startDate = entry.startDate,
+                    endDate = entry.endDate,
+                    nonWorkingDays = SubstituteAbsenceReducer.barNonWorkingDays(entry.startDate, entry.endDate),
+                    uncoveredDays = uncovered[entry.id],
+                    editUrl = availabilityEditUrl(entry.id),
+                )
+            }
+    }
+
+    /** The form of projectforge-next, which offers the way back here (`AVAILABILITY_PAGE.returnTargets`). */
+    private fun availabilityEditUrl(id: Long?, params: Map<String, Any?> = emptyMap()): String =
+        PagesResolver.getEditPageUrl(
+            AvailabilityEntityRest::class.java, id, params = params + ("returnTo" to RETURN_ROUTE), absolute = true,
+        )
 
     /** The form of projectforge-next, which offers the way back here (`VACATION_PAGE.returnTargets`). */
     private fun vacationEditUrl(id: Long?, params: Map<String, Any?> = emptyMap()): String =
