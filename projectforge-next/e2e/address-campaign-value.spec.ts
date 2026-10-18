@@ -32,6 +32,11 @@ test.describe("address campaign values", { tag: "@parallel" }, () => {
         name: t(ADDRESS_CAMPAIGN_VALUE_PAGE.titleKey),
       })
     ).toBeVisible();
+    // A value is only created from the row of its address, never from a blank form
+    // (AddressCampaignValueEntityRest.listInsertAccess).
+    await expect(
+      page.getByLabel(t("menu.addNewEntry"), { exact: true })
+    ).toHaveCount(0);
     for (const column of ADDRESS_CAMPAIGN_VALUE_PAGE.columns) {
       const key = columnHeaderKeyOf(column, ADDRESS_CAMPAIGN_VALUE_METADATA);
       await expect(

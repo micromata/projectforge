@@ -57,8 +57,10 @@ export const ADDRESS_PAGE = definePage<
   gearMenuActions: AddressGearMenuActions,
   massUpdate: { endpoint: "addressSelected", route: "/address/mass-update" },
   // A save from the form of an import entry marks it as imported (AddressSaveSupport.reconcileImport): the
-  // import page, which the form returns to, must read its state anew.
-  extraInvalidateKeys: [ADDRESS_IMPORT_QUERY_KEY],
+  // import page, which the form returns to, must read its state anew. The list of the address campaign values
+  // (ADDRESS_CAMPAIGN_VALUE_LIST_QUERY_KEY, spelled out to keep the plugin page out of this bundle) shows the
+  // address and whether it is valid, and is returned to as well.
+  extraInvalidateKeys: [ADDRESS_IMPORT_QUERY_KEY, ["addressCampaignValue"]],
   edit: {
     schema: addressSchema,
     fieldNames: ADDRESS_FIELDS,
@@ -76,6 +78,16 @@ export const ADDRESS_PAGE = definePage<
     // AddressDao is one of the two DAOs that support it (`isForceDeletionSupport`).
     forceDelete: true,
     editIntro: AddressEditIntro,
+    // The list by default; the address campaign values open the address in the same dialog over their list and
+    // return there (`?returnTo=/address-campaign-value`, AddressCampaignValueAddressCell), as the React list's
+    // modal kept the user on the campaign.
+    returnTargets: [
+      { route: ADDRESS_ROUTE, labelKey: "address.title.list" },
+      {
+        route: "/address-campaign-value",
+        labelKey: "plugins.marketing.addressCampaignValue.title.list",
+      },
+    ],
     sections: [
       {
         id: "status",

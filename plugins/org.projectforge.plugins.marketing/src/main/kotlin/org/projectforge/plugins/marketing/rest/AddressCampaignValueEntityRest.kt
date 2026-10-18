@@ -58,6 +58,7 @@ import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -117,7 +118,12 @@ class AddressCampaignValueEntityRest :
          */
         internal const val USER_PREF_AREA = "addressCampaignValue"
         internal const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
-        private const val FILTER_CAMPAIGN_ID = "campaignId"
+        /**
+         * The id of the React page's campaign filter: the stored current filter and the filter favorites of the
+         * users are kept under the category `addressCampaignValue`, which is this page's now, so they keep
+         * selecting their campaign.
+         */
+        private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
         private const val EMPTY_VALUE = "__EMPTY__"
     }
 
@@ -354,21 +360,34 @@ class AddressCampaignValueEntityRest :
 
     override fun transformForDB(dto: AddressCampaignValue): AddressCampaignValueDO {
         // For updates, load the existing entity to preserve its relationships.
-        val dbObj = dto.id?.let { baseDao.find(it) } ?: AddressCampaignValueDO()
+        dto.id?.let { id ->
+            val dbObj = baseDao.find(id) ?: AddressCampaignValueDO()
+            dto.copyTo(dbObj)
+            // Editing a deleted campaign value restores it (it is shown as "not set").
+            if (dbObj.deleted && (dbObj.value != null || dbObj.comment != null)) {
+                dbObj.deleted = false
+            }
+            return dbObj
+        }
+        // A value of the address may have been created meanwhile (by another user, on the React page, from a stale
+        // list): it is updated then, as the mass update does, instead of inserted a second time, which the unique
+        // constraint on address and campaign would refuse.
+        val addressId = dto.addressId
+        val campaignId = dto.addressCampaign?.id
+        if (addressId != null && campaignId != null) {
+            baseDao.get(addressId, campaignId)?.let { existing ->
+                val existingId = existing.id
+                dto.copyTo(existing) // Copies the id (null) as well.
+                existing.id = existingId
+                existing.deleted = false
+                return existing
+            }
+        }
+        // The address and the campaign (required foreign keys) of a new record.
+        val dbObj = AddressCampaignValueDO()
         dto.copyTo(dbObj)
-        // Editing a deleted campaign value restores it (it is shown as "not set").
-        if (dto.id != null && dbObj.deleted && (dbObj.value != null || dbObj.comment != null)) {
-            dbObj.deleted = false
-        }
-        // The address and the campaign (required foreign keys), only for new records.
-        if (dto.id == null) {
-            dto.addressId?.let { addressId ->
-                dbObj.address = AddressDO().also { it.id = addressId }
-            }
-            dto.addressCampaign?.id?.let { campaignId ->
-                dbObj.addressCampaign = AddressCampaignDO().also { it.id = campaignId }
-            }
-        }
+        addressId?.let { dbObj.address = AddressDO().also { it.id = addressId } }
+        campaignId?.let { dbObj.addressCampaign = AddressCampaignDO().also { it.id = campaignId } }
         return dbObj
     }
 
@@ -377,6 +396,16 @@ class AddressCampaignValueEntityRest :
         dto.copyFrom(obj)
         return dto
     }
+
+    /** A new value belongs to an address and a campaign (see [newBaseDO]): without them, there is nothing to save. */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: AddressCampaignValue) {
+        if (dto.id == null && (dto.addressId == null || dto.addressCampaign?.id == null)) {
+            validationErrors.add(ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven"))
+        }
+    }
+
+    /** A value is only created from the row of its address (synthetic id), not from a blank form. */
+    override fun listInsertAccess(): Boolean = false
 
     /**
      * Both real campaign value ids (positive) and synthetic ids (negative address ids of addresses without a

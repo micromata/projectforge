@@ -341,6 +341,11 @@ constructor(
         // Assumed for every entity that has no entity wide answer, and asked where one exists: a list
         // whose rows nobody may open must not offer the click that opens them (see listUpdateAccess).
         userAccess.update = listUpdateAccess()
+        // Whether the list offers to add an entry - false for an entity whose entries are only ever created
+        // from a row of the list (see listInsertAccess).
+        if (!listInsertAccess()) {
+            userAccess.insert = false
+        }
         // Whether a write may carry a comment for the history entry it produces, which is a property of
         // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
         // userAccess, from where the server laid out edit page adds its comment field
@@ -1076,6 +1081,17 @@ constructor(
      * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the write regardless.
      */
     protected open fun listUpdateAccess(): Boolean = true
+
+    /**
+     * Whether the list offers to add an entry (its add button), on top of the insert right the DAO reports.
+     *
+     * True by default. False for an entity whose entries can't be created from nothing: an address campaign
+     * value belongs to an address and a campaign, so it is only ever created from the row of its address
+     * (`AddressCampaignValueEntityRest`) - a blank form could not be saved.
+     *
+     * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the insert regardless.
+     */
+    protected open fun listInsertAccess(): Boolean = true
 
     protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
         if (userAccess != null) {

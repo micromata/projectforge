@@ -18,13 +18,18 @@ import { useAddressView } from "./use-address-view";
  * The view of an address in a dialog over the list — what a row opens, as the React list did: a quick look at the
  * phone numbers and the contact data that leaves the list where it was (see PageDef.rowDialog). The page of the
  * view (AddressView) shows the same and is what direct links open.
+ *
+ * Another list may open it over its rows as well (the address campaign values): its "edit" returns there then
+ * ([returnTo], see AddressViewActions).
  */
 export function AddressViewDialog({
   id,
   onClose,
+  returnTo,
 }: {
   id: number;
   onClose: () => void;
+  returnTo?: string;
 }) {
   const t = useTranslations();
   const { query, refresh } = useAddressView(id);
@@ -54,7 +59,11 @@ export function AddressViewDialog({
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
-              <AddressViewActions address={view.address} inDialog />
+              <AddressViewActions
+                address={view.address}
+                inDialog
+                returnTo={returnTo}
+              />
             </div>
             <AddressViewDetails
               view={view}

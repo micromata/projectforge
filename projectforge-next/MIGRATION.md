@@ -609,7 +609,12 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Frontend `components/features/address-campaign-value`. Eine Zeile je Adresse der im Filter gewählten Kampagne;
   Adressen ohne Wert haben eine synthetische (negative) Id und öffnen `address-campaign-value/new?campaignId=&addressId=`
   (`newBaseDO`). Sortiert wird komplett im Speicher (`computedSortProperties`), weil die Abfrage auf den Adressen läuft.
-  Firma/Adresse öffnen den `AddressViewDialog`. Wechselt die Kampagne, setzt das Backend `ResultSet.reloadUI`, und
+  Firma/Adresse öffnen den `AddressViewDialog`, dessen „Bearbeiten“ mit `?returnTo=/address-campaign-value` zurück
+  in die Liste führt (wie das React-Modal). Kein „+“ (`listInsertAccess() = false`, neuer Hook in
+  `AbstractEntityRest`); ein Wert ohne Adresse/Kampagne wird abgewiesen, ein inzwischen angelegter Wert derselben
+  Adresse wird aktualisiert statt doppelt eingefügt (Unique-Constraint). Die Filter-Id der Kampagne ist die der
+  React-Seite (`AddressCampaignValuePagesRest.campaignId`), damit gespeicherte Filter/Favoriten ihre Kampagne
+  behalten. Wechselt die Kampagne, setzt das Backend `ResultSet.reloadUI`, und
   `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. **Weiterhin in React**
   für die laufende Kampagne, als Weg zurück: dieselbe Seite unter eigener Kategorie `addressCampaignValueLegacy`
   (`NextPage.legacyCategory`: der Weg zurück führt dorthin, `OrphanedLinkFilter`/`hasNextVersion` bleiben bei den alten
