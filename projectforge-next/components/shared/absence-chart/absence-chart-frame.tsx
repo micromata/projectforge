@@ -59,7 +59,15 @@ export function AbsenceChartFrame({
   const weekday = dayWidth === "normal" || dayWidth === "wide";
   const printNumbers = days.length <= PRINT_NUMBERS_MAX_DAYS;
   return (
-    <div className="overflow-x-auto print:overflow-visible">
+    // Room beneath the rows for the scrollbar: an overlay one (macOS) is drawn over the content and would hide the
+    // last row's bars. `fit` needs no scrolling at all: clipped, a rounding remainder of the columns would show a
+    // scrollbar there, too.
+    <div
+      className={cn(
+        "print:overflow-visible print:pb-0",
+        fit ? "overflow-x-clip" : "overflow-x-auto pb-3"
+      )}
+    >
       <div
         role={role}
         aria-label={ariaLabel}
