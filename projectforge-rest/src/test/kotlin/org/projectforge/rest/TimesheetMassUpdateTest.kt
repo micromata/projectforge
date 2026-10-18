@@ -49,6 +49,7 @@ import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.mock.web.MockHttpServletRequest
 import java.io.Serializable
 import java.time.Month
 import java.util.*
@@ -84,6 +85,31 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)!!
         costConfigured.booleanValue = true
         configurationDao.update(costConfigured, checkAccess = false)
+    }
+
+    @Test
+    fun `meta should offer the configured tags as a select that is only set or deleted`() {
+        val tagsEntry = configurationDao.getEntry(ConfigurationParam.TIMESHEET_TAGS)!!
+        val previousTags = tagsEntry.stringValue
+        try {
+            tagsEntry.stringValue = "Meeting;Travel"
+            configurationDao.update(tagsEntry, checkAccess = false)
+            logon(getUser(TEST_FINANCE_USER))
+            val fields = timesheetMultiSelectedPageRest.requestMeta(MockHttpServletRequest())
+                .fields.associateBy { it.field }
+            val tag = fields["tag"]!!
+            Assertions.assertEquals(listOf("Meeting", "Travel"), tag.values?.map { it.id })
+            Assertions.assertEquals("textValue", tag.valueProperty)
+            Assertions.assertTrue(tag.deleteOption)
+            // A choice of values: appending to it or replacing text in it would build a value that is no choice.
+            Assertions.assertFalse(tag.appendOption)
+            Assertions.assertFalse(tag.replaceOption)
+            // A plain text field keeps its text modes.
+            Assertions.assertTrue(fields["location"]!!.replaceOption)
+        } finally {
+            tagsEntry.stringValue = previousTags
+            configurationDao.update(tagsEntry, checkAccess = false)
+        }
     }
 
     @Test

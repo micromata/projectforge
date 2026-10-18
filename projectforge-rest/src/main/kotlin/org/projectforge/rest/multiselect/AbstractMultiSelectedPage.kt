@@ -646,7 +646,10 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val el = LayoutUtils.buildLabelInputElement(lc, field, declaration.minLengthOfTextArea)
         val elementInfo = ElementsRegistry.getElementInfo(lc, field)
         val dataType = (el as? UIInput)?.dataType
-        val isString = el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING)
+        // A select of runtime values (a campaign's values, the time sheet's tags) is a choice, not a text: it is
+        // set or deleted, never appended to or searched and replaced in, whatever element the entity property has.
+        val isString = declaration.values == null &&
+            (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING))
         @Suppress("UNCHECKED_CAST")
         // Values a page supplies at runtime (the tag list) win over the element: the entity knows "tag"
         // as a plain string, so the element is a text input, but the field is meant to be a select of
@@ -670,7 +673,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             // (`showAppendOption`), even where the entity lost its length and the element fell back to a
             // single line input (e. g. `bemerkung`, mapped on a superclass) - otherwise the preset would
             // arm an action the form never offers.
-            appendOption = el is UITextArea || (isString && declaration.showAppendOption == true),
+            appendOption = isString && (el is UITextArea || declaration.showAppendOption == true),
             appendPreset = declaration.showAppendOption == true,
         )
     }
