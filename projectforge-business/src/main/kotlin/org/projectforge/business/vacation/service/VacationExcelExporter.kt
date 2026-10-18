@@ -153,19 +153,39 @@ object VacationExcelExporter {
 
   internal class SheetData(var sheetName: String, var startDate: PFDay, var endDate: PFDay)
 
+  /** A row of the sheets: a person (a user, an employee or not) with their vacations and availability entries. */
+  class Person(
+    val name: String?,
+    val vacations: List<VacationDO> = emptyList(),
+    val availabilities: List<AvailabilityDO> = emptyList(),
+  )
+
   fun export(
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
     availabilitiesByEmployee: Map<Long, List<AvailabilityDO>> = emptyMap(),
     /** What an availability entry is called for the user (AvailabilityDao.labelFor); by default only its status. */
     labelOf: (AvailabilityDO) -> String = { it.neutralLabel },
+  ): ByteArray = export(
+    date,
+    vacationsByEmployee.map {
+      Person(it.employee.user?.getFullname(), it.vacations, availabilitiesByEmployee[it.employee.id].orEmpty())
+    },
+    labelOf,
+  )
+
+  fun export(
+    date: LocalDate = LocalDate.now(),
+    persons: List<Person>,
+    /** What an availability entry is called for the user (AvailabilityDao.labelFor); by default only its status. */
+    labelOf: (AvailabilityDO) -> String = { it.neutralLabel },
   ): ByteArray {
-    log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
+    log.info { "Exporting Excel sheet with vacations of users: ${persons.joinToString { it.name ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
       getSheetsData(startDate).forEach { sheetData ->
-        createSheet(context, sheetData, vacationsByEmployee, availabilitiesByEmployee, labelOf)
+        createSheet(context, sheetData, persons, labelOf)
       }
       // Legend
       val sheet = workbook.createOrGetSheet(translate("legend"))
@@ -198,8 +218,7 @@ object VacationExcelExporter {
   private fun createSheet(
     context: Context,
     sheetData: SheetData,
-    vacationsByEmployee: List<VacationService.VacationsByEmployee>,
-    availabilitiesByEmployee: Map<Long, List<AvailabilityDO>>,
+    persons: List<Person>,
     labelOf: (AvailabilityDO) -> String,
   ) {
     val startDate = sheetData.startDate
@@ -215,10 +234,10 @@ object VacationExcelExporter {
     val weekDayRow = sheet.createRow()
     var currentDate = startDate
     var columnIndex = 0
-    firstRow.getCell(columnIndex).setCellValue(translate("fibu.employees"))
+    firstRow.getCell(columnIndex).setCellValue(translate("vacation.export.persons"))
     sheet.setColumnWidth(columnIndex, COL_WIDTH_USER) // Column of vacationers.
     firstRow.getCell(++columnIndex).setCellValue(translate("vacation"))
-    sheet.setColumnWidth(columnIndex, 500) // Column if employee has any vacation or not.
+    sheet.setColumnWidth(columnIndex, 500) // Column if the person has any vacation or not.
     createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, firstRow)
     var paranoiaCounter = 0
     var firstDayOfMonthCol = columnIndex + 1
@@ -246,16 +265,15 @@ object VacationExcelExporter {
         firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
       }
     }
-    vacationsByEmployee.sortedBy { it.employee.user?.getFullname() }.forEach { entry ->
-      val employee = entry.employee
-      val employeeRow = sheet.createRow()
-      employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???").setCellStyle(context.standardStyle)
-      createMonthSeparationCells(context, employeeRow)
+    persons.sortedBy { it.name }.forEach { entry ->
+      val personRow = sheet.createRow()
+      personRow.getCell(0).setCellValue(entry.name ?: "???").setCellStyle(context.standardStyle)
+      createMonthSeparationCells(context, personRow)
       paranoiaCounter = 0
       currentDate = startDate
       while (currentDate <= endDate && paranoiaCounter++ < 500) {
         columnIndexMap[currentDate.date]?.let { col ->
-          employeeRow.getCell(col).setCellStyle(context.dayStyle(currentDate))
+          personRow.getCell(col).setCellStyle(context.dayStyle(currentDate))
         }
         currentDate = currentDate.plusDays(1)
       }
@@ -264,7 +282,7 @@ object VacationExcelExporter {
       val cells = vacationCells(entry.vacations, startDate, endDate)
       cells.forEach { (date, cell) ->
         columnIndexMap[date]?.let { col ->
-          val excelCell = employeeRow.getCell(col).setCellStyle(context.vacationStyle(cell))
+          val excelCell = personRow.getCell(col).setCellStyle(context.vacationStyle(cell))
           if (cell.half) {
             excelCell.setCellValue(HALF_DAY_MARKER)
           }
@@ -273,7 +291,7 @@ object VacationExcelExporter {
       }
       var hasEntries = cells.isNotEmpty()
       // Availability entries on the days not occupied by vacations.
-      availabilitiesByEmployee[employee.id]?.forEach { availability ->
+      entry.availabilities.forEach { availability ->
         val availStart = PFDay.fromOrNull(availability.startDate)
         val availEnd = PFDay.fromOrNull(availability.endDate)
         if (availStart != null && availEnd != null) {
@@ -285,19 +303,19 @@ object VacationExcelExporter {
           while (current <= availEnd && current <= endDate && paranoiaCounter++ < 500) {
             val col = columnIndexMap[current.date]
             if (col != null && col !in occupiedCols) {
-              employeeRow.getCell(col).setCellStyle(style)
+              personRow.getCell(col).setCellStyle(style)
               cols.add(col)
               occupiedCols.add(col)
               hasEntries = true
             }
             current = current.plusDays(1)
           }
-          mergeConsecutiveColumns(context, sheet, employeeRow, cols, label, style)
+          mergeConsecutiveColumns(context, sheet, personRow, cols, label, style)
         }
       }
       if (hasEntries) {
         // Mark row as user with vacation or availability entries:
-        employeeRow.getCell(1).setCellValue("X")
+        personRow.getCell(1).setCellValue("X")
       }
     }
     sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")

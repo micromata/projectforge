@@ -170,12 +170,12 @@ describe("monthSpans", () => {
 });
 
 describe("teamChartRows", () => {
-  it("draws every employee, also one without a vacation, cutting a vacation off at the period's edges", () => {
+  it("draws every user, also one without a vacation, cutting a vacation off at the period's edges", () => {
     const rows = teamChartRows({
       days: days(10),
       rows: [
         {
-          employee: { id: 7, displayName: "Away" },
+          user: { id: 7, displayName: "Away" },
           vacations: [
             {
               id: 70,
@@ -195,7 +195,7 @@ describe("teamChartRows", () => {
             },
           ],
         },
-        { employee: { id: 8, displayName: "On duty" }, vacations: [] },
+        { user: { id: 8, displayName: "On duty" }, vacations: [] },
       ],
     });
     expect(rows.map((r) => [r.name, r.own, r.bars.length])).toEqual([
@@ -224,7 +224,7 @@ describe("teamChartRows with availabilities", () => {
       days: days(10),
       rows: [
         {
-          employee: { id: 7, displayName: "Remote" },
+          user: { id: 7, displayName: "Remote" },
           vacations: [],
           availabilities: [
             {
@@ -244,7 +244,7 @@ describe("teamChartRows with availabilities", () => {
             },
           ],
         },
-        { employee: { id: 8, displayName: "On duty" }, vacations: [] },
+        { user: { id: 8, displayName: "On duty" }, vacations: [] },
       ],
     });
     expect(rows[0].availabilities).toEqual([
@@ -267,7 +267,7 @@ describe("teamChartRows with availabilities", () => {
       days: days(10),
       rows: [
         {
-          employee: { id: 7, displayName: "Remote" },
+          user: { id: 7, displayName: "Remote" },
           vacations: [
             {
               id: 70,

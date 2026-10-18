@@ -1536,7 +1536,6 @@
       "wochenstunden": "Hours per week",
       "zipCode": "Zip code"
     },
-    "employees": "Employees",
     "fakturiert": "invoiced",
     "headOfBusinessManager": "Head of business manager",
     "konto": {
@@ -4930,6 +4929,7 @@
       "legend": {
         "holidayOrWeekend": "Weekend or holiday"
       },
+      "persons": "People",
       "print": {
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
@@ -4995,9 +4995,11 @@
     "quickView": {
       "button": "Who is available?",
       "empty": "No absences in this period.",
-      "selectHint": "Choose a person to see their vacations and availability entries of the coming weeks.",
+      "selectHint": "Choose one or more people to see their vacations and availability entries of the coming weeks.",
+      "teamCalendar": "Team calendar",
+      "teamCalendarHint": "Choose groups and longer periods in the team vacation calendar.",
       "title": "Availability at a glance",
-      "user": "Person",
+      "user": "People",
       "weeks": "Weeks"
     },
     "recalculateRemainingLeave": "Recalculate remaining leave",

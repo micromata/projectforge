@@ -33,23 +33,23 @@ import java.time.LocalDate
 
 // The team vacation calendar of projectforge-next (`/next/vacationExport`, VacationExportRest).
 
-/** An employee or group as the pickers show it. */
+/** A user or group as the pickers show it. */
 class VacationExportRef(
     val id: Long,
     val displayName: String?,
 )
 
 /**
- * What the page shows and exports: the vacations of [employeeIds] and of the members of [groupIds] from [from] to
+ * What the page shows and exports: the absences of the users [userIds] and of the members of [groupIds] from [from] to
  * [until] (both inclusive). The Excel export ignores [until]: its sheets start in the month of [from].
  *
  * @param periodKind The kind of period the page pages through (e.g. `quarter`), only stored for next time.
  * @param dayWidth The width of the chart's day columns (`auto`, `fit`, `narrow`, …), only stored for next time.
- * @param absenceKinds What is shown and exported of the employees' absences: their vacations and their availability
+ * @param absenceKinds What is shown and exported of the users' absences: their vacations and their availability
  * entries by their state. Null: the vacations only.
  */
 class VacationExportRequest(
-    var employeeIds: List<Long>? = null,
+    var userIds: List<Long>? = null,
     var groupIds: List<Long>? = null,
     var periodKind: String? = null,
     var dayWidth: String? = null,
@@ -59,7 +59,7 @@ class VacationExportRequest(
 )
 
 /**
- * The page's initial state: the employees and groups chosen last time (only those still to be picked).
+ * The page's initial state: the users and groups chosen last time (only those still to be picked).
  *
  * @param unrestricted HR and finance staff, who may pick everybody; anybody else picks only from their own groups.
  * @param earliestDate The first day shown and exported: 1 January of the current year for anybody but HR and
@@ -67,7 +67,7 @@ class VacationExportRequest(
  * @param absenceKinds The kinds of absences chosen last time ([VacationExportRequest.absenceKinds]), never empty.
  */
 class VacationExportInitial(
-    val employees: List<VacationExportRef>,
+    val users: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
     val periodKind: String?,
     val dayWidth: String?,
@@ -78,23 +78,23 @@ class VacationExportInitial(
 )
 
 /**
- * A favorite of the team vacation calendar: a named choice of employees and groups (the ids the user may still
+ * A favorite of the team vacation calendar: a named choice of users and groups (the ids the user may still
  * pick, as [VacationExportSelection] applies them; the page tells by them whether its choice is the favorite's).
  */
 class VacationExportFavoriteInfo(
     val id: Long,
     val name: String,
-    val employeeIds: List<Long>,
+    val userIds: List<Long>,
     val groupIds: List<Long>,
 )
 
-/** A favorite applied: its employees and groups, only those the user may (still) pick. */
+/** A favorite applied: its users and groups, only those the user may (still) pick. */
 class VacationExportSelection(
-    val employees: List<VacationExportRef>,
+    val users: List<VacationExportRef>,
     val groups: List<VacationExportRef>,
 )
 
-/** The calendar of the period asked for: its [days] and one row per employee, sorted by name. */
+/** The calendar of the period asked for: its [days] and one row per user, sorted by name. */
 class VacationExportView(
     val days: List<VacationChartDay>,
     val rows: List<VacationExportRow>,
@@ -105,7 +105,7 @@ class VacationExportView(
  * @param availabilities Only those of the states [VacationExportRequest.absenceKinds] ask for.
  */
 class VacationExportRow(
-    val employee: VacationExportRef,
+    val user: VacationExportRef,
     val vacations: List<VacationExportVacation>,
     val availabilities: List<VacationExportAvailability> = emptyList(),
 )

@@ -15,14 +15,14 @@ import {
 } from "./absence-chart-model";
 
 /**
- * What the team charts show (`org.projectforge.rest.dto.VacationExportView`): the days and a row per person — an
- * employee in the team vacation calendar, a user in the quick view (AvailabilityQuickViewDialog) — with their
- * vacations and availability entries cut to the period.
+ * What the team charts show (`org.projectforge.rest.dto.VacationExportView`): the days and a row per user (of the team
+ * vacation calendar or the quick view, AvailabilityQuickViewDialog; an employee or not) with their vacations and
+ * availability entries cut to the period.
  */
 export interface TeamChartView {
   days: ChartDay[];
   rows: {
-    employee: PersonRef;
+    user: PersonRef;
     vacations: (ChartPeriod & { id?: number | null })[];
     availabilities?: (Parameters<typeof availabilityBarOf>[2] & {
       id?: number | null;
@@ -32,7 +32,7 @@ export interface TeamChartView {
 }
 
 /**
- * The rows of the team calendar: every employee, also those without a vacation in the period. Only the absences of
+ * The rows of the team calendar: every user, also those without a vacation in the period. Only the absences of
  * [kinds] (vacations, availability entries by their status): the view of the previous choice may still be shown
  * while the next one loads.
  */
@@ -46,12 +46,12 @@ export function teamChartRows(
     return kind != null && kinds.includes(kind);
   };
   return view.rows.map((row) => ({
-    key: String(row.employee.id),
-    name: row.employee.displayName ?? "",
+    key: String(row.user.id),
+    name: row.user.displayName ?? "",
     own: false,
     bars: (showVacations ? row.vacations : [])
       .map((v, i) =>
-        barOf(`${row.employee.id}-${v.id ?? i}`, view.days, {
+        barOf(`${row.user.id}-${v.id ?? i}`, view.days, {
           startDate: v.startDate ?? null,
           endDate: v.endDate ?? null,
           halfDayBegin: v.halfDayBegin,
@@ -63,7 +63,7 @@ export function teamChartRows(
     availabilities: (row.availabilities ?? [])
       .filter((a) => shown(a.status))
       .map((a, i) =>
-        availabilityBarOf(`${row.employee.id}-a${a.id ?? i}`, view.days, a)
+        availabilityBarOf(`${row.user.id}-a${a.id ?? i}`, view.days, a)
       )
       .filter((bar): bar is AvailabilityBar => bar != null),
   }));

@@ -25,16 +25,15 @@ function dayWidthOf(dayCount: number): ChartDayWidth {
 }
 
 /**
- * The bars of the user picked in the quick view (AvailabilityQuickViewDialog): their vacations, approved solid and in
- * progress pale, and their availability entries, as the team vacation calendar draws them. Without a single absence
- * a line says so: available all along.
+ * The bars of the users picked in the quick view (AvailabilityQuickViewDialog), a row each: their vacations, approved
+ * solid and in progress pale, and their availability entries, as the team vacation calendar draws them. Without a
+ * single absence of anybody a line says so: available all along.
  */
 export function AvailabilityQuickViewChart({ view }: { view: TeamChartView }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const rows = useMemo(() => teamChartRows(view), [view]);
-  const row = rows[0];
-  if (!row) return null;
+  if (rows.length === 0) return null;
   const formatDate = (iso: string) => formatDateInput(iso, ctx);
   const statusLabel = (status: string) =>
     status === "APPROVED"
@@ -42,7 +41,9 @@ export function AvailabilityQuickViewChart({ view }: { view: TeamChartView }) {
       : status === "IN_PROGRESS"
         ? t("vacation.status.inProgress")
         : null;
-  const empty = row.bars.length === 0 && !row.availabilities?.length;
+  const empty = rows.every(
+    (row) => row.bars.length === 0 && !row.availabilities?.length
+  );
   return (
     // `min-w-0`: a flex item would otherwise grow to the chart's width instead of letting it scroll.
     <figure className="chart-panel min-w-0 space-y-2 rounded-md border p-3">
@@ -52,16 +53,19 @@ export function AvailabilityQuickViewChart({ view }: { view: TeamChartView }) {
         dayWidth={dayWidthOf(view.days.length)}
         role="group"
       >
-        <AbsenceChartRow
-          row={row}
-          gridRow={3}
-          days={view.days}
-          period={(bar) => barLabel(row.name, bar, formatDate, statusLabel)}
-          availabilityText={(bar) =>
-            availabilityLabel(row.name, bar, formatDate)
-          }
-          focusable
-        />
+        {rows.map((row, r) => (
+          <AbsenceChartRow
+            key={row.key}
+            row={row}
+            gridRow={r + 3}
+            days={view.days}
+            period={(bar) => barLabel(row.name, bar, formatDate, statusLabel)}
+            availabilityText={(bar) =>
+              availabilityLabel(row.name, bar, formatDate)
+            }
+            focusable
+          />
+        ))}
       </AbsenceChartFrame>
       {empty ? (
         <p className="text-sm text-muted-foreground">

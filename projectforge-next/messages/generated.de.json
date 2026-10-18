@@ -1536,7 +1536,6 @@
       "wochenstunden": "Wochenstunden",
       "zipCode": "PLZ"
     },
-    "employees": "Mitarbeitende",
     "fakturiert": "fakturiert",
     "headOfBusinessManager": "Management Business Unit",
     "konto": {
@@ -4930,6 +4929,7 @@
       "legend": {
         "holidayOrWeekend": "Wochenende oder Feiertag"
       },
+      "persons": "Personen",
       "print": {
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
@@ -4995,9 +4995,11 @@
     "quickView": {
       "button": "Wer ist verfügbar?",
       "empty": "Keine Abwesenheiten in diesem Zeitraum.",
-      "selectHint": "Person auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "selectHint": "Eine oder mehrere Personen auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "teamCalendar": "Team-Kalender",
+      "teamCalendarHint": "Gruppen und längere Zeiträume im Team-Urlaubskalender auswählen.",
       "title": "Verfügbarkeit auf einen Blick",
-      "user": "Person",
+      "user": "Personen",
       "weeks": "Wochen"
     },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
