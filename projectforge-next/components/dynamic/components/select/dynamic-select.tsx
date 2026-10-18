@@ -49,6 +49,7 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
   const { data, setData } = useDynamicLayout();
   // These labels have no backend counterpart - the layout's translations only cover its own fields.
   const t = useTranslations("select");
+  const tRoot = useTranslations();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -71,6 +72,7 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
     entries: fetched,
     isLoadingMore,
     loadMore,
+    typeToSearch,
   } = useEntityLookup<DataObject>({
     url: lookupUrl,
     search,
@@ -166,7 +168,9 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
                   if (isNearBottom(event.currentTarget)) loadMore();
                 }}
               >
-                <CommandEmpty>{t("noOptions")}</CommandEmpty>
+                <CommandEmpty>
+                  {typeToSearch ? tRoot("filter.typeToSearch") : t("noOptions")}
+                </CommandEmpty>
                 {creatable &&
                   search.length > 0 &&
                   !options.some((it) => it.label === search) && (

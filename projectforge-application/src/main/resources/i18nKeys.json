@@ -1914,6 +1914,7 @@
   {"i18nKey":"filter.timeFrom","bundleName":"I18nResources","translation":"From (time)","translationDE":"Von (Uhrzeit)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"filter.timeTo","bundleName":"I18nResources","translation":"To (time)","translationDE":"Bis (Uhrzeit)","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"filter.title","bundleName":"I18nResources","translation":"Filter","translationDE":"Filter","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"filter.typeToSearch","bundleName":"I18nResources","translation":"Type to search…","translationDE":"Zum Suchen tippen…","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"filter.value","bundleName":"I18nResources","translation":"Value","translationDE":"Wert","usedInClasses":["org.projectforge.rest.core.AbstractPagesRest"],"usedInFiles":[]},
   {"i18nKey":"filter.valueNotSet","bundleName":"I18nResources","translation":"(not set)","translationDE":"(nicht gesetzt)","usedInClasses":["org.projectforge.ui.filter.UIFilterListElement"],"usedInFiles":[]},
   {"i18nKey":"filter.valueTo","bundleName":"I18nResources","translation":"To","translationDE":"Bis","usedInClasses":["org.projectforge.rest.core.AbstractPagesRest"],"usedInFiles":[]},

@@ -2155,6 +2155,7 @@
     "timeFrom": "Von (Uhrzeit)",
     "timeTo": "Bis (Uhrzeit)",
     "title": "Filter",
+    "typeToSearch": "Zum Suchen tippen…",
     "value": "Wert",
     "valueNotSet": "(nicht gesetzt)",
     "valueTo": "Bis"

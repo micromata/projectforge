@@ -10,6 +10,12 @@
 export const LOOKUP_PAGE_SIZE = 50;
 
 /**
+ * The most entries a picker lists before anything is typed: a list of this many or more is too long to be
+ * browsed (its first entries in alphabetical order are rarely the one wanted), the user is asked to type instead.
+ */
+export const EMPTY_TERM_MAX_ENTRIES = 30;
+
+/**
  * The url template with `maxResults` set to [maxResults], replacing one that is already there.
  *
  * Replacing rather than appending: the backend hands out urls that carry their own cap

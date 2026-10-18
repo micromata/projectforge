@@ -2155,6 +2155,7 @@
     "timeFrom": "From (time)",
     "timeTo": "To (time)",
     "title": "Filter",
+    "typeToSearch": "Type to search…",
     "value": "Value",
     "valueNotSet": "(not set)",
     "valueTo": "To"

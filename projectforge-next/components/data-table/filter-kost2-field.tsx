@@ -50,7 +50,7 @@ export function FilterKost2Field({
   const setText = (next: string) =>
     onChange(next.trim() === "" ? undefined : { value: next });
 
-  const { entries, isFetching, isLoadingMore, loadMore } =
+  const { entries, isFetching, isLoadingMore, loadMore, typeToSearch } =
     useEntityLookup<EntityRef>({
       url,
       search: text,
@@ -117,7 +117,11 @@ export function FilterKost2Field({
           >
             {entries.length === 0 ? (
               <div className="px-2 py-1.5 text-center text-xs text-muted-foreground">
-                {isFetching ? t("loading") : t("nothingFound")}
+                {typeToSearch
+                  ? t("filter.typeToSearch")
+                  : isFetching
+                    ? t("loading")
+                    : t("nothingFound")}
               </div>
             ) : (
               entries.map((entry) => (
