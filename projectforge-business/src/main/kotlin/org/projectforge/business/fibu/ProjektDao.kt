@@ -210,6 +210,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         val kundeNummer = obj.kunde?.nummer
         val customerRange = numberRanges.rangeForCustomer(kundeNummer)
         if (customerRange != null) {
+            obj.nummer = localNummer(obj)
             if (obj.nummer !in 0..customerRange.maxLocalNumber) {
                 throw UserException(LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY, customerRange.maxLocalNumber)
             }
@@ -243,6 +244,25 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (other != null && other.toLong() != obj.id) {
             throw UserException(PROJEKTNUMMER_EXISTS_I18N_KEY, obj.projektnummer)
         }
+    }
+
+    /**
+     * The local number of the project within the number range of its customer. A project saved as free project
+     * (no range configured then) stores its project number as local number, see [assignProjektnummer]. If its
+     * project number lies in the range of its customer now (e.g. the legacy ranges with Kost2 activated), the
+     * local number is derived from the project number.
+     */
+    open fun localNummer(obj: ProjektDO): Int {
+        val projektnummer = obj.projektnummer
+        val kundeNummer = obj.kunde?.nummer
+        if (projektnummer == null || kundeNummer == null || obj.nummer != projektnummer) {
+            return obj.nummer
+        }
+        val numberRanges = numberRangeService.numberRanges
+        if (numberRanges.rangeForCustomer(kundeNummer) == null || numberRanges.customerNumber(projektnummer) != kundeNummer) {
+            return obj.nummer
+        }
+        return numberRanges.localNumber(projektnummer) ?: obj.nummer
     }
 
     /**

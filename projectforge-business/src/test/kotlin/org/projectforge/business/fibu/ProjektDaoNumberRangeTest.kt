@@ -136,6 +136,22 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
         }
     }
 
+    @Test
+    fun `local number of a project saved as free project is derived from its project number`() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val customer = insertKunde(778)
+            val projekt = insertProjekt(customer, nummer = 12)
+            assertEquals(577812, projekt.projektnummer)
+            // Saved without number ranges, the local number was the project number:
+            projekt.nummer = 577812
+            assertEquals(12, projektDao.localNummer(projekt))
+            projektDao.update(projekt)
+            assertEquals(12, projektDao.find(projekt.id)!!.nummer)
+            null
+        }
+    }
+
     private fun insertKunde(nummer: Long): KundeDO {
         return kundeDao.find(nummer, checkAccess = false) ?: KundeDO().also {
             it.nummer = nummer

@@ -132,6 +132,7 @@ class ProjectEntityRest
         val projekt = Project()
         caches.initialize(obj)
         projekt.copyFrom(obj)
+        projekt.nummer = baseDao.localNummer(obj)
         if (editMode || obj.id == null) {
             val activeArtIds = kostCache.getKost2ForProjekt(obj.id)
                 .filter { projektKost2Service.isActive(it) }
