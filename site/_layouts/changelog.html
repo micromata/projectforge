@@ -4,7 +4,11 @@ layout: default
 
 <div class="pf-container pf-narrow py-16 max-sm:py-12">
 
-    <h1 class="web-display mb-8">{{ page.title | escape }}</h1>
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <h1 class="web-display">{{ page.title | escape }}</h1>
+        {% comment %}Shown by assets/js/changelog.js: opens all collapsed blocks, e.g. for searching the page.{% endcomment %}
+        <button type="button" class="pf-btn pf-btn-outline" id="changelog-toggle-all" hidden>Expand all</button>
+    </div>
 
     <div class="prose">
         {{ content }}
@@ -28,3 +32,5 @@ layout: default
     {% endfor %}
 
 </div>
+
+<script src="{{ '/assets/js/changelog.js' | relative_url }}" defer></script>
