@@ -7,10 +7,11 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDateInput } from "@/lib/date-parse";
 import { cn } from "@/lib/utils";
-import { availabilityLabel, buildVacationChart } from "./vacation-chart-model";
-import { VacationChartFrame } from "./vacation-chart-frame";
-import { VacationChartLegend } from "./vacation-chart-legend";
-import { VacationChartRow } from "./vacation-chart-row";
+import { availabilityLabel } from "@/components/shared/absence-chart/absence-chart-model";
+import { buildVacationChart } from "./vacation-chart-model";
+import { AbsenceChartFrame } from "@/components/shared/absence-chart/absence-chart-frame";
+import { AbsenceChartLegend } from "@/components/shared/absence-chart/absence-chart-legend";
+import { AbsenceChartRow } from "@/components/shared/absence-chart/absence-chart-row";
 import type { VacationValues } from "./vacation-schema";
 import { useVacationStats } from "./use-vacation-stats";
 
@@ -65,9 +66,9 @@ export function VacationOverlapChart({ className }: { className?: string }) {
         className
       )}
     >
-      <VacationChartFrame days={days} ariaLabel={t("vacation.chart.ariaLabel")}>
+      <AbsenceChartFrame days={days} ariaLabel={t("vacation.chart.ariaLabel")}>
         {rows.map((row, r) => (
-          <VacationChartRow
+          <AbsenceChartRow
             key={row.key}
             row={row}
             gridRow={r + 3}
@@ -82,8 +83,8 @@ export function VacationOverlapChart({ className }: { className?: string }) {
             }
           />
         ))}
-      </VacationChartFrame>
-      <VacationChartLegend availabilities={withAvailabilities} />
+      </AbsenceChartFrame>
+      <AbsenceChartLegend availabilities={withAvailabilities} />
     </figure>
   );
 }

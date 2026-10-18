@@ -22,7 +22,7 @@ export function AvailabilityListActions() {
         </Link>
       </Button>
       <Button asChild type="button">
-        <Link href="/vacationExport?showAvailabilities=true">
+        <Link href="/vacationExport?absenceKinds=all">
           <HugeiconsIcon icon={FileExportIcon} aria-hidden />
           {t("vacation.export.title")}
         </Link>

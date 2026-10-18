@@ -5,13 +5,13 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatWeekdayShort, formatYearMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { monthSpans } from "./vacation-chart-model";
-import { dayClassName, GRID_CELL, gridCell } from "./vacation-chart-grid";
-import type { VacationChartDay } from "./types";
+import { monthSpans } from "./absence-chart-model";
+import { dayClassName, GRID_CELL, gridCell } from "./absence-chart-grid";
+import type { ChartDay } from "./absence-chart-model";
 import {
   DAY_COLUMN_MIN_WIDTH,
-  type VacationChartDayWidth,
-} from "./vacation-chart-width";
+  type ChartDayWidth,
+} from "./absence-chart-width";
 
 /** The longest period printed with day numbers: a quarter, whose days are still 2–3mm wide on A4 landscape. */
 const PRINT_NUMBERS_MAX_DAYS = 92;
@@ -24,11 +24,11 @@ const STICKY_CORNER = {
 
 /**
  * The grid of a vacation chart with its axis — the months in row 1, the days in row 2 — and the rows passed as
- * [children] from grid row 3 on (see VacationChartRow). Scrolls sideways with the names' column staying at the
+ * [children] from grid row 3 on (see AbsenceChartRow). Scrolls sideways with the names' column staying at the
  * left. Shared by the chart of the vacation form (VacationOverlapChart) and the team calendar
  * (VacationTeamChart).
  *
- * @param dayWidth The width of the day columns (see VacationChartWidth): `narrow` without the weekday, `fit` in
+ * @param dayWidth The width of the day columns (see ChartWidth): `narrow` without the weekday, `fit` in
  * the width of the window without the day numbers either (the holiday's tooltip stays). Printed, the chart is
  * always laid out in the width of the page, whatever the width on screen: with small day numbers and without
  * weekdays up to a quarter, with the months only beyond (a year's days would be too narrow for a number).
@@ -36,16 +36,16 @@ const STICKY_CORNER = {
  * it) or `group` for a chart that is its own text: the names and the labelled, focusable bars of the rows are
  * read, the axis is hidden from screen readers then (each bar names its dates).
  */
-export function VacationChartFrame({
+export function AbsenceChartFrame({
   days,
   ariaLabel,
   dayWidth = "normal",
   role = "img",
   children,
 }: {
-  days: VacationChartDay[];
+  days: ChartDay[];
   ariaLabel: string;
-  dayWidth?: VacationChartDayWidth;
+  dayWidth?: ChartDayWidth;
   role?: "img" | "group";
   children: ReactNode;
 }) {

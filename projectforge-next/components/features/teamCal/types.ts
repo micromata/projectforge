@@ -1,3 +1,4 @@
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { CalendarSubscriptionInfo } from "@/lib/rs/calendar-subscription";
 
 /** A user or group as the DTO carries it: the id is what `copyTo` stores. */
@@ -32,6 +33,8 @@ export interface TeamCalDetail {
   minimalAccessGroups?: TeamCalRef[];
   includeLeaveDaysForUsers?: TeamCalRef[];
   includeLeaveDaysForGroups?: TeamCalRef[];
+  /** Which absences of the people above the calendar includes (`TeamCalDO.includeAbsenceKinds`); absent: all. */
+  absenceKinds?: AbsenceKind[] | null;
   externalSubscription?: boolean;
   /** Only sent in edit mode to users who may update the calendar (it may hold credentials). */
   externalSubscriptionUrl?: string | null;

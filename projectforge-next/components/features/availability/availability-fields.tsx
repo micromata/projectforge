@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
+import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-multi-autocomplete-field";
 import {
   useEntityData,
   useFormReadOnly,
@@ -77,6 +78,29 @@ export function AvailabilityInternalCommentField({
       hint={t("availability.internalComment.tooltip")}
       disabled={readOnly}
       rows={3}
+      className={className}
+    />
+  );
+}
+
+/**
+ * Optional: who stands in for the user during the period — users, also freelancers. A conflict exists only if all of
+ * them are away on a day (see AvailabilityConflictNotice). Custom because a collection of references has no field in
+ * the metadata.
+ */
+export function AvailabilitySubstitutesField({
+  className,
+}: {
+  className?: string;
+}) {
+  const t = useTranslations();
+  return (
+    <EntityMultiAutocompleteField
+      name="substitutes"
+      label={t("availability.substitutes")}
+      hint={t("availability.substitutes.tooltip")}
+      entity="user"
+      metadataLess
       className={className}
     />
   );

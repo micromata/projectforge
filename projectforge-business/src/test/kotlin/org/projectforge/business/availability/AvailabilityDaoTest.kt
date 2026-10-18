@@ -195,19 +195,19 @@ class AvailabilityDaoTest : AbstractTestBase() {
     }
 
     @Test
-    fun `members of the user's groups see the entries as vacations, not those ended more than 31 days ago`() {
+    fun `members of the user's groups see the entries as vacations, not those ended before today`() {
         val user = createUser("past-user")
         val colleague = createUser("past-colleague")
         val stranger = createUser("past-stranger")
         logon(TEST_ADMIN_USER)
         initTestDB.addGroup("${this.javaClass.simpleName}.past", user.username!!, colleague.username!!)
         val today = LocalDate.now()
-        val recent = create(user, today.minusDays(40), today.minusDays(30))
-        val old = create(user, today.minusDays(40), today.minusDays(31))
+        val endingToday = create(user, today.minusDays(40), today)
+        val endedYesterday = create(user, today.minusDays(40), today.minusDays(1))
         val future = create(user, today.plusDays(10), today.plusDays(20))
-        listOf(recent, future).forEach { Assertions.assertTrue(availabilityDao.hasUserSelectAccess(colleague, it, false)) }
-        Assertions.assertFalse(availabilityDao.hasUserSelectAccess(colleague, old, false), "Ended 31 days ago.")
-        listOf(recent, old, future).forEach {
+        listOf(endingToday, future).forEach { Assertions.assertTrue(availabilityDao.hasUserSelectAccess(colleague, it, false)) }
+        Assertions.assertFalse(availabilityDao.hasUserSelectAccess(colleague, endedYesterday, false), "Ended yesterday.")
+        listOf(endingToday, endedYesterday, future).forEach {
             Assertions.assertFalse(availabilityDao.hasUserSelectAccess(stranger, it, false), "Not of the same group.")
             Assertions.assertTrue(availabilityDao.hasUserSelectAccess(user, it, false), "The own entries.")
             Assertions.assertTrue(availabilityDao.hasUserSelectAccess(getUser(TEST_HR_USER), it, false), "HR staff.")

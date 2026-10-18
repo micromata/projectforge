@@ -7,19 +7,23 @@ import {
   AVAILABILITY_BAR_CLASS,
   barClassName,
   dayClassName,
-} from "./vacation-chart-grid";
+} from "./absence-chart-grid";
 
 /**
- * What the colours of the vacation chart mean (see VacationOverlapChart). The team calendar (`team`,
- * VacationTeamChart) has neither a vacation being edited nor uncovered days, but may show availability entries
- * (`availabilities`), as the form does for the substitutes' ones.
+ * What the colours of an absence chart mean (see VacationOverlapChart, AvailabilitySubstituteChart). The team calendar
+ * (`team`, VacationTeamChart) has neither an entry being edited nor uncovered days, but may show availability entries
+ * (`availabilities`), as the forms do for the substitutes' ones.
+ *
+ * @param ownLabel What the entry being edited is called, by default "This vacation".
  */
-export function VacationChartLegend({
+export function AbsenceChartLegend({
   team = false,
   availabilities = false,
+  ownLabel,
 }: {
   team?: boolean;
   availabilities?: boolean;
+  ownLabel?: string;
 }) {
   const t = useTranslations();
   const items = [
@@ -28,7 +32,7 @@ export function VacationChartLegend({
       : [
           {
             className: barClassName(true, true),
-            label: t("vacation.chart.own"),
+            label: ownLabel ?? t("vacation.chart.own"),
           },
         ]),
     {

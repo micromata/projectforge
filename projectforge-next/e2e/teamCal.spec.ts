@@ -73,6 +73,43 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     expect(saveAttempted).toBe(false);
   });
 
+  test("posts the absence kinds the calendar includes, all of them by default", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t } = format;
+    let posted: { data?: { absenceKinds?: string[] } } | null = null;
+    await page.route("**/rs/teamCal/saveorupdate*", (route) => {
+      posted = route.request().postDataJSON();
+      return route.abort();
+    });
+
+    await goto(page, "/teamCal/new");
+    await page
+      .getByRole("textbox", {
+        name: new RegExp(`^${escape(label(format, "plugins.teamcal.title"))}`),
+      })
+      .fill("e2e absence kinds");
+    const kinds = page.getByRole("group", {
+      name: t("plugins.teamcal.absenceKinds._"),
+    });
+    await expect(kinds.getByRole("button")).toHaveCount(5);
+    for (const button of await kinds.getByRole("button").all()) {
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+    }
+    await kinds
+      .getByRole("button", { name: t("availability.status.remoteReachable") })
+      .click();
+    await page.getByRole("button", { name: t("save") }).click();
+    await expect.poll(() => posted).not.toBeNull();
+    expect(posted!.data?.absenceKinds).toEqual([
+      "VACATION",
+      "NOT_AVAILABLE",
+      "REACHABLE_IF_NEEDED",
+      "REACHABLE_IF_URGENT",
+    ]);
+  });
+
   test("redirects the old React list", async ({ loggedInPage: page }) => {
     await page.goto("/react/teamCal");
     await expect(page).toHaveURL(/\/next\/teamCal$/);

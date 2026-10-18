@@ -21,16 +21,21 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.vacation.model
+package org.projectforge.business.availability
 
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 /**
- * Filters vacation entries by given year.
+ * Filters the availability entries in conflict (see [ConflictingAvailabilitiesCache]).
  */
-class VacationYearFilter(val year: Int) : CustomResultFilter<VacationDO> {
+class AvailabilityConflictsFilter : CustomResultFilter<AvailabilityDO> {
+    override fun match(list: MutableList<AvailabilityDO>, element: AvailabilityDO): Boolean {
+        return conflictingAvailabilitiesCache.hasConflict(element.id)
+    }
 
-    override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
-        return element.startDate?.year == year || element.endDate?.year == year
+    companion object {
+        private val conflictingAvailabilitiesCache = ApplicationContextProvider.getApplicationContext()
+            .getBean(ConflictingAvailabilitiesCache::class.java)
     }
 }

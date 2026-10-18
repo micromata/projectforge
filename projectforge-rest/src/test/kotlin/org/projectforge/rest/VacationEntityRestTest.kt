@@ -446,7 +446,7 @@ class VacationEntityRestTest : AbstractTestBase() {
         initTestDB.addGroup("VacationEntityRestTest.leak", own.user!!.username!!, colleague.user!!.username!!)
         val monday = LocalDate.of(LocalDate.now().year + 8, 2, 4).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
         val friday = monday.plusDays(4)
-        // Long past: before the 31 days a colleague's vacation is visible.
+        // Long past: before today and before the current year, at least for the most part.
         val pastMonday = LocalDate.now().minusDays(120).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
         val pastFriday = pastMonday.plusDays(4)
         logon(hr.user!!)
@@ -493,11 +493,14 @@ class VacationEntityRestTest : AbstractTestBase() {
             assertNull(reduced.replacement)
             assertNull(reduced.special)
         }
-        // Their vacation long past isn't told, though it still is a conflict of the entry.
+        // Their vacation long past, too: a vacation tells no sickness, so its days within the entry's period are told
+        // (AbsenceVisibility; the past of an availability entry isn't, see AvailabilityEntityRestTest).
         stats(stranger, pastMonday, pastFriday).let {
-            assertTrue(it.conflictingVacations!!.isEmpty())
+            val reduced = it.conflictingVacations!!.single()
+            assertEquals(pastMonday, reduced.startDate)
+            assertNull(reduced.id)
             assertEquals(true, it.conflict)
-            assertEquals(0, it.chartDays!!.count { day -> day.uncovered })
+            assertEquals(5, it.chartDays!!.count { day -> day.uncovered })
         }
         // Nor does a period longer than the chart draws.
         stats(colleague, monday.minusDays(500), friday).let {

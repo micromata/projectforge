@@ -32,6 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.IdOnlySerializer
+import org.projectforge.framework.json.IdsOnlySerializer
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -109,6 +110,27 @@ open class AvailabilityDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "availability.internalComment", tooltip = "availability.internalComment.tooltip")
     @get:Column(name = "internal_comment", length = 4000)
     open var internalComment: String? = null
+
+    /**
+     * Optional: who stands in for the user during the period. A conflict if all of them are away on a day of it
+     * (see ConflictingAvailabilitiesCache), as for the substitutes of a vacation.
+     */
+    @PropertyInfo(i18nKey = "availability.substitutes", tooltip = "availability.substitutes.tooltip")
+    @IndexedEmbedded(includeDepth = 1, includePaths = ["firstname", "lastname"])
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @get:ManyToMany(fetch = FetchType.LAZY)
+    @get:JoinTable(
+        name = "t_user_availability_substitute",
+        joinColumns = [JoinColumn(name = "availability_id", referencedColumnName = "PK")],
+        inverseJoinColumns = [JoinColumn(name = "user_id", referencedColumnName = "PK")],
+        indexes = [jakarta.persistence.Index(
+            name = "idx_fk_t_user_availability_substitute_availability_id", columnList = "availability_id",
+        ), jakarta.persistence.Index(
+            name = "idx_fk_t_user_availability_substitute_user_id", columnList = "user_id",
+        )]
+    )
+    @JsonSerialize(using = IdsOnlySerializer::class)
+    open var substitutes: MutableSet<PFUserDO>? = null
 
     companion object {
         internal const val FIND_CURRENT_AND_FUTURE = "AvailabilityDO_FindCurrentAndFuture"

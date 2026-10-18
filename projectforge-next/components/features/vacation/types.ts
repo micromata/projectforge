@@ -1,7 +1,11 @@
 // Mirrors org.projectforge.rest.dto.Vacation. Keep field names in sync with the Spring DTO — the formatted
 // values, `conflict`, `conflictingVacations`, `allowedStatus` and `employeeEditable` have no counterpart in
 // the generated metadata.
-
+import type {
+  ChartDay,
+  SubstituteAvailability,
+} from "@/components/shared/absence-chart/absence-chart-model";
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import type { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 
 /** The constants of org.projectforge.business.vacation.model.VacationStatus, from the metadata. */
@@ -18,15 +22,7 @@ export type EmployeeRef = {
 };
 
 /** A day of the chart of the overlapping vacations (`org.projectforge.rest.dto.VacationChartDay`). */
-export interface VacationChartDay {
-  /** ISO date (yyyy-MM-dd). */
-  date: string;
-  /** Neither weekend nor holiday. */
-  workingDay: boolean;
-  holiday?: string | null;
-  /** A day of the vacation on which no substitute is on duty. */
-  uncovered?: boolean;
-}
+export type VacationChartDay = ChartDay;
 
 /**
  * What the form shows beside its fields and the backend computes for the state being edited
@@ -35,6 +31,8 @@ export interface VacationChartDay {
  */
 export interface VacationFormStats {
   workingDays?: number | null;
+  /** The substitute (also a freelancer, who has no employee). */
+  user?: { id: number; displayName?: string | null } | null;
   workingDaysFormatted?: string | null;
   vacationDaysLeftInYear?: number | null;
   vacationDaysLeftInYearString?: string | null;
@@ -66,6 +64,11 @@ export interface VacationDetail extends VacationFormStats {
   employee?: EmployeeRef | null;
   startDate?: string | null;
   endDate?: string | null;
+  /**
+   * The vacation of somebody else begins earlier than `startDate` tells: shown from that day on only, its begin isn't
+   * told (AbsenceVisibility). The form leaves the begin empty.
+   */
+  startHidden?: boolean | null;
   /** The dates in the user's format, for the vacations of the replacements (not edited there). */
   startDateFormatted?: string | null;
   endDateFormatted?: string | null;
@@ -110,12 +113,12 @@ export interface VacationExportRequest {
   employeeIds: number[];
   groupIds: number[];
   periodKind: string;
-  /** VacationChartWidth, only stored. */
+  /** ChartWidth, only stored. */
   dayWidth: string;
   from: string;
   until: string;
-  /** Shows and exports the availability entries of the same employees, too (stored for next time). */
-  showAvailabilities: boolean;
+  /** The absences shown and exported: vacations, availability entries by their status (stored for next time). */
+  absenceKinds: AbsenceKind[];
 }
 
 /** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
@@ -124,7 +127,8 @@ export interface VacationExportInitial {
   groups: VacationExportRef[];
   periodKind?: string | null;
   dayWidth?: string | null;
-  showAvailabilities: boolean;
+  /** The absences chosen last time, never empty. */
+  absenceKinds: AbsenceKind[];
   unrestricted: boolean;
   /** The first day the user may see (ISO): 1 January for anybody but HR and finance staff; absent: no limit. */
   earliestDate?: string | null;
@@ -167,23 +171,15 @@ export interface VacationExportAvailability {
   label: string;
   comment?: string | null;
   absent?: boolean;
+  /** `AvailabilityStatus`: the chart filters by it while the next view loads. */
+  status?: string | null;
 }
 
 /**
  * An availability entry of a replacement (`VacationReplacementAvailability`): `label` is its type only for the
  * replacement and HR staff, its status for everybody else; `absent` (not available) counts as a vacation.
  */
-export interface VacationReplacementAvailability {
-  employee?: EmployeeRef | null;
-  startDate?: string | null;
-  startDateFormatted?: string | null;
-  endDate?: string | null;
-  endDateFormatted?: string | null;
-  status?: string | null;
-  statusString?: string | null;
-  label?: string | null;
-  absent?: boolean;
-}
+export type VacationReplacementAvailability = SubstituteAvailability;
 
 /** The calendar of a period (`VacationExportView`): one row per employee, sorted by name. */
 export interface VacationExportView {
@@ -191,7 +187,7 @@ export interface VacationExportView {
   rows: {
     employee: VacationExportRef;
     vacations: VacationExportVacation[];
-    /** Empty unless the request asked for them (`showAvailabilities`). */
+    /** Only of the states the request asked for (`absenceKinds`), as the vacations. */
     availabilities?: VacationExportAvailability[];
   }[];
 }

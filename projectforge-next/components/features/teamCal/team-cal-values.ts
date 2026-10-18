@@ -1,3 +1,4 @@
+import { ABSENCE_KINDS, sortAbsenceKinds } from "@/lib/rs/absence-kinds";
 import type { TeamCalValues } from "./team-cal-schema";
 import type { TeamCalDetail } from "./types";
 
@@ -19,6 +20,7 @@ export function toFormValues(cal: TeamCalDetail): TeamCalValues {
     minimalAccessGroups: cal.minimalAccessGroups ?? [],
     includeLeaveDaysForUsers: cal.includeLeaveDaysForUsers ?? [],
     includeLeaveDaysForGroups: cal.includeLeaveDaysForGroups ?? [],
+    absenceKinds: sortAbsenceKinds(cal.absenceKinds ?? ABSENCE_KINDS),
     externalSubscription: cal.externalSubscription ?? false,
     externalSubscriptionUrl: cal.externalSubscriptionUrl ?? null,
     externalSubscriptionUpdateInterval:

@@ -10,6 +10,10 @@
  * are always present.
  */
 
+import type { AbsenceKind } from "@/lib/rs/absence-kinds";
+
+export { ABSENCE_KINDS, type AbsenceKind } from "@/lib/rs/absence-kinds";
+
 /** FullCalendar view keys the backend emits and accepts (`CalendarView.key`). */
 export type CalendarViewKey =
   | "dayGridMonth"
@@ -71,19 +75,6 @@ export interface CalendarFilterFavorite {
   id: number;
   name: string;
 }
-
-/**
- * What the shared view of absences shows (`AbsenceKind`): the vacations and the availability entries by their
- * status. Only vacations and `NOT_AVAILABLE` are absences for the substitutes of a vacation.
- */
-export const ABSENCE_KINDS = [
-  "VACATION",
-  "NOT_AVAILABLE",
-  "REMOTE_REACHABLE",
-  "REACHABLE_IF_NEEDED",
-  "REACHABLE_IF_URGENT",
-] as const;
-export type AbsenceKind = (typeof ABSENCE_KINDS)[number];
 
 /**
  * The persisted filter (`org.projectforge.business.calendar.CalendarFilter`). `view` and the visible

@@ -31,14 +31,21 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
+import org.projectforge.business.availability.AvailabilityConflictsFilter
 import org.projectforge.business.availability.AvailabilityStatus
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.Availability
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,6 +58,12 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
     @Test
     fun `the internal comment is offered to the user and HR staff, not to colleagues`() {
@@ -149,10 +162,71 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         assertEquals(listOf("startDate"), filter.sortProperties.map { it.property })
     }
 
+    @Test
+    fun `the substitutes' absences in the form as the user may see them, the conflict in the list and its filter`() {
+        val own = createUser("substitutes") // A freelancer: a user without an employee record.
+        val substitute = createEmployee("substitute")
+        val manager = createEmployee("manager")
+        val monday = LocalDate.now().plusYears(6).let { it.plusDays((8L - it.dayOfWeek.value) % 7) }
+        logon(TEST_HR_USER)
+        vacationDao.insert(VacationDO().also {
+            it.employee = substitute
+            it.manager = manager
+            it.replacement = manager
+            it.startDate = monday.plusDays(1)
+            it.endDate = monday.plusDays(2)
+            it.status = VacationStatus.APPROVED
+            it.special = true
+            it.comment = "private"
+        })
+        logon(own)
+        val dto = Availability().also {
+            it.user = User().also { user -> user.id = own.id }
+            it.startDate = monday
+            it.endDate = monday.plusDays(4)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+            it.substitutes = listOf(User().also { user -> user.id = own.id })
+        }
+        assertEquals(listOf("substitutes"), errors(dto).map { it.fieldId }, "Not the own substitute.")
+        dto.substitutes = listOf(User().also { it.id = substitute.user!!.id })
+        // The posted user is ignored: the stats are of the own entry.
+        dto.user = User().also { it.id = getUser(TEST_HR_USER).id }
+        val stats = availabilityEntityRest.stats(PostData(dto, null, null))
+        assertTrue(stats.conflict == true)
+        // Not readable for the freelancer (no group shared): its days and status only.
+        val vacation = stats.substituteVacations!!.single()
+        assertNull(vacation.id)
+        assertNull(vacation.comment)
+        assertEquals(monday.plusDays(1), vacation.startDate)
+        assertEquals(substitute.user!!.id, vacation.employee?.user?.id, "Keyed by the substitute's user.")
+        assertEquals(2, stats.chartDays!!.count { it.uncovered })
+
+        dto.user = User().also { it.id = own.id }
+        val entry = AvailabilityDO()
+        dto.copyTo(entry)
+        val id = availabilityDao.insert(entry)
+        val item = item(id)
+        assertTrue(item.conflict == true, "The cache flags it.")
+        assertEquals(substitute.user!!.id, item.substitutes?.single()?.id)
+        assertEquals(1, item.substituteVacations?.size)
+
+        val filter = MagicFilter().also { it.entries.add(MagicFilterEntry("conflicts", "true")) }
+        val filters = availabilityEntityRest.preProcessMagicFilter(QueryFilter(), filter)
+        assertTrue(filters.any { it is AvailabilityConflictsFilter })
+    }
+
     private fun errors(dto: Availability): List<ValidationError> =
         mutableListOf<ValidationError>().also { availabilityEntityRest.validate(it, dto) }
 
     private fun item(id: Long): Availability = availabilityEntityRest.getItem(id).body as Availability
+
+    private fun createEmployee(name: String): EmployeeDO {
+        logon(TEST_ADMIN_USER)
+        val employee = EmployeeDO()
+        employee.user = createUser(name)
+        employeeDao.insert(employee, checkAccess = false)
+        return employee
+    }
 
     private fun createUser(name: String): PFUserDO {
         val user = PFUserDO()

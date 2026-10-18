@@ -5,7 +5,10 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate, formatDateRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { barClassName, dayClassName } from "./vacation-chart-grid";
+import {
+  barClassName,
+  dayClassName,
+} from "@/components/shared/absence-chart/absence-chart-grid";
 import {
   BAR_SCALE_DAYS,
   dateRanges,

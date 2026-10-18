@@ -78,6 +78,11 @@ class Vacation(
      */
     var conflict: Boolean? = null,
     /**
+     * The vacation of somebody else begins earlier than [startDate] tells: shown from that day on only, as its begin
+     * isn't told to the logged-in user (AbsenceVisibility). Read-only.
+     */
+    var startHidden: Boolean? = null,
+    /**
      * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
      */
     var allowedStatus: List<VacationStatus>? = null,
@@ -158,13 +163,17 @@ class VacationChartDay(
 }
 
 /**
- * An availability entry of a substitute of a vacation, as its form shows it: who, when and how reachable.
+ * An availability entry of a substitute of a vacation or an availability entry, as its form shows it: who, when and
+ * how reachable.
+ * @param employee The substitute's employee, none for a freelancer.
+ * @param user The substitute.
  * @param label What the entry is called for the logged-in user (AvailabilityDao.labelFor): its type only for the
  * substitute and HR staff.
  * @param absent The substitute is away (AvailabilityStatus.absent), as on vacation.
  */
 class VacationReplacementAvailability(
     var employee: Employee? = null,
+    var user: User? = null,
     var startDate: LocalDate? = null,
     var startDateFormatted: String? = null,
     var endDate: LocalDate? = null,
