@@ -11,6 +11,7 @@ import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { AvailabilityDetail } from "./types";
 
 /**
@@ -97,7 +98,7 @@ export function AvailabilitySubstitutesField({
   return (
     <EntityMultiAutocompleteField
       name="substitutes"
-      label={t("availability.substitutes")}
+      label={t(leafKeyOf("availability.substitutes", t.has))}
       hint={t("availability.substitutes.tooltip")}
       entity="user"
       metadataLess

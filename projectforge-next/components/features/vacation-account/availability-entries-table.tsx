@@ -15,6 +15,7 @@ import {
 import { AbsenceDaysCell } from "@/components/shared/absence-chart/absence-days-bar";
 import { MenuLink } from "@/components/shared/menu-link";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { VacationAccount } from "./types";
 
@@ -69,7 +70,9 @@ export function AvailabilityEntriesTable({
               <TableHead>{t("availability.status")}</TableHead>
               <TableHead>{t("availability.location")}</TableHead>
               <TableHead>{t("availability.comment")}</TableHead>
-              <TableHead>{t("availability.substitutes")}</TableHead>
+              <TableHead>
+                {t(leafKeyOf("availability.substitutes", t.has))}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
