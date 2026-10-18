@@ -1,6 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat, type UserFormat } from "./fixtures/format";
+import { label, userFormat, type UserFormat } from "./fixtures/format";
 import {
   fetchNumberRanges,
   isCostConfigured,
@@ -215,18 +215,41 @@ test.describe("number ranges of customers and projects", () => {
       );
     });
 
-    test("an internal project is numbered in range 4", async ({
+    test("an internal project is numbered in range 4, until a customer is picked", async ({
       loggedInPage: page,
+      seedRequest,
     }) => {
       const format = await userFormat(page);
+      const customer = await createCustomer(seedRequest);
+      created.push({ entity: "customer", id: customer.id });
       // The form only: a saved internal project would take a number of range 4 for good.
       await goto(page, "/project/new");
-      await expect(localNumberField(page, format)).toHaveAttribute(
-        "maxlength",
-        "5",
-        { timeout: 30_000 }
-      );
+      const local = localNumberField(page, format);
+      await expect(local).toHaveAttribute("maxlength", "5", {
+        timeout: 30_000,
+      });
       await expect(page.getByText("4.", { exact: true })).toBeVisible();
+      await expect(local).toHaveValue("00000");
+
+      // The box of range 5 has two digits: the five of range 4 must not stay ("00000").
+      await page
+        .getByRole("combobox", {
+          name: new RegExp(`^${escapeRegExp(label(format, "fibu.kunde._"))}`),
+        })
+        .first()
+        .click();
+      const popover = page
+        .locator('[data-slot="popover-content"]:visible')
+        .last();
+      await popover
+        .locator('[data-slot="command-input"]')
+        .fill(customer.suffix);
+      await popover.getByRole("option").first().click();
+      await expect(
+        page.getByText(`5.${pad(customer.nummer, 3)}.`, { exact: true })
+      ).toBeVisible();
+      await expect(local).toHaveAttribute("maxlength", "2");
+      await expect(local).toHaveValue("00");
     });
 
     test("a customer beyond 999 has free project numbers", async ({
