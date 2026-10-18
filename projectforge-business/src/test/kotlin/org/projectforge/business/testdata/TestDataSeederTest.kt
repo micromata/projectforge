@@ -74,6 +74,19 @@ class TestDataSeederTest : AbstractTestBase() {
         init(false)
     }
 
+    /**
+     * After another test class the database isn't recreated (and [initDb] isn't called), as its test users are known
+     * already: clear it here.
+     */
+    override fun beforeAll() {
+        clearDatabase()
+    }
+
+    /** Leaves no known test users, so the next test class recreates its test database. */
+    override fun afterAll() {
+        clearDatabase()
+    }
+
     @Test
     fun `seed an empty database`() {
         Assertions.assertFalse(databaseService.databaseTablesWithEntriesExist())
