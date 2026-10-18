@@ -66,10 +66,16 @@ export function AvailabilityEntriesTable({
               <TableHead>{t("availability.startDate")}</TableHead>
               <TableHead>{t("availability.endDate")}</TableHead>
               <TableHead>{t("availability.workingDays")}</TableHead>
-              <TableHead>{t("availability.type")}</TableHead>
-              <TableHead>{t("availability.status")}</TableHead>
-              <TableHead>{t("availability.location")}</TableHead>
-              <TableHead>{t("availability.comment")}</TableHead>
+              <TableHead>{t(leafKeyOf("availability.type", t.has))}</TableHead>
+              <TableHead>
+                {t(leafKeyOf("availability.status", t.has))}
+              </TableHead>
+              <TableHead>
+                {t(leafKeyOf("availability.location", t.has))}
+              </TableHead>
+              <TableHead>
+                {t(leafKeyOf("availability.comment", t.has))}
+              </TableHead>
               <TableHead>
                 {t(leafKeyOf("availability.substitutes", t.has))}
               </TableHead>
