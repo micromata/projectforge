@@ -29,6 +29,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.scripting.ExportZipArchive
+import org.projectforge.business.scripting.ScriptBackupInfo
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.business.scripting.ScriptDao
 import org.projectforge.business.scripting.ScriptExecutor
@@ -46,6 +47,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 private val log = KotlinLogging.logger {}
@@ -66,6 +68,9 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
 ) {
     /** An example script offered by the list, loaded by [ScriptExecuteRest.load] via its index. */
     class Example(val index: Int, val title: String)
+
+    /** The code of a former version of a script (see [getBackup]). */
+    class BackupContent(val script: String)
 
     @Autowired
     private lateinit var scriptExecution: ScriptExecution
@@ -159,6 +164,26 @@ class ScriptEntityRest : AbstractDTOEntityRest<ScriptDO, Script, ScriptDao>(
             zip.add(file.name, file.readBytes())
         }
         return RestUtils.downloadFile(zip.filename, zip.asByteArray())
+    }
+
+    /**
+     * The former versions of the script's code, newest first, for the edit form's diff (the code itself
+     * via [getBackup]).
+     */
+    @AccessChecked("DAO: find of ScriptDao (FINANCE/CONTROLLING group)")
+    @GetMapping("backups/{id}")
+    fun getBackups(@PathVariable("id") id: Long?): List<ScriptBackupInfo> {
+        val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
+        return baseDao.getBackups(scriptDO)
+    }
+
+    /** The code of one former version of the script, named by its [ScriptBackupInfo.key]. */
+    @AccessChecked("DAO: find of ScriptDao (FINANCE/CONTROLLING group)")
+    @GetMapping("backup/{id}")
+    fun getBackup(@PathVariable("id") id: Long?, @RequestParam("key") key: String): ResponseEntity<BackupContent> {
+        val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
+        val script = baseDao.readBackup(scriptDO, key) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(BackupContent(script))
     }
 
     @AccessChecked("DAO: find of ScriptDao (FINANCE/CONTROLLING group)")

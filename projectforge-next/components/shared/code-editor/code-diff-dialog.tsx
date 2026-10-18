@@ -1,8 +1,7 @@
 "use client";
 
-import { lazy, Suspense } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,63 +11,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import type { CodeDiffViewProps } from "./code-diff-view";
+import { CodeDiffBody } from "./code-diff-body";
+import type { CodeVersionSource } from "./types";
 
-const CodeDiffView = lazy(() => import("./code-diff-view"));
+export type CodeDiffDialogProps = Omit<
+  CodeDiffViewProps,
+  "className" | "showAll"
+> & {
+  /** The former versions to choose from besides the stored and the edited code. */
+  versions?: CodeVersionSource;
+};
 
 /**
- * What changed in the editor since the code was stored: the editor's "show changes" button
- * (CodeEditorToolbar) opens it. A look only — the code is edited in the editor, not here.
+ * What changed in the editor since the code was stored, or between any two of its versions where it
+ * has former ones ([CodeVersionSource]): the editor's "show changes" button (CodeEditorToolbar) opens
+ * it. A look only — the code is edited in the editor, not here.
  */
 export function CodeDiffDialog({
   open,
   onOpenChange,
-  original,
-  current,
-  language,
-}: Omit<CodeDiffViewProps, "className"> & {
+  ...props
+}: CodeDiffDialogProps & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations();
-  const unified = useIsMobile();
+  const showAllId = useId();
+  // Kept across openings: whoever wants every line (to copy a former version whole) will again.
+  const [showAll, setShowAll] = useState(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[85vh] w-[95vw] !max-w-6xl flex-col">
         <DialogHeader>
           <DialogTitle>{t("codeEditor.diff.title")}</DialogTitle>
         </DialogHeader>
-        {original === current ? (
-          <p className="flex-1 text-sm text-muted-foreground">
-            {t("codeEditor.diff.none")}
-          </p>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col gap-1">
-            {/* Which side is which; the unified diff tells its lines apart by colour alone. */}
-            {!unified && (
-              <div className="grid grid-cols-2 text-xs font-medium text-muted-foreground">
-                <span>{t("codeEditor.diff.stored")}</span>
-                <span>{t("codeEditor.diff.current")}</span>
-              </div>
-            )}
-            <Suspense
-              fallback={
-                <div className="flex flex-1 items-center justify-center">
-                  <Spinner className="h-5 w-5 border-2" />
-                </div>
-              }
-            >
-              <CodeDiffView
-                original={original}
-                current={current}
-                language={language}
-                className="min-h-0 flex-1"
-              />
-            </Suspense>
-          </div>
-        )}
+        {/* Mounted with each opening, so the choice of versions starts afresh (useCodeVersions). */}
+        <CodeDiffBody {...props} showAll={showAll} />
         <DialogFooter>
+          <div className="flex items-center gap-2 sm:mr-auto">
+            <Switch
+              id={showAllId}
+              checked={showAll}
+              onCheckedChange={setShowAll}
+            />
+            <Label htmlFor={showAllId}>{t("codeEditor.diff.showAll")}</Label>
+          </div>
           <DialogClose asChild>
             <Button type="button" variant="outline">
               {t("close")}

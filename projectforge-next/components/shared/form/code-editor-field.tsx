@@ -4,6 +4,7 @@ import {
   CodeEditor,
   type CodeEditorProps,
 } from "@/components/shared/code-editor/code-editor";
+import type { CodeVersionSource } from "@/components/shared/code-editor/types";
 import {
   FieldShell,
   useFieldIds,
@@ -35,6 +36,8 @@ export interface CodeEditorFieldProps extends BaseFieldProps {
    * keep the empty defaults it was created with before the entity had loaded.
    */
   showDiff?: boolean;
+  /** With [showDiff]: the former versions the diff can compare as well. */
+  versions?: CodeVersionSource;
 }
 
 /** Source code bound to a form value, in the [CodeEditor]. An emptied editor is null. */
@@ -50,6 +53,7 @@ export function CodeEditorField({
   disabled,
   metadataLess,
   showDiff,
+  versions,
 }: CodeEditorFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -91,6 +95,7 @@ export function CodeEditorField({
               fill={fill}
               readOnly={disabled}
               original={original}
+              versions={original === undefined ? undefined : versions}
             />
           </FieldShell>
         );

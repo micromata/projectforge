@@ -29,6 +29,7 @@ export default function CodeEditorImpl({
   ariaLabel,
   fill,
   original,
+  versions,
 }: CodeEditorProps) {
   const { resolvedTheme } = useTheme();
   const editor = useRef<ReactCodeMirrorRef>(null);
@@ -78,7 +79,7 @@ export default function CodeEditorImpl({
         diff={
           original === undefined
             ? undefined
-            : { original, current: value, language }
+            : { original, current: value, language, versions }
         }
       />
       <CodeMirror

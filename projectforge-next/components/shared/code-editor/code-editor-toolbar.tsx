@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { CodeDiffButton } from "./code-diff-button";
 import type { CodeDiffViewProps } from "./code-diff-view";
+import type { CodeVersionSource } from "./types";
 import { CodeEditorShortcutList } from "./code-editor-shortcut-list";
 import {
   ShortcutKeys,
@@ -47,7 +48,9 @@ export function CodeEditorToolbar({
   view: () => EditorView | undefined;
   readOnly?: boolean;
   /** The versions to compare, where the editor has a stored one (see CodeEditorProps.original). */
-  diff?: Omit<CodeDiffViewProps, "className">;
+  diff?: Omit<CodeDiffViewProps, "className"> & {
+    versions?: CodeVersionSource;
+  };
 }) {
   const t = useTranslations();
   return (

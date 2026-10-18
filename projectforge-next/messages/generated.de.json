@@ -762,10 +762,17 @@
     "deleteLine": "Zeile löschen",
     "diff": {
       "_": "Änderungen anzeigen",
-      "current": "Aktuell",
+      "backup": "Backup vom {arg0}",
+      "backupWithoutDate": "Letztes Backup (Datenbank)",
+      "copyAll": "Alles kopieren",
+      "edited": "Bearbeitet (nicht gespeichert)",
+      "left": "Linke Version",
+      "noBackups": "Es gibt noch keine Backups.",
       "none": "Keine Änderungen.",
+      "right": "Rechte Version",
+      "showAll": "Alle Zeilen anzeigen",
       "stored": "Gespeichert",
-      "title": "Änderungen gegenüber der gespeicherten Version"
+      "title": "Versionen vergleichen"
     },
     "indent": "Einrücken",
     "key": {

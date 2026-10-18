@@ -8,20 +8,23 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Button } from "@/components/ui/button";
 import { CodeDiffDialog } from "./code-diff-dialog";
 import type { CodeDiffViewProps } from "./code-diff-view";
+import type { CodeVersionSource } from "./types";
 
 /**
  * The editor toolbar's "show changes": opens the diff of the editor's code against the stored one
- * ([CodeDiffDialog]). Disabled as long as nothing was changed — there would be nothing to see.
+ * ([CodeDiffDialog]). Without former versions to compare as well, disabled as long as nothing was
+ * changed — there would be nothing to see.
  */
 export function CodeDiffButton({
   original,
   current,
   language,
-}: Omit<CodeDiffViewProps, "className">) {
+  versions,
+}: Omit<CodeDiffViewProps, "className"> & { versions?: CodeVersionSource }) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const label = t("codeEditor.diff._");
-  const unchanged = original === current;
+  const unchanged = original === current && !versions;
   const button = (
     <Button
       type="button"
@@ -50,6 +53,7 @@ export function CodeDiffButton({
         original={original}
         current={current}
         language={language}
+        versions={versions}
       />
     </>
   );

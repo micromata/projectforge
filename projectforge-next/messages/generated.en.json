@@ -762,10 +762,17 @@
     "deleteLine": "Delete line",
     "diff": {
       "_": "Show changes",
-      "current": "Current",
+      "backup": "Backup of {arg0}",
+      "backupWithoutDate": "Last backup (database)",
+      "copyAll": "Copy all",
+      "edited": "Edited (not saved)",
+      "left": "Left version",
+      "noBackups": "There are no backups yet.",
       "none": "No changes.",
+      "right": "Right version",
+      "showAll": "Show all lines",
       "stored": "Stored",
-      "title": "Changes compared with the stored version"
+      "title": "Compare versions"
     },
     "indent": "Indent",
     "key": {

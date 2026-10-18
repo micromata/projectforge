@@ -2,6 +2,7 @@
 
 import { lazy, Suspense } from "react";
 import { Spinner } from "@/components/shared/spinner";
+import type { CodeVersionSource } from "./types";
 
 const CodeEditorImpl = lazy(() => import("./code-editor-impl"));
 
@@ -27,6 +28,8 @@ export interface CodeEditorProps {
    * Left out where there is nothing stored yet to compare with.
    */
   original?: string;
+  /** The former versions the diff can compare as well (with [original] only). */
+  versions?: CodeVersionSource;
 }
 
 /**

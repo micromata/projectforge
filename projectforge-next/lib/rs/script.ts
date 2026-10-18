@@ -244,6 +244,40 @@ export function downloadScriptBackups(id: number): Promise<void> {
   return downloadFile(`/rs/script/downloadBackupScripts/${id}`);
 }
 
+/** A former version of the script's code (`ScriptBackupInfo`), newest first in its list. */
+export type ScriptBackup = {
+  /** The backup file's name, or `db` for the version kept in the database. */
+  key: string;
+  /** When it was replaced, in epoch millis; null where that is not known. */
+  timestamp: number | null;
+};
+
+/** The former versions of the script's code (`ScriptEntityRest.getBackups`). */
+export function fetchScriptBackups(
+  id: number,
+  signal?: AbortSignal
+): Promise<ScriptBackup[]> {
+  return request<ScriptBackup[]>(
+    `/rs/script/backups/${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** The code of one former version (`ScriptEntityRest.getBackup`). */
+export async function fetchScriptBackup(
+  id: number,
+  key: string,
+  signal?: AbortSignal
+): Promise<string> {
+  const { script } = await request<{ script: string }>(
+    `/rs/script/backup/${id}?key=${encodeURIComponent(key)}`,
+    { method: "GET" },
+    signal
+  );
+  return script;
+}
+
 /** The code as executed: the script with its includes resolved. */
 export function downloadEffectiveScript(id: number): Promise<void> {
   return downloadFile(`/rs/script/downloadEffectiveScript/${id}`);

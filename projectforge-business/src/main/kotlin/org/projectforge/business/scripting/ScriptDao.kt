@@ -34,6 +34,10 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -80,6 +84,35 @@ open class ScriptDao : AbstractScriptDao() {
         })
     }
 
+    /**
+     * The former versions of the script's code, newest first: one per backup file (see [onUpdate]), plus
+     * the one in [ScriptDO.scriptBackup] where it is not the newest file anyway (it predates the files).
+     */
+    fun getBackups(obj: ScriptDO): List<ScriptBackupInfo> {
+        val files = getBackupFiles(obj)
+            ?.map { it to (parseBackupTimestamp(it.name) ?: it.lastModified()) }
+            ?.sortedByDescending { it.second }
+            ?: emptyList()
+        val result = files.map { (file, timestamp) -> ScriptBackupInfo(file.name, timestamp) }.toMutableList()
+        val dbBackup = obj.scriptBackupAsString
+        if (!dbBackup.isNullOrEmpty() && files.firstOrNull()?.first?.readText() != dbBackup) {
+            result.add(ScriptBackupInfo(ScriptBackupInfo.DB_KEY, null))
+        }
+        return result
+    }
+
+    /**
+     * The code of a former version, named by its [ScriptBackupInfo.key]; null for a key that is none of
+     * the script's backups. The key is only compared with the names of [getBackupFiles], never turned
+     * into a path itself, so no other file can be read with it.
+     */
+    fun readBackup(obj: ScriptDO, key: String): String? {
+        if (key == ScriptBackupInfo.DB_KEY) {
+            return obj.scriptBackupAsString
+        }
+        return getBackupFiles(obj)?.firstOrNull { it.name == key }?.readText()
+    }
+
     private fun getBackupDir(): File {
         return File(ConfigXml.getInstance().backupDirectory, "scripts")
     }
@@ -110,5 +143,25 @@ open class ScriptDao : AbstractScriptDao() {
             user, throwException, ProjectForgeGroup.CONTROLLING_GROUP,
             ProjectForgeGroup.FINANCE_GROUP
         )
+    }
+
+    companion object {
+        /** The trailing timestamp of a backup file's name, as [onUpdate] writes it (`isoStringSeconds`, UTC). */
+        private val BACKUP_TIMESTAMP_REGEX = """(\d{4}-\d{2}-\d{2}_\d{2}_\d{2}_\d{2})\.[^.]+$""".toRegex()
+        private val BACKUP_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss")
+
+        /**
+         * When the version in a backup file was replaced, in epoch millis, read from its name
+         * (`..._2022-03-05_22_06_16.groovy`); null for a name without one.
+         */
+        internal fun parseBackupTimestamp(filename: String): Long? {
+            val match = BACKUP_TIMESTAMP_REGEX.find(filename) ?: return null
+            return try {
+                LocalDateTime.parse(match.groupValues[1], BACKUP_TIMESTAMP_FORMAT)
+                    .toInstant(ZoneOffset.UTC).toEpochMilli()
+            } catch (_: DateTimeParseException) {
+                null
+            }
+        }
     }
 }

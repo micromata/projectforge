@@ -20,6 +20,8 @@ export interface CodeDiffViewProps {
   /** The code as it is now, shown right resp. as the inserted lines. */
   current: string;
   language?: CodeEditorProps["language"];
+  /** Every line, rather than the changes with a few lines around them. */
+  showAll?: boolean;
   className?: string;
 }
 
@@ -38,6 +40,7 @@ export default function CodeDiffView({
   original,
   current,
   language,
+  showAll,
   className,
 }: CodeDiffViewProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -56,12 +59,14 @@ export default function CodeDiffView({
           highlightActiveLineGutter: false,
         },
         indentWithTab: false,
-        editable: false,
+        // Read-only but focusable: a click sets the cursor there, so CTRL-A selects (and CTRL-C copies)
+        // this side only — say, a former version to take over into the editor — not the whole page.
         readOnly: true,
       }),
       phrases,
       ...(language ? [CODE_EDITOR_LANGUAGES[language]] : []),
     ];
+    const collapseUnchanged = showAll ? undefined : COLLAPSE_UNCHANGED;
     const view = unified
       ? new EditorView({
           doc: current,
@@ -71,7 +76,7 @@ export default function CodeDiffView({
             unifiedMergeView({
               original,
               mergeControls: false,
-              collapseUnchanged: COLLAPSE_UNCHANGED,
+              collapseUnchanged,
             }),
           ],
         })
@@ -79,12 +84,12 @@ export default function CodeDiffView({
           a: { doc: original, extensions },
           b: { doc: current, extensions },
           parent,
-          collapseUnchanged: COLLAPSE_UNCHANGED,
+          collapseUnchanged,
         });
     // The diff scrolls as a whole inside the host (both sides of a merge view together).
     view.dom.classList.add("h-full", "overflow-auto");
     return () => view.destroy();
-  }, [original, current, language, resolvedTheme, unified, phrases]);
+  }, [original, current, language, showAll, resolvedTheme, unified, phrases]);
   return (
     <div
       ref={host}
