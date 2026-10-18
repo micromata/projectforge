@@ -107,15 +107,15 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
             private const val serialVersionUID = -5379735557333691194L
 
             /**
-             * The cost type name is only shown for customer cost units (Nummernkreis 4 and 5). For internal ones
-             * it is misleading (e.g. vacation shown as "Akquise"), so it is left empty. Used by the cost 2 list
-             * and its Excel export too.
+             * The cost type name is only shown for cost units of a project (the cost units of a number range).
+             * For the others it is misleading (e.g. vacation shown as "Akquise"), so it is left empty. Used by
+             * the cost 2 list and its Excel export too.
              * @param kost2Art The cost type of [kost2], if the caller already has it (e.g. from the cache).
              */
             @JvmStatic
             @JvmOverloads
             fun displayedKost2ArtName(kost2: Kost2DO?, kost2Art: Kost2ArtDO? = kost2?.kost2Art): String? {
-                if (kost2 == null || (kost2.nummernkreis != 4 && kost2.nummernkreis != 5)) {
+                if (kost2 == null || kost2.projekt == null) {
                     return null
                 }
                 return kost2Art?.name

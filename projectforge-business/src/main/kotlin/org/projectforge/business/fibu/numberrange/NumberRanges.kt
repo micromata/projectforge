@@ -248,6 +248,35 @@ class NumberRanges(
         )
     }
 
+    /**
+     * Parses the first 6 digits of a Kost2 (a project number or the part of a Kost2 without its type): 6 digits
+     * ("512345") or the delimited form with the first segments of the prefix ("5.123.45", "1.2345.6",
+     * "6.000.10"); a part may be given without its leading zeros ("5.12.3").
+     * @return [nummernkreis, bereich, teilbereich] in the positional storage format of Kost2DO, null if not
+     * parse-able.
+     */
+    fun parseKost2Prefix(value: String?): IntArray? {
+        val str = value?.trim() ?: return null
+        val digits = if (DIGITS_6.matches(str)) {
+            str
+        } else {
+            val parts = str.split('.').map { it.trim() }
+            if (parts.any { !ONLY_DIGITS.matches(it) } || parts[0].length != 1) {
+                return null
+            }
+            val segments = segmentsForPrefix(parts[0].toInt()).dropLast(1)
+            if (parts.size != segments.size || parts.indices.any { parts[it].length > segments[it] }) {
+                return null
+            }
+            parts.indices.joinToString("") { parts[it].padStart(segments[it], '0') }
+        }
+        return intArrayOf(
+            digits.substring(0, 1).toInt(),
+            digits.substring(1, 4).toInt(),
+            digits.substring(4, 6).toInt(),
+        )
+    }
+
     private fun validate(range: NumberRange) {
         require(range.prefix in 1..9) { "Number ranges: prefix of $range must be 1-9." }
         require(range.projectDigits in 1..(PROJECT_NUMBER_DIGITS - 1)) {
@@ -284,6 +313,7 @@ class NumberRanges(
 
     companion object {
         private val DIGITS_8 = Regex("\\d{$KOST2_DIGITS}")
+        private val DIGITS_6 = Regex("\\d{$PROJECT_NUMBER_DIGITS}")
         private val ONLY_DIGITS = Regex("\\d+")
     }
 }

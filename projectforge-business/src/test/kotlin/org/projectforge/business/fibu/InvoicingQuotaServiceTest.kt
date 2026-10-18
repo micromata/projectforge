@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.AccessChecker
 import java.util.Locale
@@ -83,5 +84,24 @@ class InvoicingQuotaServiceTest {
         assertNull(service(mapOf("de" to " ")).getInfo(Locale.GERMAN))
         assertNull(service(mapOf("de" to "Deutsch")).getInfo(Locale.FRENCH))
         assertNull(service(emptyMap()).getInfo(Locale.ENGLISH))
+    }
+
+    @Test
+    fun `invoiced Kost2 types of customer projects count as billed whatever their number`() {
+        val config = InvoicingQuotaConfiguration()
+        config.enabled = true
+        config.billedPatterns = listOf("5.*", "!1.9999.*")
+        config.billedByInvoicedKost2Types = true
+        val service = InvoicingQuotaService(config, mock<AccessChecker>())
+        val invoiced = Kost2DO()
+        val notInvoiced = Kost2DO()
+        service.isInvoicedCustomerKost2 = { it === invoiced }
+        assertTrue(service.isEnabled())
+        assertTrue(service.isBilled(invoiced, "1.0007.3.02"))
+        assertFalse(service.isBilled(invoiced, "1.9999.3.02"), "Negated patterns still exclude.")
+        assertFalse(service.isBilled(notInvoiced, "1.0007.3.03"))
+        assertTrue(service.isBilled(notInvoiced, "5.123.45.03"), "Patterns still apply.")
+        config.billedByInvoicedKost2Types = false
+        assertFalse(service.isBilled(invoiced, "1.0007.3.02"))
     }
 }

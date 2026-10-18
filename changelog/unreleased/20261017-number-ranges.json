@@ -14,6 +14,14 @@
     {
       "en": "Installations using cost units with the former fixed ranges 4.###.##.## (internal) and 5.###.##.## (customers 0-999) have to configure them as number ranges, see NumberRangeConfig.",
       "de": "Installationen, die Kostenträger mit den bisher fest hinterlegten Kreisen 4.###.##.## (intern) und 5.###.##.## (Kunden 0-999) nutzen, müssen diese als Nummernkreise konfigurieren, siehe NumberRangeConfig."
+    },
+    {
+      "en": "Invoicing quota: optionally, the time booked on invoiced Kost2 types of customer projects counts as billed, independent of the Kost2 number (projectforge.invoicing-quota.billed-by-invoiced-kost2-types).",
+      "de": "Fakturaquote: Optional zählt die Zeit auf fakturierten Kost2-Arten von Kundenprojekten als fakturiert, unabhängig von der Kost2-Nummer (projectforge.invoicing-quota.billed-by-invoiced-kost2-types)."
+    },
+    {
+      "en": "Contribution margin: Kost2 assignments accept the numbers as their number range segments them (e.g. 1.0007.3).",
+      "de": "Deckungsbeitrag: Kost2-Zuordnungen akzeptieren die Nummern so, wie ihr Nummernkreis sie gliedert (z. B. 1.0007.3)."
     }
   ]
 }

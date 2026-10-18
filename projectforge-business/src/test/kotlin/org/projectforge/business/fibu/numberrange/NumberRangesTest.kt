@@ -106,6 +106,15 @@ class NumberRangesTest {
         assertNull(micromata.parseKost2("1234567"))
         assertNull(micromata.parseKost2("5.12a.45.67"))
         assertNull(micromata.parseKost2(null))
+
+        assertArrayEquals(intArrayOf(1, 234, 56), micromata.parseKost2Prefix("1.2345.6"))
+        assertArrayEquals(intArrayOf(1, 0, 73), micromata.parseKost2Prefix("1.7.3"), "Leading zeros may be left out.")
+        assertArrayEquals(intArrayOf(5, 999, 10), micromata.parseKost2Prefix(" 5.999.10 "))
+        assertArrayEquals(intArrayOf(6, 0, 10), micromata.parseKost2Prefix("6.000.10"))
+        assertArrayEquals(intArrayOf(5, 123, 45), micromata.parseKost2Prefix("512345"))
+        assertNull(micromata.parseKost2Prefix("1.234.56"), "Old segmentation isn't accepted for range 1.")
+        assertNull(micromata.parseKost2Prefix("5.1234.5"))
+        assertNull(micromata.parseKost2Prefix("5.123"))
     }
 
     @Test
