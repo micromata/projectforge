@@ -54,6 +54,17 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
     // useHighlightedRow), and a book a parallel spec has just created stands on the last page, which
     // may hold only a few rows. Polled until it holds twice over, as that jump lands after the rows do.
     await waitForRows(page);
+    // Nothing to go back to on a list of one page (a freshly seeded database holds a handful of books),
+    // which overflows by too little even in this window.
+    const singlePage = await page
+      .getByRole("button", { name: t("table.nextPage") })
+      .isDisabled();
+    test.skip(
+      singlePage &&
+        (await column.evaluate((el) => el.scrollHeight - el.clientHeight)) <=
+          200,
+      "the list holds too few rows to scroll"
+    );
     let roomBefore = false;
     await expect
       .poll(

@@ -311,8 +311,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
         obj.recalculate()
-        if (obj.positionen.isNullOrEmpty()) {
-            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
+        // A deleted position stays in the collection (soft delete), but is no part of the invoice any more.
+        if (obj.positionenExcludingDeleted.isEmpty()) {
+            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen").setCausedByField("positionen")
         }
         val size = obj.positionen!!.size
         for (i in size - 1 downTo 1) {

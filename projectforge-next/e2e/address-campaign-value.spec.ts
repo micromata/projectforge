@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
+import { isPluginActive } from "./fixtures/plugins";
 import { ADDRESS_CAMPAIGN_VALUE_METADATA } from "../lib/metadata/address-campaign-value.generated";
 import { ADDRESS_CAMPAIGN_VALUE_PAGE } from "../components/features/address-campaign-value/address-campaign-value.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
@@ -13,6 +14,10 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  */
 test.describe("address campaign values", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
+    test.skip(
+      !(await isPluginActive(page.request, "marketing")),
+      "the marketing plugin is not active on this instance"
+    );
     await page.request
       .get("/rs/addressCampaignValue/filter/reset", {
         headers: { "X-PF-Frontend": "next" },

@@ -23,6 +23,8 @@
 
 package org.projectforge.plugins.marketing;
 
+import kotlin.Pair;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.stereotype.Service;
 
@@ -40,5 +42,26 @@ public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
   @Override
   public AddressCampaignDO newInstance() {
     return new AddressCampaignDO();
+  }
+
+  /**
+   * Whether another campaign not marked as deleted already has this title, ignoring case and surrounding
+   * blanks: two campaigns of the same name can't be told apart where a campaign is chosen.
+   *
+   * @param id The id of the campaign being saved, null for a new one (which then has no "other").
+   */
+  @SuppressWarnings("unchecked") // Generic varargs of the query parameters.
+  public boolean doesTitleAlreadyExist(final String title, final Long id) {
+    final String normalized = StringUtils.trimToNull(title);
+    if (normalized == null) {
+      return false;
+    }
+    final String query = "select c.id from AddressCampaignDO c where c.deleted = false and lower(trim(c.title)) = :title";
+    final Pair<String, Object> titleParam = new Pair<>("title", normalized.toLowerCase());
+    if (id == null) {
+      return !persistenceService.executeQuery(query, Long.class, titleParam).isEmpty();
+    }
+    return !persistenceService.executeQuery(query + " and c.id <> :id", Long.class, titleParam, new Pair<>("id", id))
+        .isEmpty();
   }
 }

@@ -10,6 +10,7 @@ export function toFormValues(
   campaign: AddressCampaignDetail
 ): AddressCampaignValues {
   return {
+    id: campaign.id ?? null,
     title: campaign.title ?? "",
     values: campaign.values ?? "",
     comment: campaign.comment ?? null,

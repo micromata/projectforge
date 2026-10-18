@@ -118,9 +118,12 @@ test.describe("my account", { tag: "@parallel" }, () => {
     ).toBeVisible();
     await page.keyboard.press("Escape");
 
-    // Cancelled: the token is still the old one.
+    // Cancelled: the token is still the old one. Compared without the creation date, which carries its age
+    // ("vor 35 Sekunden") and so moves on between the two reads.
     const after = await fetchInit(page);
-    expect(after.data.tokens).toEqual(before.data.tokens);
+    const tokens = (init: MyAccountInit) =>
+      init.data.tokens?.map(({ type, token }) => ({ type, token }));
+    expect(tokens(after)).toEqual(tokens(before));
   });
 
   test("refuses a token type that isn't an access token", async ({

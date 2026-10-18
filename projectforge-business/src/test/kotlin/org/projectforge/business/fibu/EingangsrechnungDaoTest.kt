@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -85,6 +86,24 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         val years = eingangsrechnungDao.years
         Assertions.assertFalse(years.contains(2099), "Deleted far-future invoice must not appear in years.")
         Assertions.assertTrue(years.contains(LocalDate.now().year), "The current invoice's year must be listed.")
+    }
+
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
+     * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun refusesInvoiceWithDeletedPositionsOnly() {
+        logon(TEST_FINANCE_USER)
+        val invoice = EingangsrechnungDO()
+        invoice.datum = LocalDate.now()
+        invoice.addPosition(EingangsrechnungsPositionDO().also { it.deleted = true })
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { eingangsrechnungDao.insert(invoice) }
+        }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
     }
 
     private fun checkNoAccess(id: Serializable, eingangsrechnung: EingangsrechnungDO, who: String) {

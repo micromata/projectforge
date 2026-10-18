@@ -1,0 +1,17 @@
+# Screenshot galleries of the features page (_includes/screenshot-gallery.html), one list per section key.
+# Taken on a slot instance with the test data of the setup (bin/pfDev.sh setup <slot>) and
+# projectforge-next/e2e/tools/site-screenshots.mjs.
+
+leave_availability:
+  - img: screenshots/2026-VacationList.png
+    caption: Leave requests as bars, days without a substitute in red
+  - img: screenshots/2026-VacationEdit.png
+    caption: Leave request with the substitutes' absences
+  - img: screenshots/2026-VacationAccount.png
+    caption: Leave account with vacations and absences of the year
+  - img: screenshots/2026-AvailabilityEdit.png
+    caption: Availability entry with reachability and substitutes
+  - img: screenshots/2026-AvailabilityQuickView.png
+    caption: Availability of colleagues at a glance
+  - img: screenshots/2026-TeamVacationCalendar.png
+    caption: Team vacation calendar per quarter

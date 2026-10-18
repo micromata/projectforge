@@ -222,6 +222,10 @@ For customer- or project-specific cost objectives you need to define the custome
 projects. It's a best practice to have a misc project for every customer for time sheets and costs which aren't
 specific to a project, or for small projects without a separate cost calculation.
 
+Customer and project numbers are free unless you configure number ranges. If the cost 2 units of your projects should
+be derived from the customer and project numbers, configure the number ranges before creating customers and projects,
+see link:/docs/adminguide/#number_ranges_of_customers_projects_and_cost_units[Admin guide – Number ranges].
+
 ==== Define cost2
 
 You can define cost2 entries independent of projects, or project-specific cost2 entries by selecting the project

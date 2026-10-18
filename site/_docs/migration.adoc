@@ -19,6 +19,22 @@ TIP: Always back up your database (and, if you still use it, the JCR repository)
 
 === Version 9.0.x
 
+. Project numbers and number ranges (9.0.8)
++
+Customers and projects no longer depend on cost units: every project has a system-wide unique project number, and
+number ranges of customers and projects (with their mapping to Kost2) are configured in `projectforge.properties`
+(`projectforge.fibu.number-ranges.*`), see
+link:/docs/adminguide/#number_ranges_of_customers_projects_and_cost_units[Admin guide – Number ranges].
+The database migration (Flyway `V9.0.8.4`) runs automatically and numbers the existing projects as their Kost2 were
+built: customer projects `5.<customer>.<project>`, internal projects `4.<number>.<project>`.
+An installation with Kost2 of such projects keeps the former ranges 4 and 5 without any configuration. If you
+configure ranges, only these apply: configure the ranges 4 and 5 as well.
+Projects the migration couldn't number (customer above 999 or project number above 99) are reported by a warning on
+start; they get a number on their next save.
+Patterns of the invoicing quota apply to the Kost2 numbers as their range segments them; alternatively,
+`projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` counts the Kost2 of customer projects with an
+invoiced Kost2 type as billed.
+
 . Log viewer and vacation settings (9.0.5)
 +
 The admin log viewer is now a tab of the _System dashboard_; its own menu entry is gone, old links lead to the tab.

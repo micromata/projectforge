@@ -34,7 +34,9 @@ import java.time.LocalDate
 
 /**
  * Availability entries around today, one of each state. The substitute Max isn't available during Alex's vacation,
- * which makes a conflict of it, and works remotely during Julia's, which doesn't. The types are the default ones of
+ * which makes a conflict of it, and works remotely during Julia's, which doesn't. Alex in turn is the only substitute
+ * of Max's training and on vacation then (a conflict of the entry); Chris's parental leave has two substitutes, one of
+ * them on vacation for a while (no conflict). The types are the default ones of
  * projectforge.availability.types (AvailabilityConfig).
  */
 @Service
@@ -54,6 +56,7 @@ open class AvailabilityTestDataContributor : TestDataContributor {
         val comment: String,
         val location: AvailabilityLocation? = null,
         val internalComment: String? = null,
+        val substitutes: List<String> = emptyList(),
     )
 
     override fun seed(ctx: TestDataContext) {
@@ -69,6 +72,7 @@ open class AvailabilityTestDataContributor : TestDataContributor {
             Entry(
                 "max", ctx.week(2026, 10, 21), ctx.week(2026, 10, 23), AvailabilityStatus.NOT_AVAILABLE,
                 "Abwesenheit", "Training in Berlin", internalComment = "Booked by HR, costs covered",
+                substitutes = listOf("alex"),
             ),
             Entry(
                 "joe", ctx.week(2026, 10, 26), ctx.week(2026, 10, 28), AvailabilityStatus.REACHABLE_IF_NEEDED,
@@ -82,6 +86,7 @@ open class AvailabilityTestDataContributor : TestDataContributor {
                 "chris", ctx.week(2026, 11, 23), ctx.week(2027, 1, 29), AvailabilityStatus.NOT_AVAILABLE,
                 "Elternzeit", "Parental leave, back at the end of January",
                 internalComment = "Parental allowance applied for",
+                substitutes = listOf("max", "laura"),
             ),
         ).forEach { e ->
             val availability = AvailabilityDO().also {
@@ -93,6 +98,9 @@ open class AvailabilityTestDataContributor : TestDataContributor {
                 it.location = e.location
                 it.comment = e.comment
                 it.internalComment = e.internalComment
+                if (e.substitutes.isNotEmpty()) {
+                    it.substitutes = e.substitutes.map { name -> ctx.user(name) }.toMutableSet()
+                }
             }
             availabilityDao.insert(availability, checkAccess = false)
             if (e.status.absent) {

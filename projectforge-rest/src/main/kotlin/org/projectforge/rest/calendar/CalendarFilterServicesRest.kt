@@ -38,6 +38,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.LayoutUtils
@@ -380,6 +381,7 @@ class CalendarFilterServicesRest {
   /**
    * What is shown of the absences: all kinds for null or all of them, none for an empty set.
    */
+  @AccessChecked("Own user prefs (calendar filter of the logged-in user)")
   @PostMapping("changeAbsenceKinds")
   fun changeAbsenceKinds(@RequestBody kinds: Set<AbsenceKind>?): Map<String, Any> {
     val currentFilter = getCurrentFilter()

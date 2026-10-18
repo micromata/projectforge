@@ -60,6 +60,11 @@ test.describe("list page memory", { tag: "@lane-book" }, () => {
     // view, which lands after the rows do and takes the table to *that* row's page (see
     // useHighlightedRow) — a page stepped to before that has happened would be left again.
     const next = page.getByRole("button", { name: t("table.nextPage") });
+    // A list of one page (a freshly seeded database holds a handful of books) has no page to return to.
+    test.skip(
+      (await activePage(page)) === "1" && (await next.isDisabled()),
+      "the list holds a single page only"
+    );
     let left = "1";
     await expect
       .poll(

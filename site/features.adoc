@@ -61,18 +61,32 @@ Bulk edit:: Select many bookings and change them at once.
 
 image::2026-Timesheets.png[Timesheets,link=/uploads/screenshots/2026-Timesheets.png]
 
-[[people_leave]]
-== People & Leave
+[[leave_availability]]
+== Leave & Availability
 
-_Leave requests, leave accounts, employees and skills – without an extra HR tool._
+_Who is away, who stands in, who can be reached – at a glance, without an extra HR tool._
 
-Leave requests:: Request leave, get it approved, everybody involved is notified. Conflicts within the team are detected early.
+Leave requests:: Request leave, get it approved, everybody involved is notified. Each request shows its days as a bar – weekends, holidays and the days without any substitute on duty.
+Substitutes:: The vacations and absences of the substitutes are charted right in the form, so gaps in the team are detected before the leave is approved.
+Leave accounts:: Entitlements, carry-overs and remaining days – always correct, with the year's leave and absences in one view.
 Leave becomes a timesheet:: Approved vacation is booked as timesheets automatically every night.
-Leave accounts:: Entitlements, carry-overs and remaining days – always correct.
+Availability:: Parental leave, workation, illness or time off in lieu (the types are configurable): anybody, freelancers included, enters periods of reduced availability – not available, remotely reachable or reachable in urgent cases only, with location and a comment for the team.
+Availability at a glance:: Pick some colleagues and see their vacations and absences of the next weeks as bars, right from the calendar, the leave account and the lists.
+Absences in the calendar:: Vacations and availability entries of your groups in the calendar, in team calendars and their ICS subscriptions – each calendar decides which kinds it shows.
+Team vacation calendar:: The leave of whole groups per quarter or year, printable and as Excel export.
+Privacy built in:: Colleagues see what matters to them – the status from today on. The reason of an absence stays with the person concerned and HR.
+
+++++
+{% include screenshot-gallery.html key="leave_availability" %}
+++++
+
+[[people_skills]]
+== People & Skills
+
+_Employees, salaries and skills in one place._
+
 Employees and salaries:: Employee data and salaries, importable from Excel and exportable to DATEV.
 Skill matrix:: Who knows what? Your team rates its own skills and interests – a great help when staffing new projects.
-
-image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 
 [[finance_e_invoicing]]
 == Finance & E-Invoicing
@@ -113,6 +127,7 @@ Word templates:: Generate contracts and serial letters from your own Word templa
 Polls:: Ask your team and get a quick answer.
 Office organization:: Contracts, incoming and outgoing mail log, visitor book, library, software licenses and hardware.
 
+image::2026-Calendar.png[Team calendar with leave and holidays,link=/uploads/screenshots/2026-Calendar.png]
 image::2026-DataTransfer.png[Data transfer,link=/uploads/screenshots/2026-DataTransfer.png]
 
 [[easy_to_use]]
