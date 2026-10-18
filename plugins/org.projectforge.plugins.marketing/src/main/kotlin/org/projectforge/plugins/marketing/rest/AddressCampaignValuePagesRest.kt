@@ -62,8 +62,20 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * The React page of the address campaign values (server laid out `UILayout`), kept only for the running campaign:
+ * projectforge-next serves the values by [AddressCampaignValueEntityRest] under the category `addressCampaignValue`,
+ * and offers this page as the way back.
+ *
+ * A category of its own (`addressCampaignValueLegacy`), not `addressCampaignValue`: that one is migrated, so its
+ * React urls are bent onto next by `OrphanedLinkFilter`, the React app marks its pages as legacy, and
+ * `PagesResolver` answers next urls for it. The selected campaign is shared with next (same user pref).
+ *
+ * To be removed (together with [AddressCampaignValueLegacyMultiSelectedPageRest] and `AddressLegacyPagesRest`) once
+ * the campaign is done.
+ */
 @RestController
-@RequestMapping("${Rest.URL}/addressCampaignValue")
+@RequestMapping("${Rest.URL}/addressCampaignValueLegacy")
 class AddressCampaignValuePagesRest :
     AbstractDTOPagesRest<AddressCampaignValueDO, AddressCampaignValue, AddressCampaignValueDao>(
         baseDaoClazz = AddressCampaignValueDao::class.java,
@@ -85,7 +97,8 @@ class AddressCampaignValuePagesRest :
     private lateinit var persistenceService: PfPersistenceService
 
     companion object {
-        private const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
+        private const val USER_PREF_AREA = AddressCampaignValueEntityRest.USER_PREF_AREA
+        private const val USER_PREF_SELECTED_CAMPAIGN_ID = AddressCampaignValueEntityRest.USER_PREF_SELECTED_CAMPAIGN_ID
         private const val FILTER_CAMPAIGN_ID = "AddressCampaignValuePagesRest.campaignId"
     }
 
@@ -108,7 +121,7 @@ class AddressCampaignValuePagesRest :
 
         // Dynamic value filter based on selected campaign
         val currentCampaignId = userPrefService.getEntry(
-            category,
+            USER_PREF_AREA,
             USER_PREF_SELECTED_CAMPAIGN_ID,
             Long::class.java
         )
@@ -311,7 +324,7 @@ class AddressCampaignValuePagesRest :
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
 
-        val previousCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+        val previousCampaignId = userPrefService.getEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
         val campaignEntry = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
 
         val campaignId = campaignEntry?.value?.values?.firstOrNull()?.toLongOrNull()
@@ -321,7 +334,7 @@ class AddressCampaignValuePagesRest :
                 source.extended["reloadUI"] = true
             }
             // Save to user preferences
-            userPrefService.putEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
+            userPrefService.putEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
             // Store for DAO
             source.extended["campaignId"] = campaignId
         } else if (previousCampaignId != null) {
@@ -377,7 +390,7 @@ class AddressCampaignValuePagesRest :
             layout,
             magicFilter,
             this,
-            AddressCampaignValueMultiSelectedPageRest::class.java,
+            AddressCampaignValueLegacyMultiSelectedPageRest::class.java,
             userAccess = userAccess,
             rowClickUrl = rowClickUrl,
             legendText = translate("plugins.marketing.addressCampaign.list.legend")
@@ -738,7 +751,7 @@ class AddressCampaignValuePagesRest :
 
         // 2. User preferences (saved across sessions)
         if (addressCampaignId == null) {
-            addressCampaignId = userPrefService.getEntry(category, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+            addressCampaignId = userPrefService.getEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
         }
 
         // 3. MultiSelectionSupport (legacy/compatibility for old workflow)

@@ -90,6 +90,32 @@ class NextMigrationTest {
     }
 
     /**
+     * The address campaign values offer the way back to their React page, which is kept under a category of its
+     * own for the running campaign; a new value has no React url of its own (it needs a row of the list).
+     */
+    @Test
+    fun `the address campaign values lead back to the legacy category`() {
+        Assertions.assertEquals("next/address-campaign-value", NextMigration.listUrl("addressCampaignValue"))
+        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyListUrl("addressCampaignValue"))
+        Assertions.assertEquals(
+            "react/addressCampaignValueLegacy/edit/:id",
+            NextMigration.legacyEditPage("addressCampaignValue"),
+        )
+        Assertions.assertEquals("react/addressCampaignValueLegacy", NextMigration.legacyNewEntryUrl("addressCampaignValue"))
+        Assertions.assertFalse(NextMigration.isMigrated("addressCampaignValueLegacy"))
+        // The old urls are next's, the legacy category's pages show no hint (and aren't redirected, see
+        // OrphanedLinkFilterTest).
+        Assertions.assertTrue(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValue"))
+        Assertions.assertFalse(NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy"))
+        Assertions.assertFalse(
+            NextMigration.hasNextVersion(NextMigration.LegacyApp.REACT, "addressCampaignValueLegacy/edit/42")
+        )
+        val link = NextMigration.orphanedLinks().single { it.category == "addressCampaignValue" }
+        Assertions.assertEquals("react/addressCampaignValue", link.legacyListPath)
+        Assertions.assertEquals("react/addressCampaignValue/edit", link.legacyEditPath)
+    }
+
+    /**
      * The invoices and timesheets no longer offer the way back (see NextPage.offerLegacyLink): neither the
      * creditor, the debtor nor the timesheet page shows a "classic version" link, so every escape-hatch
      * accessor answers null. The

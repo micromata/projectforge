@@ -303,7 +303,8 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
   (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
   `fieldDeclarations()`. `fillForm` und die deprecated UILayout-Endpunkte (`dynamic`, `massUpdate`,
-  `selected`) bedienen nur noch die nicht migrierte Seite AddressCampaignValue.
+  `selected`) bedienen nur noch die für die laufende Kampagne behaltene React-Seite der
+  Adresskampagnen-Werte (`addressCampaignValueLegacySelected`).
 - **Excel-Export** generisch: `lib/rs/list-export.ts` (`downloadListExcel`).
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
@@ -597,11 +598,24 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   das Formular mit `?importIndex=`, das den Vergleich lädt (`addressImport/entry/{n}`) und den Eintrag beim Speichern als
   importiert markiert. Der Favoriten-Stern schaltet direkt (`address/favorite/{id}`). Die Liste lädt die ganze Treffermenge
   (die Seitengrößen-Kürzung `limitResultSize` des React-Layouts entfällt). **Weiterhin in React:** das Formular für die
-  Adresskampagnen-Werte (`AddressCampaignValuePagesRest` öffnet es als Modal) – unter eigener Kategorie
+  Adresskampagnen-Werte (die React-Seite `AddressCampaignValuePagesRest` öffnet es als Modal) – unter eigener Kategorie
   `addressLegacy` (`AddressLegacyPagesRest`, `react/addressLegacy/edit/{id}?modal=true`), damit `OrphanedLinkFilter`,
-  React-Legacy-Banner und `PagesResolver` es nicht nach next biegen; fällt mit der Migration der Kampagnen-Werte weg.
+  React-Legacy-Banner und `PagesResolver` es nicht nach next biegen; fällt mit der React-Seite der Kampagnen-Werte weg.
   `react/address/**`, `react/addressView/**`, `react/calendar/addressView/**` und `react/addressImportUpload/**` leitet
   `OrphanedLinkFilter` um. Der generische Routen-Platzhalter von `[category]` heißt jetzt `generic` (war `address`).
+- **Adresskampagnen-Werte** (`addressCampaignValue`, Liste + Formular + Massenänderung, vorher React-UILayout
+  `AddressCampaignValuePagesRest`) – layoutfrei `AddressCampaignValueEntityRest` +
+  `AddressCampaignValueMultiSelectedPageRest` (`fieldDeclarations`: Wert als Auswahl der Kampagnenwerte, Kommentar),
+  Frontend `components/features/address-campaign-value`. Eine Zeile je Adresse der im Filter gewählten Kampagne;
+  Adressen ohne Wert haben eine synthetische (negative) Id und öffnen `address-campaign-value/new?campaignId=&addressId=`
+  (`newBaseDO`). Sortiert wird komplett im Speicher (`computedSortProperties`), weil die Abfrage auf den Adressen läuft.
+  Firma/Adresse öffnen den `AddressViewDialog`. Wechselt die Kampagne, setzt das Backend `ResultSet.reloadUI`, und
+  `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. **Weiterhin in React**
+  für die laufende Kampagne, als Weg zurück: dieselbe Seite unter eigener Kategorie `addressCampaignValueLegacy`
+  (`NextPage.legacyCategory`: der Weg zurück führt dorthin, `OrphanedLinkFilter`/`hasNextVersion` bleiben bei den alten
+  `react/addressCampaignValue`-Urls), beide teilen die gewählte Kampagne (User-Pref-Bereich `addressCampaignValue`).
+  Nach der Kampagne löschen: `AddressCampaignValuePagesRest`, `AddressCampaignValueLegacyMultiSelectedPageRest`,
+  `AddressLegacyPagesRest`, `legacyCategory` am Eintrag.
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei
   über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
   für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des

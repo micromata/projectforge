@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.marketing
 
-import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.menu.builder.MenuCreator
@@ -67,15 +66,15 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
                 NextMigration.listUrl(ADDRESS_CAMPAIGN_ID)
             )
         )
-        // React page registration - URL points to the React route
+        // The campaign values are migrated as well. Spelled out: the REST category is singular, the menu id plural.
         menuCreator.register(
             MenuItemDefId.MISC,
             MenuItemDef(
                 ADDRESS_CAMPAIGN_VALUE_ID,
                 "plugins.marketing.addressCampaignValue.menu",
-                "${Constants.REACT_APP_PATH}addressCampaignValue"
+                NextMigration.listUrl("addressCampaignValue")
             )
-        );
+        )
 
 
         // Define the access management:
