@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.calendar
 
-import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.calendar.CalendarStyleMap
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
@@ -199,8 +198,9 @@ open class TeamCalEventsProvider() {
       val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
       val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
-      // All of them: a team calendar includes the absences (vacations and availability entries) of its people.
-      absenceProvider.addEvents(start, end, events, groupIds, userIds, AbsenceKind.entries.toSet(), settings, style)
+      // The kinds the calendar includes (TeamCalDO.includeAbsenceKinds, all by default), not those of the user's own
+      // choice (CalendarFilter.absenceKinds): the calendar shows the same as its subscription.
+      absenceProvider.addEvents(start, end, events, groupIds, userIds, cal.absenceKinds, settings, style)
     }
   }
 }

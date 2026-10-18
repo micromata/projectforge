@@ -23,6 +23,7 @@
 
 package org.projectforge.business.availability
 
+import org.hibernate.Hibernate
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -32,6 +33,7 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -40,6 +42,9 @@ import java.time.LocalDate
  */
 @Service
 open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java) {
+    @Autowired
+    private lateinit var absenceVisibility: AbsenceVisibility
+
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
@@ -55,17 +60,9 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, obj: AvailabilityDO, throwException: Boolean): Boolean {
-        if (hasHrRights(user) || isOwnEntry(user, obj)) {
-            return true
-        }
-        // The members of the user's groups, as for vacations (VacationDao): not the entries of others that ended
-        // more than VISIBLE_PAST_DAYS ago.
-        if (obj.user != null && accessChecker.areUsersInSameGroup(user, obj.user) &&
-            obj.endDate?.isAfter(LocalDate.now().minusDays(VISIBLE_PAST_DAYS)) == true
-        ) {
-            return true
-        }
-        return throwOrReturnFalse(throwException)
+        // Who sees which entries of others, and which part of them: AbsenceVisibility (e.g. the members of the user's
+        // groups from today on).
+        return if (absenceVisibility.isVisible(user, obj)) true else throwOrReturnFalse(throwException)
     }
 
     override fun hasInsertAccess(user: PFUserDO, obj: AvailabilityDO?, throwException: Boolean): Boolean {
@@ -134,7 +131,7 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
 
     /**
      * Checks the given entry: user and status must be set, start and end date as well, the end date mustn't be before
-     * the start date and no other entry of the same user may overlap it.
+     * the start date, the user isn't a substitute of the own entry and no other entry of the same user may overlap it.
      * @return The i18n key of the error or null, if the entry is valid.
      */
     open fun validate(obj: AvailabilityDO, throwException: Boolean = false): String? {
@@ -145,6 +142,10 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
             obj.status == null -> ERROR_STATUS_NOT_SET
             startDate == null || endDate == null -> ERROR_DATE_NOT_SET
             endDate.isBefore(startDate) -> ERROR_END_DATE_BEFORE_START_DATE
+            // A lazy set not loaded (e.g. of a stored entry) was checked when it was saved.
+            Hibernate.isInitialized(obj.substitutes) && obj.substitutes?.any { it.id == obj.user?.id } == true ->
+                ERROR_SUBSTITUTE_SELF
+
             !obj.deleted && getOverlappingEntries(obj.user?.id, startDate, endDate).any { it.id != obj.id } ->
                 ERROR_COLLISION
 
@@ -228,10 +229,8 @@ open class AvailabilityDao : BaseDao<AvailabilityDO>(AvailabilityDO::class.java)
         const val ERROR_END_DATE_BEFORE_START_DATE = "availability.validate.endBeforeStart"
         const val ERROR_COLLISION = "availability.validate.collision"
         const val ERROR_STATUS_NOT_SET = "availability.validate.statusNotSet"
+        const val ERROR_SUBSTITUTE_SELF = "availability.validate.substituteSelf"
         const val ERROR_USER_NOT_SET = "availability.validate.userNotSet"
-
-        /** How long the entries of others stay visible to the members of their groups after their end date. */
-        const val VISIBLE_PAST_DAYS = 31L
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("user.firstname", "user.lastname", "user.username")
         private val DEFAULT_SORT_PROPERTIES = arrayOf(

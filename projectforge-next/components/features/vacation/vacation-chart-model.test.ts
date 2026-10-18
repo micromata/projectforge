@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   availabilityLabel,
   barLabel,
-  buildVacationChart,
   monthSpans,
+} from "@/components/shared/absence-chart/absence-chart-model";
+import {
+  buildVacationChart,
   teamChartRows,
   type OwnVacation,
 } from "./vacation-chart-model";
@@ -234,12 +236,14 @@ describe("teamChartRows with availabilities", () => {
               endDate: "2030-02-02",
               label: "Workation (Reachable if needed)",
               comment: "Lisbon",
+              status: "REACHABLE_IF_NEEDED",
             },
             {
               id: 91,
               startDate: "2030-03-01",
               endDate: "2030-03-05",
               label: "Parental leave",
+              status: "NOT_AVAILABLE",
             },
           ],
         },
@@ -261,28 +265,57 @@ describe("teamChartRows with availabilities", () => {
     expect(rows[1].availabilities).toEqual([]);
   });
 
-  it("leaves them out unless asked for, also if the view still holds them", () => {
-    const rows = teamChartRows(
-      {
-        days: days(10),
-        rows: [
-          {
-            employee: { id: 7, displayName: "Remote" },
-            vacations: [],
-            availabilities: [
-              {
-                id: 90,
-                startDate: "2030-02-01",
-                endDate: "2030-02-02",
-                label: "Workation",
-              },
-            ],
-          },
-        ],
-      },
-      false
-    );
-    expect(rows[0].availabilities).toEqual([]);
+  it("draws only the absences of the kinds asked for, also if the view still holds others", () => {
+    const view = {
+      days: days(10),
+      rows: [
+        {
+          employee: { id: 7, displayName: "Remote" },
+          vacations: [
+            {
+              id: 70,
+              startDate: "2030-02-05",
+              endDate: "2030-02-05",
+              halfDayBegin: false,
+              halfDayEnd: false,
+              status: "APPROVED" as const,
+            },
+          ],
+          availabilities: [
+            {
+              id: 90,
+              startDate: "2030-02-01",
+              endDate: "2030-02-02",
+              label: "Workation",
+              status: "REMOTE_REACHABLE",
+            },
+            {
+              id: 91,
+              startDate: "2030-02-07",
+              endDate: "2030-02-08",
+              label: "Not available",
+              absent: true,
+              status: "NOT_AVAILABLE",
+            },
+            // Without a known status: never drawn by kind.
+            {
+              id: 92,
+              startDate: "2030-02-09",
+              endDate: "2030-02-09",
+              label: "?",
+            },
+          ],
+        },
+      ],
+    };
+    const keys = (kinds: Parameters<typeof teamChartRows>[1]) => {
+      const [row] = teamChartRows(view, kinds);
+      return [...row.bars, ...(row.availabilities ?? [])].map((bar) => bar.key);
+    };
+    expect(keys(["VACATION"])).toEqual(["7-70"]);
+    expect(keys(["NOT_AVAILABLE"])).toEqual(["7-a91"]);
+    expect(keys(["VACATION", "REMOTE_REACHABLE"])).toEqual(["7-70", "7-a90"]);
+    expect(keys(undefined)).toEqual(["7-70", "7-a90", "7-a91"]);
   });
 });
 

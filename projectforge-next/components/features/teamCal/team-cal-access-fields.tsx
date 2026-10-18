@@ -1,7 +1,14 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
+import { AbsenceKindsSelect } from "@/components/shared/absence-kinds/absence-kinds-select";
 import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-multi-autocomplete-field";
+import {
+  useEntityEditForm,
+  useFormReadOnly,
+} from "@/components/shared/form/form-context";
+import type { TeamCalValues } from "./team-cal-schema";
 
 /**
  * The users and groups with access to a calendar, and those whose leave days it shows — each a multi select
@@ -135,6 +142,31 @@ export function TeamCalLeaveDaysGroupsField({ className }: FieldProps) {
       entity="group"
       label={t("calendar.filter.vacation.groups._")}
       hint={t("calendar.filter.vacation.groups.tooltip")}
+      className={className}
+    />
+  );
+}
+
+/**
+ * Which absences of the people above the calendar includes (vacations, availability entries by their status): in
+ * the calendar view and in the calendar's subscription alike.
+ */
+export function TeamCalAbsenceKindsField({ className }: FieldProps) {
+  const t = useTranslations();
+  const form = useEntityEditForm();
+  const readOnly = useFormReadOnly();
+  const kinds = useStore(
+    form.store,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => (state.values as TeamCalValues).absenceKinds
+  );
+  return (
+    <AbsenceKindsSelect
+      value={kinds}
+      onChange={(next) => form.setFieldValue("absenceKinds", next)}
+      label={t("plugins.teamcal.absenceKinds._")}
+      hint={t("plugins.teamcal.absenceKinds.tooltip")}
+      disabled={readOnly}
       className={className}
     />
   );

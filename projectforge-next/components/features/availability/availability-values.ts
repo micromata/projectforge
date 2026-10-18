@@ -11,13 +11,17 @@ export function toFormValues(
   return {
     id: availability.id ?? null,
     user: availability.user ?? null,
-    startDate: availability.startDate ?? null,
+    // Not the first day shown of an entry whose begin isn't told: no begin at all.
+    startDate: availability.startHidden
+      ? null
+      : (availability.startDate ?? null),
     endDate: availability.endDate ?? null,
     type: availability.type ?? null,
     status: availability.status ?? null,
     location: availability.location ?? null,
     comment: availability.comment ?? null,
     internalComment: availability.internalComment ?? null,
+    substitutes: availability.substitutes ?? [],
   };
 }
 

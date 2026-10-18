@@ -1,12 +1,16 @@
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
 import { definePage } from "@/lib/page-def/define-page";
-import { PeriodClamp } from "@/components/shared/form/use-period-clamp";
+import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
+import { AvailabilityConflictNotice } from "./availability-conflict-notice";
 import {
   AvailabilityInternalCommentField,
+  AvailabilitySubstitutesField,
   AvailabilityTypeField,
   AvailabilityUserField,
 } from "./availability-fields";
 import { AvailabilityListActions } from "./availability-list-actions";
+import { AvailabilitySubstituteAbsences } from "./availability-substitute-absences";
+import { AvailabilitySubstituteChart } from "./availability-substitute-chart";
 import {
   availabilitySchema,
   AVAILABILITY_FIELDS,
@@ -22,7 +26,8 @@ export const AVAILABILITY_LIST_QUERY_KEY = ["availability"] as const;
  * The availability entries — list and edit — as data (see lib/page-def/types.ts). Replaces the React UILayout
  * pages of `AvailabilityPagesRest`: periods of reduced availability (parental leave, workation, …) of users —
  * employees and freelancers alike — with their type, reachability and location, a comment for everybody who may
- * see the entry and an internal one for the user and HR staff only.
+ * see the entry and an internal one for the user and HR staff only, and optional substitutes: a conflict if all of them
+ * are away on a day of it.
  */
 export const AVAILABILITY_PAGE = definePage<
   AvailabilityListRow,
@@ -43,14 +48,36 @@ export const AVAILABILITY_PAGE = definePage<
       size: 170,
       cell: ({ row }) => row.original.user?.displayName ?? null,
     },
-    { name: "startDate", size: 110 },
+    {
+      name: "startDate",
+      size: 110,
+      // Empty for an entry of somebody else shown from today on only: its begin isn't told.
+      cell: ({ row }) => (
+        <AbsenceStartCell
+          startDate={row.original.startDate}
+          startHidden={row.original.startHidden}
+        />
+      ),
+    },
     { name: "endDate", size: 110 },
     { name: "type", size: 140 },
     // Sorted as displayed, by their translation (AvailabilityEntityRest.computedSortProperties).
     { name: "status", size: 170 },
     { name: "location", size: 110 },
     { name: "comment", size: 260, wrap: true },
+    {
+      id: "substitutes",
+      labelKey: "availability.substitutes",
+      size: 200,
+      sortable: false,
+      wrap: true,
+      accessor: (row) => row.substitutesAsString ?? "",
+    },
   ],
+  // At least one day without any substitute on duty (ConflictingAvailabilitiesCache), as in the vacation list.
+  legend: [{ className: "row-red", labelKey: "availability.conflicts" }],
+  rowClassName: (row) =>
+    row.conflict === true && !row.deleted ? "row-red" : undefined,
   defaultSort: { id: "startDate", desc: true },
   // The pinned period (AvailabilityEntityRest: the entries overlapping it) is a calendar year unless a month or a
   // free range is picked.
@@ -71,8 +98,9 @@ export const AVAILABILITY_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // HR staff may preset the user (`?user=<id>`, AvailabilityEntityRest.newBaseDTO).
     newEntryParams: ["user"],
-    // A start without an end makes a one-day period, as in the vacation form.
-    editIntro: PeriodClamp,
+    // The warning of a day without any substitute on duty; a start without an end makes a one-day period, as in
+    // the vacation form.
+    editIntro: AvailabilityConflictNotice,
     // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts).
     returnTargets: [
       { route: "/availability", labelKey: "availability.title.list" },
@@ -96,7 +124,16 @@ export const AVAILABILITY_PAGE = definePage<
             hintKey: "availability.comment.tooltip",
           },
           { custom: AvailabilityInternalCommentField, span: 2 },
+          { custom: AvailabilitySubstitutesField, span: 2, startsRow: true },
+          // Who is away when, right where the substitutes are chosen.
+          { custom: AvailabilitySubstituteChart, span: 4 },
         ],
+      },
+      {
+        id: "substituteAbsences",
+        titleKey: "availability.substitutes.absences",
+        // The details of the absences the chart shows (and the chart's text for screen readers).
+        render: () => <AvailabilitySubstituteAbsences />,
       },
     ],
   },

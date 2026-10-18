@@ -25,15 +25,14 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.availability.AvailabilityDO
-import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationExcelExporter
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.favorites.AbstractFavorite
@@ -83,19 +82,17 @@ private val log = KotlinLogging.logger {}
  * year (no previous years). The endpoints drop whatever else is asked for, so the restriction doesn't depend on the
  * pickers ([employees], [groups]) and the page's paging.
  *
- * With [VacationExportRequest.showAvailabilities], the availability entries of the same employees are shown and
- * exported, too: as their vacations, for the same employees and period. Their type is shown to the user and HR staff
- * only, anybody else gets the neutral title ([AvailabilityDao.labelFor]); their comment only who may see the entry
- * itself ([AvailabilityDao.hasUserSelectAccess]).
+ * What is shown of the employees' absences, [VacationExportRequest.absenceKinds] tell: their vacations and their
+ * availability entries by their state, by [AbsenceService] as far as the user may see them (AbsenceVisibility: e.g.
+ * the availability entries of others from today on only, for finance staff, too). The type of
+ * an availability entry is shown to the user and HR staff only, anybody else gets the neutral title
+ * ([AbsenceService.labelFor]); its comment only who may see the entry itself ([AbsenceService.isCommentVisible]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")
 class VacationExportRest {
     @Autowired
-    private lateinit var availabilityCache: AvailabilityCache
-
-    @Autowired
-    private lateinit var availabilityDao: AvailabilityDao
+    private lateinit var absenceService: AbsenceService
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache
@@ -127,7 +124,7 @@ class VacationExportRest {
                 groups = selection.groups,
                 periodKind = pref.periodKind,
                 dayWidth = pref.dayWidth,
-                showAvailabilities = pref.showAvailabilities == true,
+                absenceKinds = pref.storedAbsenceKinds(),
                 unrestricted = access.unrestricted,
                 earliestDate = access.earliestDate,
                 favorites = favoriteInfos(pref, access),
@@ -234,21 +231,15 @@ class VacationExportRest {
         }
         return persistenceService.runReadOnly { _ ->
             val employees = resolveEmployees(request, access)
-            val vacations = if (employees.isEmpty()) emptyList() else vacationService.getVacationOfEmployees(
-                employees, from, until, withSpecial = true, trimVacations = false,
-                VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
-            )
-            val availabilities = availabilitiesByEmployee(request, employees, from, until)
+            val absences = absencesByEmployee(request, employees, from, until)
             val viewer = ThreadLocalUserContext.loggedInUser
-            val rows = vacations.map { entry ->
+            val rows = absences.vacations.map { entry ->
                 VacationExportRow(
                     ref(entry.employee),
                     entry.vacations.map { VacationExportVacation.of(it, from, until) },
-                    availabilities[entry.employee.id].orEmpty().map {
-                        val comment = it.comment.takeIf { _ ->
-                            viewer != null && availabilityDao.hasUserSelectAccess(viewer, it, false)
-                        }
-                        VacationExportAvailability.of(it, from, until, availabilityDao.labelFor(viewer, it), comment)
+                    absences.availabilities[entry.employee.id].orEmpty().map {
+                        val comment = it.comment.takeIf { _ -> absenceService.isCommentVisible(viewer, it) }
+                        VacationExportAvailability.of(it, from, until, absenceService.labelFor(viewer, it), comment)
                     },
                 )
             }.sortedBy { it.employee.displayName?.lowercase() }
@@ -271,41 +262,50 @@ class VacationExportRest {
             log.info { "Exporting Excel sheet with vacations of ${employees.size} employees (from $startDate)." }
             val periodBegin = PFDay.from(startDate).beginOfYear
             val periodEnd = periodBegin.plusYears(1).endOfYear
-            val vacations = if (employees.isEmpty()) emptyList() else vacationService.getVacationOfEmployees(
-                employees, periodBegin.date, periodEnd.date, withSpecial = true, trimVacations = false,
-                VacationStatus.APPROVED, VacationStatus.IN_PROGRESS,
-            )
-            val availabilities = availabilitiesByEmployee(request, employees, periodBegin.date, periodEnd.date)
+            val absences = absencesByEmployee(request, employees, periodBegin.date, periodEnd.date)
             val viewer = ThreadLocalUserContext.loggedInUser
-            val excel = VacationExcelExporter.export(startDate, vacations, availabilities) {
-                availabilityDao.labelFor(viewer, it)
+            val excel = VacationExcelExporter.export(startDate, absences.vacations, absences.availabilities) {
+                absenceService.labelFor(viewer, it)
             }
             RestUtils.downloadFile("${translate("vacation")}-${PFDateTime.now().format4Filenames()}.xlsx", excel)
         }
     }
 
+    /** The absences of the export: the vacations (a row for each employee) and the availability entries, by employee. */
+    private class AbsencesByEmployee(
+        val vacations: List<VacationService.VacationsByEmployee>,
+        val availabilities: Map<Long, List<AvailabilityDO>>,
+    )
+
     /**
-     * The availability entries of [employees] overlapping the period; empty unless
-     * [VacationExportRequest.showAvailabilities]. Visible as the vacations: [employees] and the period are already
-     * restricted by [Access].
+     * The absences of [employees] overlapping the period, of the kinds the request asks for
+     * ([VacationExportRequest.absenceKinds]), as far as the logged-in user may see them
+     * ([AbsenceService.Visibility.PER_ENTRY], e.g. the availability entries of others from today on only, also for
+     * finance staff who may pick everybody here). The entries are the cached ones (or copies clipped to the part
+     * shown), not to be changed: the calendar cuts them to the period in its DTOs ([VacationExportVacation.of]).
      */
-    private fun availabilitiesByEmployee(
+    private fun absencesByEmployee(
         request: VacationExportRequest,
         employees: List<EmployeeDO>,
         from: LocalDate,
         until: LocalDate,
-    ): Map<Long, List<AvailabilityDO>> {
-        if (request.showAvailabilities != true || employees.isEmpty()) {
-            return emptyMap()
-        }
+    ): AbsencesByEmployee {
         // The entries are of users: keyed by the employee of the user here, as the rows of the calendar are.
         val employeeIdByUserId = employees.mapNotNull { employee ->
             val userId = employeeCache.getUser(employee)?.id ?: return@mapNotNull null
             employee.id?.let { userId to it }
         }.toMap()
-        return availabilityCache.getEntriesOfUsers(employeeIdByUserId.keys, from, until)
-            .sortedBy { it.startDate }
-            .groupBy { employeeIdByUserId.getValue(it.user!!.id!!) }
+        val absences = absenceService.getAbsences(
+            from,
+            until,
+            absenceKindsOf(request).toSet(),
+            userIds = employeeIdByUserId.keys,
+        )
+        val vacationsByEmployeeId = absences.vacations.groupBy { it.employee?.id }
+        return AbsencesByEmployee(
+            employees.map { VacationService.VacationsByEmployee(it, vacationsByEmployeeId[it.id].orEmpty()) },
+            absences.availabilities.groupBy { employeeIdByUserId.getValue(it.user!!.id!!) },
+        )
     }
 
     /** The chosen employees and the members of the chosen groups: active ones the user may pick, each once. */
@@ -409,7 +409,8 @@ class VacationExportRest {
         pref.groupIds = request.groupIds?.distinct()
         pref.periodKind = request.periodKind
         pref.dayWidth = request.dayWidth
-        pref.showAvailabilities = request.showAvailabilities
+        pref.absenceKinds = absenceKindsOf(request)
+        pref.showAvailabilities = null // Read once: replaced by absenceKinds.
     }
 
     class VacationExportUserPref(
@@ -417,9 +418,15 @@ class VacationExportRest {
         var groupIds: List<Long>? = null,
         var periodKind: String? = null,
         var dayWidth: String? = null,
+        /** Replaced by [absenceKinds], only read for a choice stored before (see [storedAbsenceKinds]). */
         var showAvailabilities: Boolean? = null,
+        var absenceKinds: List<AbsenceKind>? = null,
         var favorites: List<VacationExportFavorite>? = null,
-    )
+    ) {
+        /** The stored kinds; a choice stored before: the vacations and, if they were shown, the availability entries. */
+        fun storedAbsenceKinds(): List<AbsenceKind> = absenceKinds?.takeIf { it.isNotEmpty() }
+            ?: if (showAvailabilities == true) AbsenceKind.entries else DEFAULT_ABSENCE_KINDS
+    }
 
     /** A named choice of employees and groups. */
     class VacationExportFavorite(
@@ -427,6 +434,10 @@ class VacationExportRest {
         var employeeIds: List<Long>? = null,
         var groupIds: List<Long>? = null,
     ) : AbstractFavorite(name)
+
+    /** The kinds asked for, in their order; none: the vacations only, as before. */
+    private fun absenceKindsOf(request: VacationExportRequest): List<AbsenceKind> =
+        request.absenceKinds?.distinct()?.sorted()?.takeIf { it.isNotEmpty() } ?: DEFAULT_ABSENCE_KINDS
 
     private fun getUserPref(): VacationExportUserPref =
         userPrefService.ensureEntry(USER_PREF_AREA, USER_PREF_NAME, VacationExportUserPref())
@@ -436,6 +447,9 @@ class VacationExportRest {
 
         // Not "export": the removed React page stored another class there.
         internal const val USER_PREF_NAME = "teamCalendar"
+
+        /** What the calendar shows unless asked for more. */
+        private val DEFAULT_ABSENCE_KINDS = listOf(AbsenceKind.VACATION)
 
         private const val MAX_RESULTS = 30
         private const val MAX_RESULTS_LIMIT = 500

@@ -26,6 +26,10 @@ export const availabilitySchema = z.object({
   location: m.enumField("location"),
   comment: m.nullableString("comment"),
   internalComment: m.nullableString("internalComment"),
+  // A collection of references has no field in the metadata; the ids are what `copyTo` stores.
+  substitutes: z.array(
+    z.looseObject({ id: z.number(), displayName: z.string().optional() })
+  ),
 });
 
 export type AvailabilityValues = z.infer<typeof availabilitySchema>;

@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.availability.AbsenceKind
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.availability.AvailabilityStatus
@@ -122,6 +123,11 @@ class VacationExportRestTest : AbstractTestBase() {
         assertEquals(listOf(LocalDate.of(year, 4, 1)), vacations.map { it.startDate })
         assertEquals(listOf(LocalDate.of(year, 4, 3)), vacations.map { it.endDate })
         assertEquals(VacationStatus.IN_PROGRESS, vacations[0].status)
+        request.absenceKinds = listOf(AbsenceKind.REMOTE_REACHABLE)
+        assertTrue(vacationExportRest.view(request).rows.single().vacations.isEmpty(), "Vacations not asked for.")
+        assertEquals(listOf(AbsenceKind.REMOTE_REACHABLE), vacationExportRest.getInitial().absenceKinds)
+        request.absenceKinds = null
+        vacationExportRest.view(request)
 
         val initial = vacationExportRest.getInitial()
         assertEquals(listOf(colleague.id), initial.employees.map { it.id })
@@ -153,7 +159,9 @@ class VacationExportRestTest : AbstractTestBase() {
 
         logon(own.user!!)
         assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not asked for.")
-        request.showAvailabilities = true
+        request.absenceKinds = listOf(AbsenceKind.VACATION, AbsenceKind.NOT_AVAILABLE)
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty(), "Not of this state.")
+        request.absenceKinds = AbsenceKind.entries
         val availability = vacationExportRest.view(request).rows.single().availabilities.single()
         // Cut to the quarter, with the public comment only (the dto has no internal one).
         assertEquals(LocalDate.of(year, 4, 1), availability.startDate)
@@ -162,18 +170,16 @@ class VacationExportRestTest : AbstractTestBase() {
         // A colleague is told the status only, the type may be personal (AvailabilityDao.labelFor).
         assertEquals(translate("availability.status.reachableIfNeeded"), availability.label)
         assertFalse(availability.absent)
-        assertTrue(vacationExportRest.getInitial().showAvailabilities, "Stored for next time.")
+        assertEquals(AbsenceKind.entries, vacationExportRest.getInitial().absenceKinds, "Stored for next time.")
+        assertEquals(AvailabilityStatus.REACHABLE_IF_NEEDED, availability.status)
         logon(colleague.user!!)
         assertTrue(vacationExportRest.view(request).rows.single().availabilities.single().label.startsWith("Workation ("))
         logon(own.user!!)
 
-        // Finance staff may pick everybody and see their availability entries as their vacations, but neither the type
-        // nor the comment (not visible to them in the availability list).
+        // Finance staff may pick everybody and see their vacations, but the availability entries only as anybody else
+        // (AbsenceVisibility): not of people sharing no group with them.
         logon(finance.user!!)
-        vacationExportRest.view(request).rows.single().availabilities.single().let {
-            assertEquals(translate("availability.status.reachableIfNeeded"), it.label)
-            assertNull(it.comment)
-        }
+        assertTrue(vacationExportRest.view(request).rows.single().availabilities.isEmpty())
     }
 
     @Test
@@ -254,6 +260,16 @@ class VacationExportRestTest : AbstractTestBase() {
         val read = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
         val favorite = read.favorites!!.single()
         assertEquals(listOf("Team", 3L, listOf(1L), listOf(2L)), listOf(favorite.name, favorite.id, favorite.employeeIds, favorite.groupIds))
+    }
+
+    @Test
+    fun `a choice stored before the absence kinds reads as the vacations and, if shown, the availabilities`() {
+        fun read(json: String) = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
+            .storedAbsenceKinds()
+        assertEquals(AbsenceKind.entries, read("{\"showAvailabilities\":true}"))
+        assertEquals(listOf(AbsenceKind.VACATION), read("{\"showAvailabilities\":false}"))
+        assertEquals(listOf(AbsenceKind.VACATION), read("{}"))
+        assertEquals(listOf(AbsenceKind.NOT_AVAILABLE), read("{\"showAvailabilities\":true,\"absenceKinds\":[\"NOT_AVAILABLE\"]}"))
     }
 
     private fun ids(request: VacationExportRequest): Set<Long?> =

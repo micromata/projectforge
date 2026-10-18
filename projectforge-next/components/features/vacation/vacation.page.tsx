@@ -1,6 +1,7 @@
 import { VACATION_METADATA } from "@/lib/metadata/vacation.generated";
 import { VACATION_ACCOUNT_QUERY_KEY } from "@/lib/rs/vacation-account";
 import { definePage } from "@/lib/page-def/define-page";
+import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
 import { VacationConflictNotice } from "./vacation-conflict-notice";
 import {
   VacationEmployeeField,
@@ -59,7 +60,17 @@ export const VACATION_PAGE = definePage<
       size: 170,
       cell: ({ row }) => displayName(row.original.employee),
     },
-    { name: "startDate", size: 110 },
+    {
+      name: "startDate",
+      size: 110,
+      // Empty for a vacation of somebody else shown from 1 January on only: its begin isn't told.
+      cell: ({ row }) => (
+        <AbsenceStartCell
+          startDate={row.original.startDate}
+          startHidden={row.original.startHidden}
+        />
+      ),
+    },
     { name: "endDate", size: 110 },
     {
       // Relative to the logged-in user; sorted by its translation (VacationEntityRest.computedSortProperties).

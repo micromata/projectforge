@@ -7,8 +7,8 @@ import type {
   AvailabilityBar,
   ChartBar,
   ChartRow,
-} from "./vacation-chart-model";
-import type { VacationChartDay } from "./types";
+} from "./absence-chart-model";
+import type { ChartDay } from "./absence-chart-model";
 import {
   ABSENT_BAR_CLASS,
   AVAILABILITY_BAR_CLASS,
@@ -16,7 +16,7 @@ import {
   dayClassName,
   GRID_CELL,
   gridCell,
-} from "./vacation-chart-grid";
+} from "./absence-chart-grid";
 
 /**
  * A row of the vacation chart: the name, the day columns' backgrounds and the bars of the vacations on top,
@@ -27,9 +27,9 @@ import {
  * is shown (and its tooltip reached).
  *
  * @param focusable The bars take the keyboard focus, which opens their tooltip, and are named by it (`period`) —
- * for a chart that is its own text alternative (VacationChartFrame with role `group`).
+ * for a chart that is its own text alternative (AbsenceChartFrame with role `group`).
  */
-export function VacationChartRow({
+export function AbsenceChartRow({
   row,
   gridRow,
   days,
@@ -39,7 +39,7 @@ export function VacationChartRow({
 }: {
   row: ChartRow;
   gridRow: number;
-  days: VacationChartDay[];
+  days: ChartDay[];
   period: (bar: ChartBar) => string;
   availabilityText?: (bar: AvailabilityBar) => string;
   focusable?: boolean;
@@ -52,7 +52,7 @@ export function VacationChartRow({
             GRID_CELL,
             // Stays at the left while the days scroll, above the bars (`z-10`) passing beneath it. The column
             // has a fixed width (see VacationOverlapChart); a longer name is cut, the tooltip has it whole.
-            // Printed larger than the 7px of the printed axis (VacationChartFrame).
+            // Printed larger than the 7px of the printed axis (AbsenceChartFrame).
             "chart-panel-sticky sticky left-0 z-20 truncate border-b py-px pr-2 print:text-[10px]",
             row.own && "font-semibold"
           )}

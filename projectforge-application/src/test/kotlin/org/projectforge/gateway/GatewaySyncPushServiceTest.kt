@@ -31,6 +31,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.integration.IntegrationConfig
@@ -136,6 +137,29 @@ class GatewaySyncPushServiceTest {
         assertEquals(listOf("BEGIN:VCALENDAR", "BEGIN:VCALENDAR"), entries.map { it.icsData })
         addIcsEntry.invoke(service, 3L, "t3", "teamCals=7", entries, cache, "7:minimal:de")
         verify(serviceRest, times(2)).exportCalendar(any())
+    }
+
+    /**
+     * The absences a team calendar includes are those the user may see, decided for each user (group mates, HR staff,
+     * managers, substitutes): such a calendar is not shared with the other users of the same access class.
+     */
+    @Test
+    fun teamCalIcsKeyIsPerUserForCalendarsWithAbsences() {
+        val service = createService(mock())
+        val teamCalIcsKey = GatewaySyncPushService::class.java.declaredMethods.single { it.name == "teamCalIcsKey" }
+            .also { it.isAccessible = true }
+        val user = PFUserDO().also { it.id = 42; it.username = "kai" }
+        val cal = TeamCalDO().also { it.id = 7; it.owner = user }
+        try {
+            ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
+            val sharedKey = teamCalIcsKey.invoke(service, cal, user) as String
+            assertTrue(sharedKey.startsWith("7:read:"))
+            assertFalse(sharedKey.contains("42"), "Without absences: shared by all users of the access class.")
+            cal.includeLeaveDaysForGroups = "3"
+            assertEquals("$sharedKey:user-42", teamCalIcsKey.invoke(service, cal, user))
+        } finally {
+            ThreadLocalUserContext.clear()
+        }
     }
 
     private fun createService(

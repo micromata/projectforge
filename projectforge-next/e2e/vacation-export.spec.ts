@@ -26,7 +26,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
       groups: { id: number }[];
       periodKind?: string;
       dayWidth?: string;
-      showAvailabilities: boolean;
+      absenceKinds: string[];
     };
     const store = async (
       employeeIds: number[],
@@ -43,7 +43,7 @@ test.describe("team vacation calendar", { tag: "@lane-vacation" }, () => {
           periodKind,
           dayWidth,
           // Stored with the rest: kept as it was.
-          showAvailabilities: initial.showAvailabilities,
+          absenceKinds: initial.absenceKinds,
           from: "2030-01-01",
           until: "2030-01-01",
         },
