@@ -92,6 +92,29 @@ class AvailabilitySubstitutesTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a running entry's conflict counts from today on`() {
+        val owner = createUser("running-owner")
+        val substitute = createUser("running-substitute") // A freelancer: availability entries only.
+        logon(TEST_HR_USER)
+        val today = LocalDate.now()
+        val entryId = availabilityDao.insert(
+            create(owner, today.minusDays(3), today.plusDays(3), AvailabilityStatus.NOT_AVAILABLE, substitute)
+        )
+        val absentId = availabilityDao.insert(
+            create(substitute, today.minusDays(3), today.minusDays(1), AvailabilityStatus.NOT_AVAILABLE)
+        )
+        assertFalse(
+            conflictingAvailabilitiesCache.hasConflict(entryId),
+            "Only days of the past uncovered: the flag would tell the substitute's past absence.",
+        )
+        availabilityDao.find(absentId)!!.let {
+            it.endDate = today
+            availabilityDao.update(it)
+        }
+        assertTrue(conflictingAvailabilitiesCache.hasConflict(entryId))
+    }
+
+    @Test
     fun `a conflict if all substitutes are away, by vacation or not available`() {
         val owner = createEmployee("owner")
         val onVacation = createEmployee("on-vacation")

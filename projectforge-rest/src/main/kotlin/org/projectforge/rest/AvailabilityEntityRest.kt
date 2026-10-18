@@ -127,12 +127,14 @@ class AvailabilityEntityRest :
     )
 
     /**
-     * Status and location are shown translated: sorted as displayed, not by the enum's name. The type as shown, too:
-     * the order of the database would reveal the types hidden from the viewer ([AvailabilityDao.afterLoad]).
+     * Status and location are shown translated: sorted as displayed, not by the enum's name. The type and the begin as
+     * shown, too: the order of the database would reveal the types hidden from the viewer ([AvailabilityDao.afterLoad])
+     * and the real begin of an entry clipped for the viewer ([AbsenceService.shownTo]).
      */
     override val computedSortProperties: Map<String, (AvailabilityDO) -> Comparable<*>?>
         get() = mapOf(
             "type" to { obj -> obj.type },
+            "startDate" to { obj -> (absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj).startDate },
             "status" to { obj -> obj.status?.let { translate(it.i18nKey) } },
             "location" to { obj -> obj.location?.let { translate(it.i18nKey) } },
         )
@@ -230,7 +232,6 @@ class AvailabilityEntityRest :
         dto.copyTo(entry)
         val absences = vacationService.getSubstituteAbsences(substituteIds, startDate, endDate)
         val uncoveredDays = vacationService.uncoveredDaysOfAvailability(entry, absences, substituteIds)
-        result.conflict = uncoveredDays.isNotEmpty()
         val shown = substituteAbsenceReducer.reduce(
             ThreadLocalUserContext.requiredLoggedInUser,
             startDate,
@@ -246,6 +247,7 @@ class AvailabilityEntityRest :
                 employee.user = employeeCache.getUserByEmployee(employee.id)?.let { User(it.id, it.displayName) }
             }
         }
+        result.conflict = shown.conflict
         result.substituteVacations = shown.substituteVacations
         result.substituteAvailabilities = shown.substituteAvailabilities
         result.chartDays = shown.chartDays
@@ -345,7 +347,14 @@ class AvailabilityEntityRest :
         source.entries.find { it.field == "period" }?.let { entry ->
             entry.synthetic = true
             PFDayUtils.parseDate(entry.value.fromValue)?.let { target.add(QueryFilter.ge("endDate", it)) }
-            PFDayUtils.parseDate(entry.value.toValue)?.let { target.add(QueryFilter.le("startDate", it)) }
+            PFDayUtils.parseDate(entry.value.toValue)?.let { until ->
+                target.add(QueryFilter.le("startDate", until))
+                // By the part shown, not the real begin the query reads (AbsenceService.shownTo).
+                val viewer = ThreadLocalUserContext.loggedInUser
+                filters.add(
+                    ShownAbsenceFilter({ absenceService.shownTo(viewer, it) }, { it.startDate }, { it.endDate }, until)
+                )
+            }
         }
         // The pickers send the user as `value.id`, which the generic processor doesn't read.
         source.entries.find { it.field == "user" }?.let { entry ->

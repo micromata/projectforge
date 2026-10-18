@@ -75,8 +75,12 @@ class SubstituteAbsenceReducer {
     /** A substitute by employee (none for a freelancer) and user, as the absences are matched with. */
     data class Substitute(val employeeId: Long?, val userId: Long?)
 
-    /** What the form of an entry shows of its substitutes' absences. */
+    /**
+     * What the form of an entry shows of its substitutes' absences.
+     * @param conflict A day without any substitute on duty, as far as the user may be told (of the days drawn).
+     */
     class Stats(
+        var conflict: Boolean = false,
         var substituteVacations: List<Vacation>? = null,
         var substituteAvailabilities: List<VacationReplacementAvailability>? = null,
         var chartDays: List<VacationChartDay>? = null,
@@ -92,7 +96,8 @@ class SubstituteAbsenceReducer {
      * others reduced to their dates and status within the entry's period: the vacations of all of its days, the
      * availability entries only from today on, as the past of an availability entry of somebody else isn't told (it
      * might tell the duration of a sickness). So naming somebody tells no more than whether they are away while the
-     * entry's own period runs. Before today, a day is drawn uncovered only if the entries shown alone say so.
+     * entry's own period runs. Before today, a day is drawn uncovered (and counts as a conflict) only if the entries
+     * shown alone say so.
      */
     fun reduce(
         user: PFUserDO,
@@ -108,6 +113,7 @@ class SubstituteAbsenceReducer {
             result.substituteVacations = vacations.map { other -> Vacation(other).also { it.comment = null } }
             result.substituteAvailabilities = availabilities.mapNotNull { replacementAvailability(it, user, null, null) }
             result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
+            result.conflict = uncoveredDays.isNotEmpty()
             return result
         }
         val today = LocalDate.now()
@@ -137,6 +143,8 @@ class SubstituteAbsenceReducer {
                     readableAvailabilities,
                 )
         result.chartDays = chartDays(startDate, endDate, shownUncovered.toSet())
+        // Not the conflict of all days: for a past period it would tell whether the substitutes were away (sick).
+        result.conflict = shownUncovered.isNotEmpty()
         return result
     }
 

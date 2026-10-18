@@ -40,9 +40,11 @@ import java.time.LocalDate
 private val log = KotlinLogging.logger {}
 
 /**
- * The availability entries in conflict: on at least one day of a current or future entry all its substitutes are
- * away, on vacation or not available (see [VacationService.uncoveredDaysOfAvailability]), as for the substitutes of a
- * vacation (ConflictingVacationsCache). Any change of a vacation or an availability entry expires the cache.
+ * The availability entries in conflict: on at least one day from today on of a current or future entry all its
+ * substitutes are away, on vacation or not available (see [VacationService.uncoveredDaysOfAvailability]), as for the
+ * substitutes of a vacation (ConflictingVacationsCache). Not a past day: the substitutes' past absences are hidden
+ * ([AbsenceVisibility]), the list's flag mustn't tell them. Any change of a vacation or an availability entry expires
+ * the cache.
  */
 @Service
 class ConflictingAvailabilitiesCache : AbstractCache() {
@@ -97,8 +99,8 @@ class ConflictingAvailabilitiesCache : AbstractCache() {
     override fun refresh() {
         log.info { "Refreshing cache of conflicting availability entries..." }
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            // A running entry also counts its days already past, as the edit form does.
-            val entries = availabilityCache.getEntriesWithSubstitutes(LocalDate.now())
+            val today = LocalDate.now()
+            val entries = availabilityCache.getEntriesWithSubstitutes(today)
             val newConflictingIds = mutableSetOf<Long>()
             val newConflictsByUser = mutableMapOf<Long, MutableSet<Long>>()
             val periodBegin = entries.mapNotNull { it.startDate }.minOrNull()
@@ -108,7 +110,7 @@ class ConflictingAvailabilitiesCache : AbstractCache() {
                 val absences = vacationService.getSubstituteAbsences(substituteIds, periodBegin, periodEnd)
                 entries.forEach { entry ->
                     val id = entry.id ?: return@forEach
-                    if (vacationService.uncoveredDaysOfAvailability(entry, absences).isNotEmpty()) {
+                    if (vacationService.uncoveredDaysOfAvailability(entry, absences).any { it >= today }) {
                         newConflictingIds.add(id)
                         entry.user?.id?.let { newConflictsByUser.getOrPut(it) { mutableSetOf() }.add(id) }
                     }

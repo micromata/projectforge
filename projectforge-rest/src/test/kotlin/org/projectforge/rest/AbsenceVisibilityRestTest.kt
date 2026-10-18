@@ -42,6 +42,9 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
@@ -176,6 +179,87 @@ class AbsenceVisibilityRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the list filters and sorts a group mate's entry by the begin shown, not the real one`() {
+        val owner = createUser("filter-owner")
+        val other = createUser("filter-other")
+        val colleague = createUser("filter-colleague")
+        groupOf("filter", owner, other, colleague)
+        logon(TEST_HR_USER)
+        // Both shown from today on: the earlier real begin first in the database's order.
+        val earlierId = insertAvailability(other, today.minusDays(10), today.plusDays(5))
+        val laterId = insertAvailability(owner, today.minusDays(5), today.plusDays(5))
+        fun ids(until: LocalDate?, sorted: Boolean = false): List<Long?> {
+            val filter = MagicFilter()
+            filter.entries.add(MagicFilterEntry("period").also {
+                it.value.fromValue = today.minusDays(30).toString()
+                it.value.toValue = until?.toString()
+            })
+            if (sorted) {
+                filter.sortProperties.add(SortProperty("startDate"))
+            }
+            return availabilityEntityRest.getFilteredList(filter).map { it.id }
+                .filter { it == earlierId || it == laterId }
+        }
+
+        logon(colleague)
+        assertEquals(emptyList<Long>(), ids(today.minusDays(1)), "A period of the past tells no begin.")
+        assertEquals(setOf(earlierId, laterId), ids(today).toSet())
+        assertEquals(listOf(laterId, earlierId), ids(null, sorted = true), "Equal begins shown: by the id.")
+        logon(TEST_HR_USER)
+        assertEquals(setOf(earlierId, laterId), ids(today.minusDays(1)).toSet(), "HR staff: by the real begin.")
+        assertEquals(listOf(earlierId, laterId), ids(null, sorted = true))
+    }
+
+    @Test
+    fun `the vacation list filters a group mate's vacation by the begin shown`() {
+        val owner = createEmployee("vacation-filter-owner")
+        val manager = createEmployee("vacation-filter-manager")
+        val colleague = createEmployee("vacation-filter-colleague")
+        groupOf("vacation-filter", owner.user!!, colleague.user!!)
+        val newYear = LocalDate.of(today.year, 1, 1)
+        logon(TEST_HR_USER)
+        val id = vacationDao.insert(VacationDO().also {
+            it.employee = owner
+            it.manager = manager
+            it.replacement = manager
+            it.startDate = newYear.minusDays(5)
+            it.endDate = newYear.plusDays(1)
+            it.status = VacationStatus.APPROVED
+            it.special = true // No leave days needed.
+        })
+        // The list shows the colleague the vacations of the substitutes of an own one overlapping it
+        // (VacationVisibilityFilter).
+        vacationDao.insert(VacationDO().also {
+            it.employee = colleague
+            it.manager = manager
+            it.replacement = owner
+            it.startDate = newYear.minusDays(5)
+            it.endDate = newYear.plusDays(1)
+            it.status = VacationStatus.APPROVED
+            it.special = true // No leave days needed.
+        })
+        fun ids(configure: MagicFilter.() -> Unit): List<Long?> {
+            val filter = MagicFilter()
+            filter.configure()
+            return vacationEntityRest.getFilteredList(filter).map { it.id }.filter { it == id }
+        }
+        val lastYear: MagicFilter.() -> Unit = {
+            entries.add(MagicFilterEntry("year", (today.year - 1).toString()))
+        }
+        val untilLastYear: MagicFilter.() -> Unit = {
+            entries.add(MagicFilterEntry("period").also { it.value.toValue = newYear.minusDays(1).toString() })
+        }
+
+        logon(colleague.user!!)
+        assertEquals(emptyList<Long>(), ids(lastYear), "Not of last year: shown from 1 January on.")
+        assertEquals(emptyList<Long>(), ids(untilLastYear))
+        assertEquals(listOf(id), ids { entries.add(MagicFilterEntry("year", today.year.toString())) })
+        logon(manager.user!!)
+        assertEquals(listOf(id), ids(lastYear), "The manager: by the real begin.")
+        assertEquals(listOf(id), ids(untilLastYear))
+    }
+
+    @Test
     fun `list and form show a group mate's vacation from 1 January on`() {
         val owner = createEmployee("vacation-owner")
         val manager = createEmployee("vacation-manager")
@@ -234,6 +318,28 @@ class AbsenceVisibilityRestTest : AbstractTestBase() {
         val uncovered = stats.chartDays!!.filter { it.uncovered }.map { it.date }
         assertEquals(uncoveredAsHr.filter { !it.isBefore(today) }, uncovered)
         assertTrue(uncoveredAsHr.size > uncovered.size, "The days of the past are drawn for HR staff only.")
+    }
+
+    @Test
+    fun `the conflict of a past period isn't told by the substitutes' hidden entries`() {
+        val own = createUser("conflict-own")
+        val substitute = createUser("conflict-substitute")
+        logon(TEST_HR_USER)
+        insertAvailability(substitute, today.minusDays(10), today.minusDays(5))
+        val dto = Availability().also {
+            it.user = User().also { user -> user.id = own.id }
+            it.startDate = today.minusDays(8)
+            it.endDate = today.minusDays(7)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+            it.substitutes = listOf(User().also { user -> user.id = substitute.id })
+        }
+        assertEquals(true, availabilityEntityRest.stats(PostData(dto, null, null)).conflict, "HR staff: all of it.")
+
+        logon(own)
+        val stats = availabilityEntityRest.stats(PostData(dto, null, null))
+        assertEquals(false, stats.conflict, "Would tell the substitute was away (sick) then.")
+        assertTrue(stats.substituteAvailabilities.isNullOrEmpty())
+        assertTrue(stats.chartDays!!.none { it.uncovered })
     }
 
     @Test

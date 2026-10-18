@@ -137,14 +137,20 @@ class VacationEntityRest :
     /**
      * Columns a database `ORDER BY` can't sort as shown, see [computedSortProperties]: the mode (own, replacement,
      * manager, other) is computed from the logged-in user, the status is shown translated (sorted as displayed,
-     * not by the enum's name) and the working days are computed from the period.
+     * not by the enum's name), the working days are computed from the period and the begin is the one shown.
      */
     override val computedSortProperties: Map<String, (VacationDO) -> Comparable<*>?>
         get() = mapOf(
             "vacationModeString" to { vacation -> translate(vacation.getVacationmode().i18nKey) },
             "status" to { vacation -> vacation.status?.let { translate(it.i18nKey) } },
-            "workingDaysFormatted" to { vacation -> VacationService.getVacationDays(vacation) },
+            "workingDaysFormatted" to { vacation -> VacationService.getVacationDays(shown(vacation)) },
+            // As shown: the database's order would tell the real begin of a vacation clipped for the viewer.
+            "startDate" to { vacation -> shown(vacation).startDate },
         )
+
+    /** The vacation as the logged-in user may see it ([AbsenceService.shownTo]), the list checked the access. */
+    private fun shown(vacation: VacationDO): VacationDO =
+        absenceService.shownTo(ThreadLocalUserContext.loggedInUser, vacation) ?: vacation
 
     override fun transformForDB(dto: Vacation): VacationDO {
         val vacationDO = VacationDO()
@@ -183,7 +189,9 @@ class VacationEntityRest :
     /**
      * The list's rows with the days without any substitute on duty of the entries the conflict cache flags (few, as
      * it holds current and future ones only): checked against the vacations of all their substitutes at once
-     * ([VacationService.getUncoveredDays]), nothing is written to the cache.
+     * ([VacationService.getUncoveredDays]), nothing is written to the cache. For anybody but HR staff from today on
+     * only (and the conflict flag by them): a past day would tell that the substitutes were away, e.g. sick (see
+     * [SubstituteAbsenceReducer]).
      */
     override fun postProcessResultSet(
         resultSet: ResultSet<VacationDO>,
@@ -194,8 +202,15 @@ class VacationEntityRest :
         val conflicting = resultSet.resultSet.filter { conflictingVacationsCache.hasConflict(it.id) && inBarRange(it) }
         if (conflicting.isNotEmpty()) {
             val uncovered = vacationService.getUncoveredDays(conflicting)
+            val today = if (hasHrRights()) null else LocalDate.now()
             result.resultSet.forEach { row ->
-                (row as? Vacation)?.let { dto -> dto.uncoveredDays = uncovered[dto.id] }
+                (row as? Vacation)?.let { dto ->
+                    val days = uncovered[dto.id] ?: return@let
+                    dto.uncoveredDays = if (today == null) days else days.filter { it >= today }
+                    if (dto.uncoveredDays.isNullOrEmpty()) {
+                        dto.conflict = null
+                    }
+                }
             }
         }
         return result
@@ -301,6 +316,8 @@ class VacationEntityRest :
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<VacationDO>> {
         val filters = mutableListOf<CustomResultFilter<VacationDO>>()
+        var until: LocalDate? = null
+        var year: Int? = null
         if (!vacationService.hasLoggedInUserUnrestrictedVacationView()) {
             filters.add(createVisibilityFilter())
         }
@@ -319,14 +336,23 @@ class VacationEntityRest :
         }
         source.entries.find { it.field == "year" }?.let { entry ->
             entry.synthetic = true
-            NumberHelper.parseInteger(entry.plainValue)?.let { filters.add(VacationYearFilter(it)) }
+            year = NumberHelper.parseInteger(entry.plainValue)
         }
         // The vacations overlapping the period, by their dates in the query (not a search of the period's text):
         // ending on or after its begin and beginning on or before its end. Either bound may be open.
         source.entries.find { it.field == "period" }?.let { entry ->
             entry.synthetic = true
             PFDayUtils.parseDate(entry.value.fromValue)?.let { target.add(QueryFilter.ge("endDate", it)) }
-            PFDayUtils.parseDate(entry.value.toValue)?.let { target.add(QueryFilter.le("startDate", it)) }
+            until = PFDayUtils.parseDate(entry.value.toValue)?.also { target.add(QueryFilter.le("startDate", it)) }
+        }
+        if (until != null || year != null) {
+            // By the part shown, not the real begin the query and the year read (AbsenceService.shownTo).
+            val viewer = ThreadLocalUserContext.loggedInUser
+            filters.add(
+                ShownAbsenceFilter(
+                    { absenceService.shownTo(viewer, it) }, { it.startDate }, { it.endDate }, until, year,
+                )
+            )
         }
         // The pickers send the employee as `value.id`, which the generic processor doesn't read.
         source.entries.find { it.field == "employee" }?.let { entry ->
@@ -435,8 +461,6 @@ class VacationEntityRest :
         // A period the chart draws only: the overlaps of a mistyped (or crafted) decade aren't searched for.
         if (startDate != null && endDate != null && inBarRange(vacationDO)) {
             val vacationOverlaps = vacationService.getVacationOverlaps(vacationDO, updateCache = updateCache)
-            // The substitutes' vacations are conflicts whoever they are: the entry needs them on duty.
-            result.conflict = vacationOverlaps.conflict
             val substitutes = vacationService.collectAllReplacements(vacationDO).map {
                 SubstituteAbsenceReducer.Substitute(it.id, employeeCache.getUserByEmployee(it.id)?.id)
             }
@@ -444,6 +468,9 @@ class VacationEntityRest :
                 user, startDate, endDate, substitutes,
                 vacationOverlaps.otherVacations, vacationOverlaps.availabilities, vacationOverlaps.uncoveredDays,
             )
+            // The substitutes' vacations are conflicts whoever they are (the entry needs them on duty), as far as
+            // the user may be told of them.
+            result.conflict = shown.conflict
             result.conflictingVacations = shown.substituteVacations
             result.replacementAvailabilities = shown.substituteAvailabilities
             result.chartDays = shown.chartDays
