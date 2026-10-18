@@ -4971,6 +4971,14 @@
     "previousyearleave": "Previous year leave",
     "previousyearleaveunused": "Unused previous year leave until {arg0}",
     "previousyearleaveused": "Previous year leave used",
+    "quickView": {
+      "button": "Who is available?",
+      "empty": "No absences in this period.",
+      "selectHint": "Choose a person to see their vacations and availability entries of the coming weeks.",
+      "title": "Availability at a glance",
+      "user": "Person",
+      "weeks": "Weeks"
+    },
     "recalculateRemainingLeave": "Recalculate remaining leave",
     "remainingLeaveFromYear": "Remaining leave from {arg0}.",
     "remainingLeaveFromYearUnused": "Unused remaining leave from {arg0}.",

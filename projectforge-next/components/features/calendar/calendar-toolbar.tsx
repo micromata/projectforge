@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookDaysButton } from "@/components/features/timesheet/book-days/book-days-button";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import type { CalendarInit } from "@/lib/rs/calendar-types";
 import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
@@ -74,6 +75,7 @@ export function CalendarToolbar({
         openOnMount={openBookDays}
         onOpened={onBookDaysOpened}
       />
+      <AvailabilityQuickViewButton iconOnly />
       <CalendarFavoritesMenu
         favorites={init.filterFavorites ?? []}
         currentFilterId={init.filter?.id}

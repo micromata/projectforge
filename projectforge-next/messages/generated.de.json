@@ -4971,6 +4971,14 @@
     "previousyearleave": "Resturlaub aus dem Vorjahr",
     "previousyearleaveunused": "Ungenutzer Resturlaub zum {arg0}",
     "previousyearleaveused": "Genutzter Resturlaub aus dem Vorjahr",
+    "quickView": {
+      "button": "Wer ist verfügbar?",
+      "empty": "Keine Abwesenheiten in diesem Zeitraum.",
+      "selectHint": "Person auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "title": "Verfügbarkeit auf einen Blick",
+      "user": "Person",
+      "weeks": "Wochen"
+    },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
     "remainingLeaveFromYear": "Resturlaub aus dem Jahr {arg0}",
     "remainingLeaveFromYearUnused": "Ungenutzer Resturlaub aus dem Jahr {arg0}",

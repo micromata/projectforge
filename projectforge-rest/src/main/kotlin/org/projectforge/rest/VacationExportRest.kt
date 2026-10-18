@@ -215,6 +215,60 @@ class VacationExportRest {
             .take(maxResultsOf(maxResults))
     }
 
+    @AccessChecked("Any user; only the active users the user may pick (own groups unless HR/finance)")
+    @GetMapping("users")
+    fun users(
+        @RequestParam("search", required = false) search: String?,
+        @RequestParam("maxResults", required = false) maxResults: Int?,
+    ): List<VacationExportRef> {
+        val access = Access()
+        val terms = search?.trim()?.lowercase()?.split(Regex("\\s+"))?.filter { it.isNotEmpty() }.orEmpty()
+        return userGroupCache.allUsers
+            .filter { it.hasSystemAccess() && access.mayPickUser(it) }
+            .filter { user ->
+                val fields = listOfNotNull(user.username, user.firstname, user.lastname, user.email).map { it.lowercase() }
+                terms.all { term -> fields.any { it.contains(term) } }
+            }
+            .map { VacationExportRef(it.id!!, it.getFullname()) }
+            .sortedBy { it.displayName?.lowercase() }
+            .take(maxResultsOf(maxResults))
+    }
+
+    /**
+     * The quick view of a user's availability (projectforge-next, AvailabilityQuickView): their vacations (by their
+     * employee, none for a freelancer) and availability entries of the next [weeks] weeks, from Monday of this week on,
+     * as far as the user may see them. A row only for a user the logged-in user may pick ([Access.mayPickUser]). Unlike
+     * [view], nothing is stored: the quick view leaves the team calendar's choice alone.
+     */
+    @AccessChecked("Any user; only users the user may pick (own groups unless HR/finance)")
+    @GetMapping("userView")
+    fun userView(
+        @RequestParam("userId") userId: Long,
+        @RequestParam("weeks", required = false) weeks: Int?,
+    ): VacationExportView {
+        val access = Access()
+        val monday = PFDay.now().beginOfWeek
+        val until = monday.plusWeeks((weeks ?: DEFAULT_WEEKS).coerceIn(1, MAX_WEEKS).toLong()).minusDays(1).date
+        val from = access.limit(monday.date)
+        val user = userGroupCache.getUser(userId)?.takeIf { it.hasSystemAccess() && access.mayPickUser(it) }
+        if (user == null) {
+            return VacationExportView(VacationChartDay.listOf(from, until), emptyList())
+        }
+        return persistenceService.runReadOnly { _ ->
+            val absences = absenceService.getAbsences(from, until, AbsenceKind.entries.toSet(), userIds = setOf(userId))
+            val viewer = ThreadLocalUserContext.loggedInUser
+            val row = VacationExportRow(
+                VacationExportRef(userId, user.getFullname()),
+                absences.vacations.map { VacationExportVacation.of(it, from, until) },
+                absences.availabilities.map {
+                    val comment = it.comment.takeIf { _ -> absenceService.isCommentVisible(viewer, it) }
+                    VacationExportAvailability.of(it, from, until, absenceService.labelFor(viewer, it), comment)
+                },
+            )
+            VacationExportView(VacationChartDay.listOf(from, until), listOf(row))
+        }
+    }
+
     /**
      * The calendar of the period asked for, at most [MAX_DAYS] days and not before [Access.earliestDate]. Stores the
      * choice for next time.
@@ -341,11 +395,13 @@ class VacationExportRest {
 
         fun mayPickGroup(groupId: Long): Boolean = unrestricted || ownGroupIds.contains(groupId)
 
-        fun mayPick(employee: EmployeeDO): Boolean {
+        fun mayPick(employee: EmployeeDO): Boolean = employeeCache.getUser(employee)?.let { mayPickUser(it) } ?: false
+
+        /** The user themself and the members of their own groups; anybody for HR and finance staff. */
+        fun mayPickUser(user: PFUserDO): Boolean {
             if (unrestricted) {
                 return true
             }
-            val user = employeeCache.getUser(employee) ?: return false
             return user.id == loggedInUser?.id || userGroupCache.getUserGroups(user).orEmpty().any { it in ownGroupIds }
         }
     }
@@ -453,6 +509,10 @@ class VacationExportRest {
 
         private const val MAX_RESULTS = 30
         private const val MAX_RESULTS_LIMIT = 500
+
+        /** The weeks of the quick view ([userView]) unless asked for others, and the most it shows. */
+        private const val DEFAULT_WEEKS = 8
+        private const val MAX_WEEKS = 12
 
         /** A calendar year and some: the longest period the page asks for. */
         private const val MAX_DAYS = 400L

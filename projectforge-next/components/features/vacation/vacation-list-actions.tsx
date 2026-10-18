@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FileExportIcon, UserStatusIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
 
 /**
  * The availability entries (AVAILABILITY_PAGE), the other absences of the employees, and the team vacation calendar
@@ -15,6 +16,7 @@ export function VacationListActions() {
   const t = useTranslations();
   return (
     <>
+      <AvailabilityQuickViewButton />
       <Button asChild type="button" variant="ghost">
         <Link href="/availability">
           <HugeiconsIcon icon={UserStatusIcon} aria-hidden />

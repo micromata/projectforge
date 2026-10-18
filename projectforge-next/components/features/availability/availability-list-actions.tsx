@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BeachIcon, FileExportIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
 
 /**
  * The own vacation account (VacationAccountPage) and the team vacation calendar (VacationExportPage), with the
@@ -15,6 +16,7 @@ export function AvailabilityListActions() {
   const t = useTranslations();
   return (
     <>
+      <AvailabilityQuickViewButton />
       <Button asChild type="button" variant="ghost">
         <Link href="/vacationAccount">
           <HugeiconsIcon icon={BeachIcon} aria-hidden />

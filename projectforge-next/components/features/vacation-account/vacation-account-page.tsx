@@ -21,6 +21,7 @@ import {
 } from "@/lib/rs/vacation-account";
 import { toast } from "@/lib/toast";
 import { updateSearchParams } from "@/lib/search-params";
+import { AvailabilityQuickViewButton } from "@/components/shared/availability-quick-view/availability-quick-view-button";
 import { AvailabilityEntriesTable } from "./availability-entries-table";
 import { LeaveAccountEntriesTable } from "./leave-account-entries-table";
 import { VacationAccountActions } from "./vacation-account-actions";
@@ -92,6 +93,7 @@ export function VacationAccountPage() {
         category={t("menu.vacation._")}
         title={t("vacation.leaveaccount.title")}
       >
+        <AvailabilityQuickViewButton size="sm" />
         <VacationAccountActions
           account={account}
           // Not while another employee's account loads: the buttons would act on the one still shown.
