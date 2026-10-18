@@ -2,12 +2,13 @@
  * One entry in the colour legend below a list table.
  *
  * The `className` is one of the `row-*` tokens defined in `globals.css`; `labelKey` is a full
- * i18n key. Set `strikethrough` for entries whose rows are also struck through (row-deleted).
+ * i18n key. Set `strikethrough` for entries whose rows are also struck through, to the way they are:
+ * `"deleted"` (row-deleted, red) or `"inactive"` (row-inactive, thin grey).
  */
 export interface LegendEntry {
   className: string;
   labelKey: string;
-  strikethrough?: boolean;
+  strikethrough?: "deleted" | "inactive";
 }
 
 /**
@@ -782,11 +783,18 @@ export interface PageDef<
   /**
    * Overrides the label of the always-present `row-deleted` legend entry.
    *
-   * Defaults to `table.legend.deleted` ("Deleted"). Use when the page applies `row-deleted` to
-   * more states than just hard-deleted rows — e.g. the order book colours ABGELEHNT and ERSETZT
-   * the same way and needs "Deleted / rejected / replaced".
+   * Defaults to `table.legend.deleted` ("Deleted"). Rarely needed: a state that is no longer live but
+   * not deleted (ended, cancelled, rejected, inactive) takes `row-inactive` and [inactiveLabelKey]
+   * instead, so it doesn't read as deleted.
    */
   deletedLabelKey?: string;
+
+  /**
+   * The label of the `row-inactive` legend entry (thin grey strike), added right after the deleted one —
+   * for a page whose `rowClassName` returns `INACTIVE_ROW_CLASS` for entries no longer live but not
+   * deleted, e.g. an ended project or a cancelled invoice. No entry without it.
+   */
+  inactiveLabelKey?: string;
 
   /**
    * Row highlight class, e.g. `"row-red"` — the semantic classes in `globals.css`.
