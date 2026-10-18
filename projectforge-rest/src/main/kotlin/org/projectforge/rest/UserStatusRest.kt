@@ -44,6 +44,7 @@ import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.pub.SystemStatusRest
+import org.projectforge.ui.AutoCompletion
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -140,6 +141,12 @@ open class UserStatusRest {
      */
     val adminUser: Boolean = false,
     /**
+     * True if the user may see inactive persons (deactivated users, employees who left) in the pickers, see
+     * [AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS]. projectforge-next offers its "show inactive" checkbox for
+     * users and employees only then; the backend enforces it anyway.
+     */
+    val showInactivePersons: Boolean = false,
+    /**
      * The JIRA configuration projectforge-next needs to turn issue keys into links itself (see
      * [JiraUtils.getClientConfig]), sent only where JIRA is configured. The UILayout based clients don't need it:
      * there the server emits the finished links (see JiraSupport / JiraIssuesPanel).
@@ -215,6 +222,7 @@ open class UserStatusRest {
         SystemAlertMessage.alertMessage,
         csrfToken,
         accessChecker.isLoggedInUserMemberOfAdminGroup,
+        accessChecker.isLoggedInUserMemberOfGroup(*AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS),
         JiraUtils.getClientConfig().takeIf { it.configured },
         legacyBannerText = translate("legacyVersion.banner.text"),
         legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),

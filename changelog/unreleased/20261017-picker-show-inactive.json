@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Selection boxes for users, employees, projects, customers and cost units no longer offer inactive entries (deactivated users, employees who have left, ended projects and customers). A \"Show inactive\" checkbox in the selection box brings them back; for users and employees it is available to HR, finance, organisation and administrators only. An inactive entry already set stays selectable.",
+  "de": "Auswahlboxen für Benutzer, Mitarbeiter, Projekte, Kunden und Kostenträger bieten inaktive Einträge (deaktivierte Benutzer, ausgeschiedene Mitarbeiter, beendete Projekte und Kunden) nicht mehr an. Eine Checkbox „Inaktive anzeigen“ in der Auswahlbox blendet sie wieder ein; bei Benutzern und Mitarbeitern steht sie nur HR, Finanzen, Orga und Admins zur Verfügung. Ein bereits gesetzter inaktiver Eintrag bleibt auswählbar."
+}

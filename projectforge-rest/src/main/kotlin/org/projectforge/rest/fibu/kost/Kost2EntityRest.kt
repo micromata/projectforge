@@ -190,7 +190,8 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      * looking for (cost assignments of invoices). A typed term searches as usual.
      */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost2DO> {
-        val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
+        val onlyActiveEntries =
+            request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: !showInactive(request)
         val projektId = NumberHelper.parseLong(request.getParameter("projektId"))
         val siblingsOf = NumberHelper.parseLong(request.getParameter("siblingsOf"))
         val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
@@ -226,6 +227,10 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
 
     private fun Kost2DO.isActive() =
         effectiveKostentraegerStatus == null || effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE
+
+    /** Struck through unless active, matching the `onlyActiveEntries` filter of [queryAutocompleteObjects]. */
+    override fun isInactiveAutoCompleteEntry(obj: Kost2DO): Boolean =
+        super.isInactiveAutoCompleteEntry(obj) || !obj.isActive()
 
     override val autoCompleteSearchFields =
         arrayOf("description", "nummer", "rawNumberString", "projekt.name", "projekt.kunde.name")

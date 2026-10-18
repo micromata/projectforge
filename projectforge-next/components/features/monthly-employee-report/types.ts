@@ -20,6 +20,8 @@ export interface MonthlyReportRow {
   perWeek: MonthlyReportCell[];
   sum: string;
   aiTimeSavings: string;
+  /** A task row booked without Kost2; only set while the db-param `timesheet.warnMissingKost2` is on. */
+  missingKost2?: boolean;
 }
 
 /**
