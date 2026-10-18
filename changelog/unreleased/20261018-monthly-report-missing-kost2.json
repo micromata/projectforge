@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Monthly report: when the configuration parameter \"Report time sheets without Kost2?\" is enabled, entries booked without Kost2 are marked, in the view as in the PDF export.",
-  "de": "Monatsbericht: Ist der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ aktiviert, werden ohne Kost2 gebuchte Einträge markiert, in der Ansicht wie im PDF-Export."
-}
