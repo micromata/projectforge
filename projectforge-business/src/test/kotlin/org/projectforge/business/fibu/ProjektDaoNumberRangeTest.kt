@@ -211,6 +211,40 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
     }
 
     @Test
+    fun `next free local number of a customer's range and of the internal range`() {
+        persistenceService.runInTransaction { context ->
+            logon(TEST_FINANCE_USER)
+            val customer = insertKunde(10008)
+            assertEquals(0, projektDao.nextFreeLocalNumber(customer, null))
+            val first = insertProjekt(customer, nummer = 0)
+            // A deleted project keeps its number:
+            projektDao.markAsDeleted(insertProjekt(customer, nummer = 1))
+            // As left by the migration: no project number, but the local number is taken.
+            val noNumber = insertProjekt(customer, nummer = 2)
+            context.executeUpdate(
+                "UPDATE ProjektDO p SET p.projektnummer = NULL WHERE p.id = :id",
+                Pair("id", noNumber.id),
+            )
+            context.em.clear()
+            assertEquals(3, projektDao.nextFreeLocalNumber(customer, null))
+            // The project's own number isn't taken for itself:
+            assertEquals(0, projektDao.nextFreeLocalNumber(customer, first.id))
+            // Customer of no range:
+            assertNull(projektDao.nextFreeLocalNumber(insertKunde(4713), null))
+
+            // Internal range (without customers):
+            val internalNext = projektDao.nextFreeLocalNumber(null, null)!!
+            projektDao.insert(ProjektDO().also {
+                it.name = "internal next free"
+                it.projektnummer = 400000 + internalNext
+            })
+            val afterwards = projektDao.nextFreeLocalNumber(null, null)!!
+            assertTrue(afterwards > internalNext, "$afterwards must be above $internalNext")
+            null
+        }
+    }
+
+    @Test
     fun `a collision on the unique project number is told by the constraint in any cause`() {
         // Two projects saved at the same time pass the check of assignProjektnummer, the second fails on flush:
         val hsqldb = RuntimeException(

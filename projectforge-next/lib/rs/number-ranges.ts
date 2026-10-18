@@ -5,7 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { request } from "./client";
+import { RsError, rawRequest, request } from "./client";
 
 /** One number range (`NumberRangeRest.Range`, configured as `projectforge.fibu.number-ranges.ranges[n]`). */
 export interface NumberRange {
@@ -65,6 +65,51 @@ export function useNumberRanges({ fresh = false }: { fresh?: boolean } = {}):
     queryFn: ({ signal }) => fetchNumberRanges(signal),
     staleTime: Infinity,
     refetchOnMount: fresh ? "always" : true,
+  });
+  return data;
+}
+
+/** The next free project number (`NumberRangeRest.NextFreeProjectNumber`). */
+export interface NextFreeProjectNumber {
+  /** The local number of the project (per customer, or of the range without customers). */
+  nummer: number;
+  projektnummer: number;
+}
+
+export async function fetchNextFreeProjectNumber(
+  customerId: number | null,
+  projectId: number | null,
+  signal?: AbortSignal
+): Promise<NextFreeProjectNumber | null> {
+  const params = new URLSearchParams();
+  if (customerId != null) params.set("customerId", String(customerId));
+  if (projectId != null) params.set("projectId", String(projectId));
+  const path = `/rs/numberRanges/nextFreeProjectNumber${params.size > 0 ? `?${params}` : ""}`;
+  const res = await rawRequest(path, { method: "GET" }, signal);
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  // Spring answers null with an empty body.
+  const text = await res.text();
+  return text ? (JSON.parse(text) as NextFreeProjectNumber) : null;
+}
+
+/**
+ * The next free project number in the range of the customer (or, without customer, of the range without
+ * customers); undefined while loading or if not `enabled`, null without range or if it is exhausted. Fetched
+ * again on mount: every saved project changes it.
+ */
+export function useNextFreeProjectNumber(
+  customerId: number | null,
+  projectId: number | null,
+  enabled: boolean
+): NextFreeProjectNumber | null | undefined {
+  const { data } = useQuery({
+    queryKey: ["numberRanges", "nextFreeProjectNumber", customerId, projectId],
+    queryFn: ({ signal }) =>
+      fetchNextFreeProjectNumber(customerId, projectId, signal),
+    enabled,
+    refetchOnMount: "always",
   });
   return data;
 }

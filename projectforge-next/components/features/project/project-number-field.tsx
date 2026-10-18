@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { useEntityEditForm } from "@/components/shared/form/form-context";
+import { Button } from "@/components/ui/button";
+import {
+  useEntityData,
+  useEntityEditForm,
+} from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
 import { SegmentedNumberField } from "@/components/shared/form/segmented-number-field";
 import type { NumberSegment } from "@/lib/form/number-segments";
@@ -17,11 +21,13 @@ import {
   rangeWithoutCustomers,
 } from "@/lib/number-ranges";
 import {
+  useNextFreeProjectNumber,
   useNumberRanges,
   type NumberRange,
   type NumberRangesInfo,
 } from "@/lib/rs/number-ranges";
 import type { ProjectValues } from "./project-schema";
+import type { ProjectDetail } from "./types";
 
 /**
  * The project number, shaped by the configured number ranges (`/rs/numberRanges`, see lib/number-ranges.ts):
@@ -35,6 +41,9 @@ import type { ProjectValues } from "./project-schema";
  * The backend computes the project number again on save (`ProjektDao.assignProjektnummer`); the form keeps
  * `projektnummer` in line so that the number of an internal project is posted with it.
  *
+ * A new project (or one moved to another customer) is offered the next free number of its range as a link,
+ * like the customer number field does (`NumberRangeRest.getNextFreeProjectNumber`).
+ *
  * Fixed once the project has cost 2 units, which carry a copy of the number (`numberLocked`, guarded
  * by `ProjektDao.onUpdate`); so is ProjectCustomerField.
  */
@@ -45,6 +54,18 @@ export function ProjectNumberField({ className }: { className?: string }) {
   const { info, range, customerId } = useProjectNumberRange();
   const nummer = useStore(form.store, (s) => values(s).nummer);
   const projektnummer = useStore(form.store, (s) => values(s).projektnummer);
+  const data = useEntityData<ProjectDetail>();
+  const projectId = data?.id ?? null;
+  // An existing project keeps its number unless it moves to another customer.
+  const offerNextFree =
+    range != null &&
+    !locked &&
+    (projectId == null || (data?.customer?.id ?? null) !== customerId);
+  const nextFree = useNextFreeProjectNumber(
+    customerId,
+    projectId,
+    offerNextFree
+  );
   const computed =
     range != null
       ? projectNumber(range, customerId != null ? customerId : null, nummer)
@@ -112,22 +133,36 @@ export function ProjectNumberField({ className }: { className?: string }) {
   const formatted =
     computed != null ? formatProjectNumber(info, computed) : undefined;
   return (
-    <SegmentedNumberField
-      label={t("fibu.projekt.nummer")}
-      segments={segments}
-      separator="."
-      prefix={prefix}
-      suffix={suffix}
-      disabled={locked}
-      hint={
-        locked
-          ? t("fibu.projekt.validation.numberLocked")
-          : formatted != null && range.projectDigits > 2
-            ? `${t("fibu.projekt.projektnummer")}: ${formatted}`
-            : undefined
-      }
-      className={className}
-    />
+    <div className={className}>
+      <SegmentedNumberField
+        label={t("fibu.projekt.nummer")}
+        segments={segments}
+        separator="."
+        prefix={prefix}
+        suffix={suffix}
+        disabled={locked}
+        hint={
+          locked
+            ? t("fibu.projekt.validation.numberLocked")
+            : formatted != null && range.projectDigits > 2
+              ? `${t("fibu.projekt.projektnummer")}: ${formatted}`
+              : undefined
+        }
+      />
+      {offerNextFree && nextFree != null && nextFree.nummer !== nummer && (
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          className="h-auto px-0 text-xs"
+          onClick={() => form.setFieldValue("nummer", nextFree.nummer)}
+        >
+          {t("fibu.projekt.nextFreeNumber", {
+            arg0: formatProjectNumber(info, nextFree.projektnummer),
+          })}
+        </Button>
+      )}
+    </div>
   );
 }
 

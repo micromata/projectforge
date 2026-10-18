@@ -2,6 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import {
+  fetchNextFreeProjectNumber,
   fetchNumberRanges,
   isCostConfigured,
   setCostConfigured,
@@ -19,12 +20,17 @@ import {
 } from "./fixtures/seed";
 import {
   formatCustomerNumber,
+  formatProjectNumber,
   hasCustomers,
   maxLocalNumber,
   projectNumber,
   rangeForCustomer,
 } from "../lib/number-ranges";
-import type { NumberRange, NumberRangeMode } from "../lib/rs/number-ranges";
+import type {
+  NumberRange,
+  NumberRangeMode,
+  NumberRangesInfo,
+} from "../lib/rs/number-ranges";
 
 /**
  * Customer and project numbers in the mode of the number ranges the server runs with (see
@@ -84,6 +90,76 @@ test.describe("number ranges of customers and projects", () => {
       { entity: "project", id: project.id }
     );
     return project;
+  };
+
+  /**
+   * A new project for a customer of [pool] that has a project already: the form offers the next free number
+   * of the customer's range, which the link takes.
+   */
+  const nextFreeProjectNumberIsOffered = async (
+    page: Page,
+    request: APIRequestContext,
+    info: NumberRangesInfo,
+    pool: CustomerPool | undefined,
+    maxLocal: number
+  ) => {
+    const format = await userFormat(page);
+    const project = await seedProject(request, pool, maxLocal);
+    const next = await fetchNextFreeProjectNumber(request, project.customer.id);
+    test.skip(next == null, "The customer's range is exhausted.");
+    expect(next!.nummer).not.toBe(project.nummer);
+
+    await goto(page, "/project/new");
+    const local = localNumberField(page, format);
+    await expect(local).toBeVisible({ timeout: 30_000 });
+    await page
+      .getByRole("combobox", {
+        name: new RegExp(`^${escapeRegExp(label(format, "fibu.kunde._"))}`),
+      })
+      .first()
+      .click();
+    const popover = page
+      .locator('[data-slot="popover-content"]:visible')
+      .last();
+    // A recycled customer is renamed: the search finds it once it is indexed under the new name.
+    const option = popover.getByRole("option", {
+      name: new RegExp(escapeRegExp(project.customer.suffix)),
+    });
+    await expect(async () => {
+      await popover.locator('[data-slot="command-input"]').fill("");
+      await popover
+        .locator('[data-slot="command-input"]')
+        .fill(project.customer.suffix);
+      await expect(option.first()).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 30_000 });
+    await option.first().click();
+    await expect(
+      page.getByText(
+        `${formatCustomerNumber(info, project.customer.nummer)}.`,
+        {
+          exact: true,
+        }
+      )
+    ).toBeVisible();
+    const range = rangeForCustomer(info, project.customer.nummer)!;
+    // The taken number of the seeded project: the link offers the free one instead (none while the
+    // field holds the free one already).
+    await local.fill(pad(project.nummer, range.projectDigits));
+    await page
+      .getByRole("button", {
+        name: format.t("fibu.projekt.nextFreeNumber", {
+          arg0: formatProjectNumber(info, next!.projektnummer),
+        }),
+        exact: true,
+      })
+      .click();
+    await expect(local).toHaveValue(pad(next!.nummer, range.projectDigits));
+    // Taken: the link is gone.
+    await expect(
+      page.getByRole("button", {
+        name: messagePattern(format, "fibu.projekt.nextFreeNumber"),
+      })
+    ).toHaveCount(0);
   };
 
   test.describe("free numbers", () => {
@@ -212,6 +288,21 @@ test.describe("number ranges of customers and projects", () => {
         })
       ).rejects.toThrow(
         messagePattern(format, "fibu.projekt.validation.localNumberOutOfRange")
+      );
+    });
+
+    test("a new project is offered the next free number of its customer", async ({
+      loggedInPage: page,
+      seedRequest,
+    }) => {
+      await setCostConfigured(seedRequest, true);
+      const info = await fetchNumberRanges(seedRequest);
+      await nextFreeProjectNumberIsOffered(
+        page,
+        seedRequest,
+        info,
+        undefined,
+        99
       );
     });
 
@@ -359,6 +450,26 @@ test.describe("number ranges of customers and projects", () => {
         })
       ).rejects.toThrow(
         messagePattern(format, "fibu.projekt.validation.localNumberOutOfRange")
+      );
+    });
+
+    test("a new project is offered the next free number of its customer", async ({
+      loggedInPage: page,
+      seedRequest,
+    }) => {
+      const info = await fetchNumberRanges(seedRequest);
+      const range = lastCustomerRange(info.ranges);
+      test.skip(range == null, "No range with customers.");
+      const pool = {
+        high: range!.customerMax!,
+        low: Math.max(range!.customerMin!, range!.customerMax! - 99),
+      };
+      await nextFreeProjectNumberIsOffered(
+        page,
+        seedRequest,
+        info,
+        pool,
+        maxLocalNumber(range!)
       );
     });
 

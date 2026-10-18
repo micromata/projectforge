@@ -1836,6 +1836,7 @@
         "title": "Multiple selection projects"
       },
       "name": "Name",
+      "nextFreeNumber": "Next free number: {arg0}",
       "nummer": "Number",
       "pleaseSelectProjekt": "Please choose project",
       "projektManagerGroup": "Group of project managers",

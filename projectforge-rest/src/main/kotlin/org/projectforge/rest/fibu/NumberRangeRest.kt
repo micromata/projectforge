@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.numberrange.NumberRange
 import org.projectforge.business.fibu.numberrange.NumberRangeService
@@ -33,6 +34,7 @@ import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -50,6 +52,9 @@ class NumberRangeRest {
 
     @Autowired
     private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
 
     class Range(
         val prefix: Int,
@@ -90,6 +95,35 @@ class NumberRangeRest {
                 toRange(range, if (withCustomers) numberRanges.nextFreeCustomerNumber(range, usedCustomerNumbers) else null)
             },
         )
+    }
+
+    class NextFreeProjectNumber(
+        /** The local number of the project (per customer or of the range without customers). */
+        val nummer: Int,
+        val projektnummer: Int,
+    )
+
+    /**
+     * The next free project number in the number range of the customer (or, without customer, of the range without
+     * customers), for the pick link of the project form. Null without such a range or if it is exhausted.
+     *
+     * @param projectId The edited project, whose own number doesn't count as taken.
+     */
+    @AccessChecked("Project select access (ProjektDao), otherwise null")
+    @GetMapping("nextFreeProjectNumber")
+    fun getNextFreeProjectNumber(
+        @RequestParam("customerId", required = false) customerId: Long?,
+        @RequestParam("projectId", required = false) projectId: Long?,
+    ): NextFreeProjectNumber? {
+        if (!projektDao.hasLoggedInUserSelectAccess(throwException = false)) {
+            return null
+        }
+        val kunde = customerId?.let { kundeCache.getKunde(it) ?: return null }
+        val numberRanges = numberRangeService.numberRanges
+        val range = if (kunde != null) numberRanges.rangeForCustomer(kunde.nummer) else numberRanges.rangeWithoutCustomers
+        range ?: return null
+        val nummer = projektDao.nextFreeLocalNumber(kunde, projectId) ?: return null
+        return NextFreeProjectNumber(nummer, numberRanges.projectNumber(range, kunde?.nummer, nummer))
     }
 
     private fun toRange(range: NumberRange, nextFreeCustomerNumber: Long?) = Range(

@@ -1,5 +1,8 @@
 import type { APIRequestContext } from "@playwright/test";
-import type { NumberRangesInfo } from "../../lib/rs/number-ranges";
+import type {
+  NextFreeProjectNumber,
+  NumberRangesInfo,
+} from "../../lib/rs/number-ranges";
 import { fetchEntity, insert, writeHeaders } from "./seed";
 
 /**
@@ -28,6 +31,24 @@ export async function fetchNumberRanges(
     throw new Error(`Could not read the number ranges: HTTP ${res.status()}`);
   }
   return (await res.json()) as NumberRangesInfo;
+}
+
+/** The next free project number of the customer's range, as the project form offers it; null without range. */
+export async function fetchNextFreeProjectNumber(
+  request: APIRequestContext,
+  customerId: number
+): Promise<NextFreeProjectNumber | null> {
+  const res = await request.get(
+    `/rs/numberRanges/nextFreeProjectNumber?customerId=${customerId}`,
+    { headers: { "X-PF-Frontend": "next" } }
+  );
+  if (!res.ok()) {
+    throw new Error(
+      `Could not read the next free project number: HTTP ${res.status()}`
+    );
+  }
+  const text = await res.text();
+  return text ? (JSON.parse(text) as NextFreeProjectNumber) : null;
 }
 
 /** The key of `ConfigurationParam.COST_CONFIGURED`. */

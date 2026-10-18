@@ -16,6 +16,10 @@
       "de": "Ohne konfigurierte Nummernkreise behalten Installationen, die die bisherigen Kreise 4.###.##.## (intern) und 5.###.##.## (Kunden 0-999) für Kostenträger von Projekten genutzt haben, diese bei; sonst sind Kunden- und Projektnummern frei, mit oder ohne Kostenträger."
     },
     {
+      "en": "New customers and projects are offered the next free number of their number range.",
+      "de": "Neue Kunden und Projekte bekommen die nächste freie Nummer ihres Nummernkreises angeboten."
+    },
+    {
       "en": "Invoicing quota: optionally, the time booked on invoiced Kost2 types of customer projects counts as billed, independent of the Kost2 number (projectforge.invoicing-quota.billed-by-invoiced-kost2-types).",
       "de": "Fakturaquote: Optional zählt die Zeit auf fakturierten Kost2-Arten von Kundenprojekten als fakturiert, unabhängig von der Kost2-Nummer (projectforge.invoicing-quota.billed-by-invoiced-kost2-types)."
     },

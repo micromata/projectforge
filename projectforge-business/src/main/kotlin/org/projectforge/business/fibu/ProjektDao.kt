@@ -285,22 +285,48 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     /**
+     * The next free local number of a project within the number range of its customer [kunde] (or, without customer,
+     * of the range without customers), null without such a range or if it is exhausted. Taken are the local numbers
+     * of the customer's other projects (deleted ones included) and the project numbers used in the range.
+     *
+     * @param projectId The project itself, whose own number doesn't count as taken.
+     */
+    open fun nextFreeLocalNumber(kunde: KundeDO?, projectId: Long?): Int? {
+        val numberRanges = numberRangeService.numberRanges
+        val kundeNummer = kunde?.nummer
+        val range = if (kunde != null) {
+            numberRanges.rangeForCustomer(kundeNummer) ?: return null
+        } else {
+            numberRanges.rangeWithoutCustomers ?: return null
+        }
+        val usedInRange = persistenceService.executeQuery(
+            "SELECT p.id, p.projektnummer FROM ProjektDO p WHERE p.projektnummer BETWEEN :first AND :last",
+            Array<Any>::class.java,
+            Pair("first", range.firstProjectNumber),
+            Pair("last", range.lastProjectNumber),
+        ).filter { (it[0] as Number).toLong() != projectId }
+            .map { (it[1] as Number).toInt() }
+            .filter { !range.hasCustomers || numberRanges.customerNumber(it) == kundeNummer }
+            .mapNotNull { numberRanges.localNumber(it) }
+        val used = usedInRange + localNumbersOfCustomer(kunde?.id, projectId)
+        return numberRanges.nextFreeLocalNumber(range, used)
+    }
+
+    /**
      * Without customer the next free number of the range without customers (if configured), otherwise the next
      * free number above all free project numbers, which no other project of the customer has as local number.
      */
     private fun nextFreeProjektnummer(obj: ProjektDO): Int {
-        val withoutCustomer = obj.kunde == null
         val numberRanges = numberRangeService.numberRanges
+        if (obj.kunde == null) {
+            numberRanges.rangeWithoutCustomers?.let { range ->
+                nextFreeLocalNumber(null, obj.id)?.let { return range.firstProjectNumber + it }
+            }
+        }
         val used = persistenceService.executeQuery(
             "SELECT p.projektnummer FROM ProjektDO p WHERE p.projektnummer IS NOT NULL",
             Integer::class.java,
         ).map { it.toInt() }
-        if (withoutCustomer) {
-            numberRanges.rangeWithoutCustomers?.let { range ->
-                val usedLocal = used.filter { range.containsProjectNumber(it) }.map { it - range.firstProjectNumber }
-                numberRanges.nextFreeLocalNumber(range, usedLocal)?.let { return range.firstProjectNumber + it }
-            }
-        }
         var next = (used.filter { numberRanges.rangeForProjectNumber(it) == null }.maxOrNull() ?: 0) + 1
         val localNumbers = localNumbersOfCustomer(obj)
         while (localNumbers.contains(next)) {
@@ -310,13 +336,16 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     /** The local numbers of the other projects of the customer of [obj], deleted ones included (none without customer). */
-    private fun localNumbersOfCustomer(obj: ProjektDO): Set<Int> {
-        val kundeId = obj.kunde?.id ?: return emptySet()
+    private fun localNumbersOfCustomer(obj: ProjektDO): Set<Int> = localNumbersOfCustomer(obj.kunde?.id, obj.id)
+
+    /** The local numbers of the projects of the customer except [projectId], deleted ones included. */
+    private fun localNumbersOfCustomer(kundeId: Long?, projectId: Long?): Set<Int> {
+        kundeId ?: return emptySet()
         return persistenceService.executeQuery(
             "SELECT p.id, p.nummer FROM ProjektDO p WHERE p.kunde.id = :kundeId",
             Array<Any>::class.java,
             Pair("kundeId", kundeId),
-        ).filter { (it[0] as Number).toLong() != obj.id }.map { (it[1] as Number).toInt() }.toSet()
+        ).filter { (it[0] as Number).toLong() != projectId }.map { (it[1] as Number).toInt() }.toSet()
     }
 
     /**

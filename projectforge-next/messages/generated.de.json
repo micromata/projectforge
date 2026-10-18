@@ -1836,6 +1836,7 @@
         "title": "Mehrfachauswahl Projekte"
       },
       "name": "Name",
+      "nextFreeNumber": "Nächste freie Nummer: {arg0}",
       "nummer": "Nummer",
       "pleaseSelectProjekt": "Bitte Projekt wählen",
       "projektManagerGroup": "Projektmanagergruppe",
