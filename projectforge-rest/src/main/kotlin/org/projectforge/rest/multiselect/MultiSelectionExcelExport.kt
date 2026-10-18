@@ -70,23 +70,13 @@ object MultiSelectionExcelExport {
       for (i in 0 until identifierHeadCols.size) {
         firstRow.createCell().setCellStyle(boldStyle) // empty cells (identifier cells, default is "Element").
       }
-      val modifiedFields = mutableSetOf<String>()
-      massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
-        massUpdateObject.fieldModifications.forEach { (field, modification) ->
-          if (!modifiedFields.contains(field)) {
-            if (modification.oldValue != modification.newValue) {
-              modifiedFields.add(field)
-            }
-          }
-        }
-      }
       val headRow = sheet.createRow()
       identifierHeadCols.forEach { head ->
         sheet.registerColumns(head)
       }
       headRow.fillHeadRow()
       // Column order of the modified fields, also used for the rows (an object may lack a field's modification).
-      val columnFields = massUpdateContext.massUpdateParams.keys.filter { modifiedFields.contains(it) }
+      val columnFields = columnFields(massUpdateContext)
       columnFields.forEach { field ->
         val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
         firstRow.createCell()
@@ -127,6 +117,23 @@ object MultiSelectionExcelExport {
       }
       return workbook.asByteArrayOutputStream.toByteArray()
     }
+  }
+
+  /**
+   * The fields modified in at least one object, in the order of the params. Fields without a param (see
+   * [MassUpdateContext.recordCurrentModification]) follow them.
+   */
+  internal fun columnFields(massUpdateContext: MassUpdateContext<*>): List<String> {
+    val modifiedFields = linkedSetOf<String>()
+    massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
+      massUpdateObject.fieldModifications.forEach { (field, modification) ->
+        if (modification.oldValue != modification.newValue) {
+          modifiedFields.add(field)
+        }
+      }
+    }
+    val paramFields = massUpdateContext.massUpdateParams.keys
+    return paramFields.filter { it in modifiedFields } + modifiedFields.filter { it !in paramFields }
   }
 
   private fun <T> displayValue(

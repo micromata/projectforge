@@ -210,6 +210,8 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         val addressCampaignValue = AddressCampaignValue()
         addressCampaignValue.copyFrom(addressCampaignValueDO)
         massUpdateContext.startUpdate(addressCampaignValue)
+        val oldValue = addressCampaignValue.value
+        val oldComment = addressCampaignValue.comment
         processTextParameter(addressCampaignValueDO, "comment", params)
         addressCampaignValue.comment = addressCampaignValueDO.comment
         params["value"]?.let { param ->
@@ -224,7 +226,11 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         }
         val adopted = adoption?.apply(addressCampaignValueDO, addressCampaignValue)
         massUpdateContext.commitUpdate(
-            identifier4Message = "${addressCampaignValue.firstName} ${addressCampaignValue.fullLastName} ${addressCampaignValue.organization}",
+            identifier4Message = listOfNotNull(
+                addressCampaignValue.firstName,
+                addressCampaignValue.fullLastName,
+                addressCampaignValue.organization,
+            ).joinToString(" "),
             addressCampaignValue,
             update = {
                 // Reported for this row (MassUpdateContext.addError), the rest of the run goes on.
@@ -235,6 +241,13 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
                 if (adopted?.changed == true) {
                     // The adoption has no field of its own the modification check could compare.
                     massUpdateContext.markCurrentModified()
+                    // Fields without a param of their own are no Excel columns otherwise.
+                    if (!params.containsKey("value")) {
+                        massUpdateContext.recordCurrentModification("value", oldValue, addressCampaignValue.value)
+                    }
+                    if (!params.containsKey("comment")) {
+                        massUpdateContext.recordCurrentModification("comment", oldComment, addressCampaignValue.comment)
+                    }
                 }
             },
         )

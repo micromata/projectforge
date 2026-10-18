@@ -9,7 +9,7 @@ import type { MassUpdateParameter } from "@/lib/rs/multi-select";
 /**
  * Adopts the values of the comparison campaign the list shows (e.g. last year's) for the selected rows — each row
  * the value its address has there (`AddressCampaignValueMultiSelectedPageRest.Adoption`). Optionally the comments
- * as well (only where a row has none) and only for rows without a value of their own.
+ * as well (appended to a row's own) and only for rows without a value of their own.
  *
  * A custom field because it has no entity property behind it. The choices travel as the comma separated
  * `textValue` of the `adoptComparison` param (`value`, `comment`, `onlyEmpty`); unticked, the field posts nothing.
@@ -26,7 +26,7 @@ export function AddressCampaignValueAdoptMassUpdateField({
   const t = useTranslations();
   const id = useId();
   const [adopt, setAdopt] = useState(false);
-  const [comment, setComment] = useState(false);
+  const [comment, setComment] = useState(true);
   const [onlyEmpty, setOnlyEmpty] = useState(true);
 
   useEffect(() => {
