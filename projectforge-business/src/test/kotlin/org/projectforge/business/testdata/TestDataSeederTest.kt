@@ -96,6 +96,10 @@ class TestDataSeederTest : AbstractTestBase() {
         Assertions.assertEquals(10L, count("PFUserDO"))
         Assertions.assertEquals(5L, count("KundeDO"))
         Assertions.assertEquals(6L, count("ProjektDO"))
+        // The customers belong to range 5 of the test configuration: every project has its 4 standard Kost2, and most
+        // time sheets are booked on them.
+        Assertions.assertEquals(24L, count("Kost2DO", "e.projekt is not null and e.nummernkreis = 5"))
+        Assertions.assertTrue(count("TimesheetDO", "e.kost2 is not null") > 1000, "time sheets with Kost2")
         Assertions.assertEquals(11L, count("AuftragDO"))
         Assertions.assertEquals(9L, count("EmployeeDO"))
         Assertions.assertTrue(count("TimesheetDO") > 1000, "time sheets")

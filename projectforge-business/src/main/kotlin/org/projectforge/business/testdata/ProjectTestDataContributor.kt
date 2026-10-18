@@ -116,11 +116,17 @@ open class ProjectTestDataContributor : TestDataContributor {
             }
             projektDao.insert(projekt, checkAccess = false)
             ctx.projekte[p.name] = projekt
+            // Kost2 only for a project of a number range (pfDev.sh setup configures them, see NumberRangeConfig);
+            // without, the project number is free and isn't made of Kost2.
+            if (projekt.nummernkreis == null) {
+                return@forEach
+            }
             ctx.kost2Arts.values.filter { it.projektStandard }.forEach { art ->
                 val kost2 = Kost2DO().also {
-                    it.nummernkreis = 5
-                    it.bereich = p.kunde.toInt()
-                    it.teilbereich = p.nr
+                    // Of the managed project, not Kost2Dao.setProjekt: its find would detach it from this transaction.
+                    it.nummernkreis = projekt.nummernkreis!!
+                    it.bereich = projekt.bereich!!
+                    it.teilbereich = projekt.teilbereich!!
                     it.kost2Art = art
                     it.projekt = projekt
                     it.kostentraegerStatus = KostentraegerStatus.ACTIVE

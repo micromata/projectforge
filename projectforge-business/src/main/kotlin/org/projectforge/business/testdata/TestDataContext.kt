@@ -113,8 +113,11 @@ class TestDataContext(
     fun task(projekt: String, title: String): TaskDO =
         projectTasks[projekt to title] ?: error("Test data: unknown task '$title' of '$projekt'.")
 
-    fun kost2(projekt: String, kost2ArtId: Long): Kost2DO =
-        kost2s[projekt to kost2ArtId] ?: error("Test data: unknown cost 2 '$kost2ArtId' of '$projekt'.")
+    /** Null if the project has no cost 2 at all: without number ranges its number isn't made of Kost2. */
+    fun kost2(projekt: String, kost2ArtId: Long): Kost2DO? {
+        if (kost2s.keys.none { it.first == projekt }) return null
+        return kost2s[projekt to kost2ArtId] ?: error("Test data: unknown cost 2 '$kost2ArtId' of '$projekt'.")
+    }
 
     companion object {
         val DESIGN_DATE: LocalDate = LocalDate.of(2026, 10, 13)

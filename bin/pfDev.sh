@@ -63,7 +63,7 @@ everything is as before: :8080/:3000, ~/ProjectForge and its configured
 database.
   setup <slot> [pw] Create the home ~/ProjectForge-n from
                    ~/ProjectForge/projectforge.properties: own HSQLDB, mails and
-                   gateway push off. Once per slot. Its first run fills the
+                   gateway push off, number ranges 4/5/1 (as in the tests). Once per slot. Its first run fills the
                    database with test data (admin password pw, random if omitted)
   reset <slot>     Delete the home dir of a slot instance (asks first)
   run [slot]       Build (skip tests), then run the app in dev mode (Spring on
@@ -134,6 +134,22 @@ spring.datasource.username=sa
 spring.datasource.password=
 mail.session.pfmailsession.emailEnabled=false
 projectforge.gateway.push.enabled=false
+# Number ranges of customers and projects (as in application-test.properties): the test data's customers
+# 300-304 belong to range 5, so their projects get Kost2. Without ranges a fresh database has free numbers
+# and no Kost2 (see NumberRangeService).
+projectforge.fibu.number-ranges.allow-free-numbers=true
+projectforge.fibu.number-ranges.ranges[0].prefix=4
+projectforge.fibu.number-ranges.ranges[0].name=Intern
+projectforge.fibu.number-ranges.ranges[0].project-digits=5
+projectforge.fibu.number-ranges.ranges[1].prefix=5
+projectforge.fibu.number-ranges.ranges[1].customer-min=0
+projectforge.fibu.number-ranges.ranges[1].customer-max=999
+projectforge.fibu.number-ranges.ranges[1].project-digits=2
+projectforge.fibu.number-ranges.ranges[2].prefix=1
+projectforge.fibu.number-ranges.ranges[2].customer-min=10000
+projectforge.fibu.number-ranges.ranges[2].customer-max=19999
+projectforge.fibu.number-ranges.ranges[2].project-digits=1
+projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
 EOF
 }
 
