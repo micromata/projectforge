@@ -26,6 +26,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.availability.AvailabilityConfig
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
@@ -91,6 +92,9 @@ class AvailabilityEntityRest :
     ) {
 
     @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
     private lateinit var availabilityConfig: AvailabilityConfig
 
     @Autowired
@@ -139,10 +143,19 @@ class AvailabilityEntityRest :
         return availabilityDO
     }
 
+    /**
+     * The entry of somebody else as far as the logged-in user may see it ([AbsenceService.shownTo]): e.g. of a group
+     * mate from today on, its real begin (and its timestamps, which would tell it) not sent ([Availability.startHidden]).
+     */
     override fun transformFromDB(obj: AvailabilityDO, editMode: Boolean): Availability {
         val availability = Availability()
         caches.initialize(obj)
-        availability.copyFrom(obj)
+        // The dao checked the access: shown at least from some day on.
+        val shown = absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj
+        availability.copyFrom(shown)
+        if (shown !== obj) {
+            availability.startHidden = true
+        }
         if (conflictingAvailabilitiesCache.hasConflict(obj.id)) {
             availability.conflict = true
         }

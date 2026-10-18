@@ -52,6 +52,11 @@ class Availability(
     var substitutesAsString: String? = null,
     /** On a day of the period all substitutes are away (ConflictingAvailabilitiesCache). Read-only. */
     var conflict: Boolean? = null,
+    /**
+     * The entry of somebody else begins earlier than [startDate] tells: shown from that day on only, as its begin
+     * isn't told to the logged-in user (AbsenceVisibility). Read-only.
+     */
+    var startHidden: Boolean? = null,
     /** The substitutes' vacations overlapping the period, as the user may see them. Read-only, edit view only. */
     var substituteVacations: List<Vacation>? = null,
     /** The substitutes' availability entries overlapping the period, ditto. Read-only, edit view only. */

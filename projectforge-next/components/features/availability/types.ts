@@ -34,6 +34,11 @@ export interface AvailabilityDetail extends AvailabilityFormStats {
   user?: UserRef | null;
   startDate?: string | null;
   endDate?: string | null;
+  /**
+   * The entry of somebody else begins earlier than `startDate` tells: shown from that day on only, its begin isn't
+   * told (AbsenceVisibility). The list and the form leave the begin empty.
+   */
+  startHidden?: boolean | null;
   type?: string | null;
   status?: AvailabilityStatus | null;
   location?: AvailabilityLocation | null;

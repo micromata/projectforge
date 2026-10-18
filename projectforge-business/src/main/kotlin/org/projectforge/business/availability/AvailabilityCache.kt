@@ -68,33 +68,6 @@ open class AvailabilityCache : AbstractCache(), BaseDOModifiedListener<Availabil
     }
 
     /**
-     * The entries of the members of the given groups and of the given users overlapping the period, only those the
-     * logged-in user may see ([AvailabilityDao.hasUserSelectAccess]: group mates up to VISIBLE_PAST_DAYS, HR staff all).
-     * @param groupIds Null items should only occur on (de)serialization issues.
-     * @param userIds Null items should only occur on (de)serialization issues.
-     */
-    open fun getAvailabilityForPeriodAndUsers(
-        startDate: LocalDate, endDate: LocalDate,
-        groupIds: Set<Long?>?, userIds: Set<Long?>?
-    ): List<AvailabilityDO> {
-        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-            return emptyList()
-        }
-        checkRefresh()
-        val viewer = ThreadLocalUserContext.requiredLoggedInUser
-        val shownUserIds = userGroupCache.getMemberIds(groupIds, userIds)
-        if (shownUserIds.isEmpty()) {
-            return emptyList()
-        }
-        return availabilities.filter { availability ->
-            availability.user?.id in shownUserIds &&
-                    availability.endDate?.isBefore(startDate) == false &&
-                    availability.startDate?.isAfter(endDate) == false &&
-                    availabilityDao.hasSelectAccess(availability, viewer)
-        }
-    }
-
-    /**
      * The entries of the given users overlapping the period, whoever is logged in: for the conflicts of a vacation,
      * which need its substitutes on duty (see VacationService.getVacationOverlaps), counting the absent ones
      * ([AvailabilityStatus.absent]). Not to be shown as they are: the caller checks the access.

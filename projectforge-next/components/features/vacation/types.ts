@@ -64,6 +64,11 @@ export interface VacationDetail extends VacationFormStats {
   employee?: EmployeeRef | null;
   startDate?: string | null;
   endDate?: string | null;
+  /**
+   * The vacation of somebody else begins earlier than `startDate` tells: shown from that day on only, its begin isn't
+   * told (AbsenceVisibility). The form leaves the begin empty.
+   */
+  startHidden?: boolean | null;
   /** The dates in the user's format, for the vacations of the replacements (not edited there). */
   startDateFormatted?: string | null;
   endDateFormatted?: string | null;

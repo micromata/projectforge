@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
@@ -92,6 +93,9 @@ class VacationEntityRest :
     AbstractDTOEntityRest<VacationDO, Vacation, VacationDao>(VacationDao::class.java, "vacation.title") {
 
     @Autowired
+    private lateinit var absenceService: AbsenceService
+
+    @Autowired
     private lateinit var caches: PfCaches
 
     @Autowired
@@ -155,7 +159,14 @@ class VacationEntityRest :
     override fun transformFromDB(obj: VacationDO, editMode: Boolean): Vacation {
         val vacation = Vacation()
         caches.initialize(obj)
-        vacation.copyFrom(obj)
+        // As far as the logged-in user may see it (the dao checked the access): e.g. of a group mate from 1 January on,
+        // its real begin (and its timestamps, which would tell it) not sent.
+        val shown = absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj
+        vacation.copyFrom(shown)
+        if (shown !== obj) {
+            vacation.startHidden = true
+            vacation.startDateFormatted = null // E.g. the form's title.
+        }
         if (conflictingVacationsCache.hasConflict(obj.id)) {
             vacation.conflict = true
         }
@@ -164,7 +175,7 @@ class VacationEntityRest :
             vacation.employeeEditable = hasHrRights()
             applyStats(vacation, computeStats(vacation, updateCache = true, withDaysLeft = mayReadDaysLeft(obj)))
         } else {
-            applyListDays(vacation, obj)
+            applyListDays(vacation, shown)
         }
         return vacation
     }

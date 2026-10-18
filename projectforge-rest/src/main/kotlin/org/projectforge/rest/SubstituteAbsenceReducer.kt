@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceVisibility
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
 import org.projectforge.business.fibu.EmployeeCache
@@ -53,6 +54,9 @@ import java.time.temporal.ChronoUnit
  */
 @Service
 class SubstituteAbsenceReducer {
+    @Autowired
+    private lateinit var absenceVisibility: AbsenceVisibility
+
     @Autowired
     private lateinit var availabilityDao: AvailabilityDao
 
@@ -84,11 +88,11 @@ class SubstituteAbsenceReducer {
      *
      * HR staff see all of them (without the comments of the vacations: they are read past the DAO's privacy check,
      * VacationDao.afterLoad, and neither the chart nor the table shows them). Anybody else: the substitutes are posted,
-     * so anybody could name anybody. The entries the user may read anyway (VacationDao/AvailabilityDao
-     * .hasUserSelectAccess) are shown in full, all others reduced to their dates and status, and only from
-     * [VISIBLE_PAST_DAYS] ago on, as the lists show a colleague's entries. So naming somebody tells no more than whether
-     * they are away while the entry's own period runs. Before that, a day is drawn uncovered only if the readable
-     * entries alone say so.
+     * so anybody could name anybody. The entries the user may read in full ([AbsenceVisibility]) are shown so, all
+     * others reduced to their dates and status within the entry's period: the vacations of all of its days, the
+     * availability entries only from today on, as the past of an availability entry of somebody else isn't told (it
+     * might tell the duration of a sickness). So naming somebody tells no more than whether they are away while the
+     * entry's own period runs. Before today, a day is drawn uncovered only if the entries shown alone say so.
      */
     fun reduce(
         user: PFUserDO,
@@ -106,33 +110,39 @@ class SubstituteAbsenceReducer {
             result.chartDays = chartDays(startDate, endDate, uncoveredDays.toSet())
             return result
         }
-        val visibleFrom = LocalDate.now().minusDays(VISIBLE_PAST_DAYS)
-        val readable = vacations.filter { vacationDao.hasUserSelectAccess(user, it, false) }
+        val today = LocalDate.now()
         result.substituteVacations = vacations.mapNotNull { other ->
-            if (readable.contains(other)) {
+            if (isReadableInFull(absenceVisibility.visibleFrom(user, other, today), other.startDate)) {
                 Vacation(other).also { it.comment = null }
             } else {
-                reducedVacation(other, maxOf(startDate, visibleFrom), endDate)
+                reducedVacation(other, startDate, endDate)
             }
         }
-        val readableAvailabilities = availabilities.filter { availabilityDao.hasUserSelectAccess(user, it, false) }
+        val readableAvailabilities = availabilities.filter {
+            isReadableInFull(absenceVisibility.visibleFrom(user, it, today), it.startDate)
+        }
         result.substituteAvailabilities = availabilities.mapNotNull { availability ->
             if (readableAvailabilities.contains(availability)) {
                 replacementAvailability(availability, user, null, null)
             } else {
-                replacementAvailability(availability, user, maxOf(startDate, visibleFrom), endDate)
+                replacementAvailability(availability, user, maxOf(startDate, today), endDate)
             }
         }
-        val shownUncovered = uncoveredDays.filter { it >= visibleFrom } +
+        // All vacations are shown within the entry's period, the availability entries before today only if readable.
+        val shownUncovered = uncoveredDays.filter { it >= today } +
                 visibleUncoveredDays(
                     substitutes,
-                    uncoveredDays.filter { it < visibleFrom },
-                    readable,
+                    uncoveredDays.filter { it < today },
+                    vacations,
                     readableAvailabilities,
                 )
         result.chartDays = chartDays(startDate, endDate, shownUncovered.toSet())
         return result
     }
+
+    /** Visible from a day ([AbsenceVisibility.visibleFrom]) not after the entry's begin: nothing of it is hidden. */
+    private fun isReadableInFull(visibleFrom: LocalDate?, entryStart: LocalDate?): Boolean =
+        visibleFrom != null && entryStart != null && !entryStart.isBefore(visibleFrom)
 
     /**
      * A substitute's vacation the user may not read otherwise: only its days from [from] to [until] (the part of the
@@ -226,9 +236,6 @@ class SubstituteAbsenceReducer {
 
         /** The longest period the form's chart and the list's bar draw (beyond is a mistyped year). */
         const val CHART_MAX_DAYS = 400L
-
-        /** The days back a colleague's entry is visible (VacationDao/AvailabilityDao.hasUserSelectAccess). */
-        private const val VISIBLE_PAST_DAYS = 31L
 
         /** A period the chart and the days bar draw: not beyond [CHART_MAX_DAYS]. */
         fun inChartRange(startDate: LocalDate?, endDate: LocalDate?): Boolean {

@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.repository
 import jakarta.annotation.PostConstruct
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceVisibility
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -66,6 +67,9 @@ import java.util.stream.Collectors
  */
 @Service
 open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
+    @Autowired
+    private lateinit var absenceVisibility: AbsenceVisibility
+
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
@@ -118,18 +122,12 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return true
     }
 
+    /**
+     * Who sees which vacations of others, and which part of them, is told by [AbsenceVisibility] (e.g. the members of
+     * the employee's groups from 1 January of the current year on).
+     */
     override fun hasUserSelectAccess(user: PFUserDO, obj: VacationDO, throwException: Boolean): Boolean {
-        if (hasHrRights(user) || isOwnEntry(user, obj) || isManager(user, obj) || isReplacement(user, obj)) {
-            return true
-        }
-        // The employee's user from the cache: the list checks each row, a lazy employee would be loaded one by one.
-        val employeeUser = caches.getEmployeeIfNotInitialized(obj.employee)?.user
-        return if (employeeUser != null && accessChecker.areUsersInSameGroup(user, employeeUser) &&
-            // Don't show vacation entries of others older than 31 days (end date):
-            obj.endDate?.isAfter(LocalDate.now().minusDays(31L)) == true
-        ) {
-            true
-        } else throwOrReturnFalse(throwException)
+        return if (absenceVisibility.isVisible(user, obj)) true else throwOrReturnFalse(throwException)
     }
 
     override fun hasInsertAccess(user: PFUserDO, obj: VacationDO?, throwException: Boolean): Boolean {
@@ -344,18 +342,6 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     private fun isManager(loggedInUser: PFUserDO, obj: VacationDO): Boolean {
         return isUserEqualsEmployee(loggedInUser, obj.manager)
-    }
-
-    private fun isReplacement(loggedInUser: PFUserDO, obj: VacationDO): Boolean {
-        if (isUserEqualsEmployee(loggedInUser, obj.replacement)) {
-            return true
-        }
-        obj.otherReplacements?.forEach { replacement ->
-            if (isUserEqualsEmployee(loggedInUser, replacement)) {
-                return true
-            }
-        }
-        return false
     }
 
     private fun isUserEqualsEmployee(loggedInUser: PFUserDO, employee: EmployeeDO?): Boolean {

@@ -26,7 +26,8 @@ package org.projectforge.business.testdata
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.availability.AvailabilityCache
+import org.projectforge.business.availability.AbsenceKind
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.calendar.CalendarFilter
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.TeamEventFilter
@@ -39,12 +40,13 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDate
 import java.util.Date
 import java.util.TimeZone
 
 class TestDataSeederTest : AbstractTestBase() {
     @Autowired
-    private lateinit var availabilityCache: AvailabilityCache
+    private lateinit var absenceService: AbsenceService
 
     @Autowired
     private lateinit var conflictingVacationsCache: ConflictingVacationsCache
@@ -120,13 +122,18 @@ class TestDataSeederTest : AbstractTestBase() {
             true,
         )
         Assertions.assertEquals(4, later.count { it.subject == "Weekly planning" }, "weekly planning in 4 weeks")
-        // The administrator shares a group with the team: sees its availability entries (and vacations).
+        // The administrator shares a group with the team: sees its availability entries (and vacations), but not those
+        // ended before today (AbsenceVisibility). Which ones those are depends on the weekday the test runs.
         val employeeUserIds = ctx.employees.values.mapNotNull { it.user?.id }
+        fun availabilities(visibility: AbsenceService.Visibility) = absenceService.getAbsences(
+            ctx.today.minusDays(7), ctx.today.plusMonths(4), AbsenceKind.entries.toSet(), userIds = employeeUserIds,
+            visibility = visibility,
+        ).availabilities
+        val seeded = availabilities(AbsenceService.Visibility.PRE_AUTHORIZED)
+        Assertions.assertEquals(6, seeded.size, "availability entries seeded")
         Assertions.assertEquals(
-            6,
-            availabilityCache.getAvailabilityForPeriodAndUsers(
-                ctx.today.minusDays(7), ctx.today.plusMonths(4), null, employeeUserIds.toSet(),
-            ).size,
+            seeded.count { it.endDate?.isBefore(LocalDate.now()) == false },
+            availabilities(AbsenceService.Visibility.PER_ENTRY).size,
             "availability entries visible to the admin",
         )
         // The substitute Max isn't available during Alex's vacation, but remotely reachable during Julia's.

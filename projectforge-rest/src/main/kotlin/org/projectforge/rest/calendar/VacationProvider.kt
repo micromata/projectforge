@@ -29,11 +29,13 @@ import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Builds the calendar events of vacations, as [AbsenceProvider] got them ([AbsenceService]).
@@ -52,12 +54,15 @@ open class VacationProvider {
     /**
      * Adds an event for each of the given vacations, but not twice for the same person and period (e.g. of two team
      * calendars).
+     * @param startHidden A vacation shown from its start date on only, its real begin isn't told
+     * ([AbsenceService.Absences.isStartHidden]).
      */
     open fun addEvents(
         vacations: List<VacationDO>,
         events: MutableList<FullCalendarEvent>,
         settings: CalendarSettings,
         style: CalendarStyle? = null,
+        startHidden: (VacationDO) -> Boolean = { false },
     ) {
         val useStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
         val viewer = ThreadLocalUserContext.loggedInUser
@@ -80,10 +85,8 @@ open class VacationProvider {
                     formattedDuration = "$duration ${translate(unit)}",
                     calendarSettings = settings,
                 )
-                val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
-                val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""
                 val tb = TooltipBuilder()
-                    .addPropRow(translate("timePeriod"), "$startDate - $endDate")
+                    .addPropRow(translate("timePeriod"), periodText(vacation.startDate, vacation.endDate, startHidden(vacation)))
                     .addPropRow(
                         translate("vacation.replacement"),
                         vacationService.collectAllReplacements(vacation).joinToString { employeeCache.getUser(it)?.displayName ?: "???" })
@@ -95,6 +98,18 @@ open class VacationProvider {
                 event.setTooltip(title, tb)
                 events.add(event)
             }
+        }
+    }
+
+    companion object {
+        /** "from - until", or "until ..." if the begin isn't told (an entry of somebody else shown from today on). */
+        internal fun periodText(startDate: LocalDate?, endDate: LocalDate?, startHidden: Boolean): String {
+            val end = PFDay.fromOrNull(endDate)?.format() ?: ""
+            if (startHidden) {
+                return translateMsg("absence.until", end)
+            }
+            val start = PFDay.fromOrNull(startDate)?.format() ?: ""
+            return "$start - $end"
         }
     }
 }

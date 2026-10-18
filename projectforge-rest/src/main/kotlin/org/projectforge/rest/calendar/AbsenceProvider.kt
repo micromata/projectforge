@@ -68,11 +68,12 @@ open class AbsenceProvider {
         }
         val absences = absenceService.getAbsences(start.beginOfDay.localDate, end.localDate, kinds, groupIds, userIds)
         val absentStyle = style ?: CalendarStyle(settings.vacationsColorOrDefault)
-        vacationProvider.addEvents(absences.vacations, events, settings, absentStyle)
+        vacationProvider.addEvents(absences.vacations, events, settings, absentStyle, absences::isStartHidden)
         availabilityProvider.addEvents(
             absences.availabilities, events, settings,
             absentStyle = absentStyle,
             otherStyle = style ?: settings.availabilityStyle,
+            startHidden = absences::isStartHidden,
         )
     }
 }

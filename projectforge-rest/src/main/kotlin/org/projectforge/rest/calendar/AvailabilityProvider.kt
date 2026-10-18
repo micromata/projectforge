@@ -29,7 +29,6 @@ import org.projectforge.business.availability.AvailabilityStatus
 import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -53,6 +52,8 @@ open class AvailabilityProvider {
         /** The style of absent entries ([AvailabilityStatus.absent]), drawn like vacations. */
         absentStyle: CalendarStyle = settings.availabilityStyle,
         otherStyle: CalendarStyle = settings.availabilityStyle,
+        /** An entry shown from its start date on only, its real begin isn't told ([AbsenceService.Absences.isStartHidden]). */
+        startHidden: (AvailabilityDO) -> Boolean = { false },
     ) {
         val viewer = ThreadLocalUserContext.requiredLoggedInUser
         availabilities.forEach { availability ->
@@ -74,10 +75,10 @@ open class AvailabilityProvider {
                     classNames = if (status.absent) "availability-event availability-absent" else "availability-event",
                     calendarSettings = settings,
                 )
-                val startDate = PFDay.fromOrNull(availability.startDate)?.format() ?: ""
-                val endDate = PFDay.fromOrNull(availability.endDate)?.format() ?: ""
-                val tb = TooltipBuilder()
-                    .addPropRow(translate("timePeriod"), "$startDate - $endDate")
+                val tb = TooltipBuilder().addPropRow(
+                    translate("timePeriod"),
+                    VacationProvider.periodText(availability.startDate, availability.endDate, startHidden(availability)),
+                )
                 tb.addPropRow(translate("availability.status"), translate(status.i18nKey))
                 availability.location?.let {
                     tb.addPropRow(translate("availability.location"), translate(it.i18nKey))

@@ -83,7 +83,8 @@ private val log = KotlinLogging.logger {}
  * pickers ([employees], [groups]) and the page's paging.
  *
  * What is shown of the employees' absences, [VacationExportRequest.absenceKinds] tell: their vacations and their
- * availability entries by their state, all of them by [AbsenceService] for the same employees and period. The type of
+ * availability entries by their state, by [AbsenceService] as far as the user may see them (AbsenceVisibility: e.g.
+ * the availability entries of others from today on only, for finance staff, too). The type of
  * an availability entry is shown to the user and HR staff only, anybody else gets the neutral title
  * ([AbsenceService.labelFor]); its comment only who may see the entry itself ([AbsenceService.isCommentVisible]).
  */
@@ -278,9 +279,10 @@ class VacationExportRest {
 
     /**
      * The absences of [employees] overlapping the period, of the kinds the request asks for
-     * ([VacationExportRequest.absenceKinds]). All of them ([AbsenceService.Visibility.PRE_AUTHORIZED]): [employees]
-     * and the period are already restricted by [Access]. The entries are the cached ones, not to be changed: the
-     * calendar cuts them to the period in its DTOs ([VacationExportVacation.of]).
+     * ([VacationExportRequest.absenceKinds]), as far as the logged-in user may see them
+     * ([AbsenceService.Visibility.PER_ENTRY], e.g. the availability entries of others from today on only, also for
+     * finance staff who may pick everybody here). The entries are the cached ones (or copies clipped to the part
+     * shown), not to be changed: the calendar cuts them to the period in its DTOs ([VacationExportVacation.of]).
      */
     private fun absencesByEmployee(
         request: VacationExportRequest,
@@ -298,7 +300,6 @@ class VacationExportRest {
             until,
             absenceKindsOf(request).toSet(),
             userIds = employeeIdByUserId.keys,
-            visibility = AbsenceService.Visibility.PRE_AUTHORIZED,
         )
         val vacationsByEmployeeId = absences.vacations.groupBy { it.employee?.id }
         return AbsencesByEmployee(

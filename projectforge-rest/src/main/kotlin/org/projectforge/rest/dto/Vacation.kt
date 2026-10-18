@@ -78,6 +78,11 @@ class Vacation(
      */
     var conflict: Boolean? = null,
     /**
+     * The vacation of somebody else begins earlier than [startDate] tells: shown from that day on only, as its begin
+     * isn't told to the logged-in user (AbsenceVisibility). Read-only.
+     */
+    var startHidden: Boolean? = null,
+    /**
      * The statuses the logged-in user may set (`VacationDao.getAllowedStatus`). Only set in detail view.
      */
     var allowedStatus: List<VacationStatus>? = null,

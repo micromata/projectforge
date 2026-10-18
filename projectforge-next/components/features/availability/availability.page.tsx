@@ -1,5 +1,6 @@
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
 import { AvailabilityConflictNotice } from "./availability-conflict-notice";
 import {
   AvailabilityInternalCommentField,
@@ -47,7 +48,17 @@ export const AVAILABILITY_PAGE = definePage<
       size: 170,
       cell: ({ row }) => row.original.user?.displayName ?? null,
     },
-    { name: "startDate", size: 110 },
+    {
+      name: "startDate",
+      size: 110,
+      // Empty for an entry of somebody else shown from today on only: its begin isn't told.
+      cell: ({ row }) => (
+        <AbsenceStartCell
+          startDate={row.original.startDate}
+          startHidden={row.original.startHidden}
+        />
+      ),
+    },
     { name: "endDate", size: 110 },
     { name: "type", size: 140 },
     // Sorted as displayed, by their translation (AvailabilityEntityRest.computedSortProperties).

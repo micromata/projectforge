@@ -95,29 +95,98 @@ class AbsenceServiceTest : AbstractTestBase() {
     }
 
     @Test
-    fun `per entry only what the viewer may see, pre-authorized all of them`() {
+    fun `per entry only what the viewer may see, from today on, pre-authorized all of them as they are`() {
         val owner = createUser("visibility-owner")
         val colleague = createUser("visibility-colleague")
         val stranger = createUser("visibility-stranger")
         logon(TEST_ADMIN_USER)
         initTestDB.addGroup("${javaClass.simpleName}.visibility", owner.username!!, colleague.username!!)
         logon(TEST_HR_USER)
-        // Ended longer ago than group mates may see it (AvailabilityDao.VISIBLE_PAST_DAYS).
-        val pastStart = LocalDate.now().minusDays(AvailabilityDao.VISIBLE_PAST_DAYS + 10)
-        val pastId = availabilityDao.insert(availability(owner, pastStart, AvailabilityStatus.NOT_AVAILABLE))
-        val futureId = availabilityDao.insert(availability(owner, LocalDate.now().plusDays(10), AvailabilityStatus.NOT_AVAILABLE))
-        fun ids(visibility: AbsenceService.Visibility) = absenceService.getAbsences(
-            pastStart, LocalDate.now().plusDays(20), AbsenceKind.entries.toSet(),
-            userIds = setOf(owner.id), visibility = visibility,
-        ).availabilities.map { it.id }
+        val today = LocalDate.now()
+        val pastId = availabilityDao.insert(
+            availability(owner, today.minusDays(20), AvailabilityStatus.NOT_AVAILABLE, today.minusDays(6))
+        )
+        val runningId = availabilityDao.insert(
+            availability(owner, today.minusDays(5), AvailabilityStatus.NOT_AVAILABLE, today.plusDays(5))
+        )
+        val futureId = availabilityDao.insert(
+            availability(owner, today.plusDays(10), AvailabilityStatus.NOT_AVAILABLE)
+        )
+        fun absences(visibility: AbsenceService.Visibility, from: LocalDate = today.minusDays(20)) =
+            absenceService.getAbsences(
+                from, today.plusDays(20), AbsenceKind.entries.toSet(), userIds = setOf(owner.id), visibility = visibility,
+            )
 
         logon(colleague)
-        assertEquals(listOf(futureId), ids(AbsenceService.Visibility.PER_ENTRY))
-        assertEquals(listOf(pastId, futureId), ids(AbsenceService.Visibility.PRE_AUTHORIZED))
+        absences(AbsenceService.Visibility.PER_ENTRY).let { absences ->
+            assertEquals(listOf(runningId, futureId), absences.availabilities.map { it.id }, "Not the past one.")
+            val running = absences.availabilities.first()
+            assertEquals(today, running.startDate, "Clipped: the real begin isn't told.")
+            assertEquals(today.plusDays(5), running.endDate)
+            assertTrue(absences.isStartHidden(running))
+            assertNull(running.created, "Its creation would tell the begin.")
+            val future = absences.availabilities.last()
+            assertEquals(today.plusDays(10), future.startDate)
+            assertFalse(absences.isStartHidden(future))
+        }
+        // The cached entry isn't changed by the clipping.
+        logon(TEST_HR_USER)
+        assertEquals(today.minusDays(5), absences(AbsenceService.Visibility.PER_ENTRY).availabilities[1].startDate)
+        logon(colleague)
+        // A period of the past: the running entry is shown from today on only, so not in there.
+        assertTrue(
+            absenceService.getAbsences(
+                today.minusDays(3), today.minusDays(1), AbsenceKind.entries.toSet(), userIds = setOf(owner.id),
+            ).availabilities.isEmpty()
+        )
+        absences(AbsenceService.Visibility.PRE_AUTHORIZED).let { absences ->
+            assertEquals(listOf(pastId, runningId, futureId), absences.availabilities.map { it.id })
+            assertEquals(today.minusDays(5), absences.availabilities[1].startDate, "Unclipped.")
+            assertFalse(absences.isStartHidden(absences.availabilities[1]))
+        }
         logon(stranger)
-        assertTrue(ids(AbsenceService.Visibility.PER_ENTRY).isEmpty(), "Not of the same group.")
+        assertTrue(absences(AbsenceService.Visibility.PER_ENTRY).availabilities.isEmpty(), "Not of the same group.")
         logon(owner)
-        assertEquals(listOf(pastId, futureId), ids(AbsenceService.Visibility.PER_ENTRY))
+        absences(AbsenceService.Visibility.PER_ENTRY).let { absences ->
+            assertEquals(listOf(pastId, runningId, futureId), absences.availabilities.map { it.id })
+            assertEquals(today.minusDays(5), absences.availabilities[1].startDate, "The own entries in full.")
+        }
+    }
+
+    @Test
+    fun `the vacations of group mates from 1 January on, clipped there, the half day of the begin dropped`() {
+        val owner = createEmployee("vacation-clip-owner")
+        val manager = createEmployee("vacation-clip-manager")
+        val colleague = createUser("vacation-clip-colleague")
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("${javaClass.simpleName}.vacation-clip", owner.user!!.username!!, colleague.username!!)
+        logon(TEST_HR_USER)
+        val newYear = LocalDate.of(LocalDate.now().year, 1, 1)
+        val lastYearId = vacationDao.insert(
+            vacation(owner, manager, newYear.minusDays(20), newYear.minusDays(10), VacationStatus.APPROVED)
+        )
+        val acrossId = vacationDao.insert(
+            vacation(owner, manager, newYear.minusDays(4), newYear.plusDays(2), VacationStatus.APPROVED)
+                .also { it.halfDayBegin = true; it.halfDayEnd = true }
+        )
+        fun vacations() = absenceService.getAbsences(
+            newYear.minusDays(30), newYear.plusDays(30), setOf(AbsenceKind.VACATION), userIds = setOf(owner.user!!.id),
+        )
+
+        logon(colleague)
+        vacations().let { absences ->
+            assertEquals(listOf(acrossId), absences.vacations.map { it.id }, "Not the one of last year.")
+            val across = absences.vacations.single()
+            assertEquals(newYear, across.startDate)
+            assertEquals(false, across.halfDayBegin, "The half day was the real begin's.")
+            assertEquals(true, across.halfDayEnd)
+            assertTrue(absences.isStartHidden(across))
+        }
+        logon(manager.user!!)
+        vacations().let { absences ->
+            assertEquals(listOf(lastYearId, acrossId), absences.vacations.map { it.id }, "The manager: all of them.")
+            assertEquals(newYear.minusDays(4), absences.vacations.last().startDate)
+        }
     }
 
     @Test
@@ -154,10 +223,15 @@ class AbsenceServiceTest : AbstractTestBase() {
         assertEquals(AbsenceKind.entries.toSet(), AbsenceKind.orAll(AbsenceKind.parse(null)))
     }
 
-    private fun availability(user: PFUserDO, startDate: LocalDate, status: AvailabilityStatus) = AvailabilityDO().also {
+    private fun availability(
+        user: PFUserDO,
+        startDate: LocalDate,
+        status: AvailabilityStatus,
+        endDate: LocalDate = startDate.plusDays(1),
+    ) = AvailabilityDO().also {
         it.user = user
         it.startDate = startDate
-        it.endDate = startDate.plusDays(1)
+        it.endDate = endDate
         it.status = status
         it.type = "Workation"
         it.internalComment = "internal"

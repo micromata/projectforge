@@ -10,7 +10,8 @@ export function toFormValues(vacation: VacationDetail): VacationValues {
   return {
     id: vacation.id ?? null,
     employee: vacation.employee ?? null,
-    startDate: vacation.startDate ?? null,
+    // Not the first day shown of a vacation whose begin isn't told: no begin at all.
+    startDate: vacation.startHidden ? null : (vacation.startDate ?? null),
     endDate: vacation.endDate ?? null,
     halfDayBegin: vacation.halfDayBegin === true,
     halfDayEnd: vacation.halfDayEnd === true,
