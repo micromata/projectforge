@@ -19,6 +19,21 @@ const DIALOG_LISTS: readonly string[] = [
 ];
 
 /**
+ * The list the form returns to, opened from the dialog over it (`?returnTo=/address`, or the address campaign
+ * values), or null. Only for an existing address, which is all the dialog opens: the add button of the address
+ * list passes `?returnTo=/address` as well (it is one of the form's returnTargets), and a new address goes to its
+ * view.
+ */
+export function dialogListOf(
+  id: number | null,
+  returnTo: string | null
+): string | null {
+  return id != null && returnTo != null && DIALOG_LISTS.includes(returnTo)
+    ? returnTo
+    : null;
+}
+
+/**
  * Where leaving the address form leads: back to the view of the address it was opened from (the form is a sub
  * route of it), or to the list where there is none (a new one cancelled, one deleted). Opened for an entry of a
  * VCF import, every way leads back to the import, whose next entry is waiting; opened from the dialog of a list,
@@ -29,10 +44,7 @@ const DIALOG_LISTS: readonly string[] = [
 export function useAddressEditOutcome(id: number | null): Partial<EditOutcome> {
   const router = useRouter();
   const fromImport = importIndexOfUrl() !== null;
-  // Opened from the dialog over a list (`?returnTo=/address`, or the address campaign values): back to that list.
-  const returnTo = useSearchParams().get("returnTo");
-  const toList =
-    returnTo != null && DIALOG_LISTS.includes(returnTo) ? returnTo : null;
+  const toList = dialogListOf(id, useSearchParams().get("returnTo"));
   const back = (target: string) =>
     router.push(fromImport ? ADDRESS_IMPORT_ROUTE : (toList ?? target));
   return {
