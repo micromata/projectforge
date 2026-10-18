@@ -618,7 +618,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `useMagicFilterQuery` lädt die `listMeta` neu (Werte-Filter der neuen Kampagne) – generisch. **Weiterhin in React**
   für die laufende Kampagne, als Weg zurück: dieselbe Seite unter eigener Kategorie `addressCampaignValueLegacy`
   (`NextPage.legacyCategory`: der Weg zurück führt dorthin, `OrphanedLinkFilter`/`hasNextVersion` bleiben bei den alten
-  `react/addressCampaignValue`-Urls), beide teilen die gewählte Kampagne (User-Pref-Bereich `addressCampaignValue`).
+  `react/addressCampaignValue`-Urls); React zeigt die zuletzt in next gewählte Kampagne (User-Pref-Bereich `addressCampaignValue`), next selbst nur die seines Filters – ohne Kampagne im Filter ist die Liste leer.
   Nach der Kampagne löschen: `AddressCampaignValuePagesRest`, `AddressCampaignValueLegacyMultiSelectedPageRest`,
   `AddressLegacyPagesRest`, `legacyCategory` am Eintrag.
 - **Adressbücher** (`addressBook`, Liste + Formular, vorher React-UILayout `AddressBookPagesRest`, gelöscht) – layoutfrei

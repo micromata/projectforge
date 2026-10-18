@@ -80,7 +80,7 @@ private val log = KotlinLogging.logger {}
  * id (see [AddressCampaignValueDao.selectAddressesForCampaign]), opened as a new entry via `newEntry?campaignId=&addressId=`.
  *
  * The successor of [AddressCampaignValuePagesRest], which is still served under `addressCampaignValueLegacy` for the
- * running campaign and shares the selected campaign with this page. Everything but the layout is taken over from
+ * running campaign and shows the campaign last selected here. Everything but the layout is taken over from
  * there; the copy goes away with the legacy page.
  */
 @RestController
@@ -113,8 +113,9 @@ class AddressCampaignValueEntityRest :
 
     companion object {
         /**
-         * The user pref area of the selected campaign, shared with the React page ([AddressCampaignValuePagesRest]),
-         * so both show the same campaign. The former category of the React page, so its users keep their selection.
+         * The user pref area of the last selected campaign, which the React page ([AddressCampaignValuePagesRest])
+         * falls back to without a campaign in its filter: a campaign selected here is the one the way back shows.
+         * The former category of the React page, so its users keep their selection. Not read by this page.
          */
         internal const val USER_PREF_AREA = "addressCampaignValue"
         internal const val USER_PREF_SELECTED_CAMPAIGN_ID = "AddressCampaignValuePagesRest.selectedCampaignId"
@@ -142,7 +143,7 @@ class AddressCampaignValueEntityRest :
             )
         )
         // The values depend on the selected campaign, so the list meta is reloaded when it changes (reloadUI).
-        getSelectedCampaignId()?.let { addressCampaignDao.find(it) }?.valuesArray?.let { values ->
+        getAddressCampaignDO()?.valuesArray?.let { values ->
             if (values.isNotEmpty()) {
                 val valuesList = mutableListOf(UISelectValue(EMPTY_VALUE, translate("filter.emptyValue")))
                 values.forEach { valuesList.add(UISelectValue(it, it)) }
@@ -281,24 +282,29 @@ class AddressCampaignValueEntityRest :
     }
 
     /**
-     * The selected campaign: the one of the filter (remembered as user pref, shared with the React page), or the
-     * remembered one on an initial load. Stored in the extended map for the DAO.
+     * The selected campaign is the one of the campaign filter, stored in the extended map for the DAO. Without one
+     * the list is empty ("no campaign selected"), as the filter shows: unlike the React page, there is no fallback
+     * to the remembered campaign, which would list a campaign the filter doesn't name.
+     *
+     * The selection is still remembered as user pref for the React page, which falls back to it.
      */
     override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
         super.postProcessMagicFilter(target, source)
-        val previousCampaignId = getSelectedCampaignId()
-        val campaignId = source.entries.find { it.field == FILTER_CAMPAIGN_ID }
-            ?.value?.values?.firstOrNull()?.toLongOrNull()
+        // The stored filter is still the previous one here (the list saves the new one afterwards).
+        val previousCampaignId = campaignIdOf(getCurrentFilter())
+        val campaignId = campaignIdOf(source)
+        if (previousCampaignId != campaignId) {
+            // The value filter offers the values of the selected campaign (or none without one).
+            source.extended["reloadUI"] = true
+        }
         if (campaignId != null) {
-            if (previousCampaignId != campaignId) {
-                // The value filter offers the values of the selected campaign.
-                source.extended["reloadUI"] = true
-            }
             userPrefService.putEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, campaignId)
             source.extended["campaignId"] = campaignId
-        } else if (previousCampaignId != null) {
-            source.extended["campaignId"] = previousCampaignId
         }
+    }
+
+    private fun campaignIdOf(filter: MagicFilter): Long? {
+        return filter.entries.find { it.field == FILTER_CAMPAIGN_ID }?.value?.values?.firstOrNull()?.toLongOrNull()
     }
 
     /**
@@ -442,14 +448,9 @@ class AddressCampaignValueEntityRest :
         return result
     }
 
-    /** The selected campaign: the one of the current filter, otherwise the remembered one. */
+    /** The selected campaign: the one of the user's current filter, if any. */
     internal fun getAddressCampaignDO(): AddressCampaignDO? {
-        val campaignId = getCurrentFilter().extended["campaignId"] as? Long ?: getSelectedCampaignId()
-        return campaignId?.let { addressCampaignDao.find(it) }
-    }
-
-    private fun getSelectedCampaignId(): Long? {
-        return userPrefService.getEntry(USER_PREF_AREA, USER_PREF_SELECTED_CAMPAIGN_ID, Long::class.java)
+        return campaignIdOf(getCurrentFilter())?.let { addressCampaignDao.find(it) }
     }
 
     private fun isExcelExportAllowed(): Boolean {
