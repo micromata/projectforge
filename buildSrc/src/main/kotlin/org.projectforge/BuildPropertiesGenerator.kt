@@ -23,7 +23,7 @@ class BuildPropertiesGenerator(
         val commitTime = "git show -s --format=%ci HEAD".runCommand(rootDir) ?: "unknown"
         val isDirty = "git status --porcelain".runCommand(rootDir)?.isNotBlank().toString()
         val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val buildDate = now.format(DateTimeFormatter.ISO_OFFSET_DATE)
+        val buildDate = now.format(DateTimeFormatter.ISO_LOCAL_DATE)
         val buildTimeStamp = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 
         outputFile.parentFile.mkdirs()
