@@ -30,6 +30,9 @@ ALTER TABLE t_fibu_projekt
 -- Rollback (restores the former local number 0-99 and intern_kost2_4 of the internal projects, drops the project number):
 -- UPDATE t_fibu_projekt SET intern_kost2_4 = (projektnummer - 400000) / 100, nummer = MOD(projektnummer - 400000, 100)
 --   WHERE kunde_id IS NULL AND projektnummer BETWEEN 400000 AND 499999;
+-- Customer projects saved with a free number store it as local number, too (range 5 restores digits 5-6):
+-- UPDATE t_fibu_projekt SET nummer = MOD(projektnummer, 100)
+--   WHERE kunde_id IS NOT NULL AND nummer = projektnummer AND projektnummer BETWEEN 500000 AND 599999;
 -- ALTER TABLE t_fibu_projekt DROP CONSTRAINT unique_t_fibu_projekt_projektnummer;
 -- ALTER TABLE t_fibu_projekt DROP COLUMN projektnummer;
 -- DELETE FROM t_flyway_schema_version WHERE version = '9.0.8.4';
