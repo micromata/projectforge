@@ -1,5 +1,17 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.8",
+    "date" : "2026-10-19",
+    "title" : "Noch nicht veröffentlicht",
+    "summary" : [ "Hotfix-Release", "Fix: Speichern einer Adresskampagne oder eines Kontos legt keine Kopie mehr an", "Fix: Aufträge und Rechnungen, deren Positionen alle gelöscht sind, werden abgelehnt" ],
+    "overview" : [ "**Adresskampagnen und Konten:** Das Speichern eines bestehenden Eintrags in der neuen Oberfläche legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne); Kampagnentitel sind eindeutig.", "**Aufträge und Rechnungen:** Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden.", "**Weitere Fixes:** Suchbegriff in Auswahlboxen mit Mehrfachauswahl, Spaltenüberschriften der Verfügbarkeitseinträge im Urlaubskonto, Build-Datum in der Fußzeile." ],
+    "sections" : [ {
+      "type" : "fixed",
+      "items" : [ "Adresskampagnen und Konten: Das Speichern eines bestehenden Eintrags legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne). Der Titel einer Kampagne darf nicht schon von einer anderen Kampagne verwendet werden.", "Fußzeile: Das Build-Datum wird ohne Zonen-Suffix angezeigt (2026-10-19 statt 2026-10-19Z).", "Aufträge, Debitoren- und Kreditorenrechnungen: Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden.", "Auswahlboxen mit Mehrfachauswahl: Nach einer Auswahl bleibt der Suchbegriff markiert, sodass der nächste eingetippte Name ihn ersetzt, statt angehängt zu werden.", "Urlaubskonto: Die Spalten Typ, Verfügbarkeit, Ort und Kommentar der Verfügbarkeitseinträge zeigen ihre Überschriften statt Textschlüsseln." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

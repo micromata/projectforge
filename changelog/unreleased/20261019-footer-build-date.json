@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Footer: the build date is shown without a zone suffix (2026-10-19 instead of 2026-10-19Z).",
+  "de": "Fußzeile: Das Build-Datum wird ohne Zonen-Suffix angezeigt (2026-10-19 statt 2026-10-19Z)."
+}

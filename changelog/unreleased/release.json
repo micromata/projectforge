@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "en": [
+      "Hotfix release",
+      "Fix: saving an address campaign or an account no longer creates a copy",
+      "Fix: orders and invoices whose positions are all deleted are refused"
+    ],
+    "de": [
+      "Hotfix-Release",
+      "Fix: Speichern einer Adresskampagne oder eines Kontos legt keine Kopie mehr an",
+      "Fix: Aufträge und Rechnungen, deren Positionen alle gelöscht sind, werden abgelehnt"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Address campaigns and accounts:** saving an existing entry in the new interface no longer adds a copy of it (e.g. setting a campaign inactive); campaign titles are unique.",
+      "**Orders and invoices:** an entry whose positions were all deleted is refused on saving instead of being stored without positions.",
+      "**Further fixes:** search term of multiple choice selection boxes, column headings of the availability entries in the leave account, build date in the footer."
+    ],
+    "de": [
+      "**Adresskampagnen und Konten:** Das Speichern eines bestehenden Eintrags in der neuen Oberfläche legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne); Kampagnentitel sind eindeutig.",
+      "**Aufträge und Rechnungen:** Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden.",
+      "**Weitere Fixes:** Suchbegriff in Auswahlboxen mit Mehrfachauswahl, Spaltenüberschriften der Verfügbarkeitseinträge im Urlaubskonto, Build-Datum in der Fußzeile."
+    ]
+  }
+}
