@@ -59,7 +59,8 @@ class AddressCampaignEntityRest : AbstractDTOEntityRest<AddressCampaignDO, Addre
 
     /**
      * The format check of the former Wicket `AddressCampaignEditForm`: values like "Value 1; Value 2; Value 3", at least
-     * one of them. Title and values being given at all is checked generically (`@PropertyInfo(required)`).
+     * one of them. Title and values being given at all is checked generically (`@PropertyInfo(required)`). A title must
+     * not be taken by another campaign ([AddressCampaignDao.doesTitleAlreadyExist]).
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: AddressCampaign) {
         super.validate(validationErrors, dto)
@@ -68,6 +69,14 @@ class AddressCampaignEntityRest : AbstractDTOEntityRest<AddressCampaignDO, Addre
                 ValidationError(
                     translate("plugins.marketing.addressCampaign.values.invalidFormat"),
                     fieldId = "values",
+                )
+            )
+        }
+        if (baseDao.doesTitleAlreadyExist(dto.title, dto.id)) {
+            validationErrors.add(
+                ValidationError(
+                    translate("plugins.marketing.addressCampaign.error.titleAlreadyExists"),
+                    fieldId = "title",
                 )
             )
         }
