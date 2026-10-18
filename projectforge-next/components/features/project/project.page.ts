@@ -47,11 +47,11 @@ export const PROJECT_PAGE = definePage<
   categoryKey: "menu.fibu._",
   titleKey: "fibu.projekt.title.list",
   columns: [
-    // The formatted number ("5.123.04"), read as one — the same value the legacy list leads with.
-    // Keyed by the entity's computed `kost`, as the customer's number column is.
+    // The project number, formatted by its number range ("5.123.04", "1.0007.3") or free; sorted by the
+    // entity's project number (ProjektDO.projektnummer).
     {
-      id: "kost",
-      labelKey: "fibu.projekt.nummer",
+      id: "projektnummer",
+      labelKey: "fibu.projekt.projektnummer",
       accessor: (row) => row.kostFormatted ?? "",
       size: 100,
       className: "font-mono",

@@ -201,7 +201,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * - customer of a number range: computed from customer and local [ProjektDO.nummer],
      * - otherwise the given number (or the next free one, if not given). A given number of a range without
      *   customers (e.g. 412345 for internal projects) sets the local number of a project without customer. A free
-     *   number must not lie in the numbers of a range.
+     *   number must not lie in the numbers of a range; it is the local number of the project, too.
      *
      * @throws UserException if the numbers don't fit the configured number ranges or the number is already used.
      */
@@ -229,6 +229,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
                 obj.nummer = numberRanges.localNumber(projektnummer)!!
             } else {
                 numberRanges.validateFreeProjectNumber(projektnummer)?.let { throw UserException(it.i18nKey) }
+                // A free project has no local number of its own (unique per customer as the project number is):
+                obj.nummer = projektnummer
             }
             obj.projektnummer = projektnummer
         }
@@ -297,7 +299,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     private fun isNumberChanged(obj: ProjektDO, dbObj: ProjektDO): Boolean {
-        return obj.projektnummer != dbObj.projektnummer
+        // A legacy project without number (not migrated) gets one on its next save:
+        return dbObj.projektnummer != null && obj.projektnummer != dbObj.projektnummer
     }
 
     override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {

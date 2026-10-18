@@ -122,6 +122,7 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
             val free = insertProjekt(freeCustomer, nummer = 1, projektnummer = 47110001)
             assertEquals("47110001", kostFormatter.formatProjekt(free))
             assertNull(free.nummernkreis, "No Kost2 for free project numbers.")
+            assertEquals(47110001, free.nummer, "The free number is the local one, too.")
             // A free number must not lie in a range:
             val ex = assertThrows<UserException> { insertProjekt(freeCustomer, nummer = 2, projektnummer = 512345) }
             assertEquals(NumberRangeViolation.FREE_NUMBER_IN_RANGE.i18nKey, ex.i18nKey)

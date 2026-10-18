@@ -11,6 +11,7 @@ import {
   useFormReadOnly,
 } from "@/components/shared/form/form-context";
 import { cn } from "@/lib/utils";
+import { useProjectNumberRange } from "./project-number-field";
 import type { ProjectValues } from "./project-schema";
 import type { Kost2ArtSelection } from "./types";
 
@@ -43,6 +44,7 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
     form.store,
     (s: unknown) => (s as FormState).values.status === "ENDED"
   ) as boolean;
+  const { info, range } = useProjectNumberRange();
   const locked = readOnly || ended;
   // An ended project keeps its cost 2 units as they are (the save ignores the boxes): all existing ones are
   // ended with it, so they are checked and marked ended rather than all shown unchecked as non-active.
@@ -61,11 +63,16 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
       }
     });
 
+  // Without cost units there are no cost 2 types to offer; a project with a free number gets none (its
+  // number isn't made of Kost2, see Kost2Dao.setProjekt) — unless it has some already.
+  if (info == null || !info.costConfigured) return null;
+  const withoutRange = range == null && !arts.some((art) => art.existsAlready);
+
   return (
     <fieldset className={cn("flex flex-col gap-1.5", className)}>
       <legend className="flex w-full items-center justify-between gap-2 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         <span>{legend}</span>
-        {!locked && missingStandards.length > 0 && (
+        {!locked && !withoutRange && missingStandards.length > 0 && (
           <Button
             type="button"
             variant="outline"
@@ -77,6 +84,13 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
           </Button>
         )}
       </legend>
+      {withoutRange && (
+        <Alert>
+          <AlertDescription>
+            {t("fibu.kost2.error.projektWithoutNumberRange")}
+          </AlertDescription>
+        </Alert>
+      )}
       {ended && (
         <Alert className="border-warning bg-warning/10">
           <AlertDescription className="text-foreground">
@@ -101,7 +115,7 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
             >
               <Checkbox
                 checked={checked}
-                disabled={locked}
+                disabled={locked || withoutRange}
                 aria-label={label}
                 onCheckedChange={(value) =>
                   form.setFieldValue(

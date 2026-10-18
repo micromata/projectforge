@@ -1657,6 +1657,11 @@
         }
       },
       "name": "Kundenname",
+      "nextFreeNumber": "Nächste freie Nummer im Nummernkreis {arg0}: {arg1}",
+      "numberRanges": {
+        "info": "Kundennummern der Nummernkreise: {arg0}. Andere Nummern sind frei (für ihre Projekte werden keine Kostenträger erzeugt).",
+        "infoNoFree": "Kundennummern der Nummernkreise: {arg0}."
+      },
       "nummer": "Kundennummer",
       "pleaseSelectKunde": "Bitte Kunde wählen",
       "select": "Auswahl Kunde",
@@ -1753,6 +1758,9 @@
           "_": "Nicht aktive/fehlende Kost2-Arten",
           "tooltip": "Projekte, bei denen mindestens eine der gewählten Kost2-Arten nicht aktiv ist oder fehlt."
         }
+      },
+      "freeProjektnummer": {
+        "info": "Freie Projektnummer (der Kunde gehört zu keinem Nummernkreis). Leer: Beim Speichern wird die nächste freie Nummer vergeben."
       },
       "identifier": "Kurzbezeichner",
       "internKost2_4": "Intern: Koststellen 2-4",

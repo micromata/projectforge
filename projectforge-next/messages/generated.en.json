@@ -1657,6 +1657,11 @@
         }
       },
       "name": "Customer's name",
+      "nextFreeNumber": "Next free number of number range {arg0}: {arg1}",
+      "numberRanges": {
+        "info": "Customer numbers of the number ranges: {arg0}. Other numbers are free (no cost units are generated for their projects).",
+        "infoNoFree": "Customer numbers of the number ranges: {arg0}."
+      },
       "nummer": "Customer's number",
       "pleaseSelectKunde": "Please select customer",
       "select": "Customer select",
@@ -1753,6 +1758,9 @@
           "_": "Non-active/missing cost 2 types",
           "tooltip": "Projects with at least one of the selected cost 2 types non-active or missing."
         }
+      },
+      "freeProjektnummer": {
+        "info": "Free project number (the customer belongs to no number range). Empty: the next free number is assigned on saving."
       },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",

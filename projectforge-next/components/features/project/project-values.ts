@@ -23,7 +23,7 @@ export function toFormValues(project: ProjectDetail): ProjectValues {
   return {
     id: project.id ?? null,
     nummer: project.nummer ?? null,
-    internKost2_4: project.internKost2_4 ?? null,
+    projektnummer: project.projektnummer ?? null,
     name: project.name ?? "",
     identifier: project.identifier ?? null,
     status: project.status ?? null,
@@ -52,7 +52,7 @@ export function emptyProjectValues(): ProjectValues {
   return {
     id: null,
     nummer: null,
-    internKost2_4: null,
+    projektnummer: null,
     name: "",
     identifier: null,
     status: null,
