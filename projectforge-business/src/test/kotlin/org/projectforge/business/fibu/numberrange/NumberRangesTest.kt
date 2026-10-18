@@ -174,6 +174,17 @@ class NumberRangesTest {
         }
     }
 
+    @Test
+    fun `legacy ranges map the former Kost2 layout 4 and 5`() {
+        val legacyRanges = NumberRanges(NumberRanges.legacyRanges())
+        assertEquals(listOf(4, 5), legacyRanges.ranges.map { it.prefix })
+        assertEquals(512345, legacyRanges.projectNumber(legacyRanges.rangeForCustomer(123)!!, 123, 45))
+        assertEquals(412345, legacyRanges.projectNumber(legacyRanges.rangeForPrefix(4)!!, null, 12345))
+        assertNull(legacyRanges.rangeForCustomer(1000), "Customers above 999 have free numbers.")
+        assertEquals("5.123.45.67", legacyRanges.formatKost2(51234567))
+        assertEquals("4.123.45.67", legacyRanges.formatKost2(41234567))
+    }
+
     private fun range(
         prefix: Int,
         customerMin: Long? = null,

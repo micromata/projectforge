@@ -142,6 +142,16 @@ class KostCache : AbstractCache() {
     }
 
     /**
+     * The bookable cost 2 units of the given project, like [getActiveKost2], but by the project reference: also
+     * found if the project's number range isn't configured (any more).
+     */
+    fun getActiveKost2ForProjekt(projektId: Long?): List<Kost2DO> {
+        return getKost2ForProjekt(projektId).filter { kost2 ->
+            kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null
+        }
+    }
+
+    /**
      * All cost 2 units with the given first three parts of the number (any cost 2 type), whatever their state.
      */
     fun getKost2List(nummernkreis: Int, bereich: Int, teilbereich: Int, includeDeleted: Boolean = false): List<Kost2DO> {

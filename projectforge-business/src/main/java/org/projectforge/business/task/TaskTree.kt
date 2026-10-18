@@ -412,14 +412,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             useProjekt = projektDao.find(useProjekt.id, checkAccess = false)
         }
         if (useProjekt != null) {
-            // Projects with a free number (no number range) have no Kost2:
-            val nummernkreis = useProjekt.nummernkreis
-            val kost2OfProjekt = if (nummernkreis == null) {
-                emptyList()
-            } else {
-                kostCache.getActiveKost2(nummernkreis, useProjekt.bereich!!, useProjekt.teilbereich!!)
-            }
-            kost2OfProjekt.run {
+            kostCache.getActiveKost2ForProjekt(useProjekt.id).run {
                 forEach { kost2 ->
                     if (wildcard) { // black-white-list is "*".
                         if (kost2IsBlackList) {

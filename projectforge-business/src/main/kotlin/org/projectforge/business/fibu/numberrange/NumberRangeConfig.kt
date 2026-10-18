@@ -24,8 +24,9 @@
 package org.projectforge.business.fibu.numberrange
 
 /**
- * Number ranges (Nummernkreise) of customers and projects and their mapping to Kost2. Nothing is predefined: without
- * any configured range, customer and project numbers are free.
+ * Number ranges (Nummernkreise) of customers and projects and their mapping to Kost2. Without any configured range,
+ * the formerly built-in ranges 4 and 5 apply if cost units are configured ([NumberRanges.legacyRanges]), otherwise
+ * customer and project numbers are free.
  *
  * Example (the ranges used by Micromata):
  * ```

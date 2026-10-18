@@ -129,8 +129,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         if (projekt == null) {
             return null
         }
-        val nummernkreis = projekt.nummernkreis ?: return emptyList()
-        return getActiveKost2(nummernkreis, projekt.bereich!!, projekt.teilbereich!!)
+        return kostCache.getActiveKost2ForProjekt(projekt.id)
     }
 
     /**
@@ -179,21 +178,12 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
             val projekt =
                 // Attached: inside the update transaction, a detaching find would pull the project out of the session.
                 projektDao.find(obj.projekt?.id, checkAccess = false, attached = true)
-            if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.teilbereich != obj.teilbereich) {
+            // Compared with the stored project number, not with the range-derived digits: existing Kost2 of a project
+            // stay valid even if its number range isn't configured (any more).
+            val kost2Projektnummer = obj.nummernkreis * 100_000 + obj.bereich * 100 + obj.teilbereich
+            if (projekt!!.projektnummer != kost2Projektnummer) {
                 throw UserException(
-                    ("Inkonsistenz bei Kost2: "
-                            + obj.nummernkreis
-                            + "."
-                            + obj.bereich
-                            + "."
-                            + obj.teilbereich
-                            + " != "
-                            + projekt.nummernkreis
-                            + "."
-                            + projekt.bereich
-                            + "."
-                            + projekt.teilbereich
-                            + " (Projekt)")
+                    "Inkonsistenz bei Kost2: $kost2Projektnummer != ${projekt.projektnummer} (Projektnummer)"
                 )
             }
         } else if (numberRangeService.numberRanges.rangeForPrefix(obj.nummernkreis) != null) {

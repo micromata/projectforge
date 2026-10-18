@@ -446,10 +446,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * (`RechnungCostEditTablePanel.newKostZuweisung` takes the first one).
      *
      * Answered by the project rather than looked up in the browser: which cost units belong to a project
-     * follows from its project number ([ProjektDO.nummernkreis] and friends), and the invoice DTO carries its
+     * follows from the project reference of the cost units, and the invoice DTO carries its
      * project the `copyFromMinimal` way, which omits it.
      *
-     * An empty list where the project number belongs to no number range — such a project has no cost units.
+     * An empty list for a project without cost units (e.g. with a free project number).
      */
     @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("activeKost2")
@@ -458,8 +458,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
         checkSingleInvoiceDetailAccess()
         val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
-        val nummernkreis = projekt.nummernkreis ?: return emptyList()
-        return kostCache.getActiveKost2(nummernkreis, projekt.bereich!!, projekt.teilbereich!!)
+        return kostCache.getActiveKost2ForProjekt(projekt.id)
             .sorted()
             .map { Kost2(it) }
     }

@@ -12,8 +12,8 @@
       "de": "Nummernkreise für Kunden und Projekte und ihre Zuordnung zu Kost2 werden in der application.properties konfiguriert (projectforge.fibu.number-ranges.*), einschließlich der Stellenzahl der Projekte je Kunde und der Segmente der Kost2-Nummern, z. B. 1.####.#.##."
     },
     {
-      "en": "Installations using cost units with the former fixed ranges 4.###.##.## (internal) and 5.###.##.## (customers 0-999) have to configure them as number ranges, see NumberRangeConfig.",
-      "de": "Installationen, die Kostenträger mit den bisher fest hinterlegten Kreisen 4.###.##.## (intern) und 5.###.##.## (Kunden 0-999) nutzen, müssen diese als Nummernkreise konfigurieren, siehe NumberRangeConfig."
+      "en": "Without configured number ranges, installations using cost units keep the former ranges 4.###.##.## (internal) and 5.###.##.## (customers 0-999); without cost units, customer and project numbers are free.",
+      "de": "Ohne konfigurierte Nummernkreise behalten Installationen mit Kostenträgern die bisherigen Kreise 4.###.##.## (intern) und 5.###.##.## (Kunden 0-999); ohne Kostenträger sind Kunden- und Projektnummern frei."
     },
     {
       "en": "Invoicing quota: optionally, the time booked on invoiced Kost2 types of customer projects counts as billed, independent of the Kost2 number (projectforge.invoicing-quota.billed-by-invoiced-kost2-types).",

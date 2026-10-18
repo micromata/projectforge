@@ -315,5 +315,24 @@ class NumberRanges(
         private val DIGITS_8 = Regex("\\d{$KOST2_DIGITS}")
         private val DIGITS_6 = Regex("\\d{$PROJECT_NUMBER_DIGITS}")
         private val ONLY_DIGITS = Regex("\\d+")
+
+        /**
+         * The number ranges formerly built in, used if cost units are configured but no number range: 4 for
+         * internal projects (4.###.##.##, 5-digit local number) and 5 for customers 0-999 with up to 100 projects
+         * each (5.###.##.##).
+         */
+        fun legacyRanges(): List<NumberRange> = listOf(
+            NumberRange().apply {
+                prefix = 4
+                name = "Intern"
+                projectDigits = 5
+            },
+            NumberRange().apply {
+                prefix = 5
+                customerMin = 0
+                customerMax = 999
+                projectDigits = 2
+            },
+        )
     }
 }
