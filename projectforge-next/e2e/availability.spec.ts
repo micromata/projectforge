@@ -49,7 +49,7 @@ test.describe("availability", () => {
     const initial = (await (
       await page.request.get("/rs/vacationExport/initial", { headers })
     ).json()) as {
-      employees: { id: number }[];
+      users: { id: number }[];
       groups: { id: number }[];
       periodKind?: string;
       dayWidth?: string;
@@ -60,7 +60,7 @@ test.describe("availability", () => {
       page.request.post("/rs/vacationExport/view", {
         headers: await writeHeaders(page.request),
         data: {
-          employeeIds: initial.employees.map((e) => e.id),
+          userIds: initial.users.map((e) => e.id),
           groupIds: initial.groups.map((g) => g.id),
           periodKind: initial.periodKind,
           dayWidth: initial.dayWidth,

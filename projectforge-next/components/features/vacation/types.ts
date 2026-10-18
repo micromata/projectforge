@@ -102,7 +102,7 @@ export interface VacationListRow extends VacationDetail {
   uncoveredDays?: string[] | null;
 }
 
-/** An employee or group of the team vacation calendar (`org.projectforge.rest.dto.VacationExportRef`). */
+/** A user or group of the team vacation calendar (`org.projectforge.rest.dto.VacationExportRef`). */
 export interface VacationExportRef {
   id: number;
   displayName?: string | null;
@@ -110,7 +110,7 @@ export interface VacationExportRef {
 
 /** What the team vacation calendar asks for (`VacationExportRequest`); the Excel export starts with `from`. */
 export interface VacationExportRequest {
-  employeeIds: number[];
+  userIds: number[];
   groupIds: number[];
   periodKind: string;
   /** ChartWidth, only stored. */
@@ -123,7 +123,7 @@ export interface VacationExportRequest {
 
 /** The choice of last time and whether the user may pick everybody (`VacationExportInitial`). */
 export interface VacationExportInitial {
-  employees: VacationExportRef[];
+  users: VacationExportRef[];
   groups: VacationExportRef[];
   periodKind?: string | null;
   dayWidth?: string | null;
@@ -135,17 +135,17 @@ export interface VacationExportInitial {
   favorites: VacationExportFavorite[];
 }
 
-/** A named choice of employees and groups (`VacationExportFavoriteInfo`). */
+/** A named choice of users and groups (`VacationExportFavoriteInfo`). */
 export interface VacationExportFavorite {
   id: number;
   name: string;
-  employeeIds: number[];
+  userIds: number[];
   groupIds: number[];
 }
 
 /** A favorite applied, as far as the user may pick it (`VacationExportSelection`). */
 export interface VacationExportSelection {
-  employees: VacationExportRef[];
+  users: VacationExportRef[];
   groups: VacationExportRef[];
 }
 
@@ -181,11 +181,11 @@ export interface VacationExportAvailability {
  */
 export type VacationReplacementAvailability = SubstituteAvailability;
 
-/** The calendar of a period (`VacationExportView`): one row per employee, sorted by name. */
+/** The calendar of a period (`VacationExportView`): one row per user, sorted by name. */
 export interface VacationExportView {
   days: VacationChartDay[];
   rows: {
-    employee: VacationExportRef;
+    user: VacationExportRef;
     vacations: VacationExportVacation[];
     /** Only of the states the request asked for (`absenceKinds`), as the vacations. */
     availabilities?: VacationExportAvailability[];

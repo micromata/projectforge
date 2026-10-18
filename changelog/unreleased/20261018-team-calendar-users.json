@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Team vacation calendar: people are picked as users, and the members of a chosen group are shown also without an employee record (e.g. freelancers), with their availability entries, in the chart and the Excel export. Choices and favorites stored before are taken over.",
+  "de": "Team-Urlaubskalender: Personen werden als Benutzer:innen ausgewählt, und die Mitglieder einer gewählten Gruppe werden auch ohne Mitarbeiterdatensatz (z. B. Freelancer) mit ihren Verfügbarkeitseinträgen angezeigt, im Diagramm wie im Excel-Export. Bisher gespeicherte Auswahlen und Favoriten werden übernommen."
+}

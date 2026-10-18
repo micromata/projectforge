@@ -18,7 +18,7 @@ import { boundsOfPeriod } from "@/lib/date-period-bounds";
 import { formatDateRange } from "@/lib/format";
 import type { AbsenceKind } from "@/lib/rs/absence-kinds";
 import {
-  VACATION_EXPORT_EMPLOYEES_URL,
+  VACATION_EXPORT_USERS_URL,
   VACATION_EXPORT_GROUPS_URL,
 } from "@/lib/rs/vacation-export";
 import { VacationChartWidthSelect } from "./vacation-chart-width-select";
@@ -26,15 +26,15 @@ import type { ChartWidth } from "@/components/shared/absence-chart/absence-chart
 import type { useVacationExportFavorites } from "./use-vacation-export-favorites";
 
 /**
- * What the team vacation calendar shows: the employees and groups (the lookups offer only what the user may
+ * What the team vacation calendar shows: the users and groups (the lookups offer only what the user may
  * pick), the period — quarter or calendar year, paged with the arrows, not before `min` — the width of the day
  * columns, which absences are shown (vacations, availability entries by status; in the chart and the export), the Excel export of the
  * same choice and the print of the calendar shown (`canPrint`: one is shown). The favorites hold named choices of
- * employees and groups. Not printed itself (see VacationExportPage).
+ * users and groups. Not printed itself (see VacationExportPage).
  */
 export function VacationExportFilterRow({
   kinds,
-  employees,
+  users,
   groups,
   period,
   min,
@@ -43,7 +43,7 @@ export function VacationExportFilterRow({
   favorites,
   exporting,
   canPrint,
-  onEmployeesChange,
+  onUsersChange,
   onGroupsChange,
   onPeriodChange,
   onDayWidthChange,
@@ -51,7 +51,7 @@ export function VacationExportFilterRow({
   onExport,
 }: {
   kinds: readonly PeriodKind[];
-  employees: EntityRef[];
+  users: EntityRef[];
   groups: EntityRef[];
   period: Period;
   min: string | null;
@@ -60,7 +60,7 @@ export function VacationExportFilterRow({
   favorites: ReturnType<typeof useVacationExportFavorites>;
   exporting: boolean;
   canPrint: boolean;
-  onEmployeesChange: (value: EntityRef[]) => void;
+  onUsersChange: (value: EntityRef[]) => void;
   onGroupsChange: (value: EntityRef[]) => void;
   onPeriodChange: (kind: PeriodKind, anchor: string) => void;
   onDayWidthChange: (value: ChartWidth) => void;
@@ -74,12 +74,14 @@ export function VacationExportFilterRow({
   return (
     <div className="flex flex-wrap items-end gap-4 print:hidden">
       <div className="flex min-w-64 flex-1 flex-col gap-1.5">
-        <Label htmlFor="vacation-export-employees">{t("fibu.employees")}</Label>
+        <Label htmlFor="vacation-export-users">
+          {t("vacation.export.persons")}
+        </Label>
         <EntityMultiAutocomplete
-          id="vacation-export-employees"
-          url={VACATION_EXPORT_EMPLOYEES_URL}
-          value={employees}
-          onChange={onEmployeesChange}
+          id="vacation-export-users"
+          url={VACATION_EXPORT_USERS_URL}
+          value={users}
+          onChange={onUsersChange}
           removeLabel={remove}
           sorted
         />
@@ -133,7 +135,7 @@ export function VacationExportFilterRow({
         label={t("exportAsXls")}
         tooltip={t("vacation.export.excel.tooltip")}
         isPending={exporting}
-        disabled={employees.length === 0 && groups.length === 0}
+        disabled={users.length === 0 && groups.length === 0}
         onClick={onExport}
       />
       <HintTooltip text={t("vacation.export.print.tooltip")}>

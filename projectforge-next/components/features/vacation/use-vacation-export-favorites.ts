@@ -19,10 +19,10 @@ import {
 } from "./vacation-export-favorites-model";
 
 /**
- * The favorites of the team vacation calendar: named choices of employees and groups (stored by the backend with
+ * The favorites of the team vacation calendar: named choices of users and groups (stored by the backend with
  * the user's choice, `VacationExportRest`), bound to the presentational [FavoritesMenu].
  *
- * The favorite applied last is the current one; it reads as modified as soon as the employees or groups on screen
+ * The favorite applied last is the current one; it reads as modified as soon as the users or groups on screen
  * differ from it (as sets: the order means nothing). Applying one takes only what the user may (still) pick; the
  * backend answers the favorites with just those ids, so a favorite of a since deactivated colleague doesn't read
  * as modified right after applying it. A favorite gone meanwhile (deleted in another tab) or with nothing left to
@@ -30,19 +30,19 @@ import {
  */
 export function useVacationExportFavorites({
   initial,
-  employees,
+  users,
   groups,
   apply,
 }: {
   initial: VacationExportFavorite[];
-  employees: EntityRef[];
+  users: EntityRef[];
   groups: EntityRef[];
-  apply: (employees: VacationExportRef[], groups: VacationExportRef[]) => void;
+  apply: (users: VacationExportRef[], groups: VacationExportRef[]) => void;
 }) {
   const t = useTranslations();
   const [favorites, setFavorites] = useState(initial);
   const choice = {
-    employeeIds: employees.map((e) => e.id),
+    userIds: users.map((e) => e.id),
     groupIds: groups.map((g) => g.id),
   };
   // Without one applied yet, the favorite holding exactly the choice on screen (e.g. the stored one).
@@ -68,7 +68,7 @@ export function useVacationExportFavorites({
     select: async (id: number) => {
       const selection = await run(() => selectVacationExportFavorite(id));
       if (!selection) return;
-      if (selection.employees.length === 0 && selection.groups.length === 0) {
+      if (selection.users.length === 0 && selection.groups.length === 0) {
         // Nothing to apply: an empty choice would only clear the pickers.
         const fresh = await run(() => fetchVacationExportInitial());
         const known = fresh?.favorites.some((f) => f.id === id) ?? true;
@@ -81,7 +81,7 @@ export function useVacationExportFavorites({
         );
         return;
       }
-      apply(selection.employees, selection.groups);
+      apply(selection.users, selection.groups);
       setCurrentId(id);
     },
     create: async (name: string) => {
