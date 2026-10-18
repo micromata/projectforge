@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Orders, invoices and creditor invoices: an entry whose positions were all deleted is refused on saving instead of being stored without positions.",
+  "de": "Aufträge, Debitoren- und Kreditorenrechnungen: Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden."
+}
