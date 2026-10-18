@@ -20,6 +20,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CodeDiffButton } from "./code-diff-button";
+import type { CodeDiffViewProps } from "./code-diff-view";
 import { CodeEditorShortcutList } from "./code-editor-shortcut-list";
 import {
   ShortcutKeys,
@@ -36,6 +38,7 @@ import {
 export function CodeEditorToolbar({
   view,
   readOnly,
+  diff,
 }: {
   /**
    * The editor's view, read when a button is pressed: `@uiw/react-codemirror` creates it anew where it
@@ -43,6 +46,8 @@ export function CodeEditorToolbar({
    */
   view: () => EditorView | undefined;
   readOnly?: boolean;
+  /** The versions to compare, where the editor has a stored one (see CodeEditorProps.original). */
+  diff?: Omit<CodeDiffViewProps, "className">;
 }) {
   const t = useTranslations();
   return (
@@ -84,6 +89,12 @@ export function CodeEditorToolbar({
           icon={Comment01Icon}
           run={toggleComment}
         />
+      )}
+      {diff && (
+        <>
+          <Separator orientation="vertical" className="mx-0.5 my-1" />
+          <CodeDiffButton {...diff} />
+        </>
       )}
       <Popover>
         <PopoverTrigger asChild>

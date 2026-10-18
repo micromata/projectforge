@@ -66,28 +66,39 @@ function SegmentBox({
   // without ever changing the number the form holds. `shows` is the number that text stands for: while
   // it equals the form's value the text is ours and must be left alone — typing "1" into a three-digit
   // box holds "1", although the same number renders as "001" when it comes back from the form.
+  // `digits` is the box's width that text was made for.
   const [own, setOwn] = useState(() => ({
     text: displaySegment(value, segment.digits),
     shows: value,
+    digits: segment.digits,
   }));
 
   // Adjusted during render, not in an effect: this follows a value the *form* set — loading an entity
-  // (form.reset) or a number pasted into a neighbouring box.
-  if (value !== own.shows) {
-    setOwn({ text: displaySegment(value, segment.digits), shows: value });
+  // (form.reset) or a number pasted into a neighbouring box — and a box changing its width, e.g. a project's
+  // local number from the five digits of the internal range to the two of a customer's ("00000" → "00").
+  const current = value === own.shows && segment.digits === own.digits;
+  if (!current) {
+    setOwn({
+      text: displaySegment(value, segment.digits),
+      shows: value,
+      digits: segment.digits,
+    });
   }
-  const text =
-    value === own.shows ? own.text : displaySegment(value, segment.digits);
+  const text = current ? own.text : displaySegment(value, segment.digits);
 
   function show(next: number | null) {
-    setOwn({ text: displaySegment(next, segment.digits), shows: next });
+    setOwn({
+      text: displaySegment(next, segment.digits),
+      shows: next,
+      digits: segment.digits,
+    });
     onChange(next);
   }
 
   function commit(typed: string) {
     const digits = segmentDigits(typed, segment.digits);
     const number = segmentValue(digits);
-    setOwn({ text: digits, shows: number });
+    setOwn({ text: digits, shows: number, digits: segment.digits });
     onChange(number);
     if (digits.length === segment.digits) onFilled();
   }
@@ -136,7 +147,11 @@ function SegmentBox({
       }}
       onBlur={() => {
         // Padding becomes visible only now, so it can't fight what is being typed.
-        setOwn({ text: displaySegment(value, segment.digits), shows: value });
+        setOwn({
+          text: displaySegment(value, segment.digits),
+          shows: value,
+          digits: segment.digits,
+        });
         onBlurField();
       }}
       className={cn(

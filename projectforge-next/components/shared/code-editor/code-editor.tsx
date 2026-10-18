@@ -22,6 +22,11 @@ export interface CodeEditorProps {
   fill?: boolean;
   /** Accessible name, where no label points at the editor. */
   ariaLabel?: string;
+  /**
+   * The code as stored: given, the toolbar offers to show the changes made since (CodeDiffButton).
+   * Left out where there is nothing stored yet to compare with.
+   */
+  original?: string;
 }
 
 /**

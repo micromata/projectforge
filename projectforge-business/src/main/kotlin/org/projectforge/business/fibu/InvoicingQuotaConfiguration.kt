@@ -42,6 +42,10 @@ import org.springframework.context.annotation.Configuration
  * projectforge.invoicing-quota.foreign-user-groups=CONTROLLING_GROUP
  * ```
  *
+ * The patterns apply to the Kost2 numbers as their number range segments them (e.g. `1.*` for `1.####.#.##`).
+ * Independent of the digits, [billedByInvoicedKost2Types] counts the Kost2 of customer projects whose Kost2 type
+ * is invoiced (negated patterns still exclude).
+ *
  * Pattern syntax:
  * - `5.*` = Starts with "5."
  * - `!5.999.*` = Exception: does NOT start with "5.999."
@@ -90,4 +94,10 @@ open class InvoicingQuotaConfiguration {
      * sheets.
      */
     var foreignUserGroups: List<ProjectForgeGroup> = emptyList()
+
+    /**
+     * If true, a Kost2 also counts as billed if its project has a customer and its Kost2 type is invoiced
+     * (`Kost2ArtDO.fakturiert`), whatever its number. Negated [billedPatterns] still exclude it.
+     */
+    var billedByInvoicedKost2Types: Boolean = false
 }

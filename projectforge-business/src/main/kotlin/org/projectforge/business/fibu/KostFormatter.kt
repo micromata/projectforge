@@ -28,8 +28,8 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.OldKostFormatter.format2Digits
 import org.projectforge.business.fibu.OldKostFormatter.format3Digits
 import org.projectforge.business.fibu.kost.*
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.common.extensions.format3Digits
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
@@ -62,12 +62,12 @@ class KostFormatter {
     }
 
     /**
-     * "123: ACME"
+     * "5.123: ACME" (customer of a number range) or "4711: ACME" (free customer number).
      * @param kunde The kunde to format.
-     * @param formatType The format type (NUMBER and FORMATTED_NUMBER are equal).
+     * @param formatType NUMBER: "123" / "12345" (padded to the digits of the range), FORMATTED_NUMBER: "5.123" /
+     * "1.2345".
      * @param abbreviationLength The length of the abbreviation (only used for paramType=TEXT).
-     * @return Id im dreistelligen Format: "001" - "999" oder "???" wenn id null ist.
-     * @see [format3Digits]
+     * @see org.projectforge.business.fibu.numberrange.NumberRanges.formatCustomerNumber
      */
     @JvmOverloads
     fun formatKunde(
@@ -75,25 +75,20 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        val kundeNummer = kunde?.nummer ?: return "5.???"
+        val kundeNummer = kunde?.nummer ?: return if (formatType == FormatType.NUMBER) "???" else "?.???"
+        val numberRanges = NumberRangeService.current
+        val number = numberRanges.formatCustomerNumber(kundeNummer, formatted = false)
+        val formattedNumber = numberRanges.formatCustomerNumber(kundeNummer)
         when (formatType) {
-            FormatType.NUMBER -> return kundeNummer.format3Digits()
-            FormatType.FORMATTED_NUMBER -> return "5.${kundeNummer.format3Digits()}"
+            FormatType.NUMBER -> return number
+            FormatType.FORMATTED_NUMBER -> return formattedNumber
             FormatType.NUMBER_AND_NAME -> {
-                return abbreviateIfRequired(
-                    "${kundeNummer.format3Digits()} - ${kunde.name}",
-                    formatType,
-                    abbreviationLength,
-                )
+                return abbreviateIfRequired("$number - ${kunde.name}", formatType, abbreviationLength)
             }
 
             else -> {
-                val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return "5.${kundeNummer.format3Digits()}"
-                return abbreviateIfRequired(
-                    "5.${format3Digits(kundeNummer)}: ${useKunde.name}",
-                    formatType,
-                    abbreviationLength
-                )
+                val useKunde = kundeCache.getKundeIfNotInitialized(kunde) ?: return formattedNumber
+                return abbreviateIfRequired("$formattedNumber: ${useKunde.name}", formatType, abbreviationLength)
             }
         }
     }
@@ -117,12 +112,11 @@ class KostFormatter {
 
 
     /**
-     * "1.234.56: ACME DB project"
+     * "5.123.45: ACME DB project" (project of a number range) or "42: ACME DB project" (free project number).
      * @param projekt The projekt to format.
-     * @param formatType The format type (NUMBER and FORMATTED_NUMBER are equal).
+     * @param formatType NUMBER: the plain project number ("512345"), FORMATTED_NUMBER: segmented by its range.
      * @param abbreviationLength The length of the abbreviation (only used for paramType=TEXT).
-     * @return nummernkreis + format(kunde)/projekt.getBereich() + "." + 3 stellige Projekt-Id;
-     * @see StringUtils.leftPad
+     * @see org.projectforge.business.fibu.numberrange.NumberRanges.formatProjectNumber
      */
     @JvmOverloads
     fun formatProjekt(
@@ -130,18 +124,11 @@ class KostFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        var useProjekt = projektCache.getProjektIfNotInitialized(projekt)
-        useProjekt ?: return if (formatType == FormatType.NUMBER) "??????" else "?.???.??"
-        val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
+        val useProjekt = projektCache.getProjektIfNotInitialized(projekt)
+        val placeholder = if (formatType == FormatType.NUMBER) "??????" else "?.???.??"
+        useProjekt ?: return placeholder
         val sb = StringBuilder()
-        sb.append(useProjekt.nummernkreis).append(delimiter)
-        var kunde = kundeCache.getKundeIfNotInitialized(useProjekt.kunde)
-        if (kunde != null) {
-            sb.append(format3Digits(kunde.nummer))
-        } else {
-            sb.append(format3Digits(useProjekt.bereich))
-        }
-        sb.append(delimiter).append(format2Digits(useProjekt.nummer))
+        sb.append(formatProjektNumber(useProjekt, formatType != FormatType.NUMBER) ?: placeholder)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ").append(useProjekt.name)
         }
@@ -164,14 +151,7 @@ class KostFormatter {
             ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
-        sb.append(useKost2.nummernkreis).append(delimiter)
-            .append(format3Digits(useKost2.bereich)).append(delimiter)
-            .append(format2Digits(useKost2.teilbereich)).append(delimiter)
-        if (useKost2.kost2Art != null) {
-            sb.append(format2Digits(useKost2.kost2Art!!.id))
-        } else {
-            sb.append("--")
-        }
+        sb.append(formatKost2Number(useKost2, delimiter))
         val useProjekt = projektCache.getProjektIfNotInitialized(useKost2.projekt)
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
@@ -319,6 +299,30 @@ class KostFormatter {
          */
         fun getKostAsInt(nummernkreis: Int, bereich: Int, teilbereich: Int, endziffer: Long): Int {
             return getKostAsInt(nummernkreis, bereich, teilbereich, endziffer.toInt())
+        }
+
+        /**
+         * The Kost2 number segmented by its number range, e.g. "5.123.45.67" or "1.2345.6.78".
+         * @param delimiter "" for the 8-digit number.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun formatKost2Number(kost2: Kost2DO, delimiter: String = "."): String {
+            return NumberRangeService.current.formatKost2(
+                kost2.nummernkreis, kost2.bereich, kost2.teilbereich, kost2.kost2Art?.id, delimiter,
+            )
+        }
+
+        /**
+         * The project number segmented by its number range ("5.123.45", "1.2345.6") or the free project number.
+         * @param formatted If false, the plain project number is returned.
+         * @return null if the project has no project number (legacy data).
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun formatProjektNumber(projekt: ProjektDO, formatted: Boolean = true): String? {
+            val projektnummer = projekt.projektnummer ?: return null
+            return NumberRangeService.current.formatProjectNumber(projektnummer, formatted)
         }
 
         /**

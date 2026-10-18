@@ -412,11 +412,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             useProjekt = projektDao.find(useProjekt.id, checkAccess = false)
         }
         if (useProjekt != null) {
-            kostCache.getActiveKost2(
-                useProjekt.nummernkreis,
-                useProjekt.bereich!!,
-                useProjekt.nummer
-            ).run {
+            kostCache.getActiveKost2ForProjekt(useProjekt.id).run {
                 forEach { kost2 ->
                     if (wildcard) { // black-white-list is "*".
                         if (kost2IsBlackList) {

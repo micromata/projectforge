@@ -142,9 +142,9 @@ class KostZuweisungExportTest : AbstractTestBase() {
     private fun createKost2(project: ProjektDO, kost2Art: Kost2ArtDO): Kost2DO {
         return Kost2DO().also { kost ->
             kost.projekt = project
-            kost.nummernkreis = project.nummernkreis
+            kost.nummernkreis = project.nummernkreis!!
             kost.bereich = project.bereich!!
-            kost.teilbereich = project.nummer
+            kost.teilbereich = project.teilbereich!!
             kost.kost2Art = kost2Art
             kost2Dao.insert(kost, checkAccess = false)
         }

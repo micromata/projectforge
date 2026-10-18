@@ -395,19 +395,19 @@ open class MenuCreator {
                                 isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                     })
             )
-        if (Configuration.instance.isCostConfigured) {
-            fibuMenu.add(
-                MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
-                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+        // Not tied to isCostConfigured: customers and projects work without cost units (free numbers, see
+        // NumberRangeService).
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
+                checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+        )
+            .add(
+                MenuItemDef(MenuItemDefId.PROJECT_LIST,
+                    checkAccess = {
+                        hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    })
             )
-                .add(
-                    MenuItemDef(MenuItemDefId.PROJECT_LIST,
-                        checkAccess = {
-                            hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
-                        })
-                )
-        }
         // Not tied to isCostConfigured: groups of free-text customers make sense without customer entities.
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.CUSTOMER_GROUPS,

@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.JacksonConfiguration
@@ -37,6 +38,7 @@ import org.projectforge.rest.dto.Customer
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterListElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -56,6 +58,9 @@ class CustomerPagesRest
     : AbstractDTOEntityRest<KundeDO, Customer, KundeDao>(
         KundeDao::class.java,
         "fibu.kunde.title") {
+
+    @Autowired
+    private lateinit var numberRangeService: NumberRangeService
 
     @PostConstruct
     private fun postConstruct() {
@@ -93,11 +98,20 @@ class CustomerPagesRest
      * error so the hand built form marks the number field instead of only toasting the exception. Used
      * to be the `onWatchFieldsUpdate` of the removed edit layout.
      *
+     * The number must also fit the configured number ranges ([NumberRangeService]).
+     *
      * Only for a new customer: an existing one's number equals its id, so `doesNumberAlreadyExist` would
      * always find the customer itself.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Customer) {
         super.validate(validationErrors, dto)
+        if (dto.id == null && dto.nummer != null) {
+            // The number must fit the configured number ranges (KundeDao.onInsert):
+            numberRangeService.numberRanges.validateCustomerNumber(dto.nummer)?.let { violation ->
+                validationErrors.add(ValidationError(translate(violation.i18nKey), fieldId = KundeDO::nummer.name))
+                return
+            }
+        }
         if (dto.id == null && dto.nummer != null && baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
             validationErrors.add(
                 ValidationError(

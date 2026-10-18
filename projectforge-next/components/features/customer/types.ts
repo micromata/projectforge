@@ -29,7 +29,7 @@ export interface CustomerDetail {
    * `nummer` as its `@Id`). null for a customer that has not been saved yet.
    */
   id: number | null;
-  /** The user-assigned customer number, 0..999 (`KundeDO.MAX_ID`); equals [id] once saved. */
+  /** The user-assigned customer number (bounded by the number ranges, if configured); equals [id] once saved. */
   nummer?: number | null;
   name?: string | null;
   identifier?: string | null;
@@ -39,7 +39,7 @@ export interface CustomerDetail {
   /** The DATEV account of the customer. Written back by id (see KontoRefDto). */
   konto?: KontoRefDto | null;
   /**
-   * The formatted number ("5.###"), computed by the entity (`KundeDO.kost` has no backing field).
+   * The formatted number ("5.123", "1.0007" in a number range, otherwise the plain number), computed by the entity (`KundeDO.kost` has no backing field).
    * Read-only: the list shows it, the form never sends one back.
    */
   kost?: string | null;
