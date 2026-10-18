@@ -125,7 +125,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
   test("creates the cost 2 unit of a checked cost 2 type", async ({
     loggedInPage: page,
   }) => {
-    await skipWithoutCost2(page.request);
+    await skipWithoutCost2(page.request, project);
     const format = await userFormat(page);
     const before = await storedProject(page.request, project.id);
     const candidate = before.kost2Arts?.find((art) => !art.existsAlready);
@@ -162,7 +162,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
   test("deactivates a cost 2 unit when unchecked and reactivates it", async ({
     loggedInPage: page,
   }) => {
-    await skipWithoutCost2(page.request);
+    await skipWithoutCost2(page.request, project);
     const format = await userFormat(page);
     const before = await storedProject(page.request, project.id);
     const candidate = before.kost2Arts?.find((art) => art.active);
@@ -232,7 +232,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
   test("mass update creates and deactivates cost 2 types, the list filters and strikes them", async ({
     loggedInPage: page,
   }) => {
-    await skipWithoutCost2(page.request);
+    await skipWithoutCost2(page.request, project);
     const before = await storedProject(page.request, project.id);
     const [candidate, absent] = (before.kost2Arts ?? []).filter(
       (art) => !art.existsAlready
@@ -416,11 +416,18 @@ async function massUpdateKost2Arts(
  * Cost 2 units need cost units configured and a project number of a number range (ProjectEntityRest.validate);
  * the form shows no cost 2 types otherwise.
  */
-async function skipWithoutCost2(request: APIRequestContext): Promise<void> {
+async function skipWithoutCost2(
+  request: APIRequestContext,
+  project: SeededProject
+): Promise<void> {
   const info = await fetchNumberRanges(request);
   test.skip(
     !info.costConfigured,
     "No cost units configured (fibu.costConfigured)."
+  );
+  test.skip(
+    rangeForCustomer(info, project.customer.nummer) == null,
+    `Customer ${project.customer.nummer} belongs to no number range (${info.mode}): its project has a free number.`
   );
 }
 

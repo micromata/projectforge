@@ -320,7 +320,7 @@
           },
           "costConfigured": {
             "_": "Kostenkalkulation freigeschaltet?",
-            "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
+            "description": "Schaltet die Kostenträgerrechnung frei (Kost1/Kost2, s. Dokumentation): Kostenträger der Projekte mit ihren Kost2-Arten, Kostenzuweisungen der Rechnungen und die zugehörigen Auswertungen. Kunden und Projekte sind auch ohne sie nutzbar, mit freien Nummern oder denen der konfigurierten Nummernkreise. Ein erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
           },
           "customerGroups": {
             "_": "Kundengruppen und Business Units",
@@ -499,11 +499,22 @@
     "validSince": "Gültig ab"
   },
   "availability": {
+    "chart": {
+      "ariaLabel": "Diagramm dieses Eintrags und der überlappenden Abwesenheiten der Vertretungen",
+      "own": "Dieser Eintrag"
+    },
     "comment": {
       "_": "Kommentar",
       "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
     },
+    "conflict": {
+      "info": "Es besteht ein Konflikt mit den Abwesenheiten der Vertreter:innen. An mindestens einem Tag steht kein:e Vertreter:in zur Verfügung (Urlaub oder nicht verfügbar). Bitte andere oder weitere Vertretungen auswählen."
+    },
+    "conflicts": "Konflikte",
     "endDate": "Enddatum",
+    "entry": {
+      "add": "Eintrag hinzufügen"
+    },
     "internalComment": {
       "_": "Interner Kommentar",
       "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar."
@@ -521,6 +532,12 @@
       "reachableIfUrgent": "Bei dringendem Bedarf erreichbar",
       "remoteReachable": "Remote erreichbar"
     },
+    "substitutes": {
+      "_": "Vertretungen",
+      "absences": "Abwesenheiten der Vertretungen",
+      "kind": "Art",
+      "tooltip": "Optional: wer im Zeitraum vertritt. Sind an einem Tag alle abwesend (Urlaub oder nicht verfügbar), wird der Eintrag als Konflikt angezeigt."
+    },
     "title": {
       "_": "Verfügbarkeit",
       "add": "Verfügbarkeitseintrag erstellen",
@@ -532,7 +549,8 @@
       "_": "Typ",
       "tooltip": "Nur für die betroffene Person selbst und für HR sichtbar, alle anderen sehen nur den Status."
     },
-    "user": "Person"
+    "user": "Person",
+    "workingDays": "Arbeitstage"
   },
   "back": "Zurück",
   "book": {
@@ -597,7 +615,7 @@
     "filter": {
       "absenceKinds": {
         "_": "Anzeigen",
-        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend."
+        "tooltip": "Was von den Abwesenheiten angezeigt wird: Urlaube, nicht verfügbar, remote erreichbar usw. Für die Vertretungen eines Urlaubs zählen nur Urlaube und „nicht verfügbar“ als abwesend. Nicht für die Team-Kalender: Sie zeigen die Abwesenheiten, die sie enthalten."
       },
       "vacation": {
         "groups": {
@@ -1651,6 +1669,9 @@
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
       },
       "kunden": "Kunden",
+      "legend": {
+        "inactive": "Beendet, nicht aktiv oder nicht mehr existent"
+      },
       "list": {
         "select": {
           "title": "Kunde wählen"
@@ -1774,6 +1795,9 @@
       "lastActivity": "Letzte Aktivität",
       "lastOrder": "Letzter Auftrag",
       "lastTimesheet": "Letzte Zeitbuchung",
+      "legend": {
+        "ended": "Beendet"
+      },
       "leiter": "Projektmanagement",
       "list": {
         "select": {
@@ -2880,7 +2904,7 @@
       },
       "lastRun": "Letzter Lauf",
       "legend": {
-        "inactive": "Inaktiv (oder gelöscht)"
+        "inactive": "Inaktiv"
       },
       "link": "Button „Öffnen“",
       "linkMode": {
@@ -3443,6 +3467,11 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Angezeigte Abwesenheiten",
+        "tooltip": "Welche Abwesenheiten der oben gewählten Personen der Kalender enthält: Urlaube, nicht verfügbar, remote erreichbar usw. Gilt für die Kalenderansicht und das Abonnement des Kalenders."
+      },
+      "absences": "Abwesenheiten",
       "access": {
         "_": "Zugriffsrecht",
         "groups": "Gruppen",
@@ -4870,6 +4899,10 @@
       "sendmail": "Es ist ein Problem beim Senden der Urlaubseintragsmail aufgetreten."
     },
     "export": {
+      "absenceKinds": {
+        "_": "Anzeigen",
+        "tooltip": "Welche Abwesenheiten der gewählten Personen angezeigt und exportiert werden: Urlaube und die Verfügbarkeitseinträge nach ihrem Status (z. B. Elternzeit, Workation). Die Kommentare der Verfügbarkeitseinträge nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
+      },
       "dayWidth": {
         "_": "Tagesbreite",
         "auto": "Automatisch",
@@ -4892,10 +4925,6 @@
         "tooltip": "Druckt den angezeigten Kalender, auf die Seitenbreite verkleinert (im Druckdialog auch als PDF speicherbar)."
       },
       "selectHint": "Mitarbeitende oder Gruppen auswählen, um ihre Urlaube anzuzeigen.",
-      "showAvailabilities": {
-        "_": "Verfügbarkeiten",
-        "tooltip": "Zeigt und exportiert auch die Verfügbarkeitseinträge (z. B. Elternzeit, Workation) der gewählten Personen, wie ihre Urlaube. Die Kommentare nur, wenn die Einträge auch in der Verfügbarkeitsliste sichtbar sind."
-      },
       "title": "Team-Urlaubskalender"
     },
     "halfDay": "Halber Tag",
@@ -4922,6 +4951,7 @@
     },
     "leaveOfYear": "Urlaubskonto im Jahr {arg0}",
     "leaveaccount": {
+      "availabilities": "Verfügbarkeitseinträge",
       "title": "Urlaubskonto"
     },
     "mail": {
@@ -4953,6 +4983,14 @@
     "previousyearleave": "Resturlaub aus dem Vorjahr",
     "previousyearleaveunused": "Ungenutzer Resturlaub zum {arg0}",
     "previousyearleaveused": "Genutzter Resturlaub aus dem Vorjahr",
+    "quickView": {
+      "button": "Wer ist verfügbar?",
+      "empty": "Keine Abwesenheiten in diesem Zeitraum.",
+      "selectHint": "Person auswählen, um ihre Urlaube und Verfügbarkeitseinträge der nächsten Wochen zu sehen.",
+      "title": "Verfügbarkeit auf einen Blick",
+      "user": "Person",
+      "weeks": "Wochen"
+    },
     "recalculateRemainingLeave": "Resturlaub neu berechnen",
     "remainingLeaveFromYear": "Resturlaub aus dem Jahr {arg0}",
     "remainingLeaveFromYearUnused": "Ungenutzer Resturlaub aus dem Jahr {arg0}",

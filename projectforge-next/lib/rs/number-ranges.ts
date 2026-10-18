@@ -57,9 +57,9 @@ export function fetchNumberRanges(
  * `fresh`, for the next free customer numbers, which every saved customer changes: then fetched again on
  * mount (the cached ones are shown meanwhile).
  */
-export function useNumberRanges({
-  fresh = false,
-}: { fresh?: boolean } = {}): NumberRangesInfo | undefined {
+export function useNumberRanges({ fresh = false }: { fresh?: boolean } = {}):
+  | NumberRangesInfo
+  | undefined {
   const { data } = useQuery({
     queryKey: NUMBER_RANGES_QUERY_KEY,
     queryFn: ({ signal }) => fetchNumberRanges(signal),

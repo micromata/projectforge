@@ -1,9 +1,8 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { label, userFormat, type UserFormat } from "./fixtures/format";
+import { userFormat, type UserFormat } from "./fixtures/format";
 import {
   fetchNumberRanges,
-  hasConfiguredRanges,
   isCostConfigured,
   setCostConfigured,
 } from "./fixtures/number-ranges";
@@ -16,7 +15,6 @@ import {
   MARKER,
   uniqueSuffix,
   type CustomerPool,
-  type SeededCustomer,
   type SeededProject,
 } from "./fixtures/seed";
 import {
@@ -26,19 +24,20 @@ import {
   projectNumber,
   rangeForCustomer,
 } from "../lib/number-ranges";
-import type { NumberRange } from "../lib/rs/number-ranges";
+import type { NumberRange, NumberRangeMode } from "../lib/rs/number-ranges";
 
 /**
- * Customer and project numbers in the modes of the number ranges (see fixtures/number-ranges.ts):
+ * Customer and project numbers in the mode of the number ranges the server runs with (see
+ * fixtures/number-ranges.ts), one block per mode; the blocks of the other modes skip:
  *
- * - **without configured ranges** (the default of an installation): with cost units the former ranges 4
- *   and 5 apply (legacy), without them the numbers are free. Both are tested in one run, switching
- *   `fibu.costConfigured` — and so is a project saved free and edited after cost units were switched on,
- *   whose stored local number is still its project number (`ProjektDao.localNummer`).
- * - **with configured ranges** (`projectforge.fibu.number-ranges.*`, bound at startup): only on a slot
- *   configured that way, e.g. with the ranges of `application-test.properties` (4 internal, 5 customers
- *   0-999, 1 customers 10000-19999) in `~/ProjectForge-<n>/projectforge.properties`; then
- *   `bin/pfDev.sh run <n>` and `bin/pfDev.sh e2e <n> number-ranges`. Elsewhere this block skips.
+ * - **FREE** (a fresh database, e.g. a slot of `bin/pfDev.sh`): free numbers — also for customers 0-999 and
+ *   with cost units, which don't bring back the former ranges.
+ * - **LEGACY** (a copy of an installation that used the former ranges 4 and 5, e.g. 8080): customer
+ *   projects of range 5, internal ones of range 4.
+ * - **CONFIGURED** (`projectforge.fibu.number-ranges.*`): only on a slot configured that way, e.g. with the
+ *   ranges of `application-test.properties` (4 internal, 5 customers 0-999, 1 customers 10000-19999) in
+ *   `~/ProjectForge-<n>/projectforge.properties`; then `bin/pfDev.sh run <n>` and
+ *   `bin/pfDev.sh e2e <n> number-ranges`.
  *
  * No tag: switching cost units changes every form and list of the instance, so this runs isolated (see
  * playwright.config.ts), and the former value is restored at the end.
@@ -48,12 +47,12 @@ import type { NumberRange } from "../lib/rs/number-ranges";
  */
 test.describe("number ranges of customers and projects", () => {
   let costBefore: boolean;
-  let configured: boolean;
+  let mode: NumberRangeMode;
   const created: { entity: "customer" | "project"; id: number }[] = [];
 
   test.beforeAll(async ({ seedRequest }) => {
     costBefore = await isCostConfigured(seedRequest);
-    configured = await hasConfiguredRanges(seedRequest);
+    mode = (await fetchNumberRanges(seedRequest)).mode;
   });
 
   test.afterAll(async ({ seedRequest }) => {
@@ -63,6 +62,15 @@ test.describe("number ranges of customers and projects", () => {
     }
     await setCostConfigured(seedRequest, costBefore);
   });
+
+  /** Skips the tests of a block unless the server runs in its mode. */
+  const onlyIn = (expected: NumberRangeMode) =>
+    test.beforeEach(() => {
+      test.skip(
+        mode !== expected,
+        `The server's number ranges are ${mode}, not ${expected} (see the comment of this spec).`
+      );
+    });
 
   /** A customer of the pool with a project of a free local number (see [customerWithProject]). */
   const seedProject = async (
@@ -78,13 +86,8 @@ test.describe("number ranges of customers and projects", () => {
     return project;
   };
 
-  test.describe("without configured number ranges", () => {
-    test.beforeEach(() => {
-      test.skip(
-        configured,
-        "Number ranges are configured (projectforge.fibu.number-ranges.*): no legacy and no free mode."
-      );
-    });
+  test.describe("free numbers", () => {
+    onlyIn("FREE");
 
     test("without cost units, the forms offer free numbers and no cost 2 types", async ({
       loggedInPage: page,
@@ -112,15 +115,19 @@ test.describe("number ranges of customers and projects", () => {
       await expect(page.locator("[data-kost2-art]")).toHaveCount(0);
     });
 
-    test("without cost units, a project gets the next free project number, a taken one is rejected", async ({
+    test("with cost units, a customer of 0-999 has free project numbers and no cost 2 units", async ({
       loggedInPage: page,
       seedRequest,
     }) => {
-      await setCostConfigured(seedRequest, false);
+      // The former range 5 doesn't apply to an installation that never used it.
+      await setCostConfigured(seedRequest, true);
+      const info = await fetchNumberRanges(seedRequest);
+      expect(info.mode).toBe("FREE");
+      expect(info.ranges).toEqual([]);
       const format = await userFormat(page);
       const project = await seedProject(seedRequest);
+      expect(project.customer.nummer).toBeLessThanOrEqual(999);
       const stored = await storedProject(seedRequest, project.id);
-      expect(stored.projektnummer).toBeGreaterThan(0);
       // A free project has no local number of its own (ProjektDao.assignProjektnummer).
       expect(stored.nummer).toBe(stored.projektnummer);
 
@@ -129,6 +136,21 @@ test.describe("number ranges of customers and projects", () => {
         String(stored.projektnummer),
         { timeout: 30_000 }
       );
+      await expect(localNumberField(page, format)).toHaveCount(0);
+      // Cost 2 types are listed, but none can be created: the number isn't made of Kost2.
+      await expect(
+        page.getByText(format.t("fibu.kost2.error.projektWithoutNumberRange"))
+      ).toBeVisible();
+    });
+
+    test("a project gets the next free project number, a taken one is rejected", async ({
+      loggedInPage: page,
+      seedRequest,
+    }) => {
+      const format = await userFormat(page);
+      const project = await seedProject(seedRequest);
+      const stored = await storedProject(seedRequest, project.id);
+      expect(stored.projektnummer).toBeGreaterThan(0);
 
       await expect(
         insert(seedRequest, "project", {
@@ -141,8 +163,21 @@ test.describe("number ranges of customers and projects", () => {
         messagePattern(format, "fibu.projekt.validation.projektnummerExists")
       );
     });
+  });
 
-    test("with cost units, a customer of 0-999 numbers its projects in range 5", async ({
+  test.describe("former ranges 4 and 5", () => {
+    onlyIn("LEGACY");
+
+    test("they apply with and without cost units", async ({ seedRequest }) => {
+      for (const on of [false, true]) {
+        await setCostConfigured(seedRequest, on);
+        const info = await fetchNumberRanges(seedRequest);
+        expect(info.mode, `cost units ${on}`).toBe("LEGACY");
+        expect(info.ranges.map((range) => range.prefix)).toEqual([4, 5]);
+      }
+    });
+
+    test("a customer of 0-999 numbers its projects in range 5", async ({
       loggedInPage: page,
       seedRequest,
     }) => {
@@ -180,11 +215,9 @@ test.describe("number ranges of customers and projects", () => {
       );
     });
 
-    test("with cost units, an internal project is numbered in range 4", async ({
+    test("an internal project is numbered in range 4", async ({
       loggedInPage: page,
-      seedRequest,
     }) => {
-      await setCostConfigured(seedRequest, true);
       const format = await userFormat(page);
       // The form only: a saved internal project would take a number of range 4 for good.
       await goto(page, "/project/new");
@@ -196,11 +229,10 @@ test.describe("number ranges of customers and projects", () => {
       await expect(page.getByText("4.", { exact: true })).toBeVisible();
     });
 
-    test("with cost units, a customer beyond 999 has free project numbers", async ({
+    test("a customer beyond 999 has free project numbers", async ({
       loggedInPage: page,
       seedRequest,
     }) => {
-      await setCostConfigured(seedRequest, true);
       const info = await fetchNumberRanges(seedRequest);
       test.skip(
         !info.allowFreeNumbers,
@@ -218,51 +250,11 @@ test.describe("number ranges of customers and projects", () => {
       );
       await expect(localNumberField(page, format)).toHaveCount(0);
     });
-
-    test("a project saved free shows and saves its local number once cost units are switched on", async ({
-      loggedInPage: page,
-      seedRequest,
-    }) => {
-      // Saved free: the project number is one of range 5 (no range applies yet), and so is the local number.
-      await setCostConfigured(seedRequest, false);
-      const format = await userFormat(page);
-      const customer = await createCustomer(seedRequest);
-      created.push({ entity: "customer", id: customer.id });
-      const { id, name, local, projektnummer } = await insertFreeInRange5(
-        seedRequest,
-        customer
-      );
-      created.push({ entity: "project", id });
-
-      // With cost units range 5 applies: the form shows the local number, not the project number.
-      await setCostConfigured(seedRequest, true);
-      await goto(page, `/project/${id}`);
-      await expect(localNumberField(page, format)).toHaveValue(pad(local, 2), {
-        timeout: 30_000,
-      });
-      // Save is enabled by a change only; the number itself is right already.
-      await page
-        .getByLabel(label(format, "fibu.projekt.name"), { exact: true })
-        .fill(`${name} saved`);
-      await page
-        .getByRole("button", { name: format.t("save"), exact: true })
-        .click();
-      await expect(
-        page.getByText(format.t("message.successfullChanged"))
-      ).toBeVisible();
-
-      const stored = await storedProject(seedRequest, id);
-      expect(stored.nummer).toBe(local);
-      expect(stored.projektnummer).toBe(projektnummer);
-    });
   });
 
-  test.describe("with configured number ranges", () => {
+  test.describe("configured number ranges", () => {
+    onlyIn("CONFIGURED");
     test.beforeEach(async ({ seedRequest }) => {
-      test.skip(
-        !configured,
-        "No number ranges configured (projectforge.fibu.number-ranges.*), see the comment of this spec."
-      );
       // The Kost2 part of the numbers is shown with cost units only.
       await setCostConfigured(seedRequest, true);
     });
@@ -429,43 +421,6 @@ async function customerWithProject(
     });
     return await createProject(request, fresh, undefined, maxLocal);
   }
-}
-
-/**
- * Inserts a project of the customer (of range 5's customers 0-999) as a free project, whose project
- * number lies in range 5 — the way it was saved before cost units were switched on. Probes the local
- * numbers from 99 down, as their project numbers stay taken by the projects of earlier runs.
- */
-async function insertFreeInRange5(
-  request: APIRequestContext,
-  customer: SeededCustomer
-): Promise<{
-  id: number;
-  name: string;
-  local: number;
-  projektnummer: number;
-}> {
-  const name = `${MARKER} project ${uniqueSuffix()}`;
-  for (let local = 99; local >= 1; local--) {
-    const projektnummer = 500_000 + customer.nummer * 100 + local;
-    try {
-      const id = await insert(request, "project", {
-        name,
-        customer: { id: customer.id },
-        projektnummer,
-        nummer: projektnummer,
-      });
-      return { id, name, local, projektnummer };
-    } catch (cause) {
-      // Taken by an earlier run's project (projektnummerExists, or the customer's local number).
-      if (!/already|bereits|vergeben/i.test(String(cause))) {
-        throw cause;
-      }
-    }
-  }
-  throw new Error(
-    `No free project number of customer ${customer.nummer} in range 5.`
-  );
 }
 
 /** The range with customers of the highest numbers, e.g. range 1 (10000-19999) of Micromata's. */

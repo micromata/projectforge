@@ -3,19 +3,18 @@ import type { NumberRangesInfo } from "../../lib/rs/number-ranges";
 import { fetchEntity, insert, writeHeaders } from "./seed";
 
 /**
- * The number ranges of customers and projects (`/rs/numberRanges`), and the switch that decides between
- * two of their modes.
+ * The number ranges of customers and projects (`/rs/numberRanges`), and the cost units switch.
  *
- * Three modes (`NumberRangeService.numberRanges`):
+ * Three modes (`NumberRangeService.mode`, `NumberRangesInfo.mode`), fixed while the server runs:
  *
- * - **configured**: ranges given by `projectforge.fibu.number-ranges.*` — bound at startup, so only a
- *   slot configured that way (and restarted) runs these tests (see number-ranges.spec.ts);
- * - **legacy**: no ranges configured, but cost units (`fibu.costConfigured`): the former ranges 4
- *   (internal) and 5 (customers 0-999);
- * - **free**: neither; customer and project numbers are free.
+ * - **CONFIGURED**: ranges given by `projectforge.fibu.number-ranges.*` — bound at startup;
+ * - **LEGACY**: no ranges configured, but Kost2 of projects in the former ranges 4 (internal) and 5
+ *   (customers 0-999) exist — an installation that used them, e.g. a copy of Micromata's;
+ * - **FREE**: neither (e.g. a fresh database); customer and project numbers are free.
  *
- * The last two are one configuration parameter apart, which changes at runtime: [setCostConfigured].
- * It is global state — every other test sees it —, so a spec using it runs isolated and restores it.
+ * Cost units (`fibu.costConfigured`, [setCostConfigured]) don't change the mode, only whether projects offer
+ * cost 2 types. It is global state — every other test sees it —, so a spec switching it runs isolated and
+ * restores it.
  */
 
 /** The number ranges as the forms get them. */
@@ -88,21 +87,5 @@ export async function setCostConfigured(
   const info = await fetchNumberRanges(request);
   if (info.costConfigured !== on) {
     throw new Error(`${COST_CONFIGURED} is still ${!on} after setting it.`);
-  }
-}
-
-/**
- * Whether number ranges are configured (`projectforge.fibu.number-ranges.*`), as opposed to the legacy
- * ranges 4/5, which apply only with cost units: asked with cost units off, and switched back.
- */
-export async function hasConfiguredRanges(
-  request: APIRequestContext
-): Promise<boolean> {
-  const before = await isCostConfigured(request);
-  try {
-    await setCostConfigured(request, false);
-    return (await fetchNumberRanges(request)).ranges.length > 0;
-  } finally {
-    await setCostConfigured(request, before);
   }
 }

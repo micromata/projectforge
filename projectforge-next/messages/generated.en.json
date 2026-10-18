@@ -320,7 +320,7 @@
           },
           "costConfigured": {
             "_": "Cost-unit accounting configured?",
-            "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
+            "description": "Enables cost-unit accounting (Kost1/Kost2, refer to the documentation): cost units of projects and their cost 2 types, cost assignments of invoices and the related evaluations. Customers and projects are usable without it, with free numbers or those of the configured number ranges. Any change may be activated only after a re-login."
           },
           "customerGroups": {
             "_": "Customer groups and business units",
@@ -499,11 +499,22 @@
     "validSince": "Valid since"
   },
   "availability": {
+    "chart": {
+      "ariaLabel": "Chart of this entry and the overlapping absences of the substitutes",
+      "own": "This entry"
+    },
     "comment": {
       "_": "Comment",
       "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
     },
+    "conflict": {
+      "info": "A conflict exists: At least at one day no substitute is available (on vacation or not available). Please choose other or further substitutes."
+    },
+    "conflicts": "Conflicts",
     "endDate": "End date",
+    "entry": {
+      "add": "Add entry"
+    },
     "internalComment": {
       "_": "Internal comment",
       "tooltip": "Only visible to the person concerned and to HR staff."
@@ -521,6 +532,12 @@
       "reachableIfUrgent": "Reachable if urgent",
       "remoteReachable": "Remotely reachable"
     },
+    "substitutes": {
+      "_": "Substitutes",
+      "absences": "Absences of the substitutes",
+      "kind": "Kind",
+      "tooltip": "Optional: who stands in during the period. If all of them are away on a day (on vacation or not available), the entry is shown as a conflict."
+    },
     "title": {
       "_": "Availability",
       "add": "Create availability entry",
@@ -532,7 +549,8 @@
       "_": "Type",
       "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
     },
-    "user": "Person"
+    "user": "Person",
+    "workingDays": "Working days"
   },
   "back": "Back",
   "book": {
@@ -597,7 +615,7 @@
     "filter": {
       "absenceKinds": {
         "_": "Show",
-        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation."
+        "tooltip": "What is shown of the absences: vacations, not available, remotely reachable etc. Only vacations and \"not available\" count as absent for the substitutes of a vacation. Not for the team calendars: they show the absences they include."
       },
       "vacation": {
         "groups": {
@@ -1651,6 +1669,9 @@
         "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
       },
       "kunden": "Customers",
+      "legend": {
+        "inactive": "Ended, non-active or non-existent"
+      },
       "list": {
         "select": {
           "title": "Select customer"
@@ -1774,6 +1795,9 @@
       "lastActivity": "Last activity",
       "lastOrder": "Last order",
       "lastTimesheet": "Last time sheet",
+      "legend": {
+        "ended": "Ended"
+      },
       "leiter": "Project manager",
       "list": {
         "select": {
@@ -2880,7 +2904,7 @@
       },
       "lastRun": "Last run",
       "legend": {
-        "inactive": "Inactive (or deleted)"
+        "inactive": "Inactive"
       },
       "link": "\"Open\" button",
       "linkMode": {
@@ -3443,6 +3467,11 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "absenceKinds": {
+        "_": "Absences shown",
+        "tooltip": "Which absences of the people above the calendar includes: vacations, not available, remotely reachable etc. Applies to the calendar view and to the subscription of the calendar."
+      },
+      "absences": "Absences",
       "access": {
         "_": "Access right",
         "groups": "Groups",
@@ -4870,6 +4899,10 @@
       "sendmail": "Something went wrong while sending a mail for application for leave"
     },
     "export": {
+      "absenceKinds": {
+        "_": "Show",
+        "tooltip": "Which absences of the chosen employees are shown and exported: vacations and the availability entries by their status (e.g. parental leave, workation). The comments of availability entries only if the entries are visible in the availability list, too."
+      },
       "dayWidth": {
         "_": "Day width",
         "auto": "Automatic",
@@ -4892,10 +4925,6 @@
         "tooltip": "Prints the calendar shown (or saves it as PDF in the print dialog), scaled down to the width of the page."
       },
       "selectHint": "Choose employees or groups to show their vacations.",
-      "showAvailabilities": {
-        "_": "Availabilities",
-        "tooltip": "Also shows and exports the availability entries (e.g. parental leave, workation) of the chosen employees, as their vacations. Their comments only if the entries are visible in the availability list, too."
-      },
       "title": "Team vacation calendar"
     },
     "halfDay": "Half day",
@@ -4922,6 +4951,7 @@
     },
     "leaveOfYear": "Leave account of year {arg0}",
     "leaveaccount": {
+      "availabilities": "Availability entries",
       "title": "Leave account"
     },
     "mail": {
@@ -4953,6 +4983,14 @@
     "previousyearleave": "Previous year leave",
     "previousyearleaveunused": "Unused previous year leave until {arg0}",
     "previousyearleaveused": "Previous year leave used",
+    "quickView": {
+      "button": "Who is available?",
+      "empty": "No absences in this period.",
+      "selectHint": "Choose a person to see their vacations and availability entries of the coming weeks.",
+      "title": "Availability at a glance",
+      "user": "Person",
+      "weeks": "Weeks"
+    },
     "recalculateRemainingLeave": "Recalculate remaining leave",
     "remainingLeaveFromYear": "Remaining leave from {arg0}.",
     "remainingLeaveFromYearUnused": "Unused remaining leave from {arg0}.",
