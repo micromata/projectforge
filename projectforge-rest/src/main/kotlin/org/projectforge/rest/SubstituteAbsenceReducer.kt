@@ -34,6 +34,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
@@ -250,6 +251,16 @@ class SubstituteAbsenceReducer {
             startDate ?: return false
             endDate ?: return false
             return endDate >= startDate && ChronoUnit.DAYS.between(startDate, endDate) <= CHART_MAX_DAYS
+        }
+
+        /** The weekends and holidays of a period for the days bar; null for one it doesn't draw ([inChartRange]). */
+        fun barNonWorkingDays(startDate: LocalDate?, endDate: LocalDate?): List<LocalDate>? {
+            if (!inChartRange(startDate, endDate)) {
+                return null
+            }
+            val holidays = Holidays.instance
+            return generateSequence(startDate!!) { it.plusDays(1) }.takeWhile { it <= endDate!! }
+                .filter { !holidays.isWorkingDay(it) }.toList()
         }
 
         /**

@@ -99,4 +99,10 @@ export interface SubstituteVacation {
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */
 export interface AvailabilityListRow extends AvailabilityDetail {
   id: number;
+  /** The working days of the period (weekends and holidays not counted), formatted. */
+  workingDaysFormatted?: string | null;
+  /** The weekends and holidays of the period (ISO dates), for the bar of the list. */
+  nonWorkingDays?: string[] | null;
+  /** The days without any substitute on duty (ISO dates), only on a conflict. */
+  uncoveredDays?: string[] | null;
 }

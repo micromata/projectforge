@@ -655,6 +655,26 @@ open class VacationService {
     }
 
     /**
+     * The days without any substitute on duty of each of the given availability entries (by id), as
+     * [uncoveredDaysOfAvailability] tells them one by one, but with a single read of the absences of all their
+     * substitutes: for a list of entries. The entries are taken from the [AvailabilityCache] (their substitutes
+     * resolved, a list's entries have them lazy); an entry without substitutes has none.
+     */
+    open fun getUncoveredDaysOfAvailabilities(entries: Collection<AvailabilityDO>): Map<Long, List<LocalDate>> {
+        val relevant = entries.mapNotNull { availabilityCache.getEntry(it.id) }
+            .filter { it.startDate != null && it.endDate != null && !it.substitutes.isNullOrEmpty() }
+        if (relevant.isEmpty()) {
+            return emptyMap()
+        }
+        val absences = getSubstituteAbsences(
+            relevant.flatMap { it.substitutes.orEmpty() }.mapNotNull { it.id }.toSet(),
+            relevant.minOf { it.startDate!! },
+            relevant.maxOf { it.endDate!! },
+        )
+        return relevant.associate { it.id!! to uncoveredDaysOfAvailability(it, absences) }
+    }
+
+    /**
      * The vacations (not rejected, special ones included) and availability entries of the given users overlapping the
      * period, whoever is logged in: the absences of the substitutes of availability entries (see
      * [uncoveredDaysOfAvailability]), by [AbsenceService.getAbsences]. The vacations by the users' employees; a user

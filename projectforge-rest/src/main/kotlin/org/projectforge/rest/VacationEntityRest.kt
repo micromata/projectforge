@@ -35,7 +35,6 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.business.vacation.service.VacationStats
-import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -536,13 +535,7 @@ class VacationEntityRest :
             SubstituteAbsenceReducer.inChartRange(obj.startDate, obj.endDate)
 
         /** The weekends and holidays of the vacation for the days bar; null for a period it doesn't draw. */
-        internal fun barNonWorkingDays(obj: VacationDO): List<LocalDate>? {
-            if (!inBarRange(obj)) {
-                return null
-            }
-            val holidays = Holidays.instance
-            return generateSequence(obj.startDate!!) { it.plusDays(1) }.takeWhile { it <= obj.endDate!! }
-                .filter { !holidays.isWorkingDay(it) }.toList()
-        }
+        internal fun barNonWorkingDays(obj: VacationDO): List<LocalDate>? =
+            SubstituteAbsenceReducer.barNonWorkingDays(obj.startDate, obj.endDate)
     }
 }
