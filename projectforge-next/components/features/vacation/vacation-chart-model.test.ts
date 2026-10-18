@@ -4,11 +4,8 @@ import {
   barLabel,
   monthSpans,
 } from "@/components/shared/absence-chart/absence-chart-model";
-import {
-  buildVacationChart,
-  teamChartRows,
-  type OwnVacation,
-} from "./vacation-chart-model";
+import { teamChartRows } from "@/components/shared/absence-chart/absence-team-rows";
+import { buildVacationChart, type OwnVacation } from "./vacation-chart-model";
 import type { VacationChartDay } from "./types";
 
 /** The days 2030-02-01 … 2030-02-<count>. */

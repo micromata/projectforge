@@ -8,6 +8,7 @@ import {
 } from "@/components/shared/absence-chart/substitute-absences-table";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { AVAILABILITY_METADATA } from "@/lib/metadata/availability.generated";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { useAvailabilityStats } from "./use-availability-stats";
 
 /**
@@ -52,7 +53,7 @@ export function AvailabilitySubstituteAbsences() {
     <SubstituteAbsencesTable
       rows={rows}
       headers={{
-        name: t("availability.substitutes"),
+        name: t(leafKeyOf("availability.substitutes", t.has)),
         startDate: label("startDate"),
         endDate: label("endDate"),
         kind: t("availability.substitutes.kind"),
