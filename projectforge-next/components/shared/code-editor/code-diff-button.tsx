@@ -21,19 +21,28 @@ export function CodeDiffButton({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const label = t("codeEditor.diff._");
+  const unchanged = original === current;
+  const button = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      aria-label={label}
+      disabled={unchanged}
+      onClick={() => setOpen(true)}
+    >
+      <HugeiconsIcon icon={GitCompareIcon} strokeWidth={2} />
+    </Button>
+  );
   return (
     <>
-      <HintTooltip title={label}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={label}
-          disabled={original === current}
-          onClick={() => setOpen(true)}
-        >
-          <HugeiconsIcon icon={GitCompareIcon} strokeWidth={2} />
-        </Button>
+      <HintTooltip
+        title={label}
+        text={unchanged ? t("codeEditor.diff.none") : undefined}
+      >
+        {/* Wrapped while disabled: a disabled button receives no hover, and the tooltip is what tells
+            why it is (see ExportButton). */}
+        {unchanged ? <span tabIndex={0}>{button}</span> : button}
       </HintTooltip>
       <CodeDiffDialog
         open={open}
