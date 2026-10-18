@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Lists: ended projects and no longer active customers are struck through, as in the selection boxes. Entries that are no longer active but not deleted (ended projects, inactive customers, cancelled invoices, rejected or replaced orders, inactive notification rules, deactivated references) are now struck through thin and grey, distinct from deleted entries, each with its own legend entry.",
-  "de": "Listen: Beendete Projekte und nicht mehr aktive Kunden werden durchgestrichen angezeigt, wie in den Auswahlboxen. Nicht mehr aktive, aber nicht gelöschte Einträge (beendete Projekte, inaktive Kunden, stornierte Rechnungen, abgelehnte oder ersetzte Aufträge, inaktive Benachrichtigungsregeln, deaktivierte Verweise) werden jetzt dünn und grau durchgestrichen und sind so von gelöschten Einträgen unterscheidbar, jeweils mit eigenem Legendeneintrag."
-}
