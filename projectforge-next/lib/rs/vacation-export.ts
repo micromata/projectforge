@@ -21,6 +21,8 @@ export const VACATION_EXPORT_EMPLOYEES_URL =
   "vacationExport/employees?search=:search";
 export const VACATION_EXPORT_GROUPS_URL =
   "vacationExport/groups?search=:search";
+/** The users the quick view of an availability offers (AvailabilityQuickViewDialog), freelancers included. */
+export const VACATION_EXPORT_USERS_URL = "vacationExport/users?search=:search";
 
 export function fetchVacationExportInitial(
   signal?: AbortSignal
@@ -40,6 +42,22 @@ export function fetchVacationExportView(
   return request<VacationExportView>(
     "/rs/vacationExport/view",
     { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
+}
+
+/**
+ * The quick view of a user's absences: the next `weeks` weeks from the beginning of this week, a single row (none
+ * for a user the logged-in user may not pick). Unlike the calendar, nothing is stored.
+ */
+export function fetchUserAvailabilityView(
+  userId: number,
+  weeks: number,
+  signal?: AbortSignal
+): Promise<VacationExportView> {
+  return request<VacationExportView>(
+    `/rs/vacationExport/userView?userId=${userId}&weeks=${weeks}`,
+    { method: "GET" },
     signal
   );
 }

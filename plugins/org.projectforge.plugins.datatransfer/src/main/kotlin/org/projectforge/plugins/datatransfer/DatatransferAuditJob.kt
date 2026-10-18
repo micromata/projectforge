@@ -82,10 +82,16 @@ class DatatransferAuditJob {
                 val areaId = area.id ?: return@forEach
                 val auditEntries = queuedEntriesByAreaId[areaId]
                 if (!auditEntries.isNullOrEmpty()) {
-                    val downloadAuditEntries = downloadEntriesByAreaId[areaId] ?: emptyList()
-                    dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
-                    ++sentMailCounter
-                    dataTransferAuditDao.removeFromQueue(auditEntries)
+                    // A failure in one area mustn't block the notifications of all other areas. The entries of the
+                    // failed area stay queued and are retried on the next run.
+                    try {
+                        val downloadAuditEntries = downloadEntriesByAreaId[areaId] ?: emptyList()
+                        dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
+                        ++sentMailCounter
+                        dataTransferAuditDao.removeFromQueue(auditEntries)
+                    } catch (ex: Exception) {
+                        log.error(ex) { "Error while sending notification mails for data transfer area $areaId: ${ex.message}" }
+                    }
                 }
             }
             dataTransferAuditDao.deleteOldEntries(

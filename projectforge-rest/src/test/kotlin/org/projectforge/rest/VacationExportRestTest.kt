@@ -48,6 +48,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.dto.VacationExportRequest
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
@@ -263,6 +264,49 @@ class VacationExportRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the quick view picks users of the own groups, freelancers included, and stores nothing`() {
+        val own = createEmployee("quick-own")
+        val colleague = createEmployee("quick-colleague")
+        val stranger = createEmployee("quick-stranger")
+        val freelancer = createUser("quick-freelancer")
+        val finance = createEmployee("quick-finance", finance = true)
+        logon(TEST_ADMIN_USER)
+        initTestDB.addGroup("$PREFIX.quick", own.user!!.username!!, colleague.user!!.username!!, freelancer.username!!)
+        initTestDB.addGroup("$PREFIX.quickOther", stranger.user!!.username!!)
+        val monday = PFDay.now().beginOfWeek.date
+        insertVacation(colleague, own, monday.plusDays(14), monday.plusDays(18), VacationStatus.APPROVED)
+        logon(TEST_HR_USER)
+        availabilityDao.insert(AvailabilityDO().also {
+            it.user = freelancer
+            it.startDate = monday.plusDays(7)
+            it.endDate = monday.plusDays(9)
+            it.status = AvailabilityStatus.NOT_AVAILABLE
+        })
+
+        logon(own.user!!)
+        val pickable = vacationExportRest.users("$PREFIX.quick", null).map { it.id }
+        assertTrue(pickable.containsAll(listOf(own.user!!.id, colleague.user!!.id, freelancer.id)), "Own group.")
+        assertFalse(pickable.contains(stranger.user!!.id), "Not of an own group.")
+        assertEquals(listOf(freelancer.id), vacationExportRest.users("quick-freelancer lastname", null).map { it.id })
+
+        val view = vacationExportRest.userView(colleague.user!!.id!!, null)
+        assertEquals(monday, view.days.first().date)
+        assertEquals(8 * 7, view.days.size)
+        assertEquals(listOf(monday.plusDays(14)), view.rows.single().vacations.map { it.startDate })
+        assertEquals(colleague.user!!.id, view.rows.single().employee.id, "The row is keyed by the user.")
+        // A freelancer has no employee: their availability entries only.
+        val freelancerRow = vacationExportRest.userView(freelancer.id!!, 4).rows.single()
+        assertTrue(freelancerRow.vacations.isEmpty())
+        assertTrue(freelancerRow.availabilities.single().absent)
+        assertEquals(12 * 7, vacationExportRest.userView(freelancer.id!!, 99).days.size, "At most 12 weeks.")
+        assertTrue(vacationExportRest.userView(stranger.user!!.id!!, null).rows.isEmpty(), "Not to be picked.")
+        assertTrue(vacationExportRest.getInitial().employees.isEmpty(), "The team calendar's choice isn't touched.")
+
+        logon(finance.user!!)
+        assertTrue(vacationExportRest.users("$PREFIX.quick", null).map { it.id }.contains(stranger.user!!.id))
+    }
+
+    @Test
     fun `a choice stored before the absence kinds reads as the vacations and, if shown, the availabilities`() {
         fun read(json: String) = UserPrefDao.objectMapper.readValue(json, VacationExportRest.VacationExportUserPref::class.java)
             .storedAbsenceKinds()
@@ -295,6 +339,19 @@ class VacationExportRestTest : AbstractTestBase() {
             it.special = true
         }, checkAccess = false)
         loggedInUser?.let { logon(it) }
+    }
+
+    /** A user without an employee, e.g. a freelancer. */
+    private fun createUser(name: String): PFUserDO {
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        logon(TEST_ADMIN_USER)
+        val user = PFUserDO()
+        user.firstname = "$PREFIX.$name"
+        user.lastname = "$name.lastname"
+        user.username = "$PREFIX.$name.username"
+        initTestDB.addUser(user)
+        loggedInUser?.let { logon(it) }
+        return user
     }
 
     private fun createEmployee(name: String, finance: Boolean = false, hrAccess: Boolean = false): EmployeeDO {

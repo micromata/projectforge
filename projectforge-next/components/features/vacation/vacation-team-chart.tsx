@@ -8,7 +8,7 @@ import {
   availabilityLabel,
   barLabel,
 } from "@/components/shared/absence-chart/absence-chart-model";
-import { teamChartRows } from "./vacation-chart-model";
+import { teamChartRows } from "@/components/shared/absence-chart/absence-team-rows";
 import { AbsenceChartFrame } from "@/components/shared/absence-chart/absence-chart-frame";
 import { AbsenceChartLegend } from "@/components/shared/absence-chart/absence-chart-legend";
 import { AbsenceChartRow } from "@/components/shared/absence-chart/absence-chart-row";

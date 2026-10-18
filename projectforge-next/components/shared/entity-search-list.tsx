@@ -134,6 +134,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
     isFetching,
     isLoadingMore,
     loadMore,
+    typeToSearch,
   } = useEntityLookup<T>({
     url,
     search,
@@ -199,9 +200,11 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
               offer — the hint to type only fits a term that is too short to be looked up. */}
           {search.trim().length > 0 && search.trim().length < minChars
             ? t("filter.search")
-            : isFetching
-              ? t("loading")
-              : t("nothingFound")}
+            : typeToSearch
+              ? t("filter.typeToSearch")
+              : isFetching
+                ? t("loading")
+                : t("nothingFound")}
         </CommandEmpty>
         {showRecent && (
           // Own value prefix so a recent entry never collides with the same id in the backend results
