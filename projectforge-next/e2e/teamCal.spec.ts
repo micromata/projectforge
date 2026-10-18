@@ -51,7 +51,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
   }) => {
     const { t } = await userFormat(page);
     await goto(page, "/teamCal");
-    const rows = page.getByRole("row").filter({ has: page.getByRole("cell") });
+    const rows = page.locator(ROW);
     // The list shows a calendar on every database: the test data's, or the ones of production.
     await expect(rows.first()).toBeVisible();
     let saveAttempted = false;
@@ -78,6 +78,12 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     await expect(page).toHaveURL(/\/next\/teamCal$/);
   });
 });
+
+/**
+ * A row of the loaded list: the `data-row-id` tells it from the skeleton rows shown while the list loads
+ * and from the row of the empty list (see DataTable), which have cells as well.
+ */
+const ROW = "tbody tr[data-row-id]";
 
 function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
