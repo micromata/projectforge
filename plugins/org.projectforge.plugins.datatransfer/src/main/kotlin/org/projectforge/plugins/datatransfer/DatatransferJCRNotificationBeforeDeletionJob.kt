@@ -102,7 +102,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
                         dataTransferAreaEntityRest.jcrPath!!,
                         id
                     )
-                    val observers = StringHelper.splitToLongs(dbo.observerIds, ",")
+                    val observers = StringHelper.splitToLongs(dbo.observerIds, ",", false)
                     attachments.forEach { attachment ->
                         val time = attachment.lastUpdate?.time ?: attachment.created?.time
                         if (time != null && startTimeInMillis - time + notifyDaysBeforeDeletion > expiryMillis) {
