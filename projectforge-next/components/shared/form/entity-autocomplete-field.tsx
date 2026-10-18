@@ -13,6 +13,7 @@ import {
 } from "./field-shell";
 import { useEntityEditForm, useFieldMetadata } from "./form-context";
 import { useFieldErrors } from "./use-field-errors";
+import type { InactiveMode } from "@/hooks/use-show-inactive";
 
 export interface EntityAutocompleteFieldProps extends BaseFieldProps {
   /**
@@ -28,6 +29,8 @@ export interface EntityAutocompleteFieldProps extends BaseFieldProps {
    * (see EntityAutocomplete).
    */
   params?: Record<string, unknown>;
+  /** How inactive entries are offered, see [InactiveMode]. */
+  inactive?: InactiveMode;
   /** Called after the value changed, for a field that fills others from it (project → customer). */
   onPicked?: (value: EntityRef | null) => void;
   /**
@@ -58,6 +61,7 @@ export function EntityAutocompleteField({
   entity,
   minChars,
   params,
+  inactive,
   onPicked,
   metadataLess,
   disabled,
@@ -96,6 +100,7 @@ export function EntityAutocompleteField({
               value={(field.state.value as EntityRef | null) ?? null}
               minChars={minChars}
               params={params}
+              inactive={inactive}
               selectMe={selectMe}
               disabled={disabled}
               popoverClassName={popoverClassName}

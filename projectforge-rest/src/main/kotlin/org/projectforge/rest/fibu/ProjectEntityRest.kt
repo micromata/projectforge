@@ -37,6 +37,7 @@ import org.projectforge.business.task.TaskTree
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -407,6 +408,15 @@ class ProjectEntityRest
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
+
+    /** Ended projects only on request ([org.projectforge.ui.AutoCompletion.SHOW_INACTIVE_PARAM]). */
+    override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<ProjektDO> {
+        val list = super.queryAutocompleteObjects(request, filter)
+        return if (showInactive(request)) list else list.filter { !isInactiveAutoCompleteEntry(it) }
+    }
+
+    override fun isInactiveAutoCompleteEntry(obj: ProjektDO): Boolean =
+        super.isInactiveAutoCompleteEntry(obj) || obj.status == ProjektStatus.ENDED
 
     /**
      * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the projects

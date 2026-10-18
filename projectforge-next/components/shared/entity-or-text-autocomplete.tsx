@@ -153,6 +153,8 @@ export function EntityOrTextAutocomplete({
           url={url}
           active={open}
           initialSearch={initialSearch || (isText ? value.text : "")}
+          // An ended customer already set stays choosable (see EntitySearchList.current).
+          current={value?.kind === "entity" ? value.ref : null}
           onPick={(ref) => pick({ kind: "entity", ref })}
           freeText={{
             heading: t("fibu.kunde.freeText._"),

@@ -216,6 +216,11 @@ export interface UserStatus {
    * on its own whether to offer an admin only action (see ListGearMenu).
    */
   adminUser?: boolean;
+  /**
+   * Whether the user may see inactive persons (deactivated users, employees who left) in the pickers, see
+   * useShowInactive. The backend enforces it anyway.
+   */
+  showInactivePersons?: boolean;
   /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
   jira?: JiraConfig;
   /**

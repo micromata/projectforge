@@ -406,6 +406,11 @@ class EmployeePagesRest :
     /** Name hits first, see [autoCompletePrimarySearchFields]. */
     override val autoCompletePrimarySearchFields = arrayOf("user.username", "user.firstname", "user.lastname")
 
+    /**
+     * Active employees (recent leavers included, see [EmployeeDO.deactivated]); the others only on request
+     * ([AutoCompletion.SHOW_INACTIVE_PARAM]) and only for the members of
+     * [AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS], see [isShowInactiveAllowed].
+     */
     override fun queryAutocompleteObjects(
         request: HttpServletRequest,
         filter: BaseSearchFilter
@@ -413,10 +418,13 @@ class EmployeePagesRest :
         return baseDao.selectWithActiveStatus(
             filter,
             checkAccess = true,
-            showOnlyActiveEntries = true,
+            showOnlyActiveEntries = !showInactive(request),
             showRecentlyLeavers = true
         ).toMutableList()
     }
+
+    override fun isShowInactiveAllowed(): Boolean =
+        accessChecker.isLoggedInUserMemberOfGroup(*AutoCompletion.SHOW_INACTIVE_PERSONS_GROUPS)
 
     private fun createModalUrl(
         employee: Employee,

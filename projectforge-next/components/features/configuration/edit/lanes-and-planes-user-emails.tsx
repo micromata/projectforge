@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { PersonSelect } from "@/components/shared/person-select";
+import { SHOW_INACTIVE_PARAM } from "@/hooks/use-show-inactive";
 import { withMaxResults } from "@/lib/rs/autocomplete-url";
 import { fetchAutoCompletion } from "@/lib/rs/dynamic";
 import {
@@ -15,7 +16,7 @@ import { LanesAndPlanesRows } from "./lanes-and-planes-rows";
 
 /** All users at once, deactivated ones included: the parameter stores ids only, the rows show the names. */
 const ALL_USERS_URL = withMaxResults(
-  "user/autosearch?showAll=true&search=:search",
+  `user/autosearch?${SHOW_INACTIVE_PARAM}=true&search=:search`,
   100_000
 );
 

@@ -1233,10 +1233,31 @@ constructor(
                 it.id,
                 autoCompleteLabel(it),
                 deleted = it.deleted.takeIf { deleted -> deleted },
-                deactivated = it.deactivated.takeIf { deactivated -> deactivated },
+                deactivated = isInactiveAutoCompleteEntry(it).takeIf { deactivated -> deactivated },
             )
         }
     }
+
+    /**
+     * Whether the caller asked `autosearch` for inactive entries too (param [AutoCompletion.SHOW_INACTIVE_PARAM]
+     * or its legacy alias [AutoCompletion.SHOW_ALL_PARAM]) and may get them ([isShowInactiveAllowed]).
+     * Evaluated by the overrides of [queryAutocompleteObjects] of entities with an inactive state.
+     */
+    protected fun showInactive(request: HttpServletRequest): Boolean {
+        val asked = request.getParameter(AutoCompletion.SHOW_INACTIVE_PARAM) == "true" ||
+                request.getParameter(AutoCompletion.SHOW_ALL_PARAM) == "true"
+        return asked && isShowInactiveAllowed()
+    }
+
+    /** Whether the logged-in user may get inactive entries from `autosearch`, see [showInactive]. */
+    protected open fun isShowInactiveAllowed(): Boolean = true
+
+    /**
+     * Whether an `autosearch` answer marks this entry as inactive (struck through by the client). Default is
+     * [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]; entities whose inactive state is
+     * a status of their own (projects, customers, cost units) override it.
+     */
+    protected open fun isInactiveAutoCompleteEntry(obj: O): Boolean = obj.deactivated
 
     private fun queryAutocompleteObjects(
         request: HttpServletRequest,

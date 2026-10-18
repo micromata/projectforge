@@ -113,7 +113,8 @@ class Kost1EntityRest : AbstractDTOEntityRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao
     }
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {
-        val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
+        val onlyActiveEntries =
+            request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: !showInactive(request)
         var list = super.queryAutocompleteObjects(request, filter)
         val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
         if (onlyActiveEntries && !NumberHelper.isDigitsAndDotsOnly(searchString)) {
@@ -126,6 +127,11 @@ class Kost1EntityRest : AbstractDTOEntityRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao
     }
 
     override val autoCompleteSearchFields = arrayOf("description", "nummer", "rawNumberString")
+
+    /** Struck through unless active, matching the `onlyActiveEntries` filter of [queryAutocompleteObjects]. */
+    override fun isInactiveAutoCompleteEntry(obj: Kost1DO): Boolean =
+        super.isInactiveAutoCompleteEntry(obj) ||
+                (obj.kostentraegerStatus != null && obj.kostentraegerStatus != KostentraegerStatus.ACTIVE)
 
     /**
      * The filtered list as the Excel file of Wicket's `Kost1ListPage` ("exportAsXls"): number, description
