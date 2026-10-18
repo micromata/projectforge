@@ -4,13 +4,13 @@ import { hasRole } from "./fixtures/credentials";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import { purgeTestAttachments } from "./fixtures/attachments";
 import { secretPeek } from "../lib/secret-peek";
-import { insert, markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
+import { deleteEntity, insert, MARKER, uniqueSuffix } from "./fixtures/seed";
 
 /**
  * The internal data transfer pages (plugin datatransfer): the file view of an area, its activities, the
  * own personal box and the admin form's entry point.
  *
- * Every test works on an area of its own, created through the API and marked as deleted again — never on
+ * Every test works on an area of its own, created through the API and deleted again — never on
  * a list (no stored list state, hence `@parallel`). Uploaded files carry the `pf-e2e-` prefix and are
  * deleted through the UI, or by `purgeTestAttachments` if a test died before.
  */
@@ -126,7 +126,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await removeFile(page, t, name);
     } finally {
       await purgeTestAttachments(page, "datatransfer", area.id);
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }
@@ -156,7 +156,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
         0
       );
     } finally {
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }
@@ -201,7 +201,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await tab(page, t("plugins.datatransfer.tab.info")).click();
       await expect(page.getByText(description)).toBeVisible();
     } finally {
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }
@@ -229,7 +229,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
         (await link.textContent())?.trim()
       );
     } finally {
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }
@@ -290,7 +290,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       ).toBeVisible({ timeout: 5000 });
       // Not saved: the area is removed below either way.
     } finally {
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }
@@ -313,7 +313,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
         new RegExp(`/next/datatransfer/${area.id}/?$`)
       );
     } finally {
-      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
       );
     }

@@ -9,6 +9,7 @@ import {
 import { fetchNew, fetchOne } from "@/lib/rs/client";
 import {
   cancelEntityEdit,
+  deleteEntity,
   forceDeleteEntity,
   markEntityAsDeleted,
   postEntityAction,
@@ -183,16 +184,21 @@ export function useCancelEntityEdit<T extends EntityWithId>(
 }
 
 /**
- * Marks an entity as deleted. This is the delete a historized entity offers: the row survives and
- * `RestPaths.UNDELETE` can bring it back.
+ * The ordinary delete of an entity. A historized entity is only marked as deleted: the row survives and
+ * `RestPaths.UNDELETE` can bring it back. A non-historized one (`historizable` false in its metadata, e.g.
+ * a memo) has no such mark — the backend refuses it — so it is deleted for good (`deleteEntity`).
  */
 export function useDeleteEntity<T extends EntityWithId>(
   entity: string,
+  historizable: boolean,
   { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
-    mutationFn: (data) => markEntityAsDeleted(entity, data),
+    mutationFn: (data) =>
+      historizable
+        ? markEntityAsDeleted(entity, data)
+        : deleteEntity(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
       invalidateEntity(qc, entity, data.id, listQueryKey, extraInvalidateKeys);
