@@ -255,9 +255,13 @@ export function useMagicFilterQuery<O>({
   // is cached forever otherwise (see useListMeta), so its filter fields are asked again and patched into the
   // cache. Not by invalidating it: a refetch of the meta holds the list page back behind its spinner (see
   // useRememberedFilter), which remounts the list and would see this same answer again. Only the filter fields
-  // are taken over; the filter the user set stays as is.
+  // are taken over; the filter the user set stays as is (but for values the fields no longer offer, see
+  // useListFilters).
+  // Not for a cached answer while the list is asked anew (staleTime 0, see above): the backend stores the filter
+  // with that request, so until it is answered the meta would still be the previous campaign's.
   const queryClient = useQueryClient();
-  const reloadUI = query.data?.reloadUI === true ? query.data : undefined;
+  const reloadUI =
+    query.data?.reloadUI === true && !query.isFetching ? query.data : undefined;
   useEffect(() => {
     if (!reloadUI) return;
     const controller = new AbortController();

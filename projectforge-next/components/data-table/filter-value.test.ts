@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FormatContext } from "@/lib/format";
 import type { FilterElement } from "@/lib/rs/types";
-import { filterPillContent } from "./filter-value";
+import { filterPillContent, prunedFilterValues } from "./filter-value";
 
 const ctx: FormatContext = { locale: "de-DE", timeZone: "Europe/Berlin" };
 
@@ -78,5 +78,61 @@ describe("filterPillContent", () => {
     );
     expect(content.text).toBe("Task");
     expect(content.tooltip).toBe("Task: Root | Project | Task");
+  });
+});
+
+describe("prunedFilterValues", () => {
+  const list = (id: string, choices: string[]): FilterElement => ({
+    id,
+    key: id,
+    type: "FILTER_ELEMENT",
+    filterType: "LIST",
+    values: choices.map((choice) => ({ id: choice, displayName: choice })),
+  });
+
+  it("takes a value out that the field no longer offers", () => {
+    const values = {
+      campaign: { values: ["2"] },
+      value: { values: ["Ja", "Nein"] },
+    };
+    expect(
+      prunedFilterValues(
+        values,
+        [list("campaign", ["1", "2"]), list("value", ["Ja", "Nein"])],
+        [list("campaign", ["1", "2"]), list("value", ["Nein", "Vielleicht"])]
+      )
+    ).toEqual({ campaign: { values: ["2"] }, value: { values: ["Nein"] } });
+  });
+
+  it("drops a field no longer offered, or with none of its values left", () => {
+    const values = {
+      value: { values: ["Ja"] },
+      onlyDifferences: { value: "true" },
+    };
+    expect(
+      prunedFilterValues(
+        values,
+        [
+          list("value", ["Ja"]),
+          {
+            ...list("onlyDifferences", []),
+            filterType: "BOOLEAN",
+            values: undefined,
+          },
+        ],
+        [list("value", ["Nein"])]
+      )
+    ).toEqual({});
+  });
+
+  it("keeps what didn't change, as the same object", () => {
+    const values = {
+      customers: { values: ["free text"] },
+      period: { from: "2026-01-01" },
+    };
+    const elements = [list("customers", ["k:A"])];
+    expect(
+      prunedFilterValues(values, elements, [list("customers", ["k:A"])])
+    ).toBe(values);
   });
 });
