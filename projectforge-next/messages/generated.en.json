@@ -399,7 +399,7 @@
           },
           "warnMissingKost2": {
             "_": "Report time sheets without Kost2?",
-            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, and the notification rule \"Time sheets without Kost2\" applies. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
+            "description": "If enabled, a time sheet saved without Kost2 (on a structure element without Kost2) gets a hint to contact the project management or accounting, the notification rule \"Time sheets without Kost2\" applies and such entries are marked in the monthly report. Booking without Kost2 stays possible. Only applies with cost-unit accounting enabled."
           }
         },
         "timesheetTags": {
@@ -1700,6 +1700,10 @@
         "billed": "Billed {arg0} h of {arg1} h",
         "noData": "No work time in this period to compute an invoicing quota from.",
         "title": "Invoicing quota of the last 12 months"
+      },
+      "missingKost2": {
+        "_": "without Kost2",
+        "tooltip": "Booked without Kost2: please contact the project management or accounting."
       },
       "showInvoicingQuota": "Show invoicing quota",
       "tab": {
