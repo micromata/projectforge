@@ -22,3 +22,7 @@ CREATE INDEX idx_fk_t_user_availability_user_id
 ALTER TABLE t_user_availability
     ADD CONSTRAINT fk_t_user_availability_user_id
         FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
+
+-- Rollback (the availability entries are gone for good; roll back 9.0.8.2 first, its substitutes refer to them):
+-- DROP TABLE IF EXISTS t_user_availability;
+-- DELETE FROM t_flyway_schema_version WHERE version = '9.0.8.1';
