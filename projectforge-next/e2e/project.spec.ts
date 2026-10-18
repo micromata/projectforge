@@ -8,7 +8,9 @@ import {
   writeHeaders,
   type SeededProject,
 } from "./fixtures/seed";
+import { fetchNumberRanges } from "./fixtures/number-ranges";
 import { PROJECT_PAGE } from "../components/features/project/project.page";
+import { formatCustomerNumber, rangeForCustomer } from "../lib/number-ranges";
 import { PROJEKT_METADATA } from "../lib/metadata/projekt.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
@@ -94,23 +96,36 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
 
     await expect(page).toHaveURL(new RegExp(`/project/${project.id}$`));
     await expect(nameField(page, format)).toHaveValue(project.name);
-    // The number reads as the cost number of the customer's project: "5.<customer>." before the box.
+    // The number depends on the number ranges (see number-ranges.spec.ts): in a range it reads as the cost
+    // number of the customer's project ("5.<customer>." before the box), otherwise as the free project number.
+    const info = await fetchNumberRanges(page.request);
+    const range = rangeForCustomer(info, project.customer.nummer);
+    if (range == null) {
+      await expect(
+        page.getByLabel(format.t("fibu.projekt.projektnummer"), { exact: true })
+      ).toHaveValue(String(project.nummer));
+      return;
+    }
     await expect(
-      page.getByText(`5.${String(project.customer.nummer).padStart(3, "0")}.`, {
-        exact: true,
-      })
+      page.getByText(
+        `${formatCustomerNumber(info, project.customer.nummer)}.`,
+        {
+          exact: true,
+        }
+      )
     ).toBeVisible();
     await expect(
       page.getByLabel(
         `${format.t("fibu.projekt.nummer")}: ${format.t("fibu.projekt.nummer")}`,
         { exact: true }
       )
-    ).toHaveValue(String(project.nummer).padStart(2, "0"));
+    ).toHaveValue(String(project.nummer).padStart(range.projectDigits, "0"));
   });
 
   test("creates the cost 2 unit of a checked cost 2 type", async ({
     loggedInPage: page,
   }) => {
+    await skipWithoutCost2(page.request);
     const format = await userFormat(page);
     const before = await storedProject(page.request, project.id);
     const candidate = before.kost2Arts?.find((art) => !art.existsAlready);
@@ -147,6 +162,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
   test("deactivates a cost 2 unit when unchecked and reactivates it", async ({
     loggedInPage: page,
   }) => {
+    await skipWithoutCost2(page.request);
     const format = await userFormat(page);
     const before = await storedProject(page.request, project.id);
     const candidate = before.kost2Arts?.find((art) => art.active);
@@ -216,6 +232,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
   test("mass update creates and deactivates cost 2 types, the list filters and strikes them", async ({
     loggedInPage: page,
   }) => {
+    await skipWithoutCost2(page.request);
     const before = await storedProject(page.request, project.id);
     const [candidate, absent] = (before.kost2Arts ?? []).filter(
       (art) => !art.existsAlready
@@ -393,6 +410,18 @@ async function massUpdateKost2Arts(
       headers: { "X-PF-Frontend": "next" },
     });
   }
+}
+
+/**
+ * Cost 2 units need cost units configured and a project number of a number range (ProjectEntityRest.validate);
+ * the form shows no cost 2 types otherwise.
+ */
+async function skipWithoutCost2(request: APIRequestContext): Promise<void> {
+  const info = await fetchNumberRanges(request);
+  test.skip(
+    !info.costConfigured,
+    "No cost units configured (fibu.costConfigured)."
+  );
 }
 
 /** The name field, by the label ProjektDO gives it. */
