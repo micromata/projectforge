@@ -27,6 +27,7 @@ export function ScriptCodeField({ className }: { className?: string }) {
         fill
         hideLabel
         metadataLess
+        showDiff
       />
     </div>
   );

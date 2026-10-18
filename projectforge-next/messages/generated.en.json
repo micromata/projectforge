@@ -760,6 +760,13 @@
     "addCursor": "Add a cursor",
     "copyLine": "Copy line up / down",
     "deleteLine": "Delete line",
+    "diff": {
+      "_": "Show changes",
+      "current": "Current",
+      "none": "No changes.",
+      "stored": "Stored",
+      "title": "Changes compared with the stored version"
+    },
     "indent": "Indent",
     "key": {
       "click": "click",
@@ -786,7 +793,8 @@
       "replaceAll": "replace all",
       "replaceOne": "replace",
       "replacedMatches": "replaced $ matches",
-      "replacedOnLine": "replaced match on line $"
+      "replacedOnLine": "replaced match on line $",
+      "unchangedLines": "$ unchanged lines"
     },
     "previousMatch": "Previous match",
     "rectangularSelection": "Rectangular selection",

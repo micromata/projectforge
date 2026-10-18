@@ -760,6 +760,13 @@
     "addCursor": "Weiteren Cursor setzen",
     "copyLine": "Zeile nach oben / unten kopieren",
     "deleteLine": "Zeile löschen",
+    "diff": {
+      "_": "Änderungen anzeigen",
+      "current": "Aktuell",
+      "none": "Keine Änderungen.",
+      "stored": "Gespeichert",
+      "title": "Änderungen gegenüber der gespeicherten Version"
+    },
     "indent": "Einrücken",
     "key": {
       "click": "Klick",
@@ -786,7 +793,8 @@
       "replaceAll": "alle ersetzen",
       "replaceOne": "ersetzen",
       "replacedMatches": "$ Treffer ersetzt",
-      "replacedOnLine": "Treffer in Zeile $ ersetzt"
+      "replacedOnLine": "Treffer in Zeile $ ersetzt",
+      "unchangedLines": "$ unveränderte Zeilen"
     },
     "previousMatch": "Vorheriger Treffer",
     "rectangularSelection": "Rechteckauswahl",
