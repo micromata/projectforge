@@ -31,7 +31,10 @@ import {
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
 import { useUpdateAccess } from "@/hooks/use-update-access";
 import { useEntitySelection } from "@/store/selection-store";
-import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import {
+  deletedRowClass,
+  INACTIVE_ROW_CLASS,
+} from "@/lib/dynamic/grid/row-class";
 import { leafKeyOf } from "@/lib/leaf-key";
 import {
   auditColumnsFor,
@@ -161,7 +164,10 @@ const LIST_SEARCH_PARAM = "q";
  */
 const LOCKED_COLUMN_IDS = [SELECTION_COLUMN_ID];
 
-/** Always includes the deleted entry first, then any entity-specific entries. */
+/**
+ * Always includes the deleted entry first, then the inactive one if the page names it, then any
+ * entity-specific entries.
+ */
 function legendEntries<
   Row extends ListRow,
   Values,
@@ -171,9 +177,18 @@ function legendEntries<
   const deletedEntry: LegendEntry = {
     className: "row-deleted",
     labelKey: page.deletedLabelKey ?? "table.legend.deleted",
-    strikethrough: true,
+    strikethrough: "deleted",
   };
-  return [deletedEntry, ...(page.legend ?? [])];
+  const inactiveEntry: LegendEntry[] = page.inactiveLabelKey
+    ? [
+        {
+          className: INACTIVE_ROW_CLASS,
+          labelKey: page.inactiveLabelKey,
+          strikethrough: "inactive",
+        },
+      ]
+    : [];
+  return [deletedEntry, ...inactiveEntry, ...(page.legend ?? [])];
 }
 
 function DeclaredList<

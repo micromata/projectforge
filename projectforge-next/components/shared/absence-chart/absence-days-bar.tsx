@@ -5,22 +5,19 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate, formatDateRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  barClassName,
-  dayClassName,
-} from "@/components/shared/absence-chart/absence-chart-grid";
+import { barClassName, dayClassName } from "./absence-chart-grid";
 import {
   BAR_SCALE_DAYS,
   dateRanges,
   daysBar,
   type BarDayKind,
   type DaysBarSource,
-} from "./vacation-days-bar-model";
+} from "./absence-days-bar-model";
 
 /** Days of a squeezed bar still drawn with gaps: segments of at least 2px in its 139px. */
 const SQUEEZED_GAP_MAX_DAYS = 46;
 
-/** The colours of the form's chart (vacation-chart-grid.ts), so list and form read alike. */
+/** The colours of the form's chart (absence-chart-grid.ts), so list and form read alike. */
 function segmentClassName(kind: BarDayKind): string | undefined {
   if (kind === "uncovered") return barClassName(true, true, true);
   if (kind === "off") return dayClassName({ workingDay: false });
@@ -28,12 +25,13 @@ function segmentClassName(kind: BarDayKind): string | undefined {
 }
 
 /**
- * The bar of a vacation (its list and the vacation account): a segment per calendar day, at the same scale in
+ * The bar of an absence (a vacation or an availability entry, in their lists and the vacation account): a segment per
+ * calendar day, at the same scale in
  * every row up to [BAR_SCALE_DAYS], a longer one squeezed into that width (cut off after [BAR_MAX_DAYS]); working
  * days in the primary colour, weekends and holidays grey, the days without any substitute on duty red. The
  * tooltip names those days. Hidden on small screens, where the red row remains.
  */
-export function VacationDaysBar({ row }: { row: DaysBarSource }) {
+export function AbsenceDaysBar({ row }: { row: DaysBarSource }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const bar = daysBar(row);
@@ -84,5 +82,24 @@ export function VacationDaysBar({ row }: { row: DaysBarSource }) {
         )}
       </div>
     </HintTooltip>
+  );
+}
+
+/**
+ * The duration of an absence as its lists and the vacation account show it: the working days, formatted by the
+ * backend, and beside them the period as a bar ([AbsenceDaysBar]).
+ */
+export function AbsenceDaysCell({
+  formatted,
+  row,
+}: {
+  formatted?: string | null;
+  row: DaysBarSource;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-8 shrink-0 text-right tabular-nums">{formatted}</span>
+      <AbsenceDaysBar row={row} />
+    </div>
   );
 }

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { useFormatContext } from "@/hooks/use-format";
 import { compareText } from "@/lib/format";
-import { INACTIVE_REF_CLASS, isInactiveRef } from "@/lib/page-def/reference";
+import { inactiveRefClass } from "@/lib/page-def/reference";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import type { InactiveMode } from "@/hooks/use-show-inactive";
@@ -101,12 +101,7 @@ export function EntityMultiAutocomplete({
                 key={entry.id}
                 className="inline-flex h-6 max-w-full items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 text-xs font-semibold text-primary"
               >
-                <span
-                  className={cn(
-                    "truncate",
-                    isInactiveRef(entry) && INACTIVE_REF_CLASS
-                  )}
-                >
+                <span className={cn("truncate", inactiveRefClass(entry))}>
                   {entry.displayName}
                 </span>
                 <button

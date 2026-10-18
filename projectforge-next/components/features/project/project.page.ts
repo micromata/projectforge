@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { ProjectCustomerField } from "./project-customer-field";
@@ -142,6 +143,11 @@ export const PROJECT_PAGE = definePage<
         createElement(ProjectKost2ArtsCell, { arts: row.original.kost2Arts }),
     },
   ],
+  // An ended project reads struck through (thin, grey) as the selection boxes strike it
+  // (ProjectEntityRest.isInactiveAutoCompleteEntry), set apart from a deleted one.
+  inactiveLabelKey: "fibu.projekt.legend.ended",
+  rowClassName: (row) =>
+    row.status === "ENDED" ? INACTIVE_ROW_CLASS : undefined,
   // Mass update of a selection: the managers, the description and the cost 2 types
   // (ProjectMultiSelectedPageRest, /projectSelected).
   massUpdate: {

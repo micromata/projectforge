@@ -1,3 +1,4 @@
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { KUNDE_METADATA } from "@/lib/metadata/kunde.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CustomerKontoField } from "./customer-konto-field";
@@ -9,10 +10,17 @@ import {
   type CustomerValues,
 } from "./customer-schema";
 import { emptyCustomerValues, toFormValues } from "./customer-values";
-import type { CustomerDetail, CustomerListRow } from "./types";
+import type { CustomerDetail, CustomerListRow, KundeStatus } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const CUSTOMER_LIST_QUERY_KEY = ["customer"] as const;
+
+/** The statuses of a customer no longer worked with (CustomerPagesRest.INACTIVE_STATUS). */
+const INACTIVE_STATUS: ReadonlySet<KundeStatus> = new Set([
+  "ENDED",
+  "NONACTIVE",
+  "NONEXISTENT",
+]);
 
 /**
  * The whole customer page — list and edit — as data (see lib/page-def/types.ts).
@@ -65,6 +73,13 @@ export const CUSTOMER_PAGE = definePage<
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
   ],
+  // A no longer active customer reads struck through (thin, grey), set apart from a deleted one — the same
+  // statuses the selection boxes strike (CustomerPagesRest.isInactiveAutoCompleteEntry).
+  inactiveLabelKey: "fibu.kunde.legend.inactive",
+  rowClassName: (row) =>
+    row.status && INACTIVE_STATUS.has(row.status)
+      ? INACTIVE_ROW_CLASS
+      : undefined,
   // The way to the customer groups and business units, for those who may maintain them.
   listActions: CustomerListActions,
   edit: {

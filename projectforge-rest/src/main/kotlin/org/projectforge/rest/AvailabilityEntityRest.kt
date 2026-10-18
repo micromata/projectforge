@@ -50,6 +50,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -68,6 +69,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 
 /**
  * The layout-free REST endpoint of the availability entries (menu "Availability"), serving the hand-built list and
@@ -127,17 +129,30 @@ class AvailabilityEntityRest :
     )
 
     /**
-     * Status and location are shown translated: sorted as displayed, not by the enum's name. The type and the begin as
-     * shown, too: the order of the database would reveal the types hidden from the viewer ([AvailabilityDao.afterLoad])
-     * and the real begin of an entry clipped for the viewer ([AbsenceService.shownTo]).
+     * Status and location are shown translated: sorted as displayed, not by the enum's name. The working days are
+     * computed from the period. The type and the begin as shown, too: the order of the database would reveal the types
+     * hidden from the viewer ([AvailabilityDao.afterLoad]) and the real begin of an entry clipped for the viewer
+     * ([AbsenceService.shownTo]).
      */
     override val computedSortProperties: Map<String, (AvailabilityDO) -> Comparable<*>?>
         get() = mapOf(
             "type" to { obj -> obj.type },
-            "startDate" to { obj -> (absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj).startDate },
+            "startDate" to { obj -> shown(obj).startDate },
+            // Computed from the period shown, as the list shows them.
+            "workingDaysFormatted" to { obj ->
+                shown(obj).let { entry ->
+                    val start = entry.startDate
+                    val end = entry.endDate
+                    if (start != null && end != null) VacationService.getVacationDays(start, end) else null
+                }
+            },
             "status" to { obj -> obj.status?.let { translate(it.i18nKey) } },
             "location" to { obj -> obj.location?.let { translate(it.i18nKey) } },
         )
+
+    /** The entry as the logged-in user may see it ([AbsenceService.shownTo]), the list checked the access. */
+    private fun shown(obj: AvailabilityDO): AvailabilityDO =
+        absenceService.shownTo(ThreadLocalUserContext.loggedInUser, obj) ?: obj
 
     override fun transformForDB(dto: Availability): AvailabilityDO {
         val availabilityDO = AvailabilityDO()
@@ -164,8 +179,40 @@ class AvailabilityEntityRest :
         if (editMode) {
             applyFormInfo(availability, obj)
             applyStats(availability, computeStats(availability))
+        } else {
+            availability.nonWorkingDays = SubstituteAbsenceReducer.barNonWorkingDays(shown.startDate, shown.endDate)
         }
         return availability
+    }
+
+    /**
+     * The list's rows with the days without any substitute on duty of the entries the conflict cache flags, for the
+     * days bar: checked against the absences of all their substitutes at once
+     * ([VacationService.getUncoveredDaysOfAvailabilities]). For anybody but HR staff from today on only, as the
+     * conflict flag counts them: a past day would tell that the substitutes were away, e.g. sick (see
+     * [SubstituteAbsenceReducer]).
+     */
+    override fun postProcessResultSet(
+        resultSet: ResultSet<AvailabilityDO>,
+        request: HttpServletRequest,
+        magicFilter: MagicFilter,
+    ): ResultSet<*> {
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        val conflicting = resultSet.resultSet.filter {
+            conflictingAvailabilitiesCache.hasConflict(it.id) &&
+                    SubstituteAbsenceReducer.inChartRange(it.startDate, it.endDate)
+        }
+        if (conflicting.isNotEmpty()) {
+            val uncovered = vacationService.getUncoveredDaysOfAvailabilities(conflicting)
+            val today = if (hasHrRights()) null else LocalDate.now()
+            result.resultSet.forEach { row ->
+                (row as? Availability)?.let { dto ->
+                    val days = uncovered[dto.id] ?: return@let
+                    dto.uncoveredDays = if (today == null) days else days.filter { it >= today }
+                }
+            }
+        }
+        return result
     }
 
     override fun newBaseDTO(request: HttpServletRequest?): Availability {

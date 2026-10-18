@@ -16,6 +16,7 @@ import { getByPath } from "@/lib/dynamic/path";
 /** The row highlight classes globals.css defines. */
 const KNOWN_CLASSES = new Set([
   "row-deleted",
+  "row-inactive",
   "row-red",
   "row-green",
   "row-blue",
@@ -54,6 +55,13 @@ export function deletedRowClass(row: {
 }): string | undefined {
   return row.deleted ? "row-deleted" : undefined;
 }
+
+/**
+ * The row class of an entry no longer live but not deleted — an ended project, a cancelled invoice, an
+ * inactive rule: struck through thin and grey, set apart from a deleted one (`globals.css`). A page returns
+ * it from its `rowClassName`; a deleted row still reads as deleted, since [deletedRowClass] is asked first.
+ */
+export const INACTIVE_ROW_CLASS = "row-inactive";
 
 /**
  * Builds the `rowClassName` callback for a grid. Returns undefined if the source

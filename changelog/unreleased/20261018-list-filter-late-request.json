@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Lists: after quickly paging back and forth (e.g. a year back and forth again), a list could come back from an entry with the filter paged past, when its outdated request was answered last.",
+  "de": "Listen: Nach schnellem Hin- und Herblättern (z. B. ein Jahr zurück und wieder vor) konnte eine Liste aus einem Eintrag mit dem übersprungenen Filter zurückkommen, wenn dessen veraltete Anfrage zuletzt beantwortet wurde."
+}
