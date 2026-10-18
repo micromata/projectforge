@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { LOOKUP_PAGE_SIZE, withMaxResults } from "@/lib/rs/autocomplete-url";
+import {
+  EMPTY_TERM_MAX_ENTRIES,
+  LOOKUP_PAGE_SIZE,
+  withMaxResults,
+} from "@/lib/rs/autocomplete-url";
 import { fetchAutoCompletion } from "@/lib/rs/dynamic";
 
 /** Reopening a picker within the minute answers from the cache instead of asking again. */
@@ -40,7 +44,7 @@ export interface EntityLookupOptions {
   minChars?: number;
   /**
    * Whether opening with an *empty* term asks the backend for "the beginning of what there is". On by
-   * default (a user or cost-unit picker wants that head start). The task search turns it off: its
+   * default, but listed only for a short list (see [emptyTermResult]). The task search turns it off: its
    * empty-term answer is a random, mostly useless slice of the whole tree, and the recent quick-picks
    * are the better "before you type" content there (see TaskSearchPopover).
    */
@@ -54,6 +58,11 @@ export interface EntityLookup<T> {
   isLoadingMore: boolean;
   /** The last answer filled its cap, so asking for more may bring more. */
   hasMore: boolean;
+  /**
+   * Nothing typed yet and too many entries to list them (see [emptyTermResult]): the picker asks the user
+   * to type instead of showing an empty list.
+   */
+  typeToSearch: boolean;
   loadMore: () => void;
 }
 
@@ -63,9 +72,9 @@ export interface EntityLookup<T> {
  * both use this).
  *
  * Opening asks with an empty term, which `{category}/autosearch` answers with the beginning of the
- * whole list — "show me what there is" without typing. Not with *all* of it: a cost unit lookup is
- * 1400 entries and takes the backend well over a second, so the box would sit empty exactly where
- * this is meant to help.
+ * whole list — "show me what there is" without typing. Only for a short list, though: of a long one (the
+ * users, the 1400 cost units) the first entries in alphabetical order are hardly ever the one wanted and
+ * merely cover the form, so the picker asks the user to type instead (see [emptyTermResult]).
  *
  * Loading more raises `maxResults` and asks again, because the endpoint has no offset
  * (AbstractEntityRest.getAutoCompleteObjects takes `search` and `maxResults`). The previous page
@@ -93,10 +102,12 @@ export function useEntityLookup<T>({
     setLimit(LOOKUP_PAGE_SIZE);
   }
 
+  // An empty term asks for no more than a short list holds: a full answer tells it is too long to show.
+  const cap = term.length === 0 ? EMPTY_TERM_MAX_ENTRIES : limit;
   const { data, isFetching } = useQuery({
-    queryKey: ["entity-lookup", url, term, params, limit],
+    queryKey: ["entity-lookup", url, term, params, cap],
     queryFn: ({ signal }) =>
-      fetchAutoCompletion<T>(withMaxResults(url!, limit), term, params, signal),
+      fetchAutoCompletion<T>(withMaxResults(url!, cap), term, params, signal),
     // The empty term is a legitimate lookup where the caller wants that head start; a half-typed one
     // still isn't, since it would search for a fragment the user is in the middle of writing.
     enabled:
@@ -108,18 +119,37 @@ export function useEntityLookup<T>({
     retry: false,
   });
 
-  const entries = data ?? [];
-  // The answer carries no total, so a full page is the only hint that there may be another one.
-  const hasMore = entries.length >= limit;
+  const answer = data ?? [];
+  const { entries, typeToSearch } =
+    term.length === 0
+      ? emptyTermResult(answer, EMPTY_TERM_MAX_ENTRIES)
+      : { entries: answer, typeToSearch: false };
+  // The answer carries no total, so a full page is the only hint that there may be another one. Not for
+  // the empty term: its list is complete or not shown at all.
+  const hasMore = term.length > 0 && entries.length >= limit;
 
   return {
     entries,
     isFetching,
     isLoadingMore: isFetching && entries.length > 0,
     hasMore,
+    typeToSearch,
     loadMore: () => {
       if (isFetching || !hasMore) return;
       setLimit((it) => it + LOOKUP_PAGE_SIZE);
     },
   };
+}
+
+/**
+ * What a picker lists before anything is typed: the whole answer of a short list, nothing of a long one
+ * (an answer of [max] entries or more, asked for with that cap) — the user is asked to type then.
+ */
+export function emptyTermResult<T>(
+  answer: T[],
+  max: number
+): { entries: T[]; typeToSearch: boolean } {
+  return answer.length >= max
+    ? { entries: [], typeToSearch: true }
+    : { entries: answer, typeToSearch: false };
 }

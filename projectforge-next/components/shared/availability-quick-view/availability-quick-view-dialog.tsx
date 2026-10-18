@@ -20,6 +20,7 @@ import {
   fetchUserAvailabilityView,
   VACATION_EXPORT_USERS_URL,
 } from "@/lib/rs/vacation-export";
+import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { AvailabilityQuickViewChart } from "./availability-quick-view-chart";
 
 /** The periods offered, in weeks from the beginning of this week; the backend shows 12 at most. */
@@ -39,6 +40,7 @@ export function AvailabilityQuickViewDialog({
   const t = useTranslations();
   const [user, setUser] = useState<EntityRef | null>(null);
   const [weeks, setWeeks] = useState<number>(DEFAULT_WEEKS);
+  const me = useCurrentUserRef();
   const userId = user?.id;
   const query = useQuery({
     queryKey: ["availabilityQuickView", userId, weeks],
@@ -64,6 +66,7 @@ export function AvailabilityQuickViewDialog({
             url={VACATION_EXPORT_USERS_URL}
             value={user}
             onChange={setUser}
+            selectMe={me}
             aria-label={t("vacation.quickView.user")}
             className="sm:flex-1"
             autoOpen

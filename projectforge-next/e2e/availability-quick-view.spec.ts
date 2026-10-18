@@ -5,7 +5,8 @@ import { userFormat } from "./fixtures/format";
 /**
  * The quick view of a colleague's availability (AvailabilityQuickViewDialog, VacationExportRest.userView), opened
  * from the vacation account: no list visited, nothing stored (the quick view leaves the team calendar's choice
- * alone), so it may run beside anything. The logged-in user picks themself, the one person always pickable.
+ * alone), so it may run beside anything. The logged-in user picks themself — the one person always pickable — by
+ * the picker's "select me" button.
  */
 test.describe("availability quick view", { tag: "@parallel" }, () => {
   test("shows the bars of the picked person for the weeks chosen", async ({
@@ -13,6 +14,8 @@ test.describe("availability quick view", { tag: "@parallel" }, () => {
   }) => {
     const format = await userFormat(page);
     const { username, fullname } = await userData(page);
+    // As useCurrentUserRef names the logged-in user.
+    const name = fullname || username;
     await goto(page, "/vacationAccount");
 
     await page
@@ -22,18 +25,18 @@ test.describe("availability quick view", { tag: "@parallel" }, () => {
       name: format.t("vacation.quickView.title"),
     });
     await expect(dialog).toBeVisible();
-    // The picker opens at once, its search taking the keys.
-    await page.keyboard.type(username);
-    await page
-      .getByRole("option", { name: fullname ?? username })
-      .first()
+    // The picker opens at once; closed again (only it, not the dialog), the user picks themself beside it.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await dialog
+      .getByRole("button", { name: new RegExp(`: ${escape(name)}$`) })
       .click();
 
     const chart = dialog.getByRole("group", {
       name: format.t("vacation.quickView.title"),
     });
     await expect(chart).toBeVisible();
-    await expect(chart.getByText(fullname ?? username)).toBeVisible();
+    await expect(chart.getByText(name)).toBeVisible();
 
     // 8 weeks first; 4 asked for anew, from the beginning of this week.
     const answer = page.waitForResponse(
@@ -60,4 +63,9 @@ async function userData(
       userData: { username: string; fullname?: string };
     }
   ).userData;
+}
+
+/** [text] as a literal part of a regular expression. */
+function escape(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

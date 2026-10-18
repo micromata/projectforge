@@ -1,0 +1,11 @@
+{
+  "type": "improved",
+  "en": "Selection boxes",
+  "de": "Auswahlboxen",
+  "items": [
+    {
+      "en": "A selection box with many entries (30 or more, e.g. users or cost 2 units) no longer lists its first entries in alphabetical order before anything is typed, but asks to type a search term. Short lists are still shown completely when opened.",
+      "de": "Eine Auswahlbox mit vielen Einträgen (30 oder mehr, z. B. User oder Kost2) listet vor der Eingabe nicht mehr ihre ersten Einträge alphabetisch auf, sondern fordert zur Eingabe eines Suchbegriffs auf. Kurze Listen erscheinen beim Öffnen weiterhin vollständig."
+    }
+  ]
+}

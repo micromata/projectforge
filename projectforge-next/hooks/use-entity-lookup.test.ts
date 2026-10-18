@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isNearBottom } from "./use-entity-lookup";
+import { emptyTermResult, isNearBottom } from "./use-entity-lookup";
 
 /**
  * Only the scroll decision, not the hook: what the picker does with the entries is Playwright's half
@@ -29,5 +29,29 @@ describe("isNearBottom", () => {
     expect(
       isNearBottom({ scrollTop: 0, scrollHeight: 96, clientHeight: 300 })
     ).toBe(true);
+  });
+});
+
+/** What a picker lists before anything is typed: a short list whole, a long one not at all. */
+describe("emptyTermResult", () => {
+  const entries = (count: number) => Array.from({ length: count }, (_, i) => i);
+
+  it("lists a short list whole", () => {
+    expect(emptyTermResult(entries(29), 30)).toEqual({
+      entries: entries(29),
+      typeToSearch: false,
+    });
+    expect(emptyTermResult([], 30)).toEqual({
+      entries: [],
+      typeToSearch: false,
+    });
+  });
+
+  it("lists nothing of a long one and asks to type instead", () => {
+    // Asked for with the cap: a full answer is all that tells a long list.
+    expect(emptyTermResult(entries(30), 30)).toEqual({
+      entries: [],
+      typeToSearch: true,
+    });
   });
 });
