@@ -8,6 +8,7 @@ import type { KontoDetail } from "./types";
  */
 export function toFormValues(konto: KontoDetail): AccountValues {
   return {
+    id: konto.id ?? null,
     nummer: konto.nummer ?? null,
     status: konto.status ?? null,
     bezeichnung: konto.bezeichnung ?? "",

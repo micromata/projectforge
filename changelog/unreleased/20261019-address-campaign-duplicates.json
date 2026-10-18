@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Address campaigns and accounts: saving an existing entry no longer creates a copy of it (e.g. when setting a campaign inactive). A campaign's title must not be taken by another campaign.",
+  "de": "Adresskampagnen und Konten: Das Speichern eines bestehenden Eintrags legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne). Der Titel einer Kampagne darf nicht schon von einer anderen Kampagne verwendet werden."
+}
