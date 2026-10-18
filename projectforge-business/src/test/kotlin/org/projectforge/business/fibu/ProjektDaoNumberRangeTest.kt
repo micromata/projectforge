@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.business.fibu.kost.Kost2ArtDao
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.business.fibu.numberrange.NumberRangeViolation
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.common.i18n.UserException
@@ -56,6 +57,9 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
     @Autowired
     private lateinit var kostFormatter: KostFormatter
 
+    @Autowired
+    private lateinit var numberRangeService: NumberRangeService
+
     @Test
     fun `project numbers are computed from customer and local number`() {
         persistenceService.runInTransaction { _ ->
@@ -79,11 +83,7 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
             assertEquals(ProjektDao.LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY, ex.i18nKey)
 
             // Kost2 of the new range:
-            val art = kost2ArtDao.find(2L, checkAccess = false) ?: Kost2ArtDO().also {
-                it.id = 2L
-                it.name = "Test"
-                kost2ArtDao.insert(it, checkAccess = false)
-            }
+            val art = kost2Art()
             val kost2 = Kost2DO().also { it.kost2Art = art }
             kost2Dao.setProjekt(kost2, new.id!!)
             kost2Dao.insert(kost2, checkAccess = false)
@@ -150,6 +150,45 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
             assertEquals(12, projektDao.find(projekt.id)!!.nummer)
             null
         }
+    }
+
+    @Test
+    fun `Kost2 of projects only in a number range, those of 4 and 5 tell the former ranges in use`() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val art = kost2Art()
+            // A free project number isn't made of Kost2, even if digits are given (5.123.45 is no project of 4713). Below
+            // the free numbers of the other tests, which expect their maximum + 1 as next free number:
+            val free = insertProjekt(insertKunde(4713), nummer = 1, projektnummer = 600001)
+            val ex = assertThrows<UserException> {
+                kost2Dao.insert(Kost2DO().also {
+                    it.projekt = free
+                    it.nummernkreis = 5
+                    it.bereich = 123
+                    it.teilbereich = 45
+                    it.kost2Art = art
+                }, checkAccess = false)
+            }
+            assertEquals(Kost2Dao.PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY, ex.i18nKey)
+
+            // Kost2 of a project of range 1 aren't those of the former ranges, Kost2 of a project of range 5 are:
+            val before = numberRangeService.countLegacyKost2()
+            val new = insertProjekt(insertKunde(10008), nummer = 4)
+            kost2Dao.insert(Kost2DO().also { kost2Dao.setProjekt(it, new.id!!); it.kost2Art = art }, checkAccess = false)
+            assertEquals(before, numberRangeService.countLegacyKost2())
+            val legacy = insertProjekt(insertKunde(779), nummer = 7)
+            kost2Dao.insert(Kost2DO().also { kost2Dao.setProjekt(it, legacy.id!!); it.kost2Art = art }, checkAccess = false)
+            assertEquals(before + 1, numberRangeService.countLegacyKost2())
+            // Configured ranges win anyway:
+            assertEquals(NumberRangeService.Mode.CONFIGURED, numberRangeService.mode)
+            null
+        }
+    }
+
+    private fun kost2Art(): Kost2ArtDO = kost2ArtDao.find(2L, checkAccess = false) ?: Kost2ArtDO().also {
+        it.id = 2L
+        it.name = "Test"
+        kost2ArtDao.insert(it, checkAccess = false)
     }
 
     private fun insertKunde(nummer: Long): KundeDO {

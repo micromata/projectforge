@@ -65,6 +65,11 @@ class NumberRangeRest {
     class NumberRangesInfo(
         /** Whether cost units are configured at all: without, projects have no Kost2 types. */
         val costConfigured: Boolean,
+        /**
+         * Which ranges apply: the configured ones, the former ranges 4/5 (no ranges configured, but in use, see
+         * [NumberRangeService]) or none (free numbers).
+         */
+        val mode: NumberRangeService.Mode,
         val allowFreeNumbers: Boolean,
         val defaultSegments: List<Int>,
         val ranges: List<Range>,
@@ -78,6 +83,7 @@ class NumberRangeRest {
         val usedCustomerNumbers = if (withCustomers) kundeCache.all.keys else emptySet()
         return NumberRangesInfo(
             costConfigured = Configuration.instance.isCostConfigured,
+            mode = numberRangeService.mode,
             allowFreeNumbers = numberRanges.allowFreeNumbers,
             defaultSegments = numberRanges.defaultSegments,
             ranges = numberRanges.ranges.map { range ->

@@ -185,6 +185,17 @@ class NumberRangesTest {
         assertEquals("4.123.45.67", legacyRanges.formatKost2(41234567))
     }
 
+    @Test
+    fun `the former ranges apply only without configured ranges and only if in use`() {
+        val legacyRanges = NumberRanges(NumberRanges.legacyRanges())
+        val unconfigured = NumberRanges(emptyList())
+        assertEquals(micromata, NumberRangeService.select(micromata, legacyRanges) { true })
+        assertEquals(legacyRanges, NumberRangeService.select(unconfigured, legacyRanges) { true })
+        assertEquals(unconfigured, NumberRangeService.select(unconfigured, legacyRanges) { false })
+        // Configured ranges don't ask for the former ones (no database query):
+        NumberRangeService.select(micromata, legacyRanges) { throw AssertionError("Not to be asked.") }
+    }
+
     private fun range(
         prefix: Int,
         customerMin: Long? = null,

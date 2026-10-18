@@ -178,6 +178,11 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
             val projekt =
                 // Attached: inside the update transaction, a detaching find would pull the project out of the session.
                 projektDao.find(obj.projekt?.id, checkAccess = false, attached = true)
+            // A new Kost2 needs a project of a number range (as setProjekt does); also keeps the detection of the
+            // former ranges 4/5 (NumberRangeService) from being triggered by a free project number like 512345:
+            if (operationType == OperationType.INSERT && projekt!!.nummernkreis == null) {
+                throw UserException(PROJEKT_WITHOUT_NUMBER_RANGE_I18N_KEY)
+            }
             // Compared with the stored project number, not with the range-derived digits: existing Kost2 of a project
             // stay valid even if its number range isn't configured (any more).
             val kost2Projektnummer = obj.nummernkreis * 100_000 + obj.bereich * 100 + obj.teilbereich

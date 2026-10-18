@@ -25,8 +25,8 @@ package org.projectforge.business.fibu.numberrange
 
 /**
  * Number ranges (Nummernkreise) of customers and projects and their mapping to Kost2. Without any configured range,
- * the formerly built-in ranges 4 and 5 apply if cost units are configured ([NumberRanges.legacyRanges]), otherwise
- * customer and project numbers are free.
+ * the formerly built-in ranges 4 and 5 ([NumberRanges.legacyRanges]) apply only to an installation that used them
+ * (see [NumberRangeService]), otherwise customer and project numbers are free.
  *
  * Example (the ranges used by Micromata):
  * ```
@@ -49,8 +49,8 @@ package org.projectforge.business.fibu.numberrange
  */
 class NumberRangeConfig {
     /**
-     * If false, every customer number must lie in a configured range (protects against typos). Ignored if no range is
-     * configured.
+     * If false, every customer number must lie in a configured range (protects against typos); applies to the former
+     * ranges 4 and 5 as well, ignored if no range applies.
      */
     var allowFreeNumbers: Boolean = true
 
