@@ -33,6 +33,7 @@ import org.apache.poi.ss.usermodel.DateUtil
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDO
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -396,11 +397,8 @@ class DatevRecordExcelImporter(
         internal fun formatKost1(kost1: Kost1DO): String =
             "%d.%03d.%02d.%02d".format(kost1.nummernkreis, kost1.bereich, kost1.teilbereich, kost1.endziffer)
 
-        /** #.###.##.##, see [formatKost1]. */
-        internal fun formatKost2(kost2: Kost2DO): String {
-            val art = kost2.kost2Art?.id?.let { "%02d".format(it) } ?: "--"
-            return "%d.%03d.%02d.%s".format(kost2.nummernkreis, kost2.bereich, kost2.teilbereich, art)
-        }
+        /** Segmented by its number range ("5.123.45.67", "1.2345.6.78"), without cache lookups, see [formatKost1]. */
+        internal fun formatKost2(kost2: Kost2DO): String = KostFormatter.formatKost2Number(kost2)
 
         /**
          * The preview tooltip of a cost unit 2, one line each, as the former Wicket import showed it

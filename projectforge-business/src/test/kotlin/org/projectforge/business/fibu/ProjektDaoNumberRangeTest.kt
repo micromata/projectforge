@@ -24,7 +24,9 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.projectforge.business.fibu.kost.Kost2ArtDO
@@ -183,6 +185,24 @@ class ProjektDaoNumberRangeTest : AbstractTestBase() {
             assertEquals(NumberRangeService.Mode.CONFIGURED, numberRangeService.mode)
             null
         }
+    }
+
+    @Test
+    fun `a collision on the unique project number is told by the constraint in any cause`() {
+        // Two projects saved at the same time pass the check of assignProjektnummer, the second fails on flush:
+        val hsqldb = RuntimeException(
+            "could not execute statement",
+            java.sql.SQLIntegrityConstraintViolationException(
+                "integrity constraint violation: unique constraint or index violation ; UNIQUE_T_FIBU_PROJEKT_PROJEKTNUMMER table: T_FIBU_PROJEKT"
+            ),
+        )
+        assertTrue(ProjektDao.isProjektnummerCollision(hsqldb))
+        assertTrue(
+            ProjektDao.isProjektnummerCollision(
+                IllegalStateException("duplicate key value violates unique constraint \"unique_t_fibu_projekt_projektnummer\"")
+            )
+        )
+        assertFalse(ProjektDao.isProjektnummerCollision(RuntimeException("other", RuntimeException("unique_t_fibu_kunde"))))
     }
 
     private fun kost2Art(): Kost2ArtDO = kost2ArtDao.find(2L, checkAccess = false) ?: Kost2ArtDO().also {

@@ -37,6 +37,7 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
@@ -365,12 +366,42 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         return ProjektDO()
     }
 
+    override fun insert(obj: ProjektDO, checkAccess: Boolean): Long =
+        translateProjektnummerCollision(obj) { super.insert(obj, checkAccess) }
+
+    override fun update(obj: ProjektDO, checkAccess: Boolean): EntityCopyStatus =
+        translateProjektnummerCollision(obj) { super.update(obj, checkAccess) }
+
+    /**
+     * The check of [assignProjektnummer] runs before the flush: two projects saved at the same time may get the
+     * same (next free) number, the second then fails on the unique constraint. Answered as the check would, so
+     * saving again takes the next free number.
+     */
+    private fun <T> translateProjektnummerCollision(obj: ProjektDO, block: () -> T): T {
+        try {
+            return block()
+        } catch (ex: Exception) {
+            if (isProjektnummerCollision(ex)) {
+                throw UserException(PROJEKTNUMMER_EXISTS_I18N_KEY, obj.projektnummer)
+            }
+            throw ex
+        }
+    }
+
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_PROJECT
 
         const val NUMBER_LOCKED_I18N_KEY = "fibu.projekt.validation.numberLocked"
         const val PROJEKTNUMMER_EXISTS_I18N_KEY = "fibu.projekt.validation.projektnummerExists"
         const val LOCAL_NUMBER_OUT_OF_RANGE_I18N_KEY = "fibu.projekt.validation.localNumberOutOfRange"
+
+        /** The unique constraint of [ProjektDO.projektnummer] (Flyway V9.0.8.4). */
+        private const val PROJEKTNUMMER_CONSTRAINT = "unique_t_fibu_projekt_projektnummer"
+
+        /** Whether the exception (or a cause) names the constraint; HSQLDB reports it in upper case. */
+        internal fun isProjektnummerCollision(ex: Throwable): Boolean =
+            generateSequence(ex) { it.cause.takeIf { cause -> cause !== it } }
+                .any { it.message?.contains(PROJEKTNUMMER_CONSTRAINT, ignoreCase = true) == true }
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
             "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",

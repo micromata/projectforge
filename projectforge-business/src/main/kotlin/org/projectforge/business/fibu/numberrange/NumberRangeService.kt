@@ -27,7 +27,9 @@ import jakarta.annotation.PostConstruct
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.properties.bind.Binder
+import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 
@@ -97,6 +99,32 @@ open class NumberRangeService {
             "SELECT COUNT(k.id) FROM Kost2DO k WHERE k.projekt IS NOT NULL AND k.nummernkreis IN (4, 5)",
             java.lang.Long::class.java,
         )?.toLong() ?: 0L
+
+    /**
+     * Logs the mode once the database is ready (detecting the use of the former ranges), and the projects without
+     * project number: those the migration (V9.0.8.4) didn't number (customer above 999 or number above 99). They
+     * get one on their next save; for a customer of a range their number must fit the range's project digits
+     * (fibu.projekt.validation.localNumberOutOfRange otherwise, to be corrected in the form).
+     */
+    @EventListener(ApplicationReadyEvent::class)
+    open fun logStatus() {
+        try {
+            log.info { "Number ranges: mode $mode." }
+            val unnumbered = persistenceService.selectSingleResult(
+                "SELECT COUNT(p.id) FROM ProjektDO p WHERE p.projektnummer IS NULL AND p.deleted = false",
+                java.lang.Long::class.java,
+            )?.toLong() ?: 0L
+            if (unnumbered > 0) {
+                log.warn {
+                    "$unnumbered projects have no project number yet (not numbered by the migration: customer above" +
+                            " 999 or number above 99). They get one on their next save; in a number range their" +
+                            " number must fit the range's project digits."
+                }
+            }
+        } catch (ex: Exception) {
+            log.warn(ex) { "Can't check the project numbers: ${ex.message}" }
+        }
+    }
 
     @PostConstruct
     private fun postConstruct() {
