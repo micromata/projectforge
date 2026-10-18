@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Calendars pushed to the gateway: a team calendar including absences is generated for each user and shows exactly the absences this user may see; before, it could show those of another user with the same access to the calendar.",
-  "de": "An das Gateway übertragene Kalender: Ein Team-Kalender mit Abwesenheiten wird für jede Person erzeugt und zeigt genau die Abwesenheiten, die diese Person sehen darf; zuvor konnten es die einer anderen Person mit demselben Zugriff auf den Kalender sein."
-}

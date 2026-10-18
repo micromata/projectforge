@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Script editing: a \"Show changes\" button in the code editor's toolbar compares two versions of the code side by side (inline on small screens): the code being edited, the stored version or any of the script's backups.",
-  "de": "Script-Bearbeitung: Ein Button „Änderungen anzeigen“ in der Werkzeugleiste des Code-Editors vergleicht zwei Versionen des Codes nebeneinander (auf kleinen Bildschirmen untereinander): den bearbeiteten Code, die gespeicherte Version oder eines der Backups des Scripts."
-}

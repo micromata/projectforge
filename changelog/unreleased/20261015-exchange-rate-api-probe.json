@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "System dashboard: the exchange rate API is tested daily and shown as an interface tile, so that a change of the API is noticed early. The test can be started at once in the scheduler tab.",
-  "de": "System-Dashboard: Die Wechselkurs-Schnittstelle wird täglich getestet und als Kachel unter den Schnittstellen angezeigt, damit eine Änderung der Schnittstelle früh auffällt. Im Scheduler-Tab lässt sich der Test sofort starten."
-}
