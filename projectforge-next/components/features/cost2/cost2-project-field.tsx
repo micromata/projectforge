@@ -11,15 +11,17 @@ import { leafKeyOf } from "@/lib/leaf-key";
 interface ProjectNumberParts {
   nummernkreis?: number | null;
   bereich?: number | null;
-  nummer?: number | null;
+  /** Digits 5-6 of the project number — not its local `nummer` (e.g. 12345 of internal 4.123.45). */
+  teilbereich?: number | null;
 }
 
 /**
  * Picks the project a cost unit belongs to and fills the first three number parts from it, mirroring
  * Wicket's `Kost2EditForm.setProjekt`: `nummernkreis`/`bereich` are the project's own, `teilbereich` is
- * its number. `ProjektDO` has no `UIDataType`, so it carries no metadata (hence `metadataLess`) and the
- * value is bound as a bare reference (see cost2-schema.ts). The number is required for number ranges 4
- * and 5 (`fibu.kost2.error.projektNeededForNummernkreis`), which is what this spares the user typing.
+ * digits 5-6 of its project number. `ProjektDO` has no `UIDataType`, so it carries no metadata (hence
+ * `metadataLess`) and the value is bound as a bare reference (see cost2-schema.ts). The number is
+ * required for the prefix of a number range (`fibu.kost2.error.projektNeededForNummernkreis`), which
+ * is what this spares the user typing.
  */
 export function Cost2ProjectField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -32,7 +34,7 @@ export function Cost2ProjectField({ className }: { className?: string }) {
     const detail = await fetchOne<ProjectNumberParts>("project", project.id);
     form.setFieldValue("nummernkreis", detail.nummernkreis ?? null);
     form.setFieldValue("bereich", detail.bereich ?? null);
-    form.setFieldValue("teilbereich", detail.nummer ?? null);
+    form.setFieldValue("teilbereich", detail.teilbereich ?? null);
   }
 
   return (

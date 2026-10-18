@@ -23,9 +23,16 @@ export interface NumberRange {
   nextFreeCustomerNumber?: number | null;
 }
 
+/**
+ * Which ranges apply (`NumberRangeService.Mode`): the configured ones, the former ranges 4/5 of an
+ * installation that used them (no ranges configured), or none (free numbers).
+ */
+export type NumberRangeMode = "CONFIGURED" | "LEGACY" | "FREE";
+
 export interface NumberRangesInfo {
   /** Whether cost units (Kost2) are configured at all. */
   costConfigured: boolean;
+  mode: NumberRangeMode;
   /** Whether customer numbers outside the ranges are allowed. */
   allowFreeNumbers: boolean;
   /** Segments of Kost2 whose prefix belongs to no range. */
@@ -45,12 +52,19 @@ export function fetchNumberRanges(
   );
 }
 
-/** The number ranges; undefined while loading. Configuration only, so fetched once per session. */
-export function useNumberRanges(): NumberRangesInfo | undefined {
+/**
+ * The number ranges; undefined while loading. Configuration only, so fetched once per session — except with
+ * `fresh`, for the next free customer numbers, which every saved customer changes: then fetched again on
+ * mount (the cached ones are shown meanwhile).
+ */
+export function useNumberRanges({
+  fresh = false,
+}: { fresh?: boolean } = {}): NumberRangesInfo | undefined {
   const { data } = useQuery({
     queryKey: NUMBER_RANGES_QUERY_KEY,
     queryFn: ({ signal }) => fetchNumberRanges(signal),
     staleTime: Infinity,
+    refetchOnMount: fresh ? "always" : true,
   });
   return data;
 }

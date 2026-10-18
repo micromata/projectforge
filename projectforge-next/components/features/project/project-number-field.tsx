@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
@@ -50,16 +50,23 @@ export function ProjectNumberField({ className }: { className?: string }) {
       ? projectNumber(range, customerId != null ? customerId : null, nummer)
       : null;
 
+  // The range of the last render: a number left over from it is cleared when the customer leaves it.
+  const previousRange = useRef(range);
+
   // Keep the posted values in line with what the field shows (not for a locked number: it can't change).
   useEffect(() => {
+    const leftRange = previousRange.current != null && range == null;
+    previousRange.current = range;
     if (info == null || locked) return;
     if (range != null) {
       if (computed !== projektnummer)
         form.setFieldValue("projektnummer", computed);
       return;
     }
-    // Free number: one of a range (left over from a customer of a range) doesn't fit any more.
-    if (rangeForProjectNumber(info, projektnummer) != null) {
+    // Free number: the one of the range just left (another customer picked) doesn't fit any more. A
+    // number typed into the free field stays as it is, even inside a range: the backend tells
+    // (fibu.numberRange.error.freeNumberInRange), and a prefix like "4711…" passes through "471100" on its way.
+    if (leftRange && rangeForProjectNumber(info, projektnummer) != null) {
       form.setFieldValue("projektnummer", null);
       return;
     }

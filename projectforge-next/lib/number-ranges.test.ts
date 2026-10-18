@@ -14,6 +14,7 @@ import {
 /** The ranges Micromata configures (application-test.properties). */
 const INFO: NumberRangesInfo = {
   costConfigured: true,
+  mode: "CONFIGURED",
   allowFreeNumbers: false,
   defaultSegments: [1, 3, 2, 2],
   ranges: [

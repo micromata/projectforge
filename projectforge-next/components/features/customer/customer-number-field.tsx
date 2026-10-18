@@ -27,7 +27,8 @@ export function CustomerNumberField({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
   const data = useEntityData<CustomerDetail>();
-  const info = useNumberRanges();
+  // Fresh: the next free numbers of the ranges change with every customer saved.
+  const info = useNumberRanges({ fresh: true });
   const isNew = data?.id == null;
   const ranges = (info?.ranges ?? []).filter(hasCustomers);
   const rangesText = ranges

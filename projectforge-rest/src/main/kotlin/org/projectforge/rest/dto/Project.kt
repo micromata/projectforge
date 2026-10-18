@@ -54,6 +54,8 @@ class Project(
     var salesManager: User? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
+    /** Digits 5-6 of the project number, the third part of its Kost2 (not the local number, see ProjektDO). */
+    var teilbereich: Int? = null,
     /**
      * The internal range (Kostenstellen 2-4, "4.xxx") of a project without customer; its customer's number
      * takes this place otherwise.
@@ -119,6 +121,7 @@ class Project(
         super.copyFrom(src)
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
+        this.teilbereich = src.teilbereich
         src.kunde?.let {
             // Name and division for the list columns of the next project list; the kunde is resolved
             // from the cache (PfCaches.initialize), so this costs no query.

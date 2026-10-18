@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -65,8 +66,21 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
 
   // Without cost units there are no cost 2 types to offer; a project with a free number gets none (its
   // number isn't made of Kost2, see Kost2Dao.setProjekt) — unless it has some already.
-  if (info == null || !info.costConfigured) return null;
   const withoutRange = range == null && !arts.some((art) => art.existsAlready);
+  const offered = info != null && info.costConfigured && !withoutRange;
+
+  // Types checked for a customer of a range don't apply to one of no range: unchecked, as the boxes are
+  // disabled then (the save would be refused, fibu.kost2.error.projektWithoutNumberRange).
+  useEffect(() => {
+    if (info == null || offered) return;
+    arts.forEach((art, index) => {
+      if (art.selected && !art.existsAlready) {
+        form.setFieldValue(`kost2Arts[${index}].selected`, false);
+      }
+    });
+  }, [info, offered, arts, form]);
+
+  if (info == null || !info.costConfigured) return null;
 
   return (
     <fieldset className={cn("flex flex-col gap-1.5", className)}>
