@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -185,6 +186,22 @@ private fun <O : ExtendedBaseDO<Long>> restorePageOrder(pageIds: List<*>, loaded
     return pageIds.mapNotNull { byId[it as? Long] }
 }
 
+/**
+ * Request parameter by which a client declares what a write has to be: `insert` (a new entry) or `update` (an
+ * existing one). Read by [saveOrUpdate] when its caller doesn't fix the operation itself, so the form actions
+ * that save through it (e.g. `lendOut`, `close`, `split`) are guarded the same way as the `insert`/`update`
+ * endpoints. Without it the write stays the legacy upsert (classic React pages, `saveorupdate`).
+ */
+const val OPERATION_PARAM = "operation"
+
+/**
+ * Inserts or updates [obj].
+ *
+ * @param expected What the write has to be ([OperationType.INSERT] or [OperationType.UPDATE]); if null, the request
+ * parameter [OPERATION_PARAM] is used, and without it the object decides (legacy upsert: no id means insert). With
+ * an expectation, a write that doesn't match it is rejected and nothing is written: an update must never become an
+ * insert because the id got lost on the way, nor an insert overwrite an existing entry.
+ */
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         saveOrUpdate(
     request: HttpServletRequest,
@@ -192,17 +209,24 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     obj: O,
     postData: PostData<DTO>,
     pagesRest: AbstractEntityRest<O, DTO, B>,
-    validationErrorsList: List<ValidationError>?
+    validationErrorsList: List<ValidationError>?,
+    expected: OperationType? = null,
 )
         : ResponseEntity<ResponseAction> {
 
     try {
+        val operation = expected ?: expectedOperation(request)
+        checkExpectedOperation(baseDao, obj, operation)?.let { return it }
         if (!validationErrorsList.isNullOrEmpty()) {
             // Validation error occurred:
             return ResponseEntity(ResponseAction(validationErrors = validationErrorsList), HttpStatus.NOT_ACCEPTABLE)
         }
-        val isNew =
-            obj.id == null || obj.created == null // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+        val isNew = when (operation) {
+            OperationType.INSERT -> true
+            OperationType.UPDATE -> false
+            // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+            else -> obj.id == null || obj.created == null
+        }
         pagesRest.onBeforeSaveOrUpdate(request, obj, postData)
         if (isNew) {
             pagesRest.onBeforeSave(request, obj, postData)
@@ -213,9 +237,13 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
             request,
             obj,
             postData,
-            if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
+            operation ?: if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
         )
-        baseDao.insertOrUpdate(obj) ?: obj.id
+        when (operation) {
+            OperationType.INSERT -> baseDao.insert(obj)
+            OperationType.UPDATE -> baseDao.update(obj)
+            else -> baseDao.insertOrUpdate(obj)
+        }
         pagesRest.onAfterSaveOrUpdate(request, obj, postData)
         if (isNew) {
             return ResponseEntity(pagesRest.onAfterSave(request, obj, postData), HttpStatus.OK)
@@ -225,6 +253,43 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     } catch (ex: Exception) {
         return handleException("Error while trying to save/update object '${obj::class.java}' with id #${obj.id}", ex)
     }
+}
+
+/**
+ * The operation the client declared by [OPERATION_PARAM], null if none (or an unknown one, which is logged).
+ */
+private fun expectedOperation(request: HttpServletRequest): OperationType? {
+    val param = request.getParameter(OPERATION_PARAM)?.trim()?.lowercase() ?: return null
+    return when (param) {
+        "insert" -> OperationType.INSERT
+        "update" -> OperationType.UPDATE
+        else -> {
+            log.warn { "Unknown value of request parameter '$OPERATION_PARAM' ignored: '$param'." }
+            null
+        }
+    }
+}
+
+/**
+ * Rejects a write that doesn't match [operation]: an update of an object without id, an insert of an object that
+ * already exists ([BaseDao.isNew], which allows the user-assigned id of a new customer). Either is a bug of the
+ * client (e.g. a form that doesn't post the id back), hence logged as error.
+ *
+ * @return The error response, or null if the write may go on.
+ */
+private fun <O : ExtendedBaseDO<Long>> checkExpectedOperation(
+    baseDao: BaseDao<O>,
+    obj: O,
+    operation: OperationType?,
+): ResponseEntity<ResponseAction>? {
+    val i18nKey = when {
+        operation == OperationType.UPDATE && obj.id == null -> "error.update.idMissing"
+        operation == OperationType.INSERT && !baseDao.isNew(obj) -> "error.insert.alreadyExists"
+        else -> return null
+    }
+    log.error { "Rejected $operation of '${obj::class.java.simpleName}' with id #${obj.id}: $i18nKey (bug of the client?)." }
+    val error = ValidationError(translate(i18nKey), messageId = i18nKey)
+    return ResponseEntity(ResponseAction(validationErrors = listOf(error)), HttpStatus.NOT_ACCEPTABLE)
 }
 
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>

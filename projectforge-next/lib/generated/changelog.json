@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.8",
+    "date" : "2026-10-19",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Edit forms: a new entry is saved with \"Create\", an existing one with \"Save\". Both are separate writes: saving an existing entry can no longer create a copy of it, and creating one never overwrites an existing entry." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Address campaigns and accounts: saving an existing entry no longer creates a copy of it (e.g. when setting a campaign inactive). A campaign's title must not be taken by another campaign." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

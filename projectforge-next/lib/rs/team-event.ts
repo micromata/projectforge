@@ -3,7 +3,7 @@
  * calendar select offers (`TeamEventEntityRest.getCalendars`) and the ics file of a stored event.
  *
  * Reads and writes of the event itself are not here: they are the generic `fetchOne`/`fetchNew`
- * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category — a
+ * (client.ts) and `insertEntity`/`updateEntity` and friends (entity.ts), parameterised with the category — a
  * team event is saved exactly like a book.
  */
 

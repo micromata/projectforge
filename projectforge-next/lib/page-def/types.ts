@@ -569,7 +569,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    *
    * They run through the form's own submit, i.e. the same Zod validation, values and 406 handling
    * (see lib/rs/submit-meta.ts); declaring the names is all the renderer needs to route
-   * `meta.action` to `/rs/{entity}/{action}` instead of `saveorupdate`. What *triggers* them stays
+   * `meta.action` to `/rs/{entity}/{action}` instead of `insert`/`update`. What *triggers* them stays
    * the entity's own business: a section's `render` puts the buttons where they belong.
    */
   actions?: readonly string[];
@@ -577,7 +577,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * Redirects the plain Save to one of the declared {@link actions}, chosen from the form values.
    *
    * The Save button always submits `action: "save"` (SAVE_META); when this hook returns an action name
-   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `saveorupdate`,
+   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `insert`/`update`,
    * while still navigating away the way a save does (the further-action branch that stays on the page is
    * only for a button carrying its own meta). Returning `undefined` — or omitting the hook — keeps the
    * ordinary save.

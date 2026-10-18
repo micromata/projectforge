@@ -55,7 +55,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     // The list shows a calendar on every database: the test data's, or the ones of production.
     await expect(rows.first()).toBeVisible();
     let saveAttempted = false;
-    await page.route("**/rs/teamCal/saveorupdate*", (route) => {
+    await page.route("**/rs/teamCal/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -79,7 +79,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     const format = await userFormat(page);
     const { t } = format;
     let posted: { data?: { absenceKinds?: string[] } } | null = null;
-    await page.route("**/rs/teamCal/saveorupdate*", (route) => {
+    await page.route("**/rs/teamCal/{insert,update}*", (route) => {
       posted = route.request().postDataJSON();
       return route.abort();
     });
@@ -100,7 +100,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     await kinds
       .getByRole("button", { name: t("availability.status.remoteReachable") })
       .click();
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
     await expect.poll(() => posted).not.toBeNull();
     expect(posted!.data?.absenceKinds).toEqual([
       "VACATION",

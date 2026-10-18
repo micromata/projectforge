@@ -56,6 +56,12 @@ public class RestPaths
 
   public static final String UPDATE = "update";
 
+  /**
+   * Inserts a new entry and nothing else: an entry that already exists is rejected, never updated (see
+   * {@link #UPDATE}, the counterpart for an existing entry).
+   */
+  public static final String INSERT = "insert";
+
   public static final String SAVE_OR_UDATE = SAVE + "or" + UPDATE;
 
   public static final String DELETE = "delete";

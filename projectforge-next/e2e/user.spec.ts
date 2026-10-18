@@ -110,7 +110,7 @@ test.describe("user page", { tag: "@parallel" }, () => {
     const id = await userIdOf(page.request, username);
     let userSaved = false;
     page.on("request", (request) => {
-      if (request.url().includes("/rs/user/saveorupdate")) userSaved = true;
+      if (/\/rs\/user\/(insert|update)\b/.test(request.url())) userSaved = true;
     });
     await goto(page, `/user/${id}`);
     await expect(usernameField(page, format)).toHaveValue(username, {

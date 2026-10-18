@@ -1,5 +1,18 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.8",
+    "date" : "2026-10-19",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Adresskampagnen und Konten: Das Speichern eines bestehenden Eintrags legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne). Der Titel einer Kampagne darf nicht schon von einer anderen Kampagne verwendet werden." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

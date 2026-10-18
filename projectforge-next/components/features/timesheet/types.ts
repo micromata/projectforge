@@ -1,5 +1,5 @@
 // Mirrors org.projectforge.rest.dto.Timesheet (projectforge-rest). Keep field names in sync with the
-// Spring DTO: it is what `saveorupdate` reads back, so a name that differs here is a value silently
+// Spring DTO: it is what `insert`/`update` read back, so a name that differs here is a value silently
 // dropped on the way in.
 
 import type { TIMESHEET_METADATA } from "@/lib/metadata/timesheet.generated";

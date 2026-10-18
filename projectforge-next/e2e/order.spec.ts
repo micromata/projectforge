@@ -152,7 +152,7 @@ test.describe("order book", { tag: "@lane-order" }, () => {
       await addSchedule(page, format, { amount: "500", positionNumber: 2 });
 
       await page
-        .getByRole("button", { name: format.t("save"), exact: true })
+        .getByRole("button", { name: format.t("create"), exact: true })
         .click();
 
       // A successful save leaves for the list, as every hand-built edit page does.
@@ -198,7 +198,7 @@ test.describe("order book", { tag: "@lane-order" }, () => {
       await addPosition(page, format, 0, { net: "1000", days: "3" });
       await addPosition(page, format, 1, { net: "2500", days: "5" });
       await page
-        .getByRole("button", { name: format.t("save"), exact: true })
+        .getByRole("button", { name: format.t("create"), exact: true })
         .click();
       await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });
       id = await findOrderId(page);
@@ -241,7 +241,7 @@ test.describe("order book", { tag: "@lane-order" }, () => {
       await addSchedule(page, format, { amount: "400" });
       await addSchedule(page, format, { amount: "600" });
       await page
-        .getByRole("button", { name: format.t("save"), exact: true })
+        .getByRole("button", { name: format.t("create"), exact: true })
         .click();
       await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });
       id = await findOrderId(page);

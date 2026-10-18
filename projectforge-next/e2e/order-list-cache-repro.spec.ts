@@ -280,7 +280,9 @@ test.describe("order list caching", { tag: "@lane-order" }, () => {
         .blur();
 
       console.log(`[save +${Date.now() - t0}ms] clicking save`);
-      await page.getByRole("button", { name: t("save"), exact: true }).click();
+      await page
+        .getByRole("button", { name: t("create"), exact: true })
+        .click();
 
       // 3) A successful save navigates back to the list (EntityEditPage.afterSave).
       await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });

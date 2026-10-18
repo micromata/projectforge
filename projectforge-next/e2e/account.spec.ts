@@ -87,13 +87,13 @@ test.describe("account", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/account/saveorupdate*", (route) => {
+    await page.route("**/rs/account/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
 
     await goto(page, "/account/new");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["fibu.konto.nummer", "fibu.konto.bezeichnung"]) {
       await expect(

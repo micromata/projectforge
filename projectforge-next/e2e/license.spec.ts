@@ -46,7 +46,7 @@ test.describe("license", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/license/saveorupdate*", (route) => {
+    await page.route("**/rs/license/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -61,7 +61,7 @@ test.describe("license", { tag: "@parallel" }, () => {
     await expect(
       page.getByText(t("attachment.onlyAvailableAfterSave"))
     ).toBeVisible();
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of [
       "plugins.licensemanagement.product",

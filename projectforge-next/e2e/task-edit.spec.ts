@@ -503,7 +503,7 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
       if (request.method() === "PUT" || request.url().includes("/rs/task/save"))
         posted = true;
     });
-    await page.getByRole("button", { name: format.t("save") }).click();
+    await page.getByRole("button", { name: format.t("create") }).click();
     // The parent is mandatory, as in Wicket (TaskEditForm): the schema refuses the form, so nothing is
     // created — which matters here, a saved task could not be removed again.
     await expect(

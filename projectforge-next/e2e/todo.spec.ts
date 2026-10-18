@@ -64,7 +64,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
     const format = await userFormat(page);
     const { t } = format;
     let saveAttempted = false;
-    await page.route("**/rs/todo/saveorupdate*", (route) => {
+    await page.route("**/rs/todo/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -77,7 +77,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
     await expect(
       page.getByRole("button", { name: t("plugins.todo.button.close") })
     ).toHaveCount(0);
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["plugins.todo.subject", "plugins.todo.assignee"]) {
       await expect(

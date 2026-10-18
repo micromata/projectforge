@@ -4,7 +4,7 @@
  * (`org.projectforge.rest.TimesheetEntityRest`).
  *
  * Reads and writes of the entity itself are not here: they are the generic `fetchOne`/`fetchNew`
- * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category —
+ * (client.ts) and `insertEntity`/`updateEntity` and friends (entity.ts), parameterised with the category —
  * a time sheet is saved exactly like a book.
  */
 

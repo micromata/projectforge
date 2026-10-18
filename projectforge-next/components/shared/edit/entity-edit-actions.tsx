@@ -61,6 +61,11 @@ export interface EntityEditActionsProps {
    */
   allowSaveUnchanged: boolean;
   /**
+   * Whether the entry doesn't exist yet: its button then reads "Create" ("Anlegen") as in the
+   * legacy pages, "Save" being an existing entry's. Off for a form that always edits one record.
+   */
+  isNew?: boolean;
+  /**
    * When the entry was last written, as the ISO timestamp the backend sends (`created`,
    * `lastUpdate`). Formatted here in the user's locale and time zone — the raw value would read
    * "2003-01-25T08:39:29.000Z". Null for a new entry, which has no such moment yet.
@@ -89,6 +94,7 @@ export function EntityEditActions({
   isSaving,
   isDirty,
   allowSaveUnchanged,
+  isNew = false,
   lastSaved,
 }: EntityEditActionsProps) {
   const t = useTranslations();
@@ -134,7 +140,7 @@ export function EntityEditActions({
               ) : (
                 <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
               )}
-              {t("save")}
+              {isNew ? t("create") : t("save")}
             </Button>
           </HintTooltip>
           {saveOption}

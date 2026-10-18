@@ -248,7 +248,7 @@ export function fetchNew<O>(
   );
 }
 
-// Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the
+// Entity writes (insert, update, markAsDeleted, …) live in ./entity.ts: they speak the
 // ResponseAction protocol, where 406 carries the validation errors, so they need the raw
 // Response rather than request()'s parsed body.
 
