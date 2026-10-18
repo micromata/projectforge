@@ -55,18 +55,18 @@ export const EMPLOYEE_PAGE = definePage<
   // The columns of the legacy list, in its order.
   columns: [
     {
+      id: "user.firstname",
+      labelKey: "firstName",
+      accessor: (row) => row.user?.firstname ?? "",
+      referenceKey: "user",
+      size: 160,
+    },
+    {
       id: "user.lastname",
       labelKey: "name",
       accessor: (row) => row.user?.lastname ?? "",
       referenceKey: "user",
       className: "font-semibold",
-      size: 160,
-    },
-    {
-      id: "user.firstname",
-      labelKey: "firstName",
-      accessor: (row) => row.user?.firstname ?? "",
-      referenceKey: "user",
       size: 160,
     },
     { name: "status", size: 170 },

@@ -8,6 +8,7 @@ import type {
   ValidityValueField,
 } from "@/components/shared/validity-entries/types";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
+import { historyQueryKey } from "@/hooks/use-history";
 import { EMPLOYEE_METADATA } from "@/lib/metadata/employee.generated";
 import {
   deleteValidSinceAttr,
@@ -82,8 +83,10 @@ export function employeeValidSinceTitleKey(type: EmployeeValidSinceAttrType) {
 /**
  * The entries of one time-dependent attribute of a stored employee — the status, the weekly working hours
  * or the annual leave days, each valid since its date. Written through `employee/validSinceAttr/...` right
- * away, not with the form (see ValidityEntriesSection); afterwards the employee is refetched, as its
- * current status, hours and leave days follow the entries.
+ * away, not with the form (see ValidityEntriesSection). The answer replaces the entries of the cached
+ * employee (no refetch: it already is what the backend has); the list, whose status, hours and leave days
+ * follow the entries, and the history, which shows the entries' changes too (`EmployeeDao.addOwnHistoryEntries`),
+ * are refreshed.
  */
 export function EmployeeValidSinceSection({
   id,
@@ -116,6 +119,9 @@ export function EmployeeValidSinceSection({
         void queryClient.invalidateQueries({
           queryKey: EMPLOYEE_LIST_QUERY_KEY,
           predicate: (query) => query.queryKey[1] !== id,
+        });
+        void queryClient.invalidateQueries({
+          queryKey: historyQueryKey("employee", id),
         });
       }}
     />

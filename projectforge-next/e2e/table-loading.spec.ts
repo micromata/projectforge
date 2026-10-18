@@ -75,6 +75,8 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
+    // A year stored in the list filter by an earlier visit would narrow the list (ContractPagesRest).
+    await page.request.get("/rs/contract/filter/reset");
     await goto(page, "/contract");
     // No contract is created here, so an empty list is the database's state, not a failure.
     const hasRow = await page

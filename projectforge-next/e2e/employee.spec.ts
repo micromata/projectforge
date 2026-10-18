@@ -126,6 +126,37 @@ test.describe("employee", { tag: "@parallel" }, () => {
     await expect(row).toBeVisible();
   });
 
+  test("a key pressed in the entry dialog stays in the dialog", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await openFirstEmployee(page);
+    let formSaved = false;
+    await page.route("**/rs/employee/saveorupdate*", (route) => {
+      formSaved = true;
+      return route.abort();
+    });
+
+    // A change in the form makes its Return shortcut live: it saves a dirty form (useSubmitShortcut).
+    await page.locator('[data-field="position"] input').fill("e2e unsaved");
+    await page
+      .getByRole("button", { name: t("add"), exact: true })
+      .last()
+      .click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: t("cancel") }).focus();
+    await page.keyboard.press("Enter");
+
+    // Return on the dialog's cancel button cancels the dialog — it neither saves the entry nor, through
+    // the portal's event bubbling, the employee form around it.
+    await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveURL(/\/employee\/\d+$/);
+    await expect(page.locator('[data-field="position"] input')).toHaveValue(
+      "e2e unsaved"
+    );
+    expect(formSaved, "the employee form must not be saved").toBe(false);
+  });
+
   test("redirects the old React pages", async ({ loggedInPage: page }) => {
     // The redirects are Spring's (OrphanedLinkFilter); the Next dev server doesn't proxy /react.
     test.skip(
@@ -160,15 +191,18 @@ async function openFirstEmployee(page: Page): Promise<number> {
   await rows.first().click();
   await expect(page).toHaveURL(/\/employee\/\d+$/, { timeout: 20_000 });
   const id = Number(page.url().match(/\/employee\/(\d+)$/)?.[1]);
-  // Without write access (no HR group) the sections offer no add button.
+  // Without write access (no HR group) the sections offer no add button. Asked of the backend rather than
+  // read off the buttons, so a missing button is a failure below, not a skip here.
+  const employee = (await (
+    await page.request.get(`/rs/employee/${id}`, {
+      headers: { "X-PF-Frontend": "next" },
+    })
+  ).json()) as { writeAccess?: boolean | null };
+  test.skip(employee.writeAccess === false, "no write access to the employee");
   const { t } = await userFormat(page);
   await expect(
     page.getByText(t("fibu.employee.urlaubstage"), { exact: true }).first()
   ).toBeVisible({ timeout: 20_000 });
-  const addButtons = await page
-    .getByRole("button", { name: t("add"), exact: true })
-    .count();
-  test.skip(addButtons !== 3, "no write access to the employee");
   return id;
 }
 

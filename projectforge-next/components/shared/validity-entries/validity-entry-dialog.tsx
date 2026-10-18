@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -121,10 +121,18 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
 
   const save = () => run(() => onSave(values as T));
   const canSubmit = !pending;
-  const onKeyDown = useSubmitShortcut(save, canSubmit);
+  const submitShortcut = useSubmitShortcut(save, canSubmit);
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Return on one of the dialog's own buttons (cancel, delete) is that button's click, not a save.
+    if (event.target instanceof HTMLButtonElement) return;
+    submitShortcut(event);
+  };
 
   return (
-    <>
+    // The dialogs are portals, but React bubbles their events along the component tree — into the edit
+    // form around this section, whose own Return shortcut would save the employee (and leave the page)
+    // while the confirmation or a write of this dialog is open. Stopped here, for both dialogs.
+    <div className="contents" onKeyDown={(event) => event.stopPropagation()}>
       <Dialog open onOpenChange={(open) => !open && onClose()}>
         {/* Radix focuses the first field when the dialog opens, and focusing [DateInput] opens its
             calendar — over the fields below it. The dialog opens with nothing focused instead (as the
@@ -208,7 +216,7 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
           }}
         />
       )}
-    </>
+    </div>
   );
 }
 

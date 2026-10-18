@@ -261,6 +261,7 @@ class EmployeeEntityRest :
     fun insertValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
         val dto = postData.data
         requiredFields(dto, idNull = true)
+        checkWriteAccess(dto, insert = true)
         validate(dto)?.let { return it }
         employeeService.insert(employeeId = dto.employeeId!!, attrDO = dto.cloneAsDO())
         return entriesResponse(dto)
@@ -274,6 +275,7 @@ class EmployeeEntityRest :
     fun updateValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
         val dto = postData.data
         requiredFields(dto)
+        checkWriteAccess(dto)
         validate(dto)?.let { return it }
         employeeService.updateValidSinceAttr(employeeId = dto.employeeId, attrDO = dto.cloneAsDO())
         return entriesResponse(dto)
@@ -287,6 +289,7 @@ class EmployeeEntityRest :
     fun deleteValidSinceAttr(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
         val dto = postData.data
         requiredFields(dto)
+        checkWriteAccess(dto)
         employeeService.markValidSinceAttrAsDeleted(employeeId = dto.employeeId, attrId = dto.id)
         return entriesResponse(dto)
     }
@@ -314,6 +317,20 @@ class EmployeeEntityRest :
         requireNotNull(dto.type) { "Can't modify EmployeeValidSinceAttr entry without type." }
     }
 
+    /**
+     * The access check of [EmployeeService] again, but before [validate]: its lookup of an entry with the same
+     * date would otherwise tell a user without access whether the employee has an entry on that date.
+     */
+    private fun checkWriteAccess(dto: EmployeeValidSinceAttr, insert: Boolean = false) {
+        val employee = baseDao.find(dto.employeeId)
+            ?: throw IllegalArgumentException("Employee with id ${dto.employeeId} not found.")
+        if (insert) {
+            baseDao.checkLoggedInUserInsertAccess(employee)
+        } else {
+            baseDao.checkLoggedInUserUpdateAccess(employee, employee)
+        }
+    }
+
     private fun validate(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
         when (dto.type) {
@@ -327,7 +344,12 @@ class EmployeeEntityRest :
 
             EmployeeValidSinceAttrType.ANNUAL_LEAVE -> {
                 val annualLeave = dto.value?.toIntOrNull()
-                if (annualLeave == null) {
+                if (annualLeave == null && !dto.value.isNullOrBlank()) {
+                    // A fraction ("25.5") is a value, just not a whole number - not a missing one.
+                    validationErrors.add(
+                        ValidationError(translate("validation.error.format.integer"), fieldId = "value")
+                    )
+                } else if (annualLeave == null) {
                     validationErrors.add(
                         ValidationError.createFieldRequired(
                             fieldId = "value",

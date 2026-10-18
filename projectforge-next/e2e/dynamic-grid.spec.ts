@@ -90,7 +90,10 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
   // that hides a column would otherwise dictate what the next one (or the next run) sees. Resetting
   // through the endpoint rather than through the UI keeps it independent of a failed assertion.
   test.beforeEach(async ({ loggedInPage: page }) => {
-    await page.request.get("/rs/contract/resetGridState/");
+    await page.request.get("/rs/contract/resetGridState");
+    // And the list filter: a year stored by an earlier visit (ContractPagesRest's "year" element) would narrow
+    // the list to that year's contracts, and an empty list skips the cases that need a row.
+    await page.request.get("/rs/contract/filter/reset");
   });
 
   test("renders the layout's columns, formatted values and row colours", async ({
@@ -131,7 +134,10 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
       rows.flatMap((row) => Array.from(row.classList))
     );
     for (const className of classes.filter((name) => name.startsWith("row-"))) {
-      expect(className).toMatch(/^row-(deleted|red|green|blue|grey)$/);
+      // `row-highlighted` marks the entry edited last (globals.css), not a rule of the layout.
+      expect(className).toMatch(
+        /^row-(deleted|red|green|blue|grey|highlighted)$/
+      );
     }
   });
 
