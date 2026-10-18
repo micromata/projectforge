@@ -512,6 +512,9 @@
     },
     "conflicts": "Conflicts",
     "endDate": "End date",
+    "entry": {
+      "add": "Add entry"
+    },
     "internalComment": {
       "_": "Internal comment",
       "tooltip": "Only visible to the person concerned and to HR staff."
@@ -546,7 +549,8 @@
       "_": "Type",
       "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
     },
-    "user": "Person"
+    "user": "Person",
+    "workingDays": "Working days"
   },
   "back": "Back",
   "book": {
@@ -4935,6 +4939,7 @@
     },
     "leaveOfYear": "Leave account of year {arg0}",
     "leaveaccount": {
+      "availabilities": "Availability entries",
       "title": "Leave account"
     },
     "mail": {
