@@ -250,8 +250,14 @@ test.describe("address", { tag: "@lane-address" }, () => {
     );
     await page.goto("/react/address");
     await expect(page).toHaveURL(/\/next\/address$/);
-    await page.goto("/react/addressView/dynamic/1");
-    await expect(page).toHaveURL(/\/next\/address\/1$/);
+    // The redirect only, not the page it leads to: address 1 need not exist or be visible to the account
+    // (a forbidden view sends the app to the start page).
+    const view = await page.request.get("/react/addressView/dynamic/1", {
+      maxRedirects: 0,
+    });
+    expect(view.status()).toBeGreaterThanOrEqual(300);
+    expect(view.status()).toBeLessThan(400);
+    expect(view.headers()["location"]).toMatch(/\/next\/address\/1$/);
   });
 });
 
