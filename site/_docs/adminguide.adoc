@@ -398,6 +398,115 @@ random secret key in `projectforge.properties` (e.g. generated with `openssl ran
 projectforge.phoneLookupKey=<your-random-secret>
 ----
 
+=== Number ranges of customers, projects and cost units
+
+Customers and projects have their own numbers, every project a system-wide unique project number. Number ranges
+(Nummernkreise) define which customer and project numbers belong together and how the cost units (Kost2) of a
+project are derived from its number. They are configured in `projectforge.properties`
+(`projectforge.fibu.number-ranges.*`). If you don't use cost-unit accounting, or don't need Kost2 of projects, no
+configuration is needed: customer and project numbers are free then.
+
+==== Which ranges apply
+
+On start, ProjectForge logs which ranges apply (`Number ranges: mode ...`):
+
+[cols="1,4",options="header"]
+|===
+|Mode |Applies if
+|`CONFIGURED` |At least one range is configured. Only the configured ranges apply.
+|`LEGACY` |No range is configured, but Kost2 of projects in the formerly built-in ranges exist: 4 for internal
+projects (`4.###.##.##`) and 5 for customers 0-999 with up to 100 projects each (`5.###.##.##`). These two ranges then
+apply as before. This is detected on every start and not stored.
+|`FREE` |Otherwise (e.g. a new installation). Customer and project numbers are free, projects get no Kost2. Kost2 without
+a project can still be created.
+|===
+
+IMPORTANT: If an installation in mode `LEGACY` gets its first configured range, only the configured ranges apply. Then
+configure the former ranges 4 and 5 as well (see the example below).
+
+==== Settings
+
+Each range is a list entry `projectforge.fibu.number-ranges.ranges[n].<property>`:
+
+[cols="1,1,4",options="header"]
+|===
+|Property |Default |Description
+|`prefix` | |First digit (1-9) of the project and Kost2 numbers of this range, unique for all ranges.
+|`name` | |Display name, e.g. `Intern`.
+|`customer-min`, `customer-max` | |Lowest and highest customer number of this range; give both or none. A range without
+customers is for projects without customer (e.g. internal projects); its `project-digits` must be 5.
+|`project-digits` |2 |Number of digits of the project number per customer (1-5), or of the whole range for a range
+without customers.
+|`segments` |`1,3,2,2` |Segments of the 8-digit Kost2 for display and input, e.g. `1,4,1,2` for `1.####.#.##`. Must
+start with 1 and end with 2 (the Kost2 type) and sum up to 8.
+|===
+
+Global settings:
+
+[cols="1,1,4",options="header"]
+|===
+|Property |Default |Description
+|`projectforge.fibu.number-ranges.allow-free-numbers` |`true` |If `false`, every customer number must lie in a
+configured range (protects against typos) and a project needs a customer of a range or belongs to the range
+without customers; applies to the former ranges 4 and 5 as well.
+|`projectforge.fibu.number-ranges.default-segments` |`1,3,2,2` |Segments of the Kost2 whose first digit belongs to no
+range (Kost2 without project).
+|===
+
+==== Project and Kost2 numbers
+
+A project of a range gets a 6-digit project number, its Kost2 are this number followed by the 2-digit Kost2 type:
+
+----
+project number = prefix * 100000 + (customer - customer-min) * 10^project-digits + project
+project number = prefix * 100000 + project                      (range without customers)
+Kost2          = project number * 100 + Kost2 type
+----
+
+Example: range 1 with the customers 10000-19999, 1 project digit and the segments `1,4,1,2`. Project 3 of customer
+10007 has the project number 100073 (shown as `1.0007.3`), its Kost2 of type 02 is `1.0007.3.02`.
+
+All customers of a range with all their projects must fit into the 5 digits after the prefix:
+`(customer-max - customer-min + 1) * 10^project-digits <= 100000`. A range with customers 0-999 therefore allows at most
+2 project digits (100 projects per customer), a range with 10000 customers at most 1 project digit.
+
+*File:* `projectforge.properties`:
+
+[source]
+----
+# Former range 4: internal projects 4.###.##.##
+projectforge.fibu.number-ranges.ranges[0].prefix=4
+projectforge.fibu.number-ranges.ranges[0].name=Intern
+projectforge.fibu.number-ranges.ranges[0].project-digits=5
+# Former range 5: customers 0-999 with up to 100 projects each, 5.###.##.##
+projectforge.fibu.number-ranges.ranges[1].prefix=5
+projectforge.fibu.number-ranges.ranges[1].customer-min=0
+projectforge.fibu.number-ranges.ranges[1].customer-max=999
+projectforge.fibu.number-ranges.ranges[1].project-digits=2
+# Customers 10000-19999 with up to 10 projects each, 1.####.#.##
+projectforge.fibu.number-ranges.ranges[2].prefix=1
+projectforge.fibu.number-ranges.ranges[2].customer-min=10000
+projectforge.fibu.number-ranges.ranges[2].customer-max=19999
+projectforge.fibu.number-ranges.ranges[2].project-digits=1
+projectforge.fibu.number-ranges.ranges[2].segments=1,4,1,2
+# Optional: refuse customer numbers outside these ranges
+projectforge.fibu.number-ranges.allow-free-numbers=false
+----
+
+==== Notes
+
+* An inconsistent configuration (prefix used twice, overlapping customer numbers, too many customers for the project
+  digits, invalid segments) stops the start with a message naming the range.
+* New customers and projects are offered the next free number of their range.
+* A project whose customer belongs to no range gets a free project number, which must not lie in the project numbers of
+  a range (e.g. 100000-199999 for prefix 1). Such projects and projects in mode `FREE` can't get Kost2.
+* Kost2 without a project must not start with the prefix of a range: the Kost2 of a range are those of its projects.
+* Stored project and Kost2 numbers are not renumbered if you change a range later. Existing Kost2 stay valid even if
+  their range is no longer configured, but plan new ranges (customer numbers and project digits) before using them.
+* Invoicing quota (`projectforge.invoicing-quota.*`): the patterns apply to the Kost2 numbers as their range segments
+  them (e.g. `1.*` for `1.####.#.##`). With `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` the time
+  booked on Kost2 of customer projects with an invoiced Kost2 type counts as billed, independent of the digits.
+
 === business assessment / BWA
 
 If you work with accounting records (DATEV) you may want to have
