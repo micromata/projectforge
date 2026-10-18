@@ -79,6 +79,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -566,12 +567,28 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     fun cloneFromCalendarEvent(request: HttpServletRequest, calendarEvent: TeamEvent): ResponseAction {
         val timesheet = newBaseDTO(request)
         timesheet.startTime = calendarEvent.startDate
-        timesheet.stopTime = calendarEvent.endDate
+        timesheet.stopTime = stopTimeOnStartDay(calendarEvent.startDate, calendarEvent.endDate)
         if (!calendarEvent.location.isNullOrBlank())
             timesheet.location = calendarEvent.location
         if (!calendarEvent.subject.isNullOrBlank() || !calendarEvent.note.isNullOrBlank())
             timesheet.description = "${calendarEvent.subject ?: ""} ${calendarEvent.note ?: ""}"
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", timesheet)
+    }
+
+    /**
+     * The stop time of a sheet converted from an event: a time sheet lies within one day and its form shows
+     * the stop as time only, so an event ending on another day (multi-day event, series) would silently
+     * produce a sheet of days. Its end time is moved onto the start's day instead; if that doesn't lie after
+     * the start, the stop is the start (a zero-length sheet to be completed by the user).
+     */
+    private fun stopTimeOnStartDay(startDate: Date?, endDate: Date?): Date? {
+        val start = PFDateTime.fromOrNull(startDate) ?: return endDate
+        val end = PFDateTime.fromOrNull(endDate) ?: return null
+        if (start.isSameDay(end)) {
+            return endDate
+        }
+        val stop = PFDateTime.from(LocalDateTime.of(start.localDate, end.localTime))
+        return if (stop.isAfter(start)) stop.utilDate else startDate
     }
 
     /**

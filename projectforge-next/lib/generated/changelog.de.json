@@ -3,7 +3,7 @@
   "unreleased" : {
     "id" : "unreleased",
     "version" : "9.0.7",
-    "date" : "2026-10-16",
+    "date" : "2026-10-18",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
@@ -13,7 +13,7 @@
       }, "System-Dashboard: Die Wechselkurs-Schnittstelle wird täglich getestet und als Kachel unter den Schnittstellen angezeigt, damit eine Änderung der Schnittstelle früh auffällt. Im Scheduler-Tab lässt sich der Test sofort starten." ]
     }, {
       "type" : "improved",
-      "items" : [ "Auswahlfelder (Gruppen, Benutzer, Mitarbeitende, Adressen, Adressbücher, Konten, Bankkonten): Einträge, deren Name zum Suchbegriff passt, werden zuerst angezeigt, vor Einträgen, die nur über andere Felder wie Organisation oder E-Mail gefunden werden. Gruppen, Benutzernamen, Projekte, Kundenkürzel, Adressbücher, Kalender und Bankkonten werden auch über Teile ihres Namens gefunden, z. B. PF_Controlling über „controlling“.", "Auswahlboxen für Benutzer:innen und Gruppen: Deaktivierte oder gelöschte Benutzer:innen und Gruppen werden durchgestrichen angezeigt, in den gewählten Werten wie in den Suchergebnissen." ]
+      "items" : [ "Auswahlfelder (Gruppen, Benutzer, Mitarbeitende, Adressen, Adressbücher, Konten, Bankkonten): Einträge, deren Name zum Suchbegriff passt, werden zuerst angezeigt, vor Einträgen, die nur über andere Felder wie Organisation oder E-Mail gefunden werden. Gruppen, Benutzernamen, Projekte, Kundenkürzel, Adressbücher, Kalender und Bankkonten werden auch über Teile ihres Namens gefunden, z. B. PF_Controlling über „controlling“.", "Auswahlboxen für Benutzer:innen und Gruppen: Deaktivierte oder gelöschte Benutzer:innen und Gruppen werden durchgestrichen angezeigt, in den gewählten Werten wie in den Suchergebnissen.", "Monatsbericht: Ist der Konfigurationsparameter „Zeitberichte ohne Kost2 melden?“ aktiviert, werden ohne Kost2 gebuchte Einträge markiert, in der Ansicht wie im PDF-Export." ]
     }, {
       "type" : "changed",
       "items" : [ {
@@ -28,7 +28,7 @@
       "items" : [ "Zeitbericht-Formular: Der Verbrauchsbalken der Aufgabe ist nach dem Buchen aktuell und zählt gelöschte Zeitberichte nicht mehr mit.", {
         "title" : "Benachrichtigungsregeln",
         "items" : [ "Eine manuelle Regel mit der Anzeige „Banner bis erledigt“ lässt ihre Empfänger:innen den Banner immer als erledigt markieren: Sonst beendete ihn nichts, er blieb für immer stehen.", "Das Deaktivieren oder Löschen einer Regel beendet ihre offenen Benachrichtigungen sofort, nicht erst beim nächsten stündlichen Lauf.", "Bearbeiter:innen einer Regel können offene Benachrichtigungen im Protokoll der versendeten Benachrichtigungen beenden, einzeln oder alle einer Regel." ]
-      }, "Auftragsstatistik: Auf einem niedrigen Bildschirm (etwa einem Smartphone im Querformat) scrollt die Seite, sodass die Grafiken erreichbar sind.", "Urlaube: Manager:innen können Urlaube wieder genehmigen und ablehnen; Einträge, die ohne Angabe zu halben Tagen gespeichert waren, wurden mit fehlendem HR-Recht abgewiesen." ]
+      }, "Auftragsstatistik: Auf einem niedrigen Bildschirm (etwa einem Smartphone im Querformat) scrollt die Seite, sodass die Grafiken erreichbar sind.", "Urlaube: Manager:innen können Urlaube wieder genehmigen und ablehnen; Einträge, die ohne Angabe zu halben Tagen gespeichert waren, wurden mit fehlendem HR-Recht abgewiesen.", "Umwandlung eines Termins in einen Zeitbericht: Ein Termin, der an einem anderen Tag endet, ergibt keinen mehrtägigen Zeitbericht mehr („Maximal zugelassene Dauer überschritten“); die Endzeit wird am Starttag übernommen." ]
     } ]
   },
   "groups" : [ {
