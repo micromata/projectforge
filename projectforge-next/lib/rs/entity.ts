@@ -67,6 +67,19 @@ export function markEntityAsDeleted<D extends object>(
 }
 
 /**
+ * Deletes the entity for good (`RestPaths.DELETE`) — the only delete a non-historized entity has (a memo,
+ * a data transfer area): the backend refuses [markEntityAsDeleted] for it, there being no history to
+ * keep. The legacy layout chose the same way (`LayoutUtils`: `isHistorizable` → mark, else delete).
+ */
+export function deleteEntity<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/delete`, "DELETE", data, signal);
+}
+
+/**
  * Destroys the entity for good — the row *and* its change history, with no undo (`RestPaths.FORCE_DELETE`,
  * "Unwiderruflich löschen").
  *
