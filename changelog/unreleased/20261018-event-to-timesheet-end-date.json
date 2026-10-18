@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Converting a calendar event into a time sheet: an event ending on another day no longer produces a time sheet spanning several days (\"Maximum duration exceeded\"); the end time is taken on the start day.",
+  "de": "Umwandlung eines Termins in einen Zeitbericht: Ein Termin, der an einem anderen Tag endet, ergibt keinen mehrtägigen Zeitbericht mehr („Maximal zugelassene Dauer überschritten“); die Endzeit wird am Starttag übernommen."
+}
