@@ -127,6 +127,25 @@ export async function markAsDeleted(
   }
 }
 
+/**
+ * Deletes a non-historized entity for good (`RestPaths.DELETE`) — the backend refuses [markAsDeleted]
+ * for one (a data transfer area, a memo), so this is its cleanup.
+ */
+export async function deleteEntity(
+  request: APIRequestContext,
+  entity: string,
+  id: number
+): Promise<void> {
+  const data = await fetchEntity<Record<string, unknown>>(request, entity, id);
+  const res = await request.delete(`/rs/${entity}/delete`, {
+    headers: await writeHeaders(request),
+    data: { data },
+  });
+  if (!res.ok()) {
+    throw new Error(`Could not delete ${entity} ${id}: HTTP ${res.status()}`);
+  }
+}
+
 /** Reads an entity back as its page's DTO — what a write has to be given in full. */
 export async function fetchEntity<T>(
   request: APIRequestContext,

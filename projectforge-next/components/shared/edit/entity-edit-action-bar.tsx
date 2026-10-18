@@ -20,6 +20,8 @@ export interface EntityEditActionBarProps {
   /** Clone, delete and undelete each appear only where the entry and this user's access allow it. */
   showClone: boolean;
   showDelete: boolean;
+  /** The delete is for good, the entity not being historized (see EntityDeleteButton.permanent). */
+  deletePermanent: boolean;
   showUndelete: boolean;
   /** The irrevocable delete, where the entity allows it (see EditDef.forceDelete) and the entry exists. */
   showForceDelete: boolean;
@@ -56,6 +58,7 @@ export function EntityEditActionBar({
   lastSaved,
   showClone,
   showDelete,
+  deletePermanent,
   showUndelete,
   showForceDelete,
   showConvert,
@@ -101,7 +104,11 @@ export function EntityEditActionBar({
       }
       deleteAction={
         showDelete ? (
-          <EntityDeleteButton onDelete={onDelete} disabled={deleteDisabled} />
+          <EntityDeleteButton
+            onDelete={onDelete}
+            disabled={deleteDisabled}
+            permanent={deletePermanent}
+          />
         ) : undefined
       }
       undeleteAction={

@@ -11,10 +11,16 @@ interface Props {
   /** Runs the delete. Rejecting or reporting the server's refusal is the caller's job. */
   onDelete: () => void | Promise<void>;
   disabled?: boolean;
+  /**
+   * The entity is not historized, so the delete is for good (see useDeleteEntity): the confirmation
+   * says so (`question.deleteQuestion`), as the legacy layout's delete button did.
+   */
+  permanent?: boolean;
 }
 
 /**
- * Marks the entry as deleted after confirming.
+ * Marks the entry as deleted after confirming — or deletes it for good, where the entity is not
+ * historized ([permanent]).
  *
  * Deliberately not part of [EntityEditActions]: the confirmation carries its own state, and the
  * button only exists once the entry has been saved at least once.
@@ -22,7 +28,7 @@ interface Props {
  * The labels are the backend's own (`markAsDeleted`, `question.markAsDeletedQuestion`) — the same
  * wording Wicket asks with.
  */
-export function EntityDeleteButton({ onDelete, disabled }: Props) {
+export function EntityDeleteButton({ onDelete, disabled, permanent }: Props) {
   const t = useTranslations();
   const [confirming, setConfirming] = useState(false);
 
@@ -43,7 +49,11 @@ export function EntityDeleteButton({ onDelete, disabled }: Props) {
         open={confirming}
         onOpenChange={setConfirming}
         title={t("markAsDeleted")}
-        description={t("question.markAsDeletedQuestion")}
+        description={t(
+          permanent
+            ? "question.deleteQuestion"
+            : "question.markAsDeletedQuestion"
+        )}
         confirmLabel={t("markAsDeleted")}
         destructive
         onConfirm={() => void onDelete()}
