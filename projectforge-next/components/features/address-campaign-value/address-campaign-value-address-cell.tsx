@@ -10,19 +10,29 @@ import { cn } from "@/lib/utils";
  * address in a dialog over the list — the React list opened the address form as a modal from these two
  * columns, so a wrong address can be corrected without losing the place in the campaign. The click stays
  * with the cell: the row's own click opens the campaign value. Its "edit" returns to this list.
+ *
+ * Plain text while the rows can be picked (`selecting`): a click there means "pick this row", and a button
+ * swallowing it would leave the row unticked.
  */
 export function AddressCampaignValueAddressCell({
   addressId,
   multiline,
+  selecting,
   children,
 }: {
   addressId: number | null | undefined;
   multiline?: boolean;
+  selecting?: boolean;
   children: ReactNode;
 }) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  if (addressId == null) return <>{children}</>;
+  if (addressId == null || selecting)
+    return multiline ? (
+      <span className="whitespace-pre-line">{children}</span>
+    ) : (
+      <>{children}</>
+    );
   const empty = children == null || children === "";
   return (
     <>
@@ -36,6 +46,12 @@ export function AddressCampaignValueAddressCell({
         onClick={(event) => {
           event.stopPropagation();
           setOpen(true);
+        }}
+        // The keys that press the button are the button's: the table's keyboard handlers sit on its body
+        // and would otherwise act on the focused row as well (see useRowSelection).
+        onKeyDown={(event) => {
+          if (event.key === " " || event.key === "Enter")
+            event.stopPropagation();
         }}
       >
         {empty ? t("emptyInBrackets") : children}

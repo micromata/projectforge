@@ -47,8 +47,9 @@ interface ColumnBase<Row> {
   /**
    * Extra classes of the table cell itself (`<td>`), for every renderer: a tinted background that sets a
    * column apart from the others — the comparison campaign's values beside the campaign's own (see
-   * ADDRESS_CAMPAIGN_VALUE_PAGE). A background given here replaces the cell's opaque default, so it is meant
-   * for a column that is never pinned.
+   * ADDRESS_CAMPAIGN_VALUE_PAGE). A background colour given here replaces the cell's opaque default, so it has
+   * to be opaque itself (mixed with the background, not translucent), or a pinned column lets the scrolling
+   * ones show through.
    */
   cellClassName?: string;
   /** Overrides the alignment derived from the data type (numbers right, everything else left). */

@@ -31,6 +31,7 @@ export function SelectedEntriesPanel<
   M extends EntityMetadata,
 >({
   endpoint,
+  entity,
   metadata,
   columns,
   selectionKey,
@@ -40,6 +41,11 @@ export function SelectedEntriesPanel<
 }: {
   /** REST base of the mass update page (`invoiceSelected`) — where the session keeps the selection. */
   endpoint: string;
+  /**
+   * The list's entity, where `columns` are the page's raw declarations (the mass update page): they are
+   * then narrowed as the list narrows them. Left out where `columns` are the list's derived set.
+   */
+  entity?: string;
   metadata: M;
   /** The list's own column declarations, so a row reads as it does there. */
   columns: ColumnDeclaration<Row, M>[];
@@ -96,6 +102,7 @@ export function SelectedEntriesPanel<
             </Alert>
           ) : (
             <SelectedEntriesTable<Row, M>
+              entity={entity}
               metadata={metadata}
               columns={columns}
               rows={entries.data?.resultSet ?? []}

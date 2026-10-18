@@ -19,6 +19,7 @@ export default function AddressMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={ADDRESS_PAGE.entity}
           metadata={ADDRESS_PAGE.metadata}
           columns={ADDRESS_PAGE.columns}
           selectionKey={String(count)}

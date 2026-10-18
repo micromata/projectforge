@@ -21,6 +21,7 @@ export default function Cost2MassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={COST2_PAGE.entity}
           metadata={COST2_PAGE.metadata}
           columns={COST2_PAGE.columns}
           // The count is all this page knows of the selection, and it comes from `{page}/meta`, which

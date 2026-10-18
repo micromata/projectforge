@@ -38,6 +38,7 @@ export default function AddressCampaignValueMassUpdatePage() {
       selectedEntries={(count) => (
         <SelectedEntriesPanel
           endpoint={massUpdate.endpoint}
+          entity={ADDRESS_CAMPAIGN_VALUE_PAGE.entity}
           metadata={ADDRESS_CAMPAIGN_VALUE_PAGE.metadata}
           columns={ADDRESS_CAMPAIGN_VALUE_PAGE.columns}
           selectionKey={String(count)}

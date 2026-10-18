@@ -27,8 +27,13 @@ export const ADDRESS_CAMPAIGN_VALUE_ENTITY = "addressCampaignValue";
 export const ADDRESS_CAMPAIGN_VALUE_LIST_QUERY_KEY = [
   "addressCampaignValue",
 ] as const;
-/** The tint of the comparison campaign's columns: a neutral grey, apart from the teal of the favorite rows. */
-const COMPARISON_CELL_CLASS = "bg-muted/60";
+/**
+ * The tint of the comparison campaign's columns: a neutral grey, apart from the teal of the favorite rows.
+ * Mixed opaque rather than translucent, so a column the user pins still covers the ones scrolling beneath, and
+ * as the colour rather than an image, so a row colour (an image, see globals.css) still lies over it.
+ */
+const COMPARISON_CELL_CLASS =
+  "bg-[color-mix(in_oklab,var(--muted)_60%,var(--background))]";
 /** Route of the list; the edit page hangs below it as `/address-campaign-value/{id}`. */
 export const ADDRESS_CAMPAIGN_VALUE_ROUTE = "/address-campaign-value";
 
@@ -104,8 +109,11 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
       accessor: (row) => row.organization ?? null,
       size: 200,
       wrap: true,
-      cell: ({ row }) => (
-        <AddressCampaignValueAddressCell addressId={row.original.addressId}>
+      cell: ({ row, table }) => (
+        <AddressCampaignValueAddressCell
+          addressId={row.original.addressId}
+          selecting={!!table.options.enableRowSelection}
+        >
           {row.original.organization}
         </AddressCampaignValueAddressCell>
       ),
@@ -117,10 +125,11 @@ export const ADDRESS_CAMPAIGN_VALUE_PAGE = definePage<
       size: 240,
       wrap: true,
       sortable: false,
-      cell: ({ row }) => (
+      cell: ({ row, table }) => (
         <AddressCampaignValueAddressCell
           addressId={row.original.addressId}
           multiline
+          selecting={!!table.options.enableRowSelection}
         >
           {row.original.formattedAddress}
         </AddressCampaignValueAddressCell>
