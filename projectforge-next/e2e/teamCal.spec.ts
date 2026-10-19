@@ -66,7 +66,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
       name: t("plugins.teamcal.export.reminder.checkbox._"),
     });
     await expect(reminders).toBeVisible();
-    const qr = page.locator("img[src*='text=']");
+    const qr = page.locator("img[src^='data:image/png']");
     const before = await qr.getAttribute("src");
     await reminders.click();
     await expect(qr).not.toHaveAttribute("src", before!);

@@ -25,7 +25,7 @@
       "items" : [ "Sichtbarkeit von Menüs (projectforge.menu.visibility.*): Eine Liste mehrerer Gruppen funktioniert, getrennt durch Komma oder Semikolon (erkannt wurde nur eine einzelne Gruppe, eine Liste gar nicht).", "Das Speichern eines geänderten Eintrags in der neuen Oberfläche leert nicht mehr sein Anlagedatum. Das Datum der letzten Änderung setzt immer der Server. So verlorene Anlagedaten werden aus der Historie wiederhergestellt." ]
     }, {
       "type" : "security",
-      "items" : [ "Die QR-Codes des Authenticator-Schlüssels (Einrichtung der Zwei-Faktor-Authentifizierung) und des REST-Client-Tokens (Mein Konto) werden in der Antwort mitgeschickt statt als Bild-Link, das Geheimnis landet so nicht mehr in Zugriffsprotokollen. QR-Code-Bilder werden nicht mehr zwischengespeichert. Die WebAuthn-Optionen enthalten die Session-ID nicht mehr, und Änderungen an der Zwei-Faktor-Einrichtung prüfen das CSRF-Token selbst." ]
+      "items" : [ "Die QR-Codes des Authenticator-Schlüssels (Einrichtung der Zwei-Faktor-Authentifizierung), des REST-Client-Tokens (Mein Konto) und der Kalender-Abonnements werden in der Antwort mitgeschickt statt als Bild-Link, Geheimnis oder Token landen so nicht mehr in Zugriffsprotokollen. QR-Code-Bilder werden nicht mehr zwischengespeichert. Die WebAuthn-Optionen enthalten die Session-ID nicht mehr, und Änderungen an der Zwei-Faktor-Einrichtung prüfen das CSRF-Token selbst." ]
     } ]
   },
   "groups" : [ {
