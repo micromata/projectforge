@@ -78,7 +78,10 @@ object CoreFeatures {
         MenuItemDefId.PROJECT_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
         MenuItemDefId.SCRIPT_LIST to Extras(rest = listOf("scriptExecute")),
         MenuItemDefId.SYSTEM to Extras(
-            rest = listOf("admin", "adminCaches", "adminLogViewer", "adminScheduler", "systemStatistics", "logViewer"),
+            rest = listOf(
+                "admin", "adminCaches", "adminLogViewer", "adminScheduler", "logViewer", "propertiesEditor",
+                "systemStatistics",
+            ),
             next = listOf("logViewer"),
         ),
         // The task picker of other pages (timesheets, orders, ...) uses the tree and the favorites.
