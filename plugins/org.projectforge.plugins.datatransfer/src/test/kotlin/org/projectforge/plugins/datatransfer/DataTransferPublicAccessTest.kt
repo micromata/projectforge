@@ -30,10 +30,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.FileObject
-import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicSession
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamResource
@@ -62,14 +60,6 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   @PostConstruct
   private fun postConstruct() {
     initJCRTestRepo(MODUL_NAME, "publicAccessTestRepo")
-  }
-
-  @Test
-  fun pageResolverTest() {
-    Assertions.assertEquals(
-      "react/public/datatransfer/dynamic",
-      PagesResolver.getDynamicPageUrl(DataTransferPublicPageRest::class.java, trailingSlash = false)
-    )
   }
 
   @Test

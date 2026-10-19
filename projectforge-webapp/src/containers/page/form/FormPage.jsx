@@ -20,7 +20,6 @@ import FormHistory from './history';
 
 function FormPage(
     {
-        isPublic = false,
         onCallAction,
         onCategorySwitch,
         onDataChange,
@@ -66,7 +65,7 @@ function FormPage(
                     currentCategory,
                     id,
                     getServiceURL(
-                        `${isPublic ? '/rsPublic/' : ''}${currentCategory}/${type || 'dynamic'}`,
+                        `${currentCategory}/${type || 'dynamic'}`,
                         {
                             ...Object.fromEntries(searchParams.entries()),
                             id,
@@ -189,7 +188,6 @@ FormPage.propTypes = {
     onDataChange: PropTypes.func.isRequired,
     onNewFormPage: PropTypes.func.isRequired,
     onVariablesChange: PropTypes.func.isRequired,
-    isPublic: PropTypes.bool,
 };
 
 const mapStateToProps = () => ({});
