@@ -231,7 +231,6 @@ class FeaturePathIndex {
             "uiSettings",
             "userStatus",
             "webauthn",
-            "WebAuthnSetup",
         )
 
         /** The REST categories below `/rsPublic` of the app itself (login, setup, status, texts, logos): always reachable. */

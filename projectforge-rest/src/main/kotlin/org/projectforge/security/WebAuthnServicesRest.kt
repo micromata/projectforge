@@ -35,7 +35,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.my2fa.My2FAServicesRest
-import org.projectforge.rest.my2fa.My2FASetupPageRest
 import org.projectforge.security.dto.*
 import org.projectforge.security.webauthn.WebAuthnSupport
 import org.projectforge.ui.UILayout
@@ -64,7 +63,7 @@ class WebAuthnServicesRest {
   private lateinit var my2FAServicesRest: My2FAServicesRest
 
   @Autowired
-  private lateinit var my2FASetupPageRest: My2FASetupPageRest
+  private lateinit var my2FAService: My2FAService
 
   /**
    * Step 0 (the client requests the registration).
@@ -93,7 +92,7 @@ class WebAuthnServicesRest {
 
   /**
    * Step 5: Browser Creates Final Data, Application sends response to Server
-   * Rest service is defined in [WebAuthnEntryPageRest]
+   * Rest service is defined in [org.projectforge.rest.my2fa.My2FASetupRest]
    */
   fun doRegisterFinish(
     request: HttpServletRequest,
@@ -101,7 +100,7 @@ class WebAuthnServicesRest {
     displayName: String? = null,
   ): WebAuthnSupport.Result {
     log.info { "User wants to finish registration." }
-    if (!my2FASetupPageRest.checkLastSuccessful2FA()) {
+    if (!my2FAService.checkLastSuccessful2FAForSetup()) {
       return WebAuthnSupport.Result("user.My2FA.required")
     }
     val credential = webAuthnRequest.credential!!
@@ -234,12 +233,6 @@ class WebAuthnServicesRest {
       layout.addTranslations(
         "webauthn.registration.button.authenticate",
         "webauthn.registration.button.authenticate.info",
-      )
-    }
-
-    fun addRegisterTranslations(layout: UILayout) {
-      layout.addTranslations(
-        "webauthn.registration.button.register",
       )
     }
 

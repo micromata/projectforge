@@ -554,8 +554,18 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (`StayLoggedInTokenDao.deleteOfUser`, das aktuelle über den Cookie markiert), Speichern bleibt auf der
   Seite und lädt `userStatus` neu (Sprache/Formate wirken sofort), die Sprache lässt sich auf „Standard"
   zurücksetzen. Eingeschränkte und Demo-Benutzer (`InitData.writeAccess = false`) sehen das Formular
-  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Die 2FA-Einrichtung ist noch React und
-  verlinkt (URLs aus `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
+  read-only und ohne „Erneuern"; die DAOs lehnen es ohnehin ab. Die 2FA-Einrichtung ist verlinkt (URLs aus
+  `MenuItemDefId`). `react/myAccount/**` und `react/tokenInfo/**` leitet `OrphanedLinkFilter` um.
+- **2FA einrichten** (`next/2FASetup`, vorher React-UILayout `My2FASetupPageRest` + Unterseite
+  `WebAuthnEntryPageRest`, beide gelöscht) – layoutfrei über `My2FASetupRest` (`/rs/2FASetup`: `GET` Zustand,
+  `authenticatorKey`, `enable/disableAuthenticatorApp`, `saveMobilePhone`, `webAuthnRegisterFinish/Update/Delete`;
+  der Start der Registrierung bleibt `GET /rs/webauthn/register`). Absichtlich ohne 2FA-Kurzbefehl: die Seite ist
+  immer sichtbar, Schlüssel und jede Änderung verlangen eine 2FA ≤ 10 Minuten
+  (`My2FAService.checkLastSuccessful2FAForSetup`); fehlt sie, antwortet der Endpunkt wie der Filter mit 403 +
+  `TwoFactorRequired`, und `rawRequest` öffnet den 2FA-Dialog und wiederholt den Aufruf. Vor einer WebAuthn-
+  Registrierung fragt die Seite den Faktor vorab (`requestSecondFactor`), weil die Challenge durch den Versuch
+  verbraucht ist. Der WebAuthn-Eintrag wird im Dialog umbenannt/gelöscht; neu: Löschen verlangt ebenfalls die
+  frische 2FA. `react/2FASetup/**` und `react/WebAuthnSetup/**` leitet `OrphanedLinkFilter` um.
 - **Passwort / WLAN-Passwort ändern** (`next/changePassword`, `next/changeWlanPassword`, vorher React-UILayout
   derselben Klassen) – layoutfrei über `ChangePasswordPageRest` / `ChangeWlanPasswordPageRest` (`GET init`,
   `POST change`; 2FA-Kurzbefehl `PASSWORD`), eine Seite mit `variant`. Der CSRF-Token wird im Endpunkt selbst

@@ -173,7 +173,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.MY_ACCOUNT,
       MyAccountRest::class.java,
-      // My2FASetupPageRest::class.java, // Check done by this page itself.
+      // My2FASetupRest::class.java, // Check done by its endpoints (fresh 2FA for any change).
     )
     // Logging other users out of all their devices and renewing their tokens are admin operations on foreign
     // accounts:
