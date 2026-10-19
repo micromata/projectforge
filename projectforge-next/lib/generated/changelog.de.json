@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "improved",
-      "items" : [ "Kost-Suche: in die neue Oberfläche migriert. Sie lässt sich zusätzlich als verschiebbares Fenster auf jeder Seite offen halten (Schaltfläche in der Kopfleiste oder Alt+K, die Position wird gemerkt) oder als kleines eigenes Fenster öffnen." ]
+      "items" : [ "Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen." ]
     }, {
       "type" : "changed",
       "items" : [ "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt." ]
