@@ -4,7 +4,7 @@ import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { waitForRows } from "./fixtures/list-table";
 import { fetchRootTaskId } from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
-import { LUCENE_QUERY_DOCS_URL } from "../lib/docs-links";
+import { luceneQueryDocsUrl } from "../lib/docs-links";
 
 /**
  * The action bar of the structure tree page — step 3 of projectforge-next/MIGRATION.md.
@@ -256,7 +256,7 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
     const help = page.getByRole("link", {
       name: format.t("tooltip.lucene.link"),
     });
-    await expect(help).toHaveAttribute("href", LUCENE_QUERY_DOCS_URL);
+    await expect(help).toHaveAttribute("href", luceneQueryDocsUrl(format.locale));
     await expect(help).toHaveAttribute("target", "_blank");
   });
 
