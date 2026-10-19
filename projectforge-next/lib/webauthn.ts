@@ -1,7 +1,7 @@
 // WebAuthn (FIDO2) glue between the browser API and ProjectForge's backend.
 //
 // The Spring endpoints do NOT speak the `webauthn-json` wire format: they send
-// base64url strings and expect `requestId`, `challenge` and `sessionToken` to be
+// base64url strings and expect `requestId` and `challenge` to be
 // echoed back alongside the credential (see WebAuthnServicesRest.doWebAuthnFinish
 // and WebAuthnFinishRequest). So the conversion below mirrors that contract
 // instead of using a generic library.
@@ -14,7 +14,6 @@ export interface WebAuthnRequestOptions {
   challenge: string;
   timeout: number;
   requestId: string;
-  sessionToken: string;
   pubKeyCredParams: PublicKeyCredentialParameters[];
   authenticatorSelection?: AuthenticatorSelectionCriteria;
   attestation?: AttestationConveyancePreference;
@@ -41,7 +40,6 @@ export interface WebAuthnFinishRequest {
   };
   clientExtensionResults: Record<string, never>;
   challenge: string;
-  sessionToken: string;
 }
 
 /** The finish request of a registration (WebAuthnServicesRest.doRegisterFinish), same envelope. */
@@ -59,7 +57,6 @@ export interface WebAuthnRegisterFinishRequest {
   };
   clientExtensionResults: Record<string, never>;
   challenge: string;
-  sessionToken: string;
 }
 
 export function decodeBase64url(value: string): ArrayBuffer {
@@ -149,7 +146,6 @@ export async function authenticate(
     },
     clientExtensionResults: {},
     challenge: options.challenge,
-    sessionToken: options.sessionToken,
   };
 }
 
@@ -209,7 +205,6 @@ export function toRegisterFinishRequest(
     },
     clientExtensionResults: {},
     challenge: options.challenge,
-    sessionToken: options.sessionToken,
   };
 }
 

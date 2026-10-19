@@ -84,6 +84,6 @@ export interface MyAccountTokenAccess {
 export interface MyAccountTokenInfo {
   type: MyAccountTokenType;
   accesses?: MyAccountTokenAccess[];
-  /** REST client token only: the QR code for setting up a client app. */
+  /** REST client token only: the QR code for setting up a client app (data url). */
   qrCodeUrl?: string | null;
 }

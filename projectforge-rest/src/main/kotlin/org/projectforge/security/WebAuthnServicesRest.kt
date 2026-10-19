@@ -80,7 +80,6 @@ class WebAuthnServicesRest {
       challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
       timeout = WebAuthnSupport.TIMEOUT,
       requestId = requestId,
-      sessionToken = request.getSession(false).id,
       pubKeyCredParams = publicKeyCredentialParameters,
       authenticatorSelection = authenticatorSelectionCriteria,
       extensions = extensions,
@@ -131,7 +130,6 @@ class WebAuthnServicesRest {
         challenge = createUserChallenge(request), // https://www.w3.org/TR/webauthn-2/
         timeout = WebAuthnSupport.TIMEOUT,
         requestId = requestId,
-        sessionToken = request.getSession(false).id,
         pubKeyCredParams = publicKeyCredentialParameters,
         authenticatorSelection = authenticatorSelectionCriteria,
         extensions = extensions,

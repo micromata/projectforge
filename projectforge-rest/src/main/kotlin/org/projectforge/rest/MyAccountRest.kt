@@ -190,8 +190,8 @@ class MyAccountRest {
         /** The most recent accesses with this token since the start of the server, most recent first. */
         val accesses: List<TokenAccess>,
         /**
-         * The url of a QR code for a client app (REST client only): it carries a short-lived link to the user's
-         * credentials (see AuthenticationPublicServicesRest.createQueryURL).
+         * The QR code for a client app as data url (REST client only): it carries a short-lived link to the user's
+         * credentials (see AuthenticationPublicServicesRest.createQueryURL), so it must not be part of an image url.
          */
         val qrCodeUrl: String? = null,
     )
@@ -337,7 +337,7 @@ class MyAccountRest {
         } ?: emptyList()
         // Not for a restricted or demo user: the QR code hands out the account's credentials.
         val qrCodeUrl = if (token == UserTokenType.REST_CLIENT && !accessChecker.isRestrictedOrDemoUser) {
-            BarcodeServicesRest.getBarcodeGetUrl(authenticationPublicServicesRest.createQueryURL())
+            BarcodeServicesRest.getQrCodeDataUrl(authenticationPublicServicesRest.createQueryURL())
         } else {
             null
         }

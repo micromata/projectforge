@@ -27,6 +27,6 @@ export interface My2FASetupInit {
 /** Mirror of `My2FASetupRest.AuthenticatorKey`. */
 export interface My2FAAuthenticatorKey {
   key: string;
-  /** Root-relative url of the QR code image (`/rs/barcode/...`). */
+  /** The QR code image as data url (`data:image/png;base64,...`), the key is never part of an image url. */
   qrCodeUrl: string;
 }

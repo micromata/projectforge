@@ -16,7 +16,6 @@ const options: WebAuthnRequestOptions = {
   challenge: "-_8",
   timeout: 60000,
   requestId: "request-1",
-  sessionToken: "session-1",
   pubKeyCredParams: [{ type: "public-key", alg: -7 }],
   excludeCredentials: [{ type: "public-key", id: "BAU" }],
   extensions: {},
@@ -78,7 +77,6 @@ describe("toRegisterFinishRequest", () => {
       },
       clientExtensionResults: {},
       challenge: "-_8",
-      sessionToken: "session-1",
     });
   });
 });

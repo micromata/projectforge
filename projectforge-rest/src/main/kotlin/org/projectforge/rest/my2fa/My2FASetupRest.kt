@@ -37,6 +37,8 @@ import org.projectforge.framework.time.TimeUnit
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
+import org.projectforge.rest.core.RestCsrfProtection
+import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.security.My2FAService
@@ -49,6 +51,7 @@ import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -69,6 +72,9 @@ private val log = KotlinLogging.logger {}
  * next asks for the second factor (via [My2FANextRest]) and repeats the call.
  *
  * The registration of a WebAuthn key starts with [WebAuthnServicesRest.register] (the challenge).
+ *
+ * Every change checks the csrf token itself, like the password change does: [RestCsrfProtection] only checks requests
+ * declaring themselves as next client, so a change of a second factor must not rely on it.
  */
 @RestController
 @RequestMapping("${Rest.URL}/2FASetup")
@@ -84,6 +90,9 @@ class My2FASetupRest {
 
     @Autowired
     private lateinit var my2FASetupMenuBadge: My2FASetupMenuBadge
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -124,7 +133,7 @@ class My2FASetupRest {
 
     class AuthenticatorKey(
         val key: String,
-        /** The url of a QR code of the key, for the authenticator app. */
+        /** The QR code of the key for the authenticator app, as data url: the key must not be part of an image url. */
         val qrCodeUrl: String,
     )
 
@@ -181,15 +190,16 @@ class My2FASetupRest {
             ThreadLocalUserContext.loggedInUser!!.username!!,
             domainService.plainDomain ?: "unknown",
         )
-        return ResponseEntity.ok(AuthenticatorKey(key, BarcodeServicesRest.getBarcodeGetUrl(queryURL)))
+        return ResponseEntity.ok(AuthenticatorKey(key, BarcodeServicesRest.getQrCodeDataUrl(queryURL)))
     }
 
     /**
      * Creates the key of the authenticator app. Fails, if the authenticator app is already configured.
      */
-    @AccessChecked("Own user only (2FA setup of the logged-in user)")
+    @AccessChecked("Own user only (2FA setup of the logged-in user). CSRF token required")
     @PostMapping("enableAuthenticatorApp")
-    fun enableAuthenticatorApp(): ResponseEntity<*> {
+    fun enableAuthenticatorApp(request: HttpServletRequest): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
             log.error { "User tries to enable authenticator app, but authenticator token is already given!" }
             throw IllegalArgumentException("2FA already configured.")
@@ -203,9 +213,10 @@ class My2FASetupRest {
     /**
      * Deletes the key of the authenticator app. Fails, if the authenticator app isn't configured.
      */
-    @AccessChecked("Own user only (2FA setup of the logged-in user)")
+    @AccessChecked("Own user only (2FA setup of the logged-in user). CSRF token required")
     @PostMapping("disableAuthenticatorApp")
-    fun disableAuthenticatorApp(): ResponseEntity<*> {
+    fun disableAuthenticatorApp(request: HttpServletRequest): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         if (authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
             log.error { "User tries to disable 2FA, but authenticator token isn't given!" }
             throw IllegalArgumentException("2FA not configured.")
@@ -219,9 +230,13 @@ class My2FASetupRest {
     /**
      * Saves the mobile phone as it is. It must be empty or in a valid phone number format (406 otherwise).
      */
-    @AccessChecked("Own user only (2FA setup of the logged-in user)")
+    @AccessChecked("Own user only (2FA setup of the logged-in user). CSRF token required")
     @PostMapping("saveMobilePhone")
-    fun saveMobilePhone(@RequestBody postData: PostData<MobilePhoneData>): ResponseEntity<*> {
+    fun saveMobilePhone(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<MobilePhoneData>,
+    ): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         val mobilePhone = postData.data.mobilePhone?.trim()?.ifEmpty { null }
         if (mobilePhone != null && !StringHelper.checkPhoneNumberFormat(mobilePhone, false)) {
             return validationError(ValidationError(translate("user.mobilePhone.invalidFormat"), "mobilePhone"))
@@ -239,12 +254,13 @@ class My2FASetupRest {
      * Last step of the registration of a WebAuthn key: the response of the authenticator to the challenge of
      * [WebAuthnServicesRest.register]. A failed registration is answered with 406 and the message.
      */
-    @AccessChecked("Own user only (2FA setup of the logged-in user)")
+    @AccessChecked("Own user only (2FA setup of the logged-in user). CSRF token required")
     @PostMapping("webAuthnRegisterFinish")
     fun webAuthnRegisterFinish(
         request: HttpServletRequest,
         @RequestBody postData: PostData<WebAuthnEntryPostData>,
     ): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         val data = postData.data
         val webAuthnFinishRequest = data.webAuthnFinishRequest ?: return ResponseEntity.badRequest().build<Any>()
         require2FA()?.let { return it }
@@ -260,9 +276,13 @@ class My2FASetupRest {
     /**
      * Renames a WebAuthn key of the user (the display name is the only field of it to change).
      */
-    @AccessChecked("Own user only (WebAuthnEntryDao checks the owner)")
+    @AccessChecked("Own user only (WebAuthnEntryDao checks the owner). CSRF token required")
     @PostMapping("webAuthnUpdate")
-    fun webAuthnUpdate(@RequestBody postData: PostData<WebAuthnEntryPostData>): ResponseEntity<*> {
+    fun webAuthnUpdate(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<WebAuthnEntryPostData>,
+    ): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         val id = postData.data.id ?: return ResponseEntity.badRequest().build<Any>()
         val entry = webAuthnEntryDao.getEntryById(id)
         entry.displayName = postData.data.displayName?.trim()?.ifEmpty { null } ?: translate("untitled")
@@ -273,14 +293,33 @@ class My2FASetupRest {
     /**
      * Deletes a WebAuthn key of the user. Like disabling the authenticator app, this requires a fresh 2FA.
      */
-    @AccessChecked("Own user only (WebAuthnEntryDao checks the owner)")
+    @AccessChecked("Own user only (WebAuthnEntryDao checks the owner). CSRF token required")
     @PostMapping("webAuthnDelete")
-    fun webAuthnDelete(@RequestBody postData: PostData<WebAuthnEntryPostData>): ResponseEntity<*> {
+    fun webAuthnDelete(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<WebAuthnEntryPostData>,
+    ): ResponseEntity<*> {
+        checkCsrfToken(request)?.let { return it }
         val id = postData.data.id ?: return ResponseEntity.badRequest().build<Any>()
         require2FA()?.let { return it }
         webAuthnEntryDao.delete(id)
         my2FASetupMenuBadge.refreshUserBadgeCounter()
         return ResponseEntity.ok(ResponseAction())
+    }
+
+    /**
+     * @return null, if the request of a session carries its csrf token, otherwise the 403 of
+     * [RestCsrfProtection.deny]: the next client refreshes its token and repeats the call once.
+     */
+    private fun checkCsrfToken(request: HttpServletRequest): ResponseEntity<*>? {
+        if (request.getSession(false) != null
+            && sessionCsrfService.checkToken(request, request.getHeader(RestCsrfProtection.CSRF_TOKEN_HEADER))
+        ) {
+            return null
+        }
+        log.warn { "2FA setup change declined: no session or csrf token check failed." }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON)
+            .body(mapOf("csrfTokenRequired" to true))
     }
 
     /**

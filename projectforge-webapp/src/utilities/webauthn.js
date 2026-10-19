@@ -61,6 +61,5 @@ export const convertAuthenticateCredential = (credential, publicKeyCredentialCre
         },
         clientExtensionResults: {},
         challenge: publicKeyCredentialCreationOptions.challenge,
-        sessionToken: publicKeyCredentialCreationOptions.sessionToken,
     }
 }

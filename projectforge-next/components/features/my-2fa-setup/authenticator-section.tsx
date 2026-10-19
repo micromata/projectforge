@@ -141,7 +141,6 @@ export function AuthenticatorSection({
                 label={t("user.My2FA.setup.authenticatorKey")}
               />
             </ReadOnlyValue>
-            {/* Root-relative: the barcode is served by Spring (/rs/barcode), not below /next. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={authenticatorKey.qrCodeUrl}
