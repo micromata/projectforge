@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.model.rest.RestPaths
 
@@ -83,8 +84,7 @@ class My2FARequestHandlerTest {
   @Test
   fun remainingPeriodTest() {
     val handler = getHandler("PASSWORD", "", "ADMIN; MY_ACCOUNT", "", "HR;FINANCE;ORGA;SCRIPT", "/")
-    val user = PFUserDO()
-    ThreadLocalUserContext.setUser(user)
+    ThreadLocalUserContext.userContext = UserContext(PFUserDO(), nofresh = true) // No UserGroupCache in this test.
     Assertions.assertEquals(0L, handler.getRemainingPeriod4WriteAccess("user"))
     ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
     checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
