@@ -181,7 +181,12 @@ class BaseDOPersistenceService {
                 res.dbObjBackup = null
             }
             res.wantsReindexAllDependentObjects = baseDao?.wantsReindexAllDependentObjects(obj, useDbObj) == true
-            val candHContext = CandHMaster.copyValues(src = obj, dest = useDbObj, entityOpType = EntityOpType.Update)
+            val candHContext = CandHMaster.copyValues(
+                src = obj,
+                dest = useDbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
+                entityOpType = EntityOpType.Update,
+            )
             val modStatus = candHContext.currentCopyStatus
             res.modStatus = modStatus
             if (modStatus != EntityCopyStatus.NONE) {
@@ -264,6 +269,7 @@ class BaseDOPersistenceService {
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.MarkAsDeleted
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
@@ -320,6 +326,7 @@ class BaseDOPersistenceService {
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.Undelete
             ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
@@ -434,6 +441,14 @@ class BaseDOPersistenceService {
 
     companion object {
         private const val LUCENE_FLUSH_ALWAYS = false
+
+        /**
+         * Not copied onto an entry existing in the database (update, mark as deleted, undelete): the creation date is set
+         * once on insert, the date of the last update here whenever anything changed (`setLastUpdate`). A caller rarely
+         * sends them back (a form of projectforge-next posts its fields only): a missing one would empty the stored
+         * date, and a differing one alone would count as a change.
+         */
+        private val IGNORE_ON_EXISTING = arrayOf("created", "lastUpdate")
 
         @JvmStatic
         @JvmOverloads

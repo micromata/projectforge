@@ -39,7 +39,7 @@ import org.projectforge.rest.fibu.kost.Kost2EntityRest
 import org.projectforge.rest.hr.HRPlanningEntityRest
 import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.HRViewRest
-import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
+import org.projectforge.rest.hr.LeaveAccountEntryEntityRest
 import org.projectforge.rest.orga.*
 import org.projectforge.rest.scripting.MyScriptEntityRest
 import org.projectforge.rest.scripting.MyScriptExecuteRest
@@ -105,7 +105,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.HR,
       // The HR view, successor of Wicket's /wa/hrList:
       HRViewRest::class.java,
-      LeaveAccountEntryPagesRest::class.java,
+      LeaveAccountEntryEntityRest::class.java,
       HRPlanningEntityRest::class.java,
       HRPlanningEntryEntityRest::class.java,
       EmployeeEntityRest::class.java,

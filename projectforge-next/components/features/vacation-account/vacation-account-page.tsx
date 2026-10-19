@@ -128,8 +128,12 @@ export function VacationAccountPage() {
         {account && employee && (
           <>
             <VacationEntriesTable account={account} />
-            {account.leaveAccountEntries.length > 0 && (
-              <LeaveAccountEntriesTable account={account} />
+            {(account.leaveAccountEntries.length > 0 ||
+              account.newLeaveAccountEntryUrl) && (
+              <LeaveAccountEntriesTable
+                account={account}
+                switching={switching}
+              />
             )}
             <AvailabilityEntriesTable account={account} switching={switching} />
           </>

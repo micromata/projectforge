@@ -290,6 +290,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The leave account entries: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the leave account entry pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/leaveAccountEntry", NextMigration.listUrl("leaveAccountEntry"))
+        Assertions.assertEquals("next/leaveAccountEntry/:id", NextMigration.standardEditPage("leaveAccountEntry"))
+        Assertions.assertEquals("next/leaveAccountEntry/new", NextMigration.newEntryUrl("leaveAccountEntry"))
+        Assertions.assertNull(NextMigration.legacyListUrl("leaveAccountEntry"))
+        Assertions.assertNull(NextMigration.legacyEditPage("leaveAccountEntry"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("leaveAccountEntry"))
+        val link = NextMigration.orphanedLinks().single { it.category == "leaveAccountEntry" }
+        Assertions.assertEquals("react/leaveAccountEntry", link.legacyListPath)
+        Assertions.assertEquals("react/leaveAccountEntry/edit", link.legacyEditPath)
+    }
+
+    /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
      * there is no way back, but a bookmarked React link is still redirected onto next.
      */

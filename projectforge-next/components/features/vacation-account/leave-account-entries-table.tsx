@@ -1,6 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,22 +17,45 @@ import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import type { VacationAccount } from "./types";
 
 /**
- * The corrections of the leave account of the previous and current year, newest first. A row opens its form
- * (still the legacy React page), which returns here.
+ * The corrections of the leave account of the previous and current year, newest first. A row opens its form, which
+ * returns here, as does a new entry (HR staff only). While another employee's account loads (`switching`), the new
+ * entry is disabled: it would be of the one still shown.
  */
 export function LeaveAccountEntriesTable({
   account,
+  switching,
 }: {
   account: VacationAccount;
+  switching: boolean;
 }) {
   const t = useTranslations();
   const navigate = useNavigateMenuUrl();
+  const addLabel = (
+    <>
+      <HugeiconsIcon icon={PlusSignIcon} size={14} aria-hidden />
+      {t("vacation.leaveAccountEntry.title.add")}
+    </>
+  );
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">
-        {t("vacation.leaveAccountEntry.title.heading")}
-      </h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">
+          {t("vacation.leaveAccountEntry.title.heading")}
+        </h2>
+        {account.newLeaveAccountEntryUrl &&
+          (switching ? (
+            <Button type="button" size="sm" className="gap-1.5" disabled>
+              {addLabel}
+            </Button>
+          ) : (
+            <Button asChild size="sm" className="gap-1.5">
+              <MenuLink url={account.newLeaveAccountEntryUrl}>
+                {addLabel}
+              </MenuLink>
+            </Button>
+          ))}
+      </div>
       <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>

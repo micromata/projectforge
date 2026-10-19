@@ -639,6 +639,17 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the leave account entries ("Urlaubskontokorrekturen",
+        // LeaveAccountEntryEntityRest, components/features/leave-account-entry), migrated from React. The vacation
+        // account opens an entry with `?returnTo=/vacationAccount`. The React pages are gone (no UILayout served any
+        // more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.
+        "leaveAccountEntry" to NextPage(
+            route = "leaveAccountEntry",
+            editRoute = "leaveAccountEntry/$ID_PLACEHOLDER",
+            newEntryRoute = "leaveAccountEntry/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // The availability entries (AvailabilityEntityRest, components/features/availability): hand built, migrated
         // from React before they were ever released, so no way back is offered; the legacy app is kept for the
         // redirect of React links only.
