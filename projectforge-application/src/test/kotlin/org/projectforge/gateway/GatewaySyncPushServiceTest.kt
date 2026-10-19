@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.gateway.push.GatewaySyncPushService
 import org.projectforge.gateway.push.MockIcsRequest
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.springframework.http.ResponseEntity
 
@@ -174,6 +175,7 @@ class GatewaySyncPushServiceTest {
             persistenceService = mock(),
             userAuthenticationsService = userAuthenticationsService,
             teamCalCache = mock(),
+            dataTransferExternalAccessConfig = DataTransferExternalAccessConfig(),
             integrationConfig = IntegrationConfig(),
         )
         GatewaySyncPushService::class.java.getDeclaredField("calendarSubscriptionServiceRest").also {

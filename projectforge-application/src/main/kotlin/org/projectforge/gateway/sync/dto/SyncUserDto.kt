@@ -29,4 +29,9 @@ data class SyncUserDto(
     val davToken: String? = null,
     val calendarRestToken: String? = null,
     val active: Boolean = true,
+    /**
+     * Only for observers of a data transfer area pushed to the gateway (see GatewaySyncPushService.pushUsers),
+     * null otherwise: the gateway sends them the notification mails of these areas (e.g. on external uploads).
+     */
+    val email: String? = null,
 )

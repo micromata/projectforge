@@ -6,11 +6,17 @@
     "date" : "2026-10-19",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Vacation and availability: an entry can be edited as the other kind (\"Edit as absence\" / \"Edit as vacation\"), like time sheets and calendar events (now \"Edit as event\" / \"Edit as time sheet\", formerly \"Switch to …\"). Person, period, comment and substitutes are taken over into a new entry, created only when it is saved; an entry already saved stays as it is. The button's tooltip says so." ]
+    }, {
       "type" : "improved",
-      "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobiles Arbeiten\" (mobile work) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there." ]
+      "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobile Tätigkeit\" (mobile activity) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there.", "DATEV import: one upload of the tax office's file fills both tabs, accounting records and chart of accounts, so each can be reconciled without uploading the file again." ]
     }, {
       "type" : "changed",
-      "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
+      "items" : [ {
+        "title" : "Data transfer with a gateway",
+        "items" : [ "Areas with external download or upload are administered on the internal instance again. Each sync transfers them to the gateway, where the external link points and where external users and the internal users with access find the files. No area is administered on the gateway any longer (created, changed or deleted; no personal boxes either), a note there points to the main instance, and the observers get the notification mails from there. Switching off the external access or deleting the area removes it from the gateway.", "The external link of an area created on the gateway itself works again (it pointed to a page the gateway doesn't serve).", "The external link of a deleted area no longer works." ]
+      }, "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
     } ]
   },
   "groups" : [ {

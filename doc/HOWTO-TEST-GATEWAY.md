@@ -38,16 +38,41 @@ projectforge.gateway.push.secret=test-secret-12345
 projectforge.gateway.push.syncIntervalMs=60000
 ```
 
-With gateway push enabled, the main instance no longer allows data transfer areas with external access
-(download/upload): they are administered on the gateway, and the server refuses to turn external access on.
-The admin form shows a switch only for an area that already has it on, and only for switching it off. To allow
-external access on the main instance as well, set:
+With gateway push enabled, data transfer areas with external access (download/upload) are still administered on the
+main instance, but their external access runs on the gateway:
+
+- Each sync pushes all areas with external access (not the personal boxes) to the gateway, admins, observers and access
+  users/groups by name (`/api/gateway/sync/datatransferareas`, step `datatransfer`). On the gateway these areas are
+  read-only, only their files are managed there; external access switched off or the area deleted on the main
+  instance marks the gateway's copy as deleted (its files are kept).
+- No area is administered on the gateway: none can be created, changed or deleted there (no personal boxes either),
+  a note tells the logged-in (internal) users that the areas are administered in the main instance. The gateway has
+  only the pushed areas, with the ids of the main instance (the main instance links directly to
+  `<gateway>/next/datatransfer/<id>`); every other area on the gateway is marked as deleted by the sync. (Formerly
+  the areas with external access were meant to be administered on the gateway itself.)
+- The external link points to the gateway (`<gateway>/next/public/datatransfer/<token>`); the main instance refuses
+  the external login for these areas.
+- The files are on the gateway only: the main instance offers no upload for these areas and links to the gateway
+  instead, directly to the area on the gateway (files stored there before stay downloadable and deletable).
+- The gateway sends the notification mails of these areas to their observers (e.g. on an external upload). This is
+  why the user sync sends the email address of the observers of these areas, and only of them (data minimization:
+  all other users have none on the gateway, and an observer who stops observing loses it with the next sync). The
+  gateway needs a mail server configuration (`mail.session.pfmailsession.*` as on the main instance) for this.
+
+The gateway's url for browsers is the push url without `/api/gateway/sync`. If it differs (e.g. an internal push
+url), set it:
+
+```properties
+projectforge.gateway.push.publicUrl=https://gateway.example.com
+```
+
+To run the external access on the main instance itself (nothing pushed), set:
 
 ```properties
 projectforge.datatransfer.externalAccess.localAllowed=true
 ```
 
-(`false` forbids it on any instance, even without a gateway.)
+(`false` forbids external access on any instance: it can only be switched off then.)
 
 ### 3. Start
 

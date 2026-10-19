@@ -23,6 +23,11 @@ export interface AttachmentListProps {
   /** Only downloads are offered — for a user without write access to the entity. */
   readOnly?: boolean;
   /**
+   * No upload, but the files stay deletable and renamable — for an area whose new files belong elsewhere
+   * (data transfer area with external access via the gateway).
+   */
+  noUpload?: boolean;
+  /**
    * Compact variant for a section between the fields of a form (books, orders, …): no permanent drop
    * box, the click sits as a button in the toolbar and the whole section takes a drop.
    *
@@ -103,6 +108,7 @@ export function AttachmentList({
   entity,
   id,
   readOnly,
+  noUpload,
   embedded,
   lockedDescription,
   lockedLabel,
@@ -166,11 +172,12 @@ export function AttachmentList({
       : a
   );
   // Embedded, the toolbar carries the add button, so it has to be there before the first file too.
-  const showFiles = attachments.length > 0 || (embedded && !readOnly);
+  const upload = !readOnly && !noUpload;
+  const showFiles = attachments.length > 0 || (embedded && upload);
 
   const content = (
     <div className="flex flex-col gap-3">
-      {!embedded && !readOnly && (
+      {!embedded && upload && (
         <div className="flex flex-col gap-1">
           <AttachmentDropArea onFiles={uploads.enqueue} />
           {uploadHint && (
@@ -197,7 +204,7 @@ export function AttachmentList({
           entity={entity}
           id={id}
           readOnly={readOnly}
-          onFiles={embedded ? uploads.enqueue : undefined}
+          onFiles={embedded && upload ? uploads.enqueue : undefined}
           onChanged={onChanged}
           layout={layout}
           columnStates={columnStates}
@@ -211,7 +218,7 @@ export function AttachmentList({
   );
 
   // Embedded there is no dashed box to aim at, so the whole section takes the drop instead.
-  return embedded && !readOnly ? (
+  return embedded && upload ? (
     <AttachmentDropZone onFiles={uploads.enqueue}>{content}</AttachmentDropZone>
   ) : (
     content

@@ -19,10 +19,12 @@ import { useExternalSecrets } from "./use-external-secrets";
  * The external access of an area: the two switches, and — once either is on — the password and the link
  * external users open (see DataTransferExternalSecrets).
  *
- * Where external access isn't allowed here (gateway mode, `externalAccessAllowed`), it's administered on the
- * other server, which the note says instead. A switch is then shown only if the stored area has it on
- * (created before), and only for switching it off: once off, it can't be turned on again (the server refuses
- * that too).
+ * Via the gateway (`externalAccessViaGateway`), the switches work as usual, and a note says that the link,
+ * the external transfers and the files are on the gateway, to which the area is pushed.
+ *
+ * Where external access isn't allowed here (`externalAccessAllowed`), a note says so instead. A switch is
+ * then shown only if the stored area has it on (created before), and only for switching it off: once off, it
+ * can't be turned on again (the server refuses that too).
  */
 export function DataTransferExternalAccess({
   className,
@@ -54,8 +56,13 @@ export function DataTransferExternalAccess({
     <div className={cn("flex flex-col gap-4", className)}>
       {options && !allowed && (
         <FormAlert tone="info">
-          {t("plugins.datatransfer.gateway.externalAccess.edit", {
-            arg0: options.gatewayHost,
+          {t("plugins.datatransfer.gateway.externalAccess.edit")}
+        </FormAlert>
+      )}
+      {options?.externalAccessViaGateway && (
+        <FormAlert tone="info">
+          {t("plugins.datatransfer.gateway.externalAccess.viaGateway", {
+            arg0: options.gatewayUrl ?? "",
           })}
         </FormAlert>
       )}

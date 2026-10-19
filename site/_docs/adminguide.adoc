@@ -1077,10 +1077,20 @@ projectforge.gateway.push.syncIntervalMs=900000
 |`push.secret` |Shared secret (must match `projectforge.gateway.sync.secret` on the gateway)
 |`push.syncIntervalMs` |Interval between sync pushes in milliseconds (default: 900000 = 15 minutes)
 |`push.initialDelayMs` |Delay of the first sync push after start-up in milliseconds (default: 120000 = 2 minutes)
+|`push.publicUrl` |URL of the gateway for browsers (external links of data transfer areas), only if it differs from `push.url` without `/api/gateway/sync`
 |===
 
 The push service sends users, groups, address books, and cached ICS calendar data to the gateway.
 All requests are authenticated via the `X-Gateway-Secret` HTTP header.
+
+Data transfer areas with external download or upload are administered on the main instance and pushed to the gateway
+with each sync. Their external link points to the gateway, external users and the internal users with access work with
+the files there; on the gateway these areas are read-only and keep the ids of the main instance. The gateway has
+only these areas, it creates none itself (no personal boxes). Switching off the external access or deleting the area on
+the main instance removes it from the gateway. The gateway sends the notification mails of these areas to their
+observers (e.g. on an external upload), so it needs a mail server configuration; for this the push includes the email
+addresses of these observers, and only theirs. With `projectforge.datatransfer.externalAccess.localAllowed=true` the
+external access runs on the main instance instead (nothing is pushed), with `false` it can't be enabled at all.
 
 [[identity_provider_sync_idp]]
 === Identity Provider Sync (IdP)

@@ -542,6 +542,10 @@
       "kind": "Kind",
       "tooltip": "Optional: who stands in during the period. If all of them are away on a day (on vacation or not available), the entry is shown as a conflict."
     },
+    "switchToVacationButton": {
+      "_": "Edit as vacation",
+      "tooltip": "Opens a new leave application with this entry's person, period, comment and substitutes. It is only created when you save it; an availability entry already saved stays as it is and may be deleted afterwards."
+    },
     "title": {
       "_": "Availability",
       "add": "Create availability entry",
@@ -1413,7 +1417,7 @@
         },
         "format": {
           "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
-          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged, one upload fills both tabs. Report sheets such as BWA, SuSa or USt are ignored.",
           "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
           "title": "File format of the import file"
         },
@@ -3267,9 +3271,15 @@
       },
       "gateway": {
         "externalAccess": {
-          "edit": "External access can''t be configured here. To do so, a data transfer area must be created and administered on the server {arg0}.",
-          "list": "External access (read/write) can''t be configured here. Data transfer areas with external access must be created and administered on the server {arg0}."
-        }
+          "edit": "External access cannot be enabled on this server.",
+          "list": "External access (read/write) cannot be enabled on this server.",
+          "viaGateway": "External access runs via the server {arg0}: the area is transferred there, the external link points there, and external users download and upload the files there. Internally, the files of the area are managed there, too."
+        },
+        "files": {
+          "onGateway": "The external access of this area runs via another server, and so do its files: new files are uploaded there, not here. Files stored here before can still be downloaded and deleted."
+        },
+        "listManagedByMainInstance": "The data transfer areas are administered in the main instance of ProjectForge: they can be neither created, changed nor deleted here. Here, only their files can be managed.",
+        "managedByMainInstance": "This area is administered in the main instance of ProjectForge: it can be neither changed nor deleted here. Here, only its files can be managed."
       },
       "internal": {
         "link": "Internal link"
@@ -3720,8 +3730,14 @@
         "timesheets": "You can subscribe your time sheets in your personal calendar (e.g. Apple iCal oder Microsoft Outlook).",
         "tooltip": "You can subscribe this calendar in your personal calendar (e.g. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "Switch to events",
-      "switchToTimesheetButton": "Switch to time sheet",
+      "switchToTeamEventButton": {
+        "_": "Edit as event",
+        "tooltip": "Opens a new event with this time sheet's period, location and description. It is only created when you save it; a time sheet already saved stays as it is."
+      },
+      "switchToTimesheetButton": {
+        "_": "Edit as time sheet",
+        "tooltip": "Opens a new time sheet with this event's period, location, subject and note. It is only created when you save it; an event already saved stays as it is."
+      },
       "title": {
         "_": "Title",
         "add": "Add calendar",
@@ -5091,6 +5107,10 @@
       "info": "Leave days are displayed on demand in the calendar view. They also may be defined as calendars (see list of calendars) for users and/or groups. These calendars can be subscribed for usage in 3rd party calendar tools."
     },
     "subtotal": "Subtotal",
+    "switchToAvailabilityButton": {
+      "_": "Edit as absence",
+      "tooltip": "Opens a new availability entry with this leave's person, period, comment and substitutes. It is only created when you save it; a leave entry already saved stays as it is and may be deleted afterwards."
+    },
     "title": {
       "add": "Create leave application",
       "edit": "Edit leave application",

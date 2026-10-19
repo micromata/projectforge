@@ -526,7 +526,7 @@
       "_": "Ort",
       "onSite": "Standort",
       "remote": "Remote",
-      "tooltip": "Optional, z. B. Remote bei mobilem Arbeiten oder Workation."
+      "tooltip": "Optional, z. B. Remote bei mobiler Tätigkeit oder Workation."
     },
     "notSpecified": "keine Angabe",
     "startDate": "Startdatum",
@@ -541,6 +541,10 @@
       "absences": "Abwesenheiten der Vertretungen",
       "kind": "Art",
       "tooltip": "Optional: wer im Zeitraum vertritt. Sind an einem Tag alle abwesend (Urlaub oder nicht verfügbar), wird der Eintrag als Konflikt angezeigt."
+    },
+    "switchToVacationButton": {
+      "_": "Als Urlaub bearbeiten",
+      "tooltip": "Öffnet einen neuen Urlaubsantrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Eintrags. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Verfügbarkeitseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
     },
     "title": {
       "_": "Verfügbarkeit",
@@ -1413,7 +1417,7 @@
         },
         "format": {
           "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
-          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden, ein Upload füllt beide Reiter. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
           "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
           "title": "Dateiformat der Importdatei"
         },
@@ -3267,9 +3271,15 @@
       },
       "gateway": {
         "externalAccess": {
-          "edit": "Externer Zugriff kann hier nicht konfiguriert werden. Dazu muss ein Datentransferbereich auf dem Server {arg0} angelegt und administriert werden.",
-          "list": "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. Datentransferbereiche mit externem Zugriff müssen auf dem Server {arg0} angelegt und administriert werden."
-        }
+          "edit": "Externer Zugriff kann auf diesem Server nicht aktiviert werden.",
+          "list": "Externer Zugriff (lesend/schreibend) kann auf diesem Server nicht aktiviert werden.",
+          "viaGateway": "Der externe Zugriff läuft über den Server {arg0}: Der Bereich wird dorthin übertragen, der externe Link zeigt dorthin, und Externe laden die Dateien dort herunter und hoch. Auch intern werden die Dateien des Bereichs dort verwaltet."
+        },
+        "files": {
+          "onGateway": "Der externe Zugriff auf diesen Bereich läuft über einen anderen Server, ebenso seine Dateien: Neue Dateien werden dort hochgeladen, nicht hier. Bereits hier gespeicherte Dateien können weiterhin heruntergeladen und gelöscht werden."
+        },
+        "listManagedByMainInstance": "Die Datentransferbereiche werden in der Hauptinstanz von ProjectForge administriert: Sie können hier weder angelegt, geändert noch gelöscht werden. Hier können nur ihre Dateien verwaltet werden.",
+        "managedByMainInstance": "Dieser Bereich wird in der Hauptinstanz von ProjectForge administriert: Er kann hier weder geändert noch gelöscht werden. Hier können nur seine Dateien verwaltet werden."
       },
       "internal": {
         "link": "Interner Link"
@@ -3720,8 +3730,14 @@
         "timesheets": "Über diese URL können die eigenen Zeitberichte in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook).",
         "tooltip": "Über diese URL kann der Kalender in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "In Termin umwandeln",
-      "switchToTimesheetButton": "In Zeitbuchung umwandeln",
+      "switchToTeamEventButton": {
+        "_": "Als Termin bearbeiten",
+        "tooltip": "Öffnet einen neuen Termin mit Zeitraum, Ort und Beschreibung dieser Zeitbuchung. Er wird erst beim Speichern angelegt; eine bereits gespeicherte Zeitbuchung bleibt unverändert bestehen."
+      },
+      "switchToTimesheetButton": {
+        "_": "Als Zeitbuchung bearbeiten",
+        "tooltip": "Öffnet eine neue Zeitbuchung mit Zeitraum, Ort, Betreff und Notiz dieses Termins. Sie wird erst beim Speichern angelegt; ein bereits gespeicherter Termin bleibt unverändert bestehen."
+      },
       "title": {
         "_": "Titel",
         "add": "Kalender hinzufügen",
@@ -5091,6 +5107,10 @@
       "info": "Urlaubseinträge können in der Kalendersicht eingesehen werden, aber auch als Kalender (s. Kalenderliste) für bestimmte Benutzer:innen oder Gruppen angelegt und auch abonniert werden. Sie können insbesondere die eigenen Urlaube und die von Kollegen oder Kolleginnen/Teams in die eigene Kalendersoftware integriert werden."
     },
     "subtotal": "Zwischensumme",
+    "switchToAvailabilityButton": {
+      "_": "Als Abwesenheit bearbeiten",
+      "tooltip": "Öffnet einen neuen Verfügbarkeitseintrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Urlaubs. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Urlaubseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
+    },
     "title": {
       "add": "Urlaubseintrag erstellen",
       "edit": "Urlaubseintrag ändern",

@@ -91,6 +91,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     @Autowired
     private lateinit var domainService: DomainService
 
+    @Autowired
+    lateinit var externalAccessConfig: DataTransferExternalAccessConfig
+        private set
+
     open fun createInitializedFile(): DataTransferAreaDO {
         val file = DataTransferAreaDO()
         file.adminIds = "${ThreadLocalUserContext.loggedInUserId}"
@@ -153,8 +157,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                     user.getFullname().contains(searchString, ignoreCase = true)
         }.forEach { user ->
             // User name matches given string, so add personal box of this active user:
-            val personalBox = ensurePersonalBox(user.id!!)!!
-            result.add(personalBox)
+            ensurePersonalBox(user.id!!)?.let { result.add(it) }
         }
         return result
     }
@@ -183,7 +186,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
 
+    /**
+     * @return null on the gateway: it has only the areas pushed by the main instance (they carry the ids of the
+     * main instance, so the gateway must not create any area itself), no personal boxes.
+     */
     open fun ensurePersonalBox(userId: Long): DataTransferAreaDO? {
+        if (externalAccessConfig.gatewayMode) {
+            return null
+        }
         userGroupCache.getUser(userId) ?: return null
         var dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_PERSONAL_BOX,
@@ -217,8 +227,26 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * The external link of an area is this url followed by its access token: the gateway's public page if
+     * external access runs via the gateway, the next public page on the gateway itself (the legacy React page is
+     * blocked there), the legacy React page otherwise.
+     */
     open fun getExternalBaseLinkUrl(): String {
-        return domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        return when {
+            externalAccessConfig.viaGateway ->
+                "${externalAccessConfig.gatewayPublicUrl}${DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH}"
+
+            externalAccessConfig.gatewayMode -> domainService.getDomain(DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH)
+            else -> domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        }
+    }
+
+    /**
+     * No areas are created on the gateway (see [hasAccess]): the list offers no add button there.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return !externalAccessConfig.gatewayMode
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
@@ -232,6 +260,13 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
+        if (externalAccessConfig.gatewayMode && operationType != OperationType.SELECT) {
+            // Gateway: all areas are pushed by the main instance and administered there, here only their files.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
         obj ?: return false
         if (obj.isPersonalBox() == true) {
             if (operationType != OperationType.SELECT && throwException) {

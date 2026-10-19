@@ -1,0 +1,19 @@
+{
+  "type": "changed",
+  "en": "Data transfer with a gateway",
+  "de": "Datentransfer mit Gateway",
+  "items": [
+    {
+      "en": "Areas with external download or upload are administered on the internal instance again. Each sync transfers them to the gateway, where the external link points and where external users and the internal users with access find the files. No area is administered on the gateway any longer (created, changed or deleted; no personal boxes either), a note there points to the main instance, and the observers get the notification mails from there. Switching off the external access or deleting the area removes it from the gateway.",
+      "de": "Bereiche mit externem Download oder Upload werden wieder auf der internen Instanz administriert. Jede Synchronisation überträgt sie auf das Gateway, auf das der externe Link zeigt und auf dem Externe und die internen Berechtigten die Dateien finden. Auf dem Gateway wird kein Bereich mehr administriert (weder angelegt, geändert noch gelöscht; auch keine persönlichen Boxen), ein Hinweis dort verweist auf die Hauptinstanz, und die Beobachter bekommen die Benachrichtigungen von dort. Wird der externe Zugriff abgeschaltet oder der Bereich gelöscht, verschwindet er vom Gateway."
+    },
+    {
+      "en": "The external link of an area created on the gateway itself works again (it pointed to a page the gateway doesn't serve).",
+      "de": "Der externe Link eines direkt auf dem Gateway angelegten Bereichs funktioniert wieder (er zeigte auf eine Seite, die das Gateway nicht ausliefert)."
+    },
+    {
+      "en": "The external link of a deleted area no longer works.",
+      "de": "Der externe Link eines gelöschten Bereichs funktioniert nicht mehr."
+    }
+  ]
+}
