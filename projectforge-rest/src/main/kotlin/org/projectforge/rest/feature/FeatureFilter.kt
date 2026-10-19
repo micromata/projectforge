@@ -68,7 +68,7 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
             // The category is part of the JSON body: read it here and hand the body on to the controller.
             val body = AttachmentCategoryRequests.readBody(httpRequest)
             if (body == null) {
-                (response as HttpServletResponse).sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE)
+                (response as HttpServletResponse).status = HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE
                 return
             }
             val category = AttachmentCategoryRequests.categoryOf(body)
@@ -84,7 +84,8 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
 
     private fun notFound(path: String, response: ServletResponse) {
         log.debug { "Feature switched off: blocked request to $path" }
-        (response as HttpServletResponse).sendError(HttpServletResponse.SC_NOT_FOUND)
+        // The status only, no error dispatch: the error page (MyErrorController) logs an error for each request.
+        (response as HttpServletResponse).status = HttpServletResponse.SC_NOT_FOUND
     }
 
     companion object {
