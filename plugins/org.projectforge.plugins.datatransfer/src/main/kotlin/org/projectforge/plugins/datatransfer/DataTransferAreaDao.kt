@@ -276,6 +276,24 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return false
     }
 
+    /**
+     * Whether the user has access to the area inside ProjectForge: as admin, access user or member of an access
+     * group. Unlike [hasAccess] without side effects (that one removes the external secrets from the object on a
+     * select), so usable on the area of an external access.
+     */
+    open fun hasInternalAccess(user: PFUserDO, area: DataTransferAreaDO): Boolean {
+        val userId = user.id ?: return false
+        if (StringHelper.splitToLongs(area.adminIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        if (StringHelper.splitToLongs(area.accessUserIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        return StringHelper.splitToLongs(area.accessGroupIds, ",")?.let {
+            userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *it.toTypedArray())
+        } == true
+    }
+
     override val defaultSortProperties: Array<SortProperty>?
         get() = arrayOf(SortProperty.desc("lastUpdate"))
 

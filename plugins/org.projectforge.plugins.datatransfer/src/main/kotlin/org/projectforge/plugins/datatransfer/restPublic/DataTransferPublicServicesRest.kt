@@ -510,6 +510,16 @@ class DataTransferPublicServicesRest {
         return pair.first to inputStream
     }
 
+    /**
+     * Whether the visitor may see who uploaded and changed the files: not with the area's password alone, only if
+     * logged in to ProjectForge as well (single sign-on, or the login of the app in the same session) and with
+     * access to the area there ([DataTransferAreaDao.hasInternalAccess]: admin, access user or access group).
+     */
+    internal fun isUserInfoVisible(request: HttpServletRequest, area: DataTransferAreaDO): Boolean {
+        val user = LoginService.getUser(request) ?: return false
+        return dataTransferAreaDao.hasInternalAccess(user, area)
+    }
+
     internal fun convert(
         request: HttpServletRequest,
         dbo: DataTransferAreaDO,
@@ -527,7 +537,7 @@ class DataTransferPublicServicesRest {
      * in this session (see [DataTransferPublicAccessChecker.filterAttachments]). Every file carries its expiry info, and
      * files the user may neither rename nor delete are marked as [Attachment.readonly]. Who uploaded or changed a file
      * is removed — users of ProjectForge, or the ip address and name of other external users — unless the visitor is
-     * logged in to ProjectForge as well ([isUserInfoVisible]).
+     * logged in to ProjectForge with access to the area there ([isUserInfoVisible]).
      */
     internal fun getClientAttachments(request: HttpServletRequest, area: DataTransferAreaDO): List<Attachment>? {
         val attachments = attachmentsAccessChecker.filterAttachments(
@@ -540,7 +550,7 @@ class DataTransferPublicServicesRest {
                 attachmentsAccessChecker
             )
         )
-        val userInfoVisible = isUserInfoVisible(request)
+        val userInfoVisible = isUserInfoVisible(request, area)
         attachments?.forEach {
             it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, area.expiryDays))
             it.readonly = it.fileId?.let { fileId -> !attachmentsAccessChecker.hasUpdateAccess(request, area, fileId) } ?: true
@@ -594,14 +604,6 @@ class DataTransferPublicServicesRest {
         /**
          * Download all as one ZIP: only with download access, and for 1 byte to [MAX_ZIP_SIZE] in total.
          */
-        /**
-         * Whether the visitor may see who uploaded and changed the files: only if logged in to ProjectForge as well
-         * (single sign-on or the login of the app in the same session), not with the area's password alone.
-         */
-        internal fun isUserInfoVisible(request: HttpServletRequest): Boolean {
-            return LoginService.getUser(request) != null
-        }
-
         internal fun isDownloadAllAvailable(area: DataTransferAreaDO): Boolean {
             return area.externalDownloadEnabled == true && (area.attachmentsSize ?: 0) in 1..MAX_ZIP_SIZE
         }
