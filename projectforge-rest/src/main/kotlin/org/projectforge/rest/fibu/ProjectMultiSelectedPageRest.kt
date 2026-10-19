@@ -89,9 +89,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
    */
   override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
     return listOf(
-      MassUpdateFieldDeclaration("headOfBusinessManager"),
-      MassUpdateFieldDeclaration("projectManager"),
-      MassUpdateFieldDeclaration("salesManager"),
+      MassUpdateFieldDeclaration("contactPerson"),
       MassUpdateFieldDeclaration("status"),
       MassUpdateFieldDeclaration("description", showAppendOption = true, minLengthOfTextArea = 1001),
       MassUpdateFieldDeclaration(KOST2_ARTS, custom = true, values = kost2ArtValues()),
@@ -103,7 +101,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     param: MassUpdateParameter,
     field: String,
   ): Boolean {
-    if (field == "headOfBusinessManager" || field == "projectManager" || field == "salesManager") {
+    if (field == "contactPerson") {
       return param.id != null
     }
     if (field == KOST2_ARTS) {
@@ -130,9 +128,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       massUpdateContext.startUpdate(project)
       val endedBefore = project.status == ProjektStatus.ENDED
       TextFieldModification.processTextParameter(project, "description", params)
-      proceedMassUpdateUserField(params, ProjektDO::headOfBusinessManager, project)
-      proceedMassUpdateUserField(params, ProjektDO::projectManager, project)
-      proceedMassUpdateUserField(params, ProjektDO::salesManager, project)
+      proceedMassUpdateUserField(params, ProjektDO::contactPerson, project)
       params["status"]?.let { param ->
         if (param.delete == true) {
           project.status = null

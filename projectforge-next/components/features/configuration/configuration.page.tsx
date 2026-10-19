@@ -1,3 +1,4 @@
+import { GROUP_NOMENCLATURE_QUERY_KEY } from "@/hooks/use-group-nomenclature";
 import { CONFIGURATION_METADATA } from "@/lib/metadata/configuration.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import {
@@ -46,6 +47,9 @@ export const CONFIGURATION_PAGE = definePage<
   metadata: CONFIGURATION_METADATA,
   route: CONFIGURATION_ROUTE,
   queryKey: CONFIGURATION_LIST_QUERY_KEY,
+  // The group nomenclature (parameter `groupNomenclature`) is read under its own key by the wizards and
+  // the group form; a save here must not leave them on the previous value.
+  extraInvalidateKeys: [GROUP_NOMENCLATURE_QUERY_KEY],
   // Administration > System configuration (MenuCreator, CONFIGURATION).
   categoryKey: "menu.administration",
   // `.title.list`, not the bare `administration.configuration`: that key is both a text and the parent

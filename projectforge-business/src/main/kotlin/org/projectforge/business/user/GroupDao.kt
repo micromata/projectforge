@@ -99,7 +99,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
 
     /**
      * Please note: Any existing assigned user in group object is ignored!
-     * Used by GroupEditPage (Wicket), only used by Group-Task-Access-Wizard.
+     * Used by the project wizard (ProjectWizardService), which creates groups together with their members.
      *
      * @param newAssignedUsers Full list of all users which have to assigned to this group.
      */

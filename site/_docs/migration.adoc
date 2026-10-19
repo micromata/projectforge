@@ -21,6 +21,14 @@ TIP: Always back up your database (and, if you still use it, the JCR repository)
 
 === Version 9.0.x
 
+. Project contact persons (9.0.11)
++
+Projects now have one contact person plus any number of further contact persons, as orders do, instead of the fixed
+roles project manager, head of business and key account manager. The database migration (Flyway `V9.0.11.1`,
+`V9.0.11.2`) runs automatically: the project manager becomes the contact person (or else the head of business, or else
+the key account manager), the others become further contact persons; the old fields remain in the database. All contact
+persons have the access the three roles had. If your scripts read the old fields, switch them to the contact persons.
+
 . Project numbers and number ranges (9.0.8)
 +
 Customers and projects no longer depend on cost units: every project has a system-wide unique project number, and

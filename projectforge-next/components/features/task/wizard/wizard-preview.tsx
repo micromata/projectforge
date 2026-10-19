@@ -50,10 +50,18 @@ export function WizardPreview({ preview, isFetching }: WizardPreviewProps) {
           <span className="truncate font-medium">
             {row.original.taskTitle ?? ""}
           </span>
+          {!row.original.pickedElement && row.original.taskId == null && (
+            <span className="shrink-0 text-muted-foreground">
+              ({t("project.wizard.preview.newElement")})
+            </span>
+          )}
           {row.original.pickedElement && (
             <span className="shrink-0 text-muted-foreground">
-              ({t("task.wizard.preview.picked")},{" "}
-              {t("task.wizard.preview.recursive")})
+              (
+              {row.original.taskId == null
+                ? t("project.wizard.preview.newElement")
+                : t("task.wizard.preview.picked")}
+              , {t("task.wizard.preview.recursive")})
             </span>
           )}
         </div>
@@ -125,7 +133,7 @@ export function WizardPreview({ preview, isFetching }: WizardPreviewProps) {
           enableColumnFilters={false}
           manualSorting={false}
           showPagination={false}
-          getRowId={(row) => String(row.taskId)}
+          getRowId={(row) => row.key}
         />
       </div>
     </SectionCard>

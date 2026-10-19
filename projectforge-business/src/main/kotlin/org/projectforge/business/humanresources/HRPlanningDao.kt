@@ -236,11 +236,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
                 if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
                     var userHasRightForProject = false
                     val userId = ThreadLocalUserContext.loggedInUser!!.id
-                    val headOfBusinessManagerId =
-                        if (projekt.headOfBusinessManager != null) projekt.headOfBusinessManager!!.id else null
-                    val projectManagerId = if (projekt.projectManager != null) projekt.projectManager!!.id else null
-                    val salesManageId = if (projekt.salesManager != null) projekt.salesManager!!.id else null
-                    if (userId != null && (userId == headOfBusinessManagerId || userId == projectManagerId || userId == salesManageId)) {
+                    if (projekt.isContact(userId)) {
                         userHasRightForProject = true
                     }
 

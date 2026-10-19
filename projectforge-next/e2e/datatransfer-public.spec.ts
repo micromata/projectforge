@@ -291,6 +291,45 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
     }
   });
 
+  test("shows who uploaded and the activities to a ProjectForge user with access to the area", async ({
+    loggedInPage: page,
+    seedRequest,
+  }) => {
+    // The seed's account is the area's admin, and the one the page is logged in with.
+    const area = await createArea(seedRequest, {
+      download: true,
+      upload: false,
+    });
+    const name = `pf-e2e-public-audit-${uniqueSuffix()}.txt`;
+    try {
+      await uploadInternally(seedRequest, area.id, name);
+      await goto(page, `/public/datatransfer/${area.token}`);
+      await waitForHydration(page);
+      const t = await publicFormat(page);
+      await login(page, PASSWORD);
+      await expect(storedRow(page, t, name)).toBeVisible();
+      await expect(
+        page.getByRole("columnheader", { name: t("createdBy") })
+      ).toBeVisible();
+
+      await page
+        .getByRole("button", { name: t("plugins.datatransfer.audit._") })
+        .click();
+      const dialog = page.getByRole("dialog");
+      await expect(
+        dialog.getByRole("heading", {
+          name: t("plugins.datatransfer.audit.events"),
+          exact: true,
+        })
+      ).toBeVisible();
+      await expect(dialog.getByRole("cell", { name })).toBeVisible();
+    } finally {
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
+        () => undefined
+      );
+    }
+  });
+
   test("offers no upload in an area with download access only", async ({
     page,
     seedRequest,

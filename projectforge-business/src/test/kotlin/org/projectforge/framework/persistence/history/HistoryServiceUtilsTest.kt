@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.history
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.test.AbstractTestBase
 
@@ -52,5 +53,13 @@ class HistoryServiceUtilsTest : AbstractTestBase() {
         Assertions.assertTrue(set.contains("headOfBusinessManager"))
         Assertions.assertTrue(set.contains("salesManager"))
         Assertions.assertFalse(set.contains("subject"))
+
+        set = HistoryServiceUtils.get().getNoHistoryProperties(ProjektDO::class.java)
+        // Deprecated read-only legacy columns, replaced by contactPerson/additionalContactUserIds:
+        Assertions.assertTrue(set.contains("projectManager"))
+        Assertions.assertTrue(set.contains("headOfBusinessManager"))
+        Assertions.assertTrue(set.contains("salesManager"))
+        Assertions.assertFalse(set.contains("contactPerson"))
+        Assertions.assertFalse(set.contains("additionalContactUserIds"))
     }
 }

@@ -56,9 +56,15 @@ export const projectSchema = z.object({
   konto: entityRef,
   task: m.entityField("task"),
   projektManagerGroup: m.entityField("projektManagerGroup"),
-  projectManager: m.entityField("projectManager"),
-  headOfBusinessManager: m.entityField("headOfBusinessManager"),
-  salesManager: m.entityField("salesManager"),
+  contactPerson: m.entityField("contactPerson"),
+  /**
+   * The further contact persons. No metadata: the DTO carries them as user references, the entity as
+   * comma separated ids (`ProjektDO.additionalContactUserIds`). An empty list rather than null, which is
+   * what the picker holds.
+   */
+  additionalContacts: z.array(
+    z.looseObject({ id: z.number(), displayName: z.string().optional() })
+  ),
   description: m.nullableString("description"),
   kost2Arts: z.array(kost2Art),
   /** Read-only: number and customer are fixed, see ProjectNumberField. Ignored by the backend on save. */

@@ -17,10 +17,12 @@ type Column = ColumnDef<DataTransferAuditEntry, unknown>;
  * The activities of an area over the last 30 days (`DataTransferAuditRest`): what was uploaded, changed
  * and deleted, and — a table of its own, as in the legacy modal — who downloaded what.
  *
- * A tab of the area's page (see DataTransferAreaPage), mounted only while open: read when opened, not
- * with the file view, since the activities are looked at rarely and they grow with every download.
+ * A tab of the area's page (see DataTransferAreaPage), and a dialog of its external access for users of
+ * ProjectForge with access to the area (see DataTransferPublicAuditButton) — shared for that. Mounted only
+ * while open: read when opened, not with the file view, since the activities are looked at rarely and they
+ * grow with every download. The endpoint checks the access itself.
  */
-export function DataTransferAuditTab({ id }: { id: number }) {
+export function DataTransferAudit({ id }: { id: number }) {
   const t = useTranslations();
   const query = useQuery({
     queryKey: ["datatransfer", "audit", id],

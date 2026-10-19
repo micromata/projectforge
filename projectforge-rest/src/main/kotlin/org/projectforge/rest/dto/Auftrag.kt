@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.AuftragForecastType
 import org.projectforge.business.fibu.AuftragsCache
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.AuftragsStatus
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.OrderInfo
 import org.projectforge.business.fibu.OrderPositionInfo
@@ -315,8 +316,8 @@ class Auftrag(
     override fun copyTo(dest: AuftragDO) {
         super.copyTo(dest)
         // Without duplicates and without the main contact person, who is a contact anyway.
-        dest.additionalContactUserIds = additionalContacts?.mapNotNull { it.id }?.distinct()
-            ?.filter { it != contactPerson?.id }?.takeIf { it.isNotEmpty() }?.joinToString(", ")
+        dest.additionalContactUserIds =
+            ContactUserIds.normalize(contactPerson?.id, additionalContacts?.map { it.id })
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
         dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
         dest.positionen = positionen?.map { dto ->

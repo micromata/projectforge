@@ -37,6 +37,26 @@ const INFO: NumberRangesInfo = {
 };
 
 describe("number ranges", () => {
+  it("takes the customer number itself into the project number, whatever customerMin is", () => {
+    const from10001 = {
+      prefix: 1,
+      customerMin: 10001,
+      customerMax: 19999,
+      projectDigits: 1,
+      segments: [1, 4, 1, 2],
+    };
+    const from1 = {
+      prefix: 5,
+      customerMin: 1,
+      customerMax: 999,
+      projectDigits: 2,
+      segments: [1, 3, 2, 2],
+    };
+    expect(projectNumber(from10001, 10001, 3)).toBe(100013);
+    expect(projectNumber(from1, 123, 45)).toBe(512345);
+    expect(projectNumber(from10001, 10000, 3)).toBeNull();
+  });
+
   it("finds the range of a customer, a project number and the one without customers", () => {
     expect(rangeForCustomer(INFO, 123)?.prefix).toBe(5);
     expect(rangeForCustomer(INFO, 10007)?.prefix).toBe(1);

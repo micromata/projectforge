@@ -28,7 +28,6 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
-import org.projectforge.business.fibu.numberrange.NumberRangeService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.rest.config.JacksonConfiguration
@@ -60,7 +59,7 @@ class CustomerPagesRest
         "fibu.kunde.title") {
 
     @Autowired
-    private lateinit var numberRangeService: NumberRangeService
+    private lateinit var fibuNumberValidation: FibuNumberValidation
 
     @PostConstruct
     private fun postConstruct() {
@@ -105,20 +104,8 @@ class CustomerPagesRest
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Customer) {
         super.validate(validationErrors, dto)
-        if (dto.id == null && dto.nummer != null) {
-            // The number must fit the configured number ranges (KundeDao.onInsert):
-            numberRangeService.numberRanges.validateCustomerNumber(dto.nummer)?.let { violation ->
-                validationErrors.add(ValidationError(translate(violation.i18nKey), fieldId = KundeDO::nummer.name))
-                return
-            }
-        }
-        if (dto.id == null && dto.nummer != null && baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
-            validationErrors.add(
-                ValidationError(
-                    translate("fibu.kunde.validation.existingCustomerNr"),
-                    fieldId = KundeDO::nummer.name,
-                )
-            )
+        if (dto.id == null) {
+            fibuNumberValidation.validateNewCustomerNumber(validationErrors, dto.nummer)
         }
     }
 

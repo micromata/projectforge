@@ -97,16 +97,17 @@ class NumberRanges(
         require(customerNumber != null && range.containsCustomer(customerNumber)) {
             "Customer $customerNumber not in $range."
         }
-        val customerOffset = (customerNumber - range.customerMin!!).toInt()
-        return range.firstProjectNumber + customerOffset * pow10(range.projectDigits) + localNumber
+        return range.firstProjectNumber + range.customerPart(customerNumber) * pow10(range.projectDigits) + localNumber
     }
 
     /** Customer number encoded in the given project number, null for free numbers and ranges without customers. */
     fun customerNumber(projectNumber: Int): Long? {
         val range = rangeForProjectNumber(projectNumber) ?: return null
         val min = range.customerMin ?: return null
-        val customer = min + (projectNumber - range.firstProjectNumber) / pow10(range.projectDigits)
-        return if (customer <= range.customerMax!!) customer else null
+        // The digits in front of the customer part, which all customers of the range share (see validate):
+        val block = min - min % pow10(range.customerDigits)
+        val customer = block + (projectNumber - range.firstProjectNumber) / pow10(range.projectDigits)
+        return if (range.containsCustomer(customer)) customer else null
     }
 
     /** Local project number (per customer or range), null for free project numbers. */
@@ -293,9 +294,13 @@ class NumberRanges(
             return
         }
         require(min in 0..max) { "Number ranges: customer-min of $range must be in 0..customer-max." }
-        require((max - min + 1) * pow10(range.projectDigits) <= PROJECT_PREFIX_FACTOR) {
-            "Number ranges: ${max - min + 1} customers with ${range.projectDigits} project digits don't fit into" +
-                    " the ${PROJECT_NUMBER_DIGITS - 1} digits after the prefix of $range."
+        // The customer part of a project number is the customer number's last digits, so all customers of the
+        // range must share the digits in front of them - otherwise two customers would get the same part.
+        val customerFactor = pow10(range.customerDigits)
+        require(min / customerFactor == max / customerFactor) {
+            "Number ranges: with ${range.projectDigits} project digits the last ${range.customerDigits} digits of" +
+                    " a customer number are its part of the project number, so customers $min-$max of $range" +
+                    " must share the digits in front of them (e.g. 10000-19999 for 1 project digit)."
         }
     }
 

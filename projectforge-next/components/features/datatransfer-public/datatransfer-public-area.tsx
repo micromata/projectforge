@@ -12,6 +12,7 @@ import { LogoRow } from "@/components/shared/logo-row";
 import { AttachmentList } from "@/components/shared/attachments/attachment-list";
 import { AttachmentServiceProvider } from "@/components/shared/attachments/attachment-service";
 import { useDocumentTitle } from "@/hooks/use-document-title";
+import { DataTransferPublicAuditButton } from "./datatransfer-public-audit-button";
 import {
   dataTransferPublicDownloadAllUrl,
   dataTransferPublicStateQueryKey,
@@ -24,7 +25,8 @@ import {
  * The files of an area as an external user sees them, once logged in: all of them with download
  * access, otherwise only those uploaded in this session. Upload, rename and delete only where the
  * area allows uploads, and only for one's own files (the backend marks the others read-only); these can
- * be encrypted as well.
+ * be encrypted as well. A visitor logged in to ProjectForge with access to the area also sees who uploaded
+ * the files, and the area's activities.
  */
 export function DataTransferPublicArea({
   token,
@@ -104,6 +106,7 @@ export function DataTransferPublicArea({
               </Button>
             </HintTooltip>
           )}
+          {userInfo && <DataTransferPublicAuditButton id={id} />}
           <Button
             variant="outline"
             size="sm"

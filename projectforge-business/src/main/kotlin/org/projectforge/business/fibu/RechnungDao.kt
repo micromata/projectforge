@@ -711,15 +711,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             // Members of the finance/orga groups with (at least) read access to the order book see every order.
             return true
         }
-        // Otherwise the user must be tied to the order as (additional) contact person or through the project's manager group.
+        // Otherwise the user must be tied to the order as (additional) contact person, or to its project as one or
+        // through the project's manager group.
         var hasAccess = false
         if (orderInfo.isContact(user.id)) {
             hasAccess = true
         }
         projektCache.getProjekt(orderInfo.projektId)?.let { projekt ->
             if (UserGroupCache.getInstance().isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
-                || projekt.headOfBusinessManagerId == user.id
-                || projekt.salesManagerId == user.id
+                || projekt.isContact(user.id)
             ) {
                 hasAccess = true
             }

@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { makeAdditionalContactsField } from "@/components/shared/form/additional-contacts-field";
 import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -6,6 +7,7 @@ import { ProjectCustomerField } from "./project-customer-field";
 import { ProjectKontoField } from "./project-konto-field";
 import { ProjectKost2ArtsCell } from "./project-kost2-arts-cell";
 import { ProjectKost2TypesField } from "./project-kost2-types-field";
+import { ProjectListActions } from "./project-list-actions";
 import { ProjectNumberField } from "./project-number-field";
 import {
   projectSchema,
@@ -17,6 +19,11 @@ import type { ProjectDetail, ProjectListRow } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const PROJECT_LIST_QUERY_KEY = ["project"] as const;
+
+/** The project's further contacts, said what being one means: access to the project, its orders and invoices. */
+const ProjectAdditionalContactsField = makeAdditionalContactsField(
+  "fibu.projekt.contacts.info"
+);
 
 /**
  * The whole project page — list and edit — as data (see lib/page-def/types.ts).
@@ -108,21 +115,14 @@ export const PROJECT_PAGE = definePage<
       dataType: "DATE",
       size: 110,
     },
+    // The contact person and the further ones in one column, as the order list shows them.
     {
-      name: "headOfBusinessManager",
-      size: 140,
-      cell: ({ row }) =>
-        row.original.headOfBusinessManager?.displayName ?? null,
-    },
-    {
-      name: "salesManager",
-      size: 140,
-      cell: ({ row }) => row.original.salesManager?.displayName ?? null,
-    },
-    {
-      name: "projectManager",
-      size: 140,
-      cell: ({ row }) => row.original.projectManager?.displayName ?? null,
+      id: "assignedPersons",
+      labelKey: "fibu.common.assignedPersons",
+      accessor: (row) => row.assignedPersons ?? "",
+      size: 180,
+      sortable: false,
+      className: "text-muted-foreground",
     },
     {
       name: "projektManagerGroup",
@@ -148,7 +148,9 @@ export const PROJECT_PAGE = definePage<
   inactiveLabelKey: "fibu.projekt.legend.ended",
   rowClassName: (row) =>
     row.status === "ENDED" ? INACTIVE_ROW_CLASS : undefined,
-  // Mass update of a selection: the managers, the description and the cost 2 types
+  // The project wizard, for those who may create customers, projects and structure elements.
+  listActions: ProjectListActions,
+  // Mass update of a selection: the contact person, the description and the cost 2 types
   // (ProjectMultiSelectedPageRest, /projectSelected).
   massUpdate: {
     endpoint: "projectSelected",
@@ -157,7 +159,7 @@ export const PROJECT_PAGE = definePage<
   edit: {
     schema: projectSchema,
     fieldNames: PROJECT_FIELDS,
-    arrayFieldNames: ["kost2Arts"],
+    arrayFieldNames: ["kost2Arts", "additionalContacts"],
     defaultValues: emptyProjectValues,
     toFormValues,
     // The name is what identifies a project to a reader — the same string the list shows.
@@ -179,11 +181,17 @@ export const PROJECT_PAGE = definePage<
           { name: "status", emphasized: true },
           { custom: ProjectKontoField, span: 2 },
           { name: "projektManagerGroup" },
-          { name: "projectManager" },
-          { name: "headOfBusinessManager" },
-          { name: "salesManager" },
           { name: "description", span: 3, rows: 4 },
           { custom: ProjectKost2TypesField, span: 3 },
+        ],
+      },
+      {
+        // As in the order: the main contact and any number of further ones, in a card of their own.
+        id: "contactPersons",
+        titleKey: "contactPersons",
+        fields: [
+          { name: "contactPerson", hintKey: "fibu.projekt.contacts.info" },
+          { custom: ProjectAdditionalContactsField, span: 2 },
         ],
       },
     ],
