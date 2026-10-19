@@ -16,6 +16,8 @@ export interface WizardResultProps {
   result: TaskWizardResultData;
   /** Puts the wizard back to its steps, with nothing picked. */
   onAgain: () => void;
+  /** Where the tree button goes; the project wizard has it show the element it created. */
+  treeHref?: string;
 }
 
 /**
@@ -27,7 +29,11 @@ export interface WizardResultProps {
  * numbers behind it say how many of them were new. A plain list, not a DataTable, as in
  * MassUpdateResultPanel.
  */
-export function WizardResult({ result, onAgain }: WizardResultProps) {
+export function WizardResult({
+  result,
+  onAgain,
+  treeHref = TASK_TREE_ROUTE,
+}: WizardResultProps) {
   const t = useTranslations();
   const blocks = groupEntries(result.entries);
 
@@ -81,7 +87,7 @@ export function WizardResult({ result, onAgain }: WizardResultProps) {
           {t("task.wizard.result.again")}
         </Button>
         <Button asChild>
-          <GuardedLink href={TASK_TREE_ROUTE}>
+          <GuardedLink href={treeHref}>
             {t("task.wizard.result.toTree")}
           </GuardedLink>
         </Button>

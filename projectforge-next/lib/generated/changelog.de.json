@@ -6,8 +6,11 @@
     "date" : "2026-10-19",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Kundenassistent: richtet ein Projekt in einem Schritt ein – den Kunden (einen vorhandenen oder einen neuen), das Projekt mit seinen Kost2-Arten, sein Strukturelement unterhalb eines gewählten und die Gruppen von Team, Teammanager:innen und Externen (vorhandene oder neue mit ihren Mitgliedern) samt ihrer Zugriffsrechte, die vor dem Speichern in einer Vorschau angezeigt werden. Verfügbar für alle, die Kunden, Projekte und Strukturelemente anlegen dürfen; über den Assistenten dürfen sie ausnahmsweise auch Gruppen und Zugriffsrechte anlegen. Angeboten in der Kundenliste, der Projektliste, im Strukturbaum und in der Aufgabenliste.", "Urlaub und Verfügbarkeit: Ein Eintrag kann als die jeweils andere Art bearbeitet werden („Als Abwesenheit bearbeiten“ / „Als Urlaub bearbeiten“), wie Zeitbuchungen und Termine (jetzt „Als Termin bearbeiten“ / „Als Zeitbuchung bearbeiten“, bisher „In … umwandeln“). Person, Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der erst beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt unverändert. Das erklärt auch der Tooltip der Schaltfläche." ]
+    }, {
       "type" : "improved",
-      "items" : [ "Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobiles Arbeiten“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort." ]
+      "items" : [ "Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobile Tätigkeit“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort.", "DATEV-Import: Ein Upload der Datei des Steuerbüros füllt beide Reiter, Buchungssätze und Kontenplan, sodass beide ohne erneuten Upload abgeglichen werden können." ]
     }, {
       "type" : "changed",
       "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]

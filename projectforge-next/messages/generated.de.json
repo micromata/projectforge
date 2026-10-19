@@ -526,7 +526,7 @@
       "_": "Ort",
       "onSite": "Standort",
       "remote": "Remote",
-      "tooltip": "Optional, z. B. Remote bei mobilem Arbeiten oder Workation."
+      "tooltip": "Optional, z. B. Remote bei mobiler Tätigkeit oder Workation."
     },
     "notSpecified": "keine Angabe",
     "startDate": "Startdatum",
@@ -541,6 +541,10 @@
       "absences": "Abwesenheiten der Vertretungen",
       "kind": "Art",
       "tooltip": "Optional: wer im Zeitraum vertritt. Sind an einem Tag alle abwesend (Urlaub oder nicht verfügbar), wird der Eintrag als Konflikt angezeigt."
+    },
+    "switchToVacationButton": {
+      "_": "Als Urlaub bearbeiten",
+      "tooltip": "Öffnet einen neuen Urlaubsantrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Eintrags. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Verfügbarkeitseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
     },
     "title": {
       "_": "Verfügbarkeit",
@@ -1413,7 +1417,7 @@
         },
         "format": {
           "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
-          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden, ein Upload füllt beide Reiter. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
           "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
           "title": "Dateiformat der Importdatei"
         },
@@ -3720,8 +3724,14 @@
         "timesheets": "Über diese URL können die eigenen Zeitberichte in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook).",
         "tooltip": "Über diese URL kann der Kalender in der persönlichen Kalendersoftware abonniert werden (z. B. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "In Termin umwandeln",
-      "switchToTimesheetButton": "In Zeitbuchung umwandeln",
+      "switchToTeamEventButton": {
+        "_": "Als Termin bearbeiten",
+        "tooltip": "Öffnet einen neuen Termin mit Zeitraum, Ort und Beschreibung dieser Zeitbuchung. Er wird erst beim Speichern angelegt; eine bereits gespeicherte Zeitbuchung bleibt unverändert bestehen."
+      },
+      "switchToTimesheetButton": {
+        "_": "Als Zeitbuchung bearbeiten",
+        "tooltip": "Öffnet eine neue Zeitbuchung mit Zeitraum, Ort, Betreff und Notiz dieses Termins. Sie wird erst beim Speichern angelegt; ein bereits gespeicherter Termin bleibt unverändert bestehen."
+      },
       "title": {
         "_": "Titel",
         "add": "Kalender hinzufügen",
@@ -3800,6 +3810,59 @@
     "least": "gering",
     "low": "niedrig",
     "middle": "mittel"
+  },
+  "project": {
+    "wizard": {
+      "customer": {
+        "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird."
+      },
+      "existing": {
+        "customer": "Vorhandener Kunde",
+        "group": "Vorhandene Gruppe"
+      },
+      "finish": "Projekt einrichten",
+      "intro": "Mit diesem Assistenten wird ein neues Projekt in einem Schritt eingerichtet: der Kunde (vorhanden oder neu), das Projekt, sein Strukturelement und die Gruppen von Team, Teammanager:innen und Externen samt ihrer Zugriffsrechte. Gespeichert wird erst beim Einrichten, dann alles auf einmal.",
+      "managerGroup": {
+        "projectManagerGroup": "Diese Gruppe wird zugleich die Projektmanager-Gruppe des Projekts."
+      },
+      "new": {
+        "customer": "Neuer Kunde",
+        "group": "Neue Gruppe"
+      },
+      "none": {
+        "group": "Keine Gruppe"
+      },
+      "notAllowed": "Der Kundenassistent steht nur Benutzer:innen zur Verfügung, die Kunden, Projekte und Strukturelemente anlegen dürfen.",
+      "pageTitle": "Kundenassistent",
+      "parentTask": {
+        "existingCustomer": {
+          "_": "Strukturelement des Kunden",
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."
+        },
+        "newCustomer": {
+          "_": "Übergeordnetes Element des Kunden",
+          "intro": "Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel, und darunter das Strukturelement des Projekts."
+        },
+        "newPath": "Pfad der neuen Strukturelemente:",
+        "structure": {
+          "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
+          "title": "Wie der Aufbau gedacht ist"
+        }
+      },
+      "preview": {
+        "newElement": "neu"
+      },
+      "project": {
+        "intro": "Das neue Projekt. Seine Nummer folgt dem Nummernkreis des Kunden."
+      },
+      "result": {
+        "created": "neu",
+        "customerElement": "Strukturelement des Kunden",
+        "existing": "vorhanden",
+        "projectElement": "Strukturelement des Projekts",
+        "title": "Was der Assistent eingerichtet hat"
+      }
+    }
   },
   "projectmanagement": {
     "personDays": {
@@ -5091,6 +5154,10 @@
       "info": "Urlaubseinträge können in der Kalendersicht eingesehen werden, aber auch als Kalender (s. Kalenderliste) für bestimmte Benutzer:innen oder Gruppen angelegt und auch abonniert werden. Sie können insbesondere die eigenen Urlaube und die von Kollegen oder Kolleginnen/Teams in die eigene Kalendersoftware integriert werden."
     },
     "subtotal": "Zwischensumme",
+    "switchToAvailabilityButton": {
+      "_": "Als Abwesenheit bearbeiten",
+      "tooltip": "Öffnet einen neuen Verfügbarkeitseintrag mit Person, Zeitraum, Kommentar und Vertretungen dieses Urlaubs. Er wird erst beim Speichern angelegt; ein bereits gespeicherter Urlaubseintrag bleibt unverändert bestehen und kann danach bei Bedarf gelöscht werden."
+    },
     "title": {
       "add": "Urlaubseintrag erstellen",
       "edit": "Urlaubseintrag ändern",

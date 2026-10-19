@@ -6,6 +6,7 @@ import { ProjectCustomerField } from "./project-customer-field";
 import { ProjectKontoField } from "./project-konto-field";
 import { ProjectKost2ArtsCell } from "./project-kost2-arts-cell";
 import { ProjectKost2TypesField } from "./project-kost2-types-field";
+import { ProjectListActions } from "./project-list-actions";
 import { ProjectNumberField } from "./project-number-field";
 import {
   projectSchema,
@@ -148,6 +149,8 @@ export const PROJECT_PAGE = definePage<
   inactiveLabelKey: "fibu.projekt.legend.ended",
   rowClassName: (row) =>
     row.status === "ENDED" ? INACTIVE_ROW_CLASS : undefined,
+  // The project wizard, for those who may create customers, projects and structure elements.
+  listActions: ProjectListActions,
   // Mass update of a selection: the managers, the description and the cost 2 types
   // (ProjectMultiSelectedPageRest, /projectSelected).
   massUpdate: {

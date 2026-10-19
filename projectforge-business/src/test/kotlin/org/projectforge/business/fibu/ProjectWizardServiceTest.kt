@@ -1,0 +1,247 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.business.fibu
+
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2ArtDao
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskDao
+import org.projectforge.business.task.TaskTree
+import org.projectforge.business.task.TaskWizardService
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.AccessDao
+import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.access.AccessType
+import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.springframework.beans.factory.annotation.Autowired
+
+/**
+ * The project wizard as a user of the finance group (which may create customers, projects and
+ * structure elements, but neither groups nor access rights outside of the wizard).
+ */
+class ProjectWizardServiceTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var accessDao: AccessDao
+
+    @Autowired
+    private lateinit var groupDao: GroupDao
+
+    @Autowired
+    private lateinit var kost2ArtDao: Kost2ArtDao
+
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
+
+    @Autowired
+    private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var projectWizardService: ProjectWizardService
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var taskWizardService: TaskWizardService
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
+    @Test
+    fun `a finance user sets up customer, project, element, groups and access rights`() {
+        val parent = createParent("full")
+        val art = kost2Art()
+        logon(TEST_FINANCE_USER)
+        Assertions.assertTrue(projectWizardService.isAllowed())
+        val user2 = getUser("user2")
+        val user3 = getUser("user3")
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18501L, name = "$PREFIX customer"),
+                project = ProjectWizardService.ProjectData(
+                    nummer = 1,
+                    name = "$PREFIX-full-project",
+                    kost2ArtIds = listOf(art.id!!),
+                ),
+                parentTaskId = parent.id,
+                managerGroup = ProjectWizardService.GroupData(name = "$PREFIX-full-pm", userIds = listOf(user2.id!!)),
+                teamGroup = ProjectWizardService.GroupData(
+                    name = "$PREFIX-full",
+                    userIds = listOf(user2.id!!, user3.id!!),
+                ),
+                externalGroup = ProjectWizardService.GroupData(name = "$PREFIX-full-external"),
+            )
+        )
+        Assertions.assertTrue(result.customerCreated)
+        Assertions.assertEquals(18501L, result.customerId)
+        Assertions.assertEquals(3, result.groups.count { it.created })
+
+        val projekt = projektDao.find(result.projectId, checkAccess = false)!!
+        Assertions.assertEquals(18501L, projekt.kunde?.id)
+        Assertions.assertEquals(result.taskId, projekt.task?.id)
+        Assertions.assertEquals(185011, projekt.projektnummer, "Range 1: 1·10⁵ + (18501 − 10000)·10 + 1.")
+        val managerGroup = result.groups.first { it.groupType == TaskWizardService.GroupType.MANAGER }
+        Assertions.assertEquals(managerGroup.id, projekt.projektManagerGroup?.id)
+        Assertions.assertEquals(result.projectId, taskTree.getProjekt(result.taskId)?.id)
+        // The new customer's element below the chosen one, the project's below the customer's:
+        val customerNode = taskTree.getTaskNodeById(result.customerTaskId)!!
+        Assertions.assertEquals("$PREFIX customer", customerNode.task?.title)
+        Assertions.assertEquals(parent.id, customerNode.parent?.id)
+        Assertions.assertEquals(result.customerTaskId, taskTree.getTaskNodeById(result.taskId)?.parent?.id)
+        Assertions.assertEquals(result.customerTaskId, projectWizardService.customerTaskOf(18501L))
+        Assertions.assertEquals(
+            listOf(art.id),
+            kostCache.getKost2ForProjekt(result.projectId).map { it.kost2Art?.id },
+        )
+        val team = result.groups.first { it.groupType == TaskWizardService.GroupType.TEAM }
+        Assertions.assertTrue(userGroupCache.isUserMemberOfGroup(user3.id, team.id))
+        Assertions.assertFalse(userGroupCache.isUserMemberOfGroup(user3.id, managerGroup.id))
+
+        // The new element gets the role's template recursively, its parent read access only:
+        val task = taskDao.find(result.taskId, checkAccess = false)!!
+        val teamAccess = accessDao.getEntry(task, GroupDO().also { it.id = team.id }, checkAccess = false)!!
+        Assertions.assertTrue(teamAccess.recursive)
+        Assertions.assertTrue(teamAccess.getAccessEntry(AccessType.OWN_TIMESHEETS)!!.accessInsert)
+        val customerTask = taskDao.find(result.customerTaskId, checkAccess = false)!!
+        val customerAccess = accessDao.getEntry(customerTask, GroupDO().also { it.id = team.id }, checkAccess = false)!!
+        Assertions.assertFalse(customerAccess.recursive)
+        Assertions.assertFalse(customerAccess.getAccessEntry(AccessType.OWN_TIMESHEETS)!!.accessInsert)
+        Assertions.assertNotNull(accessDao.getEntry(parent, GroupDO().also { it.id = team.id }, checkAccess = false))
+        Assertions.assertEquals(
+            9,
+            result.access.entries.size,
+            "Project element, customer element and parent for each of the three groups.",
+        )
+    }
+
+    @Test
+    fun `a failure leaves nothing behind`() {
+        val parent = createParent("rollback")
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.nummer = 18502L
+            it.name = "$PREFIX rollback"
+        }
+        kundeDao.insert(kunde)
+        projektDao.insert(ProjektDO().also {
+            it.name = "$PREFIX taken"
+            it.kunde = kunde
+            it.nummer = 1
+        })
+        Assertions.assertThrows(UserException::class.java) {
+            projectWizardService.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(id = 18502L),
+                    // The number is taken, which ProjektDao only notices after element and group were written:
+                    project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-rollback-project"),
+                    parentTaskId = parent.id,
+                    teamGroup = ProjectWizardService.GroupData(name = "$PREFIX-rollback"),
+                )
+            )
+        }
+        logon(ADMIN_USER)
+        Assertions.assertNull(taskTree.getTaskNodeById(parent.id)?.children?.find {
+            it.task?.title == "$PREFIX-rollback-project"
+        })
+        Assertions.assertFalse(groupDao.doesGroupnameAlreadyExist(GroupDO().also { it.name = "$PREFIX-rollback" }))
+    }
+
+    @Test
+    fun `an existing group with rights on an ancestor the user is no member of`() {
+        val parent = createParent("existing")
+        logon(ADMIN_USER)
+        val group = GroupDO().also { it.name = "$PREFIX-existing" }
+        groupDao.insert(group)
+        // The access entry on the parent, which the finance user may not read in the access management:
+        taskWizardService.grantAccess(taskId = parent.id!!, teamGroupId = group.id)
+        logon(TEST_FINANCE_USER)
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18503L, name = "$PREFIX existing"),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-existing-project"),
+                parentTaskId = parent.id,
+                teamGroup = ProjectWizardService.GroupData(id = group.id),
+            )
+        )
+        Assertions.assertFalse(result.groups.single().created)
+        Assertions.assertEquals(
+            listOf(
+                TaskWizardService.AccessStatus.CREATED,
+                // The element of the new customer:
+                TaskWizardService.AccessStatus.CREATED,
+                TaskWizardService.AccessStatus.UPDATED,
+            ),
+            result.access.entries.map { it.status },
+            "The parent's recursive team rights become read access.",
+        )
+    }
+
+    @Test
+    fun `users without the right to create customers are refused`() {
+        val parent = createParent("refused")
+        logon(TEST_PROJECT_MANAGER_USER)
+        Assertions.assertFalse(projectWizardService.isAllowed())
+        Assertions.assertThrows(AccessException::class.java) {
+            projectWizardService.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(nummer = 18504L, name = "$PREFIX refused"),
+                    project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-refused-project"),
+                    parentTaskId = parent.id,
+                )
+            )
+        }
+    }
+
+    /** A structure element below the root, created by the admin. */
+    private fun createParent(name: String): TaskDO {
+        logon(ADMIN_USER)
+        val parent = TaskDO()
+        parent.title = "$PREFIX-$name-parent"
+        parent.parentTask = taskTree.rootTaskNode.task
+        taskDao.insert(parent)
+        return parent
+    }
+
+    private fun kost2Art(): Kost2ArtDO = kost2ArtDao.find(2L, checkAccess = false) ?: Kost2ArtDO().also {
+        it.id = 2L
+        it.name = "Test"
+        kost2ArtDao.insert(it, checkAccess = false)
+    }
+
+    companion object {
+        private const val PREFIX = "ProjectWizardServiceTest"
+    }
+}

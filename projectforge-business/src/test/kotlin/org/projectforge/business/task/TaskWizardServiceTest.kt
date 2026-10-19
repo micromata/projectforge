@@ -341,6 +341,47 @@ class TaskWizardServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a preview of an element and a group that don't exist yet`() {
+        logon(ADMIN_USER)
+        val group = createGroup("previewNew")
+        val (parent, child) = createSubtree("previewNew")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        val preview = taskWizardService.previewNewElement(
+            parentTaskId = child.id!!,
+            newTaskTitle = "new element",
+            teamGroup = TaskWizardService.WizardGroup(id = group.id),
+            externalGroup = TaskWizardService.WizardGroup(name = "$PREFIX-previewNew-external"),
+        )
+        val team = preview.granted.first { it.groupType == TaskWizardService.GroupType.TEAM }
+        Assertions.assertEquals(listOf(null, child.id, parent.id), team.entries.map { it.taskId })
+        Assertions.assertEquals(
+            listOf(
+                TaskWizardService.AccessStatus.CREATED,
+                // The child's recursive team rights would become read access, the parent's are read access already:
+                TaskWizardService.AccessStatus.UPDATED,
+                TaskWizardService.AccessStatus.UNCHANGED,
+            ),
+            team.entries.map { it.status },
+        )
+        Assertions.assertTrue(team.entries.first().pickedElement)
+        Assertions.assertEquals("new element", team.entries.first().taskTitle)
+        val external = preview.granted.first { it.groupType == TaskWizardService.GroupType.EXTERNAL }
+        Assertions.assertTrue(external.entries.all { it.status == TaskWizardService.AccessStatus.CREATED })
+        Assertions.assertEquals("$PREFIX-previewNew-external", external.groupName)
+    }
+
+    @Test
+    fun `without access check a non-admin may grant`() {
+        logon(ADMIN_USER)
+        val group = createGroup("noCheck")
+        val (_, child) = createSubtree("noCheck")
+        logon(TEST_FINANCE_USER)
+        val result = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id, checkAccess = false)
+        Assertions.assertEquals(2, result.count(TaskWizardService.AccessStatus.CREATED))
+    }
+
+    @Test
     fun `an unknown element is refused`() {
         logon(ADMIN_USER)
         Assertions.assertThrows(IllegalArgumentException::class.java) {

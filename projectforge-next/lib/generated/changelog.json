@@ -6,8 +6,11 @@
     "date" : "2026-10-19",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Customer wizard: sets up a project in one go – the customer (an existing one or a new one), the project with its cost 2 types, its structure element below a chosen one, and the groups of team, managers and externals (existing ones or new ones with their members) with their access rights, shown in a preview before anything is saved. Available to users who may create customers, projects and structure elements, who may create groups and access rights through the wizard as an exception. Offered on the customer list, the project list, the structure tree and the task list.", "Vacation and availability: an entry can be edited as the other kind (\"Edit as absence\" / \"Edit as vacation\"), like time sheets and calendar events (now \"Edit as event\" / \"Edit as time sheet\", formerly \"Switch to …\"). Person, period, comment and substitutes are taken over into a new entry, created only when it is saved; an entry already saved stays as it is. The button's tooltip says so." ]
+    }, {
       "type" : "improved",
-      "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobiles Arbeiten\" (mobile work) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there." ]
+      "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobile Tätigkeit\" (mobile activity) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there.", "DATEV import: one upload of the tax office's file fills both tabs, accounting records and chart of accounts, so each can be reconciled without uploading the file again." ]
     }, {
       "type" : "changed",
       "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]

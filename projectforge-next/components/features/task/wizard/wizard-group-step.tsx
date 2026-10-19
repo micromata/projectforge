@@ -103,8 +103,11 @@ export function WizardGroupStepCard({
   );
 }
 
-/** The name Wicket suggested: the element's title, plus the role's suffix for all but the team. */
-function suggestGroupName(
+/**
+ * The name Wicket suggested: the element's title, plus the role's suffix for all but the team. Shared
+ * with the project wizard, which names its new groups after the project.
+ */
+export function suggestGroupName(
   step: WizardGroupStep,
   taskTitle: string | null | undefined,
   t: (key: string) => string

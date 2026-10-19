@@ -483,7 +483,8 @@ export interface AccessRight {
 export interface TaskWizardAccessEntry {
   groupName?: string | null;
   groupType: TaskWizardGroupType;
-  taskId: number;
+  /** Null for the element the project wizard is about to create. */
+  taskId: number | null;
   taskTitle?: string | null;
   /** True for the element the user picked, false for an ancestor that only got read access. */
   pickedElement: boolean;

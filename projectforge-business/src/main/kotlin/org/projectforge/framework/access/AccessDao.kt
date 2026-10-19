@@ -124,7 +124,11 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         // from GroupTaskAccessDO g join fetch g.accessEntries where deleted=false order by g.task.id, g.group.id");
     }
 
-    fun getEntry(task: TaskDO, group: GroupDO): GroupTaskAccessDO? {
+    /**
+     * @param checkAccess False for callers that did their own access check, such as the project wizard,
+     * which may write rows next to ones of groups the user isn't a member of.
+     */
+    fun getEntry(task: TaskDO, group: GroupDO, checkAccess: Boolean = true): GroupTaskAccessDO? {
         requireNotNull(task.id)
         requireNotNull(group.id)
         val access = persistenceService.selectNamedSingleResult(
@@ -132,8 +136,12 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
             GroupTaskAccessDO::class.java,
             Pair("taskId", task.id),
             Pair("groupId", group.id),
+            // The entries with it: the row comes back detached, and a lazy load of its entries would open a
+            // connection of its own, which waits for the locks of a running transaction to be released - a
+            // deadlock inside a transaction writing access rows (the project wizard).
+            entityGraphName = GroupTaskAccessDO.ENTITY_GRAPH_WITH_ACCESS_ENTRIES,
         )
-        if (access != null) {
+        if (access != null && checkAccess) {
             checkLoggedInUserSelectAccess(access)
         }
         return access
