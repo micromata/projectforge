@@ -86,7 +86,7 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
       download: true,
       upload: true,
     });
-    const name = `pf-e2e-public-${uniqueSuffix()}.txt`;
+    let name = `pf-e2e-public-${uniqueSuffix()}.txt`;
     try {
       await goto(page, `/public/datatransfer/${area.token}`);
       await waitForHydration(page);
@@ -121,6 +121,23 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
       const download = page.waitForEvent("download");
       await storedRow(page, t, name).click();
       expect((await download).suggestedFilename()).toBe(name);
+
+      // A click anywhere else on the row opens the details of an own file, as in the React version.
+      const renamed = `pf-e2e-public-renamed-${uniqueSuffix()}.txt`;
+      await page
+        .getByRole("row")
+        .filter({ has: storedRow(page, t, name) })
+        // Checkbox, name (its link downloads), then the size: a plain cell.
+        .getByRole("cell")
+        .nth(2)
+        .click();
+      await page
+        .getByRole("textbox", { name: t("attachment.fileName") })
+        .fill(renamed);
+      await page.getByRole("button", { name: t("save"), exact: true }).click();
+      await expect(storedRow(page, t, renamed)).toBeVisible();
+      await expect(storedRow(page, t, name)).toHaveCount(0);
+      name = renamed;
 
       await page
         .getByRole("button", { name: `${t("delete")}: ${name}` })
