@@ -78,7 +78,13 @@ var tipuesearch = {"pages": [
     "title": {{ document.title | smartify | strip_html | normalize_whitespace | jsonify }},
     "text": {{ document.content | strip_html | normalize_whitespace | jsonify }},
     "tags": {{ taxonomies | join: " " | normalize_whitespace | jsonify }},
-    "url": {{ document.url | relative_url | jsonify }}
+    {%- comment -%}The changelogs aren't pages of their own (output: false), they are listed on the changelog page.{%- endcomment -%}
+    {%- if document.collection == "changelogs" -%}
+    {%- capture url -%}{{ site.data.translation[include.lang].changelog_url }}#{{ document.slug }}{%- endcapture -%}
+    {%- else -%}
+    {%- assign url = document.url -%}
+    {%- endif %}
+    "url": {{ url | relative_url | jsonify }}
   }{%- unless forloop.last -%},{%- endunless -%}
 {%- endfor -%}
 ]};

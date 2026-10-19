@@ -19,7 +19,7 @@ layout: default
     The majors of the language of the page, the German ones in _changelogs/de/.{% endcomment %}
     {% assign changelogs = site.changelogs | where: "lang", page.lang | sort: 'sort_key' | reverse %}
     {% for changelog in changelogs %}
-        <article class="mt-12 border-t border-border pt-10">
+        <article class="mt-12 border-t border-border pt-10" id="{{ changelog.slug }}">
             <h2 class="web-headline">{{ changelog.title }}</h2>
             {% if changelog.date %}
             <p class="mt-1 text-sm text-muted-foreground">
