@@ -36,6 +36,11 @@ export interface DataTransferPublicState {
   maxZipSize?: number;
   maxZipSizeFormatted?: string;
   userInfo?: string | null;
+  /**
+   * Who uploaded and changed the files is shown: the visitor is logged in to ProjectForge as well (single
+   * sign-on), not only with the area's password. Otherwise the backend removes it from the files.
+   */
+  userInfoVisible?: boolean;
   /** Without download access only the files uploaded in this session. */
   attachments?: Attachment[] | null;
 }
@@ -108,8 +113,9 @@ export function dataTransferPublicDownloadAllUrl(id: number): string {
 
 /**
  * The attachment components on the public endpoints. They answer like `AttachmentsServicesRest`, but
- * the list is read from the state (there is no entity to read it from), nothing can be encrypted, and
- * who uploaded a file is not shown — for an external upload that is an ip address.
+ * the list is read from the state (there is no entity to read it from), and who uploaded a file is
+ * shown only to a visitor logged in to ProjectForge (`userInfo`) — for an external upload it is an ip
+ * address. Own files (uploaded in this session) can be encrypted like their name changed.
  */
 export function publicAttachmentService(
   token: string,
@@ -117,7 +123,11 @@ export function publicAttachmentService(
     multiDownload,
     maxFileSize,
     maxZipSize,
-  }: Pick<AttachmentService, "multiDownload" | "maxFileSize" | "maxZipSize">,
+    userInfo,
+  }: Pick<
+    AttachmentService,
+    "multiDownload" | "maxFileSize" | "maxZipSize" | "userInfo"
+  >,
   queryClient: QueryClient
 ): AttachmentService {
   const stateQueryKey = dataTransferPublicStateQueryKey(token);
@@ -132,14 +142,14 @@ export function publicAttachmentService(
           queryFn: ({ signal }) => fetchDataTransferPublicState(token, signal),
         })
       ).attachments ?? [],
-    encryption: false,
+    encryption: true,
     multiDownload,
     // The page has a "download all" of its own, limited to a gigabyte
     // (`DataTransferPublicServicesRest.isDownloadAllAvailable`).
     downloadAll: false,
     maxFileSize,
     maxZipSize,
-    userInfo: false,
+    userInfo,
     // Mostly an expired session ("No valid login."): the state read again shows the login form then,
     // otherwise the list is brought up to date.
     onWriteError: () => {
