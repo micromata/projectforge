@@ -3,6 +3,8 @@ layout: page
 title: Privacy Policy
 width: small
 permalink: /misc/privacy-policy.html
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 
 Wir, die Micromata GmbH nehmen den Schutz Ihrer personenbezogenen Daten sehr ernst und halten uns strikt an die datenschutzrechtlichen Bestimmungen. Im Folgenden erläutern wir, welche Daten wir während Ihres Besuches auf unseren Webseiten erfassen und wie genau diese verwendet werden.

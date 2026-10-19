@@ -4,10 +4,11 @@
     background (muted for a grey band).
     Entry fields: title, subtitle, text (markdown), bullets (list, markdown), img, img_caption, reverse (screenshot
     left), button_text (default: "Learn more"), button_url, button_style (default: outline).
-    Renders nothing if the key is missing.
+    German pages use the data file of the same name in _data/de/. Renders nothing if the key is missing.
 {% endcomment %}
 {%- assign source = include.data | default: 'home_sections' -%}
-{%- assign section = site.data[source][include.key] -%}
+{%- assign data = site.data[page.lang][source] | default: site.data[source] -%}
+{%- assign section = data[include.key] -%}
 {% if section %}
 <section class="py-16 max-sm:py-12{% if include.background == 'muted' %} border-y border-border bg-secondary{% endif %}" id="{{ include.key }}">
     <div class="pf-container{% if section.img %} grid items-center gap-8 md:grid-cols-2 md:gap-12{% else %} pf-narrow{% endif %}">
@@ -29,7 +30,7 @@
             </ul>
             {%- endif %}
             {%- if section.button_url %}
-            {%- assign button_text = section.button_text | default: 'Learn more' -%}
+            {%- assign button_text = section.button_text | default: site.data.translation[page.lang].learn_more -%}
             {%- assign button_style = section.button_style | default: 'outline' %}
             <div class="mt-8 flex flex-wrap gap-3">
                 {% include button.html url=section.button_url text=button_text style=button_style %}

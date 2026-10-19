@@ -66,7 +66,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", getListUrl("cost2Type")), //
-    COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
+    // Migrated to projectforge-next (CostSearchPageRest); the react page is redirected by OrphanedLinkFilter.
+    COST_SEARCH("menu.fibu.kostSearch", "next/costSearch"), //
 
     // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
     CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
@@ -75,7 +76,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
-    EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
+    // Migrated to projectforge-next; the React pages were removed.
+    EMPLOYEE_LIST("menu.fibu.employees", getListUrl("employee")), //
     // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
     // The import is reached as a button in the salary list.
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //

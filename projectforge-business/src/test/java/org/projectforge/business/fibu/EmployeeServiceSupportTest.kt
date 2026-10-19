@@ -216,4 +216,50 @@ class EmployeeServiceSupportTest : AbstractTestBase() {
             }
         }
     }
+
+    /**
+     * The employee and the type of an update come from the client: the stored entry decides, so an entry can
+     * neither be moved to another employee nor change its type.
+     */
+    @Test
+    fun `update keeps an entry with its employee and type`() {
+        // Users of their own: an employee per user is unique, and testValidSinceAttrs takes TEST_USER.
+        val employee = EmployeeDO().also { it.user = getUser(TEST_USER2) }
+        employeeDao.insert(employee, false)
+        val other = EmployeeDO().also { it.user = getUser(TEST_PROJECT_MANAGER_USER) }
+        employeeDao.insert(other, false)
+        val attr = employeeServiceSupport.insertValidSinceAttr(
+            other,
+            LocalDate.of(2024, Month.MARCH, 1),
+            30.toString(),
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE,
+            false
+        )
+        suppressErrorLogs {
+            val moved = EmployeeValidSinceAttrDO().also {
+                it.id = attr.id
+                it.employee = employee
+                it.type = EmployeeValidSinceAttrType.ANNUAL_LEAVE
+                it.validSince = LocalDate.of(2024, Month.MARCH, 1)
+                it.value = "20"
+            }
+            Assertions.assertThrows(IllegalArgumentException::class.java) {
+                employeeServiceSupport.updateValidSinceAttr(employee, moved, false)
+            }
+            val retyped = EmployeeValidSinceAttrDO().also {
+                it.id = attr.id
+                it.employee = other
+                it.type = EmployeeValidSinceAttrType.WEEKLY_HOURS
+                it.validSince = LocalDate.of(2024, Month.MARCH, 1)
+                it.value = "20"
+            }
+            Assertions.assertThrows(IllegalArgumentException::class.java) {
+                employeeServiceSupport.updateValidSinceAttr(other, retyped, false)
+            }
+        }
+        val stored = employeeServiceSupport.findValidSinceAttr(attr.id, checkAccess = false)!!
+        Assertions.assertEquals(other.id, stored.employee?.id)
+        Assertions.assertEquals(EmployeeValidSinceAttrType.ANNUAL_LEAVE, stored.type)
+        Assertions.assertEquals("30", stored.value)
+    }
 }

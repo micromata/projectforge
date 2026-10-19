@@ -1,0 +1,10 @@
+# Value boxes on the German home page ("Warum ProjectForge?")
+
+- title: Alles verbunden
+  desc: Aufträge, Strukturelemente, Zeitberichte, Rechnungen und Liquidität teilen sich dieselben Daten. Kein Abtippen von Zahlen mehr zwischen Tools und Tabellen.
+
+- title: Dein Server, deine Regeln
+  desc: Läuft auf der eigenen Infrastruktur – mit LDAP oder Single Sign-on, Zwei-Faktor-Login und lückenloser Änderungshistorie. Die Daten müssen das Haus nie verlassen.
+
+- title: Kostenlos. Wirklich.
+  desc: Alle Funktionen, beliebig viele Benutzer, kein Abo. Open Source unter der GPLv3 – und auf Wunsch professionelle Services von uns.

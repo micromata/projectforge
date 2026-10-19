@@ -1,14 +1,17 @@
 ---
 layout: default
 ---
+{%- comment -%}German pages use _data/de/navigation_docs.yml, a doc that isn't translated is linked in English.{%- endcomment -%}
+{%- assign t = site.data.translation[page.lang] -%}
+{%- assign navigation = site.data[page.lang].navigation_docs | default: site.data.navigation_docs -%}
 {%- capture doc_nav -%}
-{%- for section in site.data.navigation_docs %}
+{%- for section in navigation %}
 <h2 class="mb-2 text-xs leading-4 font-bold tracking-wide text-muted-foreground uppercase">{{ section.title }}</h2>
 <ul class="mb-6 flex flex-col gap-0.5">
     {%- for doc in section.docs %}
-    {%- assign doc_url = doc | prepend: "/docs/" | append: "/" -%}
-    {%- assign p = site.docs | where: "url", doc_url | first %}
-    <li><a class="web-nav block rounded-md px-3 py-2 no-underline {% if doc_url == page.url %}bg-info text-link hover:text-link{% else %}text-secondary-foreground hover:bg-muted hover:text-foreground{% endif %}" href="{{ p.url | relative_url }}"{% if doc_url == page.url %} aria-current="page"{% endif %}>{{ p.title }}</a></li>
+    {%- include doc-in-lang.html doc=doc -%}
+    {%- assign p = doc_page %}
+    <li><a class="web-nav block rounded-md px-3 py-2 no-underline {% if p.url == page.url %}bg-info text-link hover:text-link{% else %}text-secondary-foreground hover:bg-muted hover:text-foreground{% endif %}" href="{{ p.url | relative_url }}"{% if p.url == page.url %} aria-current="page"{% endif %}{% if doc_english_only %} hreflang="en"{% endif %}>{{ p.title }}{% if doc_english_only %} <abbr class="text-xs text-muted-foreground no-underline" title="{{ t.english_only_title }}">({{ t.english_only }})</abbr>{% endif %}</a></li>
     {%- endfor %}
 </ul>
 {%- endfor %}
@@ -17,14 +20,14 @@ layout: default
 <div class="pf-container py-12 md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-12">
 
     <aside class="hidden md:block">
-        <nav class="sticky top-24" aria-label="Documentation">
+        <nav class="sticky top-24" aria-label="{{ t.documentation }}">
             {{ doc_nav }}
         </nav>
     </aside>
 
     <details class="mb-8 rounded-lg border border-border md:hidden">
-        <summary class="pf-chevron web-nav flex items-center justify-between gap-4 px-4 py-3">Documentation</summary>
-        <nav class="border-t border-border px-1 pt-4" aria-label="Documentation">
+        <summary class="pf-chevron web-nav flex items-center justify-between gap-4 px-4 py-3">{{ t.documentation }}</summary>
+        <nav class="border-t border-border px-1 pt-4" aria-label="{{ t.documentation }}">
             {{ doc_nav }}
         </nav>
     </details>

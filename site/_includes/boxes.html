@@ -2,6 +2,7 @@
     Grid of cards. Parameters:
     - data: name of the data file in _data (default: navigation_boxes)
     - columns (2-5, default 3), title, subtitle, id (anchor of the section), tone (muted for a grey band)
+    German pages use the data file of the same name in _data/de/.
     Items: title, desc, step (numbered badge), icon (name of an SVG in _includes/icons/), url (makes the whole card a link), img (screenshot in /uploads/).
 {% endcomment %}
 {%- assign columns = include.columns | default: 3 | plus: 0 -%}
@@ -11,7 +12,8 @@
 {%- when 5 -%}{%- assign grid = 'sm:grid-cols-2 md:grid-cols-5' -%}
 {%- else -%}{%- assign grid = 'sm:grid-cols-2 md:grid-cols-3' -%}
 {%- endcase -%}
-{%- assign boxes = site.data[include.data] | default: site.data.navigation_boxes -%}
+{%- assign source = include.data | default: 'navigation_boxes' -%}
+{%- assign boxes = site.data[page.lang][source] | default: site.data[source] -%}
 <section class="py-16 max-sm:py-12{% if include.tone == 'muted' %} border-y border-border bg-secondary{% endif %}"{% if include.id %} id="{{ include.id }}"{% endif %}>
     <div class="pf-container">
         {% include section-heading.html title=include.title subtitle=include.subtitle %}

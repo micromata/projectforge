@@ -368,8 +368,8 @@ bislang auf eine dynamische next-Seite.
 - **Listen** rendern mit der echten `DataTable` (Adapter `lib/dynamic/grid/`,
   Zell-Formatter-Registry `components/data-table/cells/`). **Kein `Function()`/`eval`:**
   `valueGetter`/`valueFormatter` strikt als Punktpfad; `getRowClass` deklarativ aus den
-  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `employee`, zuvor `vacation`,
-  `skillentry`, `address`).
+  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `contract`, zuvor `employee`,
+  `vacation`, `skillentry`, `address`).
 
 **Verbliebene Lücken:**
 
@@ -631,6 +631,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   über `AddressbookEntityRest` (`/rs/addressBook`), nach dem Muster der Teamkalender (Eigentümer:in, Voll-/Lesezugriff
   für Benutzer:innen und Gruppen als csv-Id-Listen, im DTO aufgelöst). Die Autovervollständigung `addressBook/ac` des
   React-Adressformulars bleibt unverändert. `react/addressBook/**` leitet `OrphanedLinkFilter` über `NextMigration` um.
+- **Mitarbeiter:innen** (`employee`, Liste + Formular, vorher React-UILayout `EmployeePagesRest` und das Modal
+  `EmployeeValidSinceAttrPageRest`, beide gelöscht) – layoutfrei über `EmployeeEntityRest` (`/rs/employee`;
+  `/rs/employee/autosearch` bleibt für alle Mitarbeiter-Auswahlen, Excel-Export der gefilterten Liste über
+  `exportAsExcel`). Status, Wochenstunden und Urlaubstage (je „gültig ab") lädt das Edit-DTO mit; geschrieben werden
+  sie sofort über `POST employee/validSinceAttr/{insert,update,delete}` (Antwort: alle Einträge des Typs), nicht mit
+  dem Formular. Die Tabellen und der Dialog sind die generische Komponente
+  `components/shared/validity-entries/` (Einträge mit Gültigkeitszeitraum, aktuell gültiger Eintrag markiert,
+  künftige gedämpft) – gedacht auch für die Kurse der Währungspaare (`CurrencyPairPagesRest`, noch React). Ein neuer
+  Eintrag bleibt nach dem ersten Speichern im Formular, damit die Einträge erfasst werden können. Kein Weg zurück;
+  `react/employee/**` leitet `OrphanedLinkFilter` um.
 - **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über
   `UserEntityRest` (`/rs/user`; `/rs/user/autosearch` bleibt für alle Benutzer-Auswahlen). Die Rechte hängen an den
   zugeordneten Gruppen: statt des Watch-Field-Re-Layouts fragt das Formular `POST user/rights` (Gruppen + aktuelle
@@ -656,6 +666,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um. Nach dem Review: `view`
   schneidet die Urlaube auf den angezeigten Zeitraum, `favorites` liefert nur die wählbaren Ids; die Grafik ist
   `role="group"` mit fokussierbaren, benannten Balken; `initial` wird nie aus dem Cache übernommen (`gcTime: 0`).
+- **Kost-Suche** (`/next/costSearch`, vorher React-UILayout `CostSearchPageRest`, gelöscht) – Kost1/Kost2 über die
+  geteilte `EntityAutocomplete` (`cost1|cost2/autosearch`, „Inaktive zeigen“ statt der eigenen Checkbox „Nur aktive
+  Einträge“) gewählt, Nummer und Langname zum Kopieren über `CostSearchRest` (`/rs/costSearch/cost1|cost2/{id}`,
+  DAO-Zugriff). Neu: dieselbe Komponente (`components/shared/cost-search/`) schwebt als verschiebbares, einklappbares
+  Panel über jeder Seite (`CostSearchPanelHost` im authentifizierten Layout, Schalter in der Kopfleiste, `ALT-K`;
+  Zustand und Position im localStorage, `useCostSearchPanelStore` mit `persist`) und öffnet sich als kleines eigenes
+  Fenster ohne Navigation (`/next/costSearch/popout`). Sichtbar nur mit dem Menüeintrag `COST_SEARCH`. Der
+  Menüeintrag (Menü, Favoriten, Schnellzugriff: `MenuLink`, `useNavigateMenuUrl` über `opensCostSearchPanel`)
+  öffnet in Next das Panel über der aktuellen Seite statt der Seite; aus dem React-Menü (volles Laden) kommt die
+  Seite, deren „Auf jeder Seite einblenden“ (wie `ALT-K` dort) dann auf die Startseite statt zurück nach React führt.
+  `react/costSearch/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

@@ -2,15 +2,21 @@
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
   "unreleased" : {
     "id" : "unreleased",
-    "version" : "9.0.8",
+    "version" : "9.0.9",
     "date" : "2026-10-19",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Website: deutsche Fassung der Seiten, der FAQ, des Changelogs und des Benutzer-, Administrations- und Schnellstart-Handbuchs unter [projectforge.org/de](https://projectforge.org/de/), mit Sprachumschalter; der Hilfe-Link des Suchfelds öffnet für deutschsprachige Benutzer das deutsche Benutzerhandbuch." ]
+    }, {
       "type" : "improved",
-      "items" : [ "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag." ]
+      "items" : [ "Kost-Suche: in die neue Oberfläche migriert. Sie lässt sich zusätzlich als verschiebbares Fenster auf jeder Seite offen halten (Schaltfläche in der Kopfleiste oder Alt+K, die Position wird gemerkt) oder als kleines eigenes Fenster öffnen.", "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Adresskampagnen und Konten: Das Speichern eines bestehenden Eintrags legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne). Der Titel einer Kampagne darf nicht schon von einer anderen Kampagne verwendet werden." ]
+      "items" : [ "Rechnungen und Eingangsrechnungen: Eine früher nur mit gelöschten Positionen gespeicherte Rechnung lässt sich wieder löschen und wiederherstellen; nur das Speichern wird abgelehnt." ]
     } ]
   },
   "groups" : [ {
@@ -65,6 +71,19 @@
       } ]
     },
     "updates" : [ {
+      "id" : "9-0-9",
+      "version" : "9.0.9",
+      "date" : "2026-10-19",
+      "title" : "ProjectForge 9.0.9 veröffentlicht",
+      "tag" : "9.0.9-RELEASE",
+      "published" : false,
+      "summary" : [ "Hotfix-Release", "Fix: Speichern einer Adresskampagne oder eines Kontos legt keine Kopie mehr an", "Fix: Aufträge und Rechnungen, deren Positionen alle gelöscht sind, werden abgelehnt" ],
+      "overview" : [ "**Adresskampagnen und Konten:** Das Speichern eines bestehenden Eintrags in der neuen Oberfläche legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne); Kampagnentitel sind eindeutig.", "**Aufträge und Rechnungen:** Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden.", "**Weitere Fixes:** Suchbegriff in Auswahlboxen mit Mehrfachauswahl, Spaltenüberschriften der Verfügbarkeitseinträge im Urlaubskonto, Build-Datum in der Fußzeile." ],
+      "sections" : [ {
+        "type" : "fixed",
+        "items" : [ "Adresskampagnen und Konten: Das Speichern eines bestehenden Eintrags legt keine Kopie mehr an (z. B. beim Inaktivsetzen einer Kampagne). Der Titel einer Kampagne darf nicht schon von einer anderen Kampagne verwendet werden.", "Fußzeile: Das Build-Datum wird ohne Zonen-Suffix angezeigt (2026-10-19 statt 2026-10-19Z).", "Aufträge, Debitoren- und Kreditorenrechnungen: Ein Eintrag, dessen Positionen alle gelöscht wurden, wird beim Speichern abgelehnt, statt ohne Positionen gespeichert zu werden.", "Auswahlboxen mit Mehrfachauswahl: Nach einer Auswahl bleibt der Suchbegriff markiert, sodass der nächste eingetippte Name ihn ersetzt, statt angehängt zu werden.", "Urlaubskonto: Die Spalten Typ, Verfügbarkeit, Ort und Kommentar der Verfügbarkeitseinträge zeigen ihre Überschriften statt Textschlüsseln." ]
+      } ]
+    }, {
       "id" : "9-0-8",
       "version" : "9.0.8",
       "date" : "2026-10-19",

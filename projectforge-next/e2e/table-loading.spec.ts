@@ -75,10 +75,19 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
-    await goto(page, "/employee");
-    await page.locator(ROW).first().waitFor();
+    // A year stored in the list filter by an earlier visit would narrow the list (ContractPagesRest).
+    await page.request.get("/rs/contract/filter/reset");
+    await goto(page, "/contract");
+    // No contract is created here, so an empty list is the database's state, not a failure.
+    const hasRow = await page
+      .locator(ROW)
+      .first()
+      .waitFor({ timeout: 20_000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!hasRow, "no contract in this database");
 
-    await holdBackPosts(page, "employee");
+    await holdBackPosts(page, "contract");
     // These pages fetch through the layout's actions, not through a query of the table's own.
     await page
       // `search._` is the bundle's plain "Suchen"; the button's own label is the server's, from the

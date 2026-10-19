@@ -1,0 +1,46 @@
+# Text sections of the German home page, rendered by _includes/text-section.html (fields: see there)
+
+dach:
+  title: Spricht DATEV. Kennt XRechnung.
+  subtitle: Gemacht für Unternehmen in Deutschland, Österreich, der Schweiz und der EU.
+  text: >-
+    DATEV-Buchungssätze und Eingangsrechnungen importieren, Gehälter exportieren, PEPPOL-fähige E-Rechnungen
+    als XRechnung und ZUGFeRD erstellen, vor dem Export auf Vollständigkeit geprüft. Feiertage, Urlaubskonten und eine
+    deutsch-englische Oberfläche sind eingebaut. Und weil ProjectForge auf dem eigenen Server läuft, ist die
+    DSGVO eine Frage der eigenen Richtlinien – nicht der Cloud eines anderen.
+  img: screenshots/2026-Liquidity.png
+  img_caption: Die Liquiditätsplanung verbindet Rechnungen, erwartete Zahlungen und wiederkehrende Serien.
+
+security:
+  title: Ruhige Nächte für Admins.
+  subtitle: ProjectForge passt sich der IT an – nicht umgekehrt.
+  bullets:
+    - "**Single Sign-on** mit Keycloak oder Authentik, oder LDAP – als Client oder als Master."
+    - "**Zwei-Faktor-Login** mit Authenticator-Apps, WebAuthn-Sicherheitsschlüsseln, Codes per Mail oder SMS."
+    - "**Feingranulare Rechte** bis auf einzelne Strukturelemente, und jede Änderung bleibt in der Historie erhalten."
+    - "**Docker-Image oder JAR**, PostgreSQL, automatische Datenbankmigrationen."
+    - "**System-Dashboard**, das Probleme sammelt und eine Zusammenfassung mailt – bevor es den Benutzern auffällt."
+  img: screenshots/2026-SystemDashboard.png
+  reverse: true
+  img_caption: Das System-Dashboard zeigt Probleme, Caches und jeden geplanten Job.
+  button_text: Installationsanleitung (EN)
+  button_url: /docs/installation/
+
+proof:
+  title: Praxiserprobt seit 2001.
+  text: >-
+    ProjectForge begann als internes Werkzeug von Micromata – und steuert unser Unternehmen bis heute jeden Tag,
+    vom ersten Zeitbericht am Morgen bis zum Jahres-Forecast. Wir entwickeln es, weil wir es brauchen, und wir teilen
+    es, weil gute Software besser wird, wenn andere sie auch nutzen. Version 9 (2026) brachte eine komplett neue,
+    moderne Oberfläche auf einem aktuellen Technologie-Stack.
+  button_text: Was ist neu
+  button_url: /de/changelog-posts/
+
+services:
+  title: Unterstützung gewünscht? Wir sind da.
+  text: >-
+    Wir haben ProjectForge gebaut, also kennen wir es am besten. Auf Wunsch hosten wir die Instanz, helfen beim
+    Aufsetzen von Strukturen, Rechten und Kostenrechnung, importieren vorhandene Daten, binden LDAP oder Single
+    Sign-on an oder entwickeln die benötigten Erweiterungen.
+  button_text: Professionelle Services
+  button_url: /de/services/

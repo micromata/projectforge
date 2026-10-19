@@ -1,15 +1,25 @@
 {%- comment -%}
     Sticky site header: brand stripe, wordmark, main navigation and the action buttons, all from
     _data/navigation_header.yml. Below 900px the links collapse into a <details> menu (no JavaScript).
-    A link is active if the page url equals its url or starts with its "match" prefix.
+    A link is active if the page url equals its url or starts with its "match" prefix. German pages use
+    _data/de/navigation_header.yml. The language switch links the page in the other language, or its home page if
+    the page isn't translated (see _includes/lang-alternate.html), with the flag of that language. The magnifier opens the search page of the
+    language, on every screen size.
 {%- endcomment -%}
+{%- assign t = site.data.translation[page.lang] -%}
+{%- assign navigation = site.data[page.lang].navigation_header | default: site.data.navigation_header -%}
+{%- include lang-alternate.html -%}
+{%- assign switch_url = alternate_url | default: site.data.translation[alternate_lang].home -%}
+{%- capture language_switch -%}
+<a class="web-nav inline-flex items-center gap-2 rounded-md px-3 py-2 text-secondary-foreground no-underline hover:bg-muted hover:text-foreground" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}" title="{{ t.language_switch_title }}">{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
+{%- endcapture -%}
 <header class="sticky top-0 z-20 border-b border-border bg-background">
     <div class="pf-stripe" aria-hidden="true"></div>
     <div class="pf-container flex min-h-[68px] items-center gap-8">
-        <a class="inline-flex rounded-sm text-foreground hover:text-foreground" href="{{ '/' | relative_url }}">{% include logo.html %}</a>
+        <a class="inline-flex rounded-sm text-foreground hover:text-foreground" href="{{ t.home | relative_url }}">{% include logo.html %}</a>
 
-        <nav class="hidden flex-1 gap-1 md:flex" aria-label="Main">
-            {%- for link in site.data.navigation_header.links %}
+        <nav class="hidden flex-1 gap-1 md:flex" aria-label="{{ t.main_navigation }}">
+            {%- for link in navigation.links %}
             {%- assign active = false -%}
             {%- if link.url == page.url -%}{%- assign active = true -%}{%- endif -%}
             {%- if link.match and page.url contains link.match -%}{%- assign active = true -%}{%- endif %}
@@ -17,24 +27,29 @@
             {%- endfor %}
         </nav>
 
+        {%- assign search_active = false -%}{%- if page.url == t.search_url -%}{%- assign search_active = true -%}{%- endif %}
+        <a class="ml-auto inline-grid size-11 place-items-center rounded-md no-underline hover:bg-muted md:-mr-6 md:ml-0 md:size-10 {% if search_active %}text-link hover:text-link{% else %}text-secondary-foreground hover:text-foreground{% endif %}" href="{{ t.search_url | relative_url }}" title="{{ t.search }}" aria-label="{{ t.search }}"{% if search_active %} aria-current="page"{% endif %}>{% include icons/search.svg size="20" %}</a>
+
         <div class="hidden items-center gap-2 md:flex">
-            {%- for action in site.data.navigation_header.actions %}
+            {{ language_switch }}
+            {%- for action in navigation.actions %}
             {% include button.html url=action.url text=action.title style=action.style %}
             {%- endfor %}
         </div>
 
-        <details class="ml-auto md:hidden">
-            <summary class="pf-menu-btn flex size-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-muted-foreground" aria-label="Menu">
+        <details class="-ml-6 md:hidden">
+            <summary class="pf-menu-btn flex size-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-muted-foreground" aria-label="{{ t.menu }}">
                 <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
                 <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
                 <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
             </summary>
-            <nav class="absolute inset-x-0 top-full border-y border-border bg-background" aria-label="Main">
+            <nav class="absolute inset-x-0 top-full border-y border-border bg-background" aria-label="{{ t.main_navigation }}">
                 <div class="pf-container py-2">
-                    {%- assign mobile_links = site.data.navigation_header.links | concat: site.data.navigation_header.actions -%}
+                    {%- assign mobile_links = navigation.links | concat: navigation.actions -%}
                     {%- for link in mobile_links %}
                     <a class="web-nav block border-b border-border py-3 text-foreground no-underline last:border-b-0 hover:text-link" href="{% include link-url.html url=link.url %}">{{ link.title }}</a>
                     {%- endfor %}
+                    <a class="web-nav flex items-center gap-2 py-3 text-foreground no-underline hover:text-link" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}">{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
                 </div>
             </nav>
         </details>

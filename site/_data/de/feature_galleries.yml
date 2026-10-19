@@ -1,0 +1,16 @@
+# Screenshot galleries of the German features page (_includes/screenshot-gallery.html), one list per section key
+# (see _data/feature_galleries.yml).
+
+leave_availability:
+  - img: screenshots/2026-VacationList.png
+    caption: Urlaubsanträge als Balken, Tage ohne Vertretung in Rot
+  - img: screenshots/2026-VacationEdit.png
+    caption: Urlaubsantrag mit den Abwesenheiten der Vertretungen
+  - img: screenshots/2026-VacationAccount.png
+    caption: Urlaubskonto mit Urlauben und Abwesenheiten des Jahres
+  - img: screenshots/2026-AvailabilityEdit.png
+    caption: Verfügbarkeitseintrag mit Erreichbarkeit und Vertretungen
+  - img: screenshots/2026-AvailabilityQuickView.png
+    caption: Verfügbarkeit der Kolleginnen und Kollegen auf einen Blick
+  - img: screenshots/2026-TeamVacationCalendar.png
+    caption: Team-Urlaubskalender pro Quartal

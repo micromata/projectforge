@@ -1,0 +1,35 @@
+# Overview cards on top of the German features page, each links to its section of de/features.adoc
+
+- title: Projekte & Aufträge
+  icon: folder-kanban
+  url: /de/features/#projects_orders
+- title: Zeiterfassung
+  icon: clock
+  url: /de/features/#time_tracking
+- title: Urlaub & Verfügbarkeit
+  icon: calendar-check
+  url: /de/features/#leave_availability
+- title: Personal & Skills
+  icon: users
+  url: /de/features/#people_skills
+- title: Finanzen & E-Rechnung
+  icon: receipt
+  url: /de/features/#finance_e_invoicing
+- title: Controlling & Liquidität
+  icon: chart-line
+  url: /de/features/#controlling_liquidity
+- title: Zusammenarbeit
+  icon: calendar-days
+  url: /de/features/#collaboration
+- title: Einfache Bedienung
+  icon: mouse-pointer-click
+  url: /de/features/#easy_to_use
+- title: Sicherheit & Integration
+  icon: shield-check
+  url: /de/features/#security_integration
+- title: Betrieb & Erweiterbarkeit
+  icon: puzzle
+  url: /de/features/#operations_extensibility
+- title: Technische Voraussetzungen
+  icon: server
+  url: /de/features/#requirements

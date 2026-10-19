@@ -117,6 +117,10 @@ class OrphanedLinkFilter : Filter {
                 .toLongOrNull() ?: servletRequest.getParameter("id")?.toLongOrNull()
             val query = if (employeeId != null) "?employeeId=$employeeId" else ""
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationAccount$query")
+        } else if (uri.endsWith("/react/costSearch") || uri.contains("/react/costSearch/")) {
+            // Old dynamic React page of the cost search, migrated to projectforge-next (removed, so no "classic
+            // version" escape hatch). It took no parameters.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}costSearch")
         } else if (uri.endsWith("/react/vacationExport") || uri.contains("/react/vacationExport/")) {
             // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.

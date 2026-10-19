@@ -112,6 +112,24 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", updateEx.i18nKey)
     }
 
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
+     * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun refusesInvoiceWithDeletedPositionsOnly() {
+        logon(TEST_FINANCE_USER)
+        val invoice = EingangsrechnungDO()
+        invoice.datum = LocalDate.now()
+        invoice.addPosition(EingangsrechnungsPositionDO().also { it.deleted = true })
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { eingangsrechnungDao.insert(invoice) }
+        }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
+    }
+
     private fun checkNoAccess(id: Serializable, eingangsrechnung: EingangsrechnungDO, who: String) {
         try {
             val filter = RechnungFilter()

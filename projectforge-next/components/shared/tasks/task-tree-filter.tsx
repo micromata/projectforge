@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   FilterIcon,
@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { LUCENE_QUERY_DOCS_URL } from "@/lib/docs-links";
+import { luceneQueryDocsUrl } from "@/lib/docs-links";
 import { DEFAULT_TASK_TREE_FILTER, type TaskTreeFilter } from "@/lib/rs/task";
 
 /** The four flags, in the order the legacy panel lists them, with their i18n keys. */
@@ -63,6 +63,7 @@ export function TaskTreeFilterBar({
   showSearchHelp,
 }: TaskTreeFilterBarProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const active = STATUS_FLAGS.filter((flag) => filter[flag.name] === true);
   const isDefault = (
     Object.keys(DEFAULT_TASK_TREE_FILTER) as (keyof TaskTreeFilter)[]
@@ -104,7 +105,7 @@ export function TaskTreeFilterBar({
             className="size-8 shrink-0 text-muted-foreground"
           >
             <a
-              href={LUCENE_QUERY_DOCS_URL}
+              href={luceneQueryDocsUrl(locale)}
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -1,0 +1,190 @@
+---
+title: "ProjectForge 8"
+date: 2025-09-01
+sort_key: "2025-09-01 0011"
+---
+:page-liquid:
+// Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
+
+[.changelog-major-link]
+Neu in ProjectForge 8: <<release-8-0,ProjectForge 8.0>> ↓
+
+[discrete#release-8-1.changelog-release]
+=== ProjectForge 8.1: Stabilität und Speicherkorrekturen
+
+[.changelog-source]
+__2025-09-01, Tag https://github.com/micromata/projectforge/tree/8.1-RELEASE[8.1-RELEASE]__ +++{% include release-pills.html tag="8.1-RELEASE" docker="8.1" %}+++
+
+[.changelog-checksum]
+SHA-256 von projectforge-application-8.1.jar: `+0001c9e3ad13cc8828a9ec43f28871a9229a83854024dee290242490bc2bb781+`
+
+- **Update dringend empfohlen:** Stabilitäts- und Speicherkorrekturen
+- Fix: großes Speicherleck im Datentransfer
+- Fix: häufige Seitenfehler durch Speicherprobleme in Wicket
+- **KI-Zeitersparnis** in Zeitberichten mit Auswertung
+- **Persönliches Menü** per Drag and Drop anpassbar
+- **Forecast und Auftragsbuch** mit Planungsdaten und Forecast-Export
+
+.Überblick
+[%collapsible]
+====
+- KI-Zeitersparnis in Zeitberichten mit Auswertung.
+- Persönliches Menü per Drag and Drop anpassbar.
+- Forecast und Auftragsbuch: Snapshots, Planungsdaten und filterbarer Forecast-Export.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+[red]##**Update für alle Nutzer dringend empfohlen.**## Dieses Release behebt ein großes Speicherleck im Datentransfer-Modul und häufige Seitenfehler durch Speicherprobleme in Wicket.
+
+[red]##**Update für alle Nutzer dringend empfohlen**## - Dieses Release behebt ein gravierendes Speicherleck im Datentransfer-Modul und häufige Seitenfehler in den Webseiten (Wicket-Speicherprobleme).
+
+**Bewährte Stabilität** - Dieses Release läuft seit vielen Wochen ohne Unterbrechung stabil in zwei stark genutzten Installationen.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Gruppen: Beschreibung und Organisation von Gruppen sind jetzt auch für Nicht-Admins sichtbar.
+- Excel-Export der Gruppen: enthält die E-Mail-Adressen der zugeordneten Benutzer.
+- Menüanpassung: Drag & Drop für die persönliche Anordnung des Menüs.
+- Erfassung der KI-Zeitersparnis in Zeitberichten mit Berechnung und Auswertung.
+- Die Kostensuche unterstützt die Suche nach reinen Zahlenfolgen.
+- Zeitberichte: Kollisionen durch mehrfaches Auslösen von Buttons werden verhindert.
+- Excel-Export für die Liste der Buchungssätze.
+- Die Registrierung neuer Mitarbeiter ist benutzerfreundlicher.
+- Modale Dialoge im Kalender lassen sich mit ESC und per Klick außerhalb schließen.
+- 2FA-Codeeingabe mit verbesserter UX (numerischer inputmode, autoComplete).
+- Excel-Export der Zeitberichte inklusive KI-Zeitersparnis.
+- Forecast und Auftragsbuch mit Planungsdaten verbessert.
+- Historieneinträge unterstützen jetzt Benutzerkommentare zu administrativen Änderungen.
+- Verbesserte AG-Grid-Implementierung mit deutscher Übersetzung, Filtern und Sortieren.
+- Urlaubsvalidierung für Sonderfälle mit Resturlaub aus dem Vorjahr verbessert.
+- Sipgate-Kontaktsynchronisation mit konfigurierbarem Cron-Job.
+- Datentransfer mit Plausibilitätsprüfungen und Backup-Funktion.
+- JCR-Speicherlecks behoben und Repository-Verwaltung verbessert.
+- Erweiterte Zugriffssteuerung für Benutzer und Gruppen mit konfigurierbarer Menüsichtbarkeit.
+- Forecast-Export mit Filter nach Einheit, Kunde und Projekten.
+- Der Strukturbaum-Assistent unterstützt optionale externe Gruppen.
+- Verbesserte Mehrfachauswahl von Mitarbeitern im Besucherbuch und bei Urlaubseinträgen.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- JCR-Speicherlecks im Datentransfer-Modul behoben.
+- Deaktivierter Zustand von DynamicButton während laufender Anfragen.
+- Tooltips in der Liste der Buchungssätze korrigiert.
+- Anzeige der letzten Zeitberichte korrigiert (Kost2-, Projekt- und Kundeninfo).
+- VacationValidator: Behandlung von Sonderfällen bei der Berechnung der Urlaubstage.
+- NPE-Fixes in der Urlaubskontoverwaltung und den Gruppen-Services.
+- Verbesserte Zugriffsprüfung im Strukturbaum beim Bearbeiten von Zeitberichten.
+- Korrekturen bei Forecast-Daten von Aufträgen und im Rechnungs-Cache.
+- Stabilitätsverbesserungen im Benutzergruppen-Cache und bei der Rechtebehandlung.
+- Erzwungenes Löschen von Adressen nach der MGC-Migration behoben.
+- Formatierung der Historie und Behandlung von Benutzerkommentaren korrigiert.
+- Diverse UI-Fixes für AG-Grid-Tabellen und Komponentendarstellung.
+- XML-Escaping von Strukturelement-Titeln im Excel-Export der Zeitberichte.
+- Verbesserter Export der Kostenzuweisungen bei Rechnungen.
+- Weiterleitung nach dem Login.
+- Darstellungsprobleme auf den Kalender- und Zeitberichtsseiten behoben.
+- Verbesserte Mitarbeiterauswahl ohne Eigenheiten der Autovervollständigung.
+- Massenänderung mit korrekter Nachverfolgung der Excel-Änderungen.
+- Mehrere Deadlocks in Caching- und Logging-Komponenten behoben.
+- Größe des Wicket-Session-Stores von 100 kB auf 2 MB erhöht: verhindert Sessionverlust bei großen Seiten.
+- Verbesserungen bei CSRF-Token-Behandlung und Exception-Registry.
+- Korrekturen bei Datei-Streams, damit Ressourcen sauber geschlossen werden.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Erweiterte Administration mit Debugging-Werkzeugen für den Benutzergruppen-Cache.
+- System-Plausibilitätsprüfungen mit automatischer Fehlermeldung per E-Mail.
+- Cron-Jobs laufen in eigenen Threads, um Blockierungen zu vermeiden.
+- Datenbank-Testwerkzeuge in der Admin-Oberfläche.
+- Konfigurationsparameter für die KI-Zeitersparnis.
+- Sichtbarkeit von Menüpunkten nach Benutzergruppen konfigurierbar.
+- Verbessertes Logging und Exception-Handling für proaktive Fehlermeldungen.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- CVE-Updates: Tomcat von 10.1.33 auf 10.1.39 aktualisiert.
+- Verbesserte Zugriffskontrolle für Adressen und Adresskampagnen (nur Marketing-Benutzer).
+- Strengere Sichtbarkeitsbeschränkungen für Benutzer und Gruppen bei Nicht-Admins.
+- Verbesserter CSRF-Schutz und Token-Behandlung.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Wicket auf Version 10.5.0 aktualisiert, mit verbesserter Page-Store-Behandlung.
+- Updates des Spring Frameworks und verbessertes Dependency-Management.
+- AG-Grid-Integration mit erweiterten Filtern, Sortierung und fixierbaren Spalten.
+- Dependency-Management und Kompatibilitätsfixes für React Router.
+- Erweiterter Einsatz von Kotlin Coroutines für asynchrone Abläufe.
+- JCR-Verbesserungen (Java Content Repository) mit Vorbereitung auf RDB-Speicherung.
+- Jackson-Updates mit Integration des Hibernate-6-Moduls.
+- Verbesserte Excel-Verarbeitung mit Apache POI.
+- Datenbank-Migrationsskripte und Flyway-Integration aktualisiert.
+- Docker-Container-Verbesserungen als Vorbereitung auf Multi-Architektur-Support.
+- Aktualisierte Abhängigkeiten inklusive Sicherheitspatches.
+- Optimierungen am Gradle-Build und am Test-Framework.
+- Copyright-Jahr in den Quelldatei-Headern auf 2025 aktualisiert.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-8-0.changelog-release]
+=== ProjectForge 8.0: neue Persistenzschicht
+
+[.changelog-source]
+__2024-12-23, Tag https://github.com/micromata/projectforge/tree/8.0-RELEASE[8.0-RELEASE]__ +++{% include release-pills.html tag="8.0-RELEASE" docker="8.0" %}+++
+
+- **Persistenzschicht** komplett überarbeitet (eigene Implementierung statt MGC)
+- **Eigener CardDAV-Server** zur Kontaktsynchronisation
+- **Docker-Images** für arm64 und amd64
+- Java 17, Spring 6, Hibernate 6, jakarta-Namespace
+
+.Überblick
+[%collapsible]
+====
+- Eigener CardDAV-Server zur Kontaktsynchronisation.
+- Docker-Images für arm64 und amd64.
+- Java 17, Spring 6, Hibernate 6, jakarta-Namespace.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Major Release mit einer komplett überarbeiteten Persistenzschicht und aktuellen Hauptversionen aller Bibliotheken.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Eigene CardDAV-Implementierung zur Synchronisation von Kontakten (getestet mit Apple Kontakte (macOS/iOS) und Thunderbird).
+- Sipgate-Schnittstelle zur Synchronisation von Adressen.
+- Kalenderansicht verbessert.
+- Excel-Export der Urlaube für alle Mitarbeiter, Teams und Kollegen.
+- Geburtstagsbutler für die monatliche Geburtstagsliste.
+- Export der Zeitberichte als xlsx.
+- Anhänge für Bücher.
+- Viele kleinere Verbesserungen.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Diverse Fehler behoben.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Docker-Container für arm64 und amd64 verfügbar (Linux und macOS X).
+- Persistenzschicht komplett überarbeitet, MGC entfernt und durch einen eigenen Persistence-Layer ersetzt.
+- Technische Schulden abgebaut.
+- Neue Major-Versionen: Java 17, Spring 6.1.15, Hibernate 6.6.3, Hibernate Search 7.2.1, javax -> jakarta, React/Router, Wicket 10.2, ...
+
+++++
+{% include download-link.html %}
+++++
+====

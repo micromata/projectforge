@@ -2,6 +2,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% seo %}
+  {%- include lang-alternate.html %}
+  {%- if alternate_url %}
+  <link rel="alternate" hreflang="{{ page.lang }}" href="{{ page.url | absolute_url }}">
+  <link rel="alternate" hreflang="{{ alternate_lang }}" href="{{ alternate_url | absolute_url }}">
+  {%- endif %}
   <meta property="og:image" content="{% if site.logo contains 'http' %}{{ site.logo }}{% else %}{{ site.uploads | absolute_url }}{{ site.logo }}{% endif %}"/>
   <link rel="preload" href="{{ '/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
@@ -9,8 +14,14 @@
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ '/feed.xml' | relative_url }}">
   {% if page.tipue_search_active or layout.tipue_search_active %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  {%- if page.lang == 'de' %}
+  <script src="{{ '/assets/tipuesearch/tipuesearch_content.de.js' | relative_url }}"></script>
+  <script src="{{ '/assets/tipuesearch/tipuesearch_set.js' | relative_url }}"></script>
+  <script src="{{ '/assets/tipuesearch/tipuesearch_set.de.js' | relative_url }}"></script>
+  {%- else %}
   <script src="{{ '/assets/tipuesearch/tipuesearch_content.js' | relative_url }}"></script>
   <script src="{{ '/assets/tipuesearch/tipuesearch_set.js' | relative_url }}"></script>
+  {%- endif %}
   <script src="{{ '/assets/tipuesearch/tipuesearch.min.js' | relative_url }}"></script>
   {% endif %}
   {% include hook-head.html %}

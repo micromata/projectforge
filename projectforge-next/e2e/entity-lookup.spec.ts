@@ -62,9 +62,14 @@ test.describe("entity lookup", { tag: "@lane-book" }, () => {
       expect(await entries.count()).toBeLessThan(EMPTY_TERM_MAX_ENTRIES);
     }
 
-    // A term lists its matches, the first page of them.
+    // A term lists its matches, the first page of them. The users are matched by the prefixes of their
+    // words, so the term is taken from the short list where it is shown — a handful of seeded users need
+    // not hold a word starting with "er", which a long list of names is full of.
+    const term = (await hint.isVisible())
+      ? "er"
+      : (await entries.first().innerText()).trim().slice(0, 2);
     const search = popover.getByPlaceholder(t("filter.search"));
-    await search.fill("er");
+    await search.fill(term);
     await expect.poll(() => entries.count()).toBeGreaterThan(0);
     const first = await entries.count();
     expect(first).toBeLessThanOrEqual(LOOKUP_PAGE_SIZE);

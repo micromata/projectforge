@@ -357,17 +357,19 @@ internal class EmployeeServiceSupport {
         if (checkAccess) {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
+        // The stored entry, not the posted one, tells whose entry it is: the posted employee and type come from
+        // the client, and an update must neither move an entry to another employee nor change its type.
+        val dbEntry = findValidSinceAttr(attrDO.id, expectedType = attrDO.type, checkAccess = checkAccess)
+        requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without existing id." }
+        require(dbEntry.employee?.id == employee.id) { "EmployeeValidSinceAttr entry belongs to another employee." }
         val other = validate(attrDO)
         try {
             if (other != null) {
                 // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
                 // the users can't add or modify entries with the validSince date of the deleted ones.
                 // Please remember: There are no unique constraints in the database!
-                findValidSinceAttr(attrDO.id, expectedType = attrDO.type, checkAccess = checkAccess).let { dbEntry ->
-                    requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without existing id." }
-                    // Mark current entry as deleted and modify existing deleted entry with desired validSince date.
-                    markValidSinceAttrAsDeleted(employee, dbEntry, checkAccess)
-                }
+                // Mark current entry as deleted and modify existing deleted entry with desired validSince date.
+                markValidSinceAttrAsDeleted(employee, dbEntry, checkAccess)
                 other.copyFrom(attrDO)
                 // Undeleting and updating existing entry instead of inserting new entry.
                 return baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)

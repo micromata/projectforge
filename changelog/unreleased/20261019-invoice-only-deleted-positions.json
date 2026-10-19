@@ -1,5 +1,5 @@
 {
   "type": "fixed",
-  "en": "Invoices and incoming invoices: an invoice whose positions are all deleted can no longer be saved; it is refused like one without positions.",
-  "de": "Rechnungen und Eingangsrechnungen: Eine Rechnung, deren Positionen alle gelöscht sind, kann nicht mehr gespeichert werden; sie wird wie eine Rechnung ohne Positionen abgelehnt."
+  "en": "Invoices and incoming invoices: an invoice stored earlier with deleted positions only can be deleted and restored again; only saving it is refused.",
+  "de": "Rechnungen und Eingangsrechnungen: Eine früher nur mit gelöschten Positionen gespeicherte Rechnung lässt sich wieder löschen und wiederherstellen; nur das Speichern wird abgelehnt."
 }

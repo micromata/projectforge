@@ -1,7 +1,11 @@
 ---
 permalink: /404.html
+exclude_from_search: true
 layout: default
+# One page for all languages, English and German.
+untranslated: true
 ---
+{%- comment -%}One 404 page for all languages (GitHub Pages serves only this one): English and German.{%- endcomment -%}
 
 <section class="py-24 text-center max-sm:py-16">
   <div class="pf-container pf-narrow">
@@ -11,6 +15,14 @@ layout: default
     <div class="mt-8 flex flex-wrap justify-center gap-3">
       {% include button.html url="/" text="Home" style="primary" size="lg" %}
       {% include button.html url="/search/" text="Search" style="outline" size="lg" %}
+    </div>
+    <div lang="de">
+      <h2 class="web-headline mt-16">Seite nicht gefunden</h2>
+      <p class="web-lead mt-3 text-secondary-foreground">Die angeforderte Seite wurde nicht gefunden.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        {% include button.html url="/de/" text="Startseite" style="primary" size="lg" %}
+        {% include button.html url="/de/search/" text="Suche" style="outline" size="lg" %}
+      </div>
     </div>
   </div>
 </section>

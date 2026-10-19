@@ -542,11 +542,12 @@ test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
       // The regression this guards is what `arrayFieldNames` exists for: the backend names `positionen`
       // as the field, no `<form.Field>` is mounted for a collection itself, and without the array
       // names the message would be written into a slot nobody renders — a save that silently does
-      // nothing (see applyServerValidationErrors).
+      // nothing (see applyServerValidationErrors). Scoped to the toasts, because the empty list of
+      // positions says the same text the moment the last row is deleted, before any save.
       await expect(
-        page.getByText(
-          format.t("fibu.rechnung.error.rechnungHatKeinePositionen")
-        )
+        page
+          .locator("[data-sonner-toaster]")
+          .getByText(format.t("fibu.rechnung.error.rechnungHatKeinePositionen"))
       ).toBeVisible();
       // And the page stays, so the invoice can be repaired rather than lost.
       await expect(page).toHaveURL(new RegExp(`/invoice/${id}$`));

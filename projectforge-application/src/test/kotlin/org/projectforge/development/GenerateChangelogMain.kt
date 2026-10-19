@@ -44,8 +44,8 @@ import kotlin.system.exitProcess
 
 /**
  * Generates the changelog of the website and of the app from `changelog/changelog.json`, the single
- * source of truth (English, it is published). The app also shows it in German, translated in
- * `changelog/changelog.de.json` (see [validateTranslation]); the website is English only.
+ * source of truth (English, it is published). The app and the website also show it in German, translated in
+ * `changelog/changelog.de.json` (see [validateTranslation]).
  *
  * Every release has three levels of detail, shown by both targets: its `summary` (a few keywords and the important
  * fixes, always shown), its `overview` (about one line per topic, unfolded on request) and all its changes (`intro`
@@ -62,8 +62,9 @@ import kotlin.system.exitProcess
  * Output:
  * 1. `site/_changelogs/changelog-major-<major>.adoc`, one per major version, the levels as collapsible blocks
  *    (`<details>` in HTML, no script needed; the directory is owned by this generator, other files there are
- *    removed),
- * 2. `site/changelog-posts.adoc`, the changelog page of the website listing them,
+ *    removed), the German ones in `site/_changelogs/de/` (see [SiteLanguage]),
+ * 2. `site/changelog-posts.adoc`, the changelog page of the website listing them, the German one
+ *    `site/de/changelog-posts.adoc`,
  * 3. `projectforge-next/lib/generated/changelog.json` and `changelog.de.json` (the German version) for the
  *    page `/next/changelog`, already grouped.
  *
@@ -94,13 +95,68 @@ object GenerateChangelogMain {
   internal const val UNRELEASED_ID = "unreleased"
   private const val UNRELEASED_TITLE = "Not yet released"
   private const val UNRELEASED_TITLE_DE = "Noch nicht veröffentlicht"
-  private const val CHANGELOGS_DIR = "site/_changelogs"
-  private const val POSTS_PAGE = "site/changelog-posts.adoc"
   private const val NEXT_FILE = "projectforge-next/lib/generated/changelog.json"
   private const val NEXT_FILE_DE = "projectforge-next/lib/generated/changelog.de.json"
   private const val REPO_URL = "https://github.com/micromata/projectforge"
   private const val GENERATED_NOTE = "Generated from $SOURCE by GenerateChangelogMain — do not edit."
+  private const val GENERATED_NOTE_DE = "Generated from $SOURCE and $SOURCE_DE by GenerateChangelogMain — do not edit."
   private val ENCODING = StandardCharsets.UTF_8
+
+  /**
+   * A language of the website: where its pages are written ([changelogsDir], the collection of the majors, and
+   * [postsPage] with its [postsPermalink]) and the texts of the generated adoc. A German page is in the directory `de`
+   * of its English one, at its url prefixed with `/de` (see `languages` of `site/_config.yml`).
+   */
+  internal class SiteLanguage(
+    val changelogsDir: String,
+    val postsPage: String,
+    val postsPermalink: String,
+    val generatedNote: String,
+    val postsTitle: String,
+    val latestRelease: String,
+    val whatsNew: String,
+    val snapshots: String,
+    val overview: String,
+    val allChanges: String,
+    val tag: String,
+    val snapshotBuild: String,
+    val changesSince: String,
+    val sha256Of: String,
+  )
+
+  internal val SITE_EN = SiteLanguage(
+    changelogsDir = "site/_changelogs",
+    postsPage = "site/changelog-posts.adoc",
+    postsPermalink = "/changelog-posts/",
+    generatedNote = GENERATED_NOTE,
+    postsTitle = "Changelog",
+    latestRelease = "Latest release",
+    whatsNew = "What's new in ProjectForge",
+    snapshots = "Development snapshots",
+    overview = "Overview",
+    allChanges = "All changes",
+    tag = "tag",
+    snapshotBuild = "snapshot build",
+    changesSince = "changes since",
+    sha256Of = "SHA-256 of",
+  )
+
+  internal val SITE_DE = SiteLanguage(
+    changelogsDir = "site/_changelogs/de",
+    postsPage = "site/de/changelog-posts.adoc",
+    postsPermalink = "/de/changelog-posts/",
+    generatedNote = GENERATED_NOTE_DE,
+    postsTitle = "Changelog",
+    latestRelease = "Aktuelles Release",
+    whatsNew = "Neu in ProjectForge",
+    snapshots = "Entwicklungs-Snapshots",
+    overview = "Überblick",
+    allChanges = "Alle Änderungen",
+    tag = "Tag",
+    snapshotBuild = "Snapshot-Build",
+    changesSince = "Änderungen seit",
+    sha256Of = "SHA-256 von",
+  )
 
   /** Section types, the keys of `site/_data/tags.yml` (in the order they are expected to appear). */
   internal val TYPES = listOf(
@@ -497,13 +553,15 @@ object GenerateChangelogMain {
     val (nextRoot, nextTranslation) =
       withUnreleased(root, translation, readFragments(rootDir), readReleaseSummary(rootDir))
     val result = linkedMapOf<String, String>()
-    val releases = root["releases"].toList()
-    // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
-    groups(root).forEach { group ->
-      val rank = releases.size - releases.indexOf(group.newest)
-      result["$CHANGELOGS_DIR/${groupFileName(group)}"] = groupToAdoc(group, rank)
+    listOf(SITE_EN to root, SITE_DE to translate(root, translation)).forEach { (language, siteRoot) ->
+      val releases = siteRoot["releases"].toList()
+      // Releases are sorted newest first, the rank keeps the order of majors on the website whose newest releases share a date.
+      groups(siteRoot).forEach { group ->
+        val rank = releases.size - releases.indexOf(group.newest)
+        result["${language.changelogsDir}/${groupFileName(group)}"] = groupToAdoc(group, rank, language)
+      }
+      result[language.postsPage] = postsPage(releases.filter { it["tag"] != null }, language)
     }
-    result[POSTS_PAGE] = postsPage(releases.filter { it["tag"] != null })
     result[NEXT_FILE] = nextJson(nextRoot)
     result[NEXT_FILE_DE] = nextJson(translate(nextRoot, nextTranslation))
     return result
@@ -754,12 +812,13 @@ object GenerateChangelogMain {
     return ObjectMapper().writer(printer).writeValueAsString(node) + "\n"
   }
 
-  /** Files in the changelog directory not produced by the current source (renamed or removed releases). */
-  internal fun staleFiles(rootDir: File, generated: Set<String>): List<File> {
-    val dir = File(rootDir, CHANGELOGS_DIR)
-    return dir.listFiles()?.filter { it.isFile && "$CHANGELOGS_DIR/${it.name}" !in generated }?.sortedBy { it.name }
-      ?: emptyList()
-  }
+  /** Files in the changelog directories not produced by the current source (renamed or removed releases). */
+  internal fun staleFiles(rootDir: File, generated: Set<String>): List<File> =
+    listOf(SITE_EN, SITE_DE).flatMap { language ->
+      val dir = language.changelogsDir
+      File(rootDir, dir).listFiles()?.filter { it.isFile && "$dir/${it.name}" !in generated }?.sortedBy { it.name }
+        ?: emptyList()
+    }
 
   /**
    * A major version: its [head], the release opening it (X.0.0 or X.0, else its oldest tagged release; null if there
@@ -1070,7 +1129,7 @@ object GenerateChangelogMain {
    * snapshots, each release with its summary shown and its overview and all of its changes as collapsible blocks
    * (see [releaseToAdoc]). With updates, the page starts with a link to the opening release (what's new in the major).
    */
-  internal fun groupToAdoc(group: Group, rank: Int): String {
+  internal fun groupToAdoc(group: Group, rank: Int, language: SiteLanguage = SITE_EN): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("title: ${yamlString("ProjectForge ${group.major}")}")
@@ -1078,19 +1137,19 @@ object GenerateChangelogMain {
     sb.appendLine("sort_key: ${sortKey(group.newest, rank)}")
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
-    sb.appendLine("// $GENERATED_NOTE")
+    sb.appendLine("// ${language.generatedNote}")
     group.head?.takeIf { group.updates.isNotEmpty() }?.let { head ->
       sb.appendLine()
       sb.appendLine("[.changelog-major-link]")
-      sb.appendLine("What's new in ProjectForge ${group.major}: <<${releaseAnchor(head)},ProjectForge ${head["version"].asText()}>> ↓")
+      sb.appendLine("${language.whatsNew} ${group.major}: <<${releaseAnchor(head)},ProjectForge ${head["version"].asText()}>> ↓")
     }
-    (group.updates + listOfNotNull(group.head)).forEach { releaseToAdoc(it, sb, "====") }
+    (group.updates + listOfNotNull(group.head)).forEach { releaseToAdoc(it, sb, "====", language) }
     if (group.snapshots.isNotEmpty()) {
       sb.appendLine()
-      sb.appendLine(".Development snapshots (${group.snapshots.size})")
+      sb.appendLine(".${language.snapshots} (${group.snapshots.size})")
       sb.appendLine("[%collapsible.changelog-snapshots]")
       sb.appendLine("======")
-      group.snapshots.forEach { releaseToAdoc(it, sb, "====") }
+      group.snapshots.forEach { releaseToAdoc(it, sb, "====", language) }
       sb.appendLine("======")
     }
     return sb.toString()
@@ -1100,7 +1159,7 @@ object GenerateChangelogMain {
    * A release: its title, date and tag (or commit range), its summary and, as collapsible blocks delimited by
    * [delimiter], its overview and all changes (intro, sections, download link).
    */
-  internal fun releaseToAdoc(release: JsonNode, sb: StringBuilder, delimiter: String) {
+  internal fun releaseToAdoc(release: JsonNode, sb: StringBuilder, delimiter: String, language: SiteLanguage = SITE_EN) {
     sb.appendLine()
     sb.appendLine("[discrete#${releaseAnchor(release)}.changelog-release]")
     sb.appendLine("=== ${release["title"].asText()}")
@@ -1109,8 +1168,9 @@ object GenerateChangelogMain {
     val from = release["fromCommit"]?.asText()
     val to = release["toCommit"]?.asText()
     val source = when {
-      tag != null -> "tag $REPO_URL/tree/$tag[$tag]"
-      from != null && to != null -> "snapshot build $REPO_URL/commit/$to[develop@$to], $REPO_URL/compare/$from..$to[changes since $from]"
+      tag != null -> "${language.tag} $REPO_URL/tree/$tag[$tag]"
+      from != null && to != null ->
+        "${language.snapshotBuild} $REPO_URL/commit/$to[develop@$to], $REPO_URL/compare/$from..$to[${language.changesSince} $from]"
       else -> null
     }
     sb.appendLine("[.changelog-source]")
@@ -1118,7 +1178,7 @@ object GenerateChangelogMain {
     release["sha256"]?.let { sha256 ->
       sb.appendLine()
       sb.appendLine("[.changelog-checksum]")
-      sb.appendLine("SHA-256 of ${jarName(release["version"].asText())}: `+${sha256.asText()}+`")
+      sb.appendLine("${language.sha256Of} ${jarName(release["version"].asText())}: `+${sha256.asText()}+`")
     }
     release["summary"]?.let { summary ->
       sb.appendLine()
@@ -1126,14 +1186,14 @@ object GenerateChangelogMain {
     }
     release["overview"]?.let { overview ->
       sb.appendLine()
-      sb.appendLine(".Overview")
+      sb.appendLine(".${language.overview}")
       sb.appendLine("[%collapsible]")
       sb.appendLine(delimiter)
       overview.forEach { appendAdocItem(sb, it.asText()) }
       sb.appendLine(delimiter)
     }
     sb.appendLine()
-    sb.appendLine(".All changes")
+    sb.appendLine(".${language.allChanges}")
     sb.appendLine("[%collapsible]")
     sb.appendLine(delimiter)
     release["intro"]?.forEachIndexed { index, intro ->
@@ -1178,21 +1238,23 @@ object GenerateChangelogMain {
    * they come later with `pfDev.sh publish`, so `site/_includes/latest-binaries.html` looks them up in the data
    * fetched on each build of the website. The layout lists the majors of the collection below.
    */
-  internal fun postsPage(tagged: List<JsonNode>): String {
+  internal fun postsPage(tagged: List<JsonNode>, language: SiteLanguage = SITE_EN): String {
     val sb = StringBuilder()
     sb.appendLine("---")
     sb.appendLine("layout: changelog")
-    sb.appendLine("title: Changelog")
-    sb.appendLine("permalink: /changelog-posts/")
+    sb.appendLine("title: ${language.postsTitle}")
+    sb.appendLine("permalink: ${language.postsPermalink}")
     sb.appendLine("---")
     sb.appendLine(":page-liquid:")
-    sb.appendLine("// $GENERATED_NOTE")
+    sb.appendLine("// ${language.generatedNote}")
     tagged.firstOrNull()?.let {
       val tag = it["tag"].asText()
       sb.appendLine()
       sb.appendLine("[.changelog-latest]")
       sb.appendLine("--")
-      sb.appendLine("Latest release: **ProjectForge ${it["version"].asText()}** (${it["date"].asText()}, tag $REPO_URL/tree/$tag[$tag])")
+      sb.appendLine(
+        "${language.latestRelease}: **ProjectForge ${it["version"].asText()}** (${it["date"].asText()}, ${language.tag} $REPO_URL/tree/$tag[$tag])"
+      )
       sb.appendLine()
       sb.appendLine("++++")
       val tags = tagged.joinToString(",") { release -> release["tag"].asText().let { "$it ${dockerTag(it)}" } }

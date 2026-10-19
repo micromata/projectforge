@@ -83,6 +83,25 @@ class AuftragDaoTest : AbstractTestBase() {
         Assertions.assertEquals(dbNumber++, auftrag.nummer)
     }
 
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the order, but it is no
+     * part of it any more: an order left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun `an order with deleted positions only is refused`() {
+        logon(TEST_FINANCE_USER)
+        val auftrag = createOrder().also { order ->
+            order.nummer = auftragDao.getNextNumber(order)
+            order.addPosition(createOrderPos().also { it.deleted = true })
+        }
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { auftragDao.insert(auftrag) }
+        }
+        Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
+    }
+
     @Test
     fun checkAccess() {
         logon(TEST_FINANCE_USER)

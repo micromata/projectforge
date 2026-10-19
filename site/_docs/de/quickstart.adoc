@@ -1,0 +1,308 @@
+---
+title: Schnellstart
+subtitle: Ein schneller Einstieg für neue Teams, Projekte usw. mit bewährten Vorgehensweisen.
+author: kai
+tags: [setup]
+---
+:hide-uri-scheme:
+
+:toc:
+:toclevels: 4
+
+:last-update-label: Copyright (C) 2001-2026, Zuletzt aktualisiert
+
+:sectnums:
+
+[[introduction]]
+== Einführung
+
+ProjectForge® soll Projekte und Projektteams effizienter machen, vom Ein-Personen-Projekt bis zum Großprojekt. Dieser
+Schnellstart führt Schritt für Schritt durch die Einrichtung der eigenen Firma, des Teams und des ersten Projekts und
+gibt dabei einige bewährte Tipps.
+
+ProjectForge ist noch nicht installiert? Dann geht es mit der link:/docs/installation/[Installation] los (Docker oder
+JAR, dauert nur wenige Minuten). Themen der Konfiguration wie Mail, LDAP, 2FA oder Backups beschreibt das
+link:/de/docs/adminguide/[Administrationshandbuch].
+
+Die folgenden Namen (Benutzer, Gruppen, Strukturelemente) sind nur Beispiele, eigene Namen sind natürlich willkommen.
+
+TIP: Sind die Benutzer angelegt, lässt sich mit dem _Zugriffsassistent_ eines Strukturelements ein Projekt samt Gruppen
+und Zugriffsrechten in einem Rutsch anlegen. Dieses Tutorial zeigt die einzelnen Schritte hinter dem Assistenten, damit
+klar ist, was er tut.
+
+[[set_up_of_your_team_members]]
+=== Teammitglieder einrichten
+
+Als Administrator anmelden und für jedes Projektmitglied ein Konto anlegen (_Administration_ -> _Benutzer:innen_). In
+diesem Beispiel starten wir mit drei Teammitgliedern, einer Projektleiterin und zwei Entwickler:innen:
+
+[cols=4*,options="header"]
+|===
+| Benutzername | Beschreibung (Rolle im Team) | E-Mail         | Zugeordnete Gruppen
+| linda        | Projektleitung               | linda@acme.com | PF_ProjectManager
+| dave         | Entwicklung                  | dave@acme.com  | -
+| betty        | Entwicklung                  | betty@acme.com | -
+|===
+
+[[set_up_your_company_acme_inc]]
+=== Die eigene Firma einrichten: ACME Inc.
+
+[[create_your_companys_top_level_structure_element]]
+==== Oberstes Strukturelement der Firma anlegen
+
+Den _Strukturbaum_ (Menü _Projektmanagement_) öffnen und ein Strukturelement mit dem Namen der Firma hinzufügen. Als
+übergeordnetes Element wird das Wurzel-Strukturelement von ProjectForge gewählt.
+
+[cols=2*,options="header"]
+|===
+| Name des Strukturelements | Übergeordnetes Strukturelement
+| ACME Inc.                 | Wurzel-Strukturelement von ProjectForge
+|===
+
+[[create_a_group_for_all_employees]]
+=== Gruppe für alle Mitarbeiter:innen anlegen
+
+Eine Benutzergruppe (_Administration_ -> _Gruppen_) anlegen, z. B. mit dem Namen "ACME employees".
+
+[cols=2*,options="header"]
+|===
+| Gruppenname    | Zugeordnete Mitglieder
+| ACME employees | Linda, Dave, Betty
+|===
+
+[[create_project_member_group]]
+=== Gruppe für die Projektmitglieder anlegen
+
+Unter _Administration_ -> _Gruppen_ eine weitere Gruppe für das Projektteam anlegen:
+
+[cols=2*,options="header"]
+|===
+| Gruppenname          | Zugeordnete Mitglieder
+| ACME web portal team | Linda, Dave, Betty
+|===
+
+[[create_your_project_root_structure_element_e_g_acme_web_portal]]
+=== Oberstes Strukturelement des Projekts anlegen, z. B. ACME Web portal
+
+Im Strukturbaum ein Strukturelement mit dem Namen des Projekts anlegen:
+
+[cols=2*,options="header"]
+|===
+| Name des Strukturelements | Übergeordnetes Strukturelement
+| ACME web portal           | Wurzel-Strukturelement von ProjectForge
+|===
+
+Hierarchie und Namen der Strukturelemente lassen sich später jederzeit ändern (z. B. um Projekte nach Kunden zu
+gliedern), daher genügt es, zunächst mit dem Projekt als oberstem Strukturelement zu beginnen. Auch Benutzernamen,
+Gruppennamen usw. können jederzeit geändert werden, ohne dass Verweise im System verloren gehen.
+
+[[assign_the_required_team_access]]
+=== Benötigte Zugriffsrechte für das Team vergeben
+
+ProjectForge® hat eine sehr feingranulare Zugriffsverwaltung, mit der sich festlegen lässt, welche Benutzer welchen
+Zugriff auf das System haben. Einige Zugriffsrechte hängen von den Strukturelementen ab. Der Zugriff auf ein
+Strukturelement wird unter _Zugriffsverwaltung_ (Menü _Administration_) festgelegt:
+
+[cols=5*,options="header"]
+|===
+| Strukturelement | Gruppe               | Rekursiv | Beschreibung | Zugriffsrechte
+| ACME Inc.       | ACME employees       | ja       | Das Haupt-Strukturelement der Mitarbeiter:innen, z. B. für Zeitberichte, die keinem Projekt zugeordnet sind, etwa Krankheit, Urlaub, Forschung und Entwicklung usw. | Vorlage 'Mitarbeiter:in' wählen.
+| ACME web portal | ACME web portal team | ja       | Das oberste Strukturelement des Projekts ACME web portal. | Vorlage 'Mitarbeiter:in' wählen.
+|===
+
+Viele Felder bieten ein Hilfe-Symbol oder einen Tooltip mit einer Erklärung, z. B. _Rekursiv_ (gilt auch für alle
+Strukturunterelemente).
+
+Jetzt können die Teammitglieder Zeitberichte auf das Projekt ACME web portal buchen. Außerdem können sie ihrem Projekt
+eine Unterstruktur geben, wie im nächsten Kapitel beschrieben.
+
+[[structure_of_your_projects]]
+== Struktur der Projekte
+
+[[the_idea_of_structure_trees_and_hierarchy]]
+=== Die Idee von Strukturbäumen und Hierarchie
+
+ProjectForge® unterstützt eine Hierarchie von Strukturelementen ohne Beschränkung der Baumtiefe oder der Anzahl der
+Strukturelemente. Ein Strukturelement ist ein allgemeiner Begriff und kann Kunden, Projekte, Projektphasen,
+Arbeitspakete, Aufgaben, Issues und mehr darstellen.
+
+[[best_practice_recommended_structure_for_your_projects]]
+=== Bewährte Praxis: empfohlene Struktur für Projekte
+
+Wir empfehlen, Projekte wie folgt zu gliedern:
+
+[cols="1,1,3",options="header"]
+|===
+| Ebene         | Typ           | Beschreibung
+| Oberste Ebene | Kunde         | z. B. ACME. Das ist sinnvoll, um Projekte nach Kunden zu gruppieren. Diese Ebene kann zunächst entfallen und bei Bedarf später eingefügt werden.
+| Ebene zwei    | Projektname   | Einfach der Name des Projekts, z. B. ACME web portal.
+| Ebene drei    | Release       | Ein Projekt hat hoffentlich mehrere Releases, sodass sich die Aktivitäten pro Release gruppieren lassen. In Nicht-IT-Projekten kann das Release z. B. der Jahrgang einer jährlichen Konferenz sein.
+| Ebene vier    | Phasen        | Ein Projekt besteht aus mehreren Phasen, z. B. Akquise, Spezifikation, Umsetzung, Wartung.
+| Ebene fünf    | Arbeitspakete | Bei großen Projekten (mehr als 10 Personentage) ist es sinnvoll, die Arbeit in Pakete aufzuteilen.
+| Ebene sechs   | Issues        | Bei sehr großen Projekten können die Pakete weiter in Issues aufgeteilt werden. Bei Verwendung von JIRA lassen sich die JIRA-Issues in den Zeitberichten referenzieren.
+|===
+
+Wichtig: Die Hierarchie kann jederzeit geändert werden. Es spricht also nichts dagegen, mit dem Projekt als oberstem
+Strukturelement zu beginnen und den Kunden später einzufügen, wenn mehr Projekte und Kunden hinzukommen.
+
+Unter-Strukturelemente werden im Strukturbaum hinzugefügt, indem ein neues Strukturelement angelegt und sein
+übergeordnetes Element gewählt wird. Ein weiterer bequemer Weg, die Struktur eines Projekts zu organisieren, ist das
+_Gantt_-Diagramm (siehe unten).
+
+[[time_sheet_booking]]
+== Zeitberichte buchen
+
+[[adding_time_sheets]]
+=== Zeitberichte erfassen
+
+Alle Teammitglieder sollten jede Tätigkeit im Projekt als Zeitbericht buchen. Am einfachsten geht das über den
+Kalender: Ein Klick auf einen Tag oder das Markieren eines Zeitraums legt einen neuen Zeitbericht an, bestehende lassen
+sich dort ebenso bearbeiten.
+Jeder Zeitbericht braucht mindestens Start- und Endzeit sowie das bearbeitete Strukturelement. Optional kann eine
+Referenz wie eine JIRA-Issue-ID angegeben werden. Häufig genutzte Buchungen lassen sich als Vorlagen speichern.
+
+[[consumption_of_work_packages]]
+=== Verbrauch von Arbeitspaketen
+
+Um jederzeit den Überblick zu behalten, empfehlen wir, für die Strukturelemente geschätzte Zeitbudgets zu hinterlegen.
+Wer Zeitberichte auf ein Strukturelement bucht, sieht sofort dessen Verbrauch.
+Der Strukturbaum zeigt den Verbrauch jedes angezeigten Strukturelements.
+
+Budgets lassen sich auf zwei Arten festlegen. Am einfachsten wird das Budget in Stunden direkt am Strukturelement
+eingetragen. Hat ein Strukturelement kein eigenes Budget, aber seine Unterelemente schon, wird sein Budget automatisch
+berechnet (Summe der Budgets aller Unterelemente). Alternativ werden Budgets über die Zuordnung von Aufträgen
+festgelegt (hier nicht beschrieben). Beide Ansätze lassen sich kombinieren.
+
+[[gantt_charts]]
+== Gantt-Diagramme
+
+Gantt-Diagramme sind eine weit verbreitete Technik, um ein Projekt zu planen und auf Kurs zu halten. Die
+Gantt-Parameter wie Start-/Enddatum, Dauer und Vorgänger lassen sich im Strukturelement selbst bearbeiten, bequemer
+geht es aber direkt im Gantt-Diagramm.
+
+Den Menüeintrag _Gantt_ wählen, ein neues Diagramm hinzufügen und das zu planende Strukturelement (Projekt, Release
+oder Projektphase) auswählen. In diesem Beispiel wählen wir das Haupt-Strukturelement des Projekts 'ACME web portal'.
+
+[[cost_unit_accounting]]
+== Kostenträgerrechnung
+
+Projektleitungen und vor allem das Controlling lieben Auswertungen, Auswertungen und nochmals Auswertungen. Wer Fragen
+wie die folgenden beantworten möchte, nutzt die unten vorgestellten Kostenfunktionen von ProjectForge®.
+
+* Wie hoch ist der Gewinn unseres Projekts ACME web portal und insgesamt beim Kunden ACME?
+* Wie viel haben wir für Reisen im Projekt ACME web portal und insgesamt beim Kunden ACME ausgegeben?
+* Wie viel haben wir für Gewährleistung bei ... ausgegeben?
+* Wie viel haben wir für Akquise bei ... ausgegeben?
+* Wie hoch war das F&E-Budget für die gesamte Firma?
+
+[[setting_up_cost_objectives_requirements_optional]]
+=== Kostenträger einrichten, Voraussetzungen (optional)
+
+Mit den folgenden Schritten wird die ProjectForge-Installation für Kostenträger freigeschaltet:
+
+[[activating_cost]]
+==== Kosten aktivieren
+
+Den Parameter _Kostenkalkulation freigeschaltet?_ unter _Administration_ -> _Konfiguration_ aktivieren (wirksam nach
+erneuter Anmeldung).
+
+[[access_rights_and_required_group_of_the_financial_administrative_user]]
+==== Zugriffsrechte und benötigte Gruppe für die Finanzbuchhaltung
+
+Die Benutzer der Finanzbuchhaltung müssen Mitglied der Gruppe PF_Finance sein und Lese-/Schreibzugriff auf die Rechte
+_Kostenträger_ und _Projekte_ haben.
+
+[[define_cost2_types]]
+==== Kost2-Arten definieren
+
+Zunächst werden Kost2-Arten definiert, die für alle Strukturelemente und Projekte gelten. Auf Basis dieser Arten lassen
+sich später Kostenauswertungen erstellen, z. B. wie viel Gewinn mit "Wartung" über alle Projekte des Kunden ACME
+erzielt wird. Hier eine Beispielliste zur Orientierung (eigene Nummern und Beschreibungen sind ausdrücklich erwünscht,
+die Liste kann später jederzeit erweitert werden):
+
+[cols=2*,options="header"]
+|===
+|Nummer|Beschreibung
+| 00 | Akquise
+| 02 | Realisierung (fakturiert)
+| 03 | Test (fakturiert)
+| 04 | Wartung (fakturiert)
+| 05 | Lizenzgebühren (fakturiert)
+| 06 | Spezifikation/Dokumentation (fakturiert)
+| 07 | Gewährleistung
+| 08 | Projektmanagement (fakturiert)
+| 11 | Besprechungen
+| 12 | Besprechungen, fakturiert (fakturiert)
+| 13 | Reisen
+| 14 | Reisen, fakturiert (fakturiert)
+| 20 | F&E
+| ... |
+|===
+
+Hinweis: _fakturiert_ ist lediglich ein Kennzeichen, das später in Auswertungen und Scripten genutzt werden kann.
+
+[[define_customers_and_projects]]
+==== Kunden und Projekte definieren
+
+Für kunden- oder projektspezifische Kostenträger werden zuerst die Kunden und anschließend deren Projekte angelegt. Es
+hat sich bewährt, für jeden Kunden ein Sonstiges-Projekt zu haben, für Zeitberichte und Kosten, die keinem bestimmten
+Projekt zuzuordnen sind, oder für kleine Projekte ohne eigene Kostenrechnung.
+
+Kunden- und Projektnummern sind frei wählbar, solange keine Nummernkreise konfiguriert sind. Sollen die Kost2 der
+Projekte aus den Kunden- und Projektnummern abgeleitet werden, müssen die Nummernkreise vor dem Anlegen von Kunden und
+Projekten konfiguriert werden, siehe
+link:/de/docs/adminguide/#number_ranges_of_customers_projects_and_cost_units[Administrationshandbuch – Nummernkreise].
+
+[[define_cost2]]
+==== Kost2 definieren
+
+Kost2-Einträge können unabhängig von Projekten definiert werden oder projektspezifisch, indem zuerst das Projekt
+gewählt wird.
+
+[[assign_projects_or_cost2_to_structure_elements]]
+==== Projekte oder Kost2 Strukturelementen zuordnen
+
+Projekte lassen sich Strukturelementen zuordnen (auf der Bearbeitungsseite des Projekts), nicht projektspezifische
+Kost2-Einträge können direkt einem Strukturelement hinzugefügt werden. Bei projektspezifischen Kostenzuordnungen lässt
+sich mit einer Black-/Whitelist die Auswahl der Kost2 für einen Teilbaum der Struktur einschränken. Die
+Bearbeitungsseite eines Strukturelements macht das besser verständlich.
+
+[[calendars]]
+== Kalender
+
+Weitere Informationen dazu gibt es im link:/de/docs/userguide/[Benutzerhandbuch].
+
+[[best_practices]]
+== Bewährte Vorgehensweisen
+
+[[roles_administrators_financial_staff_project_managers_and_controllers]]
+=== Rollen: Administration, Finanzbuchhaltung, Projektleitung und Controlling
+
+In größeren Firmen ist es sinnvoll, diese Rollen aufzuteilen.
+
+[[system_administrators]]
+==== Systemadministration
+
+Es sollte Systemadministrator:innen geben, die für die Verwaltung von Benutzern, Gruppen und Zugriffsrechten auf
+Strukturelemente und Funktionen zuständig sind (Gruppe PF_Admin).
+
+[[financial_administrative_users]]
+==== Finanzbuchhaltung
+
+Die Finanzbuchhaltung ist zuständig für Mitarbeiter:innen (und Gehälter), Kunden, Auftragsbuch, Kostenträger, Projekte
+sowie Rechnungen (Ausgangs- und Eingangsrechnungen), siehe Gruppe PF_Finance. Welche Rechte jede einzelne Person
+erhält, lässt sich festlegen. Die Mitglieder der Gruppe PF_Organization haben standardmäßig eingeschränkte Rechte.
+
+[[project_managers]]
+==== Projektleitung
+
+Projektleiter:innen (Gruppe PF_ProjectManager) können die Personalplanung vornehmen und das Auftragsbuch für die
+Projekte pflegen, in deren Projektleitungsgruppe sie Mitglied sind (festgelegt in den Projektdetails).
+
+[[controllers]]
+==== Controlling
+
+Mitglieder der Gruppe PF_Controlling haben standardmäßig Lesezugriff auf die meisten Bereiche von ProjectForge.
+Mitglieder von PF_Controlling und PF_Finance dürfen außerdem Scripte anlegen, ändern und ausführen (z. B. für
+Auswertungen). Diesen Zugriff bitte nur vertrauenswürdigen Personen geben: Ein Script kann mehr, als die
+Benutzeroberfläche erlaubt.

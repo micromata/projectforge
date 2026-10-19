@@ -1,6 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { waitForRows } from "./fixtures/list-table";
+import { hasEntries, waitForRows } from "./fixtures/list-table";
 import { KONTO_METADATA } from "../lib/metadata/konto.generated";
 import { ACCOUNT_PAGE } from "../components/features/account/account.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
@@ -41,6 +41,10 @@ test.describe("account", { tag: "@parallel" }, () => {
   test("sorts by the account number by default, as Wicket's list does", async ({
     loggedInPage: page,
   }) => {
+    test.skip(
+      !(await hasEntries(page.request, "account")),
+      "no account in this database"
+    );
     await goto(page, "/account");
     const rows = await waitForRows(page);
 

@@ -43,7 +43,10 @@ class Employee(
     var staffNumber: String? = null,
     var urlaubstage: Int? = null,
     var comment: String? = null,
-) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
+) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName), EntityAccessSupport {
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
+
     /**
      * Read-only field.
      */

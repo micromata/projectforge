@@ -349,6 +349,27 @@ class RechnungDaoTest : AbstractTestBase() {
         Assertions.assertNotNull(fromDb.positionen!![0].kostZuweisungen)
     }
 
+    /**
+     * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
+     * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
+     * without any is.
+     */
+    @Test
+    fun `an invoice with deleted positions only is refused`() {
+        logon(TEST_FINANCE_USER)
+        val rechnung = RechnungDO()
+        rechnung.status = RechnungStatus.GEPLANT
+        rechnung.datum = LocalDate.now()
+        rechnung.faelligkeit = LocalDate.now()
+        rechnung.projekt = initTestDB.addProjekt(null, 43, "deleted positions")
+        rechnung.addPosition(createPosition(1, "50.00", "0", "test").also { it.deleted = true })
+        val ex = Assertions.assertThrows(UserException::class.java) {
+            suppressErrorLogs { rechnungDao.insert(rechnung) }
+        }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+        Assertions.assertEquals("positionen", ex.causedByField)
+    }
+
     private fun createPosition(
         menge: Int, einzelNetto: String, vat: String,
         text: String

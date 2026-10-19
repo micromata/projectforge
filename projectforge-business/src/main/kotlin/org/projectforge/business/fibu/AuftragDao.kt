@@ -383,7 +383,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 throw UserException("fibu.auftrag.error.nummerBereitsVergeben").setCausedByField("nummer")
             }
         }
-        if (obj.positionen.isNullOrEmpty()) {
+        // A deleted position stays in the collection (soft delete), but is no part of the order any more.
+        if (obj.positionenExcludingDeleted.isEmpty()) {
             throw UserException("fibu.auftrag.error.auftragHatKeinePositionen").setCausedByField("positionen")
         }
         val positionen = obj.positionen

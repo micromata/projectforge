@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -121,8 +120,9 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
             obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
         obj.recalculate()
-        if (CollectionUtils.isEmpty(obj.positionen) || RechnungDao.hasNoLivePositions(obj, operationType)) {
-            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
+        // A deleted position stays in the collection (soft delete), but is no part of the invoice any more.
+        if (obj.positionen.isNullOrEmpty() || RechnungDao.hasNoLivePositions(obj, operationType)) {
+            throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen").setCausedByField("positionen")
         }
         val size = obj.positionen!!.size
         for (i in size - 1 downTo 1) {

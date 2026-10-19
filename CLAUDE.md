@@ -33,6 +33,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
   them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 
+## Website (`site/`)
+- The website is English and German (see `site/README.adoc`). Every change of an English file goes into its
+  German version in the same commit, with the same headings and anchors; `SiteTranslationTest` fails otherwise.
+- Kept in both languages (English → German):
+  - pages `site/*.adoc` → `site/de/*.adoc` (`index`, `features`, `about`, `services`, `download`, `search`),
+    `site/misc/faqs.md` → `site/de/misc/faqs.md`; the German permalink is the English one prefixed with `/de`
+  - docs `site/_docs/{userguide,adminguide,quickstart}.adoc` → `site/_docs/de/` (every heading with an explicit
+    anchor `[[id]]`, the same in both; cross references by id, `<<id>>`, never by title)
+  - FAQs `site/_faqs/*.md` → `site/_faqs/de/` (same categories)
+  - data files `site/_data/*.yml` → `site/_data/de/` (same structure, German texts, `/de` urls), except
+    `translation.yml`, which has the texts of layouts and includes for both languages (keys `en`, `de`)
+  - texts in layouts and includes (`site/_layouts/`, `site/_includes/`): via `_data/translation.yml`, or
+    `page.lang == 'de'` branches for whole sentences (`latest-binaries.html`, `release-pills.html`, …)
+- Generated in both languages, never edited by hand: `site/_changelogs/` + `site/_changelogs/de/`,
+  `site/changelog-posts.adoc` + `site/de/changelog-posts.adoc` (see Generated files).
+- English only, marked `untranslated: true` in the front matter: the docs `installation`, `development`,
+  `technologies`, `migration`, the legal pages `site/misc/{imprint,privacy-policy,terms-of-use}.md` and
+  `site/404.html` (one page with both languages). German pages link them in English, marked (EN). A new page
+  needs its German version or this marker.
+
 ## Flyway migrations
 - New migrations are versioned by the release that ships them: `V<release>.<n>__RELEASE-<Name>.sql`, always
   four segments, e.g. `V9.0.4.1__…`, `V9.0.4.2__…` for two scripts in release 9.0.4. The release is the

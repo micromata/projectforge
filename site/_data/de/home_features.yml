@@ -1,0 +1,31 @@
+# Feature tiles on the German home page, each links to its cluster on /de/features/
+
+- title: Projekte & Aufträge
+  desc: Jeden Auftrag, jedes Budget und den Stand jedes Projekts kennen.
+  img: screenshots/2026-OrderBook.png
+  url: /de/features/#projects_orders
+
+- title: Zeiterfassung
+  desc: Zeitbuchung dauert Sekunden, nicht einen ganzen Freitagnachmittag.
+  img: screenshots/2026-Timesheets.png
+  url: /de/features/#time_tracking
+
+- title: Urlaub & Verfügbarkeit
+  desc: Wer ist weg, wer vertritt, wer ist erreichbar – ohne zusätzliches HR-Tool.
+  img: screenshots/2026-AvailabilityQuickView.png
+  url: /de/features/#leave_availability
+
+- title: Finanzen & E-Rechnung
+  desc: Von gebuchten Stunden zur rechtskonformen Rechnung – XRechnung und ZUGFeRD inklusive.
+  img: screenshots/2026-Invoice.png
+  url: /de/features/#finance_e_invoicing
+
+- title: Controlling & Liquidität
+  desc: Schon heute wissen, wie das nächste Quartal aussieht.
+  img: screenshots/2026-Statistics.png
+  url: /de/features/#controlling_liquidity
+
+- title: Zusammenarbeit
+  desc: Teamkalender, Adressbuch, Dateiaustausch und Word-Vorlagen – das, was das Team ohnehin täglich braucht.
+  img: screenshots/2026-DataTransfer.png
+  url: /de/features/#collaboration

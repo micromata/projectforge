@@ -498,6 +498,7 @@
     "short": "Att."
   },
   "attr": {
+    "currentlyValid": "Currently valid",
     "validSince": "Valid since"
   },
   "availability": {
@@ -1676,6 +1677,16 @@
         "list": "List of cost 2 types"
       },
       "workFraction": "Work time fraction"
+    },
+    "kostSearch": {
+      "dock": "Show on every page",
+      "dockTooltip": "Keeps the cost search floating over every page and returns to the previous page, as ALT-K (macOS: Option-K) does here.",
+      "hint": "Pick a cost unit to get its number and name, e.g. for copying them. With ALT-K (macOS: Option-K) the cost search floats over every page.",
+      "number": "Number",
+      "panel": {
+        "toggle": "Show or hide the cost search on every page (ALT-K, macOS: Option-K)"
+      },
+      "popOut": "Open in a separate window"
     },
     "kunde": {
       "_": "Customer",

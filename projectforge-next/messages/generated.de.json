@@ -498,6 +498,7 @@
     "short": "Anh."
   },
   "attr": {
+    "currentlyValid": "Aktuell gültig",
     "validSince": "Gültig ab"
   },
   "availability": {
@@ -1676,6 +1677,16 @@
         "list": "Liste der Kost2-Arten"
       },
       "workFraction": "Arbeitszeitanteil"
+    },
+    "kostSearch": {
+      "dock": "Auf jeder Seite einblenden",
+      "dockTooltip": "Lässt die Kost-Suche über jeder Seite schweben und kehrt zur vorherigen Seite zurück, wie ALT-K hier (macOS: Option-K).",
+      "hint": "Kostenträger auswählen, um Nummer und Bezeichnung z. B. zum Kopieren zu erhalten. Mit ALT-K (macOS: Option-K) schwebt die Kost-Suche über jeder Seite.",
+      "number": "Nummer",
+      "panel": {
+        "toggle": "Kost-Suche auf jeder Seite ein- oder ausblenden (ALT-K, macOS: Option-K)"
+      },
+      "popOut": "In eigenem Fenster öffnen"
     },
     "kunde": {
       "_": "Kunde",

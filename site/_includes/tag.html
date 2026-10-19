@@ -1,1 +1,2 @@
-<span class="pf-tag" style="background-color: {{ site.data.tags[include.tag].color }}">{{ site.data.tags[include.tag].text }}</span>
+{%- assign tags = site.data[page.lang].tags | default: site.data.tags -%}
+<span class="pf-tag" style="background-color: {{ site.data.tags[include.tag].color }}">{{ tags[include.tag].text }}</span>
