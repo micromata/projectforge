@@ -121,7 +121,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
             obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
         obj.recalculate()
-        if (CollectionUtils.isEmpty(obj.positionen)) {
+        if (CollectionUtils.isEmpty(obj.positionen) || RechnungDao.hasNoLivePositions(obj, operationType)) {
             throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
         }
         val size = obj.positionen!!.size

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -85,6 +86,30 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         val years = eingangsrechnungDao.years
         Assertions.assertFalse(years.contains(2099), "Deleted far-future invoice must not appear in years.")
         Assertions.assertTrue(years.contains(LocalDate.now().year), "The current invoice's year must be listed.")
+    }
+
+    /**
+     * A deleted position is only flagged and stays in the collection; an invoice whose positions are all deleted has
+     * none left and is refused like one without any.
+     */
+    @Test
+    fun onlyDeletedPositionsAreRefused() {
+        logon(TEST_FINANCE_USER)
+        fun newInvoice(vararg deleted: Boolean): EingangsrechnungDO {
+            val invoice = EingangsrechnungDO()
+            invoice.datum = LocalDate.now()
+            invoice.faelligkeit = LocalDate.now()
+            deleted.forEach { invoice.addPosition(EingangsrechnungsPositionDO().also { pos -> pos.deleted = it }) }
+            return invoice
+        }
+        val ex = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.insert(newInvoice(true)) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+
+        val id = eingangsrechnungDao.insert(newInvoice(false, true))
+        val edited = eingangsrechnungDao.find(id)!!
+        edited.positionen!!.forEach { it.deleted = true }
+        val updateEx = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.update(edited) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", updateEx.i18nKey)
     }
 
     private fun checkNoAccess(id: Serializable, eingangsrechnung: EingangsrechnungDO, who: String) {
