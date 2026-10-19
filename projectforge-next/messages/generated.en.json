@@ -48,6 +48,7 @@
     "write": "Write access"
   },
   "add": "Add",
+  "additionalContacts": "Additional contact persons",
   "address": {
     "_": "Address",
     "addAddress": "Add address",
@@ -336,6 +337,10 @@
             "_": "Forecast",
             "description": "Settings of the forecast (order statistics): the hint on the planning date shown in its tooltip."
           }
+        },
+        "groupNomenclature": {
+          "_": "Group nomenclature",
+          "description": "Naming convention of the groups (description, pattern and suffixes), which the project and structure wizards follow when suggesting names of new groups."
         },
         "hr": {
           "emailaddress": {
@@ -1807,6 +1812,9 @@
     "projectManager": "Project manager",
     "projekt": {
       "_": "Project",
+      "contacts": {
+        "info": "Contact persons have access to the project and to its orders and invoices."
+      },
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
         "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",
@@ -2333,6 +2341,37 @@
       "_": "Local group",
       "not": "Common group",
       "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "nomenclature": {
+      "_": "Naming convention",
+      "description": {
+        "_": "Description",
+        "tooltip": "Explains the convention; shown in the wizards next to the names of new groups."
+      },
+      "example": {
+        "_": "Example",
+        "customer": "Customer",
+        "project": "Project"
+      },
+      "externalSuffix": "Suffix of the group of externals",
+      "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+      "letterCase": {
+        "_": "Letter case",
+        "keep": "Keep as built",
+        "lower": "lower case",
+        "tooltip": "Applies to the whole suggested name, suffix included.",
+        "upper": "UPPER CASE"
+      },
+      "managerSuffix": "Suffix of the manager group",
+      "pattern": {
+        "_": "Pattern of the base name",
+        "placeholders": "Placeholders",
+        "tooltip": "The base name of the groups of a project, built from the placeholders below; an empty identifier is replaced by the name. Empty: the name of the project."
+      },
+      "suffix": {
+        "tooltip": "Appended with a hyphen. Empty: the default of the wizard."
+      },
+      "teamSuffix": "Suffix of the team group"
     },
     "owner": "Group owner",
     "pleaseSelectGroup": "Please select group",
@@ -3818,6 +3857,59 @@
     "least": "least",
     "low": "low",
     "middle": "middle"
+  },
+  "project": {
+    "wizard": {
+      "customer": {
+        "intro": "The customer of the project: an existing one, or a new one that is created together with the project."
+      },
+      "existing": {
+        "customer": "Existing customer",
+        "group": "Existing group"
+      },
+      "finish": "Set up project",
+      "intro": "This wizard sets up a new project in one go: the customer (existing or new), the project, its structure element and the groups of its team, managers and externals together with their access rights. Nothing is saved before the project is set up, and then everything at once.",
+      "managerGroup": {
+        "projectManagerGroup": "This group also becomes the project manager group of the project."
+      },
+      "new": {
+        "customer": "New customer",
+        "group": "New group"
+      },
+      "none": {
+        "group": "No group"
+      },
+      "notAllowed": "The customer wizard is only available to users who may create customers, projects and structure elements.",
+      "pageTitle": "Customer wizard",
+      "parentTask": {
+        "existingCustomer": {
+          "_": "Structure element of the customer",
+          "intro": "The element of the customer, preset from its projects where known. The structure element of the project is created below it, titled with the name of the project, and linked to the project."
+        },
+        "newCustomer": {
+          "_": "Parent of the customer's structure element",
+          "intro": "The structure element of the new customer is created below this element, titled with the name of the customer, and the structure element of the project below that."
+        },
+        "newPath": "Path of the new structure elements:",
+        "structure": {
+          "_": "The element of a customer is the parent of the elements of all its projects. It may be placed below a customer group, a business unit or the like, or on the top level.",
+          "title": "How the structure is meant"
+        }
+      },
+      "preview": {
+        "newElement": "new"
+      },
+      "project": {
+        "intro": "The new project. Its number follows the number range of the customer."
+      },
+      "result": {
+        "created": "new",
+        "customerElement": "Structure element of the customer",
+        "existing": "existing",
+        "projectElement": "Structure element of the project",
+        "title": "What the wizard set up"
+      }
+    }
   },
   "projectmanagement": {
     "personDays": {

@@ -46,6 +46,9 @@ object CoreFeatures {
 
     private val CALENDAR_SUBSCRIPTION = listOf("calendarSubscription", "barcode")
 
+    /** The project wizard, offered by the lists of customers, projects and tasks. */
+    private val PROJECT_WIZARD = listOf("projectWizard")
+
     private val EXTRAS = mapOf(
         MenuItemDefId.ADDRESS_LIST to Extras(rest = listOf("addressImport", "addressLegacy", "cardDAVInfo")),
         MenuItemDefId.ADMIN_ERRORS to Extras(rest = listOf("adminErrors")),
@@ -54,7 +57,7 @@ object CoreFeatures {
         MenuItemDefId.CALENDAR_LIST to Extras(rest = listOf("teamCalImport", "teamEvent") + CALENDAR_SUBSCRIPTION),
         MenuItemDefId.CURRENCY_PAIR_LIST to Extras(rest = listOf("currencyConversionRate")),
         // The number ranges of the number fields of customers and projects.
-        MenuItemDefId.CUSTOMER_LIST to Extras(rest = listOf("numberRanges")),
+        MenuItemDefId.CUSTOMER_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
         MenuItemDefId.CUSTOMIZE_MENU to Extras(rest = listOf("menu/customizer", "menu/customized")),
         MenuItemDefId.DATEV_IMPORT to Extras(rest = listOf("datevAccountImport", "datevRecordImport")),
         MenuItemDefId.EMPLOYEE_SALARY_LIST to Extras(rest = listOf("employeeSalaryImport")),
@@ -72,7 +75,7 @@ object CoreFeatures {
         MenuItemDefId.PHONE_CALL to Extras(rest = listOf("sipgate")),
         MenuItemDefId.PLUGIN_ADMIN to Extras(rest = listOf("pluginList")),
         MenuItemDefId.POLL to Extras(rest = listOf("pollInfo", "pollResponse")),
-        MenuItemDefId.PROJECT_LIST to Extras(rest = listOf("numberRanges")),
+        MenuItemDefId.PROJECT_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
         MenuItemDefId.SCRIPT_LIST to Extras(rest = listOf("scriptExecute")),
         MenuItemDefId.SYSTEM to Extras(
             rest = listOf("admin", "adminCaches", "adminLogViewer", "adminScheduler", "systemStatistics", "logViewer"),
@@ -80,8 +83,8 @@ object CoreFeatures {
         ),
         // The task picker of other pages (timesheets, orders, ...) uses the tree and the favorites.
         MenuItemDefId.TASK_TREE to Extras(
-            rest = listOf("task", "taskWizard"),
-            next = listOf("task", "taskWizard"),
+            rest = listOf("task", "taskWizard") + PROJECT_WIZARD,
+            next = listOf("task", "taskWizard") + PROJECT_WIZARD,
             shared = listOf("task/tree", "task/favorites", "task/recent", "task/info", "task/kost2Preview"),
         ),
         MenuItemDefId.TIMESHEET_LIST to Extras(rest = CALENDAR_SUBSCRIPTION),

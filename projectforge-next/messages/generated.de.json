@@ -48,6 +48,7 @@
     "write": "Schreibzugriff"
   },
   "add": "Hinzufügen",
+  "additionalContacts": "Weitere Ansprechpartner:innen",
   "address": {
     "_": "Adresse",
     "addAddress": "Adresse hinzufügen",
@@ -336,6 +337,10 @@
             "_": "Forecast",
             "description": "Einstellungen des Forecasts (Statistiken): der Hinweis zum Plandatum, der in dessen Tooltip angezeigt wird."
           }
+        },
+        "groupNomenclature": {
+          "_": "Nomenklatur der Gruppen",
+          "description": "Namenskonvention der Gruppen (Beschreibung, Muster und Endungen), nach der Projekt- und Strukturelement-Assistent die Namen neuer Gruppen vorschlagen."
         },
         "hr": {
           "emailaddress": {
@@ -1807,6 +1812,9 @@
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf das Projekt und seine Aufträge und Rechnungen."
+      },
       "edit": {
         "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
         "kost2LockedEnded": "Das Projekt ist beendet und damit auch seine Kost2-Einheiten (angehakt): Sie sind nicht mehr änderbar.",
@@ -2333,6 +2341,37 @@
       "_": "Lokale Gruppe",
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
+    },
+    "nomenclature": {
+      "_": "Namenskonvention",
+      "description": {
+        "_": "Beschreibung",
+        "tooltip": "Erläutert die Konvention; wird in den Assistenten bei den Namen neuer Gruppen angezeigt."
+      },
+      "example": {
+        "_": "Beispiel",
+        "customer": "Kunde",
+        "project": "Projekt"
+      },
+      "externalSuffix": "Endung der Gruppe der Externen",
+      "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+      "letterCase": {
+        "_": "Groß-/Kleinschreibung",
+        "keep": "Unverändert",
+        "lower": "kleinbuchstaben",
+        "tooltip": "Gilt für den ganzen vorgeschlagenen Namen samt Endung.",
+        "upper": "GROSSBUCHSTABEN"
+      },
+      "managerSuffix": "Endung der Managergruppe",
+      "pattern": {
+        "_": "Muster des Basisnamens",
+        "placeholders": "Platzhalter",
+        "tooltip": "Der Basisname der Gruppen eines Projekts, gebildet aus den unten aufgeführten Platzhaltern; ein leerer Kurzbezeichner wird durch den Namen ersetzt. Leer: der Name des Projekts."
+      },
+      "suffix": {
+        "tooltip": "Wird mit Bindestrich angehängt. Leer: die Vorgabe des Assistenten."
+      },
+      "teamSuffix": "Endung der Teamgruppe"
     },
     "owner": "Gruppenbesitzer",
     "pleaseSelectGroup": "Bitte Gruppe wählen",
@@ -3818,6 +3857,59 @@
     "least": "gering",
     "low": "niedrig",
     "middle": "mittel"
+  },
+  "project": {
+    "wizard": {
+      "customer": {
+        "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird."
+      },
+      "existing": {
+        "customer": "Vorhandener Kunde",
+        "group": "Vorhandene Gruppe"
+      },
+      "finish": "Projekt einrichten",
+      "intro": "Mit diesem Assistenten wird ein neues Projekt in einem Schritt eingerichtet: der Kunde (vorhanden oder neu), das Projekt, sein Strukturelement und die Gruppen von Team, Teammanager:innen und Externen samt ihrer Zugriffsrechte. Gespeichert wird erst beim Einrichten, dann alles auf einmal.",
+      "managerGroup": {
+        "projectManagerGroup": "Diese Gruppe wird zugleich die Projektmanager-Gruppe des Projekts."
+      },
+      "new": {
+        "customer": "Neuer Kunde",
+        "group": "Neue Gruppe"
+      },
+      "none": {
+        "group": "Keine Gruppe"
+      },
+      "notAllowed": "Der Kundenassistent steht nur Benutzer:innen zur Verfügung, die Kunden, Projekte und Strukturelemente anlegen dürfen.",
+      "pageTitle": "Kundenassistent",
+      "parentTask": {
+        "existingCustomer": {
+          "_": "Strukturelement des Kunden",
+          "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."
+        },
+        "newCustomer": {
+          "_": "Übergeordnetes Element des Kunden",
+          "intro": "Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel, und darunter das Strukturelement des Projekts."
+        },
+        "newPath": "Pfad der neuen Strukturelemente:",
+        "structure": {
+          "_": "Das Element eines Kunden ist das übergeordnete Element aller seiner Projekte. Es kann einer Kundengruppe, einer Business-Unit o. ä. untergeordnet sein oder auf oberster Ebene liegen.",
+          "title": "Wie der Aufbau gedacht ist"
+        }
+      },
+      "preview": {
+        "newElement": "neu"
+      },
+      "project": {
+        "intro": "Das neue Projekt. Seine Nummer folgt dem Nummernkreis des Kunden."
+      },
+      "result": {
+        "created": "neu",
+        "customerElement": "Strukturelement des Kunden",
+        "existing": "vorhanden",
+        "projectElement": "Strukturelement des Projekts",
+        "title": "Was der Assistent eingerichtet hat"
+      }
+    }
   },
   "projectmanagement": {
     "personDays": {

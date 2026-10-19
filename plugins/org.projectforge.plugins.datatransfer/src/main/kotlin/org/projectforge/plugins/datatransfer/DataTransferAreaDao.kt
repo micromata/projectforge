@@ -232,7 +232,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     /**
      * The external link of an area is this url followed by its access token: the gateway's public page if
      * external access runs via the gateway, the next public page of this instance otherwise (`next/public/datatransfer/`).
-     * The legacy React page (`react/public/datatransfer/dynamic/<token>`) still serves links sent before.
+     * Links to the former React page (`react/public/datatransfer/dynamic/<token>`), sent before, are redirected to the
+     * latter by OrphanedLinkFilter.
      */
     open fun getExternalBaseLinkUrl(): String {
         if (externalAccessConfig.viaGateway) {

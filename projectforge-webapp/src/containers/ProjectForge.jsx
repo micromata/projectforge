@@ -10,7 +10,7 @@ import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import AuthorizedRoutes, { nextRoute, publicRoute, legacyWicketRoute } from './AuthorizedRoutes';
+import AuthorizedRoutes, { nextRoute, legacyWicketRoute } from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 import ModalRoutes from './ModalRoutes';
@@ -56,10 +56,9 @@ function ProjectForge(
             <Routes location={switchLocation}>
                 {legacyWicketRoute}
                 {nextRoute}
-                {publicRoute}
                 <Route
                     path={`${prefix}/:tab?`}
-                    element={<FormPage isPublic />}
+                    element={<FormPage />}
                 />
             </Routes>
         );
