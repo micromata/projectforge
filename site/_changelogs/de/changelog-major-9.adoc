@@ -1,13 +1,77 @@
 ---
 title: "ProjectForge 9"
-date: 2026-10-19
-sort_key: "2026-10-19 0039"
+date: 2026-10-20
+sort_key: "2026-10-20 0040"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-11.changelog-release]
+=== ProjectForge 9.0.11 veröffentlicht
+
+[.changelog-source]
+__2026-10-20, Tag https://github.com/micromata/projectforge/tree/9.0.11-RELEASE[9.0.11-RELEASE]__ +++{% include release-pills.html tag="9.0.11-RELEASE" docker="9.0.11" mini=true %}+++
+
+- **Kundenassistent**: Kunde, Projekt, Strukturelement und Gruppen in einem Schritt
+- **Projekt-Ansprechpartner:innen** statt Projektmanagement, Management Business Unit und Key-Account-Manager:in
+- **Datentransfer**: externer Zugang in der neuen Oberfläche, Bereiche intern administriert
+- **Editor für projectforge.properties**, Funktionen abschaltbar
+- Speichern leert nicht mehr das Anlagedatum
+
+.Überblick
+[%collapsible]
+====
+- **Kundenassistent:** richtet Kunde, Projekt mit Kost2-Arten, Strukturelement und Gruppen samt Zugriffsrechten in einem Schritt ein, mit Vorschau; Gruppennamen folgen einer konfigurierbaren Namenskonvention.
+- **Projekte:** Eine Ansprechpartner:in und beliebig viele weitere, wie bei Aufträgen, ersetzen Projektmanagement, Management Business Unit und Key-Account-Manager:in (migriert).
+- **Datentransfer:** Der externe Zugang eines Bereichs ist in die neue Oberfläche umgezogen; Bereiche mit externem Zugriff werden auf der internen Instanz administriert und aufs Gateway synchronisiert.
+- **Administration:** Editor für die projectforge.properties mit Beschreibungen, Standardwerten und Sicherungskopie vor jedem Speichern; Funktionen lassen sich per Konfiguration abschalten (Menüeinträge weg, Seiten und REST-Dienste 404).
+- **Urlaub:** Urlaubskontokorrekturen auf die neue Oberfläche migriert; Urlaubs- und Abwesenheitseinträge lassen sich als die jeweils andere Art bearbeiten.
+- **DATEV-Import:** Ein Upload füllt Buchungssätze und Kontenplan.
+- **Behoben:** Das Speichern eines geänderten Eintrags in der neuen Oberfläche leert nicht mehr sein Anlagedatum (verlorene Daten aus der Historie wiederhergestellt); Menüsichtbarkeit mit einer Liste mehrerer Gruppen funktioniert.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- **Funktionen abschalten**
+  * Funktionen lassen sich in der Konfiguration abschalten (projectforge.features.enabled und .disabled, eine je Menüeintrag): Ihre Menüeinträge verschwinden, ihre Seiten und REST-Dienste antworten mit 404.
+  * Die REST-Dienste nicht aktivierter Plugins sind nicht mehr erreichbar.
+  * Das Gateway bietet nur noch den Datentransfer an: Die Einträge des Benutzermenüs, die dort ins Leere führten (Feedback, Mein Zugang, Menü, 2FA, persönliche Box), sind entfernt.
+  * Die Sichtbarkeit des Menüeintrags zum Anpassen des Menüs wird über projectforge.menu.visibility.myMenu eingestellt (sie folgte myAccount).
+- Gruppen: Eine konfigurierbare Namenskonvention (Konfigurationsparameter „Nomenklatur der Gruppen“: Beschreibung, Muster aus Kunden- und Projektfeldern, Endungen je Rolle, Groß-/Kleinschreibung). Projekt- und Strukturelement-Assistent schlagen die Namen neuer Gruppen danach vor, und die Beschreibung wird am Namen einer Gruppe und in den Assistenten angezeigt.
+- Kundenassistent: richtet ein Projekt in einem Schritt ein – den Kunden (einen vorhandenen oder einen neuen), das Projekt mit seinen Kost2-Arten, sein Strukturelement unterhalb eines gewählten und die Gruppen von Team, Teammanager:innen und Externen (vorhandene oder neue mit ihren Mitgliedern) samt ihrer Zugriffsrechte, die vor dem Speichern in einer Vorschau angezeigt werden. Verfügbar für alle, die Kunden, Projekte und Strukturelemente anlegen dürfen; über den Assistenten dürfen sie ausnahmsweise auch Gruppen und Zugriffsrechte anlegen. Angeboten in der Kundenliste, der Projektliste, im Strukturbaum und in der Aufgabenliste.
+- Urlaub und Verfügbarkeit: Ein Eintrag kann als die jeweils andere Art bearbeitet werden („Als Abwesenheit bearbeiten“ / „Als Urlaub bearbeiten“), wie Zeitbuchungen und Termine (jetzt „Als Termin bearbeiten“ / „Als Zeitbuchung bearbeiten“, bisher „In … umwandeln“). Person, Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der erst beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt unverändert. Das erklärt auch der Tooltip der Schaltfläche.
+- Administration -> System: Editor für die projectforge.properties. Alle Parameter nach Themen gruppiert mit Beschreibungen und Standardwerten, Suche, Geheimnisse maskiert. Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel abgelegt; Änderungen werden nach einem Neustart wirksam.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobile Tätigkeit“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort.
+- DATEV-Import: Ein Upload der Datei des Steuerbüros füllt beide Reiter, Buchungssätze und Kontenplan, sodass beide ohne erneuten Upload abgeglichen werden können.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- **Datentransfer mit Gateway**
+  * Bereiche mit externem Download oder Upload werden wieder auf der internen Instanz administriert. Jede Synchronisation überträgt sie auf das Gateway, auf das der externe Link zeigt und auf dem Externe und die internen Berechtigten die Dateien finden. Auf dem Gateway wird kein Bereich mehr administriert (weder angelegt, geändert noch gelöscht; auch keine persönlichen Boxen), ein Hinweis dort verweist auf die Hauptinstanz, und die Beobachter bekommen die Benachrichtigungen von dort. Wird der externe Zugriff abgeschaltet oder der Bereich gelöscht, verschwindet er vom Gateway.
+  * Der externe Link eines gelöschten Bereichs funktioniert nicht mehr.
+- Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist in die neue Oberfläche umgezogen. Der Link des Bereichs zeigt jetzt dorthin; früher verschickte Links führen ebenfalls dorthin. Wie im Bereich selbst öffnet ein Klick auf eine Datei ihre Details (bei fremden Dateien nur zum Ansehen), die neuesten Dateien stehen oben, und die Spalteneinstellungen bleiben (im Browser) erhalten. Eigene Uploads lassen sich jetzt auch verschlüsseln. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, außer sie sind zusätzlich in ProjectForge angemeldet und haben dort Zugriff auf den Bereich (sie sehen auch dessen Aktivitäten), und können keine fremden Dateien mehr umbenennen. An- und Abmelden im externen Zugang beendet keine Anmeldung bei ProjectForge im selben Browser mehr.
+- Projekte: Statt Projektmanagement, Management Business Unit und Key-Account-Manager:in gibt es wie bei Aufträgen eine Ansprechpartner:in und beliebig viele weitere (migriert: das Projektmanagement wird Ansprechpartner:in, die anderen werden weitere Ansprechpartner:innen). Alle haben denselben Zugriff auf das Projekt und seine Aufträge und Rechnungen; die Projektliste zeigt sie in einer Spalte, die Massenänderung setzt die Ansprechpartner:in, und beim Wählen eines Projekts im Auftrag werden dessen Ansprechpartner:innen übernommen.
+- Urlaubskontokorrekturen auf die neue Oberfläche migriert: Liste und Formular. HR kann im Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter anlegen; eine dort geöffnete Korrektur kehrt dorthin zurück. Alte Links werden umgeleitet.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Sichtbarkeit von Menüs (projectforge.menu.visibility.*): Eine Liste mehrerer Gruppen funktioniert, getrennt durch Komma oder Semikolon (erkannt wurde nur eine einzelne Gruppe, eine Liste gar nicht).
+- Das Speichern eines geänderten Eintrags in der neuen Oberfläche leert nicht mehr sein Anlagedatum. Das Datum der letzten Änderung setzt immer der Server. So verlorene Anlagedaten werden aus der Historie wiederhergestellt.
+====
 
 [discrete#release-9-0-10.changelog-release]
 === ProjectForge 9.0.10 veröffentlicht
