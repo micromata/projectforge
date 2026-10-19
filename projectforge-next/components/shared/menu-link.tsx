@@ -1,5 +1,9 @@
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { resolveMenuUrl } from "@/lib/menu-url";
+import {
+  opensCostSearchPanel,
+  useCostSearchPanelStore,
+} from "@/store/cost-search-panel-store";
 
 /**
  * Hover feedback for menu entries and triggers. The shadcn menu primitives only highlight on
@@ -19,6 +23,10 @@ export const MENU_HOVER_CLASS =
  * The internal case is a [GuardedLink]: every menu entry leads away from whatever is on screen, and an
  * edit form full of entries is one of the things it leads away from. The external case needs no guard
  * of its own — a full page load is what `beforeunload` catches (see useUnsavedChangesWarning).
+ *
+ * The cost search's entry opens the floating panel over the current page instead (opensCostSearchPanel);
+ * opened in a new tab (modifier key, middle click) it is still the page. Read from the store in the
+ * handler, not subscribed to, so the component stays free of state.
  */
 export function MenuLink({
   url,
@@ -52,7 +60,21 @@ export function MenuLink({
     <GuardedLink
       href={target.href}
       className={className}
-      onClick={onClick}
+      onClick={(event) => {
+        onClick?.(event);
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey ||
+          !opensCostSearchPanel(target.href)
+        )
+          return;
+        event.preventDefault();
+        useCostSearchPanelStore.getState().show();
+      }}
       aria-label={ariaLabel}
     >
       {children}

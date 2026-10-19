@@ -666,6 +666,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   begannen, fehlten darauf. `react/vacationExport/**` leitet `OrphanedLinkFilter` um. Nach dem Review: `view`
   schneidet die Urlaube auf den angezeigten Zeitraum, `favorites` liefert nur die wählbaren Ids; die Grafik ist
   `role="group"` mit fokussierbaren, benannten Balken; `initial` wird nie aus dem Cache übernommen (`gcTime: 0`).
+- **Kost-Suche** (`/next/costSearch`, vorher React-UILayout `CostSearchPageRest`, gelöscht) – Kost1/Kost2 über die
+  geteilte `EntityAutocomplete` (`cost1|cost2/autosearch`, „Inaktive zeigen“ statt der eigenen Checkbox „Nur aktive
+  Einträge“) gewählt, Nummer und Langname zum Kopieren über `CostSearchRest` (`/rs/costSearch/cost1|cost2/{id}`,
+  DAO-Zugriff). Neu: dieselbe Komponente (`components/shared/cost-search/`) schwebt als verschiebbares, einklappbares
+  Panel über jeder Seite (`CostSearchPanelHost` im authentifizierten Layout, Schalter in der Kopfleiste, `ALT-K`;
+  Zustand und Position im localStorage, `useCostSearchPanelStore` mit `persist`) und öffnet sich als kleines eigenes
+  Fenster ohne Navigation (`/next/costSearch/popout`). Sichtbar nur mit dem Menüeintrag `COST_SEARCH`. Der
+  Menüeintrag (Menü, Favoriten, Schnellzugriff: `MenuLink`, `useNavigateMenuUrl` über `opensCostSearchPanel`)
+  öffnet in Next das Panel über der aktuellen Seite statt der Seite; aus dem React-Menü (volles Laden) kommt die
+  Seite, deren „Auf jeder Seite einblenden“ (wie `ALT-K` dort) dann auf die Startseite statt zurück nach React führt.
+  `react/costSearch/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

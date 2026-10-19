@@ -8,6 +8,10 @@ import {
   hasUnsavedChanges,
 } from "@/hooks/use-unsaved-changes-warning";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
+import {
+  opensCostSearchPanel,
+  useCostSearchPanelStore,
+} from "@/store/cost-search-panel-store";
 
 /**
  * Navigates to a backend url (a menu url or a search hit's `viewUrl`), the way the quick access search does.
@@ -17,6 +21,8 @@ import { navigateInGesture } from "@/lib/navigate-in-gesture";
  * `beforeunload` guards on its own). A `router.push` is not a link and nothing else would stop it, so an
  * internal navigation asks the app's own unsaved-changes dialog first. With nothing to lose it navigates at
  * once, still within the click or key press, so that Safari keeps the entry for back (see navigateInGesture).
+ *
+ * The cost search's entry opens the floating panel over the current page instead (opensCostSearchPanel).
  *
  * Cross-cutting (used by the menu results, the menu search's live data hits and the search page), so it lives in
  * hooks/, not the search feature.
@@ -29,6 +35,11 @@ export function useNavigateMenuUrl() {
       if (target.kind === "external") {
         beforeNavigate?.();
         window.location.assign(toAbsoluteUrl(target));
+        return;
+      }
+      if (opensCostSearchPanel(target.href)) {
+        beforeNavigate?.();
+        useCostSearchPanelStore.getState().show();
         return;
       }
       if (!hasUnsavedChanges()) {

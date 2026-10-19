@@ -262,6 +262,13 @@ class OrphanedLinkFilterTest {
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
     }
 
+    /** The old React cost search is gone. */
+    @Test
+    fun `the old react cost search is redirected to next`() {
+        Assertions.assertEquals("/next/costSearch", redirectOf("/react/costSearch/dynamic"))
+        Assertions.assertEquals("/next/costSearch", redirectOf("/react/costSearch"))
+    }
+
     /** The old React team vacation export is gone. */
     @Test
     fun `the old react vacation export is redirected to next`() {

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AuthGuard } from "@/components/shared/auth-guard";
+import { CostSearchPanelHost } from "@/components/shared/cost-search/cost-search-panel-host";
 import { EntityEditModalHost } from "@/components/shared/edit/entity-edit-modal-host";
 import { JobToasts } from "@/components/shared/jobs/job-toasts";
 import { NotificationToasts } from "@/components/shared/notifications/notification-toasts";
@@ -24,6 +25,9 @@ export default function AuthenticatedLayout({
       {/* The app's own "leave unsaved changes?" question, in place of the browser's confirm box — one
           instance any link or modal below raises (see confirmLeaveUnsavedChanges). */}
       <UnsavedChangesDialogHost />
+      {/* The floating cost search finance users keep open while working on any page — here, so it stays
+          where it is when the page below changes. */}
+      <CostSearchPanelHost />
       {/* Anything below may read the query string, which under `output: "export"` needs a boundary of
           its own: a page calling `useSearchParams()` without one fails the build. Stated once here
           rather than per page — the pages below are client rendered anyway, so the bailout it causes
