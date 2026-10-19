@@ -152,7 +152,7 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
     fun orderChangeNotification() {
         val order = AuftragDO().also {
             it.id = 4711L
-            it.nummer = 4711
+            it.nummer = 7299
             it.titel = "Relaunch Kundenportal (Phase 2)"
             it.kunde = KundeDO().also { k -> k.nummer = 12345L; k.name = "ACME Müller & Söhne GmbH" }
             it.projekt = ProjektDO().also { p -> p.nummer = 2; p.name = "Kundenportal" }
@@ -166,7 +166,7 @@ class MailTemplatesPreviewTest : AbstractTestBase() {
             it.addPosition(position("Konzeption und Design", "12000", AuftragsPositionsArt.NEUENTWICKLUNG))
             it.addPosition(position("Umsetzung Frontend", "48500", AuftragsPositionsArt.NEUENTWICKLUNG))
         }
-        val subject = "Auftrag #4711 wurde geändert."
+        val subject = "Auftrag #7299 wurde geändert."
         val mail = htmlMail(subject)
         val data = mutableMapOf<String, Any?>(
             "contactPerson" to recipient,
