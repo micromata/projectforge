@@ -60,4 +60,5 @@ To start over with fresh data: `bin/pfDev.sh reset 5`, then step 1.
 
 `scenes.mjs` defines name, page and interactions per picture. The calendar scene replaces the raw i18n key
 "calendar.day" of the day view button by "Day" (a frontend bug, remove the workaround once it is fixed).
-Leave applications and two-factor setup are not part of the scenes: these pages still use the legacy React UI.
+The gallery of leave and availability (`2026-Vacation*`, `2026-Availability*`, `2026-TeamVacationCalendar`) is
+taken by `projectforge-next/e2e/tools/site-screenshots.mjs`, with the same viewport and scaling.
