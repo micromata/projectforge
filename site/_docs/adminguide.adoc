@@ -177,6 +177,36 @@ group _Other_. Passwords, keys and tokens are never shown: a secret can only be 
 * A value the running system uses differently (a restart is pending, or the value is set by an
   environment variable or the command line) is marked.
 
+[[feature_toggles]]
+=== Switching off functions
+
+Functions of ProjectForge can be switched off in `projectforge.properties` (a restart is needed). A switched off
+function has no menu entry, and its pages and REST services answer with 404, for everybody.
+
+[source,properties]
+----
+# Allowlist: all (default) or a comma separated list.
+projectforge.features.enabled=all
+# Denylist, wins over the allowlist.
+projectforge.features.disabled=TIMESHEET_LIST,HR
+----
+
+There is one function per menu entry. Its id is the id of the menu entry (`ADDRESS_LIST`, `TIMESHEET_LIST`,
+`FEEDBACK`, `MY_ACCOUNT`, ..., see `MenuItemDefId`), of a plugin's menu entry (`toDo`, `DataTransferPersonalBox`)
+or of a plugin (`datatransfer`, `marketing`). A main menu group (`COMMON`, `FIBU`, `HR`, `MISC`, ...) or a plugin
+stands for all of its entries. Plugins that aren't activated are switched off as well, including their REST services.
+Unknown ids are logged as a warning on start-up.
+
+This is no permission system, the access checks of the functions remain as they are. Some services stay
+reachable even with their function switched off, because other pages need them: the lookups of the input fields
+(e.g. of users or tasks), the subscription of calendars, and the core of the application (login, menu, settings,
+notifications, attachments of the remaining functions). The interfaces outside the pages and REST services aren't
+switched off either: CardDAV (`/carddav`), the export of calendars (`/export/ProjectForge.ics`) and the SMS
+interface (`/export/sms`).
+
+The menu visibility (`projectforge.menu.visibility.*`) is something else: it hides menu entries for groups of users
+only, the functions stay reachable.
+
 [[customization]]
 === Customization
 
@@ -1041,7 +1071,9 @@ Activate with the Spring profile `external-gateway`:
 ===== Minimal gateway configuration
 
 The gateway instance's `projectforge.properties` requires the gateway mode and the database connection.
-All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
+All other gateway settings (CardDAV, the functions switched off, see <<feature_toggles>>) are provided by the
+`external-gateway` profile automatically. Without the profile, the gateway mode switches off all functions but the
+data transfer as well.
 
 The OAuth2/OIDC configuration is only needed for the DataTransfer UI: CardDAV and CalDAV/ICS authenticate
 via tokens and work without it. If the OAuth2 client is not configured, the gateway starts without a login option.
@@ -1113,10 +1145,20 @@ projectforge.gateway.push.syncIntervalMs=900000
 |`push.secret` |Shared secret (must match `projectforge.gateway.sync.secret` on the gateway)
 |`push.syncIntervalMs` |Interval between sync pushes in milliseconds (default: 900000 = 15 minutes)
 |`push.initialDelayMs` |Delay of the first sync push after start-up in milliseconds (default: 120000 = 2 minutes)
+|`push.publicUrl` |URL of the gateway for browsers (external links of data transfer areas), only if it differs from `push.url` without `/api/gateway/sync`
 |===
 
 The push service sends users, groups, address books, and cached ICS calendar data to the gateway.
 All requests are authenticated via the `X-Gateway-Secret` HTTP header.
+
+Data transfer areas with external download or upload are administered on the main instance and pushed to the gateway
+with each sync. Their external link points to the gateway, external users and the internal users with access work with
+the files there; on the gateway these areas are read-only and keep the ids of the main instance. The gateway has
+only these areas, it creates none itself (no personal boxes). Switching off the external access or deleting the area on
+the main instance removes it from the gateway. The gateway sends the notification mails of these areas to their
+observers (e.g. on an external upload), so it needs a mail server configuration; for this the push includes the email
+addresses of these observers, and only theirs. With `projectforge.datatransfer.externalAccess.localAllowed=true` the
+external access runs on the main instance instead (nothing is pushed), with `false` it can't be enabled at all.
 
 [[identity_provider_sync_idp]]
 === Identity Provider Sync (IdP)

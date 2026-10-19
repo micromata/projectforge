@@ -37,13 +37,13 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.datatransfer.DataTransferAccessChecker
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -65,14 +65,19 @@ class DataTransferAreaEntityRest :
         "plugins.datatransfer.title"
     ) {
     /**
-     * The choices of the admin form and whether external access may be configured here or has to be
-     * administered on the gateway instead (see [getOptions]).
+     * The choices of the admin form and where external access runs (see [getOptions] and
+     * [DataTransferExternalAccessConfig.Mode]).
      */
     class Options(
         val expiryDays: List<UISelectValue<Int>>,
         val maxUploadSizes: List<UISelectValue<Int>>,
+        /** False: external access can't be switched on (only off). */
         val externalAccessAllowed: Boolean,
-        val gatewayHost: String,
+        /** External access is configured here, but runs on the gateway [gatewayUrl] (link, transfers and files). */
+        val externalAccessViaGateway: Boolean,
+        val gatewayUrl: String?,
+        /** This is the gateway: only areas pushed by the main instance, read-only, no personal boxes. */
+        val gatewayMode: Boolean,
     )
 
     @Autowired
@@ -81,18 +86,8 @@ class DataTransferAreaEntityRest :
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
-    @Value("\${projectforge.gateway.push.enabled:false}")
-    private var gatewayPushEnabled: Boolean = false
-
-    @Value("\${projectforge.gateway.push.url:}")
-    private var gatewayPushUrl: String = ""
-
-    /**
-     * Whether areas with external access may be configured on this instance. Unset: only without a gateway
-     * (see [externalAccessAllowed]).
-     */
-    @Value("\${projectforge.datatransfer.externalAccess.localAllowed:#{null}}")
-    private var externalAccessLocalAllowed: Boolean? = null
+    @Autowired
+    private lateinit var externalAccessConfig: DataTransferExternalAccessConfig
 
     @PostConstruct
     private fun postConstruct() {
@@ -127,7 +122,7 @@ class DataTransferAreaEntityRest :
      * The choices of the admin form: the expiry days and the maximum upload sizes (in KB, limited by the global
      * maximum of Spring's multipart configuration).
      */
-    @AccessChecked("No data: static choices and the gateway flag only")
+    @AccessChecked("No data: static choices and the external access mode only")
     @GetMapping("options")
     fun getOptions(): Options {
         val globalMaxBytes = configurationChecker.springServletMultipartMaxFileSize.toBytes()
@@ -136,8 +131,10 @@ class DataTransferAreaEntityRest :
             maxUploadSizes = DataTransferAreaDao.MAX_UPLOAD_SIZE_VALUES
                 .filter { 1024L * it <= globalMaxBytes }
                 .map { UISelectValue(it, FormatterUtils.formatBytes(1024L * it)) },
-            externalAccessAllowed = externalAccessAllowed,
-            gatewayHost = gatewayHost,
+            externalAccessAllowed = externalAccessConfig.mode != DataTransferExternalAccessConfig.Mode.NONE,
+            externalAccessViaGateway = externalAccessConfig.viaGateway,
+            gatewayUrl = externalAccessConfig.gatewayPublicUrl.takeIf { externalAccessConfig.viaGateway },
+            gatewayMode = externalAccessConfig.gatewayMode,
         )
     }
 
@@ -235,15 +232,15 @@ class DataTransferAreaEntityRest :
     }
 
     /**
-     * Where external access isn't allowed, it can't be switched on. An area that already has it (created
-     * before) may keep it or switch it off.
+     * Where external access isn't allowed ([DataTransferExternalAccessConfig.Mode.NONE]), it can't be switched
+     * on. An area that already has it (created before) may keep it or switch it off.
      */
     private fun validateExternalAccessAllowed(validationErrors: MutableList<ValidationError>, dto: DataTransferArea) {
-        if (externalAccessAllowed || !dto.externalAccessEnabled) {
+        if (externalAccessConfig.mode != DataTransferExternalAccessConfig.Mode.NONE || !dto.externalAccessEnabled) {
             return
         }
         val stored = dto.id?.let { baseDao.find(it, checkAccess = false) }
-        val message = translateMsg("plugins.datatransfer.validation.error.externalAccessNotAllowed", gatewayHost)
+        val message = translate("plugins.datatransfer.validation.error.externalAccessNotAllowed")
         if (dto.externalDownloadEnabled == true && stored?.externalDownloadEnabled != true) {
             validationErrors.add(ValidationError(message, fieldId = "externalDownloadEnabled"))
         }
@@ -251,10 +248,4 @@ class DataTransferAreaEntityRest :
             validationErrors.add(ValidationError(message, fieldId = "externalUploadEnabled"))
         }
     }
-
-    private val externalAccessAllowed: Boolean
-        get() = externalAccessLocalAllowed ?: !gatewayPushEnabled
-
-    private val gatewayHost: String
-        get() = gatewayPushUrl.ifBlank { "Gateway" }
 }

@@ -193,8 +193,7 @@ class OrphanedLinkFilterTest {
 
     /**
      * The dynamic React pages of the data transfer plugin are gone; the links of the notification mails (file
-     * view, -1 = own personal box) and bookmarks are bent onto the next pages. The public external access is
-     * not migrated and must not be touched.
+     * view, -1 = own personal box) and bookmarks are bent onto the next pages.
      */
     @Test
     fun `the old react data transfer pages are redirected to next`() {
@@ -206,7 +205,25 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/datatransfer", redirectOf("/react/datatransfer"))
         Assertions.assertEquals("/next/datatransfer/42/edit", redirectOf("/react/datatransfer/edit/42"))
         Assertions.assertEquals("/next/datatransfer/new", redirectOf("/react/datatransfer/edit"))
-        Assertions.assertNull(redirectOf("/react/public/datatransfer/dynamic/abc"))
+    }
+
+    /**
+     * The React external access of a data transfer area is gone; the links sent to external users before are
+     * bent onto the next external access. Only alphanumeric tokens get into the Location header.
+     */
+    @Test
+    fun `the old react external access of data transfer is redirected to next`() {
+        Assertions.assertEquals(
+            "/next/public/datatransfer/abc123/",
+            redirectOf("/react/public/datatransfer/dynamic/abc123"),
+        )
+        Assertions.assertEquals(
+            "/next/public/datatransfer/abc123/",
+            redirectOf("/react/public/datatransfer/dynamic", mapOf("id" to "abc123")),
+        )
+        Assertions.assertEquals("/next/", redirectOf("/react/public/datatransfer/dynamic/a%22b"))
+        Assertions.assertEquals("/next/", redirectOf("/react/public/datatransfer/dynamic", mapOf("id" to "a/b")))
+        Assertions.assertEquals("/next/", redirectOf("/react/public/datatransfer"))
     }
 
     /**

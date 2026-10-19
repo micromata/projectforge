@@ -28,6 +28,7 @@ import jakarta.servlet.ReadListener
 import jakarta.servlet.ServletInputStream
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.rest.config.AttachmentCategoryRequests
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -121,7 +122,7 @@ class GatewayEndpointFilterTest {
 
     @Test
     fun checksCategoryInBodyOfAttachmentCalls() {
-        for (url in GatewayEndpointFilter.BODY_CATEGORY_URLS) {
+        for (url in AttachmentCategoryRequests.BODY_CATEGORY_URLS) {
             assertAllowedWithBody(url, """{"data":{"category":"datatransfer","id":42,"fileId":"abc"}}""")
             assertBlocked(url, """{"data":{"category":"book","id":42,"fileId":"abc"}}""")
             assertBlocked(url, """{"data":{"id":42}}""")

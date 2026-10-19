@@ -37,6 +37,7 @@ import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.common.StringHelper
 import org.projectforge.common.logging.error
 import org.projectforge.common.logging.warn
 import org.projectforge.framework.integration.IntegrationConfig
@@ -50,7 +51,10 @@ import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.utils.Crypt
+import org.projectforge.plugins.datatransfer.DataTransferAreaDO
+import org.projectforge.plugins.datatransfer.DataTransferExternalAccessConfig
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncDataTransferAreaDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
@@ -84,6 +88,7 @@ class GatewaySyncPushService(
     private val persistenceService: PfPersistenceService,
     private val userAuthenticationsService: UserAuthenticationsService,
     private val teamCalCache: TeamCalCache,
+    private val dataTransferExternalAccessConfig: DataTransferExternalAccessConfig,
     integrationConfig: IntegrationConfig,
 ) {
     @Autowired(required = false)
@@ -110,6 +115,8 @@ class GatewaySyncPushService(
     private var lastUsersHash: Int? = null
 
     private var lastGroupsHash: Int? = null
+
+    private var lastDataTransferAreasHash: Int? = null
 
     private val pushLock = ReentrantLock()
 
@@ -165,6 +172,10 @@ class GatewaySyncPushService(
      * Pushes all users, including deactivated and deleted ones (active = false), so the gateway revokes
      * their access. Tokens are only sent for active users. A delta sync skips the push, if nothing changed since
      * the last push.
+     *
+     * The email address is sent only for active observers of the data transfer areas pushed to the gateway
+     * ([pushDataTransferAreas]): the gateway sends them the notification mails of these areas. All other users
+     * have none there (data minimization), and an observer who stops observing loses it with the next push.
      */
     private fun pushUsers(fullSync: Boolean, counts: SyncCounts): Boolean {
         val users = userDao.selectAll(checkAccess = false)
@@ -172,6 +183,11 @@ class GatewaySyncPushService(
             "SELECT a FROM UserAuthenticationsDO a",
             UserAuthenticationsDO::class.java,
         ).associateBy { it.userId }
+        val observerIds = if (dataTransferExternalAccessConfig.viaGateway) {
+            loadPushedDataTransferAreas().flatMap { StringHelper.splitToLongs(it.observerIds, ",")?.toList() ?: emptyList() }.toSet()
+        } else {
+            emptySet()
+        }
         val dtos = users.filter { it.username != null }.map { user ->
             val active = user.hasSystemAccess()
             val auth = if (active) authByUserId[user.id] else null
@@ -181,6 +197,7 @@ class GatewaySyncPushService(
                 davToken = auth?.davToken,
                 calendarRestToken = auth?.calendarExportToken,
                 active = active,
+                email = user.email?.takeIf { active && user.id in observerIds && it.isNotBlank() },
             )
         }.sortedBy { it.username }
         val hash = dtos.hashCode()
@@ -216,6 +233,63 @@ class GatewaySyncPushService(
         log.info { "Pushing groups to gateway..." }
         val result = postSync("/groups?fullSync=$fullSync", dtos, counts)
         lastGroupsHash = hash.takeIf { result?.errors == 0 }
+    }
+
+    /**
+     * Pushes all data transfer areas with external access (except personal boxes), if their external access runs
+     * via the gateway (see [DataTransferExternalAccessConfig.Mode.VIA_GATEWAY]). Always the complete list (small
+     * data volume), the gateway deletes its copies of areas missing here. A delta sync skips the push, if nothing
+     * changed since the last push.
+     *
+     * Otherwise (external access on this instance or none at all) an empty list: the gateway withdraws the areas
+     * pushed before, so their external links don't stay valid there.
+     */
+    private fun pushDataTransferAreas(fullSync: Boolean, counts: SyncCounts) {
+        val areas = if (dataTransferExternalAccessConfig.viaGateway) loadPushedDataTransferAreas() else emptyList()
+        val dtos = areas.map { area ->
+            SyncDataTransferAreaDto(
+                id = area.id!!,
+                areaName = area.areaName!!,
+                description = area.description,
+                adminUsernames = usernames(area.adminIds),
+                observerUsernames = usernames(area.observerIds),
+                accessUsernames = usernames(area.accessUserIds),
+                accessGroupNames = StringHelper.splitToLongs(area.accessGroupIds, ",")?.toList()
+                    ?.mapNotNull { userGroupCache.getGroup(it)?.takeIf { group -> !group.deleted }?.name }?.sorted()
+                    ?: emptyList(),
+                externalDownloadEnabled = area.externalDownloadEnabled == true,
+                externalUploadEnabled = area.externalUploadEnabled == true,
+                externalAccessToken = area.externalAccessToken,
+                externalPassword = area.externalPassword,
+                expiryDays = area.expiryDays,
+                maxUploadSizeKB = area.maxUploadSizeKB,
+            )
+        }.sortedBy { it.id }
+        val hash = dtos.hashCode()
+        if (!fullSync && hash == lastDataTransferAreasHash) {
+            log.info { "Data transfer areas unchanged, skipping data transfer area push." }
+            counts.unchanged = dtos.size
+            return
+        }
+        log.info { "Pushing ${dtos.size} data transfer areas with external access to gateway..." }
+        val result = postSync("/datatransferareas", dtos, counts)
+        lastDataTransferAreasHash = hash.takeIf { result?.errors == 0 }
+    }
+
+    /**
+     * The areas pushed to the gateway: not deleted, with external access, no personal boxes.
+     */
+    private fun loadPushedDataTransferAreas(): List<DataTransferAreaDO> {
+        return persistenceService.executeQuery(
+            "SELECT a FROM DataTransferAreaDO a WHERE a.deleted = false",
+            DataTransferAreaDO::class.java,
+        ).filter { it.externalAccessEnabled && !it.isPersonalBox() && !it.areaName.isNullOrBlank() }
+    }
+
+    private fun usernames(userIds: String?): List<String> {
+        return StringHelper.splitToLongs(userIds, ",")?.toList()
+            ?.mapNotNull { userGroupCache.getUser(it)?.username }?.sorted()
+            ?: emptyList()
     }
 
     /**
@@ -526,6 +600,8 @@ class GatewaySyncPushService(
             try {
                 if (run.step("users") { pushUsers(full, it) }) {
                     run.step("groups") { pushGroups(full, it) }
+                    // Admins, observers and access users/groups are matched by name, so after users and groups.
+                    run.step("datatransfer") { pushDataTransferAreas(full, it) }
                     // Favorites reference addresses by uid, so they need the addresses on the gateway first.
                     if (config.syncAddresses && run.step("addresses") { pushAddressBooks(full, it) }) {
                         run.step("favorites") { pushFavorites(full, it) }

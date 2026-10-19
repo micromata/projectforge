@@ -76,7 +76,8 @@ class DataTransferPlugin :
         menuCreator.registerPluginMenu(
             "DataTransferPersonalBox",
             "plugins.datatransfer.personalBox",
-            DataTransferUtils.areaViewPath(DataTransferUtils.PERSONAL_BOX_ID)
+            DataTransferUtils.areaViewPath(DataTransferUtils.PERSONAL_BOX_ID),
+            featureRestPaths = listOf("datatransferpersonalfiles"), // DataTransferPersonalBoxRest
         )
 
         // All the i18n stuff:
@@ -94,6 +95,10 @@ class DataTransferPlugin :
             DataTransferStatisticsBuilder()
         )
     }
+
+    /** The external access to an area (see DataTransferPublicNextRest). */
+    override val featureNextRoutes: List<String>
+        get() = listOf("public/${DataTransferUtils.ROUTE}")
 
     override fun createDefaultFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
         if (allMenuItems.any { it.id == info.id }) {

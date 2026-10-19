@@ -52,6 +52,11 @@ open class DataTransferAccessChecker(
    */
   override fun checkUploadAccess(user: PFUserDO?, path: String, id: Any, subPath: String?) {
     checkAccess(user, id) // Upload access is given, if select/download access is given
+    val dbo = getDataTransferArea(user, id)!!
+    if (dataTransferAreaDao.externalAccessConfig.isOnGateway(dbo)) {
+      // The files of an area with external access via the gateway are there, existing ones may still be deleted here.
+      throw AccessException("plugins.datatransfer.gateway.files.uploadNotAllowed", dataTransferAreaDao.externalAccessConfig.gatewayPublicUrl)
+    }
   }
 
   /**
@@ -101,7 +106,7 @@ open class DataTransferAccessChecker(
     // Later: User has only update access to own attachments. For now: all users with dbo select access have also update access
     // of attachments.
     //dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.SELECT, throwException = true)
-    checkUploadAccess(user, path, id, subPath)
+    checkAccess(user, id)
   }
 
   /**
