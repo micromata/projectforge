@@ -120,6 +120,10 @@ export function useImport(config: ImportConfig) {
         setSelection({});
         setHiddenStatusKeys(new Set(DEFAULT_HIDDEN_STATUS_KEYS));
         setView(result.view);
+        result.view.uploadNotes?.forEach((note) => toast.info(note));
+        config.relatedImports?.forEach((related) =>
+          queryClient.invalidateQueries({ queryKey: importStateQueryKey(related) })
+        );
       } else {
         toast.error(result.error);
       }

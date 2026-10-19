@@ -6,6 +6,9 @@
     "date" : "2026-10-19",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "improved",
+      "items" : [ "DATEV import: one upload of the tax office's file fills both tabs, accounting records and chart of accounts, so each can be reconciled without uploading the file again." ]
+    }, {
       "type" : "changed",
       "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
     } ]

@@ -48,4 +48,9 @@ class ImportView<O : ImportPairEntry.Modified<O>>(
     val entries: List<ImportEntry<O>> = emptyList(),
     /** Subclass specific view metadata, e.g. `isPositionBasedImport` for the incoming-invoice import. */
     val meta: Map<String, Any>? = null,
+    /**
+     * Notes for the user about the upload just done, e.g. that the file filled a related import as well. Only set on
+     * the answer of an upload.
+     */
+    val uploadNotes: List<String>? = null,
 )

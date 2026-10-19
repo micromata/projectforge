@@ -24,19 +24,22 @@
 package org.projectforge.rest.fibu.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
@@ -44,7 +47,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The layout-free DATEV import of the chart of accounts (Kontenplan), the second tab of the next DATEV import
  * page. It reads the same original file of the tax office as [DatevRecordImportRest] (see
- * [DatevAccountExcelImporter]).
+ * [DatevAccountExcelImporter]); the accounting records of that file are stashed for the records tab as well.
  *
  * @author Kai Reinhard
  */
@@ -56,7 +59,7 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var kontoCache: KontoCache
+    private lateinit var parser: DatevImportParser
 
     @Autowired
     private lateinit var kontoDao: KontoDao
@@ -83,14 +86,26 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
     }
 
     override fun proceedUpload(inputStream: InputStream, filename: String): DatevAccountImportStorage {
-        val storage = DatevAccountImportStorage()
-        storage.filename = filename
-        DatevAccountExcelImporter().parse(inputStream, storage)
-        // The tooltips are there right after the upload, as in the record preview; reconcile refreshes them.
-        storage.readAccounts.forEach { dto ->
-            dto.kontoInfo = kontoCache.findKontoByNumber(dto.nummer)?.let { DatevAccountImportStorage.kontoTooltip(it) }
+        return parser.parseAccounts(inputStream, filename)
+    }
+
+    /**
+     * Stashes the accounting records of the same file for the records tab, so they can be reconciled there without a
+     * second upload. A file without month sheet leaves the records tab untouched.
+     */
+    override fun afterUpload(request: HttpServletRequest, file: MultipartFile, filename: String): List<String>? {
+        val storage = try {
+            file.inputStream.use { parser.parseRecords(it, filename) }
+        } catch (ex: Exception) {
+            log.info { "No accounting records in file '$filename' for the records tab: ${ex.message}" }
+            return null
         }
-        return storage
+        if (storage.readRecords.isEmpty()) {
+            return null
+        }
+        stashStorage(request, AbstractImportPageRest.getSessionAttributeName(DatevRecordImportRest::class.java), storage)
+        log.info { "Accounting records of file '$filename' stashed for the records tab: #${storage.readRecords.size}" }
+        return listOf(translateMsg("fibu.datev.import.companion.records", storage.readRecords.size))
     }
 
     override fun import(

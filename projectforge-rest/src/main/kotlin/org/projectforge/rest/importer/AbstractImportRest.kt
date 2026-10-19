@@ -105,6 +105,14 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     protected open fun extraViewMeta(storage: S): Map<String, Any>? = null
 
     /**
+     * Called after a successful upload, once the own storage is stashed: a subclass may read the [file] again, e.g. to
+     * fill the stash of a related import from the same file (see [stashStorage]). Defaults to nothing.
+     * @return Notes for the user (translated), answered as [ImportView.uploadNotes].
+     */
+    protected open fun afterUpload(request: HttpServletRequest, file: MultipartFile, filename: String): List<String>? =
+        null
+
+    /**
      * The uploaded file is parsed, the resulting storage stashed in the session and its [ImportView]
      * answered. On an empty file, a failed check or a parse error the response is a `400` carrying the
      * message under the `error` key.
@@ -127,9 +135,13 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             val storage = file.inputStream.use { inputStream ->
                 proceedUpload(inputStream, filename, request)
             }
-            ExpiringSessionAttributes.setAttribute(request, sessionAttributeName, storage, TTL_MINUTES)
+            stashStorage(request, sessionAttributeName, storage)
             log.info { "Successfully processed file: $filename" }
-            return ResponseEntity.ok(buildView(storage))
+            // The own import is done, a failure of the follow-up must not turn it into an error.
+            val uploadNotes = runCatching { afterUpload(request, file, filename) }
+                .onFailure { log.warn(it) { "Error in the follow-up of the upload of file: $filename" } }
+                .getOrNull()
+            return ResponseEntity.ok(buildView(storage, uploadNotes = uploadNotes))
         } catch (ex: Exception) {
             log.error(ex) { "Error processing uploaded file: $filename" }
             return ResponseEntity.badRequest().body(mapOf("error" to (ex.message ?: translate("file.upload.error"))))
@@ -227,6 +239,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     protected fun buildView(
         storage: S?,
         displayOptions: ImportStorage.DisplayOptions? = null,
+        uploadNotes: List<String>? = null,
     ): ImportView<O> {
         storage ?: return ImportView()
         return ImportView(
@@ -236,7 +249,16 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
             info = storage.info,
             entries = storage.createEntries(displayOptions),
             meta = extraViewMeta(storage),
+            uploadNotes = uploadNotes?.takeIf { it.isNotEmpty() },
         )
+    }
+
+    /**
+     * Stashes the given storage in the session under the given key, with the TTL of an upload. Besides the own
+     * [sessionAttributeName], the key of a related import may be given (see [afterUpload]).
+     */
+    protected fun stashStorage(request: HttpServletRequest, sessionAttributeName: String, storage: ImportStorage<*>) {
+        ExpiringSessionAttributes.setAttribute(request, sessionAttributeName, storage, TTL_MINUTES)
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -24,7 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.business.PfCaches
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
@@ -32,16 +32,19 @@ import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.BwaStatistics
+import org.projectforge.rest.importer.AbstractImportPageRest
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.io.InputStream
 
 private val log = KotlinLogging.logger {}
@@ -50,7 +53,8 @@ private val log = KotlinLogging.logger {}
  * The layout-free DATEV import of accounting records (Buchungssätze), the successor of the removed Wicket
  * page `wa/datevImport`. It reads the tax office's original xlsx unchanged (see [DatevRecordExcelImporter]) and
  * answers the business assessment (BWA) of the importable records as view meta `bwa`, so the preview can be
- * checked against the tax office's BWA sheet before committing.
+ * checked against the tax office's BWA sheet before committing. The chart of accounts of that file is stashed for the
+ * accounts tab ([DatevAccountImportRest]) as well.
  *
  * @author Kai Reinhard
  */
@@ -71,7 +75,7 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     private lateinit var kostCache: KostCache
 
     @Autowired
-    private lateinit var caches: PfCaches
+    private lateinit var parser: DatevImportParser
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -105,10 +109,26 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     }
 
     override fun proceedUpload(inputStream: InputStream, filename: String): DatevRecordImportStorage {
-        val storage = DatevRecordImportStorage()
-        storage.filename = filename
-        DatevRecordExcelImporter(kontoCache, kostCache, caches).parse(inputStream, storage)
-        return storage
+        return parser.parseRecords(inputStream, filename)
+    }
+
+    /**
+     * Stashes the chart of accounts of the same file for the accounts tab, so it can be reconciled there without a
+     * second upload. A file without chart of accounts leaves the accounts tab untouched.
+     */
+    override fun afterUpload(request: HttpServletRequest, file: MultipartFile, filename: String): List<String>? {
+        val storage = try {
+            file.inputStream.use { parser.parseAccounts(it, filename) }
+        } catch (ex: Exception) {
+            log.info { "No chart of accounts in file '$filename' for the accounts tab: ${ex.message}" }
+            return null
+        }
+        if (storage.readAccounts.isEmpty()) {
+            return null
+        }
+        stashStorage(request, AbstractImportPageRest.getSessionAttributeName(DatevAccountImportRest::class.java), storage)
+        log.info { "Chart of accounts of file '$filename' stashed for the accounts tab: #${storage.readAccounts.size}" }
+        return listOf(translateMsg("fibu.datev.import.companion.accounts", storage.readAccounts.size))
     }
 
     override fun extraViewMeta(storage: DatevRecordImportStorage): Map<String, Any>? {

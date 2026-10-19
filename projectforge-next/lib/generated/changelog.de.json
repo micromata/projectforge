@@ -6,6 +6,9 @@
     "date" : "2026-10-19",
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
+      "type" : "improved",
+      "items" : [ "DATEV-Import: Ein Upload der Datei des Steuerbüros füllt beide Reiter, Buchungssätze und Kontenplan, sodass beide ohne erneuten Upload abgeglichen werden können." ]
+    }, {
       "type" : "changed",
       "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]
     } ]

@@ -1411,7 +1411,7 @@
         },
         "format": {
           "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
-          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged, one upload fills both tabs. Report sheets such as BWA, SuSa or USt are ignored.",
           "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
           "title": "File format of the import file"
         },
