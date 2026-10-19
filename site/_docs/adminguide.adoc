@@ -167,8 +167,10 @@ https://github.com/micromata/projectforge/blob/master/projectforge-business/src/
 
 Administrators edit `projectforge.properties` on the page *Administration -> System* (menu
 _Configuration_ -> _Configuration file_). The editor lists all parameters of `application.properties`, grouped by topic,
-with their descriptions and defaults, and the parameters of your file unknown to ProjectForge in the
-group _Other_. Passwords, keys and tokens are never shown: a secret can only be set to a new value.
+with their descriptions and defaults. Parameters of your file that ProjectForge doesn't know are marked: those in
+ProjectForge's namespace (`projectforge.*`, `pf.*`) are no longer used (or misspelled) and are listed in the group
+_No longer used_, where they can be removed at once; others (e.g. settings of Spring Boot) in the group _Other_.
+Passwords, keys and tokens are never shown: a secret can only be set to a new value.
 
 * Before every save, a copy of the file with a timestamp is placed next to it
   (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). The file is written sorted by groups; your own

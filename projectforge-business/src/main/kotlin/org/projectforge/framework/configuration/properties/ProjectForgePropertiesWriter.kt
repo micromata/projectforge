@@ -25,7 +25,7 @@ package org.projectforge.framework.configuration.properties
 
 /**
  * A change of one parameter: [value] sets it, [remove] removes it from projectforge.properties (the default of
- * application.properties applies again).
+ * application.properties applies again): a documented key is commented out, an undocumented one deleted.
  */
 class PropertyChange(val key: String, val value: String? = null, val remove: Boolean = false)
 
@@ -72,7 +72,15 @@ class ProjectForgePropertiesWriter(private val metadata: PropertiesMetadata) {
         val key = change.key
         val active = units.lastOrNull { it.key == key && !it.commentedOut }
         if (change.remove) {
-            active?.let { commentOut(it, key) }
+            active ?: return
+            val status = metadata.statusOf(key)
+            if (status == PropertiesMetadata.KeyStatus.OBSOLETE || status == PropertiesMetadata.KeyStatus.UNKNOWN) {
+                // Not documented: nothing worth keeping as an example (the backup has it), so it is deleted with its
+                // comment.
+                units.remove(active)
+            } else {
+                commentOut(active, key)
+            }
             return
         }
         val value = change.value ?: return

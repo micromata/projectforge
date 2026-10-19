@@ -2807,6 +2807,7 @@
     "gear": {
       "feedback": "Send feedback"
     },
+    "hr": "HR",
     "hrList": "HR planning",
     "hrPlanningList": "HR planning list",
     "logout": "Logout",
@@ -3312,9 +3313,15 @@
       },
       "gateway": {
         "externalAccess": {
-          "edit": "External access can''t be configured here. To do so, a data transfer area must be created and administered on the server {arg0}.",
-          "list": "External access (read/write) can''t be configured here. Data transfer areas with external access must be created and administered on the server {arg0}."
-        }
+          "edit": "External access cannot be enabled on this server.",
+          "list": "External access (read/write) cannot be enabled on this server.",
+          "viaGateway": "External access runs via the server {arg0}: the area is transferred there, the external link points there, and external users download and upload the files there. Internally, the files of the area are managed there, too."
+        },
+        "files": {
+          "onGateway": "The external access of this area runs via another server, and so do its files: new files are uploaded there, not here. Files stored here before can still be downloaded and deleted."
+        },
+        "listManagedByMainInstance": "The data transfer areas are administered in the main instance of ProjectForge: they can be neither created, changed nor deleted here. Here, only their files can be managed.",
+        "managedByMainInstance": "This area is administered in the main instance of ProjectForge: it can be neither changed nor deleted here. Here, only its files can be managed."
       },
       "internal": {
         "link": "Internal link"
@@ -4491,7 +4498,7 @@
         "key": "Key",
         "value": "Value"
       },
-      "backupInfo": "Before every save, a copy of the file with a timestamp is placed next to it (projectforge.properties.<timestamp>.bak). The file is rewritten sorted by groups; own comments stay above their parameter.",
+      "backupInfo": "Before every save, a copy of the file with a timestamp is placed next to it (e.g. projectforge.properties.2026-10-20_09-30-15.bak). The file is rewritten sorted by groups; own comments stay above their parameter.",
       "cardInfo": "Edits the parameters of projectforge.properties in ProjectForge's home directory: grouped by topic, with descriptions and defaults.",
       "changeCount": "{arg0} changed",
       "confirm": {
@@ -4499,6 +4506,9 @@
         "title": "Save projectforge.properties?"
       },
       "default": "Default",
+      "delete": "Remove",
+      "deleteAll": "Remove all ({arg0})",
+      "deleteInfo": "Deletes the parameter from projectforge.properties (the backup made on saving keeps it).",
       "example": "Example",
       "expertWarning": "Internal settings: only change them if you know exactly what you are doing. A wrong value may prevent ProjectForge from starting.",
       "fileComment": "Own comment in projectforge.properties",
@@ -4506,12 +4516,16 @@
         "inFile": "Set in projectforge.properties",
         "modified": "Modified"
       },
+      "group": {
+        "obsolete": "No longer used",
+        "other": "Other"
+      },
       "inFileCount": "{arg0} set",
       "noResults": "No parameters found.",
       "notWritable": "projectforge.properties doesn't exist or can't be written (missing write permission for the file or its directory). The parameters are shown read-only.",
-      "open": "Open editor",
+      "obsoleteInfo": "In ProjectForge's namespace (projectforge.*, pf.*), but not known to ProjectForge (any more): a removed option or a typo. It has no effect.",
       "optional": "optional",
-      "otherInfo": "Parameters of projectforge.properties, which aren't known by ProjectForge's defaults (e.g. own Spring settings). Please check them for typos.",
+      "otherInfo": "Not known to ProjectForge, e.g. a setting of Spring Boot or of a library. Please check whether it is still needed and for typos.",
       "removed": "removed (default applies)",
       "reset": {
         "_": "Reset to default",
@@ -4524,6 +4538,10 @@
         "set": "Set (the value is not shown)"
       },
       "secretChanged": "new value",
+      "status": {
+        "obsolete": "no longer used",
+        "unknown": "unknown"
+      },
       "title": "Configuration file (projectforge.properties)",
       "undo": "Undo change",
       "unset": "not set (default applies)"

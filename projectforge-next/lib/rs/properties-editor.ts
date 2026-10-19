@@ -9,6 +9,13 @@ import { request } from "./client";
 
 export type PropertyType = "STRING" | "BOOLEAN";
 
+/**
+ * What ProjectForge knows about a key (`PropertiesMetadata.KeyStatus`): documented, another index of a
+ * documented list key or an entry of a documented map, undocumented in ProjectForge's own namespace
+ * (no longer used, or a typo), undocumented otherwise (e.g. a Spring Boot property).
+ */
+export type PropertyStatus = "KNOWN" | "VARIANT" | "OBSOLETE" | "UNKNOWN";
+
 export interface PropertyParam {
   key: string;
   description?: string | null;
@@ -17,6 +24,7 @@ export interface PropertyParam {
   optional: boolean;
   /** False for keys of projectforge.properties unknown to application.properties. */
   known: boolean;
+  status: PropertyStatus;
   type: PropertyType;
   secret: boolean;
   inFile: boolean;

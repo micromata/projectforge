@@ -15,8 +15,16 @@ export interface PropertyFilter {
   onlyModified: boolean;
 }
 
-/** Id of the backend's group of keys unknown to application.properties (ProjectForgePropertiesService). */
+/** Id of the backend's group of keys unknown to ProjectForge (ProjectForgePropertiesService). */
 export const OTHER_GROUP_ID = "other";
+
+/** Id of the backend's group of keys in ProjectForge's namespace it doesn't know (any more). */
+export const OBSOLETE_GROUP_ID = "obsolete";
+
+/** Undocumented keys aren't reset to a default but deleted from the file. */
+export function isUndocumented(param: PropertyParam): boolean {
+  return param.status === "OBSOLETE" || param.status === "UNKNOWN";
+}
 
 const KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._\-[\]]*$/;
 
@@ -72,6 +80,7 @@ export function newParam(key: string): PropertyParam {
     key,
     optional: true,
     known: false,
+    status: "UNKNOWN",
     type: "STRING",
     secret: false,
     inFile: false,
@@ -94,7 +103,12 @@ export function withAddedParams(
   }
   return [
     ...groups,
-    { id: OTHER_GROUP_ID, title: "Other", expert: false, blocks: [added] },
+    {
+      id: OTHER_GROUP_ID,
+      title: OTHER_GROUP_ID,
+      expert: false,
+      blocks: [added],
+    },
   ];
 }
 

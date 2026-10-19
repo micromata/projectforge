@@ -62,6 +62,7 @@ class ProjectForgePropertiesService {
         val example: String?,
         val optional: Boolean,
         val known: Boolean,
+        val status: PropertiesMetadata.KeyStatus,
         val type: PropertiesMetadata.Type,
         val secret: Boolean,
         /** Whether the key is set (active) in projectforge.properties. */
@@ -94,20 +95,32 @@ class ProjectForgePropertiesService {
         val file = propertiesFile
         val snapshot = file.read()
         val comments = collectComments(snapshot.lines)
+        val undocumented = snapshot.values.keys.filter { !metadata.contains(it) }.sorted()
+            .groupBy { metadata.statusOf(it) }
+        // Variants (other list indices, map entries) follow the documented key they belong to.
+        val variantsByKey = undocumented[PropertiesMetadata.KeyStatus.VARIANT].orEmpty()
+            .groupBy { metadata.findRelatedKey(it) }
         val groups = metadata.groups.map { group ->
             GroupData(group.id, group.title, group.expert, group.blocks.map { block ->
-                BlockData(block.description, block.params.map { param ->
-                    toParamData(param.key, param, snapshot, comments[param.key])
+                BlockData(block.description, block.params.flatMap { param ->
+                    listOf(toParamData(param.key, param, snapshot, comments[param.key])) +
+                        variantsByKey[param.key].orEmpty().map { toParamData(it, null, snapshot, comments[it]) }
                 })
             })
         }.toMutableList()
-        val unknownKeys = snapshot.values.keys.filter { !metadata.contains(it) }.sorted()
-        if (unknownKeys.isNotEmpty()) {
-            groups.add(
-                GroupData(OTHER_GROUP_ID, ProjectForgePropertiesWriter.OTHER_GROUP_TITLE, false, listOf(
-                    BlockData(null, unknownKeys.map { toParamData(it, null, snapshot, comments[it]) })
-                ))
-            )
+        listOf(
+            OBSOLETE_GROUP_ID to PropertiesMetadata.KeyStatus.OBSOLETE,
+            OTHER_GROUP_ID to PropertiesMetadata.KeyStatus.UNKNOWN,
+        ).forEach { (groupId, status) ->
+            // A variant without a documented key to follow (a map without an example) is shown as unknown.
+            val keys = undocumented[status].orEmpty() +
+                if (status == PropertiesMetadata.KeyStatus.UNKNOWN) variantsByKey[null].orEmpty() else emptyList()
+            if (keys.isNotEmpty()) {
+                // The title is translated by the client (by group id).
+                groups.add(GroupData(groupId, groupId, false, listOf(
+                    BlockData(null, keys.map { toParamData(it, null, snapshot, comments[it]) })
+                )))
+            }
         }
         return Data(file.file.absolutePath, snapshot.exists, snapshot.writable, snapshot.version, groups)
     }
@@ -144,6 +157,7 @@ class ProjectForgePropertiesService {
             example = if (secret) null else param?.example,
             optional = param?.optional ?: true,
             known = param != null,
+            status = metadata.statusOf(key),
             type = param?.type ?: PropertiesMetadata.typeOf(fileValue),
             secret = secret,
             inFile = fileValue != null,
@@ -194,7 +208,11 @@ class ProjectForgePropertiesService {
     }
 
     companion object {
+        /** Keys of projectforge.properties unknown to ProjectForge, e.g. own Spring Boot settings. */
         const val OTHER_GROUP_ID = "other"
+
+        /** Keys in ProjectForge's namespace unknown to application.properties: no longer used (or typos). */
+        const val OBSOLETE_GROUP_ID = "obsolete"
 
         private const val SECRET_MASK = "******"
 

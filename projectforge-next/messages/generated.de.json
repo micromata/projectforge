@@ -2807,6 +2807,7 @@
     "gear": {
       "feedback": "Feedback senden"
     },
+    "hr": "HR",
     "hrList": "Personalplanung",
     "hrPlanningList": "Personalplanungsliste",
     "logout": "Abmelden",
@@ -3312,9 +3313,15 @@
       },
       "gateway": {
         "externalAccess": {
-          "edit": "Externer Zugriff kann hier nicht konfiguriert werden. Dazu muss ein Datentransferbereich auf dem Server {arg0} angelegt und administriert werden.",
-          "list": "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. Datentransferbereiche mit externem Zugriff müssen auf dem Server {arg0} angelegt und administriert werden."
-        }
+          "edit": "Externer Zugriff kann auf diesem Server nicht aktiviert werden.",
+          "list": "Externer Zugriff (lesend/schreibend) kann auf diesem Server nicht aktiviert werden.",
+          "viaGateway": "Der externe Zugriff läuft über den Server {arg0}: Der Bereich wird dorthin übertragen, der externe Link zeigt dorthin, und Externe laden die Dateien dort herunter und hoch. Auch intern werden die Dateien des Bereichs dort verwaltet."
+        },
+        "files": {
+          "onGateway": "Der externe Zugriff auf diesen Bereich läuft über einen anderen Server, ebenso seine Dateien: Neue Dateien werden dort hochgeladen, nicht hier. Bereits hier gespeicherte Dateien können weiterhin heruntergeladen und gelöscht werden."
+        },
+        "listManagedByMainInstance": "Die Datentransferbereiche werden in der Hauptinstanz von ProjectForge administriert: Sie können hier weder angelegt, geändert noch gelöscht werden. Hier können nur ihre Dateien verwaltet werden.",
+        "managedByMainInstance": "Dieser Bereich wird in der Hauptinstanz von ProjectForge administriert: Er kann hier weder geändert noch gelöscht werden. Hier können nur seine Dateien verwaltet werden."
       },
       "internal": {
         "link": "Interner Link"
@@ -4373,14 +4380,14 @@
         "title": {
           "alertMessage": "Alert message",
           "checks": "Prüfungen",
-          "databaseActions": "Database actions",
+          "databaseActions": "Datenbank-Aktionen",
           "development": "Entwicklung",
           "jcr": "Dokumenten-Repository (JCR)",
           "misc": {
             "logEntries": "Format log entries"
           },
           "systemChecksAndFunctionality": {
-            "configuration": "Configuration"
+            "configuration": "Konfiguration"
           }
         }
       },
@@ -4491,7 +4498,7 @@
         "key": "Schlüssel",
         "value": "Wert"
       },
-      "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (projectforge.properties.<Zeitstempel>.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
+      "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (z. B. projectforge.properties.2026-10-20_09-30-15.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
       "cardInfo": "Bearbeitet die Parameter der projectforge.properties im Home-Verzeichnis von ProjectForge: nach Themen gruppiert, mit Beschreibungen und Standardwerten.",
       "changeCount": "{arg0} geändert",
       "confirm": {
@@ -4499,6 +4506,9 @@
         "title": "projectforge.properties speichern?"
       },
       "default": "Standard",
+      "delete": "Entfernen",
+      "deleteAll": "Alle entfernen ({arg0})",
+      "deleteInfo": "Löscht den Parameter aus der projectforge.properties (die Sicherung beim Speichern enthält ihn weiterhin).",
       "example": "Beispiel",
       "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
       "fileComment": "Eigener Kommentar in der projectforge.properties",
@@ -4506,12 +4516,16 @@
         "inFile": "In projectforge.properties gesetzt",
         "modified": "Geändert"
       },
+      "group": {
+        "obsolete": "Nicht mehr verwendet",
+        "other": "Sonstige"
+      },
       "inFileCount": "{arg0} gesetzt",
       "noResults": "Keine Parameter gefunden.",
       "notWritable": "Die projectforge.properties existiert nicht oder kann nicht geschrieben werden (fehlende Schreibrechte für die Datei oder ihr Verzeichnis). Die Parameter werden nur lesend angezeigt.",
-      "open": "Editor öffnen",
+      "obsoleteInfo": "Im Namensraum von ProjectForge (projectforge.*, pf.*), wird aber von ProjectForge nicht (mehr) verwendet: eine entfallene Option oder ein Tippfehler. Der Parameter hat keine Wirkung.",
       "optional": "optional",
-      "otherInfo": "Parameter der projectforge.properties, die in den Standardwerten von ProjectForge nicht vorkommen (z. B. eigene Spring-Einstellungen). Bitte auf Tippfehler prüfen.",
+      "otherInfo": "ProjectForge nicht bekannt, z. B. eine Einstellung von Spring Boot oder einer Bibliothek. Bitte prüfen, ob sie noch benötigt wird, und auf Tippfehler achten.",
       "removed": "entfernt (Standard gilt)",
       "reset": {
         "_": "Auf Standard zurücksetzen",
@@ -4524,6 +4538,10 @@
         "set": "Gesetzt (der Wert wird nicht angezeigt)"
       },
       "secretChanged": "neuer Wert",
+      "status": {
+        "obsolete": "nicht mehr verwendet",
+        "unknown": "unbekannt"
+      },
       "title": "Konfigurationsdatei (projectforge.properties)",
       "undo": "Änderung verwerfen",
       "unset": "nicht gesetzt (Standard gilt)"

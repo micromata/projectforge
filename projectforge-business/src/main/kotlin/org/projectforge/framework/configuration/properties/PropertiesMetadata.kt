@@ -26,10 +26,29 @@ package org.projectforge.framework.configuration.properties
 /**
  * The known parameters of ProjectForge's configuration, grouped by topic: parsed from the bundled
  * `application.properties`, whose format is described in its header (`### Group`, blocks, commented-out optional
- * parameters).
+ * parameters, `@map` prefixes).
  */
-class PropertiesMetadata(val groups: List<Group>) {
+class PropertiesMetadata(
+    val groups: List<Group>,
+    /** Prefixes declared by `@map <prefix>`: every key `<prefix>.<name>` is valid (e.g. attribute mappings). */
+    val mapPrefixes: List<String> = emptyList(),
+) {
     enum class Type { STRING, BOOLEAN }
+
+    /** What ProjectForge knows about a key of projectforge.properties, see [statusOf]. */
+    enum class KeyStatus {
+        /** Documented in application.properties. */
+        KNOWN,
+
+        /** Another index of a documented list key (`bankAccounts[2].iban`) or an entry of a declared map. */
+        VARIANT,
+
+        /** Not documented, in ProjectForge's own namespace (`projectforge.`, `pf.`): no longer used, or a typo. */
+        OBSOLETE,
+
+        /** Not documented, e.g. a property of Spring Boot or of a library. */
+        UNKNOWN,
+    }
 
     class Group(
         /** Stable id derived from the title, e.g. `server-web`. */
@@ -77,6 +96,21 @@ class PropertiesMetadata(val groups: List<Group>) {
 
     fun getPosition(key: String): Int? = positionByKey[key]
 
+    fun statusOf(key: String): KeyStatus = when {
+        contains(key) -> KeyStatus.KNOWN
+        findIndexVariant(key) != null || findMapPrefix(key) != null -> KeyStatus.VARIANT
+        OWN_NAMESPACES.any { key.startsWith(it) } -> KeyStatus.OBSOLETE
+        else -> KeyStatus.UNKNOWN
+    }
+
+    /** The documented key that [key] is another index of, e.g. `bankAccounts[2].iban` → `bankAccounts[0].iban`. */
+    private fun findIndexVariant(key: String): String? {
+        val withoutIndices = key.replace(indexRegex, "[]")
+        return paramByKey.keys.lastOrNull { it.replace(indexRegex, "[]") == withoutIndices }
+    }
+
+    private fun findMapPrefix(key: String): String? = mapPrefixes.firstOrNull { key.startsWith("$it.") }
+
     /**
      * The known key an unknown key belongs to, for sorting it into the right group, e.g.
      * `projectforge.einvoice.seller.bankAccounts[2].iban` → `projectforge.einvoice.seller.bankAccounts[0].iban` (same key
@@ -87,8 +121,8 @@ class PropertiesMetadata(val groups: List<Group>) {
         if (contains(key)) {
             return key
         }
-        val withoutIndices = key.replace(indexRegex, "[]")
-        paramByKey.keys.lastOrNull { it.replace(indexRegex, "[]") == withoutIndices }?.let { return it }
+        findIndexVariant(key)?.let { return it }
+        findMapPrefix(key)?.let { prefix -> paramByKey.keys.lastOrNull { it.startsWith("$prefix.") }?.let { return it } }
         val segments = key.split('.')
         for (length in segments.size - 1 downTo 3) {
             val prefix = segments.take(length).joinToString(".") + "."
@@ -101,6 +135,10 @@ class PropertiesMetadata(val groups: List<Group>) {
         private val indexRegex = Regex("""\[\d+]""")
 
         private const val EXPERT_MARKER = "[expert]"
+
+        private const val MAP_MARKER = "@map "
+
+        private val OWN_NAMESPACES = listOf("projectforge.", "pf.")
 
         /** Last segment of keys whose values must never leave the server (e.g. `managerPassword`, `apiKey`). */
         private val secretRegex =
@@ -121,6 +159,7 @@ class PropertiesMetadata(val groups: List<Group>) {
 
         fun parse(content: String): PropertiesMetadata {
             val groups = mutableListOf<Group>()
+            val mapPrefixes = mutableListOf<String>()
             var groupTitle: String? = null
             var groupBlocks = mutableListOf<Block>()
             // State of the current block:
@@ -162,6 +201,8 @@ class PropertiesMetadata(val groups: List<Group>) {
                         if (title != null) {
                             finishGroup()
                             groupTitle = title
+                        } else if (line.text.startsWith(MAP_MARKER)) {
+                            mapPrefixes.add(line.text.removePrefix(MAP_MARKER).trim())
                         } else {
                             pendingComments.add(line.text)
                         }
@@ -195,7 +236,7 @@ class PropertiesMetadata(val groups: List<Group>) {
                 }
             }
             finishGroup()
-            return PropertiesMetadata(groups)
+            return PropertiesMetadata(groups, mapPrefixes)
         }
 
         private fun toId(title: String): String =

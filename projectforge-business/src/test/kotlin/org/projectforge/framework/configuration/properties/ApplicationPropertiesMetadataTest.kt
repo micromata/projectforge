@@ -99,6 +99,25 @@ class ApplicationPropertiesMetadataTest {
         assertNull(metadata.findRelatedKey("my.own.key"))
     }
 
+    @Test
+    fun `status of undocumented keys`() {
+        val metadata = PropertiesMetadata.instance
+        assertEquals(PropertiesMetadata.KeyStatus.KNOWN, metadata.statusOf("projectforge.domain"))
+        listOf(
+            "projectforge.einvoice.seller.bankAccounts[2].iban", "projectforge.idp.userAttributes.gender",
+            "projectforge.idp.groupAttributes.organization", "logging.level.org.projectforge.idp",
+            "projectforge.invoicing-quota.info.fr", "projectforge.integration.clients.sms.responseTimeoutMs",
+        ).forEach { assertEquals(PropertiesMetadata.KeyStatus.VARIANT, metadata.statusOf(it), it) }
+        listOf("pf.config.compileCss", "projectforge.menu.visibility.myPreferences", "projectforge.receiveSmsKey")
+            .forEach { assertEquals(PropertiesMetadata.KeyStatus.OBSOLETE, metadata.statusOf(it), it) }
+        assertEquals(PropertiesMetadata.KeyStatus.UNKNOWN, metadata.statusOf("springdoc.api-docs.enabled"))
+        assertEquals("logging.level.org.hibernate", metadata.findRelatedKey("logging.level.org.projectforge.idp"))
+        // The marker isn't part of the description.
+        assertFalse(metadata.groups.flatMap { it.blocks }.any { block ->
+            (listOfNotNull(block.description) + block.params.mapNotNull { it.description }).any { it.contains("@map") }
+        })
+    }
+
     private fun readResource(path: String): String =
         String(javaClass.getResourceAsStream(path)!!.readBytes(), Charsets.ISO_8859_1)
 }
