@@ -29,6 +29,7 @@ import jakarta.servlet.ReadListener
 import jakarta.servlet.ServletInputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletRequestWrapper
+import org.springframework.web.util.UrlPathHelper
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
@@ -47,7 +48,36 @@ object AttachmentCategoryRequests {
     val BODY_CATEGORY_URLS =
         listOf("modify", "delete", "encrypt", "testDecryption", "multiDelete").map { "$ATTACHMENTS_URL/$it" }.toSet()
 
+    /**
+     * The largest body read by the filters (the JSON of an attachment call is small): they run before the
+     * authentication, so a body is never read unbounded.
+     */
+    const val MAX_BODY_SIZE = 1024 * 1024
+
     private val objectMapper = ObjectMapper()
+
+    private val urlPathHelper = UrlPathHelper().also {
+        it.setUrlDecode(true)
+        it.setRemoveSemicolonContent(true)
+    }
+
+    /**
+     * The request path without context path, decoded and without path parameters: the path the controllers are
+     * mapped by (`/rs/addr%65ss/list` is `/rs/address/list`). Filters deciding by the path must use this one, not
+     * the raw request uri.
+     */
+    fun pathOf(request: HttpServletRequest): String = urlPathHelper.getPathWithinApplication(request)
+
+    /**
+     * @return The body, or null if it exceeds [maxSize] (to be refused with 413).
+     */
+    fun readBody(request: HttpServletRequest, maxSize: Int = MAX_BODY_SIZE): ByteArray? {
+        if (request.contentLengthLong > maxSize) {
+            return null
+        }
+        val body = request.inputStream.readNBytes(maxSize + 1)
+        return body.takeIf { it.size <= maxSize }
+    }
 
     /** `PostData<AttachmentData>` and `PostData<FileListData>` both carry it as `data.category`. */
     fun categoryOf(body: ByteArray): String? =

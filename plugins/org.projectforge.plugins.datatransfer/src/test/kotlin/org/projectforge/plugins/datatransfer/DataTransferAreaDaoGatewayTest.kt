@@ -52,6 +52,14 @@ class DataTransferAreaDaoGatewayTest {
     }
 
     @Test
+    fun `areas withdrawn by the main instance aren't accessible on the gateway`() {
+        val area = DataTransferAreaDO().also { it.id = 5; it.areaName = "Area"; it.adminIds = "1" }
+        assertTrue(dao.hasAccess(admin, area, area, OperationType.SELECT, false))
+        area.deleted = true
+        assertFalse(dao.hasAccess(admin, area, area, OperationType.SELECT, false))
+    }
+
+    @Test
     fun `no personal boxes on the gateway`() {
         assertNull(dao.ensurePersonalBox(1))
     }

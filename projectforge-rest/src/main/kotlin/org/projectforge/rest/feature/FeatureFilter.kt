@@ -32,6 +32,7 @@ import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.rest.config.AttachmentCategoryRequests
+import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.ObjectProvider
 
 private val log = KotlinLogging.logger {}
@@ -48,14 +49,28 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         val httpRequest = request as HttpServletRequest
-        val path = httpRequest.requestURI.removePrefix(httpRequest.contextPath ?: "")
+        val path = AttachmentCategoryRequests.pathOf(httpRequest)
         if (featurePathIndex.isBlocked(path)) {
             notFound(path, response)
             return
         }
-        if (path in AttachmentCategoryRequests.BODY_CATEGORY_URLS && httpRequest.contentType?.startsWith("multipart/") != true) {
+        if (path.startsWith(ATTACHMENT_PAGE_URL) && httpRequest.method == "GET") {
+            // The dialog of an attachment (AttachmentPageRest) names the entity as query parameter.
+            val category = httpRequest.getParameter("category")
+            if (category != null && featurePathIndex.isCategoryBlocked(category)) {
+                notFound("$path ($category)", response)
+                return
+            }
+        }
+        if (path in AttachmentCategoryRequests.BODY_CATEGORY_URLS &&
+            httpRequest.contentType?.startsWith("multipart/") != true && featurePathIndex.anythingBlocked()
+        ) {
             // The category is part of the JSON body: read it here and hand the body on to the controller.
-            val body = httpRequest.inputStream.readAllBytes()
+            val body = AttachmentCategoryRequests.readBody(httpRequest)
+            if (body == null) {
+                (response as HttpServletResponse).sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE)
+                return
+            }
             val category = AttachmentCategoryRequests.categoryOf(body)
             if (category != null && featurePathIndex.isCategoryBlocked(category)) {
                 notFound("$path ($category)", response)
@@ -70,5 +85,9 @@ class FeatureFilter(private val featurePathIndexProvider: ObjectProvider<Feature
     private fun notFound(path: String, response: ServletResponse) {
         log.debug { "Feature switched off: blocked request to $path" }
         (response as HttpServletResponse).sendError(HttpServletResponse.SC_NOT_FOUND)
+    }
+
+    companion object {
+        private const val ATTACHMENT_PAGE_URL = "${Rest.URL}/attachment/"
     }
 }

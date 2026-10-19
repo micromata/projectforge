@@ -105,7 +105,11 @@ class GatewaySyncDataTransferAreasTest {
         assertEquals(1, result.deleted)
         assertEquals(1, result.updated)
         verify(dataTransferAreaDao).markAsDeleted(missing, false)
+        assertNull(missing.externalAccessToken, "No external access to the files kept on the gateway.")
+        assertNull(missing.externalPassword)
+        assertFalse(missing.externalAccessEnabled)
         verify(dataTransferAreaDao).undelete(returning, false)
+        assertEquals("token", returning.externalAccessToken, "Restored with the external access of the main instance.")
     }
 
     @Test

@@ -133,6 +133,13 @@ class FeaturePathIndex {
     }
 
     /**
+     * Whether any path is blocked at all: if not, the filter needn't read the bodies of the attachment calls.
+     */
+    fun anythingBlocked(): Boolean {
+        return getIndex().owners.values.any { owners -> owners.none { featureService.isEnabled(it) } }
+    }
+
+    /**
      * The next routes of switched off features, for the frontend (`FeatureGuard`, without `next/`, e.g.
      * `address`). It decides by the longest route being a prefix of the page's path, so the reachable routes below a
      * switched off one are given as well.
@@ -186,7 +193,8 @@ class FeaturePathIndex {
         // Paths of plugins not claimed by a menu entry: switched off with the plugin.
         pluginPaths.forEach { (pluginId, paths) ->
             paths.forEach { path ->
-                if (owners[path].isNullOrEmpty() && path.substringAfter('/') !in CORE_REST) {
+                val segments = path.split('/')
+                if (owners[path].isNullOrEmpty() && !isCore(segments[0], segments.getOrElse(1) { "" })) {
                     owners.getOrPut(path) { mutableSetOf() }.add(pluginId)
                 }
             }

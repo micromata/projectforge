@@ -190,7 +190,9 @@ ebenfalls abgeschaltet, samt ihrer REST-Dienste. Unbekannte Ids werden beim Star
 Das ist kein Berechtigungssystem, die Zugriffsprüfungen der Funktionen bleiben, wie sie sind. Einige Dienste
 bleiben auch bei abgeschalteter Funktion erreichbar, weil andere Seiten sie brauchen: die Suchen der Eingabefelder
 (etwa nach Benutzern oder Aufgaben), das Abonnieren von Kalendern und der Kern der Anwendung (Anmeldung, Menü,
-Einstellungen, Benachrichtigungen, Anhänge der übrigen Funktionen).
+Einstellungen, Benachrichtigungen, Anhänge der übrigen Funktionen). Auch die Schnittstellen außerhalb der Seiten und
+REST-Dienste werden nicht abgeschaltet: CardDAV (`/carddav`), der Export von Kalendern (`/export/ProjectForge.ics`)
+und die SMS-Schnittstelle (`/export/sms`).
 
 Die Sichtbarkeit von Menüs (`projectforge.menu.visibility.*`) ist etwas anderes: Sie blendet Menüeinträge nur für
 Gruppen von Benutzern aus, die Funktionen bleiben erreichbar.

@@ -267,6 +267,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             return false
         }
         obj ?: return false
+        if (externalAccessConfig.gatewayMode && obj.deleted) {
+            // Gateway: withdrawn by the main instance (deleted there or no external access anymore), its admins and
+            // access users are the ones of the last push.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
         if (obj.isPersonalBox() == true) {
             if (operationType != OperationType.SELECT && throwException) {
                 // Select only on inboxes:

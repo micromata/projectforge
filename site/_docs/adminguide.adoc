@@ -185,7 +185,9 @@ Unknown ids are logged as a warning on start-up.
 This is no permission system, the access checks of the functions remain as they are. Some services stay
 reachable even with their function switched off, because other pages need them: the lookups of the input fields
 (e.g. of users or tasks), the subscription of calendars, and the core of the application (login, menu, settings,
-notifications, attachments of the remaining functions).
+notifications, attachments of the remaining functions). The interfaces outside the pages and REST services aren't
+switched off either: CardDAV (`/carddav`), the export of calendars (`/export/ProjectForge.ics`) and the SMS
+interface (`/export/sms`).
 
 The menu visibility (`projectforge.menu.visibility.*`) is something else: it hides menu entries for groups of users
 only, the functions stay reachable.

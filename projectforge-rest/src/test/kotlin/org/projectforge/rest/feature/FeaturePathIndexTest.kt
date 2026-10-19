@@ -32,6 +32,7 @@ import org.projectforge.feature.FeatureDefinition
 import org.projectforge.feature.FeatureDerivation
 import org.projectforge.feature.FeatureService
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.rest.config.AttachmentCategoryRequests
 import org.projectforge.rest.feature.testplugin.TestPlugin
 import org.projectforge.rest.feature.testplugin.TestPluginPublicRest
 import org.projectforge.rest.feature.testplugin.TestPluginRest
@@ -148,37 +149,69 @@ class FeaturePathIndexTest {
         Assertions.assertEquals(listOf("testplugin/-1"), pluginOnly.enabled, "Reachable below a blocked route.")
     }
 
-    @Test
-    fun `filter answers 404 and checks the category of attachment bodies`() {
-        val index = index("ADDRESS_LIST")
+    private fun filter(index: FeaturePathIndex): FeatureFilter {
         @Suppress("UNCHECKED_CAST")
         val provider = Mockito.mock(ObjectProvider::class.java) as ObjectProvider<FeaturePathIndex>
         Mockito.`when`(provider.getObject()).thenReturn(index)
-        val filter = FeatureFilter(provider)
+        return FeatureFilter(provider)
+    }
 
-        fun call(uri: String, body: String? = null): Pair<Int, MockFilterChain> {
-            val request = MockHttpServletRequest(if (body == null) "GET" else "POST", uri)
-            body?.let {
-                request.contentType = "application/json"
-                request.setContent(it.toByteArray())
-            }
-            val response = MockHttpServletResponse()
-            val chain = MockFilterChain()
-            filter.doFilter(request, response, chain)
-            return response.status to chain
+    private fun FeatureFilter.call(uri: String, body: ByteArray? = null): Pair<Int, MockFilterChain> {
+        val request = MockHttpServletRequest(if (body == null) "GET" else "POST", uri.substringBefore('?'))
+        if (uri.contains('?')) {
+            request.queryString = uri.substringAfter('?')
+            uri.substringAfter('?').split('&').forEach { request.addParameter(it.substringBefore('='), it.substringAfter('=')) }
         }
-        Assertions.assertEquals(404, call("/rs/address/list").first)
-        val (status, chain) = call("/rs/addressBook/list")
+        body?.let {
+            request.contentType = "application/json"
+            request.setContent(it)
+        }
+        val response = MockHttpServletResponse()
+        val chain = MockFilterChain()
+        doFilter(request, response, chain)
+        return response.status to chain
+    }
+
+    private fun FeatureFilter.call(uri: String, body: String) = call(uri, body.toByteArray())
+
+    @Test
+    fun `filter answers 404 and checks the category of attachment bodies`() {
+        val filter = filter(index("ADDRESS_LIST"))
+        Assertions.assertEquals(404, filter.call("/rs/address/list").first)
+        val (status, chain) = filter.call("/rs/addressBook/list")
         Assertions.assertEquals(200, status)
         Assertions.assertNotNull(chain.request)
 
-        Assertions.assertEquals(404, call("/rs/attachments/delete", """{"data":{"category":"address"}}""").first)
-        val (bodyStatus, bodyChain) = call("/rs/attachments/delete", """{"data":{"category":"addressBook"}}""")
+        Assertions.assertEquals(404, filter.call("/rs/attachments/delete", """{"data":{"category":"address"}}""").first)
+        val (bodyStatus, bodyChain) = filter.call("/rs/attachments/delete", """{"data":{"category":"addressBook"}}""")
         Assertions.assertEquals(200, bodyStatus)
         Assertions.assertEquals(
             """{"data":{"category":"addressBook"}}""",
             String(bodyChain.request!!.inputStream.readAllBytes()),
             "The body reaches the controller.",
         )
+        // The dialog of an attachment names the category as query parameter:
+        Assertions.assertEquals(404, filter.call("/rs/attachment/dynamic?id=1&category=address&fileId=x").first)
+        Assertions.assertEquals(200, filter.call("/rs/attachment/dynamic?id=1&category=addressBook&fileId=x").first)
+    }
+
+    @Test
+    fun `filter decides by the decoded path, as the controllers are mapped`() {
+        val filter = filter(index("ADDRESS_LIST"))
+        Assertions.assertEquals(404, filter.call("/rs/addr%65ss/list").first)
+        Assertions.assertEquals(404, filter.call("/next/addr%65ss/").first)
+        Assertions.assertEquals(
+            404,
+            filter.call("/rs/attachments/d%65lete", """{"data":{"category":"address"}}""").first,
+        )
+    }
+
+    @Test
+    fun `filter reads no body beyond the limit and none if nothing is switched off`() {
+        val tooLarge = ByteArray(AttachmentCategoryRequests.MAX_BODY_SIZE + 1) { ' '.code.toByte() }
+        Assertions.assertEquals(413, filter(index("ADDRESS_LIST")).call("/rs/attachments/delete", tooLarge).first)
+        val (status, chain) = filter(index()).call("/rs/attachments/delete", tooLarge)
+        Assertions.assertEquals(200, status)
+        Assertions.assertFalse(chain.request is AttachmentCategoryRequests.CachedBodyRequest, "Not read at all.")
     }
 }

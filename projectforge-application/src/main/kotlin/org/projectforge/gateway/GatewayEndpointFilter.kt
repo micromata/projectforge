@@ -99,7 +99,11 @@ class GatewayEndpointFilter : Filter {
         }
         if (path in BODY_CATEGORY_URLS) {
             // The category is part of the JSON body: read it here and hand the body on to the controller.
-            val body = httpRequest.inputStream.readAllBytes()
+            val body = AttachmentCategoryRequests.readBody(httpRequest)
+            if (body == null) {
+                (response as HttpServletResponse).sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE)
+                return
+            }
             if (AttachmentCategoryRequests.categoryOf(body) == DATATRANSFER_CATEGORY) {
                 chain.doFilter(AttachmentCategoryRequests.CachedBodyRequest(httpRequest, body), response)
                 return

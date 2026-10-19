@@ -240,9 +240,13 @@ class GatewaySyncPushService(
      * via the gateway (see [DataTransferExternalAccessConfig.Mode.VIA_GATEWAY]). Always the complete list (small
      * data volume), the gateway deletes its copies of areas missing here. A delta sync skips the push, if nothing
      * changed since the last push.
+     *
+     * Otherwise (external access on this instance or none at all) an empty list: the gateway withdraws the areas
+     * pushed before, so their external links don't stay valid there.
      */
     private fun pushDataTransferAreas(fullSync: Boolean, counts: SyncCounts) {
-        val dtos = loadPushedDataTransferAreas().map { area ->
+        val areas = if (dataTransferExternalAccessConfig.viaGateway) loadPushedDataTransferAreas() else emptyList()
+        val dtos = areas.map { area ->
             SyncDataTransferAreaDto(
                 id = area.id!!,
                 areaName = area.areaName!!,
@@ -597,9 +601,7 @@ class GatewaySyncPushService(
                 if (run.step("users") { pushUsers(full, it) }) {
                     run.step("groups") { pushGroups(full, it) }
                     // Admins, observers and access users/groups are matched by name, so after users and groups.
-                    if (dataTransferExternalAccessConfig.viaGateway) {
-                        run.step("datatransfer") { pushDataTransferAreas(full, it) }
-                    }
+                    run.step("datatransfer") { pushDataTransferAreas(full, it) }
                     // Favorites reference addresses by uid, so they need the addresses on the gateway first.
                     if (config.syncAddresses && run.step("addresses") { pushAddressBooks(full, it) }) {
                         run.step("favorites") { pushFavorites(full, it) }

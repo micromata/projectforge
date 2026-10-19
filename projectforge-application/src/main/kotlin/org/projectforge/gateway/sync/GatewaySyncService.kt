@@ -523,6 +523,11 @@ class GatewaySyncService(
         val ids = areas.map { it.id }.toSet()
         existingById.values.filter { !it.deleted && it.id !in ids }.forEach { area ->
             try {
+                // No external access to the files kept here (a restored area gets it again from the main instance).
+                area.externalAccessToken = null
+                area.externalPassword = null
+                area.externalDownloadEnabled = false
+                area.externalUploadEnabled = false
                 dataTransferAreaDao.markAsDeleted(area, checkAccess = false)
                 log.info { "Data transfer area '${area.areaName}' (id ${area.id}) has no external access on the main instance anymore, marked as deleted." }
                 deleted++
