@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Projects: a contact person plus any number of further contact persons, as orders have them, replace the project manager, the head of business manager and the sales manager (migrated: the project manager becomes the contact person, the others further contacts). All contacts have the same access to the project and its orders and invoices; the project list shows them in one column, the mass update sets the contact person, and picking a project in an order prefills its contacts.",
+  "de": "Projekte: Statt Projektmanagement, Management Business Unit und Key-Account-Manager:in gibt es wie bei Aufträgen eine Ansprechpartner:in und beliebig viele weitere (migriert: das Projektmanagement wird Ansprechpartner:in, die anderen werden weitere Ansprechpartner:innen). Alle haben denselben Zugriff auf das Projekt und seine Aufträge und Rechnungen; die Projektliste zeigt sie in einer Spalte, die Massenänderung setzt die Ansprechpartner:in, und beim Wählen eines Projekts im Auftrag werden dessen Ansprechpartner:innen übernommen."
+}

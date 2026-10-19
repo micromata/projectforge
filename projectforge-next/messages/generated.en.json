@@ -48,6 +48,7 @@
     "write": "Write access"
   },
   "add": "Add",
+  "additionalContacts": "Additional contact persons",
   "address": {
     "_": "Address",
     "addAddress": "Add address",
@@ -1806,6 +1807,9 @@
     "projectManager": "Project manager",
     "projekt": {
       "_": "Project",
+      "contacts": {
+        "info": "Contact persons have access to the project and to its orders and invoices."
+      },
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
         "kost2LockedEnded": "The project is ended, and so are its cost 2 units (checked): they can no longer be changed.",

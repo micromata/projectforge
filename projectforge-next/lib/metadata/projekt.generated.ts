@@ -8,6 +8,17 @@ export const PROJEKT_METADATA = {
   entity: "ProjektDO",
   historizable: true,
   fields: {
+    additionalContactUserIds: {
+      dataType: "STRING",
+      i18nKey: "additionalContacts",
+      required: false,
+      maxLength: 4000,
+    },
+    contactPerson: {
+      dataType: "USER",
+      i18nKey: "contactPerson",
+      required: false,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",

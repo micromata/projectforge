@@ -6,7 +6,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
-import { AdditionalContactsField } from "./edit/additional-contacts-field";
+import { makeAdditionalContactsField } from "@/components/shared/form/additional-contacts-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { OrderForecastPanel } from "./forecast/order-forecast-panel";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -29,9 +29,16 @@ import { emptyOrderValues, toFormValues } from "./order-values";
 import type { OrderDetail, OrderListRow } from "./types";
 
 /** REST category of an order — `OrderEntityRest` is mapped to "order", not to "auftrag". */
+
 export const ORDER_ENTITY = "order";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const ORDER_LIST_QUERY_KEY = ["order"] as const;
+
+/** The order's further contacts, said what being one means: access to the order and its change mail. */
+const OrderAdditionalContactsField = makeAdditionalContactsField(
+  "fibu.auftrag.contacts.info"
+);
+
 /** Id of the forecast tab — what the URL carries as `?tab=forecast`. */
 export const FORECAST_TAB_ID = "forecast";
 
@@ -342,7 +349,7 @@ export const ORDER_PAGE = definePage<
         fields: [
           // Both say what being a contact means: access to the order and its change mail.
           { name: "contactPerson", hintKey: "fibu.auftrag.contacts.info" },
-          { custom: AdditionalContactsField, span: 2 },
+          { custom: OrderAdditionalContactsField, span: 2 },
         ],
       },
       {

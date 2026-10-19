@@ -124,17 +124,15 @@ class PfCaches {
     }
 
     /**
-     * Fills the task, kunde, konto, projectManager, ... of the given project.
+     * Fills the task, kunde, konto, contactPerson, ... of the given project.
      * @param project The project to fill.
      * @return The filled project for chaining.
      */
     fun initialize(project: ProjektDO): ProjektDO {
-        project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+        project.contactPerson = getUserIfNotInitialized(project.contactPerson)
         project.konto = getKontoIfNotInitialized(project.konto)
         project.kunde = getKundeIfNotInitialized(project.kunde)
-        project.projectManager = getUserIfNotInitialized(project.projectManager)
         project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
-        project.salesManager = getUserIfNotInitialized(project.salesManager)
         project.task = getTaskIfNotInitialized(project.task)
         return project
     }
@@ -354,10 +352,8 @@ class PfCaches {
             project.konto = getKontoIfNotInitialized(project.konto)
             project.task = getTaskIfNotInitialized(project.task)
             project.kunde = getKundeIfNotInitialized(project.kunde)
-            project.projectManager = getUserIfNotInitialized(project.projectManager)
-            project.headOfBusinessManager = getUserIfNotInitialized(project.headOfBusinessManager)
+            project.contactPerson = getUserIfNotInitialized(project.contactPerson)
             project.projektManagerGroup = getGroupIfNotInitialized(project.projektManagerGroup)
-            project.salesManager = getUserIfNotInitialized(project.salesManager)
         }
     }
 
@@ -417,7 +413,7 @@ class PfCaches {
         }
 
         /**
-         * Fills the task, kunde, konto, projectManager, ... of the given project.
+         * Fills the task, kunde, konto, contactPerson, ... of the given project.
          * @param project The project to fill.
          * @return The filled project for chaining.
          */

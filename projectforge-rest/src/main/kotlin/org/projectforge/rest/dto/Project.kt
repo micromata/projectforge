@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
@@ -49,9 +50,11 @@ class Project(
     var konto: Konto? = null,
     var task: Task? = null,
     var projektManagerGroup: Group? = null,
-    var projectManager: User? = null,
-    var headOfBusinessManager: User? = null,
-    var salesManager: User? = null,
+    var contactPerson: User? = null,
+    /** The further contact persons next to [contactPerson] ([ProjektDO.additionalContactUserIds]). */
+    var additionalContacts: List<User>? = null,
+    /** The contact person and the additional contacts, for the list column only ([ProjektDO.assignedPersons]). */
+    var assignedPersons: String? = null,
     var nummernkreis: Int? = null,
     var bereich: Int? = null,
     /** Digits 5-6 of the project number, the third part of its Kost2 (not the local number, see ProjektDO). */
@@ -119,6 +122,10 @@ class Project(
 
     override fun copyFrom(src: ProjektDO) {
         super.copyFrom(src)
+        // super.copyFrom maps the contact person (a relation), not the additional contacts (a csv of ids).
+        additionalContacts = User.toUserList(src.additionalContactUserIds)
+        User.restoreDisplayNames(additionalContacts)
+        assignedPersons = src.assignedPersons
         this.nummernkreis = src.nummernkreis
         this.bereich = src.bereich
         this.teilbereich = src.teilbereich
@@ -144,5 +151,7 @@ class Project(
         // The DTO field is named 'customer' while the DO field is 'kunde', so the name-based super.copyTo
         // skips it; map it here by id (null clears the reference, i.e. an internal project).
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
+        dest.additionalContactUserIds =
+            ContactUserIds.normalize(contactPerson?.id, additionalContacts?.map { it.id })
     }
 }

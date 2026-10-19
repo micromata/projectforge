@@ -142,9 +142,8 @@ class ProjectWizardService {
         var identifier: String? = null,
         var status: ProjektStatus? = null,
         var description: String? = null,
-        var projectManagerId: Long? = null,
-        var headOfBusinessManagerId: Long? = null,
-        var salesManagerId: Long? = null,
+        var contactPersonId: Long? = null,
+        var additionalContactIds: List<Long>? = null,
         var kost2ArtIds: List<Long>? = null,
     )
 
@@ -275,10 +274,9 @@ class ProjectWizardService {
                     it.identifier = projectData.identifier
                     it.status = projectData.status
                     it.description = projectData.description
-                    it.projectManager = projectData.projectManagerId?.let { id -> PFUserDO().also { u -> u.id = id } }
-                    it.headOfBusinessManager =
-                        projectData.headOfBusinessManagerId?.let { id -> PFUserDO().also { u -> u.id = id } }
-                    it.salesManager = projectData.salesManagerId?.let { id -> PFUserDO().also { u -> u.id = id } }
+                    it.contactPerson = projectData.contactPersonId?.let { id -> PFUserDO().also { u -> u.id = id } }
+                    it.additionalContactUserIds =
+                        ContactUserIds.normalize(projectData.contactPersonId, projectData.additionalContactIds)
                 }
                 projektDao.setKunde(projekt, kunde.id)
                 projektDao.setTask(projekt, task.id)

@@ -48,6 +48,7 @@
     "write": "Schreibzugriff"
   },
   "add": "Hinzufügen",
+  "additionalContacts": "Weitere Ansprechpartner:innen",
   "address": {
     "_": "Adresse",
     "addAddress": "Adresse hinzufügen",
@@ -1806,6 +1807,9 @@
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
+      "contacts": {
+        "info": "Ansprechpartner:innen haben Zugriff auf das Projekt und seine Aufträge und Rechnungen."
+      },
       "edit": {
         "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
         "kost2LockedEnded": "Das Projekt ist beendet und damit auch seine Kost2-Einheiten (angehakt): Sie sind nicht mehr änderbar.",

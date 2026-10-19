@@ -180,9 +180,10 @@ export function ProjectWizard() {
       identifier: projectValues.identifier,
       status: projectValues.status,
       description: projectValues.description,
-      projectManagerId: projectValues.projectManager?.id ?? null,
-      headOfBusinessManagerId: projectValues.headOfBusinessManager?.id ?? null,
-      salesManagerId: projectValues.salesManager?.id ?? null,
+      contactPersonId: projectValues.contactPerson?.id ?? null,
+      additionalContactIds: projectValues.additionalContacts.map(
+        (contact) => contact.id
+      ),
       kost2ArtIds: projectValues.kost2Arts
         .filter((art) => art.selected)
         .map((art) => art.id),
@@ -277,14 +278,14 @@ export function ProjectWizard() {
   }
   if (!allowed) {
     return (
-      <div className="flex max-w-3xl flex-col">
+      <div className="flex max-w-6xl flex-col">
         <FormAlert tone="error">{t("project.wizard.notAllowed")}</FormAlert>
       </div>
     );
   }
   if (result) {
     return (
-      <div className="flex max-w-3xl flex-col gap-4">
+      <div className="flex max-w-6xl flex-col gap-4">
         <WizardProjectResult result={result} onAgain={reset} />
       </div>
     );
@@ -296,13 +297,14 @@ export function ProjectWizard() {
   );
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex max-w-3xl flex-col gap-4">
+      {/* As wide as an edit page: the steps carry the three-column grids of the customer and project forms. */}
+      <div className="flex max-w-6xl flex-col gap-4">
         {executeErrors.map((message) => (
           <FormAlert key={message} tone="error">
             {message}
           </FormAlert>
         ))}
-        <p className="text-sm text-muted-foreground">
+        <p className="max-w-3xl text-sm text-muted-foreground">
           {t("project.wizard.intro")}
         </p>
         <WizardCustomerStep
@@ -338,11 +340,11 @@ export function ProjectWizard() {
         ))}
       </div>
       {preview && anyGroup && (
-        <div className="flex max-w-5xl flex-col">
+        <div className="flex max-w-6xl flex-col">
           <WizardPreview preview={preview} isFetching={validation.isFetching} />
         </div>
       )}
-      <div className="flex max-w-3xl flex-col">
+      <div className="flex max-w-6xl flex-col">
         <WizardActionStep
           hasAction={anyGroup}
           canFinish={parentTaskId != null}

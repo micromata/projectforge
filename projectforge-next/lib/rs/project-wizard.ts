@@ -29,9 +29,9 @@ export interface ProjectWizardProject {
   identifier?: string | null;
   status?: string | null;
   description?: string | null;
-  projectManagerId?: number | null;
-  headOfBusinessManagerId?: number | null;
-  salesManagerId?: number | null;
+  contactPersonId?: number | null;
+  /** The further contacts next to `contactPersonId`; duplicates and the main contact are dropped server-side. */
+  additionalContactIds?: number[];
   kost2ArtIds?: number[];
 }
 
