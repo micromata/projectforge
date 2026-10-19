@@ -75,7 +75,9 @@ var tipuesearch = {"pages": [
   {%- assign categories = document.categories | uniq -%}
   {%- assign taxonomies = tags | concat: categories | uniq -%}
   {
-    "title": {{ document.title | smartify | strip_html | normalize_whitespace | jsonify }},
+    {%- comment -%}The home page has no title of its own, only its hero.{%- endcomment -%}
+    {%- assign title = document.title | default: document.hero.title | default: site.title %}
+    "title": {{ title | smartify | strip_html | normalize_whitespace | jsonify }},
     "text": {{ document.content | strip_html | normalize_whitespace | jsonify }},
     "tags": {{ taxonomies | join: " " | normalize_whitespace | jsonify }},
     {%- comment -%}The changelogs aren't pages of their own (output: false), they are listed on the changelog page.{%- endcomment -%}

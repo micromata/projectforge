@@ -3,7 +3,8 @@
     _data/navigation_header.yml. Below 900px the links collapse into a <details> menu (no JavaScript).
     A link is active if the page url equals its url or starts with its "match" prefix. German pages use
     _data/de/navigation_header.yml. The language switch links the page in the other language, or its home page if
-    the page isn't translated (see _includes/lang-alternate.html).
+    the page isn't translated (see _includes/lang-alternate.html). The magnifier opens the search page of the
+    language, on every screen size.
 {%- endcomment -%}
 {%- assign t = site.data.translation[page.lang] -%}
 {%- assign navigation = site.data[page.lang].navigation_header | default: site.data.navigation_header -%}
@@ -26,6 +27,9 @@
             {%- endfor %}
         </nav>
 
+        {%- assign search_active = false -%}{%- if page.url == t.search_url -%}{%- assign search_active = true -%}{%- endif %}
+        <a class="ml-auto inline-grid size-11 place-items-center rounded-md no-underline hover:bg-muted md:-mr-6 md:ml-0 md:size-10 [&>svg]:size-5 {% if search_active %}text-link hover:text-link{% else %}text-secondary-foreground hover:text-foreground{% endif %}" href="{{ t.search_url | relative_url }}" title="{{ t.search }}" aria-label="{{ t.search }}"{% if search_active %} aria-current="page"{% endif %}>{% include icons/search.svg %}</a>
+
         <div class="hidden items-center gap-2 md:flex">
             {{ language_switch }}
             {%- for action in navigation.actions %}
@@ -33,7 +37,7 @@
             {%- endfor %}
         </div>
 
-        <details class="ml-auto md:hidden">
+        <details class="-ml-6 md:hidden">
             <summary class="pf-menu-btn flex size-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-muted-foreground" aria-label="{{ t.menu }}">
                 <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
                 <span class="block h-0.5 w-[18px] rounded-sm bg-foreground"></span>
