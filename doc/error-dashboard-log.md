@@ -13,6 +13,26 @@ fix didn't hold.
 Each entry lists the dashboard source (class:line or log event code) as it appeared, so a reappearing problem can
 be matched even if line numbers move.
 
+## 2026-10-19 (export 07:07, subsystem gatewayPush, plus two problems from the dashboard)
+
+### Fixed (claude-dev1)
+
+| Dashboard source | Cause | Fix | Watch |
+|---|---|---|---|
+| `support.loggedError` at `ScriptLogger:53` (the marked script line `>…>>>…<<<…`) and `KotlinScriptUtils:87` "Script result: null" (1× each, same run) | A user's Kotlin script didn't compile (unknown property of an entity). The diagnostics shown in the script log were also logged as plain ERROR, so a script error of a user became a BUG for the developers. | Event `scripting.script.error` (CLIENT, notify NONE) for `ScriptLogger.error` and the error logs of `KotlinScriptUtils`. | Engine exceptions and timeouts of Kotlin scripts are counted under the same event now (their exception is still logged as INFO by `KotlinScriptExecutor`). |
+
+### Not a code problem
+
+| Dashboard source | Assessment |
+|---|---|
+| `gateway.push.unreachable` + `integration.sync.runFailed` (gateway-push, ~1400×/24h each, since ~2026-10-17) | Gateway shut down on purpose. Every run is "full" until an address push succeeds, then delta again. ~1440 runs/day means a configured interval of 1 minute (default 15 min); no back-off. Each failed run logs both events (runFailed is notify NONE). |
+
+### Open
+
+- **`integration.sync.runFailed` gateway-push 2×/day from 2026-10-08 to 2026-10-16 without `gateway.push.unreachable`**:
+  cause not in the export. Candidates: HTTP errors other than 502–504 of a push endpoint ("Sync push to … failed"),
+  errors reported by the gateway itself (no local error log), "Address push incomplete", "Gateway sync failed".
+
 ## 2026-10-13 (export 04:12, 18 problems OPEN, last 7 days, running version 9.0.4)
 
 9.0.4 went live ~2026-10-11. None of the problems fixed up to 9.0.3 occurred again after the deploys; the
