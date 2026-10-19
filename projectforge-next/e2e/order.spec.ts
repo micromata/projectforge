@@ -519,16 +519,7 @@ async function addPosition(
  * "Löschen" is also the name of the button that opened it.
  */
 async function removePosition(page: Page, format: UserFormat, index: number) {
-  await page
-    .getByRole("button", {
-      name: `${format.t("delete")}: ${TITLE} ${index + 1}`,
-      exact: true,
-    })
-    .click();
-  await page
-    .getByRole("alertdialog")
-    .getByRole("button", { name: format.t("delete"), exact: true })
-    .click();
+  await removeRow(page, format, `${TITLE} ${index + 1}`);
 }
 
 /**
@@ -583,14 +574,33 @@ async function addSchedule(
  * identified by afterwards — an instalment carries no title to name it with.
  */
 async function removeSchedule(page: Page, format: UserFormat, number: number) {
-  await page
-    .getByRole("button", {
-      name: `${format.t("delete")}: ${format.t("fibu.auftrag.paymentschedule._")} ${number}`,
-      exact: true,
-    })
-    .click();
-  await page
-    .getByRole("alertdialog")
+  await removeRow(
+    page,
+    format,
+    `${format.t("fibu.auftrag.paymentschedule._")} ${number}`
+  );
+}
+
+/**
+ * Clicks the delete button of the row named so and confirms the question.
+ *
+ * The click is repeated until the question shows: under the load of a full run the order loaded right
+ * after opening re-rendered the rows, and a click landing in between opened no dialog — the confirm click
+ * then waited out the whole test.
+ */
+async function removeRow(page: Page, format: UserFormat, rowLabel: string) {
+  const dialog = page.getByRole("alertdialog");
+  await expect(async () => {
+    if (!(await dialog.isVisible()))
+      await page
+        .getByRole("button", {
+          name: `${format.t("delete")}: ${rowLabel}`,
+          exact: true,
+        })
+        .click({ timeout: 2_000 });
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
+  await dialog
     .getByRole("button", { name: format.t("delete"), exact: true })
     .click();
 }
