@@ -737,6 +737,14 @@ object NextMigration {
     }
 
     /**
+     * The REST categories whose next page has the given route, e.g. `hrPlanning` for the route `hrPlanning`
+     * or `outgoingInvoice` for the route `invoice`. Empty, if no migrated page has this route.
+     */
+    fun categoriesOfRoute(route: String): Set<String> {
+        return MIGRATED.filterValues { it.route == route }.keys
+    }
+
+    /**
      * @return [Constants.NEXT_APP_PATH] for migrated pages, [Constants.REACT_APP_PATH] otherwise.
      */
     fun appPath(category: String): String {

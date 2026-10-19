@@ -26,6 +26,7 @@
 package org.projectforge.menu.builder
 
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
@@ -51,6 +52,9 @@ open class FavoritesMenuCreator {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
+    @Autowired
+    private lateinit var featureService: FeatureService
+
     /**
      * Builds the standard favorite menu, if the use hasn't one yet.
      */
@@ -58,9 +62,25 @@ open class FavoritesMenuCreator {
         val favMenuAsUserPrefString =
             userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_FAVORITES_MENU_ENTRIES_KEY) as String?
         val menu = getFavoriteMenu(favMenuAsUserPrefString)
-        menu.menuItems.removeIf { !MenuConfiguration.instance.isVisible(it.menuItemDef) }
-        menu.postProcess() // Build badges of top menus.
+        removeHidden(menu.menuItems)
+        menu.postProcess() // Build badges of top menus, removes the emptied groups.
         return menu
+    }
+
+    /**
+     * Removes the entries hidden (projectforge.menu.visibility.*) or switched off (projectforge.features.*), also
+     * inside the user's groups. A group itself is kept: if nothing is left, [Menu.postProcess] removes it.
+     */
+    private fun removeHidden(items: MutableList<MenuItem>) {
+        items.removeIf { item ->
+            val subMenu = item.subMenu
+            if (subMenu.isNullOrEmpty()) {
+                !MenuConfiguration.instance.isVisible(item.menuItemDef) || !featureService.isEnabled(item.id)
+            } else {
+                removeHidden(subMenu)
+                !MenuConfiguration.instance.isVisible(item.menuItemDef)
+            }
+        }
     }
 
     fun createDefaultFavoriteMenu(): Menu {

@@ -175,8 +175,13 @@ class DataTransferPublicSession {
       }
       return loginFailedMessage
     }
-    if (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true) {
+    if (dbo.deleted || (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true)) {
       return translate("plugins.datatransfer.external.noAccess")
+    }
+    if (dataTransferAreaDao.externalAccessConfig.isOnGateway(dbo)) {
+      // The external access of this area is served by the gateway only (its link points there).
+      log.info { "External access of data transfer area '${dbo.areaName}' refused here, it runs via the gateway. Requested by ip=${RestUtils.getClientIp(request)}." }
+      return translate("plugins.datatransfer.external.viaGateway")
     }
     return null
   }

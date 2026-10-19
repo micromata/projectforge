@@ -32,11 +32,14 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.LocaleFilter;
 import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.config.RestUtils;
+import org.projectforge.rest.feature.FeatureFilter;
+import org.projectforge.rest.feature.FeaturePathIndex;
 import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;
 import org.projectforge.web.rest.RestCalendarSubscriptionUserFilter;
 import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -62,6 +65,9 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     @Autowired
     private PFSpringConfiguration pfSpringConfiguration;
+
+    @Autowired
+    private ObjectProvider<FeaturePathIndex> featurePathIndexProvider;
 
     @Override
     public void onStartup(ServletContext sc) throws ServletException {
@@ -89,6 +95,11 @@ public class WebXMLInitializer implements ServletContextInitializer {
         cardDavInit.init(sc);
 
         RestUtils.registerFilter(sc, "loggingFilter", LoggingFilter.class, false, "/*");
+
+        // Switched off features (projectforge.features.*): their REST endpoints and next pages answer 404, in both
+        // modes and before the authentication (restUserFilter).
+        sc.addFilter("featureFilter", new FeatureFilter(featurePathIndexProvider)).addMappingForUrlPatterns(null, false,
+                "/" + RestPaths.REST + "/*", "/" + RestPaths.REST_PUBLIC + "/*", "/next/*");
 
         if (gatewayMode) {
             // Gateway mode: only CardDAV, ICS export (via GatewayIcsExportController), DataTransfer, and sync API

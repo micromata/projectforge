@@ -45,6 +45,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -118,9 +119,25 @@ open class MenuCreator {
     @Autowired
     private lateinit var conflictingAvailabilitiesCache: ConflictingAvailabilitiesCache
 
+    @Autowired
+    private lateinit var featureService: FeatureService
+
     private var initialized = false
 
     private val pluginMenuRegistrations = mutableListOf<PluginMenuRegistration>()
+
+    /** The plugin registering menu entries right now, see [registeringPlugin]. */
+    private var currentPluginId: String? = null
+
+    /** Menu id -> id of the plugin that registered it (main and personal menu). */
+    private val pluginIdByMenuId = mutableMapOf<String, String>()
+
+    /**
+     * Counts every change of the menu definitions, so the [FeatureService] knows when to rebuild its index.
+     */
+    @Volatile
+    var modificationCount = 0
+        private set
 
     /**
      * Plugins may register entries for the user's personal menu at the top right.
@@ -149,7 +166,52 @@ open class MenuCreator {
                 }
             } ?: log.error { "Can't re-register plugin menu '${registration.menuItemDef.id}': parentId=${registration.parentId} not found." }
         }
+        modificationCount++
         log.info { "Menu refreshed including ${pluginMenuRegistrations.size} plugin menu entries." }
+    }
+
+    /**
+     * Runs the initialization of a plugin: the menu entries registered meanwhile belong to it (see [getPluginId]).
+     */
+    fun <T> registeringPlugin(pluginId: String, block: () -> T): T {
+        synchronized(menuItemDefHolder) {
+            currentPluginId = pluginId
+        }
+        try {
+            return block()
+        } finally {
+            synchronized(menuItemDefHolder) {
+                currentPluginId = null
+            }
+        }
+    }
+
+    /**
+     * @return The id of the plugin which registered the menu entry with the given id, or null for a core entry.
+     */
+    fun getPluginId(menuId: String): String? {
+        synchronized(menuItemDefHolder) {
+            return pluginIdByMenuId[menuId]
+        }
+    }
+
+    /**
+     * Visits all menu entry definitions of the main menu (with the ids of their ancestors, top down) and the
+     * personal menu entries of the plugins (without ancestors).
+     */
+    fun forEachMenuItemDef(visitor: (menuItemDef: MenuItemDef, ancestorIds: List<String>) -> Unit) {
+        initialize()
+        fun visit(def: MenuItemDef, ancestors: List<String>) {
+            visitor(def, ancestors)
+            def.children?.toList()?.forEach { visit(it, ancestors + def.id) }
+        }
+        menuItemDefHolder.menuItems.toList().forEach { visit(it, emptyList()) }
+        personalMenuPluginEntries.toList().forEach { visitor(it, emptyList()) }
+    }
+
+    private fun rememberPlugin(menuId: String) {
+        currentPluginId?.let { pluginIdByMenuId[menuId] = it }
+        modificationCount++
     }
 
     /**
@@ -165,6 +227,7 @@ open class MenuCreator {
                 it.add(menuItemDef)
             } ?: log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
             pluginMenuRegistrations.add(PluginMenuRegistration(parentId, menuItemDef))
+            rememberPlugin(menuItemDef.id)
         }
     }
 
@@ -678,6 +741,10 @@ open class MenuCreator {
         menuCreatorContext: MenuCreatorContext,
         notificationCounts: Map<String, Int>,
     ): MenuItem? {
+        if (!featureService.isEnabled(menuItemDef)) {
+            // Switched off for everybody (projectforge.features.*, or plugin not active).
+            return null
+        }
         if (!MenuConfiguration.instance.isVisible(menuItemDef)) {
             // Not visible for the user (groups customized in projectforge.properties).
             return null
@@ -740,7 +807,15 @@ open class MenuCreator {
         return accessChecker.isLoggedInUserMemberOfGroup(*groups)
     }
 
-    fun registerPluginMenu(id: String, i18nLabelKey: String, link: String) {
-        personalMenuPluginEntries.add(MenuItemDef(id = id, i18nKey = i18nLabelKey, url = link))
+    /**
+     * @param featureRestPaths See [MenuItemDef.featureRestPaths].
+     */
+    fun registerPluginMenu(id: String, i18nLabelKey: String, link: String, featureRestPaths: List<String> = emptyList()) {
+        val menuItemDef = MenuItemDef(id = id, i18nKey = i18nLabelKey, url = link)
+        menuItemDef.featureRestPaths = featureRestPaths
+        synchronized(menuItemDefHolder) {
+            personalMenuPluginEntries.add(menuItemDef)
+            rememberPlugin(id)
+        }
     }
 }

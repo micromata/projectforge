@@ -23,25 +23,21 @@
 
 package org.projectforge.gateway
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
-import jakarta.servlet.ReadListener
-import jakarta.servlet.ServletInputStream
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletRequestWrapper
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.rest.config.AttachmentCategoryRequests
+import org.projectforge.rest.config.AttachmentCategoryRequests.ATTACHMENTS_URL
+import org.projectforge.rest.config.AttachmentCategoryRequests.BODY_CATEGORY_URLS
 import org.projectforge.rest.pub.HeartbeatRest
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
 
 private val log = KotlinLogging.logger {}
 
@@ -87,7 +83,7 @@ class GatewayEndpointFilter : Filter {
         "/error",
     ) + GatewaySecurityConfig.DATATRANSFER_CATEGORIES.map { "/rs/$it" } +
             // The files of an area: where the category is part of the path, only the one of the data transfer.
-            listOf("upload", "download", "multiDownload").map { "$ATTACHMENTS_URL/$it/$DATATRANSFER_CATEGORY/" }
+            AttachmentCategoryRequests.PATH_CATEGORY_CALLS.map { "$ATTACHMENTS_URL/$it/$DATATRANSFER_CATEGORY/" }
 
     private val allowedExtensions = listOf(
         ".css", ".js", ".png", ".jpg", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf",
@@ -103,9 +99,13 @@ class GatewayEndpointFilter : Filter {
         }
         if (path in BODY_CATEGORY_URLS) {
             // The category is part of the JSON body: read it here and hand the body on to the controller.
-            val body = httpRequest.inputStream.readAllBytes()
-            if (categoryOf(body) == DATATRANSFER_CATEGORY) {
-                chain.doFilter(CachedBodyRequest(httpRequest, body), response)
+            val body = AttachmentCategoryRequests.readBody(httpRequest)
+            if (body == null) {
+                (response as HttpServletResponse).sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE)
+                return
+            }
+            if (AttachmentCategoryRequests.categoryOf(body) == DATATRANSFER_CATEGORY) {
+                chain.doFilter(AttachmentCategoryRequests.CachedBodyRequest(httpRequest, body), response)
                 return
             }
         }
@@ -124,38 +124,7 @@ class GatewayEndpointFilter : Filter {
         return false
     }
 
-    /** `PostData<AttachmentData>` and `PostData<FileListData>` both carry it as `data.category`. */
-    private fun categoryOf(body: ByteArray): String? =
-        runCatching { objectMapper.readTree(body)?.path("data")?.path("category")?.asText(null) }.getOrNull()
-
-    private class CachedBodyRequest(request: HttpServletRequest, private val body: ByteArray) :
-        HttpServletRequestWrapper(request) {
-        override fun getInputStream(): ServletInputStream {
-            val input = ByteArrayInputStream(body)
-            return object : ServletInputStream() {
-                override fun read(): Int = input.read()
-                override fun read(b: ByteArray, off: Int, len: Int): Int = input.read(b, off, len)
-                override fun isFinished(): Boolean = input.available() == 0
-                override fun isReady(): Boolean = true
-                override fun setReadListener(listener: ReadListener?) {
-                    throw UnsupportedOperationException()
-                }
-            }
-        }
-
-        override fun getReader(): BufferedReader =
-            BufferedReader(InputStreamReader(inputStream, characterEncoding ?: Charsets.UTF_8.name()))
-    }
-
     companion object {
-        private const val ATTACHMENTS_URL = "/rs/attachments"
-
         private const val DATATRANSFER_CATEGORY = "datatransfer"
-
-        /** The attachment calls naming the entity in their body rather than in the path (AttachmentsServicesRest). */
-        internal val BODY_CATEGORY_URLS =
-            listOf("modify", "delete", "encrypt", "testDecryption", "multiDelete").map { "$ATTACHMENTS_URL/$it" }.toSet()
-
-        private val objectMapper = ObjectMapper()
     }
 }

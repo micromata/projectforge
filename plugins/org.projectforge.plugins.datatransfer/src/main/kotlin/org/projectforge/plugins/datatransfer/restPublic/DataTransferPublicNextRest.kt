@@ -135,7 +135,7 @@ class DataTransferPublicNextRest {
             maxUploadSizeFormatted = FormatterUtils.formatBytes(maxUploadSize),
             downloadAllAvailable = DataTransferPublicServicesRest.isDownloadAllAvailable(area),
             userInfo = dto.userInfo,
-            userInfoVisible = DataTransferPublicServicesRest.isUserInfoVisible(request),
+            userInfoVisible = dataTransferPublicServicesRest.isUserInfoVisible(request, area),
             attachments = dto.attachments ?: emptyList(),
         )
     }

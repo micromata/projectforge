@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { AuthGuard } from "@/components/shared/auth-guard";
 import { CostSearchPanelHost } from "@/components/shared/cost-search/cost-search-panel-host";
+import { FeatureGuard } from "@/components/shared/feature-guard";
 import { EntityEditModalHost } from "@/components/shared/edit/entity-edit-modal-host";
 import { JobToasts } from "@/components/shared/jobs/job-toasts";
 import { NotificationToasts } from "@/components/shared/notifications/notification-toasts";
@@ -33,7 +34,10 @@ export default function AuthenticatedLayout({
           rather than per page — the pages below are client rendered anyway, so the bailout it causes
           costs nothing (see useListSelection, which reads `?multiSelectionMode=true`). */}
       <Suspense fallback={null}>
-        <TwoFactorProvider>{children}</TwoFactorProvider>
+        <TwoFactorProvider>
+          {/* The pages of switched off features are "not found", also on navigating inside the app. */}
+          <FeatureGuard>{children}</FeatureGuard>
+        </TwoFactorProvider>
       </Suspense>
     </AuthGuard>
   );

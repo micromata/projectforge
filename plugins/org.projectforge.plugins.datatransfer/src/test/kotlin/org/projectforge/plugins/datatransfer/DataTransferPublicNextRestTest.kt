@@ -31,6 +31,8 @@ import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.login.LoginService
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicNextRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
 import org.projectforge.rest.AttachmentsServicesRest
@@ -182,6 +184,43 @@ class DataTransferPublicNextRestTest : AbstractTestBase() {
             400,
             (testDecryption(request, area, foreignFileId, "secret-password") as ResponseEntity<*>).statusCode.value(),
         )
+    }
+
+    /**
+     * Who uploaded a file is shown only to visitors logged in to ProjectForge with access to the area there (admin,
+     * access user or access group), not with the area's password alone.
+     */
+    @Test
+    fun userInfoVisibilityTest() {
+        logon(TEST_USER)
+        val area = testService.createArea(
+            "Next user info test",
+            accessGroups = listOf(getGroup(TEST_GROUP)),
+            externalDownloadEnabled = true,
+        )
+        testService.createFile(area, "file.txt")
+        fun stateFor(username: String?): DataTransferPublicNextRest.State {
+            val request = DataTransferTestService.mockHttpServletRequest()
+            username?.let { LoginService.internalLoginInCurrentSession(request, UserContext(getUser(it))) }
+            LoginProtection.instance().clearLoginTimeOffset(area.externalAccessToken, null, null)
+            return dataTransferPublicNextRest.login(
+                request,
+                DataTransferPublicNextRest.LoginData(area.externalAccessToken!!, area.externalPassword),
+            ).body as DataTransferPublicNextRest.State
+        }
+        listOf(null, ADMIN).forEach { username ->
+            stateFor(username).let { state ->
+                Assertions.assertFalse(state.userInfoVisible, "No access to the area: $username")
+                Assertions.assertNull(state.attachments!!.single().createdByUser)
+            }
+        }
+        // The admin of the area, and a member of its access group.
+        listOf(TEST_USER, TEST_USER2).forEach { username ->
+            stateFor(username).let { state ->
+                Assertions.assertTrue(state.userInfoVisible, "Access to the area: $username")
+                Assertions.assertNotNull(state.attachments!!.single().createdByUser)
+            }
+        }
     }
 
     private fun encrypt(

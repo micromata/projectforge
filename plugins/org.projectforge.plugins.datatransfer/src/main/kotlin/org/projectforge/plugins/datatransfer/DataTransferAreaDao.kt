@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
@@ -91,6 +90,10 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     @Autowired
     private lateinit var domainService: DomainService
 
+    @Autowired
+    lateinit var externalAccessConfig: DataTransferExternalAccessConfig
+        private set
+
     open fun createInitializedFile(): DataTransferAreaDO {
         val file = DataTransferAreaDO()
         file.adminIds = "${ThreadLocalUserContext.loggedInUserId}"
@@ -153,8 +156,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                     user.getFullname().contains(searchString, ignoreCase = true)
         }.forEach { user ->
             // User name matches given string, so add personal box of this active user:
-            val personalBox = ensurePersonalBox(user.id!!)!!
-            result.add(personalBox)
+            ensurePersonalBox(user.id!!)?.let { result.add(it) }
         }
         return result
     }
@@ -183,7 +185,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
 
+    /**
+     * @return null on the gateway: it has only the areas pushed by the main instance (they carry the ids of the
+     * main instance, so the gateway must not create any area itself), no personal boxes.
+     */
     open fun ensurePersonalBox(userId: Long): DataTransferAreaDO? {
+        if (externalAccessConfig.gatewayMode) {
+            return null
+        }
         userGroupCache.getUser(userId) ?: return null
         var dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_PERSONAL_BOX,
@@ -221,11 +230,23 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     /**
-     * The external access in next (`next/public/datatransfer/<token>`). Links to the former React page
-     * (`react/public/datatransfer/dynamic/<token>`), sent before, are redirected here by OrphanedLinkFilter.
+     * The external link of an area is this url followed by its access token: the gateway's public page if
+     * external access runs via the gateway, the next public page of this instance otherwise (`next/public/datatransfer/`).
+     * Links to the former React page (`react/public/datatransfer/dynamic/<token>`), sent before, are redirected to the
+     * latter by OrphanedLinkFilter.
      */
     open fun getExternalBaseLinkUrl(): String {
-        return domainService.getDomain("${Constants.NEXT_APP_PATH}public/datatransfer/")
+        if (externalAccessConfig.viaGateway) {
+            return "${externalAccessConfig.gatewayPublicUrl}${DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH}"
+        }
+        return domainService.getDomain(DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH)
+    }
+
+    /**
+     * No areas are created on the gateway (see [hasAccess]): the list offers no add button there.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return !externalAccessConfig.gatewayMode
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
@@ -239,7 +260,22 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
+        if (externalAccessConfig.gatewayMode && operationType != OperationType.SELECT) {
+            // Gateway: all areas are pushed by the main instance and administered there, here only their files.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
         obj ?: return false
+        if (externalAccessConfig.gatewayMode && obj.deleted) {
+            // Gateway: withdrawn by the main instance (deleted there or no external access anymore), its admins and
+            // access users are the ones of the last push.
+            if (throwException) {
+                throw AccessException(user, "access.exception.userHasNotRight")
+            }
+            return false
+        }
         if (obj.isPersonalBox() == true) {
             if (operationType != OperationType.SELECT && throwException) {
                 // Select only on inboxes:
@@ -274,6 +310,24 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             throw AccessException(user, "access.exception.userHasNotRight")
         }
         return false
+    }
+
+    /**
+     * Whether the user has access to the area inside ProjectForge: as admin, access user or member of an access
+     * group. Unlike [hasAccess] without side effects (that one removes the external secrets from the object on a
+     * select), so usable on the area of an external access.
+     */
+    open fun hasInternalAccess(user: PFUserDO, area: DataTransferAreaDO): Boolean {
+        val userId = user.id ?: return false
+        if (StringHelper.splitToLongs(area.adminIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        if (StringHelper.splitToLongs(area.accessUserIds, ",")?.contains(userId) == true) {
+            return true
+        }
+        return StringHelper.splitToLongs(area.accessGroupIds, ",")?.let {
+            userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *it.toTypedArray())
+        } == true
     }
 
     override val defaultSortProperties: Array<SortProperty>?

@@ -57,6 +57,13 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     val resourceBundleNames = mutableListOf<String>()
 
     /**
+     * Routes of next pages of the plugin (without `next/`), which aren't derived from its REST categories, e.g. a
+     * public page. Switched off with the plugin (see [org.projectforge.feature.FeatureService]).
+     */
+    open val featureNextRoutes: List<String>
+        get() = emptyList()
+
+    /**
      * @return the initialized
      */
     var initialized = false

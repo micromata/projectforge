@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { DataTransferAudit } from "@/components/shared/datatransfer-audit";
 import { EditPageTabs, TAB_PARAM } from "@/components/shared/edit-page-tabs";
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { PageShell } from "@/components/shared/page-shell";
@@ -20,7 +21,6 @@ import {
   dataTransferTabs,
   resolveDataTransferTab,
 } from "./datatransfer-area-tabs";
-import { DataTransferAuditTab } from "./datatransfer-audit-tab";
 import { DataTransferEditTab } from "./datatransfer-edit-tab";
 import { DataTransferFilesActions } from "./datatransfer-files-actions";
 import { DataTransferFilesInfo } from "./datatransfer-files-info";
@@ -106,7 +106,7 @@ export function DataTransferAreaPage({ id }: { id: number }) {
             </div>
           )}
           {activeTab === DATA_TRANSFER_TAB.audit && (
-            <DataTransferAuditTab id={areaId} />
+            <DataTransferAudit id={areaId} />
           )}
           {editMounted && view.editAccess && (
             <Activity

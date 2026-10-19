@@ -50,11 +50,8 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
 
     init {
         run {
-            visibiltyGroupsString?.split(",;")?.forEach { entry ->
-                val trimmed = entry.trim()
-                if (trimmed.isEmpty()) {
-                    return@forEach
-                } else if (trimmed.equals("ALL", ignoreCase = true)) {
+            splitEntries(visibiltyGroupsString).forEach { trimmed ->
+                if (trimmed.equals("ALL", ignoreCase = true)) {
                     allowedGroupIds = emptyList()
                     allUsersAllowed = true
                     return@run // No need to continue. break
@@ -71,7 +68,6 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
                             log.warn { "No group with id $groupId found for menu '${this.id}' in projectforge.properties:projectforge.menu.visibility.$id=$visibiltyGroupsString" }
                         }
                     }
-                    allowedGroupIds += groupId
                 } else {
                     userGroupCache.getGroupByName(trimmed)?.id.let { id ->
                         if (id != null) {
@@ -106,5 +102,14 @@ class MenuVisibility(val id: String, val visibiltyGroupsString: String?, val men
             }
         }
         return false
+    }
+
+    companion object {
+        /**
+         * @return The entries of a comma (or semicolon) separated list, trimmed, without empty ones.
+         */
+        internal fun splitEntries(str: String?): List<String> {
+            return str?.split(',', ';')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+        }
     }
 }

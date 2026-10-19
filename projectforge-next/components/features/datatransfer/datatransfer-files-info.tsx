@@ -44,6 +44,8 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
               <DataTransferObserveCheckbox
                 id={id}
                 checked={area.userWantsToObserve === true}
+                // The observers of a pushed area come from the main instance.
+                disabled={view.managedByMainInstance === true}
               />
             </div>
           </>

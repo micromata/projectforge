@@ -7,6 +7,8 @@ import type { UserStatus } from "@/lib/rs/types";
 import { useLocale } from "@/i18n/locale-provider";
 import { normalizeLocale } from "@/i18n/config";
 
+const EMPTY: string[] = [];
+
 export function useAuth() {
   const query = useQuery<UserStatus>({
     queryKey: ["userStatus"],
@@ -42,6 +44,10 @@ export function useAuth() {
     jira: query.data?.jira ?? null,
     /** The summary of the notifications visible in the app, null before the status is loaded. */
     notifications: query.data?.notifications ?? null,
+    /** The ids of the switched off features, see useFeatureEnabled. */
+    disabledFeatures: query.data?.disabledFeatures ?? EMPTY,
+    /** The next routes of the switched off features, see FeatureGuard. */
+    featureRoutes: query.data?.featureRoutes ?? null,
     error: query.error,
     refetch: query.refetch,
   };

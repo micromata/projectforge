@@ -38,7 +38,8 @@ export interface DataTransferPublicState {
   userInfo?: string | null;
   /**
    * Who uploaded and changed the files is shown: the visitor is logged in to ProjectForge as well (single
-   * sign-on), not only with the area's password. Otherwise the backend removes it from the files.
+   * sign-on) and has access to the area there (admin, access user or access group), not only the area's
+   * password. Otherwise the backend removes it from the files.
    */
   userInfoVisible?: boolean;
   /** Without download access only the files uploaded in this session. */
@@ -114,7 +115,7 @@ export function dataTransferPublicDownloadAllUrl(id: number): string {
 /**
  * The attachment components on the public endpoints. They answer like `AttachmentsServicesRest`, but
  * the list is read from the state (there is no entity to read it from), and who uploaded a file is
- * shown only to a visitor logged in to ProjectForge (`userInfo`) — for an external upload it is an ip
+ * shown only to a visitor logged in to ProjectForge with access to the area (`userInfo`) — for an external upload it is an ip
  * address. Own files (uploaded in this session) can be encrypted like their name changed.
  */
 export function publicAttachmentService(

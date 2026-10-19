@@ -19,9 +19,11 @@ import {
 export function DataTransferObserveCheckbox({
   id,
   checked,
+  disabled,
 }: {
   id: number;
   checked: boolean;
+  disabled?: boolean;
 }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -40,7 +42,7 @@ export function DataTransferObserveCheckbox({
         <Checkbox
           id={inputId}
           checked={mutation.isPending ? mutation.variables : checked}
-          disabled={mutation.isPending}
+          disabled={disabled || mutation.isPending}
           onCheckedChange={(value) => mutation.mutate(value === true)}
         />
         <Label htmlFor={inputId}>
