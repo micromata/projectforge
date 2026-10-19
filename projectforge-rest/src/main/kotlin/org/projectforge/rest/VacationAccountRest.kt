@@ -58,7 +58,7 @@ import org.projectforge.rest.dto.VacationAccountEmployee
 import org.projectforge.rest.dto.VacationAccountLeaveEntry
 import org.projectforge.rest.dto.VacationAccountVacation
 import org.projectforge.rest.dto.VacationAccountYear
-import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
+import org.projectforge.rest.hr.LeaveAccountEntryEntityRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -178,9 +178,7 @@ class VacationAccountRest {
                     dateFormatted = it.dateFormatted,
                     amountFormatted = it.amountFormatted,
                     description = it.description,
-                    editUrl = PagesResolver.getEditPageUrl(
-                        LeaveAccountEntryPagesRest::class.java, it.id, absolute = true, returnToCaller = RETURN_TO_CALLER,
-                    ),
+                    editUrl = leaveAccountEntryEditUrl(it.id),
                 )
             },
             // Only of the employee's own user: an employee without one has no time sheets to average.
@@ -190,6 +188,11 @@ class VacationAccountRest {
             newVacationUrl = vacationEditUrl(null, mapOf("employee" to employeeId)),
             availabilities = employee.user?.id?.let { readAvailabilities(it, year) }.orEmpty(),
             newAvailabilityUrl = employee.user?.id?.let { availabilityEditUrl(null, mapOf("user" to it)) },
+            newLeaveAccountEntryUrl = if (leaveAccountEntryDao.hasLoggedInUserInsertAccess()) {
+                leaveAccountEntryEditUrl(null, mapOf("employee" to employeeId))
+            } else {
+                null
+            },
             vacationListUrl = vacationListUrl,
             exportUrl = exportUrl,
         )
@@ -293,16 +296,19 @@ class VacationAccountRest {
             VacationEntityRest::class.java, id, params = params + ("returnTo" to RETURN_ROUTE), absolute = true,
         )
 
+    /** The form of projectforge-next, which offers the way back here (`LEAVE_ACCOUNT_ENTRY_PAGE.returnTargets`). */
+    private fun leaveAccountEntryEditUrl(id: Long?, params: Map<String, Any?> = emptyMap()): String =
+        PagesResolver.getEditPageUrl(
+            LeaveAccountEntryEntityRest::class.java, id, params = params + ("returnTo" to RETURN_ROUTE), absolute = true,
+        )
+
     class VacationAccountUserPref(var employeeId: Long? = null)
 
     private fun getUserPref(): VacationAccountUserPref =
         userPrefService.ensureEntry("vacation", "account", VacationAccountUserPref())
 
     companion object {
-        /** The route of this page in projectforge-next, as a `?returnTo=` of the vacation form names it. */
+        /** The route of this page in projectforge-next, as a `?returnTo=` of the forms opened from here names it. */
         const val RETURN_ROUTE = "/vacationAccount"
-
-        /** The `returnToCaller` of the (React) leave account entry form, see [LeaveAccountEntryPagesRest]. */
-        const val RETURN_TO_CALLER = "account"
     }
 }

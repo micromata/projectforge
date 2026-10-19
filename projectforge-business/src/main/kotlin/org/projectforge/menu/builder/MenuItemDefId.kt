@@ -81,7 +81,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
     // The import is reached as a button in the salary list.
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //
-    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
+    EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getListUrl("leaveAccountEntry")), //
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
     GANTT("menu.gantt", getListUrl("gantt")), //

@@ -24,30 +24,43 @@
 package org.projectforge.rest.hr
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeCache
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.rest.VacationAccountRest
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.LeaveAccountEntry
-import org.projectforge.ui.*
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.RoundingMode
 
+/**
+ * The layout-free REST endpoint of the leave account entries ("Urlaubskontokorrekturen"), serving the hand-built list
+ * and edit page of projectforge-next (see components/features/leave-account-entry). Replaces the React UILayout
+ * `LeaveAccountEntryPagesRest`.
+ *
+ * The vacation account (`VacationAccountRest`) opens an entry with `?returnTo=/vacationAccount` and adds one for the
+ * employee it shows with `?employee=<id>` (see [newBaseDTO]).
+ */
 @RestController
 @RequestMapping("${Rest.URL}/leaveAccountEntry")
-class LeaveAccountEntryPagesRest() : AbstractDTOPagesRest<LeaveAccountEntryDO, LeaveAccountEntry, LeaveAccountEntryDao>(
-    LeaveAccountEntryDao::class.java,
-    "vacation.leaveAccountEntry.title"
-) {
+class LeaveAccountEntryEntityRest :
+    AbstractDTOEntityRest<LeaveAccountEntryDO, LeaveAccountEntry, LeaveAccountEntryDao>(
+        LeaveAccountEntryDao::class.java,
+        "vacation.leaveAccountEntry.title"
+    ) {
     @Autowired
     private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
 
     override fun transformForDB(dto: LeaveAccountEntry): LeaveAccountEntryDO {
         val entryDO = LeaveAccountEntryDO()
@@ -56,9 +69,25 @@ class LeaveAccountEntryPagesRest() : AbstractDTOPagesRest<LeaveAccountEntryDO, L
     }
 
     override fun transformFromDB(obj: LeaveAccountEntryDO, editMode: Boolean): LeaveAccountEntry {
+        // From the cache: no lazy load of the employee per row of the list.
         obj.employee = employeeCache.getEmployeeIfNotInitialized(obj.employee)
         val entry = LeaveAccountEntry()
         entry.copyFrom(obj)
+        return entry
+    }
+
+    /**
+     * A new entry is dated today, in the user's time zone. The employee is preset from the parameter `employee` (the id), which the vacation
+     * account passes for the employee it shows.
+     */
+    override fun newBaseDTO(request: HttpServletRequest?): LeaveAccountEntry {
+        val entry = LeaveAccountEntry(date = PFDateTime.now().localDate)
+        NumberHelper.parseLong(request?.getParameter("employee"))?.let { employeeId ->
+            // Unchecked: only the employee's name is shown, and saving the entry requires the HR vacation right.
+            employeeDao.find(employeeId, checkAccess = false)?.let {
+                entry.employee = Employee().also { e -> e.copyFromMinimal(it) }
+            }
+        }
         return entry
     }
 
@@ -76,37 +105,4 @@ class LeaveAccountEntryPagesRest() : AbstractDTOPagesRest<LeaveAccountEntryDO, L
 
     override val autoCompleteSearchFields =
         arrayOf("employee.user.lastname", "employee.user.firstName", "employee.user.username")
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        layout.add(
-            UITable.createUIResultSetTable()
-                .add(lc, "created", "employee", "date", "amount", "description")
-        )
-        layout.getTableColumnById("employee").formatter = UITableColumn.Formatter.EMPLOYEE
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: LeaveAccountEntry, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(lc, "employee", "date", "amount", "description")
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    override fun createReturnToCallerResponseAction(returnToCaller: String): ResponseAction {
-        if (returnToCaller == VacationAccountRest.RETURN_TO_CALLER) {
-            // The vacation account is a page of projectforge-next.
-            return ResponseAction("/${Constants.NEXT_APP_PATH}${VacationAccountRest.RETURN_ROUTE.removePrefix("/")}")
-        }
-        return super.createReturnToCallerResponseAction(returnToCaller)
-    }
 }

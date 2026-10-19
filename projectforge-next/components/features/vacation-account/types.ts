@@ -23,6 +23,8 @@ export interface VacationAccount {
   availabilities: VacationAccountAvailability[];
   /** A new availability entry of the employee's user; absent for an employee without a user. */
   newAvailabilityUrl?: string;
+  /** A new leave account entry of the employee; HR staff with write access only. */
+  newLeaveAccountEntryUrl?: string;
   vacationListUrl: string;
   exportUrl: string;
 }

@@ -583,9 +583,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   den Mitarbeiter (`?employeeId=`, als User-Pref gespeichert wie bisher), alle anderen sehen nur das eigene
   Konto; ohne Mitarbeiter ein Hinweis statt NPE. Behoben: Konfliktzeilen rot (`ag-row-red` war nirgends
   gestylt), das nächste Jahr als dritte Statistikspalte (berechnet, nie gesendet). Die Bearbeitungs-URLs kommen
-  vom Backend: Urlaub mit `?returnTo=/vacationAccount`, Urlaubskontokorrektur (noch React) mit
-  `returnToCaller=account`, das `LeaveAccountEntryPagesRest` auf `/next/vacationAccount` abbildet.
+  vom Backend: Urlaub und Urlaubskontokorrektur mit `?returnTo=/vacationAccount`.
   `react/vacationAccount/**` leitet `OrphanedLinkFilter` um (eine numerische Id wird zu `?employeeId=`).
+- **Urlaubskontokorrekturen** (`leaveAccountEntry`, Liste + Formular, vorher React-UILayout
+  `LeaveAccountEntryPagesRest`, gelöscht) – layoutfrei über `LeaveAccountEntryEntityRest`
+  (`/rs/leaveAccountEntry`, gleicher Pfad). Die Prüfung auf eine Nachkommastelle bleibt im Backend (`validate`);
+  `newBaseDTO` setzt heute als Datum und den Mitarbeiter aus `?employee=`. Neu: HR (Schreibrecht) legt im
+  Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter an (`newLeaveAccountEntryUrl`). Rückweg:
+  Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
 - **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
   über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
   `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne

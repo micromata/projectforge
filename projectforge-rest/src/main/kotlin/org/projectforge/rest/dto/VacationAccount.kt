@@ -32,7 +32,7 @@ import java.time.LocalDate
  * vacations of these years, the leave account entries of the previous and current year and the availability entries of
  * the three years.
  *
- * Every value is formatted for the logged-in user already; the urls are paths of the app (`/next/…`, `/react/…`).
+ * Every value is formatted for the logged-in user already; the urls are paths of the app (`/next/…`).
  */
 class VacationAccount(
     /** The employee shown. Null if the logged-in user has no employee (then everything else is empty). */
@@ -60,6 +60,8 @@ class VacationAccount(
     val availabilities: List<VacationAccountAvailability> = emptyList(),
     /** A new availability entry of the employee's user; its form returns here. Null for an employee without a user. */
     val newAvailabilityUrl: String? = null,
+    /** A new leave account entry of this employee; its form returns here. HR staff with write access only. */
+    val newLeaveAccountEntryUrl: String? = null,
     val vacationListUrl: String,
     val exportUrl: String,
 )
