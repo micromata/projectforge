@@ -23,7 +23,8 @@ import {
 /**
  * The files of an area as an external user sees them, once logged in: all of them with download
  * access, otherwise only those uploaded in this session. Upload, rename and delete only where the
- * area allows uploads, and only for one's own files (the backend marks the others read-only).
+ * area allows uploads, and only for one's own files (the backend marks the others read-only); these can
+ * be encrypted as well.
  */
 export function DataTransferPublicArea({
   token,
@@ -43,6 +44,7 @@ export function DataTransferPublicArea({
   const maxUploadSizeFormatted = state.maxUploadSizeFormatted ?? "";
   const maxZipSize = state.maxZipSize;
   const maxZipSizeFormatted = state.maxZipSizeFormatted ?? "";
+  const userInfo = state.userInfoVisible === true;
   // Built from the single values rather than the state, which is a new object after every upload.
   const service = useMemo(
     () =>
@@ -58,6 +60,7 @@ export function DataTransferPublicArea({
             maxZipSize == null
               ? undefined
               : { bytes: maxZipSize, formatted: maxZipSizeFormatted },
+          userInfo,
         },
         queryClient
       ),
@@ -68,6 +71,7 @@ export function DataTransferPublicArea({
       maxUploadSizeFormatted,
       maxZipSize,
       maxZipSizeFormatted,
+      userInfo,
       queryClient,
     ]
   );
@@ -122,6 +126,9 @@ export function DataTransferPublicArea({
               id={id}
               readOnly={!uploadEnabled}
               layout="table"
+              // As in the area itself, but kept in the browser: an external visitor has no prefs.
+              columnStates="datatransferfiles-public"
+              columnStatesStorage="local"
               uploadHint={
                 uploadEnabled
                   ? `${t("plugins.datatransfer.maxUploadSize._")}: ${

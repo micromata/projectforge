@@ -104,6 +104,7 @@ class FeaturePathIndexTest {
         Assertions.assertTrue(index.isBlocked("/rs/menu/customizer"), "Longest prefix wins over the core.")
         Assertions.assertFalse(index.isBlocked("/rs/unknown/list"))
         Assertions.assertFalse(index.isBlocked("/next/_next/static/address/chunk.js"))
+        Assertions.assertFalse(index.isBlocked("/next/public/_next/static/chunk.js"))
         Assertions.assertFalse(index.isBlocked("/next/"))
         Assertions.assertFalse(index.isBlocked("/wa/address"))
         Assertions.assertFalse(index.isBlocked("/rsPublic/systemStatus"))
@@ -126,6 +127,7 @@ class FeaturePathIndexTest {
         Assertions.assertTrue(inactive.isBlocked("/rsPublic/testpluginPublic"))
         Assertions.assertTrue(inactive.isBlocked("/next/testplugin/"))
         Assertions.assertTrue(inactive.isBlocked("/next/public/testplugin/token"))
+        Assertions.assertFalse(inactive.isBlocked("/next/public/_next/static/chunk.js"))
         // Claimed by a menu entry, not by the plugin (the plugin is switched off with its entries in production).
         Assertions.assertFalse(inactive.isBlocked("/rs/testpluginpersonal"))
         val personalBoxOff = index("PERSONAL_BOX")

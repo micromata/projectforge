@@ -67,6 +67,17 @@ export default function RootLayout({
             Not Next's `metadata.title`: Next re-mounts the <title> it renders from that after the page's
             effects have run, resetting the title the page had just set (seen on the login page). */}
         <title>{APP_TITLE}</title>
+        {/* The icons of the legacy React app at the root (projectforge-webapp/public), not files of
+            this app under /next: an authenticating proxy in front of ProjectForge lets anonymous users
+            reach /favicon.ico already, so the external access of a data transfer area shows it too.
+            No /favicon.png beside it: the proxy doesn't open that one, and a browser preferring it
+            would show no icon at all there (the .ico has 16 and 32 px). */}
+        <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
+        <link
+          rel="apple-touch-icon"
+          href="/apple-touch-icon.png"
+          sizes="180x180"
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

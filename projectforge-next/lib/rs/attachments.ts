@@ -121,8 +121,8 @@ const BASE = "/rs/attachments";
  *
  * `AttachmentsServicesRest` for every entity of a logged-in user ([DEFAULT_ATTACHMENT_SERVICE]). The
  * external access of a data transfer area has endpoints of its own under the same names and
- * signatures (`DataTransferPublicServicesRest`), but no encryption, no reading via the entity, and
- * — depending on the area — no ZIP download.
+ * signatures (`DataTransferPublicServicesRest`), but no reading via the entity, and — depending on
+ * the area — no ZIP download.
  */
 export interface AttachmentService {
   /** Base path of the upload, download, modify and delete endpoints. */
@@ -385,7 +385,7 @@ export function encryptAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult | PasswordRefused> {
   return passwordWrite(
-    `${BASE}/encrypt`,
+    `${ref.base ?? BASE}/encrypt`,
     ref,
     { password, newZipMode: mode },
     signal
@@ -404,7 +404,7 @@ export async function testAttachmentDecryption(
   { kind: "ok" } | { kind: "rejected"; message: string } | PasswordRefused
 > {
   const result = await passwordWrite(
-    `${BASE}/testDecryption`,
+    `${ref.base ?? BASE}/testDecryption`,
     ref,
     { password },
     signal

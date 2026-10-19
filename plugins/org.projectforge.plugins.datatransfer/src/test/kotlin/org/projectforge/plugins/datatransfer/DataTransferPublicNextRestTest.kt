@@ -145,6 +145,65 @@ class DataTransferPublicNextRestTest : AbstractTestBase() {
         Assertions.assertEquals(0, afterDelete.size, "The foreign file must not be part of the answer.")
     }
 
+    /**
+     * An external user with upload access encrypts his own files only. The ZIP replacing the file has a new file id,
+     * which still counts as his: he can change it, and in an area without download access he still sees it.
+     */
+    @Test
+    fun encryptOwnFileTest() {
+        logon(TEST_USER)
+        val area = testService.createArea("Next encrypt test", externalUploadEnabled = true)
+        val foreignFileId = testService.createFile(area, "foreign.txt")!!.fileId!!
+        val request = DataTransferTestService.mockHttpServletRequest()
+        dataTransferPublicNextRest.login(
+            request,
+            DataTransferPublicNextRest.LoginData(area.externalAccessToken!!, area.externalPassword),
+        )
+        val own = attachmentsOf(upload(request, area, "own.txt")).single()
+
+        Assertions.assertEquals(400, encrypt(request, area, foreignFileId, "secret-password").statusCode.value())
+        Assertions.assertEquals(406, encrypt(request, area, own.fileId!!, "123").statusCode.value())
+
+        val encrypted = attachmentsOf(encrypt(request, area, own.fileId!!, "secret-password")).single()
+        Assertions.assertEquals("own.txt.zip", encrypted.name)
+        Assertions.assertNotEquals(own.fileId, encrypted.fileId)
+        Assertions.assertTrue(encrypted.encrypted == true)
+        Assertions.assertNotEquals(true, encrypted.readonly, "The ZIP is an own file of the session.")
+        Assertions.assertEquals(
+            listOf("own-encrypted.zip"),
+            attachmentsOf(modify(request, area, encrypted.fileId!!, "own-encrypted.zip")).map { it.name },
+        )
+
+        Assertions.assertEquals(406, testDecryption(request, area, encrypted.fileId!!, "wrong").let {
+            (it as ResponseEntity<*>).statusCode.value()
+        })
+        Assertions.assertFalse(testDecryption(request, area, encrypted.fileId!!, "secret-password") is ResponseEntity<*>)
+        Assertions.assertEquals(
+            400,
+            (testDecryption(request, area, foreignFileId, "secret-password") as ResponseEntity<*>).statusCode.value(),
+        )
+    }
+
+    private fun encrypt(
+        request: HttpServletRequest,
+        area: DataTransferAreaDO,
+        fileId: String,
+        password: String,
+    ): ResponseEntity<*> {
+        val data = attachmentData(area, fileId, "ignored").also { it.attachment.password = password }
+        return dataTransferPublicServicesRest.encrypt(request, postData(data))
+    }
+
+    private fun testDecryption(
+        request: HttpServletRequest,
+        area: DataTransferAreaDO,
+        fileId: String,
+        password: String,
+    ): Any {
+        val data = attachmentData(area, fileId, "ignored").also { it.attachment.password = password }
+        return dataTransferPublicServicesRest.testDecryption(request, postData(data))
+    }
+
     private fun upload(request: HttpServletRequest, area: DataTransferAreaDO, filename: String): ResponseEntity<*> {
         val file = Mockito.mock(MultipartFile::class.java)
         Mockito.`when`(file.originalFilename).thenReturn(filename)

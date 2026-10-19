@@ -531,7 +531,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   die `AttachmentList` per `AttachmentServiceProvider` umgelenkt wird (ohne Verschlüsselung, ohne
   Benutzerspalten, ZIP nur mit Download-Recht). Läuft **parallel** zur React-Seite
   (`/react/public/datatransfer/dynamic/{token}`), ohne Verweis zueinander; der Link des Bereichs
-  (`DataTransferAreaDao.getExternalBaseLinkUrl`) zeigt weiter auf React. Im Gateway freigegeben.
+  (`DataTransferAreaDao.getExternalBaseLinkUrl`) zeigt auf Next, die React-Seite bedient nur noch früher
+  verschickte Links. Im Gateway freigegeben.
 - **Scripte** (`script`, `myscript`; vorher React-UILayout) – layoutfrei: Liste + Formular der
   Administration (`ScriptEntityRest`, `/rs/script`, Klonen, Beispiele, Backup-/Effektiv-Download),
   „Meine Scripte" als reine Liste (`MyScriptEntityRest`, `foreignEdit`) und die Ausführung

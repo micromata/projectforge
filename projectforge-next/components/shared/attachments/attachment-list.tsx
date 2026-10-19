@@ -89,6 +89,12 @@ export interface AttachmentListProps {
    * the columns can still be changed, but only for as long as the page is open.
    */
   columnStates?: string;
+  /**
+   * Where `columnStates` keeps the layout: `"prefs"` (default) in the user's prefs via the REST path,
+   * `"local"` in the browser under that name — for a visitor without a ProjectForge account (the external
+   * access of a data transfer area).
+   */
+  columnStatesStorage?: "prefs" | "local";
 }
 
 /**
@@ -117,6 +123,7 @@ export function AttachmentList({
   uploadHint,
   layout,
   columnStates,
+  columnStatesStorage,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -215,6 +222,7 @@ export function AttachmentList({
           onChanged={onChanged}
           layout={layout}
           columnStates={columnStates}
+          columnStatesStorage={columnStatesStorage}
         />
       )}
       {/* Nothing stored and nothing on its way: the uploads above would otherwise be contradicted. */}

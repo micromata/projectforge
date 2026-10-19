@@ -135,6 +135,13 @@ class NextSpaResourceResolverTest {
         assertEquals("dynamic list payload", resolve("visitorbook.txt"));
     }
 
+    /** The build links its assets below /next/public (assetPrefix), the export keeps them in _next/. */
+    @Test
+    void servesTheAssetsUnderThePublicPrefixFromTheExport() throws IOException {
+        assertEquals("asset", resolve("public/_next/static/chunks/main.js"));
+        assertNull(resolver.getResource("public/_next/static/chunks/gone.js", location));
+    }
+
     /** An unresolvable asset stays a 404 rather than being masked with a page's HTML. */
     @Test
     void leavesAMissingAssetUnresolved() throws IOException {

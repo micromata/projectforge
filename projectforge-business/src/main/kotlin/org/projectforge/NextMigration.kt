@@ -605,8 +605,8 @@ object NextMigration {
         // no way back; the legacy app is kept for the redirect of bookmarked React links only. The links of the
         // file view, the activities and the personal box (react/datatransferfiles/dynamic/<id> & co., sent by
         // the notification mails) are redirected by OrphanedLinkFilter.redirectDataTransferPage. The external
-        // access runs in parallel in both apps: next/public/datatransfer/<token> and the legacy
-        // react/public/datatransfer/dynamic/<token>, which the area's link still points to (no redirect).
+        // access runs in parallel in both apps: next/public/datatransfer/<token>, which the area's link
+        // points to, and the legacy react/public/datatransfer/dynamic/<token> for links sent before (no redirect).
         "datatransfer" to NextPage(
             route = "datatransfer",
             editRoute = "datatransfer/$ID_PLACEHOLDER/edit",

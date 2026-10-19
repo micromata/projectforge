@@ -88,6 +88,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * Substituting the whole directory rather than just the HTML also serves the route's RSC payloads
      * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
      * client-side navigation to a deep link work.
+     * <p>
+     * The assets are linked as {@code /next/public/_next/**} ({@link Constants#NEXT_PUBLIC_ASSETS_PATH}), but the
+     * export keeps them in {@code _next/}, so that prefix is served from there.
      */
     // Package private rather than private: the order of the cases below is the whole correctness
     // argument, so NextSpaResourceResolverTest exercises them directly.
@@ -100,8 +103,16 @@ public class WebApplicationConfig implements WebMvcConfigurer {
         private record DynamicRoute(String page, Pattern pattern, String shellDir) {
         }
 
+        /** {@link Constants#NEXT_PUBLIC_ASSETS_PATH} relative to the location ({@code public/_next/}). */
+        private static final String PUBLIC_ASSETS =
+                Constants.NEXT_PUBLIC_ASSETS_PATH.substring(Constants.NEXT_APP_PATH.length());
+
         @Override
         protected Resource getResource(String resourcePath, Resource location) throws java.io.IOException {
+            if (resourcePath.startsWith(PUBLIC_ASSETS)) {
+                // 0. An asset as the build links it: only the file itself, never a page in its place.
+                return tryResource("_next/" + resourcePath.substring(PUBLIC_ASSETS.length()), location);
+            }
             // 1. Exact file (assets like _next/static/*.js, favicon.ico, and <route>/index.html when path ends in "/").
             Resource resource = tryResource(resourcePath, location);
             if (resource != null) return resource;

@@ -114,7 +114,9 @@ class FeaturePathIndex {
             }
 
             RestPaths.REST_PUBLIC -> {}
-            NEXT -> if (segments[1] == NEXT_ASSETS) return false
+            NEXT -> if (segments[1] == NEXT_ASSETS || segments.getOrNull(2) == NEXT_ASSETS && segments[1] == "public") {
+                return false // The assets, also below the public pages (Constants.NEXT_PUBLIC_ASSETS_PATH).
+            }
             else -> return false
         }
         if (segments[0] != NEXT && segments.size >= 3 && segments[2] in LOOKUPS) {

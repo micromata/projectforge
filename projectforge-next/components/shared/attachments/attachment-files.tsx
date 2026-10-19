@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import type { SortingState } from "@tanstack/react-table";
 import { toast } from "@/lib/toast";
 import {
   DataTableColumnPanel,
+  readLocalColumnState,
   useColumnStatePersistence,
+  useLocalColumnStatePersistence,
   useDataTable,
   useStoredColumnState,
   useTableState,
@@ -23,6 +26,7 @@ import { AttachmentRow } from "./attachment-row";
 import {
   AttachmentTable,
   attachmentColumns,
+  noRename,
   searchAttachments,
 } from "./attachment-table";
 import { AttachmentToolbar } from "./attachment-toolbar";
@@ -45,7 +49,12 @@ interface Props {
   layout?: "list" | "table";
   /** See AttachmentList's `columnStates`. */
   columnStates?: string;
+  /** See AttachmentList's `columnStatesStorage`. */
+  columnStatesStorage?: "prefs" | "local";
 }
+
+/** Newest first, as the backend lists them — kept explicitly, since uploads are merged in at the end. */
+const DEFAULT_SORTING: SortingState = [{ id: "created", desc: true }];
 
 /**
  * The stored attachments of an entity: rename, delete, encrypt, and the actions on a whole selection
@@ -58,11 +67,22 @@ interface Props {
  * the columns don't jump from the default layout to the user's one.
  */
 export function AttachmentFiles(props: Props) {
-  const prefs = props.layout === "table" ? props.columnStates : undefined;
+  const local = props.columnStatesStorage === "local";
+  const asTable = props.layout === "table";
+  const prefs = asTable && !local ? props.columnStates : undefined;
   const stored = useStoredColumnState(prefs);
+  // Read once: the table takes its stored state on the first render only (see useTableState).
+  const [localState] = useState(() =>
+    readLocalColumnState(asTable && local ? props.columnStates : undefined)
+  );
   // Without prefs the query is disabled — and a disabled query stays pending.
   if (prefs && stored.isPending) return null;
-  return <LoadedAttachmentFiles {...props} storedState={stored.data ?? {}} />;
+  return (
+    <LoadedAttachmentFiles
+      {...props}
+      storedState={local ? localState : (stored.data ?? {})}
+    />
+  );
 }
 
 function LoadedAttachmentFiles({
@@ -74,6 +94,7 @@ function LoadedAttachmentFiles({
   onChanged,
   layout = "list",
   columnStates,
+  columnStatesStorage,
   storedState,
 }: Props & { storedState: ColumnState }) {
   const t = useTranslations();
@@ -97,7 +118,10 @@ function LoadedAttachmentFiles({
   // searched, filtered by column and sorted — so a Shift range follows the order on screen, "select all"
   // picks what is visible, and a file a filter hides drops out of the selection instead of being deleted
   // unseen. Unpaged (manualPagination), so the row model is every displayed row.
-  const state = useTableState({ restoredState: storedState });
+  const state = useTableState({
+    restoredState: storedState,
+    initialSorting: asTable ? DEFAULT_SORTING : [],
+  });
   const table = useDataTable<Attachment>({
     columns,
     data: searched,
@@ -126,16 +150,25 @@ function LoadedAttachmentFiles({
     () => (asTable ? rows.map((row) => row.original) : attachments),
     [asTable, rows, attachments]
   );
-  useColumnStatePersistence(asTable ? columnStates : undefined, {
+  const local = columnStatesStorage === "local";
+  const persisted = {
     sorting: state.sorting,
     columnVisibility: state.columnVisibility,
     columnPinning: state.columnPinning,
     columnSizing: state.columnSizing,
     columnOrder: state.columnOrder,
-  });
-  // Back to the columns as declared; the persistence then stores the empty state.
+  };
+  useColumnStatePersistence(
+    asTable && !local ? columnStates : undefined,
+    persisted
+  );
+  useLocalColumnStatePersistence(
+    asTable && local ? columnStates : undefined,
+    persisted
+  );
+  // Back to the columns as declared; the persistence then stores that state.
   const resetColumns = () => {
-    state.setSorting([]);
+    state.setSorting(asTable ? DEFAULT_SORTING : []);
     state.setColumnVisibility({});
     state.setColumnPinning({});
     state.setColumnSizing({});
@@ -273,6 +306,7 @@ function LoadedAttachmentFiles({
           id={id}
           saving={rename.isPending}
           busy={busy}
+          readOnly={noRename(editing, readOnly)}
           encryptionSupport={service.encryption}
           encrypting={encryption.pending}
           onSave={(name, description) => void saveEdit(name, description)}

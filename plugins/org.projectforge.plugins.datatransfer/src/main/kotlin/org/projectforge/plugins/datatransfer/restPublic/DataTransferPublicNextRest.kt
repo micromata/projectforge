@@ -74,6 +74,8 @@ class DataTransferPublicNextRest {
         var maxZipSize: Long = DataTransferPublicServicesRest.MAX_ZIP_SIZE,
         var maxZipSizeFormatted: String = FormatterUtils.formatBytes(DataTransferPublicServicesRest.MAX_ZIP_SIZE),
         var userInfo: String? = null,
+        /** Who uploaded and changed the files is part of them ([DataTransferPublicServicesRest.isUserInfoVisible]). */
+        var userInfoVisible: Boolean = false,
         var attachments: List<Attachment>? = null,
     )
 
@@ -133,6 +135,7 @@ class DataTransferPublicNextRest {
             maxUploadSizeFormatted = FormatterUtils.formatBytes(maxUploadSize),
             downloadAllAvailable = DataTransferPublicServicesRest.isDownloadAllAvailable(area),
             userInfo = dto.userInfo,
+            userInfoVisible = DataTransferPublicServicesRest.isUserInfoVisible(request),
             attachments = dto.attachments ?: emptyList(),
         )
     }

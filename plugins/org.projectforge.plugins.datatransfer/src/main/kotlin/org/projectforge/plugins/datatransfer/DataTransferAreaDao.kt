@@ -47,7 +47,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -232,17 +231,14 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
     /**
      * The external link of an area is this url followed by its access token: the gateway's public page if
-     * external access runs via the gateway, the next public page on the gateway itself (the legacy React page is
-     * blocked there), the legacy React page otherwise.
+     * external access runs via the gateway, the next public page of this instance otherwise (`next/public/datatransfer/`).
+     * The legacy React page (`react/public/datatransfer/dynamic/<token>`) still serves links sent before.
      */
     open fun getExternalBaseLinkUrl(): String {
-        return when {
-            externalAccessConfig.viaGateway ->
-                "${externalAccessConfig.gatewayPublicUrl}${DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH}"
-
-            externalAccessConfig.gatewayMode -> domainService.getDomain(DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH)
-            else -> domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        if (externalAccessConfig.viaGateway) {
+            return "${externalAccessConfig.gatewayPublicUrl}${DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH}"
         }
+        return domainService.getDomain(DataTransferExternalAccessConfig.PUBLIC_PAGE_PATH)
     }
 
     /**

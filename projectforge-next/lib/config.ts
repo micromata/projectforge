@@ -12,3 +12,6 @@
 // them to :8080 (with `basePath: false` so the source stays `/rs/*`); in the
 // static-export prod build they hit the same Spring origin directly.
 export const BASE_PATH = "/next";
+
+// The prod build links its assets below `${BASE_PATH}/public` (see next.config.ts, assetPrefix).
+export const PUBLIC_ASSET_PREFIX = "/public";
