@@ -340,6 +340,9 @@ class ProjectWizardService {
             ?.key
     }
 
+    /** The existing customer of the given id (number), for the group names the wizard suggests. */
+    fun existingCustomer(kundeId: Long): KundeDO? = kundeCache.getKunde(kundeId)
+
     private fun customerOf(data: CustomerData): Pair<KundeDO, Boolean> {
         require(!data.existing || data.id != null) { "Existing customer required." }
         data.id?.let { id ->

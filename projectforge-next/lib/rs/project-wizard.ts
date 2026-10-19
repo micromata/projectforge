@@ -99,19 +99,26 @@ export function fetchProjectWizardInit(
 }
 
 /**
- * The structure element of an existing customer, as its projects tell (the parent most of their
- * elements share), for the wizard to preset; null if none is known.
+ * `ProjectWizardRest.CustomerTaskResponse`: the structure element of an existing customer, as its
+ * projects tell (the parent most of their elements share), for the wizard to preset — null if none is
+ * known —, and the customer's number, name and identifier the suggested group names are built of.
  */
-export async function fetchCustomerTask(
+export interface ProjectWizardCustomerInfo {
+  taskId?: number | null;
+  nummer?: number | null;
+  name?: string | null;
+  identifier?: string | null;
+}
+
+export function fetchCustomerInfo(
   customerId: number,
   signal?: AbortSignal
-): Promise<number | null> {
-  const answer = await request<{ taskId?: number | null }>(
+): Promise<ProjectWizardCustomerInfo> {
+  return request<ProjectWizardCustomerInfo>(
     `/rs/projectWizard/customerTask?customerId=${customerId}`,
     { method: "GET" },
     signal
   );
-  return answer.taskId ?? null;
 }
 
 /** The field errors of the request and what it would grant — asked again while the user types. */

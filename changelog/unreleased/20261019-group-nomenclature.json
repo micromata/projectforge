@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Groups: a configurable naming convention (configuration parameter \"Group nomenclature\": description, pattern of customer and project fields, suffixes per role, letter case). The project and structure wizards suggest the names of new groups following it, and its description is shown at the name of a group and in the wizards.",
+  "de": "Gruppen: Eine konfigurierbare Namenskonvention (Konfigurationsparameter „Nomenklatur der Gruppen“: Beschreibung, Muster aus Kunden- und Projektfeldern, Endungen je Rolle, Groß-/Kleinschreibung). Projekt- und Strukturelement-Assistent schlagen die Namen neuer Gruppen danach vor, und die Beschreibung wird am Namen einer Gruppe und in den Assistenten angezeigt."
+}

@@ -21,7 +21,8 @@ import {
 import { GROUP_STEPS, type WizardGroupKey, type WizardGroups } from "./types";
 import { stashWizardGroups, takeWizardGroups } from "./wizard-handover";
 import { WizardActionStep } from "./wizard-action-step";
-import { WizardGroupStepCard } from "./wizard-group-step";
+import { groupBaseNameOfTask, WizardGroupStepCard } from "./wizard-group-step";
+import { useGroupNomenclature } from "@/hooks/use-group-nomenclature";
 import { WizardPreview } from "./wizard-preview";
 import { WizardResult } from "./wizard-result";
 import { WizardTaskStep } from "./wizard-task-step";
@@ -73,6 +74,9 @@ export function TaskWizard() {
     enabled: taskId != null,
     staleTime: Infinity,
   });
+
+  const nomenclature = useGroupNomenclature();
+  const baseName = groupBaseNameOfTask(nomenclature, task);
 
   const anyGroup = GROUP_STEPS.some((step) => groups[step.key]);
 
@@ -139,7 +143,8 @@ export function TaskWizard() {
             number={index + 2}
             value={groups[step.key] ?? null}
             onChange={(group) => setGroup(step.key, group)}
-            taskTitle={task?.title}
+            baseName={baseName}
+            nomenclatureDescription={nomenclature?.description}
           />
         ))}
       </div>

@@ -119,15 +119,27 @@ class ProjectWizardRest {
 
     /**
      * The structure element of an existing customer, for the wizard to preset (see
-     * [ProjectWizardService.customerTaskOf]).
+     * [ProjectWizardService.customerTaskOf]), and the customer's number, name and identifier, which the
+     * suggested group names are built of (see `GroupNomenclatureConfig`).
      */
-    class CustomerTaskResponse(val taskId: Long?)
+    class CustomerTaskResponse(
+        val taskId: Long?,
+        val nummer: Long? = null,
+        val name: String? = null,
+        val identifier: String? = null,
+    )
 
     @AccessChecked("ProjectWizardService.isAllowed")
     @GetMapping("customerTask")
     fun customerTask(@RequestParam("customerId") customerId: Long): CustomerTaskResponse {
         checkAllowed()
-        return CustomerTaskResponse(projectWizardService.customerTaskOf(customerId))
+        val kunde = projectWizardService.existingCustomer(customerId)
+        return CustomerTaskResponse(
+            taskId = projectWizardService.customerTaskOf(customerId),
+            nummer = kunde?.nummer,
+            name = kunde?.name,
+            identifier = kunde?.identifier,
+        )
     }
 
     /**

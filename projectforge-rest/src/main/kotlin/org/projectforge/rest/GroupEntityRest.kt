@@ -27,6 +27,7 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.SystemStatus
+import org.projectforge.business.group.GroupNomenclatureConfig
 import org.projectforge.business.ldap.GroupDOConverter
 import org.projectforge.business.ldap.LdapGroupValues
 import org.projectforge.business.ldap.LdapPosixGroupsUtils
@@ -47,6 +48,7 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
@@ -56,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -204,6 +207,16 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         dto.gidNumber = null
         dto.ldapValues = null
         return dto
+    }
+
+    /**
+     * The naming convention of groups (configuration parameter `groupNomenclature`): its description is shown at
+     * the name of a group, and the wizards suggest names following it.
+     */
+    @AccessChecked("Logged-in user; only the configured naming convention, no data")
+    @GetMapping("nomenclature")
+    fun nomenclature(): GroupNomenclatureConfig {
+        return GroupNomenclatureConfig.get()
     }
 
     @PostMapping("createGid")

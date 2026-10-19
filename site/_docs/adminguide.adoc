@@ -540,6 +540,25 @@ projectforge.fibu.number-ranges.allow-free-numbers=false
   them (e.g. `1.*` for `1.####.#.##`). With `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` the time
   booked on Kost2 of customer projects with an invoiced Kost2 type counts as billed, independent of the digits.
 
+[[group_nomenclature]]
+=== Group nomenclature
+
+The configuration parameter *Group nomenclature* (`groupNomenclature`, category finance) describes how groups are
+named. It is a description, not a rule: the project and structure wizards suggest the names of new groups following
+it, and its description is shown at the name of a group and in the wizards; no name is checked against it.
+
+* *Description*: rich text explaining the convention.
+* *Pattern of the base name* of a project's groups, with the placeholders `+{customer.identifier}+`,
+  `+{customer.name}+`, `+{customer.number}+`, `+{project.identifier}+`, `+{project.name}+` and `+{project.number}+`.
+  An empty identifier is replaced by the name. Empty: the project's name.
+* *Suffixes* of the manager, team and externals' groups, appended with a hyphen. Empty: the wizard's default
+  (`pm`, none, `extern`/`external`).
+* *Letter case* of the whole suggested name: unchanged, lower case or upper case.
+
+Example: pattern `+{customer.identifier}-{project.identifier}+`, suffixes `pm` and `extern`, lower case suggest
+`acme-portal-pm`, `acme-portal` and `acme-portal-extern`. The structure wizard uses the pattern if the picked element
+belongs to a project, otherwise the element's title.
+
 [[business_assessment_bwa]]
 === business assessment / BWA
 

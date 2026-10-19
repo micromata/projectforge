@@ -560,6 +560,26 @@ projectforge.fibu.number-ranges.allow-free-numbers=false
   `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` zählt die auf Kost2 von Kundenprojekten mit einer
   fakturierten Kost2-Art gebuchte Zeit als abgerechnet, unabhängig von den Ziffern.
 
+[[group_nomenclature]]
+=== Nomenklatur der Gruppen
+
+Der Konfigurationsparameter *Nomenklatur der Gruppen* (`groupNomenclature`, Kategorie Finanzen) beschreibt, wie
+Gruppen benannt werden. Er ist eine Beschreibung, keine Regel: Projekt- und Strukturelement-Assistent schlagen die
+Namen neuer Gruppen danach vor, und die Beschreibung wird am Namen einer Gruppe und in den Assistenten angezeigt;
+geprüft wird kein Name.
+
+* *Beschreibung*: Rich Text, der die Konvention erläutert.
+* *Muster des Basisnamens* der Gruppen eines Projekts, mit den Platzhaltern `+{customer.identifier}+`,
+  `+{customer.name}+`, `+{customer.number}+`, `+{project.identifier}+`, `+{project.name}+` und `+{project.number}+`.
+  Ein leerer Kurzbezeichner wird durch den Namen ersetzt. Leer: der Name des Projekts.
+* *Endungen* der Gruppen für Management, Team und Externe, mit Bindestrich angehängt. Leer: die Vorgabe des
+  Assistenten (`pm`, keine, `extern`).
+* *Groß-/Kleinschreibung* des ganzen vorgeschlagenen Namens: unverändert, klein oder groß.
+
+Beispiel: Muster `+{customer.identifier}-{project.identifier}+`, Endungen `pm` und `extern`, Kleinschreibung ergeben
+`acme-portal-pm`, `acme-portal` und `acme-portal-extern`. Der Strukturelement-Assistent nimmt das Muster, wenn das
+gewählte Element zu einem Projekt gehört, sonst den Titel des Elements.
+
 [[business_assessment_bwa]]
 === Betriebswirtschaftliche Auswertung / BWA
 

@@ -26,6 +26,7 @@ package org.projectforge.rest.task
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.NextMigration
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.KostCache
@@ -81,6 +82,17 @@ class TaskServicesRest {
          * ([ProjektDO.kost]). What the Wicket form shows as `<kost>.*` next to the black/white list.
          */
         val kost: String?,
+        /** Number, identifier and customer: what the access wizard builds its group names of. */
+        val nummer: Int? = null,
+        val identifier: String? = null,
+        val customer: Customer? = null,
+    )
+
+    /** The customer of a [Projekt], for the group names the access wizard suggests. */
+    class Customer(
+        val nummer: Long?,
+        val name: String?,
+        val identifier: String?,
     )
 
     /**
@@ -306,7 +318,15 @@ class TaskServicesRest {
             addKost2List(task)
             addTimesheetReferenceList(task)
             task.costConfigured = Configuration.instance.isCostConfigured
-            task.projekt = taskTree.getProjekt(id)?.let { Projekt(it.id, it.name, it.kost) }
+            task.projekt = taskTree.getProjekt(id)?.let { projekt ->
+                val kunde = PfCaches.instance.getKunde(projekt.kunde?.id)
+                Projekt(
+                    projekt.id, projekt.name, projekt.kost,
+                    nummer = projekt.nummer,
+                    identifier = projekt.identifier,
+                    customer = kunde?.let { Customer(it.nummer, it.name, it.identifier) },
+                )
+            }
             val consumptionNode = if (budgetConsumption) taskTree.getPersonDaysNode(taskNode) ?: taskNode else taskNode
             task.consumption = Consumption.create(consumptionNode)
             val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)

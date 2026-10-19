@@ -29,6 +29,14 @@ export interface TaskProjekt {
   name?: string | null;
   /** The cost number without the two Kost2Art digits, e.g. `5.123.45` — shown as `<kost>.*`. */
   kost?: string | null;
+  /** Number, identifier and customer: what the access wizard builds its group names of. */
+  nummer?: number | null;
+  identifier?: string | null;
+  customer?: {
+    nummer?: number | null;
+    name?: string | null;
+    identifier?: string | null;
+  } | null;
 }
 
 /**

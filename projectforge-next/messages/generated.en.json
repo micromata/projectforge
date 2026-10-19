@@ -338,6 +338,10 @@
             "description": "Settings of the forecast (order statistics): the hint on the planning date shown in its tooltip."
           }
         },
+        "groupNomenclature": {
+          "_": "Group nomenclature",
+          "description": "Naming convention of the groups (description, pattern and suffixes), which the project and structure wizards follow when suggesting names of new groups."
+        },
         "hr": {
           "emailaddress": {
             "_": "HR-Emailaddress",
@@ -492,7 +496,8 @@
       "encrytpedAes128": "Encrypted (AES-128)",
       "encrytpedAes256": "Encrypted (AES-256, very secure)",
       "standard": "No encryption"
-    }
+    },
+    "zipTooLarge": "The selected files exceed {arg0} in total. Please select fewer files or download them one by one."
   },
   "attachments": {
     "_": "Attachments",
@@ -2337,6 +2342,37 @@
       "not": "Common group",
       "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
     },
+    "nomenclature": {
+      "_": "Naming convention",
+      "description": {
+        "_": "Description",
+        "tooltip": "Explains the convention; shown in the wizards next to the names of new groups."
+      },
+      "example": {
+        "_": "Example",
+        "customer": "Customer",
+        "project": "Project"
+      },
+      "externalSuffix": "Suffix of the group of externals",
+      "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+      "letterCase": {
+        "_": "Letter case",
+        "keep": "Keep as built",
+        "lower": "lower case",
+        "tooltip": "Applies to the whole suggested name, suffix included.",
+        "upper": "UPPER CASE"
+      },
+      "managerSuffix": "Suffix of the manager group",
+      "pattern": {
+        "_": "Pattern of the base name",
+        "placeholders": "Placeholders",
+        "tooltip": "The base name of the groups of a project, built from the placeholders below; an empty identifier is replaced by the name. Empty: the name of the project."
+      },
+      "suffix": {
+        "tooltip": "Appended with a hyphen. Empty: the default of the wizard."
+      },
+      "teamSuffix": "Suffix of the team group"
+    },
     "owner": "Group owner",
     "pleaseSelectGroup": "Please select group",
     "systemGroups": "System groups",
@@ -3253,6 +3289,7 @@
             "info": "Please renew the link if you assume that this token was leaked. The old one will be invalid after clicking the save button."
           }
         },
+        "loginFailed": "Login failed. Please check the password (case sensitive!).",
         "password": {
           "_": "Password",
           "info": "This password improves security and is protected by brute-force protection.",

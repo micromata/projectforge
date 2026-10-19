@@ -338,6 +338,10 @@
             "description": "Einstellungen des Forecasts (Statistiken): der Hinweis zum Plandatum, der in dessen Tooltip angezeigt wird."
           }
         },
+        "groupNomenclature": {
+          "_": "Nomenklatur der Gruppen",
+          "description": "Namenskonvention der Gruppen (Beschreibung, Muster und Endungen), nach der Projekt- und Strukturelement-Assistent die Namen neuer Gruppen vorschlagen."
+        },
         "hr": {
           "emailaddress": {
             "_": "E-Mailadresse HR",
@@ -492,7 +496,8 @@
       "encrytpedAes128": "verschlüsselt (AES-128)",
       "encrytpedAes256": "verschlüsselt (AES-256, hohe Sicherheit)",
       "standard": "ohne Verschlüsselung"
-    }
+    },
+    "zipTooLarge": "Die ausgewählten Dateien sind zusammen größer als {arg0}. Bitte weniger Dateien auswählen oder einzeln herunterladen."
   },
   "attachments": {
     "_": "Anhänge",
@@ -2337,6 +2342,37 @@
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
     },
+    "nomenclature": {
+      "_": "Namenskonvention",
+      "description": {
+        "_": "Beschreibung",
+        "tooltip": "Erläutert die Konvention; wird in den Assistenten bei den Namen neuer Gruppen angezeigt."
+      },
+      "example": {
+        "_": "Beispiel",
+        "customer": "Kunde",
+        "project": "Projekt"
+      },
+      "externalSuffix": "Endung der Gruppe der Externen",
+      "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+      "letterCase": {
+        "_": "Groß-/Kleinschreibung",
+        "keep": "Unverändert",
+        "lower": "kleinbuchstaben",
+        "tooltip": "Gilt für den ganzen vorgeschlagenen Namen samt Endung.",
+        "upper": "GROSSBUCHSTABEN"
+      },
+      "managerSuffix": "Endung der Managergruppe",
+      "pattern": {
+        "_": "Muster des Basisnamens",
+        "placeholders": "Platzhalter",
+        "tooltip": "Der Basisname der Gruppen eines Projekts, gebildet aus den unten aufgeführten Platzhaltern; ein leerer Kurzbezeichner wird durch den Namen ersetzt. Leer: der Name des Projekts."
+      },
+      "suffix": {
+        "tooltip": "Wird mit Bindestrich angehängt. Leer: die Vorgabe des Assistenten."
+      },
+      "teamSuffix": "Endung der Teamgruppe"
+    },
     "owner": "Gruppenbesitzer",
     "pleaseSelectGroup": "Bitte Gruppe wählen",
     "systemGroups": "Systemgruppen",
@@ -3253,6 +3289,7 @@
             "info": "Bitte den Link erneuern, wenn der Link in unbefugte Hände geraten sein könnte. Der alte Link wird erst durch Speichern ungültig."
           }
         },
+        "loginFailed": "Die Anmeldung war nicht erfolgreich. Bitte das Passwort nochmals prüfen (Groß-/Kleinschreibung bitte beachten).",
         "password": {
           "_": "Passwort",
           "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert.",

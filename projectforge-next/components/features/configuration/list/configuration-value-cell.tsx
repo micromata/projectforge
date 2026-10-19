@@ -12,6 +12,8 @@ import { LANES_AND_PLANES_PARAM } from "../lanes-and-planes-config";
 import type { ConfigurationRow } from "../types";
 import { ContributionMarginConfigSummary } from "./contribution-margin-config-summary";
 import { ForecastConfigSummary } from "./forecast-config-summary";
+import { GroupNomenclatureConfigSummary } from "./group-nomenclature-config-summary";
+import { GROUP_NOMENCLATURE_PARAM } from "@/lib/group-nomenclature";
 import { LanesAndPlanesConfigSummary } from "./lanes-and-planes-config-summary";
 
 /**
@@ -58,6 +60,14 @@ export function ConfigurationValueCell({
       }
       if (row.parameter === LANES_AND_PLANES_PARAM) {
         return <LanesAndPlanesConfigSummary json={row.stringValue} />;
+      }
+      if (row.parameter === GROUP_NOMENCLATURE_PARAM) {
+        return (
+          <GroupNomenclatureConfigSummary
+            json={row.stringValue}
+            highlight={highlight}
+          />
+        );
       }
       if (row.parameter === FORECAST_PARAM) {
         return (

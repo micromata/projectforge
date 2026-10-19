@@ -6,6 +6,7 @@ import {
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
 import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
+import { GroupNomenclatureHint } from "@/components/shared/group-nomenclature-hint";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
@@ -21,8 +22,10 @@ interface WizardRoleStepProps {
   number: number;
   value: RoleState;
   onChange: (value: RoleState) => void;
-  /** The name a new group gets unless one is typed, made of the project's name. */
+  /** The name a new group gets unless one is typed, following the configured nomenclature. */
   suggestedName: string | null;
+  /** The configured description of the group naming convention, as a hint at the name. */
+  nomenclatureDescription?: string | null;
   errors: ValidationError[];
 }
 
@@ -40,6 +43,7 @@ export function WizardRoleStep({
   value,
   onChange,
   suggestedName,
+  nomenclatureDescription,
   errors,
 }: WizardRoleStepProps) {
   const t = useTranslations();
@@ -83,9 +87,15 @@ export function WizardRoleStep({
       {value.mode === "new" && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`${id}-name`} className="text-xs">
-              {t("name")}
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor={`${id}-name`} className="text-xs">
+                {t("name")}
+              </Label>
+              <GroupNomenclatureHint
+                description={nomenclatureDescription}
+                label={`${t("name")}: ${heading}`}
+              />
+            </div>
             <Input
               id={`${id}-name`}
               value={value.name ?? suggestedName ?? ""}

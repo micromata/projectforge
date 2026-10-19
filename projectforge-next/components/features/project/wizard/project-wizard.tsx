@@ -23,17 +23,18 @@ import { PROJECT_LIST_QUERY_KEY } from "@/components/features/project/project.pa
 import type { ProjectDetail } from "@/components/features/project/types";
 import { GROUP_STEPS } from "@/components/features/task/wizard/types";
 import { WizardActionStep } from "@/components/features/task/wizard/wizard-action-step";
-import { suggestGroupName } from "@/components/features/task/wizard/wizard-group-step";
+import { defaultGroupNameSuffix } from "@/components/features/task/wizard/wizard-group-step";
 import { WizardPreview } from "@/components/features/task/wizard/wizard-preview";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { FormAlert } from "@/components/shared/form-alert";
 import { Spinner } from "@/components/shared/spinner";
 import { PROJECT_WIZARD_INIT_QUERY_KEY } from "@/components/shared/tasks/project-wizard-link";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useGroupNomenclature } from "@/hooks/use-group-nomenclature";
 import { fetchNew } from "@/lib/rs/client";
 import {
   executeProjectWizard,
-  fetchCustomerTask,
+  fetchCustomerInfo,
   fetchProjectWizardInit,
   validateProjectWizard,
   type ProjectWizardGroup,
@@ -43,6 +44,7 @@ import {
 import type { ValidationError } from "@/lib/rs/types";
 import { applyServerValidationErrors } from "@/lib/validation/server-errors";
 import { navigateInGesture } from "@/lib/navigate-in-gesture";
+import { groupBaseName, suggestedGroupName } from "@/lib/group-nomenclature";
 import {
   initialRoles,
   ROLE_FIELDS,
@@ -139,27 +141,44 @@ export function ProjectWizard() {
     setCustomer(picked);
     if (!picked) return;
     void queryClient
-      .fetchQuery({
-        queryKey: ["projectWizardCustomerTask", picked.id],
-        queryFn: ({ signal }) => fetchCustomerTask(picked.id, signal),
-        staleTime: 60_000,
-      })
-      .then((taskId) => {
-        if (taskId != null) setParentTaskId(taskId);
+      .fetchQuery(customerInfoQuery(picked.id))
+      .then((info) => {
+        if (info.taskId != null) setParentTaskId(info.taskId);
       })
       .catch(() => undefined);
   };
+  // The same answer again, for the customer's identifier the group names are built of.
+  const customerInfo = useQuery({
+    ...customerInfoQuery(customer?.id ?? 0),
+    enabled: customerMode === "existing" && customer != null,
+  });
 
   const projectName = projectValues.name?.trim() ?? "";
+  const nomenclature = useGroupNomenclature();
+  const nomenclatureCustomer =
+    customerMode === "existing"
+      ? customer
+        ? (customerInfo.data ?? null)
+        : null
+      : customerValues;
+  const baseName = groupBaseName(nomenclature, {
+    customer: nomenclatureCustomer,
+    project: projectValues,
+  });
   const suggestedNames = useMemo(
     () =>
       Object.fromEntries(
         GROUP_STEPS.map((step) => [
           step.key,
-          suggestGroupName(step, projectName, t),
+          suggestedGroupName(
+            nomenclature,
+            step.key,
+            baseName,
+            defaultGroupNameSuffix(step, t)
+          ),
         ])
       ),
-    [projectName, t]
+    [nomenclature, baseName, t]
   );
 
   const request: ProjectWizardRequest = {
@@ -335,6 +354,7 @@ export function ProjectWizard() {
               setRoles((previous) => ({ ...previous, [step.key]: value }))
             }
             suggestedName={suggestedNames[step.key]}
+            nomenclatureDescription={nomenclature?.description}
             errors={errors}
           />
         ))}
@@ -356,6 +376,16 @@ export function ProjectWizard() {
       </div>
     </div>
   );
+}
+
+/** The structure element and the naming fields of an existing customer, shared by the pick and the names. */
+function customerInfoQuery(customerId: number) {
+  return {
+    queryKey: ["projectWizardCustomerInfo", customerId],
+    queryFn: ({ signal }: { signal: AbortSignal }) =>
+      fetchCustomerInfo(customerId, signal),
+    staleTime: 60_000,
+  };
 }
 
 /** What a role step sends: an existing group by its id, a new one by name and members, or nothing. */
