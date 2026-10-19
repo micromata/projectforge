@@ -388,8 +388,7 @@ Jedes Problem geht an die Empfänger seiner Zielgruppe: Entwicklung (Bugs, Daten
 Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgruppe keine eigenen Empfänger, erhält
 `projectforge.support.mail` ihren Digest.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
 # Wie oft der Digest höchstens versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1h
@@ -566,8 +565,7 @@ Alle Kunden eines Nummernkreises müssen daher die Stellen vor diesen letzten St
 mit 2 Projektstellen umfasst höchstens die 1000 Kunden eines Blocks wie 0-999 (100 Projekte je Kunde), einer mit
 1 Projektstelle höchstens die 10000 Kunden eines Blocks wie 10000-19999.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source]
 ----
 # Früherer Nummernkreis 4: interne Projekte 4.###.##.##
@@ -698,8 +696,7 @@ Angemeldet-bleiben-Session gespeichert.
 
 Empfohlene Beispielkonfiguration:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,properties,linenums]
 ----
 projectforge.2fa.expiryPeriod.minutes1=
@@ -758,8 +755,7 @@ include /etc/openldap/schema/inetorgperson.schema
 Die Einstellung groupBase wird nur im Master-Modus benötigt. Der managerUser wird im einfachen Slave-Modus nicht
 benötigt. Weitere Informationen folgen unten.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -805,8 +801,7 @@ In diesem Modus benötigt ProjectForge einen LDAP-Benutzer mit Schreibzugriff au
 von ProjectForge werden ins LDAP synchronisiert. Bei Konflikten zwischen LDAP und ProjectForge gelten die
 Einstellungen von ProjectForge. Die Konfiguration dieses Modus ist einfach:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -927,8 +922,7 @@ für diesen Benutzer in ProjectForge POSIX-Account-Daten angelegt wurden.
 [[managing_samba_accounts]]
 ==== Samba-Accounts verwalten
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -970,8 +964,7 @@ nur lesend zugegriffen. Es gibt 3 Modi:
 `simple,` `users` und `users-groups.` Die Konfiguration
 dieses Modus ist einfach:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1021,8 +1014,7 @@ Dieser Modus ist noch nicht implementiert, stattdessen wird der Benutzermodus ve
 
 ProjectForge lässt sich auch ohne LDAP betreiben (Standard).
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1469,8 +1461,7 @@ enthält keine Datentransfer-Dateien.
 Auf dem ProjectForge®-Server (oder dem Datenbankserver) wird als Benutzer projectforge
 ein Crontab-Eintrag eingerichtet, der folgendes Skript startet:
 
-*Datei:* `pforgebackup.sh:`
-
+.Datei: `pforgebackup.sh`
 [source,shell,linenums]
 ----
 #!/bin/bash
@@ -1537,8 +1528,7 @@ Damit `pg_dump` ohne Passwortabfrage läuft, wird das Skript als Unix-Benutzer `
 folgende Zeile in `pg_hba.conf` ergänzt (Peer-Authentifizierung: Der Unix-Benutzername muss dem Datenbankbenutzernamen
 entsprechen):
 
-*Datei:* `pg_hba.conf`:
-
+.Datei: `pg_hba.conf`
 [source,shell,linenums]
 ----
 local projectforge projectforge peer
@@ -1573,8 +1563,7 @@ Für ein Remote-Backup per `scp` wird eine Schlüssel-Authentifizierung benötig
 Aus Sicherheitsgründen lassen sich die Backup-Dateien auch per Cronjob vom
 ProjectForge®-Server abholen, der z. B. eine Stunde später startet:
 
-*Datei:* `pforgePollBackup.sh`:
-
+.Datei: `pforgePollBackup.sh`
 ....
 #!/bin/bash
 SERVER=projectforge.mydomain

@@ -1,8 +1,9 @@
 /*
- * Copy button of the code blocks: AsciiDoc listing and literal blocks and Markdown code blocks get a button in their
- * upper right corner, which copies the whole content (without the line numbers of [source,…,linenums]). The texts
- * are given by the script tag (data-copy, data-copied, see _layouts/default.html), the icons are those of Lucide
- * (https://lucide.dev, ISC license, see _includes/icons/README.md).
+ * Copy button of the code blocks: AsciiDoc listing and literal blocks and Markdown code blocks get a button above the
+ * code, right-aligned in the line of the block title (e.g. the file name, `.File: `pforgebackup.sh``), or in a
+ * line of its own if the block has no title. It copies the whole content (without the line numbers of
+ * [source,…,linenums]). The texts are given by the script tag (data-copy, data-copied, see _layouts/default.html),
+ * the icons are those of Lucide (https://lucide.dev, ISC license, see _includes/icons/README.md).
  */
 (function () {
     'use strict';
@@ -62,10 +63,18 @@
         button.classList.toggle('pf-code-copied', copied);
     }
 
-    main.querySelectorAll('.listingblock > .content, .literalblock > .content, div.highlighter-rouge').forEach(function (block) {
+    main.querySelectorAll('.listingblock, .literalblock, div.highlighter-rouge').forEach(function (block) {
         if (!block.querySelector('pre')) {
             return;
         }
+        // The title of AsciiDoc is the first child of the block, the button goes into its line.
+        var header = block.querySelector(':scope > .title');
+        if (!header) {
+            header = document.createElement('div');
+            header.className = 'pf-code-untitled';
+            block.insertBefore(header, block.firstChild);
+        }
+        header.classList.add('pf-code-header');
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'pf-code-copy';
@@ -82,7 +91,6 @@
                 // Nothing to do: the code may still be selected and copied by hand.
             });
         });
-        block.classList.add('pf-code-block');
-        block.appendChild(button);
+        header.appendChild(button);
     });
 })();

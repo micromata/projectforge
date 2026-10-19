@@ -463,14 +463,30 @@
   user-select: none;
 }
 
-/* Copy button of the code blocks (assets/js/copy-code.js), in the upper right corner. */
-.pf-code-block {
-  position: relative;
+/*
+ * Copy button of the code blocks (assets/js/copy-code.js): above the code, right-aligned in the line of the block
+ * title (file name) or in a line of its own.
+ */
+.prose .pf-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2rem;
+  margin-top: 1.25em;
+  margin-bottom: 0.375rem;
+}
+.prose .pf-code-untitled {
+  margin-top: 0.5em;
+}
+.prose .pf-code-header + .content pre,
+.prose .pf-code-header + .highlight pre,
+.prose .pf-code-header + .highlight {
+  margin-top: 0;
 }
 .pf-code-copy {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  flex: none;
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -481,14 +497,10 @@
   background: var(--color-background);
   color: var(--color-muted-foreground);
   cursor: pointer;
-  opacity: 0.7;
-}
-.pf-code-block:hover .pf-code-copy,
-.pf-code-copy:focus-visible {
-  opacity: 1;
 }
 .pf-code-copy:hover {
   color: var(--color-foreground);
+  background: var(--color-secondary);
 }
 .pf-code-copy:focus-visible {
   outline: 2px solid var(--color-ring);
@@ -496,7 +508,6 @@
 }
 .pf-code-copy.pf-code-copied {
   color: var(--color-brand-teal-dark);
-  opacity: 1;
 }
 
 /* Syntax highlighting of the code blocks (rouge, for AsciiDoc and Markdown), light colors in the style of GitHub. */
