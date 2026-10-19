@@ -524,8 +524,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `/next/datatransfer`, die Next-Assets, die nötigen Shell-Dienste und die Anhänge der Kategorie
   `datatransfer` durch (bei modify/delete/encrypt steht die Kategorie im Body und wird dort geprüft).
   Der Login läuft ohne Frontend-Änderung: der verweigerte RSC-Abruf von `/next/login` fällt auf einen
-  vollen Seitenaufruf zurück, den `GatewayPageController` bedient. Unverändert in React bleibt der
-  öffentliche externe Zugang (`/react/public/datatransfer`, `restPublic`).
+  vollen Seitenaufruf zurück, den `GatewayPageController` bedient.
+  **Externer Zugang** (`/next/public/datatransfer/{token}`, außerhalb von `(authenticated)`): Login mit dem
+  Passwort des Bereichs, dann dessen Dateien. Login/Logout/Zustand layoutfrei in `DataTransferPublicNextRest`
+  (`/rsPublic/datatransfer/next/…`), die Dateioperationen sind die von `DataTransferPublicServicesRest`, auf
+  die `AttachmentList` per `AttachmentServiceProvider` umgelenkt wird (ohne Verschlüsselung, ohne
+  Benutzerspalten, ZIP nur mit Download-Recht). Läuft **parallel** zur React-Seite
+  (`/react/public/datatransfer/dynamic/{token}`), ohne Verweis zueinander; der Link des Bereichs
+  (`DataTransferAreaDao.getExternalBaseLinkUrl`) zeigt weiter auf React. Im Gateway freigegeben.
 - **Scripte** (`script`, `myscript`; vorher React-UILayout) – layoutfrei: Liste + Formular der
   Administration (`ScriptEntityRest`, `/rs/script`, Klonen, Beispiele, Backup-/Effektiv-Download),
   „Meine Scripte" als reine Liste (`MyScriptEntityRest`, `foreignEdit`) und die Ausführung

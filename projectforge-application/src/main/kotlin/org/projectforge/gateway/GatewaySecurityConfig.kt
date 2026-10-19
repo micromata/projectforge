@@ -52,6 +52,8 @@ open class GatewaySecurityConfig {
                     .requestMatchers("/export/ProjectForge.ics").permitAll()
                     // DataTransfer public endpoints (token-based external access)
                     .requestMatchers("/rsPublic/datatransfer/**").permitAll()
+                    // The page of the external access (projectforge-next); its REST calls are the ones above.
+                    .requestMatchers("${GatewayPageController.PUBLIC_DATATRANSFER_URL}/**").permitAll()
                     // Gateway sync API (authenticated via X-Gateway-Secret header)
                     .requestMatchers("/api/gateway/sync/**").permitAll()
                     // Static resources (incl. the assets of projectforge-next)

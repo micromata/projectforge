@@ -264,18 +264,7 @@ class DataTransferPublicServicesRest {
                 }
             }
         }
-        val list =
-            attachmentsAccessChecker.filterAttachments(
-                request,
-                area.externalDownloadEnabled,
-                area.id!!,
-                attachmentsService.getAttachments(
-                    dataTransferAreaEntityRest.jcrPath!!,
-                    id,
-                    attachmentsAccessChecker,
-                    null
-                )
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.UPDATE, merge = true)
@@ -321,18 +310,7 @@ class DataTransferPublicServicesRest {
         }
 
         dataTransferPublicSession.registerFileAsOwner(request, area.id, attachment.fileId, attachment.name)
-        val list =
-            attachmentsAccessChecker.filterAttachments(
-                request,
-                area.externalDownloadEnabled,
-                area.id!!,
-                attachmentsService.getAttachments(
-                    dataTransferAreaEntityRest.jcrPath!!,
-                    id,
-                    attachmentsAccessChecker,
-                    null
-                )
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.UPDATE, merge = true)
@@ -379,14 +357,7 @@ class DataTransferPublicServicesRest {
             listId,
             userString = getExternalUserString(request, sessionData.userInfo)
         )
-        val list =
-            attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
-                id,
-                attachmentsAccessChecker,
-                listId
-            )
-                ?: emptyList() // Client needs empty list to update data of attachments.
+        val list = getClientAttachments(request, area) ?: emptyList() // Client needs empty list to update data of attachments.
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
@@ -414,6 +385,10 @@ class DataTransferPublicServicesRest {
             }."
         }
 
+        if (!attachmentsAccessChecker.hasUpdateAccess(request, area, fileId)) {
+            return RestUtils.badRequest("Modification not allowed.")
+        }
+
         attachmentsService.changeFileInfo(
             dataTransferAreaEntityRest.jcrPath!!,
             fileId,
@@ -425,13 +400,7 @@ class DataTransferPublicServicesRest {
             listId,
             userString = getExternalUserString(request, sessionData.userInfo)
         )
-        val list =
-            attachmentsService.getAttachments(
-                dataTransferAreaEntityRest.jcrPath!!,
-                id,
-                attachmentsAccessChecker,
-                listId
-            )
+        val list = getClientAttachments(request, area)
         return ResponseEntity.ok()
             .body(
                 ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
@@ -446,21 +415,36 @@ class DataTransferPublicServicesRest {
     ): DataTransferPublicArea {
         val dto = DataTransferPublicArea()
         dto.copyFrom(dbo)
-        dto.attachments = attachmentsAccessChecker.filterAttachments(
+        dto.attachments = getClientAttachments(request, dbo)
+        dto.userInfo = userInfo
+        return dto
+    }
+
+    /**
+     * The attachments of the area as the external user may see them: without download access only the files uploaded
+     * in this session (see [DataTransferPublicAccessChecker.filterAttachments]). Every file carries its expiry info, and
+     * files the user may neither rename nor delete are marked as [Attachment.readonly]. Who uploaded or changed a file
+     * is removed: users of ProjectForge, or the ip address and name of other external users.
+     */
+    internal fun getClientAttachments(request: HttpServletRequest, area: DataTransferAreaDO): List<Attachment>? {
+        val attachments = attachmentsAccessChecker.filterAttachments(
             request,
-            dto.externalDownloadEnabled,
-            dto.id!!,
+            area.externalDownloadEnabled,
+            area.id!!,
             attachmentsService.getAttachments(
                 dataTransferAreaEntityRest.jcrPath!!,
-                dto.id!!,
+                area.id!!,
                 attachmentsAccessChecker
             )
         )
-        dto.attachments?.forEach {
-            it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, dbo.expiryDays))
+        attachments?.forEach {
+            it.addExpiryInfo(DataTransferUtils.expiryTimeLeft(it, area.expiryDays))
+            it.readonly = it.fileId?.let { fileId -> !attachmentsAccessChecker.hasUpdateAccess(request, area, fileId) } ?: true
+            it.createdByUser = null
+            it.createdByUserId = null
+            it.lastUpdateByUser = null
         }
-        dto.userInfo = userInfo
-        return dto
+        return attachments
     }
 
     private fun createLogInfo(

@@ -6,6 +6,7 @@ import { Delete01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
 
 interface Props {
@@ -52,6 +53,7 @@ export function AttachmentRow({
   onSelectedChange,
 }: Props) {
   const t = useTranslations();
+  const service = useAttachmentService();
   // Either the whole list is read-only, or this one file is (`Attachment.readonly`).
   const readonly = readOnly === true || attachment.readonly === true;
   // A file whose description carries a marker can be deleted but not renamed (`Attachment.renameLocked`),
@@ -61,6 +63,7 @@ export function AttachmentRow({
     entity,
     id,
     fileId: attachment.fileId,
+    base: service.base,
   });
   const downloadLabel = `${t("download._")}: ${attachment.name}`;
 
@@ -128,7 +131,7 @@ export function AttachmentRow({
         <p className="text-[11px] text-muted-foreground">
           {[
             attachment.sizeHumanReadable,
-            attachment.createdByUser,
+            service.userInfo ? attachment.createdByUser : null,
             attachment.lastUpdateTimeAgo,
             attachment.info?.expiryInfo,
           ]

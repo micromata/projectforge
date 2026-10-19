@@ -44,7 +44,7 @@ __2026-10-19, tag https://github.com/micromata/projectforge/tree/9.0.10-RELEASE[
 {% include tag.html tag="improved" %}
 ++++
 - Availability: "Reachable if urgent" is merged into "Reachable if needed". The comment of an entry is called "Public comment" and is shown in red in the form; every team member who sees the entry sees it, also in the tooltips of the absence charts (e.g. the chart of a vacation's substitutes).
-- Cost search: migrated to the new interface. It can also be kept open on every page as a movable panel (button in the top bar or Alt+K, position is remembered) or opened in a small separate window.
+- Cost search: migrated to the new interface. Its menu entry shows it as a movable panel over the current page, which stays open on every page (also via the button in the top bar or Alt+K; the position is remembered). It can also be opened in a small separate window.
 - Edit forms: a new entry is saved with "Create", an existing one with "Save". Both are separate writes: saving an existing entry can no longer create a copy of it, and creating one never overwrites an existing entry.
 
 ++++

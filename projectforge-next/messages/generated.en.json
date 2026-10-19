@@ -2763,6 +2763,7 @@
     },
     "hrList": "HR planning",
     "hrPlanningList": "HR planning list",
+    "logout": "Logout",
     "main": {
       "short": "Menu",
       "title": "Main menu"
@@ -3256,6 +3257,10 @@
             "info": "If enabled, this area is accessible for external uploads via link (including access token) and password.",
             "title": "External upload"
           }
+        },
+        "userInfo": {
+          "_": "Your name or e-mail",
+          "info": "This is an optional field to let the owners of this data transfer area know who you are."
         }
       },
       "gateway": {

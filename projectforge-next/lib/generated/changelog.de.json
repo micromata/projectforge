@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.10",
+    "date" : "2026-10-19",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "changed",
+      "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
@@ -65,7 +75,7 @@
         "items" : [ "Website: deutsche Fassung der Seiten, der FAQ, des Changelogs und des Benutzer-, Administrations- und Schnellstart-Handbuchs unter [projectforge.org/de](https://projectforge.org/de/), mit Sprachumschalter; der Hilfe-Link des Suchfelds öffnet für deutschsprachige Benutzer das deutsche Benutzerhandbuch." ]
       }, {
         "type" : "improved",
-        "items" : [ "Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs).", "Kost-Suche: in die neue Oberfläche migriert. Sie lässt sich zusätzlich als verschiebbares Fenster auf jeder Seite offen halten (Schaltfläche in der Kopfleiste oder Alt+K, die Position wird gemerkt) oder als kleines eigenes Fenster öffnen.", "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag." ]
+        "items" : [ "Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs).", "Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen.", "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag." ]
       }, {
         "type" : "changed",
         "items" : [ "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt." ]

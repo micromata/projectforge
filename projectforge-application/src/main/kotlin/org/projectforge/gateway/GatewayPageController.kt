@@ -183,6 +183,8 @@ class GatewayPageController(
 
     companion object {
         const val DATATRANSFER_URL = "/next/datatransfer"
+        /** The external access of an area (token and password, no login of a ProjectForge user). */
+        const val PUBLIC_DATATRANSFER_URL = "/next/public/datatransfer"
         const val LOGIN_URL = "/next/login"
         const val LOGOUT_URL = "/logout"
 

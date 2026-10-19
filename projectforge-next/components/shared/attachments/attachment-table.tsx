@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { AttachmentSelection } from "@/hooks/use-attachment-selection";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
 import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
+import { useAttachmentService } from "./attachment-service";
 
 type Column = ColumnDef<Attachment, unknown>;
 
@@ -76,7 +77,9 @@ export function searchAttachments(
  */
 export function attachmentColumns(
   t: (key: string) => string,
-  readOnly?: boolean
+  readOnly?: boolean,
+  /** Shows who uploaded and changed a file (see AttachmentService.userInfo). */
+  userInfo = true
 ): Column[] {
   const header = (label: string, filterKind?: FilterKind): Column["header"] =>
     function AttachmentColumnHeader({ column, table }) {
@@ -144,7 +147,7 @@ export function attachmentColumns(
       meta: { label: t("created") },
       cell: ({ row }) => row.original.createdFormatted ?? "",
     },
-    user("createdByUser", t("createdBy")),
+    ...(userInfo ? [user("createdByUser", t("createdBy"))] : []),
     {
       id: "lastUpdate",
       accessorFn: (row) => row.lastUpdate ?? "",
@@ -159,7 +162,7 @@ export function attachmentColumns(
         </span>
       ),
     },
-    user("lastUpdateByUser", t("modifiedBy")),
+    ...(userInfo ? [user("lastUpdateByUser", t("modifiedBy"))] : []),
     {
       id: "expiryInfo",
       accessorFn: (row) => row.info?.expiryInfo ?? "",
@@ -226,6 +229,7 @@ function NameCell({
 }) {
   const t = useTranslations();
   const { entity, id } = useCellContext();
+  const { base } = useAttachmentService();
   return (
     <div className="min-w-0">
       <div className="flex items-center gap-1.5">
@@ -234,6 +238,7 @@ function NameCell({
             entity,
             id,
             fileId: attachment.fileId,
+            base,
           })}
           aria-label={`${t("download._")}: ${attachment.name}`}
           // min-w-0: a flex item doesn't shrink below its content, so a name without spaces
@@ -287,6 +292,7 @@ export function AttachmentTable({
   onDelete,
 }: Props) {
   const t = useTranslations();
+  const { base } = useAttachmentService();
   return (
     <AttachmentCellContext.Provider value={{ entity, id, selection, busy }}>
       <DataTable<Attachment>
@@ -300,7 +306,12 @@ export function AttachmentTable({
           if (busy) return;
           if (noRename(attachment, readOnly)) {
             window.location.assign(
-              attachmentDownloadUrl({ entity, id, fileId: attachment.fileId })
+              attachmentDownloadUrl({
+                entity,
+                id,
+                fileId: attachment.fileId,
+                base,
+              })
             );
           } else {
             onEdit(attachment);

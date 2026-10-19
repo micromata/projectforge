@@ -604,8 +604,9 @@ object NextMigration {
         // admin form is a sub route of it. The React pages are gone (no UILayout served any more), so there is
         // no way back; the legacy app is kept for the redirect of bookmarked React links only. The links of the
         // file view, the activities and the personal box (react/datatransferfiles/dynamic/<id> & co., sent by
-        // the notification mails) are redirected by OrphanedLinkFilter.redirectDataTransferPage. The public
-        // pages of the external access (react/public/datatransfer) are not migrated.
+        // the notification mails) are redirected by OrphanedLinkFilter.redirectDataTransferPage. The external
+        // access runs in parallel in both apps: next/public/datatransfer/<token> and the legacy
+        // react/public/datatransfer/dynamic/<token>, which the area's link still points to (no redirect).
         "datatransfer" to NextPage(
             route = "datatransfer",
             editRoute = "datatransfer/$ID_PLACEHOLDER/edit",

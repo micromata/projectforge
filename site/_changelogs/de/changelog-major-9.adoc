@@ -44,7 +44,7 @@ __2026-10-19, Tag https://github.com/micromata/projectforge/tree/9.0.10-RELEASE[
 {% include tag.html tag="improved" %}
 ++++
 - Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs).
-- Kost-Suche: in die neue Oberfläche migriert. Sie lässt sich zusätzlich als verschiebbares Fenster auf jeder Seite offen halten (Schaltfläche in der Kopfleiste oder Alt+K, die Position wird gemerkt) oder als kleines eigenes Fenster öffnen.
+- Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen.
 - Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag.
 
 ++++
