@@ -162,6 +162,34 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties`. All ProjectForge-specific options with their defaults are listed in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[feature_toggles]]
+=== Switching off functions
+
+Functions of ProjectForge can be switched off in `projectforge.properties` (a restart is needed). A switched off
+function has no menu entry, and its pages and REST services answer with 404, for everybody.
+
+[source,properties]
+----
+# Allowlist: all (default) or a comma separated list.
+projectforge.features.enabled=all
+# Denylist, wins over the allowlist.
+projectforge.features.disabled=TIMESHEET_LIST,HR
+----
+
+There is one function per menu entry. Its id is the id of the menu entry (`ADDRESS_LIST`, `TIMESHEET_LIST`,
+`FEEDBACK`, `MY_ACCOUNT`, ..., see `MenuItemDefId`), of a plugin's menu entry (`toDo`, `DataTransferPersonalBox`)
+or of a plugin (`datatransfer`, `marketing`). A main menu group (`COMMON`, `FIBU`, `HR`, `MISC`, ...) or a plugin
+stands for all of its entries. Plugins that aren't activated are switched off as well, including their REST services.
+Unknown ids are logged as a warning on start-up.
+
+This is no permission system, the access checks of the functions remain as they are. Some services stay
+reachable even with their function switched off, because other pages need them: the lookups of the input fields
+(e.g. of users or tasks), the subscription of calendars, and the core of the application (login, menu, settings,
+notifications, attachments of the remaining functions).
+
+The menu visibility (`projectforge.menu.visibility.*`) is something else: it hides menu entries for groups of users
+only, the functions stay reachable.
+
 [[customization]]
 === Customization
 
@@ -1005,7 +1033,9 @@ Activate with the Spring profile `external-gateway`:
 ===== Minimal gateway configuration
 
 The gateway instance's `projectforge.properties` requires the gateway mode and the database connection.
-All other gateway settings (CardDAV, menu visibility) are provided by the `external-gateway` profile automatically.
+All other gateway settings (CardDAV, the functions switched off, see <<feature_toggles>>) are provided by the
+`external-gateway` profile automatically. Without the profile, the gateway mode switches off all functions but the
+data transfer as well.
 
 The OAuth2/OIDC configuration is only needed for the DataTransfer UI: CardDAV and CalDAV/ICS authenticate
 via tokens and work without it. If the OAuth2 client is not configured, the gateway starts without a login option.

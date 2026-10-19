@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Menu visibility (projectforge.menu.visibility.*): a list of several groups works, separated by comma or semicolon (only a single group was recognized, a list not at all).",
+  "de": "Sichtbarkeit von Menüs (projectforge.menu.visibility.*): Eine Liste mehrerer Gruppen funktioniert, getrennt durch Komma oder Semikolon (erkannt wurde nur eine einzelne Gruppe, eine Liste gar nicht)."
+}

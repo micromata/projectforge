@@ -167,6 +167,34 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties` verwenden. Alle ProjectForge-spezifischen Optionen mit ihren Standardwerten stehen in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[feature_toggles]]
+=== Funktionen abschalten
+
+Funktionen von ProjectForge lassen sich in `projectforge.properties` abschalten (wirksam nach einem Neustart). Eine
+abgeschaltete Funktion hat keinen Menüeintrag, und ihre Seiten und REST-Dienste antworten mit 404, für alle.
+
+[source,properties]
+----
+# Allowlist: all (Standard) oder eine kommagetrennte Liste.
+projectforge.features.enabled=all
+# Denylist, gewinnt gegen die Allowlist.
+projectforge.features.disabled=TIMESHEET_LIST,HR
+----
+
+Es gibt eine Funktion je Menüeintrag. Ihre Id ist die des Menüeintrags (`ADDRESS_LIST`, `TIMESHEET_LIST`,
+`FEEDBACK`, `MY_ACCOUNT`, ..., siehe `MenuItemDefId`), die des Menüeintrags eines Plugins (`toDo`,
+`DataTransferPersonalBox`) oder die eines Plugins (`datatransfer`, `marketing`). Eine Hauptgruppe des Menüs
+(`COMMON`, `FIBU`, `HR`, `MISC`, ...) oder ein Plugin steht für alle seine Einträge. Nicht aktivierte Plugins sind
+ebenfalls abgeschaltet, samt ihrer REST-Dienste. Unbekannte Ids werden beim Start als Warnung protokolliert.
+
+Das ist kein Berechtigungssystem, die Zugriffsprüfungen der Funktionen bleiben, wie sie sind. Einige Dienste
+bleiben auch bei abgeschalteter Funktion erreichbar, weil andere Seiten sie brauchen: die Suchen der Eingabefelder
+(etwa nach Benutzern oder Aufgaben), das Abonnieren von Kalendern und der Kern der Anwendung (Anmeldung, Menü,
+Einstellungen, Benachrichtigungen, Anhänge der übrigen Funktionen).
+
+Die Sichtbarkeit von Menüs (`projectforge.menu.visibility.*`) ist etwas anderes: Sie blendet Menüeinträge nur für
+Gruppen von Benutzern aus, die Funktionen bleiben erreichbar.
+
 [[customization]]
 === Anpassungen
 
@@ -1025,8 +1053,9 @@ Aktiviert wird er mit dem Spring-Profil `external-gateway`:
 ===== Minimale Gateway-Konfiguration
 
 Die `projectforge.properties` der Gateway-Instanz benötigt den Gateway-Modus und die Datenbankverbindung.
-Alle anderen Gateway-Einstellungen (CardDAV, Sichtbarkeit von Menüs) liefert das Profil `external-gateway`
-automatisch.
+Alle anderen Gateway-Einstellungen (CardDAV, die abgeschalteten Funktionen, siehe <<feature_toggles>>) liefert
+das Profil `external-gateway` automatisch. Auch ohne das Profil schaltet der Gateway-Modus alle Funktionen außer
+dem Datentransfer ab.
 
 Die OAuth2-/OIDC-Konfiguration wird nur für die DataTransfer-Oberfläche benötigt: CardDAV und CalDAV/ICS
 authentifizieren über Tokens und funktionieren ohne sie. Ist der OAuth2-Client nicht konfiguriert, startet das

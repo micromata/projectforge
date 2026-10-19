@@ -34,6 +34,7 @@ import org.projectforge.ProjectForgeApp
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.jcr.FileStoreMigrationService
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -275,7 +276,8 @@ open class PluginAdminService {
         factory.initializeBean(plugin, plugin.id)
         factory.autowireBean(plugin)
         PluginsRegistry.instance().register(plugin)
-        plugin.init()
+        // The menu entries the plugin registers belong to its feature (see FeatureService).
+        applicationContext.getBean(MenuCreator::class.java).registeringPlugin(plugin.id) { plugin.init() }
         // Register the plugin's i18n resource bundles globally, so plugin translations are resolved
         // regardless of whether Wicket is active. Plugin initialization was moved from WicketApplication.init()
         // to the Spring lifecycle (ApplicationReadyEvent), which runs after Wicket servlet init and is skipped

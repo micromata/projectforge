@@ -32,6 +32,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.notification.NotificationDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.jira.JiraUtils
@@ -43,6 +44,7 @@ import org.projectforge.framework.time.TimeNotation
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
+import org.projectforge.rest.feature.FeaturePathIndex
 import org.projectforge.rest.pub.SystemStatusRest
 import org.projectforge.ui.AutoCompletion
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,6 +68,12 @@ open class UserStatusRest {
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
+
+  @Autowired
+  private lateinit var featureService: FeatureService
+
+  @Autowired
+  private lateinit var featurePathIndex: FeaturePathIndex
 
   @Autowired
   private lateinit var systemStatusRest: SystemStatusRest
@@ -175,6 +183,16 @@ open class UserStatusRest {
      * window focus and page changes) and loads the notifications themselves (NotificationRest) only if it changed.
      */
     val notifications: NotificationDao.Summary? = null,
+    /**
+     * The switched off features (projectforge.features.*, inactive plugins): the frontend hides what calls them on
+     * every page (e.g. the quick search).
+     */
+    val disabledFeatures: List<String> = emptyList(),
+    /**
+     * The next routes of the switched off features, see [FeaturePathIndex.nextRoutes]: the frontend shows "not
+     * found" for them (the server answers 404 anyway, but not on navigating inside the app).
+     */
+    val featureRoutes: FeaturePathIndex.NextRoutes? = null,
   )
 
   @GetMapping
@@ -227,6 +245,8 @@ open class UserStatusRest {
         legacyBannerText = translate("legacyVersion.banner.text"),
         legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),
         migratedCategories = NextMigration.categories,
+        disabledFeatures = featureService.disabledFeatureIds(),
+        featureRoutes = featurePathIndex.nextRoutes(),
         notifications = user.id?.let { userId ->
           runCatching { notificationDao.summary(userId) }
             .onFailure { log.error(it) { "Can't read the notifications of user #$userId: ${it.message}" } }

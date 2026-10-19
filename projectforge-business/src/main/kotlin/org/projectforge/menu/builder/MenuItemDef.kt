@@ -57,6 +57,13 @@ constructor(
 
     var requiredGroups: Array<ProjectForgeGroup>? = null
 
+    /**
+     * REST categories (below `/rs`, e.g. `datatransferpersonalfiles`) of this entry's feature, in addition to
+     * the ones derived from its [url] (see [org.projectforge.feature.FeatureDerivation]). For plugin entries;
+     * those of [MenuItemDefId] are declared in [org.projectforge.feature.CoreFeatures].
+     */
+    var featureRestPaths: List<String> = emptyList()
+
     var menuItemDefId: MenuItemDefId? = null
         private set
     internal var children: MutableList<MenuItemDef>? = null

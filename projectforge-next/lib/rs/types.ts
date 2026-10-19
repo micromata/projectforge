@@ -228,6 +228,22 @@ export interface UserStatus {
    * when it changes (see components/shared/notifications).
    */
   notifications?: NotificationSummary;
+  /**
+   * The ids of the switched off features (projectforge.features.*, inactive plugins), e.g. `SEARCH`: what the app
+   * shows on every page for them is left out (see useFeatureEnabled).
+   */
+  disabledFeatures?: string[];
+  /** The next routes of the switched off features, see FeatureGuard. */
+  featureRoutes?: FeatureRoutes;
+}
+
+/**
+ * The routes (without basePath and slashes, e.g. `address`) of switched off features, and the reachable ones
+ * below them (e.g. below a switched off route of a plugin). The longest route being a prefix of a path decides.
+ */
+export interface FeatureRoutes {
+  disabled: string[];
+  enabled: string[];
 }
 
 export interface SystemStatus {

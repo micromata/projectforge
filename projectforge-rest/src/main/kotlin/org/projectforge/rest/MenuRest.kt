@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import org.projectforge.feature.FeatureService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
@@ -64,6 +65,9 @@ class MenuRest {
   private lateinit var accessChecker: AccessChecker
 
   @Autowired
+  private lateinit var featureService: FeatureService
+
+  @Autowired
   private lateinit var menuCreator: MenuCreator
 
   @Autowired
@@ -83,20 +87,26 @@ class MenuRest {
     val myAccountMenu = Menu()
     val userNameItem = MenuItem("username", ThreadLocalUserContext.loggedInUser!!.getFullname(), key = "MY_MENU")
     myAccountMenu.add(userNameItem)
-    userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
-    userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
-    userNameItem.add(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU))
-    userNameItem.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter }))
+    // Built here and not by the MenuCreator, so the switched off features (projectforge.features.*) are left out here.
+    fun add(item: MenuItem) {
+      if (featureService.isEnabled(item.id)) {
+        userNameItem.add(item)
+      }
+    }
+    add(MenuItem(MenuItemDefId.FEEDBACK))
+    add(MenuItem(MenuItemDef(MenuItemDefId.MY_ACCOUNT)))
+    add(MenuItem(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU)))
+    add(MenuItem(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter })))
     if (!accessChecker.isRestrictedUser) {
       if (ThreadLocalUserContext.userContext!!.employeeId != null) {
-        userNameItem.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
+        add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
       }
       menuCreator.personalMenuPluginEntries.forEach { menuItemDef ->
-        userNameItem.add(menuItemDef)
+        add(MenuItem(menuItemDef))
       }
     }
 
-    userNameItem.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
+    add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
     userNameItem.postProcess()
     // The main menu first: an entry the user has as a favourite as well should appear under the category
     // they know it by.

@@ -7,7 +7,10 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "Urlaub und Verfügbarkeit: Ein Eintrag kann als die jeweils andere Art bearbeitet werden („Als Abwesenheit bearbeiten“ / „Als Urlaub bearbeiten“), wie Zeitbuchungen und Termine (jetzt „Als Termin bearbeiten“ / „Als Zeitbuchung bearbeiten“, bisher „In … umwandeln“). Person, Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der erst beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt unverändert. Das erklärt auch der Tooltip der Schaltfläche." ]
+      "items" : [ {
+        "title" : "Funktionen abschalten",
+        "items" : [ "Funktionen lassen sich in der Konfiguration abschalten (projectforge.features.enabled und .disabled, eine je Menüeintrag): Ihre Menüeinträge verschwinden, ihre Seiten und REST-Dienste antworten mit 404.", "Die REST-Dienste nicht aktivierter Plugins sind nicht mehr erreichbar.", "Das Gateway bietet nur noch den Datentransfer an: Die Einträge des Benutzermenüs, die dort ins Leere führten (Feedback, Mein Zugang, Menü, 2FA, persönliche Box), sind entfernt.", "Die Sichtbarkeit des Menüeintrags zum Anpassen des Menüs wird über projectforge.menu.visibility.myMenu eingestellt (sie folgte myAccount)." ]
+      }, "Urlaub und Verfügbarkeit: Ein Eintrag kann als die jeweils andere Art bearbeitet werden („Als Abwesenheit bearbeiten“ / „Als Urlaub bearbeiten“), wie Zeitbuchungen und Termine (jetzt „Als Termin bearbeiten“ / „Als Zeitbuchung bearbeiten“, bisher „In … umwandeln“). Person, Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der erst beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt unverändert. Das erklärt auch der Tooltip der Schaltfläche." ]
     }, {
       "type" : "improved",
       "items" : [ "Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobile Tätigkeit“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort.", "DATEV-Import: Ein Upload der Datei des Steuerbüros füllt beide Reiter, Buchungssätze und Kontenplan, sodass beide ohne erneuten Upload abgeglichen werden können." ]
@@ -17,6 +20,9 @@
         "title" : "Datentransfer mit Gateway",
         "items" : [ "Bereiche mit externem Download oder Upload werden wieder auf der internen Instanz administriert. Jede Synchronisation überträgt sie auf das Gateway, auf das der externe Link zeigt und auf dem Externe und die internen Berechtigten die Dateien finden. Auf dem Gateway wird kein Bereich mehr administriert (weder angelegt, geändert noch gelöscht; auch keine persönlichen Boxen), ein Hinweis dort verweist auf die Hauptinstanz, und die Beobachter bekommen die Benachrichtigungen von dort. Wird der externe Zugriff abgeschaltet oder der Bereich gelöscht, verschwindet er vom Gateway.", "Der externe Link eines direkt auf dem Gateway angelegten Bereichs funktioniert wieder (er zeigte auf eine Seite, die das Gateway nicht ausliefert).", "Der externe Link eines gelöschten Bereichs funktioniert nicht mehr." ]
       }, "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Sichtbarkeit von Menüs (projectforge.menu.visibility.*): Eine Liste mehrerer Gruppen funktioniert, getrennt durch Komma oder Semikolon (erkannt wurde nur eine einzelne Gruppe, eine Liste gar nicht)." ]
     } ]
   },
   "groups" : [ {

@@ -111,6 +111,23 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/wa/
 curl -X PROPFIND http://localhost:8090/.well-known/carddav
 ```
 
+**Switched off functions:** the gateway switches off all functions but the data transfer
+(`projectforge.features.*`, set by the `external-gateway` profile and the default in gateway mode without it, see
+the admin guide, *Switching off functions*). After logging in, the menu shows only the data transfer, the user menu
+only *Logout* (no feedback, account, menu, 2FA or personal box). Their pages and REST services answer 404, as do
+those of every other function, and the lookups of the data transfer's input fields stay reachable:
+
+```bash
+# 404 (or 403 without login, see above): switched off
+curl -s -o /dev/null -w "%{http_code}\n" -b cookies.txt http://localhost:8090/next/address/
+curl -s -o /dev/null -w "%{http_code}\n" -b cookies.txt http://localhost:8090/rs/address/list
+# 200 with login: the user picker of an area
+curl -s -o /dev/null -w "%{http_code}\n" -b cookies.txt "http://localhost:8090/rs/user/autosearch?search=a"
+```
+
+The same works on any instance, e.g. `projectforge.features.disabled=ADDRESS_LIST` on the main instance: the
+address entry is gone, `/next/address/` and `/rs/address/list` answer 404, `/rs/address/autosearch` still answers.
+
 **Timeouts and statistics:** the main instance gives up a push after
 `projectforge.integration.clients.gateway.responseTimeoutMs` (default 120s) and stops the whole sync with one
 warning, if the gateway isn't reachable or answers too slowly. Addresses are pushed in batches of 500; a full sync
@@ -230,7 +247,8 @@ mkdir -p ~/gateway/ProjectForge
 ```
 
 Create `~/gateway/ProjectForge/projectforge.properties`. Only the settings below are needed —
-CardDAV and the menu visibility come from the `external-gateway` profile automatically.
+CardDAV and the switched off functions (`projectforge.features.*`) come from the `external-gateway` profile
+automatically.
 
 `projectforge.domain` must match the URL the gateway is actually reached at, including the
 port when the container port is published directly (the default from `application.properties`
