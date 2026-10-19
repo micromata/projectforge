@@ -13,6 +13,7 @@ import type { AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentDropArea } from "./attachment-drop-area";
 import { AttachmentDropZone } from "./attachment-drop-zone";
 import { AttachmentFiles } from "./attachment-files";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentUploadRow } from "./attachment-upload-row";
 
 export interface AttachmentListProps {
@@ -134,9 +135,15 @@ export function AttachmentList({
     [mergeResult, onChanged, t]
   );
 
+  const { maxFileSize } = useAttachmentService();
   const uploads = useAttachmentUploads(entity, id, {
     onResult: onUploadResult,
     transferErrorMessage: t("file.upload.error._"),
+    tooLargeMessage: maxFileSize
+      ? t("file.upload.error.maxSizeOfExceeded", {
+          arg0: maxFileSize.formatted,
+        })
+      : undefined,
   });
 
   // Nothing can be attached before the first save; the backend says so in its own words.
