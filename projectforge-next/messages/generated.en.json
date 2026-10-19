@@ -491,7 +491,8 @@
       "encrytpedAes128": "Encrypted (AES-128)",
       "encrytpedAes256": "Encrypted (AES-256, very secure)",
       "standard": "No encryption"
-    }
+    },
+    "zipTooLarge": "The selected files exceed {arg0} in total. Please select fewer files or download them one by one."
   },
   "attachments": {
     "_": "Attachments",
@@ -3249,6 +3250,7 @@
             "info": "Please renew the link if you assume that this token was leaked. The old one will be invalid after clicking the save button."
           }
         },
+        "loginFailed": "Login failed. Please check the password (case sensitive!).",
         "password": {
           "_": "Password",
           "info": "This password improves security and is protected by brute-force protection.",

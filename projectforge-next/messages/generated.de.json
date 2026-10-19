@@ -491,7 +491,8 @@
       "encrytpedAes128": "verschlüsselt (AES-128)",
       "encrytpedAes256": "verschlüsselt (AES-256, hohe Sicherheit)",
       "standard": "ohne Verschlüsselung"
-    }
+    },
+    "zipTooLarge": "Die ausgewählten Dateien sind zusammen größer als {arg0}. Bitte weniger Dateien auswählen oder einzeln herunterladen."
   },
   "attachments": {
     "_": "Anhänge",
@@ -3249,6 +3250,7 @@
             "info": "Bitte den Link erneuern, wenn der Link in unbefugte Hände geraten sein könnte. Der alte Link wird erst durch Speichern ungültig."
           }
         },
+        "loginFailed": "Die Anmeldung war nicht erfolgreich. Bitte das Passwort nochmals prüfen (Groß-/Kleinschreibung bitte beachten).",
         "password": {
           "_": "Passwort",
           "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert.",
