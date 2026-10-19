@@ -29,9 +29,13 @@ package org.projectforge.business.fibu.numberrange
  *
  * A project of a number range gets a 6-digit project number, its first digit is the [prefix]:
  * ```
- * projectNumber = prefix·10⁵ + (customer − customerMin)·10^projectDigits + localNumber
+ * projectNumber = prefix·10⁵ + (customer mod 10^customerDigits)·10^projectDigits + localNumber
  * projectNumber = prefix·10⁵ + localNumber                                  (range without customers)
  * ```
+ * with `customerDigits = 5 − projectDigits`: the customer number itself is part of the project number (its
+ * last [customerDigits] digits), whatever [customerMin] is - customer 10001 of the range 10001-19999 is
+ * `1.0001`, customer 123 of 0-999 is `5.123`. Hence all customers of a range share the digits in front of
+ * those (see [NumberRanges] validation).
  * If cost units (Kost2) are configured, the 8-digit Kost2 of a project is `projectNumber·100 + kost2Art`, shown and
  * entered with the given [segments], e.g. `1,4,1,2` for `1.####.#.##`.
  */
@@ -56,6 +60,16 @@ class NumberRange {
 
     val hasCustomers: Boolean
         get() = customerMin != null
+
+    /** Number of digits of the customer part of a project number, e.g. 3 for 2 project digits. */
+    val customerDigits: Int
+        get() = PROJECT_NUMBER_DIGITS - 1 - projectDigits
+
+    /**
+     * The customer part of the customer's project numbers: its last [customerDigits] digits, e.g. 1 for
+     * 10001 (4 digits) and 123 for 123 (3 digits).
+     */
+    fun customerPart(customerNumber: Long): Int = (customerNumber % pow10(customerDigits)).toInt()
 
     /** Highest local project number, e.g. 99 for 2 project digits. */
     val maxLocalNumber: Int

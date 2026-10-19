@@ -4,8 +4,9 @@
  * (`ProjektDao.assignProjektnummer`).
  *
  * A project of a range has a 6-digit project number:
- * `prefix·10⁵ + (customer − customerMin)·10^projectDigits + local` (without customers:
- * `prefix·10⁵ + local`); its Kost2 are `projectNumber·100 + Kost2 type`.
+ * `prefix·10⁵ + (customer mod 10^(5 − projectDigits))·10^projectDigits + local` (without customers:
+ * `prefix·10⁵ + local`); its Kost2 are `projectNumber·100 + Kost2 type`. The customer number itself is
+ * part of it (its last digits), whatever `customerMin` is: customer 10001 is "1.0001", 123 is "5.123".
  */
 
 import type { NumberRange, NumberRangesInfo } from "@/lib/rs/number-ranges";
@@ -71,11 +72,8 @@ export function projectNumber(
   ) {
     return null;
   }
-  return (
-    first +
-    (customerNumber - range.customerMin!) * 10 ** range.projectDigits +
-    localNumber
-  );
+  const customerPart = customerNumber % 10 ** (5 - range.projectDigits);
+  return first + customerPart * 10 ** range.projectDigits + localNumber;
 }
 
 function segmentsForPrefix(

@@ -55,6 +55,29 @@ class NumberRangesTest {
     }
 
     @Test
+    fun `the customer number itself is part of the project number, whatever customer-min is`() {
+        val from10001 = range(prefix = 1, customerMin = 10001, customerMax = 19999, projectDigits = 1)
+        val from1 = range(prefix = 5, customerMin = 1, customerMax = 999, projectDigits = 2)
+        val ranges = NumberRanges(listOf(from10001, from1))
+        assertEquals(100013, ranges.projectNumber(from10001, 10001, 3), "1.0001.3, not 1.0000.3.")
+        assertEquals(512345, ranges.projectNumber(from1, 123, 45), "5.123.45, not 5.122.45.")
+        assertEquals(10001L, ranges.customerNumber(100013))
+        assertEquals(123L, ranges.customerNumber(512345))
+        assertNull(ranges.customerNumber(100003), "Customer 10000 is not of the range.")
+        assertNull(ranges.customerNumber(500045), "Customer 0 is not of the range.")
+    }
+
+    @Test
+    fun `customers of a range must share the digits in front of their part`() {
+        // With 1 project digit the last 4 digits are the customer's part: 9000-10999 would give 9000 and 10999 the
+        // parts 9000 and 0999, but 10000 and 0 the same one.
+        assertThrows<IllegalArgumentException> {
+            NumberRanges(listOf(range(prefix = 1, customerMin = 9000, customerMax = 10999, projectDigits = 1)))
+        }
+        NumberRanges(listOf(range(prefix = 1, customerMin = 10001, customerMax = 19999, projectDigits = 1)))
+    }
+
+    @Test
     fun `local numbers and customers outside the range are rejected`() {
         assertThrows<IllegalArgumentException> { micromata.projectNumber(new, 10001, 10) }
         assertThrows<IllegalArgumentException> { micromata.projectNumber(legacy, 123, 100) }
