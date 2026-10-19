@@ -32,6 +32,7 @@ import { usePendingClone } from "@/hooks/use-pending-clone";
 import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import { entityAccess, type EntityAccessFlags } from "@/lib/rs/entity-access";
@@ -424,7 +425,10 @@ export function EntityEditBody<
         showConvert={Boolean(
           edit.convert && (edit.convert.visible?.(data) ?? true)
         )}
-        convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
+        // Leaf-resolved: the label key may have children, e.g. its `.tooltip` (see leafKeyOf).
+        convertLabel={
+          edit.convert ? t(leafKeyOf(edit.convert.labelKey, t.has)) : ""
+        }
         convertTooltip={
           edit.convert?.tooltipKey ? t(edit.convert.tooltipKey) : undefined
         }

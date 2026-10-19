@@ -75,7 +75,7 @@ export const TEAM_EVENT_PAGE = definePage<
     // timestamps dropped, the default prepareClone; AUTOSAVE is not honoured there, only NONE turns
     // clone off, see AbstractEntityRest.cloneData); the add form opens under `/teamEvent/new?clone=1`.
     clone: true,
-    // "In Zeitbuchung umwandeln" — build a time sheet from this event's span and texts and open it as a
+    // "Als Zeitbuchung bearbeiten" — build a time sheet from this event's span and texts and open it as a
     // new sheet (TeamEventEntityRest.switch2Timesheet → TimesheetEntityRest.cloneFromCalendarEvent). The
     // time sheet is named, not imported, so the two features don't depend on each other in a circle.
     convert: {
@@ -83,6 +83,8 @@ export const TEAM_EVENT_PAGE = definePage<
       targetEntity: "timesheet",
       targetRoute: "/timesheet",
       labelKey: "plugins.teamcal.switchToTimesheetButton",
+      // Nothing is converted: a new sheet is opened, and a stored event stays as it is.
+      tooltipKey: "plugins.teamcal.switchToTimesheetButton.tooltip",
     },
     // "Unwiderruflich löschen" — a team event is one of the few entities whose DAO allows the destroying
     // delete (TeamEventDao.isForceDeletionSupport; that flag isn't serialized, so it's opted in here).

@@ -330,8 +330,10 @@ Standardkalender gewählt, entsteht ein neuer Termin, andernfalls ein neuer Zeit
 ProjectForge® öffnet das Bearbeitungsformular mit den neuen Zeiten; die Änderung wird beim Speichern
 übernommen.
 * *Kopieren:* *Klonen* im Bearbeitungsformular eines Zeitberichts oder Termins verwenden.
-* *Umwandeln:* Ein Termin lässt sich in einen Zeitbericht umwandeln (*In Zeitbuchung umwandeln*) und
-umgekehrt.
+* *Als andere Art bearbeiten:* Ein Termin lässt sich als Zeitbericht bearbeiten (*Als Zeitbuchung
+bearbeiten*) und umgekehrt (*Als Termin bearbeiten*). Dabei öffnet sich ein neuer Eintrag mit den
+übernommenen Zeiten und Texten, der beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt
+unverändert.
 * *Pausen:* Lücken zwischen den Zeitberichten eines Tages können als Pausen angezeigt werden. Ein Klick auf
 eine Pause bucht einen Zeitbericht für diese Lücke.
 
@@ -464,6 +466,11 @@ Vertretung.
 
 Die genehmigende Person, die Vertretungen und du selbst werden per E-Mail über neue und geänderte Anträge
 benachrichtigt (sofern ein Mailserver konfiguriert ist).
+
+Ein versehentlich als Urlaub erfasster Antrag lässt sich als Verfügbarkeitseintrag bearbeiten (*Als
+Abwesenheit bearbeiten*) und ein Verfügbarkeitseintrag als Antrag (*Als Urlaub bearbeiten*). Person,
+Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der beim Speichern angelegt
+wird; ein bereits gespeicherter Eintrag bleibt unverändert bestehen und kann danach gelöscht werden.
 
 *Regeln*
 

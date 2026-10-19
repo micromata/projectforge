@@ -50,6 +50,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.Availability
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Vacation
@@ -57,6 +58,7 @@ import org.projectforge.rest.dto.VacationChartDay
 import org.projectforge.rest.dto.VacationReplacementAvailability
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterBooleanElement
@@ -93,6 +95,9 @@ class VacationEntityRest :
 
     @Autowired
     private lateinit var absenceService: AbsenceService
+
+    @Autowired
+    private lateinit var availabilityRest: AvailabilityEntityRest
 
     @Autowired
     private lateinit var caches: PfCaches
@@ -255,6 +260,47 @@ class VacationEntityRest :
         val employee = Employee()
         employeeDao.find(id, checkAccess = false)?.let { employee.copyFromMinimal(it) }
         return employee
+    }
+
+    /**
+     * Prepares a new availability entry from the posted vacation ("Als Abwesenheit bearbeiten"), see
+     * [AvailabilityEntityRest.cloneFromVacation]. The vacation itself stays as it is.
+     */
+    @AccessChecked("DAO: select access; the prepared entry is saved (and access-checked) only by the availability's save")
+    @RequestMapping("switch2Availability")
+    fun switch2Availability(request: HttpServletRequest, @RequestBody postData: PostData<Vacation>): ResponseAction {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        return availabilityRest.cloneFromVacation(request, postData.data)
+    }
+
+    /**
+     * A new vacation prepared from an availability entry (the switch from its form, see
+     * [AvailabilityEntityRest.switch2Vacation]): its user's employee, period, comment and substitutes (the first
+     * one as replacement, the others as other replacements). Status, location, type and internal comment have no
+     * counterpart and are dropped; manager and status are the presets of any new vacation ([newBaseDTO]).
+     * Nothing is saved; the prepared vacation travels under `variables.data`, where the client (`convertEntity` in
+     * projectforge-next) reads it.
+     */
+    fun cloneFromAvailability(request: HttpServletRequest, availability: Availability): ResponseAction {
+        val vacation = newBaseDTO(request)
+        if (hasHrRights()) {
+            // Anybody else gets the own employee anyway (newBaseDTO), as for any new vacation.
+            employeeCache.getEmployeeByUserId(availability.user?.id)?.let { vacation.employee = createEmployee(it) }
+        }
+        vacation.startDate = availability.startDate
+        vacation.endDate = availability.endDate
+        vacation.comment = availability.comment
+        val replacements = availability.substitutes.orEmpty()
+            .mapNotNull { employeeCache.getEmployeeByUserId(it.id) }
+            .filter { it.id != vacation.employee?.id }
+            .distinctBy { it.id }
+            .mapNotNull { createEmployee(it) }
+        if (replacements.isNotEmpty()) {
+            vacation.replacement = replacements.first()
+            vacation.otherReplacements = replacements.drop(1)
+        }
+        applyStats(vacation, computeStats(vacation, updateCache = false, withDaysLeft = true))
+        return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", vacation)
     }
 
     /** Saves the edited entry's employee, manager and replacement as the preset of the next new one. */
