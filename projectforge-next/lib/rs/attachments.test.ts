@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   encryptAttachment,
   interpretWriteBody,
+  shortenFileIds,
   testAttachmentDecryption,
 } from "./attachments";
 import * as client from "./client";
@@ -151,6 +152,42 @@ describe("encryptAttachment / testAttachmentDecryption", () => {
     await expect(testAttachmentDecryption(REF, "nope")).resolves.toEqual({
       kind: "invalid",
       message: "Wrong password.",
+    });
+  });
+});
+
+/** The ids of a ZIP download: in full while the URL stays short, otherwise unique prefixes. */
+describe("shortenFileIds", () => {
+  /** 20 characters like `FileStore.createRandomId`, distinct from the 5th character on. */
+  const id = (n: number) => `abcd${String(n).padStart(16, "0")}`;
+
+  it("keeps the ids in full for a usual selection", () => {
+    const ids = [id(1), id(2)];
+    expect(shortenFileIds(ids, ids)).toEqual(ids);
+  });
+
+  it("shortens a long selection to prefixes matching no other file", () => {
+    const all = Array.from(
+      { length: 200 },
+      (_, n) => `${String(n).padStart(4, "0")}${"x".repeat(16)}`
+    );
+    const short = shortenFileIds(all, all);
+    expect(short.every((prefix) => prefix.length === 4)).toBe(true);
+    short.forEach((prefix, index) =>
+      expect(all.filter((fileId) => fileId.startsWith(prefix))).toEqual([
+        all[index],
+      ])
+    );
+  });
+
+  it("makes a prefix longer where four characters would match a second file", () => {
+    const all = Array.from({ length: 200 }, (_, n) => id(n));
+    const short = shortenFileIds(all.slice(0, 100), all);
+    short.forEach((prefix, index) => {
+      expect(prefix.length).toBeGreaterThan(4);
+      expect(all.filter((fileId) => fileId.startsWith(prefix))).toEqual([
+        all[index],
+      ]);
     });
   });
 });

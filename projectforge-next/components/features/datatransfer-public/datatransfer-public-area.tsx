@@ -39,9 +39,37 @@ export function DataTransferPublicArea({
   const id = state.id!;
   const downloadEnabled = state.externalDownloadEnabled === true;
   const uploadEnabled = state.externalUploadEnabled === true;
+  const maxUploadSize = state.maxUploadSize;
+  const maxUploadSizeFormatted = state.maxUploadSizeFormatted ?? "";
+  const maxZipSize = state.maxZipSize;
+  const maxZipSizeFormatted = state.maxZipSizeFormatted ?? "";
+  // Built from the single values rather than the state, which is a new object after every upload.
   const service = useMemo(
-    () => publicAttachmentService(token, downloadEnabled),
-    [token, downloadEnabled]
+    () =>
+      publicAttachmentService(
+        token,
+        {
+          multiDownload: downloadEnabled,
+          maxFileSize:
+            maxUploadSize == null
+              ? undefined
+              : { bytes: maxUploadSize, formatted: maxUploadSizeFormatted },
+          maxZipSize:
+            maxZipSize == null
+              ? undefined
+              : { bytes: maxZipSize, formatted: maxZipSizeFormatted },
+        },
+        queryClient
+      ),
+    [
+      token,
+      downloadEnabled,
+      maxUploadSize,
+      maxUploadSizeFormatted,
+      maxZipSize,
+      maxZipSizeFormatted,
+      queryClient,
+    ]
   );
   useDocumentTitle(state.areaName ?? t("plugins.datatransfer.title.heading"));
 

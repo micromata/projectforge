@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsService
@@ -132,8 +133,8 @@ class DataTransferPublicServicesRest {
         log.info {
             "User tries to download all attachments: ${createLogInfo(request, sessionData, category, id)}."
         }
-        if (area.externalDownloadEnabled != true) {
-            return RestUtils.badRequest("Download not enabled.")
+        if (!isDownloadAllAvailable(area)) {
+            return RestUtils.badRequest("Download of all files not available.")
         }
         val dto = convert(request, area, sessionData.userInfo)
         DataTransferRestUtils.multiDownload(
@@ -184,6 +185,12 @@ class DataTransferPublicServicesRest {
             ?.filter { attachment ->
                 fileIdList.any { attachment.fileId?.startsWith(it) == true }
             }
+        // The same limit as for downloading all: a selection of every file must not get around it.
+        if (attachments.orEmpty().sumOf { it.size ?: 0L } > MAX_ZIP_SIZE) {
+            log.info { "Selected attachments exceed $MAX_ZIP_SIZE bytes, ZIP download refused." }
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return
+        }
         DataTransferRestUtils.multiDownload(
             response,
             attachmentsService,
@@ -476,5 +483,20 @@ class DataTransferPublicServicesRest {
             }'"
         )
         return sb.toString()
+    }
+
+    companion object {
+        /**
+         * The most a ZIP download (all files or a selection) may contain; more is left to the single files. Checked here
+         * as well as in the clients, which only offer the buttons then.
+         */
+        internal const val MAX_ZIP_SIZE = NumberOfBytes.GIGA_BYTES
+
+        /**
+         * Download all as one ZIP: only with download access, and for 1 byte to [MAX_ZIP_SIZE] in total.
+         */
+        internal fun isDownloadAllAvailable(area: DataTransferAreaDO): Boolean {
+            return area.externalDownloadEnabled == true && (area.attachmentsSize ?: 0) in 1..MAX_ZIP_SIZE
+        }
     }
 }

@@ -45,7 +45,7 @@ export function DataTransferPublicPage({ token }: { token: string }) {
   if (isError) {
     return (
       <AuthCard title={t("plugins.datatransfer.title.heading")}>
-        <FormAlert tone="error">{t("validation.error.generic")}</FormAlert>
+        <FormAlert tone="error">{t("errorpage.title")}</FormAlert>
       </AuthCard>
     );
   }
