@@ -30,6 +30,8 @@ For a single build: `npm run build:css && bundle exec jekyll build`.
 
 The site is English (`/`) and German (`/de/`), see `languages` in `_config.yml`. A German page has the url of its
 English page with the prefix `/de`; the language switch in the header and the `hreflang` links are derived from that.
+The switch keeps the section (`#anchor`, the same in both languages) and the query. On a page that exists in one language
+only, it leads back to the last page read in the other language, or to its home page (`assets/js/lang-switch.js`).
 
 [cols="1,1"]
 |===
