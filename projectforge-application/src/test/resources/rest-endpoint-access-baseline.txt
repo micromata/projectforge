@@ -99,8 +99,6 @@ org.projectforge.rest.fibu.EInvoiceCheckerPageRest#downloadAttachmentFile
 org.projectforge.rest.fibu.EInvoiceCheckerPageRest#getForm
 org.projectforge.rest.fibu.EInvoiceCheckerPageRest#upload
 org.projectforge.rest.fibu.importer.IncomingInvoicePosImportPageRest#getForm
-org.projectforge.rest.fibu.kost.CostSearchPageRest#getForm
-org.projectforge.rest.fibu.kost.CostSearchPageRest#watchFields
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel
 org.projectforge.rest.HistoryEntryUserCommentModalRest#append
