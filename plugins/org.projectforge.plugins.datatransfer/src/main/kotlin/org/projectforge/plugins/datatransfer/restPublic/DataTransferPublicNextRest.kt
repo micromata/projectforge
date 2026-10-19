@@ -38,11 +38,11 @@ import org.springframework.web.bind.annotation.*
 
 /**
  * The external access of a data transfer area for the next client (`/next/public/datatransfer/<token>`): plain JSON,
- * no server-side layout. [DataTransferPublicPageRest] serves the same for the legacy React page, which still runs in
- * parallel.
+ * no server-side layout. Links to the former React page (`react/public/datatransfer/dynamic/<token>`) are redirected
+ * here by OrphanedLinkFilter.
  *
  * Only login, logout and the page's state are here: the file operations are those of [DataTransferPublicServicesRest],
- * which both clients share.
+ * which the page calls directly.
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/datatransfer/next")

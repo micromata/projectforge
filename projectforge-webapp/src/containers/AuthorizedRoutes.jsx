@@ -32,13 +32,6 @@ export const nextRoute = (
     />
 );
 
-export const publicRoute = (
-    <Route
-        path={`${prefix}public/:category/:type?/:id?/:tab?`}
-        element={<FormPage isPublic />}
-    />
-);
-
 function AuthorizedRoutes(
     {
         alertMessage,
@@ -68,7 +61,6 @@ function AuthorizedRoutes(
         <Routes location={location}>
             {legacyWicketRoute}
             {nextRoute}
-            {publicRoute}
             <Route
                 exact
                 path={prefix}

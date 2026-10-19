@@ -221,8 +221,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     /**
-     * The external access in next (`next/public/datatransfer/<token>`). The legacy React page
-     * (`react/public/datatransfer/dynamic/<token>`) still serves links sent before.
+     * The external access in next (`next/public/datatransfer/<token>`). Links to the former React page
+     * (`react/public/datatransfer/dynamic/<token>`), sent before, are redirected here by OrphanedLinkFilter.
      */
     open fun getExternalBaseLinkUrl(): String {
         return domainService.getDomain("${Constants.NEXT_APP_PATH}public/datatransfer/")

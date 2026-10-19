@@ -71,13 +71,9 @@ export const loadUserStatus = () => (dispatch) => {
         .catch(() => {
             const { pathname, search } = window.location;
             const href = pathname + search;
-            // /react/public/datatransfer/ is a special case where the user is not logged in.
-            // Login form is returned by data transfer.
-            if (!pathname.startsWith('/react/public/datatransfer/')) {
-                // The login lives in projectforge-next, so this leaves this app for good:
-                // set the URL to return to after the login.
-                window.location.href = `/next/login?returnUrl=${encodeURIComponent(href)}`;
-            }
+            // The login lives in projectforge-next, so this leaves this app for good:
+            // set the URL to return to after the login.
+            window.location.href = `/next/login?returnUrl=${encodeURIComponent(href)}`;
 
             catchError(dispatch)({ message: undefined });
         });

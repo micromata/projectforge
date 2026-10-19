@@ -152,6 +152,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to the React view or import page of the addresses was redirected.
         } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
+        } else if (redirectPublicDataTransferPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to the React external access of a data transfer area was redirected.
         } else if (redirectScriptExecutePage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a React script execution page was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
@@ -286,6 +288,35 @@ class OrphanedLinkFilter : Filter {
             val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
                 ?: request.getParameter("id")?.toLongOrNull()
             if (id != null) "$listUrl/$id" else listUrl
+        }
+        redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The React external access of a data transfer area (react/public/datatransfer/dynamic/<token>, the link of
+     * the area sent to external users before), migrated to projectforge-next (next/public/datatransfer/<token>).
+     * The page is gone, so there is no escape hatch. The token is interpolated into the Location header, so only
+     * alphanumeric tokens are accepted (as generated); the React app took it as path segment or as parameter.
+     * Without a valid token, the next start page.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectPublicDataTransferPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val path = "/react/public/datatransfer"
+        if (!uri.endsWith(path) && !uri.contains("$path/")) {
+            return false
+        }
+        val token = uri.substringAfter("$path/dynamic/", "").substringBefore('/').ifEmpty { null }
+            ?: request.getParameter("id")
+        val target = if (token != null && ACCESS_TOKEN_REGEX.matches(token)) {
+            "${Constants.NEXT_APP_PATH}public/datatransfer/$token/"
+        } else {
+            Constants.NEXT_APP_PATH
         }
         redirect(response, uri, "/$target")
         return true
@@ -543,6 +574,9 @@ class OrphanedLinkFilter : Filter {
         /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
         private val DATATRANSFER_DYNAMIC_PAGES =
             listOf("datatransferfiles", "datatransferaudit", "datatransferpersonalfiles")
+
+        /** The external access token of a data transfer area, see [redirectPublicDataTransferPage]. */
+        private val ACCESS_TOKEN_REGEX = Regex("[A-Za-z0-9]+")
 
         /** The React script execution pages and their category, see [redirectScriptExecutePage]. */
         private val SCRIPT_EXECUTE_PAGES = mapOf("scriptExecute" to "script", "myScriptExecute" to "myscript")
