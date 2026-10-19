@@ -3,15 +3,23 @@
     _data/navigation_header.yml. Below 900px the links collapse into a <details> menu (no JavaScript).
     A link is active if the page url equals its url or starts with its "match" prefix. German pages use
     _data/de/navigation_header.yml. The language switch links the page in the other language, or its home page if
-    the page isn't translated (see _includes/lang-alternate.html), with the flag of that language. The magnifier opens the search page of the
-    language, on every screen size.
+    the page isn't translated (see _includes/lang-alternate.html), with the flag of that language; assets/js/lang-switch.js
+    keeps the section and query, and leads from an untranslated page back to the last page read in the other language.
+    The magnifier opens the search page of the language, on every screen size.
 {%- endcomment -%}
 {%- assign t = site.data.translation[page.lang] -%}
 {%- assign navigation = site.data[page.lang].navigation_header | default: site.data.navigation_header -%}
 {%- include lang-alternate.html -%}
 {%- assign switch_url = alternate_url | default: site.data.translation[alternate_lang].home -%}
+{%- if alternate_url -%}
+{%- assign switch_title = t.language_switch_title -%}
+{%- assign switch_data = 'data-lang-switch' -%}
+{%- else -%}
+{%- assign switch_title = t.language_switch_untranslated -%}
+{%- assign switch_data = 'data-lang-switch data-untranslated' -%}
+{%- endif -%}
 {%- capture language_switch -%}
-<a class="web-nav inline-flex items-center gap-2 rounded-md px-3 py-2 text-secondary-foreground no-underline hover:bg-muted hover:text-foreground" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}" title="{{ t.language_switch_title }}">{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
+<a class="web-nav inline-flex items-center gap-2 rounded-md px-3 py-2 text-secondary-foreground no-underline hover:bg-muted hover:text-foreground" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}" title="{{ switch_title }}" {{ switch_data }}>{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
 {%- endcapture -%}
 <header class="sticky top-0 z-20 border-b border-border bg-background">
     <div class="pf-stripe" aria-hidden="true"></div>
@@ -49,7 +57,7 @@
                     {%- for link in mobile_links %}
                     <a class="web-nav block border-b border-border py-3 text-foreground no-underline last:border-b-0 hover:text-link" href="{% include link-url.html url=link.url %}">{{ link.title }}</a>
                     {%- endfor %}
-                    <a class="web-nav flex items-center gap-2 py-3 text-foreground no-underline hover:text-link" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}">{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
+                    <a class="web-nav flex items-center gap-2 py-3 text-foreground no-underline hover:text-link" href="{{ switch_url | relative_url }}" hreflang="{{ alternate_lang }}" lang="{{ alternate_lang }}" title="{{ switch_title }}" {{ switch_data }}>{% include icons/flag-{{ t.language_flag }}.svg %}{{ t.language_switch }}</a>
                 </div>
             </nav>
         </details>
