@@ -227,7 +227,6 @@ class AvailabilityEntityRest :
             result.user = user
         }
         result.status = AvailabilityStatus.NOT_AVAILABLE
-        result.location = AvailabilityLocation.REMOTE
         val obj = AvailabilityDO()
         result.copyTo(obj)
         applyFormInfo(result, obj)

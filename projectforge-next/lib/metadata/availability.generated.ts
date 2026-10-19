@@ -51,6 +51,7 @@ export const AVAILABILITY_METADATA = {
       dataType: "STRING",
       i18nKey: "availability.location",
       required: false,
+      tooltipI18nKey: "availability.location.tooltip",
       enumValues: [
         {
           value: "REMOTE",

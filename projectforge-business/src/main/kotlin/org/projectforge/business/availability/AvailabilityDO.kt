@@ -90,7 +90,7 @@ open class AvailabilityDO : DefaultBaseDO() {
     @get:Column(name = "availability_status", length = 30)
     open var status: AvailabilityStatus? = null
 
-    @PropertyInfo(i18nKey = "availability.location")
+    @PropertyInfo(i18nKey = "availability.location", tooltip = "availability.location.tooltip")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "location", length = 30)
     open var location: AvailabilityLocation? = null

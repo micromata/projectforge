@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 open class AvailabilityConfig {
-    @Value("\${projectforge.availability.types:Elternzeit;Krankheit;Abwesenheit;Zeitausgleich;Workation}")
+    @Value("\${projectforge.availability.types:Elternzeit;Krankheit;Abwesenheit;Zeitausgleich;Mobile Tätigkeit;Workation}")
     private lateinit var typesString: String
 
     /**

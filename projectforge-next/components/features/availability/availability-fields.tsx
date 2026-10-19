@@ -49,10 +49,40 @@ export function AvailabilityTypeField({ className }: { className?: string }) {
       hint={t("availability.type.tooltip")}
       disabled={readOnly}
       clearable
+      placeholder={t("availability.notSpecified")}
       className={className}
       options={(data?.availableTypes ?? []).map((type) => ({
         value: type,
         label: type,
+      }))}
+    />
+  );
+}
+
+/**
+ * Where the user works during the period, if it matters (e.g. remote for mobile work): optional, so an empty one
+ * is shown as such. Custom for the placeholder, which a declared field doesn't have.
+ */
+export function AvailabilityLocationField({
+  className,
+}: {
+  className?: string;
+}) {
+  const t = useTranslations();
+  const label = useFieldLabels(AVAILABILITY_METADATA);
+  const readOnly = useFormReadOnly();
+  return (
+    <SelectField
+      name="location"
+      label={label("location")}
+      hint={t("availability.location.tooltip")}
+      disabled={readOnly}
+      clearable
+      placeholder={t("availability.notSpecified")}
+      className={className}
+      options={AVAILABILITY_METADATA.fields.location.enumValues.map((v) => ({
+        value: v.value,
+        label: t(v.i18nKey),
       }))}
     />
   );

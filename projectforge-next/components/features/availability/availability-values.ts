@@ -26,7 +26,7 @@ export function toFormValues(
 }
 
 /**
- * Blank form for an entry that doesn't exist yet. User, status and location are preset by the backend
+ * Blank form for an entry that doesn't exist yet. User and status are preset by the backend
  * (`AvailabilityEntityRest.newBaseDTO`), whose `/rs/availability/newEntry` answer the form is reset onto.
  */
 export function emptyAvailabilityValues(): AvailabilityValues {

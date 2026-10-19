@@ -6,6 +6,7 @@ import { AbsenceStartCell } from "@/components/shared/list/absence-start-cell";
 import { AvailabilityConflictNotice } from "./availability-conflict-notice";
 import {
   AvailabilityInternalCommentField,
+  AvailabilityLocationField,
   AvailabilitySubstitutesField,
   AvailabilityTypeField,
   AvailabilityUserField,
@@ -136,7 +137,7 @@ export const AVAILABILITY_PAGE = definePage<
           { name: "startDate", startsRow: true },
           { name: "endDate" },
           { custom: AvailabilityTypeField, startsRow: true },
-          { name: "location" },
+          { custom: AvailabilityLocationField },
           {
             name: "comment",
             span: 2,

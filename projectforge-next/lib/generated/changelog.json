@@ -6,6 +6,9 @@
     "date" : "2026-10-19",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobiles Arbeiten\" (mobile work) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there." ]
+    }, {
       "type" : "changed",
       "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
     } ]

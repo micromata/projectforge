@@ -525,8 +525,10 @@
     "location": {
       "_": "Location",
       "onSite": "On-site",
-      "remote": "Remote"
+      "remote": "Remote",
+      "tooltip": "Optional, e.g. remote for mobile work or a workation."
     },
+    "notSpecified": "Not specified",
     "startDate": "Start date",
     "status": {
       "_": "Availability",
@@ -549,7 +551,7 @@
     },
     "type": {
       "_": "Type",
-      "tooltip": "Only visible to the person concerned and to HR staff; everybody else sees the status only."
+      "tooltip": "Optional. Only visible to the person concerned and to HR staff; everybody else sees the status only."
     },
     "user": "Person",
     "workingDays": "Working days"
