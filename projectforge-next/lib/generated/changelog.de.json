@@ -13,7 +13,7 @@
       "items" : [ "Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobile Tätigkeit“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort.", "DATEV-Import: Ein Upload der Datei des Steuerbüros füllt beide Reiter, Buchungssätze und Kontenplan, sodass beide ohne erneuten Upload abgeglichen werden können." ]
     }, {
       "type" : "changed",
-      "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]
+      "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Der Link des Bereichs zeigt jetzt dorthin; die bisherige Seite funktioniert für früher verschickte Links weiterhin. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen." ]
     } ]
   },
   "groups" : [ {

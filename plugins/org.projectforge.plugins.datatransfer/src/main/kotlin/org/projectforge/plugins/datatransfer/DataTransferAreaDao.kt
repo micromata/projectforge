@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
@@ -47,7 +48,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -220,8 +220,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * The external access in next (`next/public/datatransfer/<token>`). The legacy React page
+     * (`react/public/datatransfer/dynamic/<token>`) still serves links sent before.
+     */
     open fun getExternalBaseLinkUrl(): String {
-        return domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        return domainService.getDomain("${Constants.NEXT_APP_PATH}public/datatransfer/")
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {

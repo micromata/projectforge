@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { BASE_PATH } from "./lib/config";
+import { BASE_PATH, PUBLIC_ASSET_PREFIX } from "./lib/config";
 
 const isProd = process.env.NODE_ENV === "production";
 const backendUrl = process.env.PF_BACKEND_URL ?? "http://localhost:8080";
@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   // such fallback and insists on pre-rendering instead. `npm run build` (the CI gate) still runs
   // with the export on, so export-incompatible code is caught there.
   output: isProd ? "export" : undefined,
+  // The assets (_next/static: scripts, styles, fonts) are linked as /next/public/_next/..., although the
+  // export keeps them in _next/ (Spring serves them under both paths, see WebApplicationConfig). The
+  // external access of a data transfer area (/next/public/datatransfer/<token>) is opened to anonymous
+  // users by an authenticating proxy in front of ProjectForge, which then has to open just /next/public
+  // rather than the assets of the whole app. The export allows one prefix only, so it applies to every
+  // page. Dev serves its assets itself and keeps /next/_next.
+  assetPrefix: isProd ? `${BASE_PATH}${PUBLIC_ASSET_PREFIX}` : undefined,
   // Emit <route>/index.html so Spring can serve clean nested paths, and give
   // deep links (e.g. /next/book/5) a canonical trailing-slash URL. Paths
   // without their own file fall back to the SPA shell (404.html) via Spring's
@@ -56,6 +63,12 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/rsPublic/:path*`,
         basePath: false,
       },
+      // The icons, which the root layout links at the root (served by Spring, see app/layout.tsx).
+      ...["/favicon.ico", "/apple-touch-icon.png"].map((icon) => ({
+        source: icon,
+        destination: `${backendUrl}${icon}`,
+        basePath: false as const,
+      })),
     ];
   },
 };
