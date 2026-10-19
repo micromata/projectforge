@@ -4,6 +4,9 @@ interface NotificationState {
   /** Ids of the notifications closed as toast or banner in this tab (still listed in the bell). */
   closedIds: number[];
   closeNotification: (id: number) => void;
+  /** The bell is open: its menu lists all notifications, so the toast to be confirmed steps aside. */
+  bellOpen: boolean;
+  setBellOpen: (open: boolean) => void;
 }
 
 /**
@@ -16,4 +19,6 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     set((s) =>
       s.closedIds.includes(id) ? s : { closedIds: [...s.closedIds, id] }
     ),
+  bellOpen: false,
+  setBellOpen: (bellOpen) => set({ bellOpen }),
 }));
