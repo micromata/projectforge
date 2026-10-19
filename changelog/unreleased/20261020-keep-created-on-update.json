@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Saving a changed entry in the new interface no longer empties its creation date. The date of the last change is always set by the server. Creation dates lost this way are restored from the history.",
+  "de": "Das Speichern eines geänderten Eintrags in der neuen Oberfläche leert nicht mehr sein Anlagedatum. Das Datum der letzten Änderung setzt immer der Server. So verlorene Anlagedaten werden aus der Historie wiederhergestellt."
+}
