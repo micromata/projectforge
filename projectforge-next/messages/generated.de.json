@@ -4480,6 +4480,54 @@
       "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
       "title": "Plugins"
     },
+    "propertiesEditor": {
+      "activeDiffers": "Das laufende System verwendet einen anderen Wert: Ein Neustart steht aus oder der Wert wird überschrieben.",
+      "activeSource": "Überschrieben durch: {arg0}",
+      "activeValue": "Aktiver Wert",
+      "addParameter": {
+        "_": "Parameter hinzufügen",
+        "exists": "Dieser Parameter existiert bereits.",
+        "invalid": "Ungültiger Schlüssel (nur Buchstaben, Ziffern, '.', '-', '_' und [n]).",
+        "key": "Schlüssel",
+        "value": "Wert"
+      },
+      "backupInfo": "Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt (projectforge.properties.<Zeitstempel>.bak). Die Datei wird nach Gruppen sortiert neu geschrieben; eigene Kommentare bleiben über ihrem Parameter.",
+      "cardInfo": "Bearbeitet die Parameter der projectforge.properties im Home-Verzeichnis von ProjectForge: nach Themen gruppiert, mit Beschreibungen und Standardwerten.",
+      "changeCount": "{arg0} geändert",
+      "confirm": {
+        "description": "Die folgenden Parameter werden in der projectforge.properties geändert. Vorher wird eine Sicherungskopie geschrieben.",
+        "title": "projectforge.properties speichern?"
+      },
+      "default": "Standard",
+      "example": "Beispiel",
+      "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
+      "fileComment": "Eigener Kommentar in der projectforge.properties",
+      "filter": {
+        "inFile": "In projectforge.properties gesetzt",
+        "modified": "Geändert"
+      },
+      "inFileCount": "{arg0} gesetzt",
+      "noResults": "Keine Parameter gefunden.",
+      "notWritable": "Die projectforge.properties existiert nicht oder kann nicht geschrieben werden (fehlende Schreibrechte für die Datei oder ihr Verzeichnis). Die Parameter werden nur lesend angezeigt.",
+      "open": "Editor öffnen",
+      "optional": "optional",
+      "otherInfo": "Parameter der projectforge.properties, die in den Standardwerten von ProjectForge nicht vorkommen (z. B. eigene Spring-Einstellungen). Bitte auf Tippfehler prüfen.",
+      "removed": "entfernt (Standard gilt)",
+      "reset": {
+        "_": "Auf Standard zurücksetzen",
+        "tooltip": "Entfernt den Parameter aus der projectforge.properties, sodass wieder der Standardwert gilt."
+      },
+      "restartRequired": "Änderungen werden erst nach einem Neustart von ProjectForge wirksam!",
+      "search": "Schlüssel oder Beschreibung suchen",
+      "secret": {
+        "notSet": "Nicht gesetzt",
+        "set": "Gesetzt (der Wert wird nicht angezeigt)"
+      },
+      "secretChanged": "neuer Wert",
+      "title": "Konfigurationsdatei (projectforge.properties)",
+      "undo": "Änderung verwerfen",
+      "unset": "nicht gesetzt (Standard gilt)"
+    },
     "scheduler": {
       "abandoned": {
         "_": "Beendete Läufe, die noch laufen: {arg0}",

@@ -4480,6 +4480,54 @@
       "restartRequired": "Please note: (de)activation of plugins will take effect only after restart!",
       "title": "Plugins"
     },
+    "propertiesEditor": {
+      "activeDiffers": "The running system uses another value: a restart is pending or the value is overridden.",
+      "activeSource": "Overridden by: {arg0}",
+      "activeValue": "Active value",
+      "addParameter": {
+        "_": "Add parameter",
+        "exists": "This parameter exists already.",
+        "invalid": "Invalid key (letters, digits, '.', '-', '_' and [n] only).",
+        "key": "Key",
+        "value": "Value"
+      },
+      "backupInfo": "Before every save, a copy of the file with a timestamp is placed next to it (projectforge.properties.<timestamp>.bak). The file is rewritten sorted by groups; own comments stay above their parameter.",
+      "cardInfo": "Edits the parameters of projectforge.properties in ProjectForge's home directory: grouped by topic, with descriptions and defaults.",
+      "changeCount": "{arg0} changed",
+      "confirm": {
+        "description": "The following parameters will be changed in projectforge.properties. A backup is written before.",
+        "title": "Save projectforge.properties?"
+      },
+      "default": "Default",
+      "example": "Example",
+      "expertWarning": "Internal settings: only change them if you know exactly what you are doing. A wrong value may prevent ProjectForge from starting.",
+      "fileComment": "Own comment in projectforge.properties",
+      "filter": {
+        "inFile": "Set in projectforge.properties",
+        "modified": "Modified"
+      },
+      "inFileCount": "{arg0} set",
+      "noResults": "No parameters found.",
+      "notWritable": "projectforge.properties doesn't exist or can't be written (missing write permission for the file or its directory). The parameters are shown read-only.",
+      "open": "Open editor",
+      "optional": "optional",
+      "otherInfo": "Parameters of projectforge.properties, which aren't known by ProjectForge's defaults (e.g. own Spring settings). Please check them for typos.",
+      "removed": "removed (default applies)",
+      "reset": {
+        "_": "Reset to default",
+        "tooltip": "Removes the parameter from projectforge.properties, so the default applies again."
+      },
+      "restartRequired": "Changes take effect only after a restart of ProjectForge!",
+      "search": "Search key or description",
+      "secret": {
+        "notSet": "Not set",
+        "set": "Set (the value is not shown)"
+      },
+      "secretChanged": "new value",
+      "title": "Configuration file (projectforge.properties)",
+      "undo": "Undo change",
+      "unset": "not set (default applies)"
+    },
     "scheduler": {
       "abandoned": {
         "_": "Terminated runs still running: {arg0}",

@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Administration -> System: editor for projectforge.properties. All parameters grouped by topic with descriptions and defaults, search, secrets masked. Before every save a copy of the file with a timestamp is written; changes take effect after a restart.",
+  "de": "Administration -> System: Editor für die projectforge.properties. Alle Parameter nach Themen gruppiert mit Beschreibungen und Standardwerten, Suche, Geheimnisse maskiert. Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel abgelegt; Änderungen werden nach einem Neustart wirksam."
+}

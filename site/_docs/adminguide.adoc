@@ -162,6 +162,21 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties`. All ProjectForge-specific options with their defaults are listed in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[properties_editor]]
+==== Properties editor
+
+Administrators edit `projectforge.properties` on the page *Administration -> System* (menu
+_Configuration_ -> _Configuration file_). The editor lists all parameters of `application.properties`, grouped by topic,
+with their descriptions and defaults, and the parameters of your file unknown to ProjectForge in the
+group _Other_. Passwords, keys and tokens are never shown: a secret can only be set to a new value.
+
+* Before every save, a copy of the file with a timestamp is placed next to it
+  (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). The file is written sorted by groups; your own
+  comments stay above the parameter they were written above.
+* Changes take effect only after a restart of ProjectForge.
+* A value the running system uses differently (a restart is pending, or the value is set by an
+  environment variable or the command line) is marked.
+
 [[customization]]
 === Customization
 

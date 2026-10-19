@@ -167,6 +167,22 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties` verwenden. Alle ProjectForge-spezifischen Optionen mit ihren Standardwerten stehen in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[properties_editor]]
+==== Properties-Editor
+
+Administratoren bearbeiten die `projectforge.properties` auf der Seite *Administration -> System* (Menü
+_Konfiguration_ -> _Konfigurationsdatei_). Der Editor zeigt alle Parameter der `application.properties` nach Themen
+gruppiert mit ihren Beschreibungen und Standardwerten, die ProjectForge unbekannten Parameter der eigenen
+Datei in der Gruppe _Other_. Passwörter, Schlüssel und Tokens werden nie angezeigt: Ein Geheimnis kann
+nur mit einem neuen Wert überschrieben werden.
+
+* Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt
+  (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
+  eigene Kommentare bleiben über dem Parameter, über dem sie standen.
+* Änderungen werden erst nach einem Neustart von ProjectForge wirksam.
+* Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
+  einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
+
 [[customization]]
 === Anpassungen
 

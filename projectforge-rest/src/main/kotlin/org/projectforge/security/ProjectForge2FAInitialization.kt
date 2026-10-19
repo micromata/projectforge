@@ -29,6 +29,7 @@ import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminErrorsRest
 import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.admin.AdminSchedulerRest
+import org.projectforge.rest.admin.PropertiesEditorRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.importer.DatevAccountImportRest
@@ -71,8 +72,14 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     // The System page (SystemRest, /rs/system), successor of Wicket's admin page, and the Plugins page
     // (PluginAdminRest, /rs/pluginList), successor of Wicket's PluginListPage: both legacy pages were gated by
-    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period.
-    registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
+    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period. The same for the properties editor
+    // (PropertiesEditorRest, /rs/propertiesEditor): projectforge.properties holds the credentials and security keys.
+    registerShortCutClasses(
+      My2FAShortCut.ADMIN_WRITE,
+      SystemRest::class.java,
+      PluginAdminRest::class.java,
+      PropertiesEditorRest::class.java,
+    )
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
       UserEntityRest::class.java,
