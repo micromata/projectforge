@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.availability.AbsenceService
 import org.projectforge.business.availability.AbsenceVisibility
 import org.projectforge.business.availability.AvailabilityDO
 import org.projectforge.business.availability.AvailabilityDao
@@ -55,6 +56,9 @@ import java.time.temporal.ChronoUnit
  */
 @Service
 class SubstituteAbsenceReducer {
+    @Autowired
+    private lateinit var absenceService: AbsenceService
+
     @Autowired
     private lateinit var absenceVisibility: AbsenceVisibility
 
@@ -214,6 +218,7 @@ class SubstituteAbsenceReducer {
             status = availability.status,
             statusString = availability.status?.let { translate(it.i18nKey) },
             label = availabilityDao.labelFor(user, availability),
+            comment = availability.comment.takeIf { absenceService.isCommentVisible(user, availability) },
             absent = availability.status?.absent == true,
         )
     }

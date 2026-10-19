@@ -121,7 +121,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         }
         obj.recalculate()
         // A deleted position stays in the collection (soft delete), but is no part of the invoice any more.
-        if (obj.abstractPositionenExcludingDeleted.isEmpty()) {
+        if (obj.positionen.isNullOrEmpty() || RechnungDao.hasNoLivePositions(obj, operationType)) {
             throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen").setCausedByField("positionen")
         }
         val size = obj.positionen!!.size

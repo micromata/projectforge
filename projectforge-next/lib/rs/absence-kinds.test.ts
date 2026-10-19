@@ -20,8 +20,8 @@ describe("sortAbsenceKinds", () => {
 describe("absenceKindOfStatus", () => {
   it("maps an availability status to the kind of the same name, a vacation is none", () => {
     expect(absenceKindOfStatus("NOT_AVAILABLE")).toBe("NOT_AVAILABLE");
-    expect(absenceKindOfStatus("REACHABLE_IF_URGENT")).toBe(
-      "REACHABLE_IF_URGENT"
+    expect(absenceKindOfStatus("REACHABLE_IF_NEEDED")).toBe(
+      "REACHABLE_IF_NEEDED"
     );
     expect(absenceKindOfStatus("VACATION")).toBeNull();
     expect(absenceKindOfStatus(undefined)).toBeNull();

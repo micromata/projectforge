@@ -13,7 +13,8 @@ import {
   forceDeleteEntity,
   markEntityAsDeleted,
   postEntityAction,
-  saveOrUpdateEntity,
+  writeEntity,
+  type WriteOperation,
   undeleteEntity,
   type EntityWriteResult,
 } from "@/lib/rs/entity";
@@ -104,7 +105,8 @@ function nonEmpty(params?: NewEntryParams): NewEntryParams | undefined {
 }
 
 /**
- * Saves an entity — insert and update alike, the backend tells them apart by `data.id`.
+ * Saves an entity — inserts a new one or updates an existing one, as the caller's `operation` says
+ * (see [WriteOperation]: never guessed from `data.id`).
  *
  * The answer carries no entity, only the id (see lib/rs/entity.ts), so the caches are invalidated
  * instead of written: the saved entry comes back from the server on the next read, including the
@@ -115,9 +117,13 @@ export function useSaveEntity<T extends EntityWithId>(
   { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
-  return useMutation<EntityWriteResult, Error, T>({
-    mutationFn: (data) => saveOrUpdateEntity(entity, data),
-    onSuccess: (result, data) => {
+  return useMutation<
+    EntityWriteResult,
+    Error,
+    { operation: WriteOperation; data: T }
+  >({
+    mutationFn: ({ operation, data }) => writeEntity(entity, operation, data),
+    onSuccess: (result, { data }) => {
       // A rejected entity is a regular answer here (HTTP 406), not an error - nothing changed.
       if (result.kind !== "ok") return;
       invalidateEntity(
@@ -146,8 +152,13 @@ export function useEntityAction<T extends EntityWithId>(
   { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
-  return useMutation<EntityWriteResult, Error, { action: string; data: T }>({
-    mutationFn: ({ action, data }) => postEntityAction(entity, action, data),
+  return useMutation<
+    EntityWriteResult,
+    Error,
+    { action: string; operation: WriteOperation; data: T }
+  >({
+    mutationFn: ({ action, operation, data }) =>
+      postEntityAction(entity, action, data, operation),
     onSuccess: (result, { data }) => {
       if (result.kind !== "ok") return;
       invalidateEntity(

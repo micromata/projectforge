@@ -241,10 +241,12 @@ test.describe("task wizard", { tag: "@lane-task" }, () => {
       name: format.t("group.localGroup._"),
     });
     if ((await localGroup.count()) > 0) await localGroup.check();
-    // The group page's own save button: the dialog renders GROUP_PAGE's declared form now, not a
-    // layout the backend laid out (see EntityEditDialog).
+    // The group page's own create button: the dialog renders GROUP_PAGE's declared form now, not a
+    // layout the backend laid out (see EntityEditDialog). The submit one — the LDAP section has a
+    // "create" button of its own (a new GID).
     await dialog
-      .getByRole("button", { name: format.t("save"), exact: true })
+      .locator('button[type="submit"]')
+      .filter({ hasText: format.t("create") })
       .click();
     await expect(dialog).toBeHidden({ timeout: 20_000 });
 

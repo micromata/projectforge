@@ -169,6 +169,41 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * A deleted position is only flagged and stays in the collection; an invoice whose positions are all deleted has
+     * none left and is refused like one without any.
+     */
+    @Test
+    fun testOnlyDeletedPositions() {
+        // No surrounding transaction: the update below reads the invoice in a transaction of its own, which would
+        // wait for the lock of an outer one (HSQLDB).
+        logon(TEST_FINANCE_USER)
+        val projekt = initTestDB.addProjekt(null, 1, "foo")
+        fun newInvoice(): RechnungDO {
+            val rechnung = RechnungDO()
+            rechnung.datum = LocalDate.now()
+            rechnung.faelligkeit = LocalDate.now()
+            rechnung.projekt = projekt
+            rechnung.nummer = rechnungDao.getNextNumber(rechnung)
+            return rechnung
+        }
+        assertUserException("fibu.rechnung.error.rechnungHatKeinePositionen") {
+            rechnungDao.insert(newInvoice().also {
+                it.addPosition(createPosition(1, "10.00", "0.19", "deleted").also { pos -> pos.deleted = true })
+            })
+        }
+
+        val rechnung = newInvoice()
+        rechnung.addPosition(createPosition(1, "10.00", "0.19", "live"))
+        rechnung.addPosition(createPosition(1, "20.00", "0.19", "deleted").also { it.deleted = true })
+        val id = rechnungDao.insert(rechnung)
+
+        val edited = rechnungDao.find(id)!!
+        edited.positionen!!.forEach { it.deleted = true }
+        assertUserException("fibu.rechnung.error.rechnungHatKeinePositionen") { rechnungDao.update(edited) }
+        Assertions.assertEquals(1, rechnungDao.find(id)!!.positionenExcludingDeleted.size)
+    }
+
     private fun assertUserException(i18nKey: String, block: () -> Unit) {
         val ex = Assertions.assertThrows(UserException::class.java) { block() }
         Assertions.assertEquals(i18nKey, ex.i18nKey)

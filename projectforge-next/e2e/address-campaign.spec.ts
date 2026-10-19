@@ -54,13 +54,13 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/addressCampaign/saveorupdate*", (route) => {
+    await page.route("**/rs/addressCampaign/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
 
     await goto(page, "/address-campaign/new");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     for (const key of ["title", "values"]) {
       await expect(
@@ -78,7 +78,7 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/addressCampaign/saveorupdate*", (route) => {
+    await page.route("**/rs/addressCampaign/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -86,7 +86,7 @@ test.describe("address campaign", { tag: "@parallel" }, () => {
     await goto(page, "/address-campaign/new");
     await page.getByRole("textbox", { name: t("title") }).fill("e2e campaign");
     await page.getByRole("textbox", { name: t("values") }).fill(" ; ;");
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     await expect(
       page.getByText(

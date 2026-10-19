@@ -208,10 +208,14 @@ export function EntityEditBody<
         meta.action === "save"
           ? (edit.submitAction?.(values) ?? "save")
           : meta.action;
+      // New or existing is what the route says (`id`), not the posted values: the id is never put
+      // into the payload here, so a form that lost it is rejected by the backend's `update` instead of
+      // being inserted as a copy of the entry.
+      const operation = id == null ? "insert" : "update";
       // A declared action posts to `/rs/{entity}/{action}`; anything else is a save.
       return edit.actions?.includes(action)
-        ? actionMutation.mutateAsync({ action, data: posted })
-        : saveMutation.mutateAsync(posted);
+        ? actionMutation.mutateAsync({ action, operation, data: posted })
+        : saveMutation.mutateAsync({ operation, data: posted });
     },
   });
 
@@ -438,6 +442,7 @@ export function EntityEditBody<
         isSaving={isSubmitting}
         isDirty={isDirty}
         allowSaveUnchanged={allowSaveUnchanged}
+        isNew={id == null}
         // Saving leaves, so this is always the write before this one: `lastUpdate`, or `created` for
         // an entry never changed since (both on `BaseDTO`).
         lastSaved={

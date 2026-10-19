@@ -73,7 +73,8 @@ test.describe("cost search", { tag: "@lane-cost1" }, () => {
     // A full page load, as from the legacy React menu: going back would leave this app.
     await goto(page, "/costSearch");
     await page.getByRole("button", { name: t("fibu.kostSearch.dock") }).click();
-    await expect(page).toHaveURL(/\/next\/?$/);
+    // The start page itself forwards to the calendar at once, so either may be seen.
+    await expect(page).toHaveURL(/\/next\/(calendar)?$/);
     await expect(page.getByTestId("cost-search-panel")).toBeVisible();
   });
 

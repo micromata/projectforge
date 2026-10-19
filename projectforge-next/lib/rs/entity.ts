@@ -1,5 +1,5 @@
 /**
- * Writing calls of an entity page (`AbstractPagesRest`): save, delete, undelete.
+ * Writing calls of an entity page (`AbstractEntityRest`): insert, update, delete, undelete.
  *
  * These are the same endpoints the UILayout pages use, so they follow the same protocol and not
  * the plain-JSON shape of client.ts:
@@ -39,16 +39,48 @@ export type EntityWriteResult =
 const NOT_ACCEPTABLE = 406;
 
 /**
- * Inserts or updates an entity — one endpoint for both, told apart by `data.id` server-side.
- *
- * @param data The DTO as the backend's `*PagesRest` deserializes it, `id` unset for an insert.
+ * What a write of an edit form is: a new entry or an existing one. Said by the caller, which knows it
+ * from the route (`/…/new` or `/…/{id}`), and never left to the backend to guess from the posted
+ * values: an existing entry whose form lost the id would otherwise be inserted as a copy.
  */
-export function saveOrUpdateEntity<D extends object>(
+export type WriteOperation = "insert" | "update";
+
+/**
+ * Inserts a new entity. One that already exists is rejected by the backend (406), never updated.
+ *
+ * @param data The DTO as the backend's `*EntityRest` deserializes it, `id` unset (except for a
+ * user-assigned one, e.g. a customer's number).
+ */
+export function insertEntity<D extends object>(
   entity: string,
   data: D,
   signal?: AbortSignal
 ): Promise<EntityWriteResult> {
-  return write(`/rs/${entity}/saveorupdate`, "PUT", data, signal);
+  return write(`/rs/${entity}/insert`, "PUT", data, signal);
+}
+
+/**
+ * Updates an existing entity. Without its `id` the backend rejects it (406) — it is never inserted
+ * instead, which is the point of this endpoint being separate from [insertEntity].
+ */
+export function updateEntity<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/update`, "PUT", data, signal);
+}
+
+/** [insertEntity] or [updateEntity], as [operation] says. */
+export function writeEntity<D extends object>(
+  entity: string,
+  operation: WriteOperation,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return operation === "insert"
+    ? insertEntity(entity, data, signal)
+    : updateEntity(entity, data, signal);
 }
 
 /**
@@ -125,18 +157,23 @@ export function cancelEntityEdit<D extends object>(
  * `book/returnBook` (BookServicesRest) are the case: they change a few fields server-side and
  * then run through the very same `saveOrUpdate`, so the *whole* posted entity is persisted.
  *
- * Same protocol as [saveOrUpdateEntity] (PostData envelope, ResponseAction, 406), which is why
+ * Same protocol as [insertEntity] (PostData envelope, ResponseAction, 406), which is why
  * it lives here and not in list-actions.ts: those speak the plain JSON shape of client.ts.
  *
  * @param action Path segment after the entity, e.g. "lendOut".
+ * @param operation For an action of an edit form: whether it writes a new or an existing entry.
+ * Sent as `?operation=`, which the backend's `saveOrUpdate` enforces like [insertEntity] and
+ * [updateEntity] do (`AbstractPagesRestUtils.OPERATION_PARAM`).
  */
 export function postEntityAction<D extends object>(
   entity: string,
   action: string,
   data: D,
+  operation?: WriteOperation,
   signal?: AbortSignal
 ): Promise<EntityWriteResult> {
-  return write(`/rs/${entity}/${action}`, "POST", data, signal);
+  const query = operation ? `?operation=${operation}` : "";
+  return write(`/rs/${entity}/${action}${query}`, "POST", data, signal);
 }
 
 /**

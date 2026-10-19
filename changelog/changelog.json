@@ -1,6 +1,56 @@
 {
   "releases": [
     {
+      "id": "9-0-10",
+      "version": "9.0.10",
+      "date": "2026-10-19",
+      "title": "ProjectForge 9.0.10 released",
+      "tag": "9.0.10-RELEASE",
+      "published": false,
+      "summary": [
+        "**Employees** and **cost search** migrated",
+        "German **website**",
+        "Separate \"Create\" and \"Save\" in edit forms",
+        "Availability: \"Reachable if needed\" only, public comment for the team"
+      ],
+      "overview": [
+        "**Employees:** list and form in the new interface; status, weekly hours and leave days edited in dialogs.",
+        "**Cost search:** in the new interface, also as a movable panel on every page (Alt+K) or a small window of its own.",
+        "**Edit forms:** \"Create\" for a new entry, \"Save\" for an existing one; saving never creates a copy.",
+        "**Availability:** \"Reachable if urgent\" merged into \"Reachable if needed\"; the public comment, shown in red in the form, is visible to the team, also in the tooltips of the absence charts.",
+        "**Website:** German version of the pages, FAQ, changelog and guides at projectforge.org/de.",
+        "**Invoices:** an invoice with deleted positions only can be deleted and restored again."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Website: German version of the pages, the FAQ, the changelog and the user, administration and quick start guides at [projectforge.org/de](https://projectforge.org/de/), with a language switch; the help link of the search field opens the German user guide for German users."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Availability: \"Reachable if urgent\" is merged into \"Reachable if needed\". The comment of an entry is called \"Public comment\" and is shown in red in the form; every team member who sees the entry sees it, also in the tooltips of the absence charts (e.g. the chart of a vacation's substitutes).",
+            "Cost search: migrated to the new interface. Its menu entry shows it as a movable panel over the current page, which stays open on every page (also via the button in the top bar or Alt+K; the position is remembered). It can also be opened in a small separate window.",
+            "Edit forms: a new entry is saved with \"Create\", an existing one with \"Save\". Both are separate writes: saving an existing entry can no longer create a copy of it, and creating one never overwrites an existing entry."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Employees: the list and the form of the employees are migrated to the new interface. Status, weekly working hours and annual leave days are edited in dialogs directly in the form; the entry valid today is marked, entries still ahead are shown muted."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Invoices and incoming invoices: an invoice stored earlier with deleted positions only can be deleted and restored again; only saving it is refused."
+          ]
+        }
+      ]
+    },
+    {
       "id": "9-0-9",
       "version": "9.0.9",
       "date": "2026-10-19",

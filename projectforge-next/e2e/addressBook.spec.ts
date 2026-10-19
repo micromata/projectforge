@@ -51,7 +51,7 @@ test.describe("addressBook", { tag: "@lane-addressBook" }, () => {
   test("posts a new address book on save", async ({ loggedInPage: page }) => {
     const format = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/addressBook/saveorupdate*", (route) => {
+    await page.route("**/rs/addressBook/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -60,7 +60,7 @@ test.describe("addressBook", { tag: "@lane-addressBook" }, () => {
     await page
       .getByRole("textbox", { name: label(format, "addressbook.title") })
       .fill("e2e address book");
-    await page.getByRole("button", { name: format.t("save") }).click();
+    await page.getByRole("button", { name: format.t("create") }).click();
 
     await expect
       .poll(() => saveAttempted, { message: "the save reaches the backend" })

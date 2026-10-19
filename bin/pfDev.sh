@@ -62,8 +62,8 @@ with its own HSQLDB and the session cookie JSESSIONID_n. Without a slot
 everything is as before: :8080/:3000, ~/ProjectForge and its configured
 database.
   setup <slot> [pw] Create the home ~/ProjectForge-n from
-                   ~/ProjectForge/projectforge.properties: own HSQLDB, mails and
-                   gateway push off, number ranges 4/5/1 (as in the tests). Once per slot. Its first run fills the
+                   ~/ProjectForge/projectforge.properties: own HSQLDB, mails,
+                   gateway push and Sipgate off, number ranges 4/5/1 (as in the tests). Once per slot. Its first run fills the
                    database with test data (admin password pw, random if omitted)
   reset <slot>     Delete the home dir of a slot instance (asks first)
   run [slot]       Build (skip tests), then run the app in dev mode (Spring on
@@ -115,7 +115,7 @@ init_slot_home() {
     echo "No $src/projectforge.properties to derive the slot instance from." >&2
     exit 1
   fi
-  echo "Creating $PF_HOME from $src (own HSQLDB, mails and gateway push off)."
+  echo "Creating $PF_HOME from $src (own HSQLDB, mails, gateway push and Sipgate off)."
   mkdir -p "$PF_HOME"
   cp "$src/projectforge.properties" "$PF_HOME/"
   for item in config.xml resources styles; do
@@ -134,6 +134,9 @@ spring.datasource.username=sa
 spring.datasource.password=
 mail.session.pfmailsession.emailEnabled=false
 projectforge.gateway.push.enabled=false
+# Sipgate off: the copied token would sync every address change with the real Sipgate account, importing its
+# contacts into this test database (blank token = not configured, see SipgateConfiguration.isConfigured).
+projectforge.sipgate.token=
 # Number ranges of customers and projects (as in application-test.properties): the test data's customers
 # 300-304 belong to range 5, so their projects get Kost2. Without ranges a fresh database has free numbers
 # and no Kost2 (see NumberRangeService).

@@ -70,7 +70,7 @@ test.describe("vacation", { tag: "@lane-vacation" }, () => {
     }
     test.skip(!preset.employee, "no employee to enter a vacation for");
     let saveAttempted = false;
-    await page.route("**/rs/vacation/saveorupdate*", (route) => {
+    await page.route("**/rs/vacation/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -112,7 +112,7 @@ test.describe("vacation", { tag: "@lane-vacation" }, () => {
     await expect(chart).toBeVisible();
     await expect(chart.getByText(preset.employee!.displayName!)).toBeVisible();
 
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
     // Only what the preset left empty: the user prefs hold the manager and replacement of the last save.
     const missing = [
       preset.manager ? null : "vacation.manager",

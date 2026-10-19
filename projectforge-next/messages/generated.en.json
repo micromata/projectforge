@@ -507,7 +507,7 @@
       "own": "This entry"
     },
     "comment": {
-      "_": "Comment",
+      "_": "Public comment",
       "tooltip": "Visible to everybody who may see the entry, e.g. colleagues in the calendar."
     },
     "conflict": {
@@ -532,7 +532,6 @@
       "_": "Availability",
       "notAvailable": "Not available",
       "reachableIfNeeded": "Reachable if needed",
-      "reachableIfUrgent": "Reachable if urgent",
       "remoteReachable": "Remotely reachable"
     },
     "substitutes": {

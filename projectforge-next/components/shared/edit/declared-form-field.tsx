@@ -192,7 +192,14 @@ export function DeclaredFormField<M extends EntityMetadata>({
     );
   }
   if (field.rows) {
-    return <TextAreaField {...common} rows={field.rows} disabled={readOnly} />;
+    return (
+      <TextAreaField
+        {...common}
+        rows={field.rows}
+        disabled={readOnly}
+        controlClassName={field.publicText ? "text-destructive" : undefined}
+      />
+    );
   }
   if (meta.dataType === "BOOLEAN") {
     return <CheckboxField {...common} disabled={readOnly} />;

@@ -1166,7 +1166,8 @@ constructor(
         val clone = prepareClone(postData.data)
         if (cloneSupport == CloneSupport.AUTOSAVE) {
             postData.data = clone
-            val result = saveOrUpdate(request, postData)
+            // A clone is a new entry: never an update of the original, whatever prepareClone left in it.
+            val result = insert(request, postData)
             if (result.statusCode == HttpStatus.OK) {
                 return result
             }
@@ -1458,15 +1459,50 @@ constructor(
 
     /**
      * Use this service for adding new items as well as updating existing items (id isn't null).
+     *
+     * The upsert of the classic React pages (see `LayoutUtils`). A client that knows whether it creates or edits an
+     * entry uses [insert] or [update] instead, which never do the other one.
      */
     @PutMapping(RestPaths.SAVE_OR_UDATE)
     fun saveOrUpdate(
         request: HttpServletRequest,
         @Valid @RequestBody postData: PostData<DTO>
     ): ResponseEntity<ResponseAction> {
-        sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
+        return write(request, postData, "Upsert", null)
+    }
+
+    /**
+     * Adds a new item. An item that already exists (see [BaseDao.isNew]) is rejected, never updated.
+     */
+    @PutMapping(RestPaths.INSERT)
+    fun insert(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<DTO>
+    ): ResponseEntity<ResponseAction> {
+        return write(request, postData, "Insert", OperationType.INSERT)
+    }
+
+    /**
+     * Updates an existing item. An item without id is rejected, never inserted: a client that lost the id on the
+     * way would otherwise create a copy of the item.
+     */
+    @PutMapping(RestPaths.UPDATE)
+    fun update(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<DTO>
+    ): ResponseEntity<ResponseAction> {
+        return write(request, postData, "Update", OperationType.UPDATE)
+    }
+
+    private fun write(
+        request: HttpServletRequest,
+        postData: PostData<DTO>,
+        csrfAction: String,
+        expected: OperationType?,
+    ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, csrfAction)?.let { return it }
         val dbObj = transformForDB(postData.data)
-        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData), expected)
     }
 
     /**

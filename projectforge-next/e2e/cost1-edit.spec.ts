@@ -79,7 +79,7 @@ test.describe("cost 1 edit", { tag: "@lane-cost1" }, () => {
   }) => {
     const { t } = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/cost1/saveorupdate*", (route) => {
+    await page.route("**/rs/cost1/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -90,7 +90,7 @@ test.describe("cost 1 edit", { tag: "@lane-cost1" }, () => {
     const bereich = await box(page, "bereich");
     await bereich.fill("");
     await bereich.blur();
-    await page.getByRole("button", { name: t("save") }).click();
+    await page.getByRole("button", { name: t("create") }).click();
 
     // One complaint under the group, not four: to the user the parts are a single number, and it is
     // named by the group's own label (`fibu.kost.kostentraeger`, as Wicket's fieldset is).

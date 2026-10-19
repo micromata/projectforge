@@ -120,10 +120,10 @@ test.describe("creditor invoice edit", { tag: "@lane-creditor" }, () => {
       // find its row by — and the form leaves for the list once it is stored.
       const saved = page.waitForResponse(
         (response) =>
-          response.url().includes(`/rs/${ENTITY}/saveorupdate`) && response.ok()
+          response.url().includes(`/rs/${ENTITY}/insert`) && response.ok()
       );
       await page
-        .getByRole("button", { name: format.t("save"), exact: true })
+        .getByRole("button", { name: format.t("create"), exact: true })
         .click();
       const body = (await (await saved).json()) as {
         variables?: { id?: number };

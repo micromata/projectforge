@@ -128,8 +128,13 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     val globalAddressbook: AddressbookDO
         get() = globalAddressbookOrNull!!
 
+    /**
+     * attached: the callers only refer to it (an address added to it), often within the transaction writing that
+     * address, which may hold the instance already; a detaching find would take it out of that persistence context
+     * (see SharedInstanceDetach).
+     */
     val globalAddressbookOrNull: AddressbookDO?
-        get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
+        get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false, attached = true)
 
     fun hasAccessToGlobalAddressBook(user: PFUserDO?): Boolean {
         user ?: return false

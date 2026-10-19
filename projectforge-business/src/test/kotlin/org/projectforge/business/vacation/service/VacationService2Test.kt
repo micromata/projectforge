@@ -107,7 +107,7 @@ class VacationService2Test {
       ),
       "Both substitutes not available on the 2nd and 3rd."
     )
-    // Reachable (remote, if needed, if urgent) is on duty: no conflict.
+    // Reachable (remote, if needed) is on duty: no conflict.
     AvailabilityStatus.entries.filter { !it.absent }.forEach { status ->
       Assertions.assertFalse(
         service.checkConflict(

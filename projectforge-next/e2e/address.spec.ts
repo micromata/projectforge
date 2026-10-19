@@ -180,7 +180,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
   }) => {
     const format = await userFormat(page);
     let saveAttempted = false;
-    await page.route("**/rs/address/saveorupdate*", (route) => {
+    await page.route("**/rs/address/{insert,update}*", (route) => {
       saveAttempted = true;
       return route.abort();
     });
@@ -197,7 +197,7 @@ test.describe("address", { tag: "@lane-address" }, () => {
     await page
       .getByRole("option", { name: format.t("address.form.unknown") })
       .click();
-    await page.getByRole("button", { name: format.t("save") }).click();
+    await page.getByRole("button", { name: format.t("create") }).click();
 
     await expect
       .poll(() => saveAttempted, { message: "the save reaches the backend" })

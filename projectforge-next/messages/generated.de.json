@@ -507,7 +507,7 @@
       "own": "Dieser Eintrag"
     },
     "comment": {
-      "_": "Kommentar",
+      "_": "Öffentlicher Kommentar",
       "tooltip": "Sichtbar für alle, die den Eintrag sehen dürfen, z. B. Kolleg:innen im Kalender."
     },
     "conflict": {
@@ -532,7 +532,6 @@
       "_": "Verfügbarkeit",
       "notAvailable": "Nicht verfügbar",
       "reachableIfNeeded": "Bei Bedarf erreichbar",
-      "reachableIfUrgent": "Bei dringendem Bedarf erreichbar",
       "remoteReachable": "Remote erreichbar"
     },
     "substitutes": {

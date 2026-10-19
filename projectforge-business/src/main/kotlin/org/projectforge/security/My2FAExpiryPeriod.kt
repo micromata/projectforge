@@ -134,6 +134,7 @@ internal class My2FAExpiryPeriod(
       list.add("^/rs/$entity/${RestPaths.DELETE}.*")
       list.add("^/rs/$entity/${RestPaths.EDIT}.*")
       list.add("^/rs/$entity/${RestPaths.FORCE_DELETE}.*")
+      list.add("^/rs/$entity/${RestPaths.INSERT}.*")
       list.add("^/rs/$entity/${RestPaths.MARK_AS_DELETED}.*")
       list.add("^/rs/$entity/${RestPaths.SAVE}.*")
       list.add("^/rs/$entity/${RestPaths.SAVE_OR_UDATE}.*")

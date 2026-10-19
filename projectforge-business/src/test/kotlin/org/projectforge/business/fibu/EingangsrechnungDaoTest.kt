@@ -89,6 +89,30 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
     }
 
     /**
+     * A deleted position is only flagged and stays in the collection; an invoice whose positions are all deleted has
+     * none left and is refused like one without any.
+     */
+    @Test
+    fun onlyDeletedPositionsAreRefused() {
+        logon(TEST_FINANCE_USER)
+        fun newInvoice(vararg deleted: Boolean): EingangsrechnungDO {
+            val invoice = EingangsrechnungDO()
+            invoice.datum = LocalDate.now()
+            invoice.faelligkeit = LocalDate.now()
+            deleted.forEach { invoice.addPosition(EingangsrechnungsPositionDO().also { pos -> pos.deleted = it }) }
+            return invoice
+        }
+        val ex = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.insert(newInvoice(true)) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", ex.i18nKey)
+
+        val id = eingangsrechnungDao.insert(newInvoice(false, true))
+        val edited = eingangsrechnungDao.find(id)!!
+        edited.positionen!!.forEach { it.deleted = true }
+        val updateEx = Assertions.assertThrows(UserException::class.java) { eingangsrechnungDao.update(edited) }
+        Assertions.assertEquals("fibu.rechnung.error.rechnungHatKeinePositionen", updateEx.i18nKey)
+    }
+
+    /**
      * A deleted position stays in the collection (soft delete) and is posted with the invoice, but it is no
      * part of it any more: an invoice left with deleted positions only has none and must be refused, as one
      * without any is.

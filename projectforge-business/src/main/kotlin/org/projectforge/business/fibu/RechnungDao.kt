@@ -312,7 +312,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
         obj.recalculate()
         // A deleted position stays in the collection (soft delete), but is no part of the invoice any more.
-        if (obj.positionenExcludingDeleted.isEmpty()) {
+        if (obj.positionen.isNullOrEmpty() || hasNoLivePositions(obj, operationType)) {
             throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen").setCausedByField("positionen")
         }
         val size = obj.positionen!!.size
@@ -736,6 +736,16 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     companion object {
+        /**
+         * True if an invoice to be inserted or updated has no position left that isn't marked as deleted. A deleted
+         * position stays in the collection (see [AbstractRechnungDO.abstractPositionenExcludingDeleted]), so the
+         * collection alone doesn't tell. Not checked on delete and undelete: an invoice stored without live
+         * positions before this check existed must stay deletable.
+         */
+        fun hasNoLivePositions(obj: AbstractRechnungDO, operationType: OperationType): Boolean =
+            (operationType == OperationType.INSERT || operationType == OperationType.UPDATE) &&
+                    obj.abstractPositionenExcludingDeleted.isEmpty()
+
         @JvmField
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_AUSGANGSRECHNUNGEN
 

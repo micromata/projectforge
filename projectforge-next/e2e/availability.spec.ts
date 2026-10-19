@@ -89,7 +89,7 @@ test.describe("availability", () => {
       for (const key of [
         "vacation._",
         "availability.status.notAvailable",
-        "availability.status.reachableIfUrgent",
+        "availability.status.reachableIfNeeded",
       ]) {
         await expect(
           kinds.getByRole("button", { name: format.t(key), exact: true })

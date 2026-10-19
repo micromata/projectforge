@@ -623,6 +623,7 @@ class VacationEntityRestTest : AbstractTestBase() {
             it.endDate = monday.plusDays(2)
             it.status = AvailabilityStatus.NOT_AVAILABLE
             it.type = "Sickness"
+            it.comment = "Back on Thursday"
         })
         assertTrue(conflictingVacationsCache.hasConflict(ownId))
         fun stats() = vacationEntityRest.stats(
@@ -633,9 +634,10 @@ class VacationEntityRestTest : AbstractTestBase() {
                 ), watchFieldsTriggered = null, serverData = null
             )
         )
-        // HR staff see the type.
+        // HR staff see the type and the public comment.
         stats().replacementAvailabilities!!.single().let {
             assertEquals("Sickness", it.label)
+            assertEquals("Back on Thursday", it.comment)
             assertEquals(other.id, it.employee?.id)
         }
         logon(own.user!!)
@@ -646,6 +648,7 @@ class VacationEntityRestTest : AbstractTestBase() {
             assertEquals(true, entry.absent)
             assertEquals(monday, entry.startDate)
             assertEquals(translate("availability.status.notAvailable"), entry.label, "Not the type: it's personal.")
+            assertEquals("Back on Thursday", entry.comment, "The public comment is public.")
         }
 
         // Remotely reachable: on duty, the entry is told only.

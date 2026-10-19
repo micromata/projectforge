@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Cost search: migrated to the new interface. Its menu entry shows it as a movable panel over the current page, which stays open on every page (also via the button in the top bar or Alt+K; the position is remembered). It can also be opened in a small separate window.",
-  "de": "Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen."
-}
