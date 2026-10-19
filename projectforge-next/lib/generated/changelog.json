@@ -10,7 +10,7 @@
       "items" : [ "Cost search: migrated to the new interface. Its menu entry shows it as a movable panel over the current page, which stays open on every page (also via the button in the top bar or Alt+K; the position is remembered). It can also be opened in a small separate window." ]
     }, {
       "type" : "changed",
-      "items" : [ "Employees: the list and the form of the employees are migrated to the new interface. Status, weekly working hours and annual leave days are edited in dialogs directly in the form; the entry valid today is marked, entries still ahead are shown muted." ]
+      "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others.", "Employees: the list and the form of the employees are migrated to the new interface. Status, weekly working hours and annual leave days are edited in dialogs directly in the form; the entry valid today is marked, entries still ahead are shown muted." ]
     } ]
   },
   "groups" : [ {

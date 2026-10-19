@@ -10,7 +10,7 @@
       "items" : [ "Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen." ]
     }, {
       "type" : "changed",
-      "items" : [ "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt." ]
+      "items" : [ "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen.", "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt." ]
     } ]
   },
   "groups" : [ {

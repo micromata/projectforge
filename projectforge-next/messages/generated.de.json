@@ -2764,6 +2764,7 @@
     },
     "hrList": "Personalplanung",
     "hrPlanningList": "Personalplanungsliste",
+    "logout": "Abmelden",
     "main": {
       "short": "Menü",
       "title": "Hauptmenü"
@@ -3257,6 +3258,10 @@
             "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen.",
             "title": "Externer Upload"
           }
+        },
+        "userInfo": {
+          "_": "Name oder E-Mail",
+          "info": "Fülle diese optionale Angabe aus, damit die Eigentümer dieses Datentransferbereichs wissen, wer du bist."
         }
       },
       "gateway": {

@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
  * The allow-list of the gateway: everything not named here answers 404, whatever the security config says.
  *
  * The DataTransfer UI is the projectforge-next app, of which only the data transfer routes and the assets are
- * served (`/next/datatransfer/...`, `/next/_next/...`), plus the REST calls these pages and the app's shell make.
+ * served (`/next/datatransfer/...`, the external access `/next/public/datatransfer/...`, `/next/_next/...`), plus the REST calls these pages and the app's shell make.
  * Every other page of the app is missing, so a link to one of them ends on the gateway's error page.
  */
 @Component
@@ -70,6 +70,7 @@ class GatewayEndpointFilter : Filter {
         HeartbeatRest.URL,
         // projectforge-next: the data transfer pages (html and the RSC payloads, *.txt) and the assets.
         GatewayPageController.DATATRANSFER_URL,
+        GatewayPageController.PUBLIC_DATATRANSFER_URL,
         "/next/_next/",
         // The REST services of the app's shell: login state, menu, theme, texts of the installation.
         "/rs/userStatus",

@@ -22,6 +22,7 @@ import {
 } from "@/hooks/use-submit-shortcut";
 import { AttachmentEncryption } from "./attachment-encryption";
 import { AttachmentFileActions } from "./attachment-file-actions";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentMetadata } from "./attachment-metadata";
 import type { Attachment, EncryptionMode } from "@/lib/rs/attachments";
 
@@ -76,6 +77,7 @@ export function AttachmentEditDialog({
   onClose,
 }: AttachmentEditDialogProps) {
   const t = useTranslations();
+  const { base } = useAttachmentService();
   const ids = useId();
   const [name, setName] = useState(attachment.name);
   const [description, setDescription] = useState(attachment.description ?? "");
@@ -133,7 +135,7 @@ export function AttachmentEditDialog({
 
         <DialogFooter className="sm:justify-between">
           <AttachmentFileActions
-            fileRef={{ entity, id, fileId: attachment.fileId }}
+            fileRef={{ entity, id, fileId: attachment.fileId, base }}
             busy={busy}
             onDelete={onDelete}
           />

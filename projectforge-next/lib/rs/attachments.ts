@@ -110,9 +110,44 @@ export interface AttachmentRef {
   id: number;
   fileId: string;
   listId?: string;
+  /** The endpoints to call, see [AttachmentService.base]. Defaults to `AttachmentsServicesRest`. */
+  base?: string;
 }
 
 const BASE = "/rs/attachments";
+
+/**
+ * The backend a list of attachments talks to, and what it offers.
+ *
+ * `AttachmentsServicesRest` for every entity of a logged-in user ([DEFAULT_ATTACHMENT_SERVICE]). The
+ * external access of a data transfer area has endpoints of its own under the same names and
+ * signatures (`DataTransferPublicServicesRest`), but no encryption, no reading via the entity, and
+ * — depending on the area — no ZIP download.
+ */
+export interface AttachmentService {
+  /** Base path of the upload, download, modify and delete endpoints. */
+  base: string;
+  /** Reads the current list (see [fetchAttachments] for the default). */
+  fetchAttachments: (
+    entity: string,
+    id: number,
+    signal?: AbortSignal
+  ) => Promise<Attachment[]>;
+  /** Encrypting a file and testing a password against it are offered. */
+  encryption: boolean;
+  /** Several files can be downloaded as one ZIP (`multiDownload`). */
+  multiDownload: boolean;
+  /** Who uploaded or changed a file is shown. */
+  userInfo: boolean;
+}
+
+export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
+  base: BASE,
+  fetchAttachments,
+  encryption: true,
+  multiDownload: true,
+  userInfo: true,
+};
 
 /**
  * The current list of an entity's attachments.
@@ -149,11 +184,12 @@ export async function uploadAttachment(
   id: number,
   file: File,
   listId: string = DEFAULT_LIST_ID,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
+  base: string = BASE
 ): Promise<AttachmentWriteResult> {
   const body = new FormData();
   body.append("file", file);
-  const path = `${BASE}/upload/${entity}/${id}/${listId}`;
+  const path = `${base}/upload/${entity}/${id}/${listId}`;
   const res = await uploadWithProgress(path, body, options);
   if (res.status < 200 || res.status >= 300) {
     throw new RsError(res.status, `${res.status}: ${path}`);
@@ -169,7 +205,7 @@ export function modifyAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/modify`,
+    `${ref.base ?? BASE}/modify`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -190,7 +226,7 @@ export function deleteAttachment(
   signal?: AbortSignal
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/delete`,
+    `${ref.base ?? BASE}/delete`,
     { method: "POST", body: JSON.stringify({ data: refData(ref) }) },
     signal
   );
@@ -209,10 +245,11 @@ export function deleteAttachments(
   id: number,
   fileIds: string[],
   listId: string = DEFAULT_LIST_ID,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  base: string = BASE
 ): Promise<AttachmentWriteResult> {
   return write(
-    `${BASE}/multiDelete`,
+    `${base}/multiDelete`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -235,7 +272,7 @@ export function attachmentDownloadUrl(ref: AttachmentRef): string {
     fileId: ref.fileId,
     listId: ref.listId ?? DEFAULT_LIST_ID,
   });
-  return `${BASE}/download/${ref.entity}/${ref.id}?${params}`;
+  return `${ref.base ?? BASE}/download/${ref.entity}/${ref.id}?${params}`;
 }
 
 /**
@@ -250,10 +287,11 @@ export function attachmentsDownloadUrl(
   entity: string,
   id: number,
   fileIds: string[],
-  listId: string = DEFAULT_LIST_ID
+  listId: string = DEFAULT_LIST_ID,
+  base: string = BASE
 ): string {
   const params = new URLSearchParams({ fileIds: fileIds.join(","), listId });
-  return `${BASE}/multiDownload/${entity}/${id}?${params}`;
+  return `${base}/multiDownload/${entity}/${id}?${params}`;
 }
 
 /**

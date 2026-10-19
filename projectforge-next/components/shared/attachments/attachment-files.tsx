@@ -18,6 +18,7 @@ import { useAttachmentSelection } from "@/hooks/use-attachment-selection";
 import { useAttachmentEncryption } from "@/hooks/use-attachment-encryption";
 import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
+import { useAttachmentService } from "./attachment-service";
 import { AttachmentRow } from "./attachment-row";
 import {
   AttachmentTable,
@@ -76,6 +77,7 @@ function LoadedAttachmentFiles({
   storedState,
 }: Props & { storedState: ColumnState }) {
   const t = useTranslations();
+  const service = useAttachmentService();
   const { rename, remove, removeMany, encrypt, testDecryption } =
     useAttachmentMutations(entity, id);
   const asTable = layout === "table";
@@ -84,7 +86,10 @@ function LoadedAttachmentFiles({
     () => (asTable ? searchAttachments(attachments, search) : []),
     [asTable, attachments, search]
   );
-  const columns = useMemo(() => attachmentColumns(t, readOnly), [t, readOnly]);
+  const columns = useMemo(
+    () => attachmentColumns(t, readOnly, service.userInfo),
+    [t, readOnly, service.userInfo]
+  );
   // Created here rather than in AttachmentTable: the selection works on the rows the table shows —
   // searched, filtered by column and sorted — so a Shift range follows the order on screen, "select all"
   // picks what is visible, and a file a filter hides drops out of the selection instead of being deleted
@@ -262,6 +267,7 @@ function LoadedAttachmentFiles({
           id={id}
           saving={rename.isPending}
           busy={busy}
+          encryptionSupport={service.encryption}
           encrypting={encryption.pending}
           onSave={(name, description) => void saveEdit(name, description)}
           onDelete={() => setDeleting([editing])}

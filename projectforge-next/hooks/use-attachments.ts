@@ -3,10 +3,10 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  DEFAULT_ATTACHMENT_SERVICE,
   deleteAttachment,
   deleteAttachments,
   encryptAttachment,
-  fetchAttachments,
   modifyAttachment,
   testAttachmentDecryption,
   type Attachment,
@@ -14,10 +14,20 @@ import {
   type EncryptionMode,
   type PasswordRefused,
 } from "@/lib/rs/attachments";
+import { useAttachmentService } from "@/components/shared/attachments/attachment-service";
 
-/** Query key of an entity's attachments. */
-export function attachmentsQueryKey(entity: string, id: number | null) {
-  return ["attachments", entity, id] as const;
+/**
+ * Query key of an entity's attachments.
+ *
+ * @param base the endpoints the list was read from (see AttachmentService): the external access of a
+ * data transfer area sees fewer files of the same area than its owner, so the two lists are kept apart.
+ */
+export function attachmentsQueryKey(
+  entity: string,
+  id: number | null,
+  base: string = DEFAULT_ATTACHMENT_SERVICE.base
+) {
+  return ["attachments", entity, id, base] as const;
 }
 
 /**
@@ -28,9 +38,10 @@ export function attachmentsQueryKey(entity: string, id: number | null) {
  * disabled (the backend needs a persisted id, see `attachment.onlyAvailableAfterSave`).
  */
 export function useAttachments(entity: string, id: number | null) {
+  const service = useAttachmentService();
   return useQuery<Attachment[]>({
-    queryKey: attachmentsQueryKey(entity, id),
-    queryFn: ({ signal }) => fetchAttachments(entity, id!, signal),
+    queryKey: attachmentsQueryKey(entity, id, service.base),
+    queryFn: ({ signal }) => service.fetchAttachments(entity, id!, signal),
     enabled: id != null && Number.isFinite(id) && id > 0,
   });
 }
@@ -47,7 +58,8 @@ export function useAttachments(entity: string, id: number | null) {
  */
 export function useAttachmentMutations(entity: string, id: number | null) {
   const qc = useQueryClient();
-  const key = attachmentsQueryKey(entity, id);
+  const { base } = useAttachmentService();
+  const key = attachmentsQueryKey(entity, id, base);
 
   const applyResult = useCallback(
     (result: AttachmentWriteResult): AttachmentWriteResult => {
@@ -55,7 +67,7 @@ export function useAttachmentMutations(entity: string, id: number | null) {
       return result;
     },
     // The key is an array literal, so it is a new object each render — its contents are what matter.
-    [qc, entity, id] // eslint-disable-line react-hooks/exhaustive-deps
+    [qc, entity, id, base] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   /**
@@ -84,7 +96,7 @@ export function useAttachmentMutations(entity: string, id: number | null) {
       });
       return result;
     },
-    [qc, entity, id] // eslint-disable-line react-hooks/exhaustive-deps
+    [qc, entity, id, base] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const rename = useMutation<
@@ -93,12 +105,12 @@ export function useAttachmentMutations(entity: string, id: number | null) {
     { fileId: string; name: string; description: string }
   >({
     mutationFn: ({ fileId, name, description }) =>
-      modifyAttachment({ entity, id: id!, fileId }, name, description),
+      modifyAttachment({ entity, id: id!, fileId, base }, name, description),
     onSuccess: applyResult,
   });
 
   const remove = useMutation<AttachmentWriteResult, Error, string>({
-    mutationFn: (fileId) => deleteAttachment({ entity, id: id!, fileId }),
+    mutationFn: (fileId) => deleteAttachment({ entity, id: id!, fileId, base }),
     onSuccess: applyResult,
   });
 
@@ -107,7 +119,8 @@ export function useAttachmentMutations(entity: string, id: number | null) {
    * left with — see deleteAttachments for why this isn't a loop over [remove].
    */
   const removeMany = useMutation<AttachmentWriteResult, Error, string[]>({
-    mutationFn: (fileIds) => deleteAttachments(entity, id!, fileIds),
+    mutationFn: (fileIds) =>
+      deleteAttachments(entity, id!, fileIds, undefined, undefined, base),
     onSuccess: applyResult,
   });
 
