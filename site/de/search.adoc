@@ -18,9 +18,5 @@ permalink: /de/search/
 </form>
 <div id="tipue_search_content"></div>
 
-<script>
-	$(document).ready(function() {
-		$('#tipue_search_input').tipuesearch();
-	});
-</script>
+<script src="{{ '/assets/js/search.js' | relative_url }}"></script>
 ++++

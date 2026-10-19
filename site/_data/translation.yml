@@ -38,6 +38,8 @@ en:
   # The link to the page in the other language (Deutsch on English pages).
   language_switch:            "Deutsch"
   language_switch_title:      "Diese Seite auf Deutsch"
+  # The flag in front of it (_includes/icons/flag-<language_flag>.svg).
+  language_flag:              "de"
   # Marks a link of a German page to a page that is only available in English.
   english_only:               "EN"
   english_only_title:         "English only"
@@ -77,5 +79,6 @@ de:
   contact_send:               "Senden"
   language_switch:            "English"
   language_switch_title:      "This page in English"
+  language_flag:              "gb"
   english_only:               "EN"
   english_only_title:         "Nur auf Englisch"
