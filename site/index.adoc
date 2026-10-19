@@ -1,6 +1,7 @@
 ---
 layout: page
 width: expand
+permalink: /
 hero:
     title: From order to invoice – one place for projects, time, people and money.
     subtitle: ProjectForge is the open-source back office for project-driven companies. Self-hosted, made for DACH and the EU, free without limits.

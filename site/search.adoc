@@ -13,8 +13,8 @@ permalink: /search/
 
 ++++
 <form action="{{ page.url | relative_url }}" class="not-prose" name="tipue_search_input" role="search">
-	<label class="sr-only" for="tipue_search_input">Search</label>
-	<input class="h-12 w-full rounded-md border border-muted-foreground bg-background px-4 text-base text-foreground placeholder:text-muted-foreground" type="search" name="q" id="tipue_search_input" placeholder="{{ site.data.translation[site.lang].search_placeholder | default: 'Search for answers' }}" pattern=".{3,}" title="At least 3 characters" required>
+	<label class="sr-only" for="tipue_search_input">{{ site.data.translation[page.lang].search }}</label>
+	<input class="h-12 w-full rounded-md border border-muted-foreground bg-background px-4 text-base text-foreground placeholder:text-muted-foreground" type="search" name="q" id="tipue_search_input" placeholder="{{ site.data.translation[page.lang].search_placeholder }}" pattern=".{3,}" title="{{ site.data.translation[page.lang].search_min_length }}" required>
 </form>
 <div id="tipue_search_content"></div>
 

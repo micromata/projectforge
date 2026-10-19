@@ -1,28 +1,30 @@
 ---
 layout: default
 ---
+{%- assign t = site.data.translation[page.lang] -%}
 
 <div class="pf-container pf-narrow py-16 max-sm:py-12">
 
     <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
         <h1 class="web-display">{{ page.title | escape }}</h1>
         {% comment %}Shown by assets/js/changelog.js: opens all collapsed blocks, e.g. for searching the page.{% endcomment %}
-        <button type="button" class="pf-btn pf-btn-outline" id="changelog-toggle-all" hidden>Expand all</button>
+        <button type="button" class="pf-btn pf-btn-outline" id="changelog-toggle-all" data-expand="{{ t.expand_all }}" data-collapse="{{ t.collapse_all }}" hidden>{{ t.expand_all }}</button>
     </div>
 
     <div class="prose">
         {{ content }}
     </div>
 
-    {% comment %}sort_key (generated from changelog/changelog.json): the date of the newest release of a major, then its position.{% endcomment %}
-    {% assign changelogs = site.changelogs | sort: 'sort_key' | reverse %}
+    {% comment %}sort_key (generated from changelog/changelog.json): the date of the newest release of a major, then its position.
+    The majors of the language of the page, the German ones in _changelogs/de/.{% endcomment %}
+    {% assign changelogs = site.changelogs | where: "lang", page.lang | sort: 'sort_key' | reverse %}
     {% for changelog in changelogs %}
         <article class="mt-12 border-t border-border pt-10">
             <h2 class="web-headline">{{ changelog.title }}</h2>
             {% if changelog.date %}
             <p class="mt-1 text-sm text-muted-foreground">
                 <time datetime="{{ changelog.date | date_to_xmlschema }}" itemprop="datePublished">
-                    {% assign date_format = site.date_format | default: "%b %-d, %Y" %}
+                    {% assign date_format = t.date_format %}
                     {{ changelog.date | date: date_format }}
                 </time>
             </p>

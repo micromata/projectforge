@@ -3,10 +3,11 @@
     lightbox (assets/js/lightbox.js), which pages through them with their captions.
     Parameters: key (entry of the data file), data (data file in _data, default: feature_galleries).
     Entry fields: img (path in /uploads/ or a full url), alt (default: caption), caption.
-    Renders nothing if the key is missing.
+    German pages use the data file of the same name in _data/de/. Renders nothing if the key is missing.
 {% endcomment %}
 {%- assign source = include.data | default: 'feature_galleries' -%}
-{%- assign shots = site.data[source][include.key] -%}
+{%- assign data = site.data[page.lang][source] | default: site.data[source] -%}
+{%- assign shots = data[include.key] -%}
 {%- if shots %}
 <div class="pf-gallery">
     {%- for shot in shots %}

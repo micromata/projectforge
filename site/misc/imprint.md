@@ -3,6 +3,8 @@ layout: page
 title: Imprint
 width: xsmall
 permalink: /misc/imprint.html
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 
 ### Kai Reinhard

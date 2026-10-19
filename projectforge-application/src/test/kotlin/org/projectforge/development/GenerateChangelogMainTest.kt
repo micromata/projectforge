@@ -652,6 +652,41 @@ class GenerateChangelogMainTest {
   }
 
   @Test
+  fun theGermanPagesOfTheWebsiteHaveGermanLabels() {
+    val root = ObjectMapper().readTree(
+      """
+      {"releases": [
+        {"id": "r1", "version": "9.0.1", "date": "2026-10-07", "title": "Update veröffentlicht", "tag": "9.0.1-RELEASE",
+         "sha256": "${"a".repeat(64)}", "overview": ["Thema"], "sections": [{"type": "fixed", "items": ["Fehler"]}]},
+        {"id": "r0", "version": "9.0.0", "date": "2026-10-06", "title": "Major", "tag": "9.0.0-RELEASE",
+         "sections": [{"type": "added", "items": ["Feature"]}]},
+        {"id": "s", "version": "8.2-SNAPSHOT", "date": "2026-10-05", "title": "Snapshot", "fromCommit": "aaaaaaa",
+         "toCommit": "bbbbbbb", "sections": [{"type": "added", "items": ["früh"]}]}
+      ]}
+      """.trimIndent()
+    )
+    val adoc = GenerateChangelogMain.groupToAdoc(GenerateChangelogMain.groups(root).single(), 3, GenerateChangelogMain.SITE_DE)
+    listOf(
+      "// Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.",
+      "Neu in ProjectForge 9: <<release-r0,ProjectForge 9.0.0>> ↓",
+      "=== Update veröffentlicht",
+      "__2026-10-07, Tag https://github.com/micromata/projectforge/tree/9.0.1-RELEASE[9.0.1-RELEASE]__",
+      "SHA-256 von projectforge-application-9.0.1.jar:",
+      ".Überblick",
+      ".Alle Änderungen",
+      ".Entwicklungs-Snapshots (1)",
+      "__2026-10-05, Snapshot-Build https://github.com/micromata/projectforge/commit/bbbbbbb[develop@bbbbbbb], " +
+        "https://github.com/micromata/projectforge/compare/aaaaaaa..bbbbbbb[Änderungen seit aaaaaaa]__",
+    ).forEach { assertTrue(adoc.contains(it), "Missing in the German page: $it\n$adoc") }
+    listOf("What's new", ".Overview", ".All changes", "snapshot build", ", tag ").forEach {
+      assertFalse(adoc.contains(it), "English label '$it' in the German page:\n$adoc")
+    }
+    val page = GenerateChangelogMain.postsPage(root["releases"].filter { it["tag"] != null }, GenerateChangelogMain.SITE_DE)
+    assertTrue(page.contains("permalink: /de/changelog-posts/"), page)
+    assertTrue(page.contains("Aktuelles Release: **ProjectForge 9.0.1** (2026-10-07, Tag "), page)
+  }
+
+  @Test
   fun theChangelogPageStartsWithTheLatestRelease() {
     val root = ObjectMapper().readTree(
       """

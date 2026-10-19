@@ -3,6 +3,8 @@ title: Migration
 subtitle: What to do when updating ProjectForge – most migrations run automatically.
 author: kai
 tags: [migration,config]
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 :hide-uri-scheme:
 
