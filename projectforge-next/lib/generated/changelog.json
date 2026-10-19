@@ -5,6 +5,8 @@
     "version" : "9.0.10",
     "date" : "2026-10-20",
     "title" : "Not yet released",
+    "summary" : [ "**Customer wizard**: customer, project, structure element and groups in one go", "**Project contacts** replace project manager, head of business and sales manager", "**Data transfer**: external access in the new interface, areas administered internally", "**Properties editor**, functions can be switched off", "Saving no longer empties the creation date" ],
+    "overview" : [ "**Customer wizard:** sets up customer, project with cost 2 types, structure element and groups with access rights in one step, with a preview; group names follow a configurable naming convention.", "**Projects:** a contact person and any number of further ones, as in orders, replace the project manager, the head of business manager and the sales manager (migrated).", "**Data transfer:** the external access of an area has moved to the new interface; areas with external access are administered on the internal instance and synced to the gateway.", "**Administration:** editor for projectforge.properties with descriptions, defaults and a backup before every save; functions can be switched off by configuration (menu entries gone, pages and REST services 404).", "**Vacation:** leave account entries migrated to the new interface; vacation and absence entries can be edited as the other kind.", "**DATEV import:** one upload fills both accounting records and chart of accounts.", "**Fixed:** saving a changed entry in the new interface no longer empties its creation date (lost dates restored from the history); menu visibility with a list of several groups works." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ {
