@@ -141,6 +141,7 @@ export const AVAILABILITY_PAGE = definePage<
             name: "comment",
             span: 2,
             rows: 3,
+            publicText: true,
             hintKey: "availability.comment.tooltip",
           },
           { custom: AvailabilityInternalCommentField, span: 2 },

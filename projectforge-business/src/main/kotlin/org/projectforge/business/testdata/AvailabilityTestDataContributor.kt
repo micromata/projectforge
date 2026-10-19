@@ -66,8 +66,8 @@ open class AvailabilityTestDataContributor : TestDataContributor {
                 "Workation", "Workation in Lisbon, reachable by chat and phone", AvailabilityLocation.REMOTE,
             ),
             Entry(
-                "ann", ctx.week(2026, 10, 15), ctx.week(2026, 10, 16), AvailabilityStatus.REACHABLE_IF_URGENT,
-                "Zeitausgleich", "By phone in urgent cases only",
+                "ann", ctx.week(2026, 10, 15), ctx.week(2026, 10, 16), AvailabilityStatus.REACHABLE_IF_NEEDED,
+                "Zeitausgleich", "By phone if needed",
             ),
             Entry(
                 "max", ctx.week(2026, 10, 21), ctx.week(2026, 10, 23), AvailabilityStatus.NOT_AVAILABLE,

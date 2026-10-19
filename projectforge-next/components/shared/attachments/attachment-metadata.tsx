@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { CopyButton } from "@/components/shared/copy-button";
 import { zipModeMessageKey, type Attachment } from "@/lib/rs/attachments";
+import { useAttachmentService } from "./attachment-service";
 
 interface Props {
   attachment: Attachment;
@@ -21,6 +22,7 @@ interface Props {
 export function AttachmentMetadata({ attachment }: Props) {
   const t = useTranslations();
   const zipMode = zipModeMessageKey(attachment.zipMode);
+  const { userInfo } = useAttachmentService();
 
   return (
     <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -35,9 +37,13 @@ export function AttachmentMetadata({ attachment }: Props) {
         value={t(zipMode ?? "attachment.zip.standard")}
       />
       <Field label={t("created")} value={attachment.createdFormatted} />
-      <Field label={t("createdBy")} value={attachment.createdByUser} />
+      {userInfo && (
+        <Field label={t("createdBy")} value={attachment.createdByUser} />
+      )}
       <Field label={t("modified")} value={attachment.lastUpdateTimeAgo} />
-      <Field label={t("modifiedBy")} value={attachment.lastUpdateByUser} />
+      {userInfo && (
+        <Field label={t("modifiedBy")} value={attachment.lastUpdateByUser} />
+      )}
       {attachment.checksum && (
         <div className="sm:col-span-2">
           <Field

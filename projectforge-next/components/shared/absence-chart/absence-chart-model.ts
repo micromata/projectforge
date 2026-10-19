@@ -37,6 +37,8 @@ export interface SubstituteAvailability {
   statusString?: string | null;
   /** What the entry is called for the logged-in user: its type only for the substitute and HR staff. */
   label?: string | null;
+  /** The public comment. */
+  comment?: string | null;
   /** Away (not available), as on vacation. */
   absent?: boolean;
 }

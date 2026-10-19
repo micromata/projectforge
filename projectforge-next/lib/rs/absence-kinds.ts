@@ -9,7 +9,6 @@ export const ABSENCE_KINDS = [
   "NOT_AVAILABLE",
   "REMOTE_REACHABLE",
   "REACHABLE_IF_NEEDED",
-  "REACHABLE_IF_URGENT",
 ] as const;
 export type AbsenceKind = (typeof ABSENCE_KINDS)[number];
 

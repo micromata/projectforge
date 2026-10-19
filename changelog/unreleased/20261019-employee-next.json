@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Employees: the list and the form of the employees are migrated to the new interface. Status, weekly working hours and annual leave days are edited in dialogs directly in the form; the entry valid today is marked, entries still ahead are shown muted.",
-  "de": "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt."
-}

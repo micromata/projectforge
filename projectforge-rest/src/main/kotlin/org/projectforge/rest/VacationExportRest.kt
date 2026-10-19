@@ -85,7 +85,7 @@ private val log = KotlinLogging.logger {}
  * availability entries by their state, by [AbsenceService] as far as the user may see them (AbsenceVisibility: e.g.
  * the availability entries of others from today on only, for finance staff, too). The type of
  * an availability entry is shown to the user and HR staff only, anybody else gets the neutral title
- * ([AbsenceService.labelFor]); its comment only who may see the entry itself ([AbsenceService.isCommentVisible]).
+ * ([AbsenceService.labelFor]); its public comment everybody it is shown to ([AbsenceService.isCommentVisible]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/vacationExport")

@@ -261,6 +261,11 @@ export interface DeclaredField<M extends EntityMetadata> extends FieldBase {
   /** Larger and in the accent colour — for the one value a reader looks for first. */
   emphasized?: boolean;
   /**
+   * Its text in red: a value everybody who sees the entry reads (an availability's public comment), so the
+   * user minds what is entered. A textarea only (`rows`).
+   */
+  publicText?: boolean;
+  /**
    * Shown but not editable — a value the backend assigns and the user only reads, like an order's
    * number (`AuftragDao.getNextNumber` on the first save). Hiding it would be worse: it is how an
    * order is referred to in every conversation.

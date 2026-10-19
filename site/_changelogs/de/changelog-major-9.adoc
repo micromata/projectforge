@@ -1,13 +1,62 @@
 ---
 title: "ProjectForge 9"
 date: 2026-10-19
-sort_key: "2026-10-19 0038"
+sort_key: "2026-10-19 0039"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 Neu in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-10.changelog-release]
+=== ProjectForge 9.0.10 veröffentlicht
+
+[.changelog-source]
+__2026-10-19, Tag https://github.com/micromata/projectforge/tree/9.0.10-RELEASE[9.0.10-RELEASE]__ +++{% include release-pills.html tag="9.0.10-RELEASE" docker="9.0.10" mini=true %}+++
+
+- **Mitarbeiter:innen** und **Kost-Suche** migriert
+- Deutsche **Website**
+- Getrenntes „Anlegen“ und „Speichern“ in Bearbeitungsformularen
+- Verfügbarkeit: nur noch „Bei Bedarf erreichbar“, öffentlicher Kommentar fürs Team
+
+.Überblick
+[%collapsible]
+====
+- **Mitarbeiter:innen:** Liste und Formular in der neuen Oberfläche; Status, Wochenstunden und Urlaubstage in Dialogen bearbeitet.
+- **Kost-Suche:** in der neuen Oberfläche, auch als verschiebbares Fenster auf jeder Seite (Alt+K) oder als kleines eigenes Fenster.
+- **Bearbeitungsformulare:** „Anlegen“ für einen neuen Eintrag, „Speichern“ für einen bestehenden; Speichern legt nie eine Kopie an.
+- **Verfügbarkeit:** „Bei dringendem Bedarf erreichbar“ in „Bei Bedarf erreichbar“ aufgegangen; der öffentliche Kommentar, im Formular in Rot, ist fürs Team sichtbar, auch in den Tooltips der Abwesenheitsdiagramme.
+- **Website:** deutsche Fassung der Seiten, FAQ, des Changelogs und der Handbücher unter projectforge.org/de.
+- **Rechnungen:** Eine Rechnung nur mit gelöschten Positionen lässt sich wieder löschen und wiederherstellen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Website: deutsche Fassung der Seiten, der FAQ, des Changelogs und des Benutzer-, Administrations- und Schnellstart-Handbuchs unter https://projectforge.org/de/[projectforge.org/de], mit Sprachumschalter; der Hilfe-Link des Suchfelds öffnet für deutschsprachige Benutzer das deutsche Benutzerhandbuch.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs).
+- Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen.
+- Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Rechnungen und Eingangsrechnungen: Eine früher nur mit gelöschten Positionen gespeicherte Rechnung lässt sich wieder löschen und wiederherstellen; nur das Speichern wird abgelehnt.
+====
 
 [discrete#release-9-0-9.changelog-release]
 === ProjectForge 9.0.9 veröffentlicht

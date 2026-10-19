@@ -1,5 +1,50 @@
 {
   "releases": {
+    "9-0-10": {
+      "title": "ProjectForge 9.0.10 veröffentlicht",
+      "summary": [
+        "**Mitarbeiter:innen** und **Kost-Suche** migriert",
+        "Deutsche **Website**",
+        "Getrenntes „Anlegen“ und „Speichern“ in Bearbeitungsformularen",
+        "Verfügbarkeit: nur noch „Bei Bedarf erreichbar“, öffentlicher Kommentar fürs Team"
+      ],
+      "overview": [
+        "**Mitarbeiter:innen:** Liste und Formular in der neuen Oberfläche; Status, Wochenstunden und Urlaubstage in Dialogen bearbeitet.",
+        "**Kost-Suche:** in der neuen Oberfläche, auch als verschiebbares Fenster auf jeder Seite (Alt+K) oder als kleines eigenes Fenster.",
+        "**Bearbeitungsformulare:** „Anlegen“ für einen neuen Eintrag, „Speichern“ für einen bestehenden; Speichern legt nie eine Kopie an.",
+        "**Verfügbarkeit:** „Bei dringendem Bedarf erreichbar“ in „Bei Bedarf erreichbar“ aufgegangen; der öffentliche Kommentar, im Formular in Rot, ist fürs Team sichtbar, auch in den Tooltips der Abwesenheitsdiagramme.",
+        "**Website:** deutsche Fassung der Seiten, FAQ, des Changelogs und der Handbücher unter projectforge.org/de.",
+        "**Rechnungen:** Eine Rechnung nur mit gelöschten Positionen lässt sich wieder löschen und wiederherstellen."
+      ],
+      "sections": [
+        {
+          "type": "added",
+          "items": [
+            "Website: deutsche Fassung der Seiten, der FAQ, des Changelogs und des Benutzer-, Administrations- und Schnellstart-Handbuchs unter [projectforge.org/de](https://projectforge.org/de/), mit Sprachumschalter; der Hilfe-Link des Suchfelds öffnet für deutschsprachige Benutzer das deutsche Benutzerhandbuch."
+          ]
+        },
+        {
+          "type": "improved",
+          "items": [
+            "Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs).",
+            "Kost-Suche: in die neue Oberfläche migriert. Der Menüeintrag blendet sie als verschiebbares Fenster über der aktuellen Seite ein, das auf jeder Seite offen bleibt (auch über die Schaltfläche in der Kopfleiste oder Alt+K; die Position wird gemerkt). Sie lässt sich auch als kleines eigenes Fenster öffnen.",
+            "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag."
+          ]
+        },
+        {
+          "type": "changed",
+          "items": [
+            "Mitarbeiter:innen: Liste und Formular der Mitarbeiter:innen sind in die neue Oberfläche migriert. Status, Wochenstunden und Urlaubstage werden in Dialogen direkt im Formular bearbeitet; der heute gültige Eintrag ist markiert, künftige Einträge sind abgeschwächt dargestellt."
+          ]
+        },
+        {
+          "type": "fixed",
+          "items": [
+            "Rechnungen und Eingangsrechnungen: Eine früher nur mit gelöschten Positionen gespeicherte Rechnung lässt sich wieder löschen und wiederherstellen; nur das Speichern wird abgelehnt."
+          ]
+        }
+      ]
+    },
     "9-0-9": {
       "title": "ProjectForge 9.0.9 veröffentlicht",
       "summary": [

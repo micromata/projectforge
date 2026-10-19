@@ -32,8 +32,7 @@ import org.projectforge.common.i18n.I18nEnum
 enum class AvailabilityStatus(val key: String, val absent: Boolean = false) : I18nEnum {
     NOT_AVAILABLE("notAvailable", absent = true),
     REMOTE_REACHABLE("remoteReachable"),
-    REACHABLE_IF_NEEDED("reachableIfNeeded"),
-    REACHABLE_IF_URGENT("reachableIfUrgent");
+    REACHABLE_IF_NEEDED("reachableIfNeeded");
 
     /** The kind of absence the calendar filter offers for entries of this state. */
     val kind: AbsenceKind
@@ -41,7 +40,6 @@ enum class AvailabilityStatus(val key: String, val absent: Boolean = false) : I1
             NOT_AVAILABLE -> AbsenceKind.NOT_AVAILABLE
             REMOTE_REACHABLE -> AbsenceKind.REMOTE_REACHABLE
             REACHABLE_IF_NEEDED -> AbsenceKind.REACHABLE_IF_NEEDED
-            REACHABLE_IF_URGENT -> AbsenceKind.REACHABLE_IF_URGENT
         }
 
     override val i18nKey: String

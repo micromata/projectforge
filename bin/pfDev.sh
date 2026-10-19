@@ -207,10 +207,13 @@ process_cwd() {
 }
 
 list_servers() {
-  local slot port pid kind lines=()
+  local slot port pid kind listeners lines=()
+  # One lsof call for all ports ("port pid" per line): each call takes a noticeable fraction of a second.
+  listeners="$(lsof -nP -iTCP -sTCP:LISTEN -Fpn 2>/dev/null |
+    awk '/^p/ { pid = substr($0, 2) } /^n/ { sub(/.*:/, ""); print $0, pid }' || true)"
   for slot in 0 1 2 3 4 5 6 7 8 9; do
     for port in $((8080 + slot)) $((3000 + slot)); do
-      pid="$(listener_pid "$port")"
+      pid="$(awk -v port="$port" '$1 == port { print $2; exit }' <<<"$listeners")"
       [[ -n "$pid" ]] || continue
       ((port >= 8080)) && kind=spring || kind=next
       lines+=("$(printf '%-5s %-7s %-7s %-7s %s' "$slot" ":$port" "$kind" "$pid" "$(process_cwd "$pid")")")

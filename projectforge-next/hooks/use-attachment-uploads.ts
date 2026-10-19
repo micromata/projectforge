@@ -6,6 +6,7 @@ import {
   type AttachmentWriteResult,
 } from "@/lib/rs/attachments";
 import { UploadError } from "@/lib/rs/upload";
+import { useAttachmentService } from "@/components/shared/attachments/attachment-service";
 
 /** One file on its way to the server, as the UI needs to show it. */
 export interface UploadJob {
@@ -48,6 +49,7 @@ export function useAttachmentUploads(
   id: number | null,
   { onResult, transferErrorMessage }: UseAttachmentUploadsOptions
 ) {
+  const { base } = useAttachmentService();
   const [jobs, setJobs] = useState<UploadJob[]>([]);
   const controllers = useRef(new Map<number, AbortController>());
   /** Jobs cancelled before their turn came — [send] checks this instead of starting the transfer. */
@@ -72,10 +74,17 @@ export function useAttachmentUploads(
       controllers.current.set(job.id, controller);
       patch(job.id, { state: "sending", percent: 0 });
       try {
-        const result = await uploadAttachment(entity, id!, file, undefined, {
-          onProgress: ({ percent }) => patch(job.id, { percent }),
-          signal: controller.signal,
-        });
+        const result = await uploadAttachment(
+          entity,
+          id!,
+          file,
+          undefined,
+          {
+            onProgress: ({ percent }) => patch(job.id, { percent }),
+            signal: controller.signal,
+          },
+          base
+        );
         onResult(result, file.name);
         if (result.kind === "rejected") {
           patch(job.id, { state: "failed", error: result.message });
@@ -94,7 +103,7 @@ export function useAttachmentUploads(
         controllers.current.delete(job.id);
       }
     },
-    [entity, id, onResult, patch, transferErrorMessage]
+    [base, entity, id, onResult, patch, transferErrorMessage]
   );
 
   const enqueue = useCallback(

@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Edit forms: a new entry is saved with \"Create\", an existing one with \"Save\". Both are separate writes: saving an existing entry can no longer create a copy of it, and creating one never overwrites an existing entry.",
-  "de": "Bearbeitungsformulare: Ein neuer Eintrag wird mit „Anlegen“ gespeichert, ein bestehender mit „Speichern“. Beides sind getrennte Schreibvorgänge: Das Speichern eines bestehenden Eintrags kann keine Kopie mehr anlegen, und das Anlegen überschreibt nie einen bestehenden Eintrag."
-}

@@ -60,6 +60,15 @@ class GatewayEndpointFilterTest {
     @Test
     fun allowsDataTransferPublic() {
         assertAllowed("/rsPublic/datatransfer/download/abc123")
+        assertAllowed("/rsPublic/datatransfer/next/state")
+    }
+
+    @Test
+    fun allowsDataTransferPublicNextUi() {
+        assertAllowed("/next/public/datatransfer/abc123/")
+        assertAllowed("/next/public/datatransfer/new/index.txt")
+        assertBlocked("/next/public/address")
+        assertBlocked("/react/public/datatransfer/dynamic/abc123")
     }
 
     @Test

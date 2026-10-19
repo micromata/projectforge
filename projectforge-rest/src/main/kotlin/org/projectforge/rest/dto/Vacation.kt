@@ -169,6 +169,7 @@ class VacationChartDay(
  * @param user The substitute.
  * @param label What the entry is called for the logged-in user (AvailabilityDao.labelFor): its type only for the
  * substitute and HR staff.
+ * @param comment The public comment (AbsenceService.isCommentVisible).
  * @param absent The substitute is away (AvailabilityStatus.absent), as on vacation.
  */
 class VacationReplacementAvailability(
@@ -181,5 +182,6 @@ class VacationReplacementAvailability(
     var status: AvailabilityStatus? = null,
     var statusString: String? = null,
     var label: String? = null,
+    var comment: String? = null,
     var absent: Boolean = false,
 )

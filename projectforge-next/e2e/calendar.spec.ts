@@ -168,7 +168,6 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
           "VACATION",
           "NOT_AVAILABLE",
           "REACHABLE_IF_NEEDED",
-          "REACHABLE_IF_URGENT",
         ].sort()
       );
       // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.

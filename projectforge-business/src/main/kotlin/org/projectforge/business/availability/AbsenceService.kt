@@ -219,12 +219,11 @@ open class AbsenceService {
     }
 
     /**
-     * The public comment of an entry is for whoever may see the entry itself ([AvailabilityDao.hasUserSelectAccess]):
-     * not for a viewer the entry is shown to as a vacation of the same people is (e.g. in the vacation export).
+     * The public comment of an entry is public: for every logged-in viewer the entry is shown to (e.g. the team in the
+     * vacation export or the substitutes' chart), unlike the type and the internal comment.
      */
     open fun isCommentVisible(viewer: PFUserDO?, availability: AvailabilityDO): Boolean {
-        return viewer != null && !availability.comment.isNullOrBlank() &&
-                availabilityDao.hasUserSelectAccess(viewer, availability, false)
+        return viewer != null && !availability.comment.isNullOrBlank()
     }
 
     /** The internal comment of an entry is for its user and HR staff only ([AvailabilityDao.isInternalCommentVisibleFor]). */

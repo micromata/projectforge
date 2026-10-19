@@ -289,14 +289,20 @@ class SiteTranslationTest {
         val key = path.substringAfterLast('.')
         if (german !is String) {
           errors.add("$where: $path must be a text.")
+        } else if (key == "img" && german == germanImage(english)) {
+          if (!File(siteDir, "uploads/$german").isFile) errors.add("$where: $path: site/uploads/$german doesn't exist.")
         } else if (key in VERBATIM_DATA_KEYS && german != english) {
-          errors.add("$where: $path must be '$english', as in the English file.")
+          errors.add("$where: $path must be '$english' (or its German screenshot '${germanImage(english)}'), as in the English file.")
         }
       }
 
       else -> if (german != english) errors.add("$where: $path must be $english, as in the English file.")
     }
   }
+
+  /** The German version of a screenshot: `screenshots/a.png` → `screenshots/a-de.png`. */
+  private fun germanImage(english: String): String =
+    "${english.substringBeforeLast('.')}-de.${english.substringAfterLast('.')}"
 
   /** The English pages: of the site itself (and `misc/`), the docs and the FAQs. */
   private fun englishPages(): List<File> =
@@ -366,7 +372,10 @@ class SiteTranslationTest {
     const val TRANSLATION_FILE = "translation.yml"
     const val TAGS_FILE = "tags.yml"
 
-    /** Values of the data files that are the same in every language (urls and texts may differ). */
+    /**
+     * Values of the data files that are the same in every language (urls and texts may differ). An `img` may name
+     * the German screenshot instead (`<name>-de.<ext>`).
+     */
     val VERBATIM_DATA_KEYS = setOf("img", "icon", "style", "match")
 
     /** Delimiters of blocks whose content isn't AsciiDoc: listing, literal and comment blocks. */

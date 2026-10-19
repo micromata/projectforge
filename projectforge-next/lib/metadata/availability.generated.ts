@@ -84,10 +84,6 @@ export const AVAILABILITY_METADATA = {
           value: "REACHABLE_IF_NEEDED",
           i18nKey: "availability.status.reachableIfNeeded",
         },
-        {
-          value: "REACHABLE_IF_URGENT",
-          i18nKey: "availability.status.reachableIfUrgent",
-        },
       ],
     },
     type: {
