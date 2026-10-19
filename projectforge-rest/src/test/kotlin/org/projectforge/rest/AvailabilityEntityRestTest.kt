@@ -47,8 +47,11 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.dto.Availability
+import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.Vacation
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpServletRequest
@@ -67,6 +70,9 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var vacationDao: VacationDao
+
+    @Autowired
+    private lateinit var vacationEntityRest: VacationEntityRest
 
     @Test
     fun `the internal comment is offered to the user and HR staff, not to colleagues`() {
@@ -270,6 +276,55 @@ class AvailabilityEntityRestTest : AbstractTestBase() {
         }
         logon(own)
         assertEquals((2L..4L).map { monday.plusDays(it) }, rows()[ownId]!!.uncoveredDays, "The own entry, days ahead.")
+    }
+
+    @Test
+    fun `an entry and a vacation are converted into each other without saving anything`() {
+        val own = createEmployee("convertOwn")
+        val first = createEmployee("convertFirst")
+        val second = createEmployee("convertSecond")
+        logon(TEST_HR_USER)
+        val vacation = Vacation().also {
+            it.employee = Employee().also { e -> e.id = own.id }
+            it.startDate = LocalDate.of(2033, 4, 4)
+            it.endDate = LocalDate.of(2033, 4, 8)
+            it.halfDayEnd = true
+            it.comment = "by mistake"
+            it.replacement = Employee().also { e -> e.id = first.id }
+            // The own employee is no substitute of the own entry.
+            it.otherReplacements = listOf(Employee().also { e -> e.id = second.id }, Employee().also { e -> e.id = own.id })
+        }
+        val request = MockHttpServletRequest()
+        val availability = preparedData(vacationEntityRest.switch2Availability(request, PostData(vacation, null, null))) as Availability
+        assertNull(availability.id)
+        assertEquals(own.user!!.id, availability.user?.id)
+        assertEquals(vacation.startDate, availability.startDate)
+        assertEquals(vacation.endDate, availability.endDate)
+        assertEquals("by mistake", availability.comment)
+        assertEquals(listOf(first.user!!.id, second.user!!.id), availability.substitutes!!.map { it.id })
+        assertEquals(AvailabilityStatus.NOT_AVAILABLE, availability.status)
+
+        val back = preparedData(availabilityEntityRest.switch2Vacation(request, PostData(availability, null, null))) as Vacation
+        assertNull(back.id)
+        assertEquals(own.id, back.employee?.id)
+        assertEquals(vacation.startDate, back.startDate)
+        assertEquals(vacation.endDate, back.endDate)
+        assertEquals("by mistake", back.comment)
+        assertEquals(first.id, back.replacement?.id)
+        assertEquals(listOf(second.id), back.otherReplacements!!.map { it.id })
+        assertEquals(VacationStatus.IN_PROGRESS, back.status)
+        // Counted for the period again, without the dropped half day: Monday to Friday.
+        assertEquals(0, BigDecimal(5).compareTo(back.workingDays))
+
+        // Nothing was saved.
+        assertTrue(availabilityDao.select(QueryFilter()).none { it.user?.id == own.user!!.id })
+        assertTrue(vacationDao.select(QueryFilter()).none { it.employee?.id == own.id })
+    }
+
+    /** The prepared entry of a conversion, `variables.data` as the client reads it (the map is private). */
+    private fun preparedData(action: ResponseAction): Any? {
+        val field = ResponseAction::class.java.getDeclaredField("variables").also { it.isAccessible = true }
+        return (field.get(action) as Map<*, *>?)?.get("data")
     }
 
     private fun errors(dto: Availability): List<ValidationError> =

@@ -319,7 +319,9 @@ default calendar, a new event is created, otherwise a new time sheet.
 * *Move and resize:* Drag an entry to another time or change its duration. ProjectForge® opens the
 edit form with the new times; the change is applied when you save it.
 * *Copy:* Use *Clone* in the edit form of a time sheet or an event.
-* *Convert:* An event may be turned into a time sheet (*Switch to time sheet*) and vice versa.
+* *Edit as the other kind:* An event may be edited as a time sheet (*Edit as time sheet*) and vice
+versa (*Edit as event*). This opens a new entry with the times and texts taken over, which is created when
+you save it; an entry already saved stays as it is.
 * *Breaks:* Gaps between your time sheets of a day may be displayed as breaks. Click on a break to
 book a time sheet for this gap.
 
@@ -452,6 +454,11 @@ New applications get the status *In progress*. Your manager sets the status to *
 
 The manager, the substitutes and you are notified by e-mail about new and changed applications
 (if a mail server is configured).
+
+An application entered by mistake as leave may be edited as an availability entry (*Edit as absence*),
+and an availability entry as an application (*Edit as vacation*). Person, period, comment and substitutes
+are taken over into a new entry, which is created when you save it; an entry already saved stays as it is
+and may be deleted afterwards.
 
 *Rules*
 

@@ -6,6 +6,9 @@
     "date" : "2026-10-19",
     "title" : "Not yet released",
     "sections" : [ {
+      "type" : "added",
+      "items" : [ "Vacation and availability: an entry can be edited as the other kind (\"Edit as absence\" / \"Edit as vacation\"), like time sheets and calendar events (now \"Edit as event\" / \"Edit as time sheet\", formerly \"Switch to …\"). Person, period, comment and substitutes are taken over into a new entry, created only when it is saved; an entry already saved stays as it is. The button's tooltip says so." ]
+    }, {
       "type" : "changed",
       "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
     } ]

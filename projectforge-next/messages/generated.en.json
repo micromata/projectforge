@@ -540,6 +540,10 @@
       "kind": "Kind",
       "tooltip": "Optional: who stands in during the period. If all of them are away on a day (on vacation or not available), the entry is shown as a conflict."
     },
+    "switchToVacationButton": {
+      "_": "Edit as vacation",
+      "tooltip": "Opens a new leave application with this entry's person, period, comment and substitutes. It is only created when you save it; an availability entry already saved stays as it is and may be deleted afterwards."
+    },
     "title": {
       "_": "Availability",
       "add": "Create availability entry",
@@ -3718,8 +3722,14 @@
         "timesheets": "You can subscribe your time sheets in your personal calendar (e.g. Apple iCal oder Microsoft Outlook).",
         "tooltip": "You can subscribe this calendar in your personal calendar (e.g. Apple iCal oder Microsoft Outlook)."
       },
-      "switchToTeamEventButton": "Switch to events",
-      "switchToTimesheetButton": "Switch to time sheet",
+      "switchToTeamEventButton": {
+        "_": "Edit as event",
+        "tooltip": "Opens a new event with this time sheet's period, location and description. It is only created when you save it; a time sheet already saved stays as it is."
+      },
+      "switchToTimesheetButton": {
+        "_": "Edit as time sheet",
+        "tooltip": "Opens a new time sheet with this event's period, location, subject and note. It is only created when you save it; an event already saved stays as it is."
+      },
       "title": {
         "_": "Title",
         "add": "Add calendar",
@@ -5089,6 +5099,10 @@
       "info": "Leave days are displayed on demand in the calendar view. They also may be defined as calendars (see list of calendars) for users and/or groups. These calendars can be subscribed for usage in 3rd party calendar tools."
     },
     "subtotal": "Subtotal",
+    "switchToAvailabilityButton": {
+      "_": "Edit as absence",
+      "tooltip": "Opens a new availability entry with this leave's person, period, comment and substitutes. It is only created when you save it; a leave entry already saved stays as it is and may be deleted afterwards."
+    },
     "title": {
       "add": "Create leave application",
       "edit": "Edit leave application",

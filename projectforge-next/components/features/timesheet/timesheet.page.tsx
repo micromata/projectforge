@@ -301,7 +301,7 @@ export const TIMESHEET_PAGE = definePage<
     // dialog closes back onto the calendar. Where the copy overlaps another sheet the backend can't
     // save it and the form is simply left standing to adjust (see runClone / cloneAndSaveEntity).
     clone: "autosave",
-    // "In Termin umwandeln" — build a calendar event from this sheet's span and texts and open it as a
+    // "Als Termin bearbeiten" — build a calendar event from this sheet's span and texts and open it as a
     // new event (TimesheetEntityRest.switch2CalendarEvent → TeamEventEntityRest.cloneFromTimesheet). The
     // team event is named, not imported, so the two features don't depend on each other in a circle.
     convert: {
@@ -309,6 +309,8 @@ export const TIMESHEET_PAGE = definePage<
       targetEntity: "teamEvent",
       targetRoute: "/teamEvent",
       labelKey: "plugins.teamcal.switchToTeamEventButton",
+      // Nothing is converted: a new event is opened, and a stored sheet stays as it is.
+      tooltipKey: "plugins.teamcal.switchToTeamEventButton.tooltip",
     },
     // Save and cancel come back to the calendar by default: the calendar opens the form without a
     // `?returnTo=` (see toTimesheetRoute), and so do the task's "add time sheet" links. The list names
