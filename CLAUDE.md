@@ -33,6 +33,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `site/changelog-posts.adoc` and `projectforge-next/lib/generated/changelog{,.de}.json` are generated from
   them by the same `gen` run (`GenerateChangelogMain`) and never edited by hand.
 
+## Website (`site/`)
+- The website is English and German (`site/de/`, `_docs/de/`, `_faqs/de/`, `_data/de/`; see `site/README.adoc`).
+  Every change of an English page or data file goes into its German version in the same commit, with the same
+  headings and anchors; `SiteTranslationTest` fails otherwise. Pages marked `untranslated: true` (the technical
+  docs, the legal pages) stay English only.
+
 ## Flyway migrations
 - New migrations are versioned by the release that ships them: `V<release>.<n>__RELEASE-<Name>.sql`, always
   four segments, e.g. `V9.0.4.1__…`, `V9.0.4.2__…` for two scripts in release 9.0.4. The release is the
