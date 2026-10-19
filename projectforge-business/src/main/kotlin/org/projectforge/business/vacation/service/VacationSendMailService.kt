@@ -205,13 +205,15 @@ open class VacationSendMailService {
         val modifiedByUser = ThreadLocalUserContext.loggedInUser!!
         val modifiedByUserFullname = modifiedByUser.getFullname()
         val modifiedByUserMail = modifiedByUser.email
-        val employeeUser = employeeDao.find(vacation.employee?.id, checkAccess = false)?.user
+        // attached: only read here, and called within the transaction writing the vacation, whose employees a
+        // detaching find would take out of its persistence context (see SharedInstanceDetach).
+        val employeeUser = employeeDao.find(vacation.employee?.id, checkAccess = false, attached = true)?.user
         var employeeFullname = employeeUser?.getFullname() ?: "unknown"
         val employeeMail = employeeUser?.email
-        val managerUser = employeeDao.find(vacation.manager?.id, checkAccess = false)?.user
+        val managerUser = employeeDao.find(vacation.manager?.id, checkAccess = false, attached = true)?.user
         var managerFullname = managerUser?.getFullname() ?: "unknown"
         val managerMail = managerUser?.email
-        val replacementUser = employeeDao.find(vacation.replacement?.id, checkAccess = false)?.user
+        val replacementUser = employeeDao.find(vacation.replacement?.id, checkAccess = false, attached = true)?.user
         val otherReplacementUsers = mutableListOf<PFUserDO>()
         var replacementFullname = replacementUser?.getFullname() ?: "unknown"
         var otherReplacementsFullnames: String = ""

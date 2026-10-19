@@ -112,6 +112,10 @@ open class TimesheetTestDataContributor : TestDataContributor {
     private fun updateBudgets(ctx: TestDataContext, bookedHours: Map<Long, Double>) {
         var i = 0
         ctx.projekte.forEach { (name, projekt) ->
+            // Read before its sub tasks are written: updating one loads its parent into the persistence context
+            // (the check for a sibling of the same title), and a detached find afterwards would detach that
+            // managed instance (see SharedInstanceDetach).
+            val projectTask = taskDao.find(projekt.task!!.id, checkAccess = false)!!
             var total = 0
             ProjectTestDataContributor.SUB_TASKS.forEach { (title, _) ->
                 val task = taskDao.find(ctx.task(name, title).id, checkAccess = false)!!
@@ -121,7 +125,6 @@ open class TimesheetTestDataContributor : TestDataContributor {
                 total += max
                 taskDao.update(task, checkAccess = false)
             }
-            val projectTask = taskDao.find(projekt.task!!.id, checkAccess = false)!!
             projectTask.maxHours = (total * 1.1).toInt()
             taskDao.update(projectTask, checkAccess = false)
         }

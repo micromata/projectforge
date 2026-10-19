@@ -24,6 +24,10 @@
 
 package org.projectforge.business.testdata
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.availability.AbsenceKind
@@ -39,6 +43,7 @@ import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService
 import org.projectforge.framework.persistence.database.DatabaseService
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 import java.util.Date
@@ -91,7 +96,30 @@ class TestDataSeederTest : AbstractTestBase() {
     fun `seed an empty database`() {
         Assertions.assertFalse(databaseService.databaseTablesWithEntriesExist())
         databaseService.insertGlobalAddressbook() // As the setup does before.
-        val ctx = testDataSeeder.seedCore("Test-Data-2026!", TimeZone.getTimeZone("Europe/Berlin"))
+        // A detaching find of an instance the seed transaction already manages is reported only in development mode
+        // (or at debug level): listen to it here, the seeder is meant to write without one.
+        val detachLog = LoggerFactory.getLogger(SHARED_DETACH_LOGGER) as Logger
+        val detachLevel = detachLog.level
+        val detaches = ListAppender<ILoggingEvent>().also { it.start() }
+        detachLog.level = Level.DEBUG
+        detachLog.addAppender(detaches)
+        val ctx = try {
+            testDataSeeder.seedCore("Test-Data-2026!", TimeZone.getTimeZone("Europe/Berlin"))
+        } finally {
+            detachLog.detachAppender(detaches)
+            detachLog.level = detachLevel
+        }
+        Assertions.assertEquals(
+            emptyList<String>(),
+            detaches.list.map { event ->
+                // The caller is the first frame outside the persistence layer (the event carries it as an exception).
+                val caller = event.throwableProxy?.stackTraceElementProxyArray
+                    ?.map { it.stackTraceElement }
+                    ?.firstOrNull { !it.className.startsWith("org.projectforge.framework.persistence") }
+                "${event.formattedMessage.substringBefore(" detached")} at $caller"
+            }.distinct(),
+            "The seeder must not detach instances its own transaction manages.",
+        )
         // The demo scripts don't fit into the test schema: hbm2ddl creates T_SCRIPT.SCRIPT with 255 bytes only
         // (a BLOB in the Flyway schema of a real database).
         Assertions.assertEquals(
@@ -181,5 +209,10 @@ class TestDataSeederTest : AbstractTestBase() {
         val condition = where?.let { " where $it" } ?: ""
         context.em.createQuery("select count(e) from $entity e$condition", java.lang.Long::class.java)
             .singleResult.toLong()
+    }
+
+    private companion object {
+        /** See PfPersistenceContext.logSharedDetach. */
+        const val SHARED_DETACH_LOGGER = "org.projectforge.framework.persistence.jpa.SharedInstanceDetach"
     }
 }
