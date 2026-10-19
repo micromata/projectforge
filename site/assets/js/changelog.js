@@ -1,7 +1,7 @@
 /*
  * Changelog page: one button opens or closes all collapsed blocks (Overview, All changes, snapshots), so the
  * whole changelog can be searched with the browser's find. Printing opens all blocks, too. Without JavaScript
- * the button stays hidden.
+ * the button stays hidden. Its labels come from its data-expand and data-collapse attributes (the page's language).
  */
 (function () {
     'use strict';
@@ -31,7 +31,7 @@
 
     function updateLabel() {
         var expand = anyClosed();
-        button.textContent = expand ? 'Expand all' : 'Collapse all';
+        button.textContent = expand ? button.dataset.expand : button.dataset.collapse;
         button.setAttribute('aria-expanded', expand ? 'false' : 'true');
     }
 

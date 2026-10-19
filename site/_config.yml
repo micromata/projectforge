@@ -10,6 +10,11 @@ description:        "The open-source back office for project-driven companies: p
 # Shown after the site title in the <title> of the home page (jekyll-seo-tag)
 tagline:            Open-source back office for projects, time, people and money
 lang:               en
+# All languages of the site, the default first. A German page lives below /de/ (pages in de/, documents in
+# _docs/de/, _faqs/de/ and _changelogs/de/, see the defaults below), at the url of its English page with the
+# prefix /de: the language switch and the hreflang links of a page are derived from that. A page without
+# a German translation (e.g. the technical docs) is linked in English from the German pages.
+languages:          [en, de]
 
 # Site subpath, e.g. /blog
 # baseurl:            "/projectforge"
@@ -162,6 +167,23 @@ collections:
 
 # Defaults
 defaults:
+  # The language of a page, see languages above. The paths are prefixes, so they end with a slash.
+  - scope:
+      path:         ""
+    values:
+      lang:         en
+  - scope:
+      path:         "de/"
+    values:
+      lang:         de
+  - scope:
+      path:         "_faqs/de/"
+    values:
+      lang:         de
+  - scope:
+      path:         "_changelogs/de/"
+    values:
+      lang:         de
   # _posts
   - scope:
       path:         ""
@@ -174,3 +196,9 @@ defaults:
       type:         docs
     values:
       layout:       doc
+  - scope:
+      path:         "_docs/de/"
+      type:         docs
+    values:
+      lang:         de
+      permalink:    /de/docs/:name/

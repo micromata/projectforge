@@ -3,6 +3,8 @@ title: Installation
 subtitle: Easy and fast installation with a setup wizard (test versions as well as productive setups)
 author: kai
 tags: [installation]
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 :hide-uri-scheme:
 

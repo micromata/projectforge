@@ -1,16 +1,17 @@
 {%- comment -%}
     Site footer: brand stripe, wordmark with the tagline, the link columns of _data/navigation_footer.yml,
-    copyright and legal links.
+    copyright and legal links. German pages use _data/de/navigation_footer.yml.
 {%- endcomment -%}
+{%- assign navigation = site.data[page.lang].navigation_footer | default: site.data.navigation_footer -%}
 <footer class="bg-background">
     <div class="pf-stripe" aria-hidden="true"></div>
     <div class="pf-container">
         <div class="grid grid-cols-2 gap-8 pt-12 pb-8 md:grid-cols-[1.6fr_repeat(3,1fr)]">
             <div class="col-span-2 md:col-span-1">
                 {% include logo.html %}
-                <p class="mt-3 max-w-[32ch] text-sm leading-[22px] text-muted-foreground">{{ site.tagline }}</p>
+                <p class="mt-3 max-w-[32ch] text-sm leading-[22px] text-muted-foreground">{{ site.data.translation[page.lang].tagline }}</p>
             </div>
-            {%- for column in site.data.navigation_footer.columns %}
+            {%- for column in navigation.columns %}
             <nav class="flex flex-col gap-2" aria-label="{{ column.title }}">
                 <h2 class="mb-1 text-xs leading-4 font-bold tracking-wide uppercase">{{ column.title }}</h2>
                 {%- for link in column.links %}
@@ -22,7 +23,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border py-6">
             <p class="text-[13px] text-muted-foreground [&_a]:text-muted-foreground [&_a]:no-underline hover:[&_a]:text-foreground">{{ site.footer.copyright }}</p>
             <div class="flex flex-wrap gap-4">
-                {%- for link in site.data.navigation_footer.legal %}
+                {%- for link in navigation.legal %}
                 <a class="text-sm text-muted-foreground no-underline hover:text-foreground hover:underline" href="{% include link-url.html url=link.url %}">{{ link.title }}</a>
                 {%- endfor %}
             </div>

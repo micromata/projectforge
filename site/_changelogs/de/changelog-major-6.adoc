@@ -1,0 +1,60 @@
+---
+title: "ProjectForge 6"
+date: 2018-07-17
+sort_key: "2018-07-17 0001"
+---
+:page-liquid:
+// Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
+
+[discrete#release-6-22.changelog-release]
+=== ProjectForge 6.22.0 veröffentlicht
+
+[.changelog-source]
+__2018-07-17, Tag https://github.com/micromata/projectforge/tree/6.22.0-RELEASE[6.22.0-RELEASE]__ +++{% include release-pills.html tag="6.22.0-RELEASE" docker="6.22.0" %}+++
+
+- **Spring Boot 2.0**
+- Launcher entfällt, nur noch Kommandozeilen-Starter
+- Fix: Rundungsfehler in Rechnungen und Session Fixation
+- Optionale BIC für deutsche IBANs
+
+.Überblick
+[%collapsible]
+====
+- **Technologie:** Update auf Spring Boot 2.0.
+- **Start:** Der ProjectForge Launcher funktioniert nicht mehr; verfügbar ist nur noch der Kommandozeilen-Starter `+projectforge-application.jar+`.
+- **Rechnungen:** BIC für deutsche IBANs optional; Rundungsfehler in Rechnungen behoben.
+- **Sicherheit:** Session Fixation und ein Fehler in der Zugriffsverwaltung behoben.
+- **Fixes:** Einladungsmails für Team-Termine, Funktion „Anrufen“ in der Adressliste, Mitarbeiterstatus im Export der Mitarbeiterliste.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+ProjectForge 6.22.0 mit neuer Spring-Boot-Version und einigen Bugfixes ist veröffentlicht.
+
+__Der ProjectForge Launcher funktioniert nicht mehr. Verfügbar ist nur noch der Kommandozeilen-Starter projectforge-application.jar.__
+
+++++
+{% include tag.html tag="added" %}
+++++
+- BIC für deutsche IBANs optional
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Update auf Spring Boot 2.0
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Rundungsfehler in Rechnungen behoben
+- Session Fixation behoben
+- Fehler in der Zugriffsverwaltung behoben
+- Versand der Einladungsmails für Team-Termine korrigiert
+- Funktion „Anrufen“ in der Adressliste korrigiert
+- Mitarbeiterstatus im Export der Mitarbeiterliste korrigiert
+
+++++
+{% include download-link.html %}
+++++
+====

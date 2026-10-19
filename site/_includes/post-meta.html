@@ -15,10 +15,10 @@
 
 <div>
   {% if author.name %}
-    {{ site.data.translation[site.lang].written_by | default: "Written by" }} <span class="font-semibold text-secondary-foreground" itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ author.name }}</span></span><br>
+    {{ site.data.translation[page.lang].written_by }} <span class="font-semibold text-secondary-foreground" itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ author.name }}</span></span><br>
   {% endif %}
   <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-    {% assign date_format = site.date_format | default: "%b %-d, %Y" %}
+    {% assign date_format = site.data.translation[page.lang].date_format %}
     {{ page.date | date: date_format }}
   </time>
 </div>

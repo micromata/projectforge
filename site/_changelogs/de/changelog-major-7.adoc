@@ -1,0 +1,473 @@
+---
+title: "ProjectForge 7"
+date: 2022-10-21
+sort_key: "2022-10-21 0009"
+---
+:page-liquid:
+// Generated from changelog/changelog.json and changelog/changelog.de.json by GenerateChangelogMain — do not edit.
+
+[.changelog-major-link]
+Neu in ProjectForge 7: <<release-7-0,ProjectForge 7.0>> ↓
+
+[discrete#release-7-5.changelog-release]
+=== ProjectForge 7.5 veröffentlicht
+
+[.changelog-source]
+__2022-10-21, Tag https://github.com/micromata/projectforge/tree/7.5-RELEASE[7.5-RELEASE]__ +++{% include release-pills.html tag="7.5-RELEASE" docker="7.5" %}+++
+
+- **Hauptkalender** überarbeitet
+- **Urlaub:** mehrere Vertretungen und Konflikte
+- **Benutzer- und Gruppenverwaltung** in der neuen Version
+- Fix: Yubikey in Chrome, Edge und anderen Browsern
+
+.Überblick
+[%collapsible]
+====
+- **Kalender:** Hauptkalender überarbeitet (Farben, Funktionen, mehr Anpassungsmöglichkeiten).
+- **Urlaub:** mehrere Vertretungen werden unterstützt, Konflikte werden angezeigt.
+- **Datentransfer:** Benachrichtigungen verbessert.
+- **Änderungshistorie** verbessert; bei 2FA-Abfragen bleiben Eingabefelder erhalten.
+- **Administration:** Benutzer- und Gruppenverwaltung in der neuen Version.
+- **Sicherheit:** Punkte aus dem letzten Sicherheits-Pentest umgesetzt.
+- **Fixes:** Menüanpassung in der klassischen Version, Yubikey-Unterstützung in Chrome, Edge usw.
+- **Technologie:** Java 15, neue Versionen von Spring, React/Router und Wicket; Benutzer und Passwörter in getrennten Datenbanktabellen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Der Hauptkalender wurde überarbeitet (Farben, Funktionen, mehr Anpassungsmöglichkeiten usw.)
+- Datentransfer-Plugin: Benachrichtigungen verbessert
+- **Urlaub**
+  * unterstützt jetzt mehrere Vertretungen.
+  * zeigt jetzt Konflikte an
+- Änderungshistorie verbessert.
+- Bei 2FA-Abfragen bleiben Eingabefelder jetzt erhalten.
+- Viele kleinere Verbesserungen.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Menüanpassung in der klassischen Version.
+- Yubikey wird jetzt auch in anderen Browsern unterstützt: Chrome, Edge usw.
+- Diverse Fehler behoben.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Benutzer- und Gruppenverwaltung in der neuen Version.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Einige Punkte aus dem letzten Sicherheits-Pentest umgesetzt.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Neue Versionen: Java 15, Spring, React/Router, Wicket
+- Trennung von Benutzer- und Passworttabelle in der Datenbank.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-4.changelog-release]
+=== ProjectForge 7.4: Zwei-Faktor-Authentifizierung
+
+[.changelog-source]
+__2022-05-19, Tag https://github.com/micromata/projectforge/tree/7.4-RELEASE[7.4-RELEASE]__ +++{% include release-pills.html tag="7.4-RELEASE" docker="7.4" %}+++
+
+- **Zwei-Faktor-Authentifizierung** vollständig unterstützt (SMS, Mail, App, FIDO2)
+- **Passwort-Reset** für Benutzer mit eingerichtetem zweiten Faktor
+- **Datentransfer:** Mehrfach-Upload mit Fortschrittsbalken
+- **Massenänderung** und Auswahl von Rechnungen
+
+.Überblick
+[%collapsible]
+====
+- Mehrfach-Upload mit Fortschrittsbalken in Datentransfer-Bereichen.
+- Passwort-Reset für Benutzer mit eingerichtetem zweiten Faktor.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Die Zwei-Faktor-Authentifizierung (SMS, Mail, Authenticator-App, WebAuthn/FIDO2) wird jetzt vollständig unterstützt.
+
+2FA (SMS, Authenticator, Fido2) wird jetzt vollständig unterstützt. Mehrfach-Upload mit Fortschrittsbalken in Datentransfer-Bereichen.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- 2FA (SMS, E-Mail, Authenticator-App oder WebAuthn/Fido2 als zweiter Faktor für deutlich mehr Sicherheit).
+- Passwort-Reset für Benutzer (nur für Benutzer mit eingerichteter 2FA nutzbar; E-Mail wird aus Sicherheitsgründen für den Passwort-Reset nicht unterstützt).
+- Skripte können von Benutzern/Gruppen ohne besondere Rechte ausgeführt werden (sudo-Funktionalität). So lassen sich z. B. Reports für Projektleiter inklusive Finanzdaten einrichten.
+- Massenänderung und Auswahl von Rechnungen, z. B. für Überweisungen.
+- **Datentransfer:**
+  * Mehrfach-Upload mit Fortschrittsbalken. Sehr schick.
+  * Mehrfachauswahl von Dateien zum Löschen und Herunterladen.
+  * Audit für Bereiche (um nachzuvollziehen, was passiert ist)
+  * E-Mail-Benachrichtigungen verbessert: zu löschende Dateien und Audit-Log der Bereiche.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CSRF-Handling: Hat sich das Session-Token geändert, genügt ein Neuladen der Seite, um weiterzuarbeiten.
+- Massenänderung überarbeitet und verbessert.
+- Paginierung für Ergebnislisten der neuen Oberfläche eingeführt.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Diverse kleinere Bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Passwort-Reset für Benutzer: Admins können Mobilnummern von Benutzern hinterlegen, um den Passwort-Reset auch für Benutzer ohne eingerichtete 2FA zu ermöglichen.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- **2FA wird jetzt vollständig unterstützt. Konfigurierbar sind:**
+  * 2FA nach dem Login (läuft bei angemeldet bleiben nach x Tagen ab)
+  * 2FA-Ablaufzeit (von 1 Minute bis 90 Tage) für besondere Bereiche (z. B. Benutzerverwaltung, Passwortänderung, Finanzthemen usw.)
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-3.changelog-release]
+=== ProjectForge 7.3 veröffentlicht
+
+[.changelog-source]
+__2022-03-09, Tag https://github.com/micromata/projectforge/tree/7.3-RELEASE[7.3-RELEASE]__ +++{% include release-pills.html tag="7.3-RELEASE" docker="7.3" %}+++
+
+- **Datentransfer und Merlin:** Seriendokumente in persönliche Boxen
+- **Scripting:** Beispiele, Includes, neuer Editor für Groovy und Kotlin
+- **2FA** eingeführt
+
+.Überblick
+[%collapsible]
+====
+- **Datentransfer und Merlin:** Serien-PDFs/-Word-Dokumente werden automatisch erzeugt und in die persönlichen Boxen der Benutzer/Mitarbeiter gelegt.
+- **Scripting:** Beispielskripte, Include-Unterstützung und ein neuer Quelltext-Editor für Groovy und Kotlin.
+- **Sicherheit:** Zwei-Faktor-Authentifizierung (2FA) eingeführt.
+- **Datenschutz:** Verbesserungen beim Datenschutz.
+- **Administration:** Der öffentliche SSH-Schlüssel ist auch für Nicht-Admins sichtbar.
+- Diverse kleinere Bugfixes.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Datentransfer kombiniert mit Merlin, Scripting verbessert, 2FA eingeführt.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Kombination von Datentransfer und Merlin: Serien-PDFs/-Word-Dokumente können automatisch erzeugt und in die persönlichen Boxen der Benutzer/Mitarbeiter gelegt werden.
+- Scripting: Beispielskripte, Include-Unterstützung, neuer Quelltext-Editor für Groovy und Kotlin.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Scripting-Funktionen verbessert.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Verbesserungen beim Datenschutz.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Diverse kleinere Bugfixes
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Der öffentliche SSH-Schlüssel ist auch für Nicht-Admins sichtbar.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- 2FA eingeführt (wird bald weiter verbessert).
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-2.changelog-release]
+=== ProjectForge 7.2 veröffentlicht
+
+[.changelog-source]
+__2021-08-16, Tag https://github.com/micromata/projectforge/tree/release/7.2-RELEASE[release/7.2-RELEASE]__ +++{% include release-pills.html tag="release/7.2-RELEASE" docker="7.2" %}+++
+
+- **Word-Vorlagen (Merlin)** mit Serienausführung
+- **Log-Viewer** für Admins und Benutzer
+- **Datentransfer:** Verschlüsselung
+- **Datenschutz:** Löschen personenbezogener Daten inkl. Historie
+- Fix: Suche nach gelöschten Einträgen und in der Historie
+
+.Überblick
+[%collapsible]
+====
+- **Merlin:** Word-Vorlagen für Briefe, Verträge usw. mit Variablen und If-Else-Ausdrücken; die Serienausführung liefert Word-/PDF-Dateien in persönliche Boxen; Geschlecht für Benutzer für personalisierte Briefe.
+- **Log-Viewer** für Admins sowie für Benutzer, um eigene Aktivitäten nachzuvollziehen (Massenänderungen, Merlin, DATEV-Importe).
+- **Datentransfer:** Verschlüsselung hinzugefügt.
+- **SEPA-Export:** von Banking-Software nicht unterstützte Sonderzeichen werden ersetzt bzw. entfernt.
+- **Datenschutz:** Löschen von Adressen, Mitarbeiter- und Urlaubsdaten usw. inklusive Historieneinträgen (EU-Datenschutzvorgaben).
+- **Administration:** kein Neustart nach der Erstinstallation; temporäre Verzeichnisse werden beim Herunterfahren gelöscht.
+- **Sicherheit:** Passwörter werden als char[] statt als String verarbeitet.
+- **Fixes:** Suche nach gelöschten Einträgen und Suche in Historieneinträgen.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Word-Vorlagen (Merlin), Log-Viewer, Verschlüsselung im Datentransfer, Datenschutzfunktionen.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Word-Vorlagen (Merlin): Vorlagen für Briefe, Informationen, Verträge usw. mit Serienausführung inklusive Variablen, If-Else-Ausdrücken usw. direkt im docx (ähnlich der Velocity-Scripting-Engine). Alle Benutzer/Mitarbeiter können per Serienausführung Briefe, Verträge usw. (als Word- und/oder PDF-Dateien) in ihre persönlichen Boxen erhalten. Beispielvorlagen für einen schnellen Einstieg sind enthalten.
+- Log-Viewer (für Admins sowie für Benutzer, um eigene Aktivitäten nachzuvollziehen, z. B. Massenänderungen von Zeitberichten, Nutzung von Merlin oder DATEV-Importe)
+- Geschlecht für Benutzer: wird von Merlin (Word-Vorlagen) für personalisierte Briefe, Verträge usw. verwendet.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Datentransfer-Plugin: Verschlüsselung hinzugefügt
+- Export von SEPA-Überweisungen verbessert: von Banking-Software nicht unterstützte Sonderzeichen werden ersetzt bzw. entfernt.
+
+++++
+{% include tag.html tag="privacy" %}
+++++
+- Funktionen zum Löschen von Daten wie Adressen, Mitarbeiter- und Urlaubsdaten usw. aufgrund der EU-Datenschutzvorgaben. Das Löschen umfasst auch die Historieneinträge.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Diverse kleinere Bugfixes
+- Suche nach gelöschten Einträgen (Adressen usw.) korrigiert.
+- Suche in Historieneinträgen (Stichwörter, Benutzer) korrigiert.
+
+++++
+{% include tag.html tag="admin" %}
+++++
+- Nach der Erstinstallation ist kein Neustart mehr nötig.
+- Beim Herunterfahren werden temporär angelegte Verzeichnisse (tomcat.* und projectforge-application*) automatisch gelöscht.
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Passwörter werden als char[] statt als String verarbeitet.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-1-2.changelog-release]
+=== ProjectForge 7.1.2 veröffentlicht
+
+[.changelog-source]
+__2021-05-25, Tag https://github.com/micromata/projectforge/tree/7.1.2-RELEASE[7.1.2-RELEASE]__ +++{% include release-pills.html tag="7.1.2-RELEASE" docker="7.1.2" %}+++
+
+- **Sicherheitsfixes** aus einem Penetrationstest
+- **Datentransfer:** Zip-Download, mehr Optionen für Externe
+- Binaries auf **Docker Hub**
+
+.Überblick
+[%collapsible]
+====
+- **Sicherheit:** Fixes aus einem Penetrationstest.
+- **Datentransfer:** Download eines Bereichs als ein Zip, mehr Optionen für externe Benutzer.
+- Diverse kleinere Verbesserungen (Auftragsbuch usw.) und Bugfixes.
+- **Docker:** Binaries auf https://hub.docker.com/r/micromata/projectforge[Docker Hub] verfügbar.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Sicherheitsthemen aus Pentests behoben, Datentransfer verbessert.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Das Datentransfer-Tool wurde verbessert: Download eines Bereichs als ein Zip, mehr Optionen für externe Benutzer
+
+++++
+{% include tag.html tag="security" %}
+++++
+- Sicherheitsfixes aus einem Penetrationstest.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Diverse kleinere Bugfixes
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Diverse kleinere Verbesserungen (Auftragsbuch usw.)
+
+++++
+{% include tag.html tag="docker" %}
+++++
+- Die Binaries stehen auf https://hub.docker.com/r/micromata/projectforge[Docker Hub] zum Download bereit
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-1-1.changelog-release]
+=== ProjectForge 7.1.1 veröffentlicht
+
+[.changelog-source]
+__2021-05-04, Tag https://github.com/micromata/projectforge/tree/7.1.1-RELEASE[7.1.1-RELEASE]__ +++{% include release-pills.html tag="7.1.1-RELEASE" docker="7.1.1" %}+++
+
+- **Datentransfer:** persönliche Box für jeden Benutzer
+- **Docker** verbessert
+- JavaScript-Bibliotheken aktualisiert
+
+.Überblick
+[%collapsible]
+====
+- **Datentransfer:** persönliche Box für jeden Benutzer zum schnellen direkten Austausch großer Dateien.
+- **Docker** verbessert.
+- **Technologie:** Update aller JavaScript-Bibliotheken (React usw.).
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Der Datentransfer unterstützt jetzt persönliche Boxen für den direkten Dateiaustausch zwischen zwei Personen. Docker verbessert. Kleinere Fixes und Verbesserungen.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Datentransfer: persönliche Box für jeden Benutzer zum schnellen direkten Austausch großer Dateien.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Docker verbessert.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Update aller JavaScript-Bibliotheken (React usw.)
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-1.changelog-release]
+=== ProjectForge 7.1 veröffentlicht
+
+[.changelog-source]
+__2021-04-12, Tag https://github.com/micromata/projectforge/tree/7.1.0-RELEASE[7.1.0-RELEASE]__ +++{% include release-pills.html tag="7.1.0-RELEASE" docker="7.1.0" %}+++
+
+- **Java 13+** unterstützt, nahezu alle Bibliotheken aktualisiert
+- **Datentransfer:** Prüfsummen und nächtlicher Plausibilitätsjob
+- **CardDAV:** Mobilnummern
+- Mandantenfähigkeit entfernt
+
+.Überblick
+[%collapsible]
+====
+- **Datentransfer:** Prüfsummen für alle Dateien und ein nächtlicher Plausibilitätsjob.
+- **CardDAV**-Unterstützung verbessert (Mobilnummern).
+- **Testsysteme:** keine Unique-Constraint-Verletzungen mehr durch Testdaten bei neuen Testsystemen.
+- **Technologie:** Unterstützung von Java 13+, Major-Updates nahezu aller Bibliotheken, Mandantenfähigkeit entfernt.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Verbesserungen, Unterstützung von Java 1.13+.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Prüfsummen für alle Dateien im Datentransfer sowie nächtlicher Plausibilitätsjob.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- CardDAV-Unterstützung verbessert (Mobilnummern)
+- Testdaten in Testsystemen: keine Unique-Constraint-Verletzungen mehr bei neuen Testsystemen.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Unterstützung von Java 13+.
+- Major-Updates nahezu aller Bibliotheken.
+- Mandantenfähigkeit entfernt.
+
+++++
+{% include download-link.html %}
+++++
+====
+
+[discrete#release-7-0.changelog-release]
+=== ProjectForge 7.0: neues Frontend und Datentransfer
+
+[.changelog-source]
+__2021-04-07, Tag https://github.com/micromata/projectforge/tree/7.0.0-RELEASE[7.0.0-RELEASE]__ +++{% include release-pills.html tag="7.0.0-RELEASE" docker="7.0.0" %}+++
+
+- **Major Release:** neues React-Frontend
+- **Datentransfer-Tool** zum Teilen von Dateien, auch mit Externen
+- **Docker-Images** und Setup-Assistent für eine einfache Installation
+- Neues Plugin: **Skill-Matrix**
+
+.Überblick
+[%collapsible]
+====
+- **Neues Frontend** auf Basis von React, mit umfassender REST-Unterstützung für die meisten Funktionen, z. B. für andere Clients wie eine Smartphone-App.
+- **Datentransfer-Tool:** Dateien mit anderen Benutzern und externen Kunden teilen.
+- **Skill-Matrix:** neues Plugin zum Teilen von Wissen.
+- **Installation:** Docker-Images und ein Setup-Assistent.
+- **Technologie:** über 20 % des Codes werden jetzt in Kotlin entwickelt.
+====
+
+.Alle Änderungen
+[%collapsible]
+====
+Major Release mit neuem React-Frontend, dem Datentransfer-Tool und Docker-Unterstützung.
+
+**Major Release:** Diese Version bringt jede Menge Neues: neues Frontend, Datentransfer-Tool, Docker-Unterstützung.
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Neues Frontend
+- Datentransfer-Tool zum Teilen von Dateien mit anderen Benutzern und externen Kunden
+- Neues Plugin: Skill-Matrix zum Teilen von Wissen.
+- Jede Menge neuer Funktionen und Verbesserungen.
+
+++++
+{% include tag.html tag="technology" %}
+++++
+- Als Docker-Images verfügbar für die bisher schnellste Installation.
+- Setup-Assistent für eine einfache Einrichtung.
+- Das neue Frontend basiert auf React.
+- Über 20 % des Codes werden jetzt in Kotlin entwickelt.
+- Umfassende REST-Unterstützung für die meisten Funktionen, z. B. für andere Clients wie eine Smartphone-App.
+
+++++
+{% include download-link.html %}
+++++
+====

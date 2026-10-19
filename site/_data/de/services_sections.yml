@@ -1,0 +1,9 @@
+# Text sections of the German services page, rendered by _includes/text-section.html (fields: see there)
+
+who_we_are:
+  title: Wer wir sind
+  text: >-
+    ProjectForge wird von [Micromata](https://www.micromata.de) entwickelt, einem Softwareunternehmen aus Kassel.
+    Seit 2001 steuern wir damit jeden Tag unser eigenes Unternehmen.
+  button_text: micromata.de
+  button_url: https://www.micromata.de

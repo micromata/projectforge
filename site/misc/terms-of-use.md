@@ -3,6 +3,8 @@ layout: page
 title: Terms of Use
 width: small
 permalink: /misc/terms-of-use.html
+# Only in English (no German page): the German pages link it in English. See site/README.adoc.
+untranslated: true
 ---
 
 ## Join us, do it yourself.

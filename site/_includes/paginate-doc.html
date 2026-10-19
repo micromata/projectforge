@@ -1,28 +1,34 @@
-{% assign docs = site.data.navigation_docs | map: 'docs' | join: ',' | split: ',' %}
+{%- comment -%}
+    Links to the previous and next doc of the doc navigation (_data/navigation_docs.yml, German pages
+    _data/de/navigation_docs.yml), in the language of the page or in English if not translated.
+{%- endcomment -%}
+{%- assign t = site.data.translation[page.lang] -%}
+{%- assign navigation = site.data[page.lang].navigation_docs | default: site.data.navigation_docs -%}
+{%- assign docs = navigation | map: 'docs' | join: ',' | split: ',' -%}
 
 {% for document in docs %}
-  {% assign document_url = document | prepend:"/docs/" | append:"/" %}
-  {% if document_url == page.url %}
-    <nav class="grid gap-4 sm:grid-cols-2" aria-label="Previous and next document">
+  {%- include doc-in-lang.html doc=document -%}
+  {% if doc_page.url == page.url %}
+    <nav class="grid gap-4 sm:grid-cols-2" aria-label="{{ t.previous_next_doc }}">
         <div>
             {% unless forloop.first %}
-              {% assign previous = forloop.index0 | minus: 1 %}
-              {% assign previous_page = docs[previous] | prepend:"/docs/" | append:"/" %}
-              {% assign previous_doc = site.docs | where:"url", previous_page | first %}
-              <a class="flex flex-col gap-1 rounded-lg border border-border p-4 text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ previous_page | relative_url }}">
-                  <span class="text-sm text-muted-foreground">&larr; {{ site.data.translation[site.lang].previous | default: "Previous" }}</span>
-                  <span class="web-title">{{ previous_doc.title }}</span>
+              {%- assign previous = forloop.index0 | minus: 1 -%}
+              {%- assign neighbour = docs[previous] -%}
+              {%- include doc-in-lang.html doc=neighbour -%}
+              <a class="flex flex-col gap-1 rounded-lg border border-border p-4 text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ doc_page.url | relative_url }}">
+                  <span class="text-sm text-muted-foreground">&larr; {{ t.previous }}</span>
+                  <span class="web-title">{{ doc_page.title }}{% if doc_english_only %} ({{ t.english_only }}){% endif %}</span>
               </a>
             {% endunless %}
         </div>
         <div>
             {% unless forloop.last %}
-              {% assign next = forloop.index0 | plus: 1 %}
-              {% assign next_page = docs[next] | prepend:"/docs/" | append:"/" %}
-              {% assign next_doc = site.docs | where:"url", next_page | first %}
-              <a class="flex flex-col items-end gap-1 rounded-lg border border-border p-4 text-right text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ next_page | relative_url }}">
-                  <span class="text-sm text-muted-foreground">{{ site.data.translation[site.lang].next | default: "Next" }} &rarr;</span>
-                  <span class="web-title">{{ next_doc.title }}</span>
+              {%- assign next = forloop.index0 | plus: 1 -%}
+              {%- assign neighbour = docs[next] -%}
+              {%- include doc-in-lang.html doc=neighbour -%}
+              <a class="flex flex-col items-end gap-1 rounded-lg border border-border p-4 text-right text-foreground no-underline hover:border-muted-foreground hover:text-foreground" href="{{ doc_page.url | relative_url }}">
+                  <span class="text-sm text-muted-foreground">{{ t.next }} &rarr;</span>
+                  <span class="web-title">{{ doc_page.title }}{% if doc_english_only %} ({{ t.english_only }}){% endif %}</span>
               </a>
             {% endunless %}
         </div>

@@ -1,0 +1,16 @@
+# Download options on the German download page ("ProjectForge holen")
+
+- step: 1
+  title: Docker
+  desc: "Der einfachste Weg: Image für einen einzelnen Container oder einen Docker-Compose-Stack mit PostgreSQL. Empfohlen für den Produktivbetrieb. Auf Docker Hub."
+  url: https://hub.docker.com/r/micromata/projectforge
+
+- step: 2
+  title: Ausführbares JAR
+  desc: "Läuft unter Linux, macOS und Windows mit Java 17 oder neuer – ideal, um ProjectForge auf dem eigenen Rechner auszuprobieren. In den GitHub-Releases (Mirror: SourceForge)."
+  url: https://github.com/micromata/projectforge/releases
+
+- step: 3
+  title: Quellcode
+  desc: Alles, um ProjectForge selbst zu bauen, zu ändern und zu erweitern. Auf GitHub.
+  url: https://github.com/micromata/projectforge

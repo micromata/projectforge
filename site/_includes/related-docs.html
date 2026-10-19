@@ -1,13 +1,14 @@
 {%- capture related -%}
 <div class="mt-12">
-    <h2 class="web-title">{{ site.data.translation[site.lang].related_docs | default: "Related Docs" }}</h2>
+    <h2 class="web-title">{{ site.data.translation[page.lang].related_docs }}</h2>
 
     {% assign maxRelated = 4 %}
     {% assign minCommonTags =  1 %}
     {% assign maxRelatedCounter = 0 %}
 
     <ul class="mt-3 flex flex-col gap-2">
-    {% for doc in site.docs %}
+    {% assign docs = site.docs | where: "lang", page.lang %}
+    {% for doc in docs %}
 
     {% assign sameTagCount = 0 %}
     {% assign commonTags = '' %}

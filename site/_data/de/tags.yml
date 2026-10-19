@@ -1,0 +1,34 @@
+# The German texts of the section types of the changelog, as in the app (changelog.type.* of
+# I18nResources_de.properties); the colors are those of _data/tags.yml.
+added:
+  text: Neu
+
+admin:
+  text: Administration
+
+changed:
+  text: Geändert
+
+deprecated:
+  text: Veraltet
+
+improved:
+  text: Verbessert
+
+removed:
+  text: Entfernt
+
+fixed:
+  text: Behoben
+
+privacy:
+  text: Datenschutz
+
+security:
+  text: Sicherheit
+
+technology:
+  text: Technologie
+
+docker:
+  text: Docker

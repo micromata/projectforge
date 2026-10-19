@@ -252,6 +252,15 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.named<Test>("test") {
+    // GenerateChangelogMainTest and SiteTranslationTest check the changelog and the website: a change there has to
+    // run them again instead of leaving the tests up to date.
+    inputs.files(rootProject.fileTree("site") {
+        exclude("_site/**", "node_modules/**", ".jekyll-cache/**", "assets/css/main.css", "_data/binaries.json")
+    }).withPropertyName("site").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(rootProject.file("changelog")).withPropertyName("changelog").withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
