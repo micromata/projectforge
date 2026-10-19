@@ -79,7 +79,9 @@ export function attachmentColumns(
   t: (key: string) => string,
   readOnly?: boolean,
   /** Shows who uploaded and changed a file (see AttachmentService.userInfo). */
-  userInfo = true
+  userInfo = true,
+  /** Leads with a checkbox; a read-only list has one only where a selection can be downloaded. */
+  selectable = !readOnly
 ): Column[] {
   const header = (label: string, filterKind?: FilterKind): Column["header"] =>
     function AttachmentColumnHeader({ column, table }) {
@@ -174,7 +176,7 @@ export function attachmentColumns(
       meta: { label: t("attachment.expires") },
     },
   ];
-  return readOnly
+  return !selectable
     ? columns
     : [
         {

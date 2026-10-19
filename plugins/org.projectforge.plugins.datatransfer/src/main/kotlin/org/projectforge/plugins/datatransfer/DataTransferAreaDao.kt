@@ -215,9 +215,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * @return null for an unknown token, also for one too short to be any area's (a mistyped link is no error).
+     */
     open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
-        if (externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
-            throw IllegalArgumentException("externalAccessToken to short.")
+        if ((externalAccessToken?.length ?: 0) < ACCESS_TOKEN_LENGTH) {
+            return null
         }
         val dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
@@ -362,7 +365,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
          */
         fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
             val used = data.attachmentsSize ?: 0
-            val freeCapacity = data.capacity - used
+            // A full area has no capacity left, not a negative one.
+            val freeCapacity = (data.capacity - used).coerceAtLeast(0)
             return minOf(freeCapacity, getMaxUploadFileSizeKB(data) * 1024L)
         }
 

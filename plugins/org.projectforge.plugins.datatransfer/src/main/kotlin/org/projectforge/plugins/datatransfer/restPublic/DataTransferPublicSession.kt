@@ -82,7 +82,7 @@ class DataTransferPublicSession {
       unregister(request, data.id) // Unregister, force re-login.
       return null
     }
-    log.info {
+    log.debug {
       "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
         RestUtils.getClientIp(
           request
@@ -103,7 +103,7 @@ class DataTransferPublicSession {
     userInfo: String?
   ): CheckAccessResult {
     if (accessToken == null || password == null) {
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = loginFailedMessage)
     }
     val loginProtection = LoginProtection.instance()
     val clientIpAddress = RestUtils.getClientIp(request)
@@ -125,7 +125,7 @@ class DataTransferPublicSession {
     if (dbo == null) {
       log.warn { "Data transfer area with externalAccessToken '$accessToken' not found. Requested by ip=$clientIpAddress, userInfo='$userInfo'." }
       loginProtection.incrementFailedLoginTimeOffset(accessToken, clientIpAddress)
-      return CheckAccessResult(failedAccessMessage = LoginResultStatus.FAILED.localizedMessage)
+      return CheckAccessResult(failedAccessMessage = loginFailedMessage)
     }
     val errorMessage = checkDataBaseEntry(request, dbo, dbo.id!!, accessToken, password, userInfo)
     if (errorMessage != null) {
@@ -165,7 +165,7 @@ class DataTransferPublicSession {
           RestUtils.getClientIp(request)
         }, userInfo='$userInfo'."
       }
-      return LoginResultStatus.FAILED.localizedMessage
+      return loginFailedMessage
     }
     // Check the matching of all params (protect against cross area access)
     if (dbo.id != areaId || dbo.externalPassword != password || dbo.externalAccessToken != accessToken) {
@@ -174,7 +174,7 @@ class DataTransferPublicSession {
           RestUtils.getClientIp(request)
         }, userInfo='$userInfo'."
       }
-      return LoginResultStatus.FAILED.localizedMessage
+      return loginFailedMessage
     }
     if (dbo.deleted || (dbo.externalUploadEnabled != true && dbo.externalDownloadEnabled != true)) {
       return translate("plugins.datatransfer.external.noAccess")
@@ -227,7 +227,7 @@ class DataTransferPublicSession {
     areaId ?: return false
     fileId ?: return false
     val data = getSessionMap(request)?.get(areaId) ?: return false
-    log.info {
+    log.debug {
       "External user info restored from session: ${ToStringUtil.toJsonString(data)}, ip=${
         RestUtils.getClientIp(
           request
@@ -279,6 +279,12 @@ class DataTransferPublicSession {
       request.getSession(false)?.getAttribute(SESSION_ATTRIBUTE) as? MutableMap<Long, TransferAreaData>
     return map
   }
+
+  /**
+   * Not [LoginResultStatus.FAILED]: its text asks to check the login name, and an external user has none.
+   */
+  private val loginFailedMessage: String
+    get() = translate("plugins.datatransfer.external.loginFailed")
 
   companion object {
     internal const val SESSION_ATTRIBUTE = "transferAreas"

@@ -26,12 +26,12 @@ package org.projectforge.plugins.datatransfer.restPublic
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.common.FormatterUtils
-import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -65,9 +65,14 @@ class DataTransferPublicNextRest {
         var description: String? = null,
         var externalDownloadEnabled: Boolean? = null,
         var externalUploadEnabled: Boolean? = null,
+        /** The largest file that can still be uploaded, in bytes: checked by the client before the transfer. */
+        var maxUploadSize: Long? = null,
         var maxUploadSizeFormatted: String? = null,
         /** Download all as one ZIP, offered for 1 byte to 1 GB in total (as the legacy page did). */
         var downloadAllAvailable: Boolean = false,
+        /** The most a ZIP of selected files may contain, in bytes ([DataTransferPublicServicesRest.MAX_ZIP_SIZE]). */
+        var maxZipSize: Long = DataTransferPublicServicesRest.MAX_ZIP_SIZE,
+        var maxZipSizeFormatted: String = FormatterUtils.formatBytes(DataTransferPublicServicesRest.MAX_ZIP_SIZE),
         var userInfo: String? = null,
         var attachments: List<Attachment>? = null,
     )
@@ -81,6 +86,7 @@ class DataTransferPublicNextRest {
     private lateinit var dataTransferPublicSession: DataTransferPublicSession
 
     @GetMapping("state")
+    @AccessChecked("PUBLIC: area data only with a valid login of the token in the session (checkLogin)")
     fun getState(request: HttpServletRequest, @RequestParam("token") token: String?): State {
         if (token.isNullOrBlank()) {
             return notLoggedIn()
@@ -96,6 +102,7 @@ class DataTransferPublicNextRest {
      * @return The state on success, otherwise HTTP 400 with the translated reason.
      */
     @PostMapping("login")
+    @AccessChecked("PUBLIC: token and password required, brute force protection by DataTransferPublicSession.login")
     fun login(request: HttpServletRequest, @RequestBody loginData: LoginData): ResponseEntity<*> {
         val userInfo = loginData.userInfo?.trim()?.take(255)?.ifBlank { null }
         val result = dataTransferPublicSession.login(request, loginData.token, loginData.password, userInfo)
@@ -106,6 +113,7 @@ class DataTransferPublicNextRest {
     }
 
     @PostMapping("logout")
+    @AccessChecked("PUBLIC: invalidates the own session's login only")
     fun logout(request: HttpServletRequest): Message {
         dataTransferPublicSession.logout(request)
         return Message(translate("logout.successful"))
@@ -113,6 +121,7 @@ class DataTransferPublicNextRest {
 
     private fun createState(request: HttpServletRequest, area: DataTransferAreaDO, userInfo: String?): State {
         val dto = dataTransferPublicServicesRest.convert(request, area, userInfo)
+        val maxUploadSize = DataTransferAreaDao.calculateMaxUploadFileSize(area)
         return State(
             loggedIn = true,
             areaName = dto.areaName,
@@ -120,9 +129,9 @@ class DataTransferPublicNextRest {
             description = dto.description,
             externalDownloadEnabled = dto.externalDownloadEnabled,
             externalUploadEnabled = dto.externalUploadEnabled,
-            maxUploadSizeFormatted = FormatterUtils.formatBytes(DataTransferAreaDao.calculateMaxUploadFileSize(area)),
-            downloadAllAvailable = dto.externalDownloadEnabled == true &&
-                    (dto.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES,
+            maxUploadSize = maxUploadSize,
+            maxUploadSizeFormatted = FormatterUtils.formatBytes(maxUploadSize),
+            downloadAllAvailable = DataTransferPublicServicesRest.isDownloadAllAvailable(area),
             userInfo = dto.userInfo,
             attachments = dto.attachments ?: emptyList(),
         )

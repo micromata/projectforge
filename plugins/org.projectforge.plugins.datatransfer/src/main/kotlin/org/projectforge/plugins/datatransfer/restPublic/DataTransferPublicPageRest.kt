@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.datatransfer.restPublic
 
-import org.projectforge.common.NumberOfBytes
 import org.projectforge.framework.i18n.translate
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
@@ -141,7 +140,7 @@ class DataTransferPublicPageRest : AbstractDynamicPageRest() {
     )
     val layout = UILayout("plugins.datatransfer.title.heading")
       .add(fieldSet)
-    if ((dataTransfer.attachmentsSize ?: 0) in 1..NumberOfBytes.GIGA_BYTES) {
+    if (DataTransferPublicServicesRest.isDownloadAllAvailable(dbObj)) {
       // Download all not for attachments with size of more than 1 GB in total.
       fieldSet.add(
         UIButton.createDownloadButton(

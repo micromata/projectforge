@@ -137,8 +137,26 @@ export interface AttachmentService {
   encryption: boolean;
   /** Several files can be downloaded as one ZIP (`multiDownload`). */
   multiDownload: boolean;
+  /**
+   * The toolbar offers all files as one ZIP, next to the selected ones. Off where the page has a
+   * "download all" of its own (the external access of a data transfer area, with a size limit).
+   */
+  downloadAll: boolean;
   /** Who uploaded or changed a file is shown. */
   userInfo: boolean;
+  /**
+   * Called when a write (upload, rename, delete, encrypt) failed on the way, not refused by the backend.
+   * The external access of a data transfer area re-reads its login state then: the usual cause there is
+   * an expired session, which the page should answer with its login form.
+   */
+  onWriteError?: () => void;
+  /**
+   * The largest file the backend takes, checked before the transfer so an oversized file isn't sent in
+   * vain. `formatted` is the backend's text for it. Unset: no check here, the backend still refuses.
+   */
+  maxFileSize?: { bytes: number; formatted: string };
+  /** The most a ZIP of selected files may contain (as [maxFileSize]); unset: no limit. */
+  maxZipSize?: { bytes: number; formatted: string };
 }
 
 export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
@@ -146,6 +164,7 @@ export const DEFAULT_ATTACHMENT_SERVICE: AttachmentService = {
   fetchAttachments,
   encryption: true,
   multiDownload: true,
+  downloadAll: true,
   userInfo: true,
 };
 
@@ -278,20 +297,62 @@ export function attachmentDownloadUrl(ref: AttachmentRef): string {
 /**
  * Where the given attachments can be downloaded from, as one ZIP (`multiDownload`).
  *
- * A plain URL for the same reason as [attachmentDownloadUrl]. The ids go out in full, although the
- * backend matches them by prefix and the legacy page shortened them to four characters to keep the
- * URL short: 20-character ids (`OakStorage.createRandomId`) stay well inside any URL limit for the
- * handful of files an entity has, and a prefix can match a second file.
+ * A plain URL for the same reason as [attachmentDownloadUrl]. The ids go out as [shortenFileIds] makes
+ * them: in full for the handful of files an entity usually has, shortened only for a selection that
+ * would make the URL too long.
+ *
+ * @param allFileIds every file of the list, which a shortened id must not match as well.
  */
 export function attachmentsDownloadUrl(
   entity: string,
   id: number,
   fileIds: string[],
   listId: string = DEFAULT_LIST_ID,
-  base: string = BASE
+  base: string = BASE,
+  allFileIds: string[] = fileIds
 ): string {
-  const params = new URLSearchParams({ fileIds: fileIds.join(","), listId });
+  const params = new URLSearchParams({
+    fileIds: shortenFileIds(fileIds, allFileIds).join(","),
+    listId,
+  });
   return `${base}/multiDownload/${entity}/${id}?${params}`;
+}
+
+/** Up to this length the ids of a ZIP download go out in full. */
+const MAX_FILE_IDS_LENGTH = 1500;
+/** The shortest prefix sent, as the legacy page did. */
+const MIN_FILE_ID_PREFIX = 4;
+
+/**
+ * The ids for `multiDownload`, which matches them by prefix. In full as long as they fit into
+ * [MAX_FILE_IDS_LENGTH] characters, otherwise each one cut to the shortest prefix (at least
+ * [MIN_FILE_ID_PREFIX]) that matches no other file of the list — 20-character ids
+ * (`FileStore.createRandomId`) would make a URL with hundreds of files too long for the server.
+ *
+ * Exported for its unit test.
+ */
+export function shortenFileIds(
+  fileIds: string[],
+  allFileIds: string[]
+): string[] {
+  const fullLength = fileIds.reduce(
+    (sum, fileId) => sum + fileId.length + 1,
+    0
+  );
+  if (fullLength <= MAX_FILE_IDS_LENGTH) return fileIds;
+  return fileIds.map((fileId) => {
+    for (let length = MIN_FILE_ID_PREFIX; length < fileId.length; length++) {
+      const prefix = fileId.slice(0, length);
+      if (
+        !allFileIds.some(
+          (other) => other !== fileId && other.startsWith(prefix)
+        )
+      ) {
+        return prefix;
+      }
+    }
+    return fileId;
+  });
 }
 
 /**

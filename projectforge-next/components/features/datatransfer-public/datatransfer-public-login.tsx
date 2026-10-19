@@ -44,11 +44,13 @@ export function DataTransferPublicLogin({
       if (result.kind === "ok") {
         onLoggedIn(result.state);
       } else {
-        setError(result.message || t("login.error.loginFailed"));
+        setError(
+          result.message || t("plugins.datatransfer.external.loginFailed")
+        );
         setPassword("");
       }
     } catch {
-      setError(t("login.error.loginFailed"));
+      setError(t("plugins.datatransfer.external.loginFailed"));
     } finally {
       setSubmitting(false);
     }
