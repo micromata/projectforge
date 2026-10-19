@@ -37,8 +37,11 @@ function useCellContext(): CellContext {
   return context;
 }
 
-/** Whether the row offers no rename — then its click downloads instead (see AttachmentRow). */
-function noRename(attachment: Attachment, readOnly?: boolean): boolean {
+/**
+ * Whether nothing of the file can be changed in its details — they open read-only then (see
+ * AttachmentFiles). In the compact list such a row's click downloads instead (see AttachmentRow).
+ */
+export function noRename(attachment: Attachment, readOnly?: boolean): boolean {
   return (
     readOnly === true ||
     attachment.readonly === true ||
@@ -281,7 +284,8 @@ interface Props {
  * (`DynamicAttachmentList.jsx`), for a page whose content *is* the files (a data transfer area). The
  * compact list (AttachmentRow) stays for the attachment sections inside a form.
  *
- * A row click opens the details, or downloads where nothing could be changed in them — as AttachmentRow.
+ * A row click opens the details, read-only where nothing could be changed in them — as the legacy page,
+ * where the external access opened its dialog for every file too. The name stays the download link.
  */
 export function AttachmentTable({
   table,
@@ -294,7 +298,6 @@ export function AttachmentTable({
   onDelete,
 }: Props) {
   const t = useTranslations();
-  const { base } = useAttachmentService();
   return (
     <AttachmentCellContext.Provider value={{ entity, id, selection, busy }}>
       <DataTable<Attachment>
@@ -305,19 +308,7 @@ export function AttachmentTable({
         autoHeight
         emptyState={t("nothingFound")}
         onRowClick={(attachment) => {
-          if (busy) return;
-          if (noRename(attachment, readOnly)) {
-            window.location.assign(
-              attachmentDownloadUrl({
-                entity,
-                id,
-                fileId: attachment.fileId,
-                base,
-              })
-            );
-          } else {
-            onEdit(attachment);
-          }
+          if (!busy) onEdit(attachment);
         }}
         rowActions={
           readOnly

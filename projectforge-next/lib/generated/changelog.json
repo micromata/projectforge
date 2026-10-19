@@ -13,7 +13,7 @@
       "items" : [ "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobile Tätigkeit\" (mobile activity) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there.", "DATEV import: one upload of the tax office's file fills both tabs, accounting records and chart of accounts, so each can be reconciled without uploading the file again." ]
     }, {
       "type" : "changed",
-      "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. The area's link now points there; the previous page still works for links sent before. External users no longer see who uploaded the other files, and can no longer rename files of others." ]
+      "items" : [ "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. The area's link now points there; the previous page still works for links sent before. As in the area itself, a click on a file opens its details (read-only for files of others), the files are sorted newest first, and the column layout is kept (in the browser). Own uploads can now also be encrypted. External users no longer see who uploaded the other files unless they are logged in to ProjectForge as well, and can no longer rename files of others. Logging in to or out of the external access no longer ends a login to ProjectForge in the same browser." ]
     } ]
   },
   "groups" : [ {

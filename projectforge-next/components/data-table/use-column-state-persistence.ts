@@ -152,3 +152,41 @@ export function useColumnStatePersistence(
     state
   );
 }
+
+const localStorageKey = (name: string) => `pf.columnStates.${name}`;
+
+/**
+ * The column state kept in the browser's local storage under `name` — for a page without user prefs to
+ * keep it in (the external access of a data transfer area, whose visitor has no ProjectForge account).
+ * Read synchronously, so unlike the backend variant there is nothing to wait for; an unreadable entry
+ * (private mode, a value of an older shape) counts as none.
+ */
+export function readLocalColumnState(name: string | undefined): ColumnState {
+  if (!name) return {};
+  try {
+    const stored = window.localStorage.getItem(localStorageKey(name));
+    const parsed: unknown = stored ? JSON.parse(stored) : null;
+    return parsed && typeof parsed === "object" ? (parsed as ColumnState) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Writes the column state to the local storage under `name` (see readLocalColumnState). Not debounced
+ * like the backend variant: a local write costs nothing worth saving, and none can be lost on unmount.
+ */
+export function useLocalColumnStatePersistence(
+  name: string | undefined,
+  state: ColumnState
+) {
+  const serialized = JSON.stringify(state);
+  useEffect(() => {
+    if (!name) return;
+    try {
+      window.localStorage.setItem(localStorageKey(name), serialized);
+    } catch {
+      // Private mode or full storage: the layout just isn't remembered.
+    }
+  }, [name, serialized]);
+}

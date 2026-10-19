@@ -20,21 +20,26 @@ export function AttachmentFileActions({
 }: {
   fileRef: AttachmentRef;
   busy?: boolean;
-  /** Only opens the question; the caller asks before deleting (see AttachmentFiles). */
-  onDelete: () => void;
+  /**
+   * Only opens the question; the caller asks before deleting (see AttachmentFiles). Without it there is
+   * no delete button — read-only details.
+   */
+  onDelete?: () => void;
 }) {
   const t = useTranslations();
   return (
     <div className="flex flex-col-reverse gap-2 sm:flex-row">
-      <Button
-        type="button"
-        variant="destructive"
-        disabled={busy}
-        onClick={onDelete}
-      >
-        <HugeiconsIcon icon={Delete01Icon} size={16} />
-        {t("delete")}
-      </Button>
+      {onDelete && (
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={busy}
+          onClick={onDelete}
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={16} />
+          {t("delete")}
+        </Button>
+      )}
       {/* A link, not a fetch: the answer is the file, which the browser has to save itself. */}
       <Button type="button" variant="outline" asChild>
         <a href={attachmentDownloadUrl(fileRef)}>

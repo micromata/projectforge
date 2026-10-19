@@ -134,7 +134,7 @@ export function useAttachmentMutations(entity: string, id: number | null) {
     { fileId: string; password: string; mode: EncryptionMode }
   >({
     mutationFn: ({ fileId, password, mode }) =>
-      encryptAttachment({ entity, id: id!, fileId }, password, mode),
+      encryptAttachment({ entity, id: id!, fileId, base }, password, mode),
     onSuccess: (result) => {
       if (result.kind === "ok") applyResult(result);
     },
@@ -147,7 +147,7 @@ export function useAttachmentMutations(entity: string, id: number | null) {
     { fileId: string; password: string }
   >({
     mutationFn: ({ fileId, password }) =>
-      testAttachmentDecryption({ entity, id: id!, fileId }, password),
+      testAttachmentDecryption({ entity, id: id!, fileId, base }, password),
   });
 
   return { rename, remove, removeMany, encrypt, testDecryption, mergeResult };

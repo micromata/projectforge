@@ -1,7 +1,13 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto, waitForHydration } from "./fixtures/auth";
 import { translate, locales, type UserFormat } from "./fixtures/format";
-import { deleteEntity, insert, MARKER, uniqueSuffix } from "./fixtures/seed";
+import {
+  deleteEntity,
+  insert,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
 
 /**
  * The external access of a data transfer area in next (`/next/public/datatransfer/<token>`): someone
@@ -50,6 +56,21 @@ async function createArea(
     externalPassword: PASSWORD,
   });
   return { id, areaName, token };
+}
+
+/** A file of the area's admin — someone else's for the external user, who may not change it. */
+async function uploadInternally(
+  request: Parameters<typeof insert>[0],
+  areaId: number,
+  name: string
+) {
+  const headers = await writeHeaders(request);
+  delete headers["Content-Type"];
+  const res = await request.post(
+    `/rs/attachments/upload/datatransfer/${areaId}/attachments`,
+    { headers, multipart: { file: { name, ...FILE } } }
+  );
+  expect(res.ok()).toBe(true);
 }
 
 /**
@@ -139,6 +160,31 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
       await expect(storedRow(page, t, name)).toHaveCount(0);
       name = renamed;
 
+      // Own files can be encrypted too; the ZIP replacing it is registered as own, so it stays changeable.
+      const zipName = `${name}.zip`;
+      await page
+        .getByRole("row")
+        .filter({ has: storedRow(page, t, name) })
+        .getByRole("cell")
+        .nth(2)
+        .click();
+      const dialog = page.getByRole("dialog");
+      await dialog.getByLabel(t("attachment.showEncryptionOption")).check();
+      await dialog
+        .getByLabel(t("password._"), { exact: true })
+        .fill("pf-e2e-secret");
+      await dialog
+        .getByRole("button", { name: t("attachment.encrypt._"), exact: true })
+        .click();
+      await page
+        .getByRole("alertdialog")
+        .getByRole("button", { name: t("attachment.encrypt._"), exact: true })
+        .click();
+      await expect(dialog).toHaveCount(0);
+      await expect(storedRow(page, t, zipName)).toBeVisible();
+      await expect(storedRow(page, t, name)).toHaveCount(0);
+      name = zipName;
+
       await page
         .getByRole("button", { name: `${t("delete")}: ${name}` })
         .click();
@@ -156,6 +202,88 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
       // The session is gone: a reload stays on the login.
       await page.reload();
       await expect(page.locator("#externalPassword")).toBeVisible();
+    } finally {
+      await deleteEntity(seedRequest, "datatransfer", area.id).catch(
+        () => undefined
+      );
+    }
+  });
+
+  test("shows the files of others read-only, newest first, and keeps the sort order", async ({
+    page,
+    seedRequest,
+  }) => {
+    const area = await createArea(seedRequest, {
+      download: true,
+      upload: true,
+    });
+    const suffix = uniqueSuffix();
+    const older = `pf-e2e-public-a-${suffix}.txt`;
+    const newer = `pf-e2e-public-b-${suffix}.txt`;
+    try {
+      await uploadInternally(seedRequest, area.id, older);
+      await uploadInternally(seedRequest, area.id, newer);
+      await goto(page, `/public/datatransfer/${area.token}`);
+      await waitForHydration(page);
+      const t = await publicFormat(page);
+      await login(page, PASSWORD);
+      await expect(storedRow(page, t, older)).toBeVisible();
+      // The header row first, then the newest file.
+      const firstFile = page.getByRole("row").nth(1);
+      await expect(firstFile).toContainText(newer);
+
+      // Sorted by name, which the browser keeps: there are no prefs for an external user.
+      await page
+        .getByRole("columnheader", { name: t("attachment.fileName") })
+        .click();
+      await expect(firstFile).toContainText(older);
+      await page.reload();
+      await expect(storedRow(page, t, older)).toBeVisible();
+      await expect(firstFile).toContainText(older);
+
+      // A file of someone else opens its details as well, but only to look at and download it.
+      await page
+        .getByRole("row")
+        .filter({ has: storedRow(page, t, older) })
+        .getByRole("cell")
+        .nth(2)
+        .click();
+      const dialog = page.getByRole("dialog");
+      await expect(
+        dialog.getByRole("textbox", { name: t("attachment.fileName") })
+      ).toBeDisabled();
+      await expect(
+        dialog.getByRole("link", { name: t("download._") })
+      ).toBeVisible();
+      await expect(
+        dialog.getByRole("button", { name: t("save"), exact: true })
+      ).toHaveCount(0);
+      await expect(
+        dialog.getByRole("button", { name: t("delete"), exact: true })
+      ).toHaveCount(0);
+      await expect(
+        dialog.getByLabel(t("attachment.showEncryptionOption"))
+      ).toHaveCount(0);
+      // Logged in with the area's password only: who uploaded it stays hidden.
+      await expect(dialog.getByText(t("createdBy"))).toHaveCount(0);
+
+      // Logged in to ProjectForge as well (the seed's session stands in for the single sign-on): shown.
+      const sso = await seedRequest.post("/rsPublic/datatransfer/next/login", {
+        headers: { "Content-Type": "application/json" },
+        data: { token: area.token, password: PASSWORD },
+      });
+      expect(sso.ok()).toBe(true);
+      const state = (await sso.json()) as {
+        userInfoVisible?: boolean;
+        attachments?: { createdByUser?: string | null }[];
+      };
+      expect(state.userInfoVisible).toBe(true);
+      expect(state.attachments?.[0]?.createdByUser).toBeTruthy();
+      // The area's login changes the session id only: the login to ProjectForge stays.
+      const status = await seedRequest.get("/rs/userStatus", {
+        headers: { "X-PF-Frontend": "next" },
+      });
+      expect(status.ok()).toBe(true);
     } finally {
       await deleteEntity(seedRequest, "datatransfer", area.id).catch(
         () => undefined
