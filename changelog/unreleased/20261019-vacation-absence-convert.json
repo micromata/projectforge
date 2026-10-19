@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "Vacation and availability: an entry can be edited as the other kind (\"Edit as absence\" / \"Edit as vacation\"), like time sheets and calendar events (now \"Edit as event\" / \"Edit as time sheet\", formerly \"Switch to …\"). Person, period, comment and substitutes are taken over into a new entry, created only when it is saved; an entry already saved stays as it is. The button's tooltip says so.",
+  "de": "Urlaub und Verfügbarkeit: Ein Eintrag kann als die jeweils andere Art bearbeitet werden („Als Abwesenheit bearbeiten“ / „Als Urlaub bearbeiten“), wie Zeitbuchungen und Termine (jetzt „Als Termin bearbeiten“ / „Als Zeitbuchung bearbeiten“, bisher „In … umwandeln“). Person, Zeitraum, Kommentar und Vertretungen werden in einen neuen Eintrag übernommen, der erst beim Speichern angelegt wird; ein bereits gespeicherter Eintrag bleibt unverändert. Das erklärt auch der Tooltip der Schaltfläche."
+}

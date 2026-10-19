@@ -139,6 +139,18 @@ export const VACATION_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // The vacation account (VacationAccountRest) adds an entry for the employee it shows.
     newEntryParams: ["employee"],
+    // "Als Abwesenheit bearbeiten" — build an availability entry from this vacation's employee, period, comment and
+    // replacements and open it as a new entry (VacationEntityRest.switch2Availability →
+    // AvailabilityEntityRest.cloneFromVacation). The vacation stays; the availability is named, not imported, so
+    // the two features don't depend on each other in a circle.
+    convert: {
+      action: "switch2Availability",
+      targetEntity: "availability",
+      targetRoute: "/availability",
+      labelKey: "vacation.switchToAvailabilityButton",
+      // Nothing is converted: a new entry is opened, and a stored vacation stays as it is.
+      tooltipKey: "vacation.switchToAvailabilityButton.tooltip",
+    },
     // The list by default; the calendar opens an entry with `?returnTo=/calendar` (use-calendar-action.ts), the
     // vacation account with `?returnTo=/vacationAccount` (VacationAccountRest.vacationEditUrl).
     returnTargets: [

@@ -5,7 +5,9 @@
   <div class="container">
     <div class="content">
       #INCLUDE{mail/mailOpening.html}
-      <p><%= pf.getMessage("fibu.auftrag.mail.intro", "<b>${pf.getString(auftrag.nummer)}</b>") %></p>
+      <% def orderNumber = "<b>${auftrag.nummer}</b>" %>
+      <p><%= pf.getMessage("fibu.auftrag.mail.intro",
+              requestUrl ? "<a href=\"${requestUrl}\" target=\"_blank\" rel=\"noreferrer\">${orderNumber}</a>" : orderNumber) %></p>
       <table class="width-3">
         <tr>
           <td colspan="3">

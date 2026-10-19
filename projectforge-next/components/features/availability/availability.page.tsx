@@ -117,6 +117,18 @@ export const AVAILABILITY_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // HR staff may preset the user (`?user=<id>`, AvailabilityEntityRest.newBaseDTO).
     newEntryParams: ["user"],
+    // "Als Urlaub bearbeiten" — build a vacation from this entry's person, period, comment and substitutes and open
+    // it as a new vacation (AvailabilityEntityRest.switch2Vacation → VacationEntityRest.cloneFromAvailability).
+    // This entry stays; the vacation is named, not imported, so the two features don't depend on each other in a
+    // circle.
+    convert: {
+      action: "switch2Vacation",
+      targetEntity: "vacation",
+      targetRoute: "/vacation",
+      labelKey: "availability.switchToVacationButton",
+      // Nothing is converted: a new vacation is opened, and a stored entry stays as it is.
+      tooltipKey: "availability.switchToVacationButton.tooltip",
+    },
     // The warning of a day without any substitute on duty; a start without an end makes a one-day period, as in
     // the vacation form.
     editIntro: AvailabilityConflictNotice,
