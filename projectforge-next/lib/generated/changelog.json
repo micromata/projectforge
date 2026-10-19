@@ -5,6 +5,8 @@
     "version" : "9.0.9",
     "date" : "2026-10-19",
     "title" : "Not yet released",
+    "summary" : [ "**Employees** and **cost search** migrated", "German **website**", "Separate \"Create\" and \"Save\" in edit forms", "Availability: \"Reachable if needed\" only, public comment for the team" ],
+    "overview" : [ "**Employees:** list and form in the new interface; status, weekly hours and leave days edited in dialogs.", "**Cost search:** in the new interface, also as a movable panel on every page (Alt+K) or a small window of its own.", "**Edit forms:** \"Create\" for a new entry, \"Save\" for an existing one; saving never creates a copy.", "**Availability:** \"Reachable if urgent\" merged into \"Reachable if needed\"; the public comment, shown in red in the form, is visible to the team, also in the tooltips of the absence charts.", "**Website:** German version of the pages, FAQ, changelog and guides at projectforge.org/de.", "**Invoices:** an invoice with deleted positions only can be deleted and restored again." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ "Website: German version of the pages, the FAQ, the changelog and the user, administration and quick start guides at [projectforge.org/de](https://projectforge.org/de/), with a language switch; the help link of the search field opens the German user guide for German users." ]

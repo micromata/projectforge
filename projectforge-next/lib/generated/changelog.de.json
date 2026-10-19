@@ -5,6 +5,8 @@
     "version" : "9.0.9",
     "date" : "2026-10-19",
     "title" : "Noch nicht veröffentlicht",
+    "summary" : [ "**Mitarbeiter:innen** und **Kost-Suche** migriert", "Deutsche **Website**", "Getrenntes „Anlegen“ und „Speichern“ in Bearbeitungsformularen", "Verfügbarkeit: nur noch „Bei Bedarf erreichbar“, öffentlicher Kommentar fürs Team" ],
+    "overview" : [ "**Mitarbeiter:innen:** Liste und Formular in der neuen Oberfläche; Status, Wochenstunden und Urlaubstage in Dialogen bearbeitet.", "**Kost-Suche:** in der neuen Oberfläche, auch als verschiebbares Fenster auf jeder Seite (Alt+K) oder als kleines eigenes Fenster.", "**Bearbeitungsformulare:** „Anlegen“ für einen neuen Eintrag, „Speichern“ für einen bestehenden; Speichern legt nie eine Kopie an.", "**Verfügbarkeit:** „Bei dringendem Bedarf erreichbar“ in „Bei Bedarf erreichbar“ aufgegangen; der öffentliche Kommentar, im Formular in Rot, ist fürs Team sichtbar, auch in den Tooltips der Abwesenheitsdiagramme.", "**Website:** deutsche Fassung der Seiten, FAQ, des Changelogs und der Handbücher unter projectforge.org/de.", "**Rechnungen:** Eine Rechnung nur mit gelöschten Positionen lässt sich wieder löschen und wiederherstellen." ],
     "sections" : [ {
       "type" : "added",
       "items" : [ "Website: deutsche Fassung der Seiten, der FAQ, des Changelogs und des Benutzer-, Administrations- und Schnellstart-Handbuchs unter [projectforge.org/de](https://projectforge.org/de/), mit Sprachumschalter; der Hilfe-Link des Suchfelds öffnet für deutschsprachige Benutzer das deutsche Benutzerhandbuch." ]

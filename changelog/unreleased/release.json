@@ -1,0 +1,34 @@
+{
+  "summary": {
+    "en": [
+      "**Employees** and **cost search** migrated",
+      "German **website**",
+      "Separate \"Create\" and \"Save\" in edit forms",
+      "Availability: \"Reachable if needed\" only, public comment for the team"
+    ],
+    "de": [
+      "**Mitarbeiter:innen** und **Kost-Suche** migriert",
+      "Deutsche **Website**",
+      "Getrenntes „Anlegen“ und „Speichern“ in Bearbeitungsformularen",
+      "Verfügbarkeit: nur noch „Bei Bedarf erreichbar“, öffentlicher Kommentar fürs Team"
+    ]
+  },
+  "overview": {
+    "en": [
+      "**Employees:** list and form in the new interface; status, weekly hours and leave days edited in dialogs.",
+      "**Cost search:** in the new interface, also as a movable panel on every page (Alt+K) or a small window of its own.",
+      "**Edit forms:** \"Create\" for a new entry, \"Save\" for an existing one; saving never creates a copy.",
+      "**Availability:** \"Reachable if urgent\" merged into \"Reachable if needed\"; the public comment, shown in red in the form, is visible to the team, also in the tooltips of the absence charts.",
+      "**Website:** German version of the pages, FAQ, changelog and guides at projectforge.org/de.",
+      "**Invoices:** an invoice with deleted positions only can be deleted and restored again."
+    ],
+    "de": [
+      "**Mitarbeiter:innen:** Liste und Formular in der neuen Oberfläche; Status, Wochenstunden und Urlaubstage in Dialogen bearbeitet.",
+      "**Kost-Suche:** in der neuen Oberfläche, auch als verschiebbares Fenster auf jeder Seite (Alt+K) oder als kleines eigenes Fenster.",
+      "**Bearbeitungsformulare:** „Anlegen“ für einen neuen Eintrag, „Speichern“ für einen bestehenden; Speichern legt nie eine Kopie an.",
+      "**Verfügbarkeit:** „Bei dringendem Bedarf erreichbar“ in „Bei Bedarf erreichbar“ aufgegangen; der öffentliche Kommentar, im Formular in Rot, ist fürs Team sichtbar, auch in den Tooltips der Abwesenheitsdiagramme.",
+      "**Website:** deutsche Fassung der Seiten, FAQ, des Changelogs und der Handbücher unter projectforge.org/de.",
+      "**Rechnungen:** Eine Rechnung nur mit gelöschten Positionen lässt sich wieder löschen und wiederherstellen."
+    ]
+  }
+}
