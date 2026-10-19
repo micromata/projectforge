@@ -1,0 +1,29 @@
+---
+layout: page
+width: xsmall
+title: Über uns
+permalink: /de/about/
+---
+:hide-uri-scheme:
+
+ProjectForge® wird von Micromata entwickelt und ist dort seit 2001 täglich im Einsatz.
+
+Kai Reinhard +
+Micromata GmbH +
+Marie-Calm-Str. 1-5 +
+34131 Kassel +
+Deutschland
+
+https://www.projectforge.org
+
+Copyright 2001-2026© Kai Reinhard. Alle Rechte vorbehalten.
+
+ProjectForge® ist eine eingetragene Marke von Kai Reinhard.
+
+Die Inhalte dieser Website sind urheberrechtlich geschützt. Für alle Fotos gelten Nutzungsrechte. Die Vervielfältigung oder Weitergabe von Texten oder Fotos, ganz oder in Teilen, ist ohne schriftliche Genehmigung des Rechteinhabers nicht gestattet.
+Konzept, Gestaltung, Aufbau und Programmierung der Website unterliegen dem Urheberrecht und dürfen ohne schriftliche Genehmigung des Rechteinhabers weder ganz noch in Teilen nachgedruckt, vervielfältigt oder in sonstiger Weise verwendet werden.
+Die Inhalte dieser Website dürfen weder verändert noch verbreitet werden. Ebenso ist es nicht gestattet, sie zu kommerziellen Zwecken zu kopieren oder zu vervielfältigen.
+
+Kai Reinhard ist nicht verantwortlich für die Inhalte externer Websites, auf die verlinkt wird.
+
+Siehe auch link:/misc/imprint.html[Impressum], link:/misc/terms-of-use.html[Nutzungsbedingungen] und link:/misc/privacy-policy.html[Datenschutzerklärung].

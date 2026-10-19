@@ -1,0 +1,65 @@
+---
+layout: page
+width: expand
+permalink: /de/
+description: "Das Open-Source-Backoffice für projektgetriebene Unternehmen: Projekte, Zeit, Personal und Geld an einem Ort. Selbst gehostet, gemacht für DACH und die EU."
+hero:
+    title: Vom Auftrag bis zur Rechnung – ein Ort für Projekte, Zeit, Personal und Geld.
+    subtitle: ProjectForge ist das Open-Source-Backoffice für projektgetriebene Unternehmen. Selbst gehostet, gemacht für DACH und die EU, kostenlos und ohne Einschränkungen.
+    images:
+      - src: screenshots/2026-OrderBook.png
+        alt: Das Auftragsbuch mit Budgets und Fakturierungsstand
+      - src: screenshots/2026-Calendar.png
+        alt: Der Teamkalender mit Terminen und Urlauben
+      - src: screenshots/2026-Dark.png
+        alt: Der Umsatz-Forecast im dunklen Design
+    buttons:
+      - title: Download
+        url: /de/download/
+        style: primary
+      - title: Alle Funktionen ansehen
+        url: /de/features/
+        style: outline
+    note: Open Source (GPLv3) · Im täglichen Einsatz seit 2001 · Deutsch & Englisch
+---
+:page-liquid:
+
+++++
+{% include boxes.html columns="3" title="Warum ProjectForge?" subtitle="Projekte und Aufträge planen, Zeiten in Sekunden buchen lassen, Urlaube verwalten, E-Rechnungen schreiben und Forecast und Liquidität im Blick behalten – alles in einer Web-App auf dem eigenen Server." %}
+++++
+
+++++
+{% include boxes.html data="home_flow" columns="5" tone="muted" id="how-it-fits-together" title="So greift alles ineinander" subtitle="Ein Ablauf, eine Datenbank – vom ersten Angebot bis zum letzten Euro auf dem Konto." %}
+++++
+
+++++
+{% include boxes.html data="home_features" columns="3" id="features" title="Was drinsteckt" subtitle="Alles, was ein Dienstleister zwischen Vertrieb und Buchhaltung braucht." %}
+++++
+
+++++
+{% include cta.html tone="plain" button_text="Alle Funktionen ansehen" button_url="/de/features/" button_style="outline" %}
+++++
+
+++++
+{% include text-section.html key="dach" background="muted" %}
+++++
+
+++++
+{% include text-section.html key="security" %}
+++++
+
+++++
+{% include text-section.html key="proof" background="muted" %}
+++++
+
+++++
+{% include text-section.html key="services" %}
+++++
+
+++++
+{% include faqs.html multiple="true" id="faq" title="Häufige Fragen" category="faq-main" subtitle="Schnelle Antworten vor dem Start" %}
+++++
+
+++++
+{% include cta.html title="In fünf Minuten startklar." subtitle="Docker-Image holen, starten, dem Einrichtungsassistenten folgen. Das war's." button_text="ProjectForge herunterladen" button_url="/de/download/" %}
+++++

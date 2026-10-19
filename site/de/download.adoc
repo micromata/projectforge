@@ -1,0 +1,20 @@
+---
+layout: page
+width: expand
+title: Download
+description: "ProjectForge als Docker-Image, ausführbares JAR oder Quellcode herunterladen – Open Source und kostenlos, mit allen Funktionen und ohne Benutzerlimit."
+hero:
+    title: Download
+    subtitle: ProjectForge ist Open Source und kostenlos – mit allen Funktionen und ohne Benutzerlimit. Einfach den passenden Weg wählen.
+permalink: /de/download/
+---
+:page-liquid:
+
+++++
+{% include boxes.html data="download_options" columns="3" title="ProjectForge holen" %}
+{% include text-section.html data="download_sections" key="next_steps" %}
+{% include text-section.html data="download_sections" key="updates" background="muted" %}
+{% include text-section.html data="download_sections" key="translations" %}
+{% include text-section.html data="download_sections" key="archive" background="muted" %}
+{% include cta.html tone="plain" title="Lieber betreiben lassen?" subtitle="Hosting und professionelle Services gibt es auf Anfrage." button_text="Professionelle Services" button_url="/de/services/" button2_text="Schnellstart" button2_url="/de/docs/quickstart/" %}
+++++
