@@ -172,8 +172,10 @@ https://github.com/micromata/projectforge/blob/master/projectforge-business/src/
 
 Administratoren bearbeiten die `projectforge.properties` auf der Seite *Administration -> System* (Menü
 _Konfiguration_ -> _Konfigurationsdatei_). Der Editor zeigt alle Parameter der `application.properties` nach Themen
-gruppiert mit ihren Beschreibungen und Standardwerten, die ProjectForge unbekannten Parameter der eigenen
-Datei in der Gruppe _Other_. Passwörter, Schlüssel und Tokens werden nie angezeigt: Ein Geheimnis kann
+gruppiert mit ihren Beschreibungen und Standardwerten. Parameter der eigenen Datei, die ProjectForge nicht kennt, sind
+gekennzeichnet: Die im Namensraum von ProjectForge (`projectforge.*`, `pf.*`) werden nicht mehr verwendet (oder sind
+vertippt) und stehen in der Gruppe _Nicht mehr verwendet_, wo sie sich auf einmal entfernen lassen; andere (z. B.
+Einstellungen von Spring Boot) in der Gruppe _Sonstige_. Passwörter, Schlüssel und Tokens werden nie angezeigt: Ein Geheimnis kann
 nur mit einem neuen Wert überschrieben werden.
 
 * Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt

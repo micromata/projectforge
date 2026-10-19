@@ -14,12 +14,16 @@ import type { PropertyGroup } from "@/lib/rs/properties-editor";
 import { cn } from "@/lib/utils";
 import {
   isEffectiveEdit,
-  OTHER_GROUP_ID,
   type PropertyEdit,
   type PropertyEdits,
 } from "./properties-editor-model";
 import { PropertyDescription } from "./property-description";
 import { PropertyRow } from "./property-row";
+import { PropertyStatusPills } from "./property-status-pills";
+import {
+  UndocumentedGroupInfo,
+  useGroupTitle,
+} from "./undocumented-group-info";
 
 /**
  * One group (topic) of parameters, collapsed until opened; opened while searching or filtering, so
@@ -48,6 +52,7 @@ export function PropertyGroupSection({
     isEffectiveEdit(param, edits[param.key])
   ).length;
   const expanded = open || forceOpen;
+  const title = useGroupTitle(group);
 
   return (
     <Collapsible
@@ -64,7 +69,8 @@ export function PropertyGroupSection({
             expanded && "rotate-90"
           )}
         />
-        <span className="font-medium">{group.title}</span>
+        <span className="font-medium">{title}</span>
+        <PropertyStatusPills params={params} edits={edits} />
         <span className="text-xs text-muted-foreground">
           {inFile > 0 &&
             t("system.propertiesEditor.inFileCount", { arg0: inFile })}
@@ -81,11 +87,12 @@ export function PropertyGroupSection({
             {t("system.propertiesEditor.expertWarning")}
           </FormAlert>
         )}
-        {group.id === OTHER_GROUP_ID && (
-          <p className="text-sm text-muted-foreground">
-            {t("system.propertiesEditor.otherInfo")}
-          </p>
-        )}
+        <UndocumentedGroupInfo
+          group={group}
+          edits={edits}
+          onEdit={onEdit}
+          readOnly={readOnly}
+        />
         {group.blocks.map((block) => (
           <div key={block.params[0].key} className="flex flex-col gap-1">
             {block.description && (

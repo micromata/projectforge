@@ -2,21 +2,30 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { RotateLeft01Icon, Undo02Icon } from "@hugeicons/core-free-icons";
+import {
+  Delete02Icon,
+  RotateLeft01Icon,
+  Undo02Icon,
+} from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldHint } from "@/components/shared/form/field-hint";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { PropertyParam } from "@/lib/rs/properties-editor";
-import { isEffectiveEdit, type PropertyEdit } from "./properties-editor-model";
+import {
+  isEffectiveEdit,
+  isUndocumented,
+  type PropertyEdit,
+} from "./properties-editor-model";
 import { hasPropertyInfo, PropertyInfo } from "./property-info";
 import { PropertyValueInput } from "./property-value-input";
 
 /**
  * One parameter on one line: key with its explanation behind an info icon (see [PropertyInfo]), the
- * input, undo / reset to default. Below it only what needs attention: the running system uses another
- * value than the file (restart pending, or overridden by the environment).
+ * input, undo / reset to default (an undocumented key has no default, it is deleted). Below it only
+ * what needs attention: the running system uses another value than the file (restart pending, or
+ * overridden by the environment).
  */
 export function PropertyRow({
   param,
@@ -35,6 +44,7 @@ export function PropertyRow({
   const removed = edit?.kind === "remove";
   const modified = isEffectiveEdit(param, edit);
   const canReset = param.inFile && !removed && !readOnly;
+  const undocumented = isUndocumented(param);
 
   return (
     <div className="grid gap-1 py-1.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_4.5rem] sm:items-center sm:gap-3">
@@ -72,9 +82,17 @@ export function PropertyRow({
         )}
         {canReset && (
           <RowAction
-            icon={RotateLeft01Icon}
-            label={t("system.propertiesEditor.reset._")}
-            hint={t("system.propertiesEditor.reset.tooltip")}
+            icon={undocumented ? Delete02Icon : RotateLeft01Icon}
+            label={
+              undocumented
+                ? t("system.propertiesEditor.delete")
+                : t("system.propertiesEditor.reset._")
+            }
+            hint={
+              undocumented
+                ? t("system.propertiesEditor.deleteInfo")
+                : t("system.propertiesEditor.reset.tooltip")
+            }
             onClick={() => onEdit({ kind: "remove" })}
           />
         )}

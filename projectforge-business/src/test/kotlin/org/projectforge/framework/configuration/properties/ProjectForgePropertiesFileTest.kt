@@ -134,6 +134,29 @@ class ProjectForgePropertiesFileTest {
     }
 
     @Test
+    fun `removing an undocumented key deletes it with its comment`() {
+        val content = """
+            # Old option
+            pf.config.compileCss=false
+            # Own Spring setting
+            springdoc.api-docs.enabled=false
+            projectforge.einvoice.seller.bankAccounts[2].iban=DE00
+        """.trimIndent()
+        val result = writer.write(
+            content,
+            listOf(
+                PropertyChange("pf.config.compileCss", remove = true),
+                PropertyChange("springdoc.api-docs.enabled", remove = true),
+                PropertyChange("projectforge.einvoice.seller.bankAccounts[2].iban", remove = true),
+            )
+        )
+        assertFalse(result.contains("compileCss") || result.contains("Old option"), result)
+        assertFalse(result.contains("springdoc") || result.contains("Own Spring setting"), result)
+        // A variant of a documented key is commented out like a documented one.
+        assertTrue(result.contains("#projectforge.einvoice.seller.bankAccounts[2].iban=DE00"), result)
+    }
+
+    @Test
     fun `the initial template survives a write`() {
         val initial = String(javaClass.getResourceAsStream("/initialBaseDirFiles/initialProjectForge.properties")!!.readBytes(), Charsets.ISO_8859_1)
         val result = writer.write(initial, emptyList())
