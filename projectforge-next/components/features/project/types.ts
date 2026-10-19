@@ -64,9 +64,11 @@ export interface ProjectDetail {
   konto?: RefDto | null;
   task?: ProjectTaskDto | null;
   projektManagerGroup?: RefDto | null;
-  projectManager?: RefDto | null;
-  headOfBusinessManager?: RefDto | null;
-  salesManager?: RefDto | null;
+  contactPerson?: RefDto | null;
+  /** The further contact persons next to `contactPerson` (`Project.additionalContacts`). */
+  additionalContacts?: RefDto[] | null;
+  /** The contact person and the further ones, full names, for the list column only. */
+  assignedPersons?: string | null;
   /** Digit 1 of the project's Kost2 (computed from the project number, absent for a free one). Read-only. */
   nummernkreis?: number | null;
   /** Digits 2-4 of the project's Kost2 (storage format of Kost2DO). Read-only. */

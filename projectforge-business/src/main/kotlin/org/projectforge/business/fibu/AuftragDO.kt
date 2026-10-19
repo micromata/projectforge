@@ -29,8 +29,6 @@ import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.common.StringHelper2
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
@@ -149,14 +147,13 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     open val additionalContactUserIdList: List<Long>
         @Transient
-        get() = StringHelper2.splitToListOfLongValues(additionalContactUserIds)
+        get() = ContactUserIds.toList(additionalContactUserIds)
 
     /**
      * True if the given user is the [contactPerson] or one of the [additionalContactUserIds].
      */
     open fun isContact(userId: Long?): Boolean {
-        userId ?: return false
-        return contactPerson?.id == userId || additionalContactUserIdList.contains(userId)
+        return ContactUserIds.isContact(contactPerson?.id, additionalContactUserIds, userId)
     }
 
     @PropertyInfo(i18nKey = "fibu.kunde")
@@ -395,23 +392,14 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     val assignedPersons: String
         @Transient
-        get() {
-            val result = ArrayList<String>()
-            addUser(result, contactPerson?.id)
-            additionalContactUserIdList.forEach { addUser(result, it) }
-            return result.joinToString("; ")
-        }
+        get() = ContactUserIds.fullNames(contactPerson?.id, additionalContactUserIds)
 
     /**
      * The full names of the additional contacts, "; " separated.
      */
     open val additionalContactsAsString: String
         @Transient
-        get() {
-            val result = ArrayList<String>()
-            additionalContactUserIdList.forEach { addUser(result, it) }
-            return result.joinToString("; ")
-        }
+        get() = ContactUserIds.fullNames(null, additionalContactUserIds)
 
     /**
      * Must be calculated before use.
@@ -453,10 +441,6 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
             }
             return if (status != null) I18nHelper.getLocalizedMessage(status!!.i18nKey) else null
         }
-
-    private fun addUser(result: ArrayList<String>, userId: Long?) {
-        UserGroupCache.getInstance().getUser(userId)?.let { result.add(it.getFullname()) }
-    }
 
     /**
      * @param number

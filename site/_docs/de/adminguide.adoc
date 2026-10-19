@@ -504,17 +504,19 @@ Ein Projekt eines Nummernkreises erhält eine 6-stellige Projektnummer, seine Ko
 2-stelligen Kost2-Art:
 
 ----
-project number = prefix * 100000 + (customer - customer-min) * 10^project-digits + project
+project number = prefix * 100000 + (customer mod 10^(5 - project-digits)) * 10^project-digits + project
 project number = prefix * 100000 + project                      (range without customers)
 Kost2          = project number * 100 + Kost2 type
 ----
 
-Beispiel: Nummernkreis 1 mit den Kunden 10000-19999, 1 Projektstelle und den Segmenten `1,4,1,2`. Projekt 3 des Kunden
-10007 hat die Projektnummer 100073 (angezeigt als `1.0007.3`), seine Kost2 der Art 02 ist `1.0007.3.02`.
+Die Kundennummer selbst ist Teil der Projektnummer: ihre letzten `5 - project-digits` Stellen, unabhängig von
+`customer-min`. Beispiel: Nummernkreis 1 mit den Kunden 10000-19999 (oder 10001-19999), 1 Projektstelle und den
+Segmenten `1,4,1,2`. Projekt 3 des Kunden 10007 hat die Projektnummer 100073 (angezeigt als `1.0007.3`), seine Kost2 der
+Art 02 ist `1.0007.3.02`. Kunde 123 des Nummernkreises 5 (Kunden 0-999, 2 Projektstellen) erhält `5.123.xx`.
 
-Alle Kunden eines Nummernkreises mit all ihren Projekten müssen in die 5 Stellen nach dem Präfix passen:
-`(customer-max - customer-min + 1) * 10^project-digits <= 100000`. Ein Nummernkreis mit den Kunden 0-999 erlaubt daher
-höchstens 2 Projektstellen (100 Projekte je Kunde), ein Nummernkreis mit 10000 Kunden höchstens 1 Projektstelle.
+Alle Kunden eines Nummernkreises müssen daher die Stellen vor diesen letzten Stellen gemeinsam haben: Ein Nummernkreis
+mit 2 Projektstellen umfasst höchstens die 1000 Kunden eines Blocks wie 0-999 (100 Projekte je Kunde), einer mit
+1 Projektstelle höchstens die 10000 Kunden eines Blocks wie 10000-19999.
 
 *Datei:* `projectforge.properties`:
 
@@ -557,6 +559,26 @@ projectforge.fibu.number-ranges.allow-free-numbers=false
   Segmentierung ihres Nummernkreises (z. B. `1.*` für `1.####.#.##`). Mit
   `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` zählt die auf Kost2 von Kundenprojekten mit einer
   fakturierten Kost2-Art gebuchte Zeit als abgerechnet, unabhängig von den Ziffern.
+
+[[group_nomenclature]]
+=== Nomenklatur der Gruppen
+
+Der Konfigurationsparameter *Nomenklatur der Gruppen* (`groupNomenclature`, Kategorie Finanzen) beschreibt, wie
+Gruppen benannt werden. Er ist eine Beschreibung, keine Regel: Projekt- und Strukturelement-Assistent schlagen die
+Namen neuer Gruppen danach vor, und die Beschreibung wird am Namen einer Gruppe und in den Assistenten angezeigt;
+geprüft wird kein Name.
+
+* *Beschreibung*: Rich Text, der die Konvention erläutert.
+* *Muster des Basisnamens* der Gruppen eines Projekts, mit den Platzhaltern `+{customer.identifier}+`,
+  `+{customer.name}+`, `+{customer.number}+`, `+{project.identifier}+`, `+{project.name}+` und `+{project.number}+`.
+  Ein leerer Kurzbezeichner wird durch den Namen ersetzt. Leer: der Name des Projekts.
+* *Endungen* der Gruppen für Management, Team und Externe, mit Bindestrich angehängt. Leer: die Vorgabe des
+  Assistenten (`pm`, keine, `extern`).
+* *Groß-/Kleinschreibung* des ganzen vorgeschlagenen Namens: unverändert, klein oder groß.
+
+Beispiel: Muster `+{customer.identifier}-{project.identifier}+`, Endungen `pm` und `extern`, Kleinschreibung ergeben
+`acme-portal-pm`, `acme-portal` und `acme-portal-extern`. Der Strukturelement-Assistent nimmt das Muster, wenn das
+gewählte Element zu einem Projekt gehört, sonst den Titel des Elements.
 
 [[business_assessment_bwa]]
 === Betriebswirtschaftliche Auswertung / BWA

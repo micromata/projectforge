@@ -159,14 +159,13 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
             }
             obj.projekt?.let { projektRef ->
                 // The next/REST layer checks this against the posted order, whose projekt is a stub
-                // carrying only its id (Auftrag.copyTo), so its projektManagerGroup and the two managers
+                // carrying only its id (Auftrag.copyTo), so its projektManagerGroup and its contacts
                 // are null there. Resolve the full project from the cache by id, or the project manager
                 // access path would silently fail in the next frontend while it works from Wicket's fully
-                // loaded entity (contact person still matches, as it is compared by id alone).
+                // loaded entity (the order's own contact person still matches, as it is compared by id alone).
                 val projekt = ProjektCache.instance.getProjekt(projektRef.id) ?: projektRef
                 if (userGroupCache.isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
-                    || projekt.headOfBusinessManagerId == user.id
-                    || projekt.salesManagerId == user.id
+                    || projekt.isContact(user.id)
                 ) {
                     hasAccess = true
                 }

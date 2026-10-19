@@ -470,12 +470,10 @@ open class ContributionMarginService {
     return userGroupCache.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
   }
 
-  /** As the project manager access of the order book (`AuftragRight`), plus the project manager himself. */
+  /** As the project manager access of the order book (`AuftragRight`): the manager group or a project contact. */
   private fun isOwnProject(user: PFUserDO, project: ProjektDO): Boolean {
     return userGroupCache.isUserMemberOfGroup(user.id, project.projektManagerGroupId)
-        || project.projectManagerId == user.id
-        || project.headOfBusinessManagerId == user.id
-        || project.salesManagerId == user.id
+        || project.isContact(user.id)
   }
 
   private fun queryFilter(): QueryFilter {

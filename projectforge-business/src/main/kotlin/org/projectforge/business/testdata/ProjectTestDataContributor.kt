@@ -24,6 +24,7 @@
 
 package org.projectforge.business.testdata
 
+import org.projectforge.business.fibu.ContactUserIds
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
@@ -111,8 +112,8 @@ open class ProjectTestDataContributor : TestDataContributor {
                 it.kunde = kunde
                 it.status = ProjektStatus.BUILD
                 it.task = projectTask
-                it.projectManager = ctx.user("joe")
-                it.headOfBusinessManager = ctx.user("laura")
+                it.contactPerson = ctx.user("joe")
+                it.additionalContactUserIds = ContactUserIds.normalize(it.contactPerson?.id, listOf(ctx.user("laura").id))
             }
             projektDao.insert(projekt, checkAccess = false)
             ctx.projekte[p.name] = projekt

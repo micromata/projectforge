@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
@@ -36,7 +37,9 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.json.IdOnlySerializer
+import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -79,6 +82,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
     ), jakarta.persistence.Index(
         name = "idx_fk_t_fibu_projekt_salesmanager_fk",
         columnList = "salesmanager_fk"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_contact_person_fk",
+        columnList = "contact_person_fk"
     ), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk")]
 )
 // @WithHistory
@@ -171,28 +177,77 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var projektManagerGroup: GroupDO? = null
 
-    @PropertyInfo(i18nKey = "fibu.projectManager")
+    /**
+     * The main contact person of the project. The contacts (see [isContact]) have access to the project, its orders
+     * and invoices.
+     */
+    @PropertyInfo(i18nKey = "contactPerson")
     @IndexedEmbedded(includeDepth = 1)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "projectmanager_fk")
+    @get:JoinColumn(name = "contact_person_fk", nullable = true)
     @JsonSerialize(using = IdOnlySerializer::class)
+    open var contactPerson: PFUserDO? = null
+
+    /**
+     * Further contact persons next to the main [contactPerson], as comma separated user ids, with the same access.
+     * Replaces the former [projectManager], [headOfBusinessManager] and [salesManager] (migrated by V9_0_11_2).
+     */
+    @PropertyInfo(i18nKey = "additionalContacts")
+    @get:Column(name = "additional_contact_user_ids", length = 4000)
+    open var additionalContactUserIds: String? = null
+
+    /**
+     * The ids of [additionalContactUserIds].
+     */
+    open val additionalContactUserIdList: List<Long>
+        @Transient
+        get() = ContactUserIds.toList(additionalContactUserIds)
+
+    /**
+     * True if the given user is the [contactPerson] or one of the [additionalContactUserIds].
+     */
+    open fun isContact(userId: Long?): Boolean {
+        return ContactUserIds.isContact(contactPerson?.id, additionalContactUserIds, userId)
+    }
+
+    /**
+     * The full names of the contact person and the additional contacts, "; " separated.
+     */
+    val assignedPersons: String
+        @Transient
+        get() = ContactUserIds.fullNames(contactPerson?.id, additionalContactUserIds)
+
+    // The three managers of a project are replaced by the contacts above (migrated by V9_0_11_2), as for orders
+    // (see AuftragDO). Their columns are kept in the database as they were, read-only: never written
+    // (insertable/updatable = false), never copied on update (CandHIgnore). Still mapped, so that their old history
+    // entries keep their labels and types.
+
+    @Deprecated("Replaced by contactPerson and additionalContactUserIds, read-only legacy column.")
+    @PropertyInfo(i18nKey = "fibu.projectManager")
+    @NoHistory
+    @CandHIgnore
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "projectmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var projectManager: PFUserDO? = null
 
+    @Deprecated("Replaced by contactPerson and additionalContactUserIds, read-only legacy column.")
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
-    @IndexedEmbedded(includeDepth = 1)
-    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @NoHistory
+    @CandHIgnore
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "headofbusinessmanager_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
+    @get:JoinColumn(name = "headofbusinessmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var headOfBusinessManager: PFUserDO? = null
 
+    @Deprecated("Replaced by contactPerson and additionalContactUserIds, read-only legacy column.")
     @PropertyInfo(i18nKey = "fibu.salesManager")
-    @IndexedEmbedded(includeDepth = 1)
-    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
+    @NoHistory
+    @CandHIgnore
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "salesmanager_fk")
-    @JsonSerialize(using = IdOnlySerializer::class)
+    @get:JoinColumn(name = "salesmanager_fk", insertable = false, updatable = false)
+    @JsonIgnore
     open var salesManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
@@ -246,18 +301,6 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     val projektManagerGroupId: Long?
         @Transient
         get() = if (projektManagerGroup != null) projektManagerGroup!!.id else null
-
-    val projectManagerId: Long?
-        @Transient
-        get() = if (projectManager != null) projectManager!!.id else null
-
-    val headOfBusinessManagerId: Long?
-        @Transient
-        get() = if (headOfBusinessManager != null) headOfBusinessManager!!.id else null
-
-    val salesManagerId: Long?
-        @Transient
-        get() = if (salesManager != null) salesManager!!.id else null
 
     /**
      * @return Identifier if exists otherwise name of project.

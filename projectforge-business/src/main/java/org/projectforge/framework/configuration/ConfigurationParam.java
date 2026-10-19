@@ -87,6 +87,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   FIBU_FORECAST("fibu.forecast", ConfigurationType.JSON), //
   /**
+   * The naming convention of groups as JSON object (description, pattern of the base name, role suffixes), see
+   * {@code GroupNomenclatureConfig}. Only a description: the wizards suggest names following it.
+   */
+  GROUP_NOMENCLATURE("groupNomenclature", ConfigurationType.JSON), //
+  /**
    * Note on the time sheet edit page regarding the savings by AI (rich text, see {@link #isRichText()}).
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
@@ -248,6 +253,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case CUSTOMER_GROUPS:
       case LANES_AND_PLANES:
       case FIBU_FORECAST:
+      case GROUP_NOMENCLATURE:
         return ConfigurationEditors.FINANCE;
       case TIMESHEET_OVERLAP_GROUPS:
         return ConfigurationEditors.CONTROLLING;
@@ -284,6 +290,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case FIBU_FORECAST:
       case CUSTOMER_GROUPS:
       case LANES_AND_PLANES:
+      case GROUP_NOMENCLATURE:
         return ConfigurationCategory.FINANCE;
       case TIMESHEET_TAGS:
       case TIMESHEET_OVERLAP_GROUPS:

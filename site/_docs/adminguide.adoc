@@ -488,17 +488,19 @@ range (Kost2 without project).
 A project of a range gets a 6-digit project number, its Kost2 are this number followed by the 2-digit Kost2 type:
 
 ----
-project number = prefix * 100000 + (customer - customer-min) * 10^project-digits + project
+project number = prefix * 100000 + (customer mod 10^(5 - project-digits)) * 10^project-digits + project
 project number = prefix * 100000 + project                      (range without customers)
 Kost2          = project number * 100 + Kost2 type
 ----
 
-Example: range 1 with the customers 10000-19999, 1 project digit and the segments `1,4,1,2`. Project 3 of customer
-10007 has the project number 100073 (shown as `1.0007.3`), its Kost2 of type 02 is `1.0007.3.02`.
+The customer number itself is part of the project number: its last `5 - project-digits` digits, whatever
+`customer-min` is. Example: range 1 with the customers 10000-19999 (or 10001-19999), 1 project digit and the segments
+`1,4,1,2`. Project 3 of customer 10007 has the project number 100073 (shown as `1.0007.3`), its Kost2 of type 02 is
+`1.0007.3.02`. Customer 123 of range 5 (customers 0-999, 2 project digits) gets `5.123.xx`.
 
-All customers of a range with all their projects must fit into the 5 digits after the prefix:
-`(customer-max - customer-min + 1) * 10^project-digits <= 100000`. A range with customers 0-999 therefore allows at most
-2 project digits (100 projects per customer), a range with 10000 customers at most 1 project digit.
+So all customers of a range must share the digits in front of those last digits: a range with 2 project digits holds
+at most the 1000 customers of one block like 0-999 (100 projects per customer), a range with 1 project digit at most
+the 10000 customers of one block like 10000-19999.
 
 *File:* `projectforge.properties`:
 
@@ -537,6 +539,25 @@ projectforge.fibu.number-ranges.allow-free-numbers=false
 * Invoicing quota (`projectforge.invoicing-quota.*`): the patterns apply to the Kost2 numbers as their range segments
   them (e.g. `1.*` for `1.####.#.##`). With `projectforge.invoicing-quota.billed-by-invoiced-kost2-types=true` the time
   booked on Kost2 of customer projects with an invoiced Kost2 type counts as billed, independent of the digits.
+
+[[group_nomenclature]]
+=== Group nomenclature
+
+The configuration parameter *Group nomenclature* (`groupNomenclature`, category finance) describes how groups are
+named. It is a description, not a rule: the project and structure wizards suggest the names of new groups following
+it, and its description is shown at the name of a group and in the wizards; no name is checked against it.
+
+* *Description*: rich text explaining the convention.
+* *Pattern of the base name* of a project's groups, with the placeholders `+{customer.identifier}+`,
+  `+{customer.name}+`, `+{customer.number}+`, `+{project.identifier}+`, `+{project.name}+` and `+{project.number}+`.
+  An empty identifier is replaced by the name. Empty: the project's name.
+* *Suffixes* of the manager, team and externals' groups, appended with a hyphen. Empty: the wizard's default
+  (`pm`, none, `extern`/`external`).
+* *Letter case* of the whole suggested name: unchanged, lower case or upper case.
+
+Example: pattern `+{customer.identifier}-{project.identifier}+`, suffixes `pm` and `extern`, lower case suggest
+`acme-portal-pm`, `acme-portal` and `acme-portal-extern`. The structure wizard uses the pattern if the picked element
+belongs to a project, otherwise the element's title.
 
 [[business_assessment_bwa]]
 === business assessment / BWA

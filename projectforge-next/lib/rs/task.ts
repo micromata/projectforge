@@ -29,6 +29,14 @@ export interface TaskProjekt {
   name?: string | null;
   /** The cost number without the two Kost2Art digits, e.g. `5.123.45` — shown as `<kost>.*`. */
   kost?: string | null;
+  /** Number, identifier and customer: what the access wizard builds its group names of. */
+  nummer?: number | null;
+  identifier?: string | null;
+  customer?: {
+    nummer?: number | null;
+    name?: string | null;
+    identifier?: string | null;
+  } | null;
 }
 
 /**
@@ -483,7 +491,8 @@ export interface AccessRight {
 export interface TaskWizardAccessEntry {
   groupName?: string | null;
   groupType: TaskWizardGroupType;
-  taskId: number;
+  /** Null for the element the project wizard is about to create. */
+  taskId: number | null;
   taskTitle?: string | null;
   /** True for the element the user picked, false for an ancestor that only got read access. */
   pickedElement: boolean;

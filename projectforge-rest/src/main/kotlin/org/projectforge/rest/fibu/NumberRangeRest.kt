@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KundeCache
@@ -118,7 +119,9 @@ class NumberRangeRest {
         if (!projektDao.hasLoggedInUserSelectAccess(throwException = false)) {
             return null
         }
-        val kunde = customerId?.let { kundeCache.getKunde(it) ?: return null }
+        // A customer not stored yet (the project wizard creates it with the project) has no projects, so all
+        // numbers of its range are free:
+        val kunde = customerId?.let { kundeCache.getKunde(it) ?: KundeDO().also { new -> new.nummer = it } }
         val numberRanges = numberRangeService.numberRanges
         val range = if (kunde != null) numberRanges.rangeForCustomer(kunde.nummer) else numberRanges.rangeWithoutCustomers
         range ?: return null

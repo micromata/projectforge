@@ -22,6 +22,12 @@ export const TASK_ROUTE = "/task";
 export const TASK_WIZARD_ROUTE = "/taskWizard";
 
 /**
+ * Route of the project wizard, which sets up customer, project, structure element, groups and their
+ * rights in one go. Here for the same reason as [TASK_WIZARD_ROUTE]: the tree's action bar names it.
+ */
+export const PROJECT_WIZARD_ROUTE = "/projectWizard";
+
+/**
  * The element the wizard opens on, as a parameter of its url — how the task's own form starts the
  * wizard for the element on screen (see TASK_PAGE.crossLinks).
  *

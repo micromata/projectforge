@@ -457,8 +457,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
                 .any { it.message?.contains(PROJEKTNUMMER_CONSTRAINT, ignoreCase = true) == true }
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
-            "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",
-            "salesManager.username", "salesManager.firstname", "salesManager.lastname",
+            "contactPerson.username", "contactPerson.firstname", "contactPerson.lastname",
         )
     }
 }

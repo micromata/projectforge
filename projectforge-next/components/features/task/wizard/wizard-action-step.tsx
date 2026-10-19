@@ -16,6 +16,8 @@ export interface WizardActionStepProps {
   isPending: boolean;
   onCancel: () => void;
   onFinish: () => void;
+  /** The text of the finish button, the structure wizard's by default. */
+  finishLabel?: string;
 }
 
 /** The last card of the wizard: what it is about to do, and the two buttons that decide it. */
@@ -25,6 +27,7 @@ export function WizardActionStep({
   isPending,
   onCancel,
   onFinish,
+  finishLabel,
 }: WizardActionStepProps) {
   const t = useTranslations();
   return (
@@ -56,7 +59,7 @@ export function WizardActionStep({
           ) : (
             <HugeiconsIcon icon={Tick02Icon} size={14} />
           )}
-          {t("task.wizard.finish")}
+          {finishLabel ?? t("task.wizard.finish")}
         </Button>
       </div>
     </SectionCard>

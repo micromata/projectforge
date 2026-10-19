@@ -23,7 +23,10 @@ export interface WizardPreviewColumn {
  * @param cells The entry per group, keyed by its role; a group that has no entry on this element has none.
  */
 export interface WizardPreviewRow {
-  taskId: number;
+  /** The row's id: the element's, or its place in the path for one that doesn't exist yet. */
+  key: string;
+  /** Null for an element the project wizard is about to create. */
+  taskId: number | null;
   taskTitle?: string | null;
   indent: number;
   pickedElement: boolean;
@@ -68,20 +71,33 @@ export function buildPreview(result: TaskWizardResult): WizardPreview {
     []
   );
   const rows: WizardPreviewRow[] = [...longest]
+    .map((entry, position) => ({ entry, key: rowKey(entry, position) }))
     .reverse()
-    .map((entry, index) => ({
+    .map(({ entry, key }, index) => ({
+      key,
       taskId: entry.taskId,
       taskTitle: entry.taskTitle,
       indent: index,
       pickedElement: entry.pickedElement,
       cells: {},
     }));
-  const byTaskId = new Map(rows.map((row) => [row.taskId, row]));
-  for (const entry of result.entries) {
-    const row = byTaskId.get(entry.taskId);
-    if (row) {
-      row.cells[entry.groupType] = entry;
-    }
+  const byKey = new Map(rows.map((row) => [row.key, row]));
+  for (const chain of chains.values()) {
+    chain.forEach((entry, position) => {
+      const row = byKey.get(rowKey(entry, position));
+      if (row) {
+        row.cells[entry.groupType] = entry;
+      }
+    });
   }
   return { columns, rows };
+}
+
+/**
+ * The key of an entry's row. The elements the project wizard is about to create have no id yet: they
+ * are the first of every chain (the project's, and a new customer's above it), so their place in it
+ * tells them apart and matches the groups onto one another.
+ */
+function rowKey(entry: TaskWizardAccessEntry, position: number): string {
+  return entry.taskId != null ? String(entry.taskId) : `new-${position}`;
 }
