@@ -29,6 +29,8 @@ interface Props {
   visible?: Attachment[];
   /** A search field at the end of the line (the table layout). */
   search?: React.ReactNode;
+  /** Nothing can be deleted: only the selection and its download remain (see AttachmentFiles). */
+  readOnly?: boolean;
 }
 
 /**
@@ -46,6 +48,9 @@ interface Props {
  * Deleting a file the user may not touch is not offered: `Attachment.readonly` marks those, and the
  * backend would silently skip them (`multiDelete` filters by access), leaving a partial result that
  * looks like a failure.
+ *
+ * Where the backend limits the size of a ZIP (`AttachmentService.maxZipSize`), a larger selection is
+ * not offered for download either, saying why.
  */
 export function AttachmentToolbar({
   attachments,
@@ -57,14 +62,20 @@ export function AttachmentToolbar({
   busy,
   visible = attachments,
   search,
+  readOnly,
 }: Props) {
   const t = useTranslations();
-  const { base, multiDownload } = useAttachmentService();
+  const { base, multiDownload, downloadAll, maxZipSize } =
+    useAttachmentService();
   const { selected } = selection;
   const allSelected = visible.length > 0 && selected.length === visible.length;
   const deletable = selected.filter((a) => a.readonly !== true);
   const fileIds = selected.map((a) => a.fileId);
   const allFileIds = attachments.map((a) => a.fileId);
+  const zipTooLarge =
+    maxZipSize != null &&
+    selected.reduce((sum, a) => sum + (a.size ?? 0), 0) > maxZipSize.bytes;
+  const downloadable = fileIds.length > 0 && !zipTooLarge;
 
   return (
     <div
@@ -104,25 +115,27 @@ export function AttachmentToolbar({
                 {/* Every file at once, without picking them first — the common case for a handful of
                     files. No `downloadAll` endpoint on the generic attachments API, so the ZIP is asked
                     for with the full list of ids (multiDownload with none means "empty", not "all"). */}
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1.5 text-[11px]"
-                >
-                  <a
-                    href={attachmentsDownloadUrl(
-                      entity,
-                      id,
-                      allFileIds,
-                      undefined,
-                      base
-                    )}
+                {downloadAll && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 text-[11px]"
                   >
-                    <HugeiconsIcon icon={Download01Icon} size={13} />
-                    {t("attachment.downloadAll")}
-                  </a>
-                </Button>
+                    <a
+                      href={attachmentsDownloadUrl(
+                        entity,
+                        id,
+                        allFileIds,
+                        undefined,
+                        base
+                      )}
+                    >
+                      <HugeiconsIcon icon={Download01Icon} size={13} />
+                      {t("attachment.downloadAll")}
+                    </a>
+                  </Button>
+                )}
                 {/* A link, not a fetch: the answer is the ZIP itself (see attachmentsDownloadUrl). With
                     nothing picked it is an anchor without href — `disabled` means nothing on one, so it
                     says so with `aria-disabled` and takes the button's own disabled look. */}
@@ -134,19 +147,20 @@ export function AttachmentToolbar({
                 >
                   <a
                     href={
-                      fileIds.length > 0
+                      downloadable
                         ? attachmentsDownloadUrl(
                             entity,
                             id,
                             fileIds,
                             undefined,
-                            base
+                            base,
+                            allFileIds
                           )
                         : undefined
                     }
-                    aria-disabled={fileIds.length === 0}
+                    aria-disabled={!downloadable}
                     className={cn(
-                      fileIds.length === 0 && "pointer-events-none opacity-50"
+                      !downloadable && "pointer-events-none opacity-50"
                     )}
                   >
                     <HugeiconsIcon icon={Download01Icon} size={13} />
@@ -155,19 +169,29 @@ export function AttachmentToolbar({
                 </Button>
               </>
             )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 gap-1.5 text-[11px] text-destructive hover:text-destructive"
-              disabled={busy || deletable.length === 0}
-              onClick={() => onDeleteSelected(deletable)}
-            >
-              <HugeiconsIcon icon={Delete01Icon} size={13} />
-              {/* `_`, since the key has a `confirm` subkey and so becomes a namespace. */}
-              {t("file.upload.deleteSelected._")}
-            </Button>
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-[11px] text-destructive hover:text-destructive"
+                disabled={busy || deletable.length === 0}
+                onClick={() => onDeleteSelected(deletable)}
+              >
+                <HugeiconsIcon icon={Delete01Icon} size={13} />
+                {/* `_`, since the key has a `confirm` subkey and so becomes a namespace. */}
+                {t("file.upload.deleteSelected._")}
+              </Button>
+            )}
           </div>
+          {/* A disabled link shows no tooltip, so the reason stands next to it. */}
+          {multiDownload && zipTooLarge && (
+            <span className="text-[11px] text-destructive">
+              {t("attachment.zipTooLarge", {
+                arg0: maxZipSize?.formatted ?? "",
+              })}
+            </span>
+          )}
           {search && <div className="ml-auto">{search}</div>}
         </>
       )}

@@ -8,6 +8,7 @@
  * [publicAttachmentService].
  */
 
+import type { QueryClient } from "@tanstack/react-query";
 import { rawRequest, request, RsError } from "./client";
 import type { Attachment, AttachmentService } from "./attachments";
 
@@ -26,9 +27,14 @@ export interface DataTransferPublicState {
   description?: string | null;
   externalDownloadEnabled?: boolean | null;
   externalUploadEnabled?: boolean | null;
+  /** The largest file that can still be uploaded, in bytes — the area's limit or what is left of its capacity. */
+  maxUploadSize?: number | null;
   maxUploadSizeFormatted?: string | null;
   /** All files as one ZIP, offered up to a gigabyte in total. */
   downloadAllAvailable?: boolean;
+  /** The same limit for a ZIP of selected files, in bytes. */
+  maxZipSize?: number;
+  maxZipSizeFormatted?: string;
   userInfo?: string | null;
   /** Without download access only the files uploaded in this session. */
   attachments?: Attachment[] | null;
@@ -107,14 +113,38 @@ export function dataTransferPublicDownloadAllUrl(id: number): string {
  */
 export function publicAttachmentService(
   token: string,
-  multiDownload: boolean
+  {
+    multiDownload,
+    maxFileSize,
+    maxZipSize,
+  }: Pick<AttachmentService, "multiDownload" | "maxFileSize" | "maxZipSize">,
+  queryClient: QueryClient
 ): AttachmentService {
+  const stateQueryKey = dataTransferPublicStateQueryKey(token);
   return {
     base: BASE,
-    fetchAttachments: async (_entity, _id, signal) =>
-      (await fetchDataTransferPublicState(token, signal)).attachments ?? [],
+    // The list is part of the state the page has just read: taken from its cache rather than asked for
+    // a second time (fetchQuery calls the backend only once the state is stale or invalidated).
+    fetchAttachments: async () =>
+      (
+        await queryClient.fetchQuery({
+          queryKey: stateQueryKey,
+          queryFn: ({ signal }) => fetchDataTransferPublicState(token, signal),
+        })
+      ).attachments ?? [],
     encryption: false,
     multiDownload,
+    // The page has a "download all" of its own, limited to a gigabyte
+    // (`DataTransferPublicServicesRest.isDownloadAllAvailable`).
+    downloadAll: false,
+    maxFileSize,
+    maxZipSize,
     userInfo: false,
+    // Mostly an expired session ("No valid login."): the state read again shows the login form then,
+    // otherwise the list is brought up to date.
+    onWriteError: () => {
+      void queryClient.invalidateQueries({ queryKey: stateQueryKey });
+      void queryClient.invalidateQueries({ queryKey: ["attachments"] });
+    },
   };
 }

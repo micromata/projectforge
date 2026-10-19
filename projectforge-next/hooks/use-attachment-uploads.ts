@@ -27,6 +27,8 @@ export interface UseAttachmentUploadsOptions {
   onResult: (result: AttachmentWriteResult, fileName: string) => void;
   /** Message for a transfer that never reached the backend (network, proxy, abort). */
   transferErrorMessage: string;
+  /** Message for a file larger than `AttachmentService.maxFileSize`, which is then not sent at all. */
+  tooLargeMessage?: string;
 }
 
 let nextJobId = 0;
@@ -47,9 +49,13 @@ let nextJobId = 0;
 export function useAttachmentUploads(
   entity: string,
   id: number | null,
-  { onResult, transferErrorMessage }: UseAttachmentUploadsOptions
+  {
+    onResult,
+    transferErrorMessage,
+    tooLargeMessage,
+  }: UseAttachmentUploadsOptions
 ) {
-  const { base } = useAttachmentService();
+  const { base, onWriteError, maxFileSize } = useAttachmentService();
   const [jobs, setJobs] = useState<UploadJob[]>([]);
   const controllers = useRef(new Map<number, AbortController>());
   /** Jobs cancelled before their turn came — [send] checks this instead of starting the transfer. */
@@ -98,30 +104,35 @@ export function useAttachmentUploads(
           setJobs((current) => current.filter((j) => j.id !== job.id));
         } else {
           patch(job.id, { state: "failed", error: transferErrorMessage });
+          onWriteError?.();
         }
       } finally {
         controllers.current.delete(job.id);
       }
     },
-    [base, entity, id, onResult, patch, transferErrorMessage]
+    [base, entity, id, onResult, onWriteError, patch, transferErrorMessage]
   );
 
   const enqueue = useCallback(
     (files: File[]) => {
       if (id == null || id <= 0 || files.length === 0) return;
-      const added = files.map((file) => ({
-        job: {
+      const added = files.map((file) => {
+        // Refused before the transfer: the backend would only say so once the whole file had arrived.
+        const tooLarge = maxFileSize != null && file.size > maxFileSize.bytes;
+        const job: UploadJob = {
           id: (nextJobId += 1),
           name: file.name,
           size: file.size,
           percent: null,
-          state: "queued" as const,
-        },
-        file,
-      }));
+          state: tooLarge ? "failed" : "queued",
+          error: tooLarge ? tooLargeMessage : undefined,
+        };
+        return { job, file };
+      });
       setJobs((current) => [...current, ...added.map((entry) => entry.job)]);
 
       added.forEach(({ job, file }) => {
+        if (job.state === "failed") return;
         const previous = chains.current.get(file.name);
         // `catch` on the predecessor: a failed upload must not keep the next one of that name from
         // being tried at all.
@@ -140,7 +151,7 @@ export function useAttachmentUploads(
         });
       });
     },
-    [id, send]
+    [id, maxFileSize, send, tooLargeMessage]
   );
 
   /** Cancels a running upload or drops a queued/failed one. */

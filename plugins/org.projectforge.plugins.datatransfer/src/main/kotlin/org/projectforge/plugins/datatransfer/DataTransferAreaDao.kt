@@ -26,6 +26,7 @@ package org.projectforge.plugins.datatransfer
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.user.service.UserService
@@ -47,7 +48,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileInfo
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -205,9 +205,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * @return null for an unknown token, also for one too short to be any area's (a mistyped link is no error).
+     */
     open fun getAnonymousArea(externalAccessToken: String?): DataTransferAreaDO? {
-        if (externalAccessToken?.length ?: 0 < ACCESS_TOKEN_LENGTH) {
-            throw IllegalArgumentException("externalAccessToken to short.")
+        if ((externalAccessToken?.length ?: 0) < ACCESS_TOKEN_LENGTH) {
+            return null
         }
         val dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_BY_EXTERNAL_ACCESS_TOKEN,
@@ -217,8 +220,12 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return dbo
     }
 
+    /**
+     * The external access in next (`next/public/datatransfer/<token>`). The legacy React page
+     * (`react/public/datatransfer/dynamic/<token>`) still serves links sent before.
+     */
     open fun getExternalBaseLinkUrl(): String {
-        return domainService.getDomain("${RestResolver.REACT_PUBLIC_PATH}/datatransfer/dynamic/")
+        return domainService.getDomain("${Constants.NEXT_APP_PATH}public/datatransfer/")
     }
 
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
@@ -327,7 +334,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
          */
         fun calculateMaxUploadFileSize(data: DataTransferAreaDO): Long {
             val used = data.attachmentsSize ?: 0
-            val freeCapacity = data.capacity - used
+            // A full area has no capacity left, not a negative one.
+            val freeCapacity = (data.capacity - used).coerceAtLeast(0)
             return minOf(freeCapacity, getMaxUploadFileSizeKB(data) * 1024L)
         }
 

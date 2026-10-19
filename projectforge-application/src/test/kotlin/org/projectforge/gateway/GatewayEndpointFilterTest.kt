@@ -84,9 +84,11 @@ class GatewayEndpointFilterTest {
         assertAllowed("/next/datatransfer/42/")
         assertAllowed("/next/datatransfer/new/edit/index.txt")
         assertAllowed("/next/datatransfer/personal-box/")
-        assertAllowed("/next/_next/static/chunks/main.js")
-        assertAllowed("/next/_next/static/media/font.woff2")
-        assertAllowed("/next/favicon.ico")
+        assertAllowed("/next/public/_next/static/chunks/main.js")
+        assertAllowed("/next/public/_next/static/media/font.woff2")
+        assertAllowed("/favicon.ico")
+        assertAllowed("/favicon.png")
+        assertAllowed("/apple-touch-icon.png")
         assertAllowed("/next/")
     }
 

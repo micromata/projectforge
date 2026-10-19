@@ -1,5 +1,5 @@
 {
   "type": "changed",
-  "en": "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. For now it runs in parallel to the previous page, to which the area's link still points. External users no longer see who uploaded the other files, and can no longer rename files of others.",
-  "de": "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Er läuft vorerst parallel zur bisherigen Seite, auf die der Link des Bereichs weiterhin zeigt. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen."
+  "en": "Data transfer: the external access of an area (login with the area's password, then its files) is also available in the new interface. The area's link now points there; the previous page still works for links sent before. External users no longer see who uploaded the other files, and can no longer rename files of others.",
+  "de": "Datentransfer: Der externe Zugang eines Bereichs (Anmeldung mit dem Passwort des Bereichs, danach dessen Dateien) ist auch in der neuen Oberfläche verfügbar. Der Link des Bereichs zeigt jetzt dorthin; die bisherige Seite funktioniert für früher verschickte Links weiterhin. Externe sehen nicht mehr, wer die anderen Dateien hochgeladen hat, und können keine fremden Dateien mehr umbenennen."
 }

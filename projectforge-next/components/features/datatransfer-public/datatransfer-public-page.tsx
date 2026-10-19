@@ -18,8 +18,8 @@ import { DataTransferPublicLogin } from "./datatransfer-public-login";
  * The external access of a data transfer area (`/next/public/datatransfer/<token>`), for someone
  * without a ProjectForge account: the login with the area's password, then its files.
  *
- * The legacy page (`/react/public/datatransfer/dynamic/<token>`) still runs in parallel, and the link
- * the area's owners pass on still points there.
+ * The link the area's owners pass on points here; the legacy page
+ * (`/react/public/datatransfer/dynamic/<token>`) still runs in parallel for links sent before.
  */
 export function DataTransferPublicPage({ token }: { token: string }) {
   const t = useTranslations();
@@ -45,7 +45,7 @@ export function DataTransferPublicPage({ token }: { token: string }) {
   if (isError) {
     return (
       <AuthCard title={t("plugins.datatransfer.title.heading")}>
-        <FormAlert tone="error">{t("validation.error.generic")}</FormAlert>
+        <FormAlert tone="error">{t("errorpage.title")}</FormAlert>
       </AuthCard>
     );
   }

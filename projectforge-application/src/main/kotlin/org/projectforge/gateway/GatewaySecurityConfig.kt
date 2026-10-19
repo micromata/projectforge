@@ -23,6 +23,7 @@
 
 package org.projectforge.gateway
 
+import org.projectforge.Constants
 import org.projectforge.security.OAuth2UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -57,10 +58,9 @@ open class GatewaySecurityConfig {
                     // Gateway sync API (authenticated via X-Gateway-Secret header)
                     .requestMatchers("/api/gateway/sync/**").permitAll()
                     // Static resources (incl. the assets of projectforge-next)
-                    .requestMatchers("/rsPublic/**", "/static/**", "/next/_next/**").permitAll()
+                    .requestMatchers("/rsPublic/**", "/static/**", "/${Constants.NEXT_PUBLIC_ASSETS_PATH}**").permitAll()
                     .requestMatchers(
                         "/favicon.ico", "/favicon.png", "/apple-touch-icon.png", "/icon-192.png", "/icon-512.png",
-                        "/next/favicon.ico", "/next/icon.png", "/next/apple-icon.png",
                     ).permitAll()
                     // Start, login and error pages (GatewayPageController), they show the login state themselves.
                     // "/next/login/" too: the app's own links carry the trailing slash (trailingSlash = true).

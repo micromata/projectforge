@@ -32,7 +32,7 @@ interface Props {
   attachments: Attachment[];
   entity: string;
   id: number;
-  /** Only downloads are offered — no selection, no rename, no delete. */
+  /** Only downloads are offered — no rename, no delete; a selection only for a ZIP of it. */
   readOnly?: boolean;
   /**
    * Adds the "add files" button to the toolbar — the embedded variant, where no permanent drop area
@@ -86,9 +86,12 @@ function LoadedAttachmentFiles({
     () => (asTable ? searchAttachments(attachments, search) : []),
     [asTable, attachments, search]
   );
+  // A read-only list still selects where several files can be downloaded as one ZIP: picking them is
+  // all the toolbar offers then.
+  const selectable = !readOnly || service.multiDownload;
   const columns = useMemo(
-    () => attachmentColumns(t, readOnly, service.userInfo),
-    [t, readOnly, service.userInfo]
+    () => attachmentColumns(t, readOnly, service.userInfo, selectable),
+    [t, readOnly, service.userInfo, selectable]
   );
   // Created here rather than in AttachmentTable: the selection works on the rows the table shows —
   // searched, filtered by column and sorted — so a Shift range follows the order on screen, "select all"
@@ -175,6 +178,7 @@ function LoadedAttachmentFiles({
       setEditing(null);
     } catch {
       toast.error(t("validation.error.generic"));
+      service.onWriteError?.();
     }
   }
 
@@ -205,12 +209,13 @@ function LoadedAttachmentFiles({
       selection.clear();
     } catch {
       toast.error(t("validation.error.generic"));
+      service.onWriteError?.();
     }
   }
 
   return (
     <>
-      {!readOnly && (
+      {selectable && (
         <AttachmentToolbar
           attachments={attachments}
           selection={selection}
@@ -221,10 +226,11 @@ function LoadedAttachmentFiles({
           onFiles={onFiles}
           visible={displayed}
           search={searchField}
+          readOnly={readOnly}
         />
       )}
-      {/* Without a toolbar (read-only) the search stands on its own. */}
-      {readOnly && searchField}
+      {/* Without a toolbar (read-only, no ZIP) the search stands on its own. */}
+      {!selectable && searchField}
       {asTable ? (
         <AttachmentTable
           table={table}
@@ -232,7 +238,7 @@ function LoadedAttachmentFiles({
           id={id}
           readOnly={readOnly}
           busy={busy}
-          selection={readOnly ? undefined : selection}
+          selection={selectable ? selection : undefined}
           onEdit={setEditing}
           onDelete={(attachment) => setDeleting([attachment])}
         />
@@ -248,10 +254,10 @@ function LoadedAttachmentFiles({
               readOnly={readOnly}
               selected={selection.has(attachment.fileId)}
               onSelectedChange={
-                readOnly
-                  ? undefined
-                  : (on, range) =>
+                selectable
+                  ? (on, range) =>
                       selection.toggle(attachment.fileId, on, range)
+                  : undefined
               }
               onEdit={setEditing}
               onDelete={(attachment) => setDeleting([attachment])}
