@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Availability: \"Reachable if urgent\" is merged into \"Reachable if needed\". The comment of an entry is called \"Public comment\" and is shown in red in the form; every team member who sees the entry sees it, also in the tooltips of the absence charts (e.g. the chart of a vacation's substitutes).",
-  "de": "Verfügbarkeit: „Bei dringendem Bedarf erreichbar“ ist in „Bei Bedarf erreichbar“ aufgegangen. Der Kommentar eines Eintrags heißt „Öffentlicher Kommentar“ und steht im Formular in Rot; alle Teammitglieder, die den Eintrag sehen, sehen ihn, auch in den Tooltips der Abwesenheitsdiagramme (z. B. im Diagramm der Vertretungen eines Urlaubs)."
-}

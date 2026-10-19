@@ -1,5 +1,0 @@
-{
-  "type": "fixed",
-  "en": "Invoices and incoming invoices: an invoice stored earlier with deleted positions only can be deleted and restored again; only saving it is refused.",
-  "de": "Rechnungen und Eingangsrechnungen: Eine früher nur mit gelöschten Positionen gespeicherte Rechnung lässt sich wieder löschen und wiederherstellen; nur das Speichern wird abgelehnt."
-}

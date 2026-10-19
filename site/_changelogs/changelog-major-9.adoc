@@ -1,13 +1,62 @@
 ---
 title: "ProjectForge 9"
 date: 2026-10-19
-sort_key: "2026-10-19 0038"
+sort_key: "2026-10-19 0039"
 ---
 :page-liquid:
 // Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.
 
 [.changelog-major-link]
 What's new in ProjectForge 9: <<release-9-0-0,ProjectForge 9.0.0>> ↓
+
+[discrete#release-9-0-10.changelog-release]
+=== ProjectForge 9.0.10 released
+
+[.changelog-source]
+__2026-10-19, tag https://github.com/micromata/projectforge/tree/9.0.10-RELEASE[9.0.10-RELEASE]__ +++{% include release-pills.html tag="9.0.10-RELEASE" docker="9.0.10" mini=true %}+++
+
+- **Employees** and **cost search** migrated
+- German **website**
+- Separate "Create" and "Save" in edit forms
+- Availability: "Reachable if needed" only, public comment for the team
+
+.Overview
+[%collapsible]
+====
+- **Employees:** list and form in the new interface; status, weekly hours and leave days edited in dialogs.
+- **Cost search:** in the new interface, also as a movable panel on every page (Alt+K) or a small window of its own.
+- **Edit forms:** "Create" for a new entry, "Save" for an existing one; saving never creates a copy.
+- **Availability:** "Reachable if urgent" merged into "Reachable if needed"; the public comment, shown in red in the form, is visible to the team, also in the tooltips of the absence charts.
+- **Website:** German version of the pages, FAQ, changelog and guides at projectforge.org/de.
+- **Invoices:** an invoice with deleted positions only can be deleted and restored again.
+====
+
+.All changes
+[%collapsible]
+====
+
+++++
+{% include tag.html tag="added" %}
+++++
+- Website: German version of the pages, the FAQ, the changelog and the user, administration and quick start guides at https://projectforge.org/de/[projectforge.org/de], with a language switch; the help link of the search field opens the German user guide for German users.
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- Availability: "Reachable if urgent" is merged into "Reachable if needed". The comment of an entry is called "Public comment" and is shown in red in the form; every team member who sees the entry sees it, also in the tooltips of the absence charts (e.g. the chart of a vacation's substitutes).
+- Cost search: migrated to the new interface. It can also be kept open on every page as a movable panel (button in the top bar or Alt+K, position is remembered) or opened in a small separate window.
+- Edit forms: a new entry is saved with "Create", an existing one with "Save". Both are separate writes: saving an existing entry can no longer create a copy of it, and creating one never overwrites an existing entry.
+
+++++
+{% include tag.html tag="changed" %}
+++++
+- Employees: the list and the form of the employees are migrated to the new interface. Status, weekly working hours and annual leave days are edited in dialogs directly in the form; the entry valid today is marked, entries still ahead are shown muted.
+
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Invoices and incoming invoices: an invoice stored earlier with deleted positions only can be deleted and restored again; only saving it is refused.
+====
 
 [discrete#release-9-0-9.changelog-release]
 === ProjectForge 9.0.9 released
