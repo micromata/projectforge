@@ -87,7 +87,7 @@ class AbsenceServiceTest : AbstractTestBase() {
             assertEquals(1, it.vacations.size)
             assertTrue(it.availabilities.isEmpty())
         }
-        absences(AbsenceKind.REMOTE_REACHABLE, AbsenceKind.REACHABLE_IF_URGENT).let {
+        absences(AbsenceKind.REMOTE_REACHABLE, AbsenceKind.REACHABLE_IF_NEEDED).let {
             assertTrue(it.vacations.isEmpty())
             assertEquals(listOf(remoteId), it.availabilities.map { availability -> availability.id })
         }

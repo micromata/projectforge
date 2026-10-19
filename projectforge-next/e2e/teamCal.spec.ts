@@ -106,7 +106,6 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
       "VACATION",
       "NOT_AVAILABLE",
       "REACHABLE_IF_NEEDED",
-      "REACHABLE_IF_URGENT",
     ]);
   });
 

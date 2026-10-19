@@ -18,7 +18,6 @@ const ABSENCE_KIND_KEYS: Record<AbsenceKind, string> = {
   NOT_AVAILABLE: "availability.status.notAvailable",
   REMOTE_REACHABLE: "availability.status.remoteReachable",
   REACHABLE_IF_NEEDED: "availability.status.reachableIfNeeded",
-  REACHABLE_IF_URGENT: "availability.status.reachableIfUrgent",
 };
 
 interface AbsenceKindsSelectProps {

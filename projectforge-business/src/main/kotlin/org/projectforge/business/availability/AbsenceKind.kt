@@ -35,8 +35,7 @@ enum class AbsenceKind(override val i18nKey: String) : I18nEnum {
     VACATION("vacation"),
     NOT_AVAILABLE("availability.status.notAvailable"),
     REMOTE_REACHABLE("availability.status.remoteReachable"),
-    REACHABLE_IF_NEEDED("availability.status.reachableIfNeeded"),
-    REACHABLE_IF_URGENT("availability.status.reachableIfUrgent");
+    REACHABLE_IF_NEEDED("availability.status.reachableIfNeeded");
 
     companion object {
         /** All kinds, for a filter that doesn't choose (null). */
