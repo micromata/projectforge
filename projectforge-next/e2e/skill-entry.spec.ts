@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
+import { writeHeaders } from "./fixtures/seed";
 import { label, userFormat } from "./fixtures/format";
 import { listRows } from "./fixtures/list-table";
 import { SKILL_ENTRY_METADATA } from "../lib/metadata/skill-entry.generated";
@@ -215,8 +216,8 @@ test.describe("skillentry", { tag: "@parallel" }, () => {
 
 async function cancelSelection(page: Page): Promise<void> {
   await page.request
-    .get(`/rs/${SKILL_ENTRY_PAGE.massUpdate!.endpoint}/cancel`, {
-      headers: { "X-PF-Frontend": "next" },
+    .post(`/rs/${SKILL_ENTRY_PAGE.massUpdate!.endpoint}/cancel`, {
+      headers: await writeHeaders(page.request),
     })
     .catch(() => undefined);
 }

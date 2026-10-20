@@ -1006,8 +1006,8 @@ constructor(
      * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
      * @return redirect url
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping(RestPaths.CANCEL_MULTI_SELECTION, method = [RequestMethod.POST, RequestMethod.GET])
+    // State changing: POST only.
+    @PostMapping(RestPaths.CANCEL_MULTI_SELECTION)
     fun handleCancelUrl(request: HttpServletRequest): String {
         return MultiSelectionSupport.clear(request, this)
             ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
