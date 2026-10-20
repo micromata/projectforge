@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.businessUnit
+import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.grant
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.group
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfigTest.Companion.sample
 import org.projectforge.business.fibu.customergroup.CustomerGroupValidator.Companion as V
@@ -40,6 +41,8 @@ class CustomerGroupValidatorTest {
             // Task 1 is the root; 10 ⊃ 11, and 20 beside them.
             taskPath = { mapOf(1L to listOf(1L), 10L to listOf(1L, 10L), 11L to listOf(1L, 10L, 11L), 20L to listOf(1L, 20L))[it] },
             taskTitle = { "Task $it" },
+            userExists = { it in setOf(7L, 70L) },
+            groupExists = { it == 8L },
         )
     )
 
@@ -224,6 +227,35 @@ class CustomerGroupValidatorTest {
 
     private fun withTasks(key: String, name: String, vararg tasks: Long) =
         businessUnit(key, name).also { it.tasks = tasks.toMutableList() }
+
+    @Test
+    fun `an order access grant needs a name, someone and something, all known`() {
+        val base = sample()
+        // Whether a user granted is a project manager isn't the validator's business (user 70 may be none).
+        base.orderAccess = mutableListOf(grant("grant1", "Fine", userIds = listOf(70), businessUnits = listOf("logbu1")))
+        assertTrue(validator.validate(base).isEmpty())
+        base.orderAccess = mutableListOf(
+            grant("grant1", " "),
+            grant(
+                "grant2", "Unknown", userIds = listOf(7, 99), groupIds = listOf(8, 98), customers = listOf(5, 97),
+                groups = listOf("acmeg1", "gone12"), businessUnits = listOf("logbu1", "gone34"),
+            ),
+            // A key already taken by a group:
+            grant("acmeg1", "Taken key", userIds = listOf(7), customers = listOf(5)),
+        )
+        assertErrors(
+            base,
+            "orderAccess[0].name" to V.ERROR_NAME_REQUIRED,
+            "orderAccess[0].users" to V.ERROR_GRANT_NOBODY,
+            "orderAccess[0].customers" to V.ERROR_GRANT_NOTHING,
+            "orderAccess[1].users" to V.ERROR_UNKNOWN_USER,
+            "orderAccess[1].userGroups" to V.ERROR_UNKNOWN_USER_GROUP,
+            "orderAccess[1].customers" to V.ERROR_UNKNOWN_CUSTOMER,
+            "orderAccess[1].groups" to V.ERROR_UNKNOWN_GROUP,
+            "orderAccess[1].businessUnits" to V.ERROR_UNKNOWN_BUSINESS_UNIT,
+            "orderAccess[2].name" to V.ERROR_INVALID_KEY,
+        )
+    }
 
     private fun config(groups: List<CustomerGroup> = emptyList(), businessUnits: List<BusinessUnit> = emptyList()) =
         CustomerGroupConfig(groups = groups.toMutableList(), businessUnits = businessUnits.toMutableList())

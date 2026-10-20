@@ -24,10 +24,30 @@ export interface BusinessUnitData extends CustomerSetData {
   tasks?: EntityRef[];
 }
 
+/**
+ * Mirror of `CustomerGroupPageRest.OrderAccessData`: read access to all orders of the customers, groups
+ * and business units for the users and the members of the user groups (project managers and assistants
+ * only).
+ */
+export interface OrderAccessData {
+  key?: string | null;
+  name?: string | null;
+  remark?: string | null;
+  users?: EntityRef[];
+  /** Groups of users, not customer groups. */
+  userGroups?: EntityRef[];
+  customers?: EntityRef[];
+  /** Keys of the customer groups. */
+  groups?: string[];
+  /** Keys of the business units. */
+  businessUnits?: string[];
+}
+
 /** Mirror of `CustomerGroupPageRest.CustomerGroupsData` (GET `/rs/customerGroups`). */
 export interface CustomerGroupsData {
   groups?: CustomerGroupData[];
   businessUnits?: BusinessUnitData[];
+  orderAccess?: OrderAccessData[];
   /** Free text about the definition as a whole: how the groups and business units are drawn. */
   remark?: string | null;
   /** Epoch millis of the stored value, sent back on save for the optimistic lock. */
@@ -52,9 +72,21 @@ export interface BusinessUnitValues extends CustomerSetValues {
   tasks: EntityRef[];
 }
 
+export interface OrderAccessValues extends ArrayRow {
+  key: string;
+  name: string;
+  remark: string;
+  users: EntityRef[];
+  userGroups: EntityRef[];
+  customers: EntityRef[];
+  groups: string[];
+  businessUnits: string[];
+}
+
 export interface CustomerGroupsValues {
   groups: CustomerSetValues[];
   businessUnits: BusinessUnitValues[];
+  orderAccess: OrderAccessValues[];
   remark: string;
   lastUpdate: number | null;
 }

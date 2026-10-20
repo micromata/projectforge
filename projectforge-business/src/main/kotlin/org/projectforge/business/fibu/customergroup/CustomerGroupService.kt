@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
@@ -68,6 +69,9 @@ class CustomerGroupService {
 
     @Autowired
     private lateinit var customerUsageCache: CustomerUsageCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -290,6 +294,8 @@ class CustomerGroupService {
             },
             taskPath = { taskId -> taskPath(taskId) },
             taskTitle = { taskTree.getTaskById(it)?.title },
+            userExists = { userGroupCache.getUser(it) != null },
+            groupExists = { userGroupCache.getGroup(it) != null },
         )
     }
 
@@ -396,13 +402,15 @@ class CustomerGroupService {
             log.info { "Customer groups saved: ${config.groups.size} groups, ${config.businessUnits.size} business units." }
         }
         Configuration.instance.forceReload()
+        OrderAccessGrantService.instanceOrNull?.invalidate()
         return emptyList()
     }
 
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION
         config.remark = config.remark?.trim()?.ifEmpty { null }
-        val usedKeys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
+        val usedKeys = ((config.groups + config.businessUnits).mapNotNull { it.key } + config.orderAccess.mapNotNull { it.key })
+            .toMutableSet()
         (config.groups + config.businessUnits).forEach { set ->
             set.name = set.name?.trim()
             set.customers = set.customers.distinct().toMutableList()
@@ -413,6 +421,18 @@ class CustomerGroupService {
             }
         }
         config.businessUnits.forEach { it.groups = it.groups.distinct().toMutableList() }
+        config.orderAccess.forEach { grant ->
+            grant.name = grant.name?.trim()
+            grant.remark = grant.remark?.trim()?.ifEmpty { null }
+            grant.userIds = grant.userIds.distinct().toMutableList()
+            grant.groupIds = grant.groupIds.distinct().toMutableList()
+            grant.customers = grant.customers.distinct().toMutableList()
+            grant.groups = grant.groups.distinct().toMutableList()
+            grant.businessUnits = grant.businessUnits.distinct().toMutableList()
+            if (grant.key.isNullOrBlank()) {
+                grant.key = newKey(usedKeys)
+            }
+        }
     }
 
     private fun newKey(usedKeys: MutableSet<String>): String {

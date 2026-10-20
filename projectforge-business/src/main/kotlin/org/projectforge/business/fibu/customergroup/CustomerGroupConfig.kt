@@ -44,6 +44,8 @@ class CustomerGroupConfig(
     var version: Int = VERSION,
     var groups: MutableList<CustomerGroup> = mutableListOf(),
     var businessUnits: MutableList<BusinessUnit> = mutableListOf(),
+    /** Read access to the orders of customers, groups and business units, see [OrderAccessGrant]. */
+    var orderAccess: MutableList<OrderAccessGrant> = mutableListOf(),
     /**
      * Free text of finance and controlling about the definition as a whole: how the groups and business units
      * are drawn, or why they were changed. Not evaluated; changes are traced through the history of the
@@ -54,7 +56,8 @@ class CustomerGroupConfig(
     fun toJson(): String = JsonUtils.toJson(this, ignoreNullableProps = true)
 
     companion object {
-        const val VERSION = 1
+        /** 2: [orderAccess] added. */
+        const val VERSION = 2
 
         /**
          * @return The parsed configuration, an empty one for a blank value. A value that can't be read is
@@ -109,4 +112,35 @@ class BusinessUnit : CustomerSet() {
      * its customer leads to none (see [CustomerGroupIndex.businessUnitOf]).
      */
     var tasks: MutableList<Long> = mutableListOf()
+}
+
+/**
+ * Read access to all orders of the given customers, groups and business units (resolved per order as the
+ * business-unit filter of the order list does, see [CustomerGroupIndex.businessUnitOf]), for the given users and
+ * the members of the given groups. Only project managers and project assistants with the order book right are
+ * granted, see [OrderAccessGrantService]. The grant only reads: writing still needs a tie to the order or its
+ * project.
+ */
+class OrderAccessGrant {
+    /** Stable key, assigned by the server on the first save (as [CustomerSet.key]). */
+    var key: String? = null
+
+    var name: String? = null
+
+    var remark: String? = null
+
+    /** Ids of the users granted ([org.projectforge.framework.persistence.user.entities.PFUserDO.id]). */
+    var userIds: MutableList<Long> = mutableListOf()
+
+    /** Ids of the groups whose members are granted ([org.projectforge.framework.persistence.user.entities.GroupDO.id]). */
+    var groupIds: MutableList<Long> = mutableListOf()
+
+    /** Numbers of the customer entities ([org.projectforge.business.fibu.KundeDO.nummer]). */
+    var customers: MutableList<Long> = mutableListOf()
+
+    /** Keys of the customer groups ([CustomerGroup.key]). */
+    var groups: MutableList<String> = mutableListOf()
+
+    /** Keys of the business units ([BusinessUnit.key]). */
+    var businessUnits: MutableList<String> = mutableListOf()
 }

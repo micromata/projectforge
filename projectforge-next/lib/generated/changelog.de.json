@@ -7,7 +7,7 @@
     "title" : "Noch nicht veröffentlicht",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
+      "items" : [ "Auftragsfreigaben: Finance und Controlling geben Projektmanagern und Projektassistenten lesenden Zugriff auf alle Aufträge eines Kunden, einer Kundengruppe oder einer Business Unit, samt Rechnungen, Forecast und Deckungsbeiträgen (neuer Tab im Editor der Kundengruppen).", "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
     }, {
       "type" : "improved",
       "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]

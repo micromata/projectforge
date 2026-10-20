@@ -65,6 +65,23 @@ describe("toFormValues", () => {
     expect(values.lastUpdate).toBeNull();
     expect(usedKeys(values).size).toBe(3);
   });
+  it("fills in an order access grant and counts its key as used", () => {
+    const values = toFormValues({
+      groups: [{ key: "acmeg1", name: "ACME" }],
+      orderAccess: [{ key: "grant1", name: "ACME", groups: ["acmeg1"] }],
+    });
+    expect(values.orderAccess[0]).toEqual({
+      key: "grant1",
+      name: "ACME",
+      remark: "",
+      users: [],
+      userGroups: [],
+      customers: [],
+      groups: ["acmeg1"],
+      businessUnits: [],
+    });
+    expect(usedKeys(values)).toEqual(new Set(["acmeg1", "grant1"]));
+  });
 });
 
 describe("toFormValues with a format", () => {
@@ -106,6 +123,23 @@ describe("toPayload", () => {
     });
     expect(toPayload(values).businessUnits[0].groups).toEqual(["acmeg1"]);
     expect(toPayload(values).lastUpdate).toBe(42);
+  });
+  it("drops a grant's references to groups and business units removed in the form", () => {
+    const values = toFormValues({
+      groups: [{ key: "acmeg1", name: "ACME" }],
+      businessUnits: [{ key: "logbu1", name: "L" }],
+      orderAccess: [
+        {
+          key: "grant1",
+          name: "G",
+          groups: ["acmeg1", "gone12"],
+          businessUnits: ["logbu1", "gone34"],
+        },
+      ],
+    });
+    const grant = toPayload(values).orderAccess[0];
+    expect(grant.groups).toEqual(["acmeg1"]);
+    expect(grant.businessUnits).toEqual(["logbu1"]);
   });
 });
 

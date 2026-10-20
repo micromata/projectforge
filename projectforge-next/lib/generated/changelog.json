@@ -7,7 +7,7 @@
     "title" : "Not yet released",
     "sections" : [ {
       "type" : "added",
-      "items" : [ "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
+      "items" : [ "Order access: finance and controlling grant project managers and project assistants read access to all orders of a customer, a customer group or a business unit, including their invoices, forecast and contribution margins (new tab in the customer groups editor).", "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
     }, {
       "type" : "improved",
       "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]

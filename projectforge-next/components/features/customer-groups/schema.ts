@@ -20,6 +20,21 @@ export const CUSTOMER_SET_METADATA: EntityMetadata = {
   },
 };
 
+/** The metadata of an order access grant's fields, bound per row as [CUSTOMER_SET_METADATA]. */
+export const ORDER_ACCESS_METADATA: EntityMetadata = {
+  entity: "OrderAccessGrant",
+  historizable: false,
+  fields: {
+    name: { dataType: "STRING", required: true, maxLength: 255 },
+    remark: { dataType: "STRING", required: false },
+    users: { dataType: "CUSTOMIZED", required: false },
+    userGroups: { dataType: "CUSTOMIZED", required: false },
+    customers: { dataType: "CUSTOMIZED", required: false },
+    groups: { dataType: "CUSTOMIZED", required: false },
+    businessUnits: { dataType: "CUSTOMIZED", required: false },
+  },
+};
+
 /** The fields of the form level: only the remark, everything else lives in the rows. */
 export const FORM_METADATA: EntityMetadata = {
   entity: "CustomerGroupConfig",
@@ -53,8 +68,24 @@ export const customerGroupsSchema = z.object({
       tasks: z.array(entityRef),
     })
   ),
+  orderAccess: z.array(
+    z.object({
+      key: z.string(),
+      name: z.string().trim().min(1, REQUIRED).max(255),
+      remark: z.string(),
+      users: z.array(entityRef),
+      userGroups: z.array(entityRef),
+      customers: z.array(entityRef),
+      groups: z.array(z.string()),
+      businessUnits: z.array(z.string()),
+    })
+  ),
   remark: z.string(),
   lastUpdate: z.number().nullable(),
 });
 
-export const CUSTOMER_GROUPS_FIELDS = ["groups", "businessUnits"] as const;
+export const CUSTOMER_GROUPS_FIELDS = [
+  "groups",
+  "businessUnits",
+  "orderAccess",
+] as const;

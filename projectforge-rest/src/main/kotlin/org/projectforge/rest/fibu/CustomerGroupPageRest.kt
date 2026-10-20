@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.customergroup.BusinessUnit
@@ -31,7 +32,11 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
 import org.projectforge.business.fibu.customergroup.CustomerGroupError
 import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.customergroup.CustomerSet
+import org.projectforge.business.fibu.customergroup.OrderAccessGrant
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.rest.config.Rest
@@ -52,13 +57,17 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * The editor of the customer groups and business units (next page `/customerGroups`), for finance and
- * controlling only — admins included only if they are members of one of these groups.
+ * The editor of the customer groups, business units and order access grants (next page `/customerGroups`), for
+ * finance and controlling only — admins included only if they are members of one of these groups.
  */
 @RestController
 @RequestMapping("${Rest.URL}/customerGroups")
 class CustomerGroupPageRest : AbstractDynamicPageRest() {
-    /** A customer or task as the multi-autocomplete holds it. */
+    /**
+     * A customer, task, user or group as the multi-autocomplete holds it; its further flags (`deactivated`, …)
+     * are ignored, also where unknown properties are refused (development).
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     class EntityRef(var id: Long? = null, var displayName: String? = null)
 
     open class CustomerSetData(
@@ -77,12 +86,33 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         var tasks: MutableList<EntityRef> = mutableListOf()
     }
 
+    /** An order access grant ([OrderAccessGrant]), users, groups and customers as the multi-autocomplete holds them. */
+    class OrderAccessData(
+        var key: String? = null,
+        var name: String? = null,
+        var remark: String? = null,
+        var users: MutableList<EntityRef> = mutableListOf(),
+        /** The groups of users (not customer groups). */
+        var userGroups: MutableList<EntityRef> = mutableListOf(),
+        var customers: MutableList<EntityRef> = mutableListOf(),
+        /** Keys of the customer groups. */
+        var groups: MutableList<String> = mutableListOf(),
+        /** Keys of the business units. */
+        var businessUnits: MutableList<String> = mutableListOf(),
+    )
+
+    /** A user named by a grant that has no effect for them, see [orderAccessInfo]. */
+    class IneffectiveGrantee(val name: String, val reason: IneffectiveReason)
+
+    enum class IneffectiveReason { DEACTIVATED, NO_PROJECT_MANAGER, NO_ORDER_BOOK_RIGHT }
+
     /** The names and patterns of one field, for [matches]. */
     class MatchesRequest(var texts: MutableList<String> = mutableListOf())
 
     class CustomerGroupsData(
         var groups: MutableList<GroupData> = mutableListOf(),
         var businessUnits: MutableList<BusinessUnitData> = mutableListOf(),
+        var orderAccess: MutableList<OrderAccessData> = mutableListOf(),
         /** The stored row's last update (epoch millis), sent back on save for the optimistic lock. */
         var lastUpdate: Long? = null,
         /** Free text about the definition as a whole, see [CustomerGroupConfig.remark]. */
@@ -96,6 +126,12 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var customerGroupService: CustomerGroupService
+
+    @Autowired
+    private lateinit var orderStatisticsCache: OrderStatisticsCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @GetMapping
@@ -119,6 +155,8 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         if (errors.isNotEmpty()) {
             return ResponseEntity(ResponseAction(validationErrors = errors.map { toValidationError(it) }), HttpStatus.NOT_ACCEPTABLE)
         }
+        // The cached statistics are per user: a revoked order access grant must not show them any longer.
+        orderStatisticsCache.clear()
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING).addVariable("data", getData()))
     }
 
@@ -167,6 +205,39 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         return customerGroupService.businessUnitMembers(toConfig(data))
     }
 
+    /**
+     * The users each order access grant of the given unsaved configuration names (directly or through a group) but
+     * has no effect for, by grant key: deactivated users, users neither project manager nor project assistant, and
+     * users without read access to the order book. Shown in the grant's row as a hint, not refused: memberships
+     * change at any time, and the access check leaves these users out anyway.
+     */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
+    @PostMapping("orderAccessInfo")
+    fun orderAccessInfo(@RequestBody data: CustomerGroupsData): Map<String, List<IneffectiveGrantee>> {
+        checkAccess()
+        return data.orderAccess.mapNotNull { grant ->
+            val key = grant.key ?: return@mapNotNull null
+            val userIds = userGroupCache.getMemberIds(
+                grant.userGroups.mapNotNull { it.id }, grant.users.mapNotNull { it.id },
+            )
+            val ineffective = userIds.mapNotNull { userGroupCache.getUser(it) }.mapNotNull { user ->
+                val reason = when {
+                    !user.hasSystemAccess() -> IneffectiveReason.DEACTIVATED
+                    !userGroupCache.isUserMemberOfGroup(
+                        user, ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT,
+                    ) -> IneffectiveReason.NO_PROJECT_MANAGER
+                    !accessChecker.hasRight(
+                        user, UserRightId.PM_ORDER_BOOK,
+                        UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE,
+                    ) -> IneffectiveReason.NO_ORDER_BOOK_RIGHT
+                    else -> null
+                } ?: return@mapNotNull null
+                IneffectiveGrantee(user.getFullname(), reason)
+            }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+            ineffective.takeIf { it.isNotEmpty() }?.let { key to it }
+        }.toMap()
+    }
+
     private fun checkAccess() {
         accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
     }
@@ -179,6 +250,20 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
                 data.tasks = bu.tasks.map { EntityRef(it, TaskServicesRest.formatPath(it)) }.toMutableList()
             }
         }.toMutableList(),
+        orderAccess = config.orderAccess.map { grant ->
+            OrderAccessData(
+                key = grant.key,
+                name = grant.name,
+                remark = grant.remark,
+                users = grant.userIds.map { EntityRef(it, userGroupCache.getUser(it)?.getFullname() ?: "$it") }
+                    .toMutableList(),
+                userGroups = grant.groupIds.map { EntityRef(it, userGroupCache.getGroup(it)?.name ?: "$it") }
+                    .toMutableList(),
+                customers = grant.customers.map { customerRef(it) }.toMutableList(),
+                groups = grant.groups.toMutableList(),
+                businessUnits = grant.businessUnits.toMutableList(),
+            )
+        }.toMutableList(),
         remark = config.remark,
         lastUpdate = customerGroupService.lastUpdate,
         id = customerGroupService.entryId,
@@ -187,11 +272,12 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
     private fun <T : CustomerSetData> fill(dest: T, src: CustomerSet): T {
         dest.key = src.key
         dest.name = src.name
-        dest.customers = src.customers.map { EntityRef(it, PfCaches.instance.getKunde(it)?.displayName ?: "$it") }
-            .toMutableList()
+        dest.customers = src.customers.map { customerRef(it) }.toMutableList()
         dest.texts = src.texts.toMutableList()
         return dest
     }
+
+    private fun customerRef(nummer: Long) = EntityRef(nummer, PfCaches.instance.getKunde(nummer)?.displayName ?: "$nummer")
 
     private fun toConfig(data: CustomerGroupsData) = CustomerGroupConfig(
         groups = data.groups.map { copy(it, CustomerGroup()) }.toMutableList(),
@@ -199,6 +285,18 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
             copy(bu, BusinessUnit()).also { dest ->
                 dest.groups = bu.groups.toMutableList()
                 dest.tasks = bu.tasks.mapNotNull { it.id }.distinct().toMutableList()
+            }
+        }.toMutableList(),
+        orderAccess = data.orderAccess.map { src ->
+            OrderAccessGrant().also { dest ->
+                dest.key = src.key?.takeIf { it.isNotBlank() }
+                dest.name = src.name
+                dest.remark = src.remark
+                dest.userIds = src.users.mapNotNull { it.id }.toMutableList()
+                dest.groupIds = src.userGroups.mapNotNull { it.id }.toMutableList()
+                dest.customers = src.customers.mapNotNull { it.id }.toMutableList()
+                dest.groups = src.groups.toMutableList()
+                dest.businessUnits = src.businessUnits.toMutableList()
             }
         }.toMutableList(),
         remark = data.remark,

@@ -9,6 +9,7 @@ import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { BusinessUnitList } from "./business-unit-list";
 import { GroupList } from "./group-list";
+import { OrderAccessList } from "./order-access-list";
 
 /**
  * REST category of the stored value: the customer groups are one `ConfigurationDO` row, so their
@@ -36,6 +37,11 @@ export function useCustomerGroupsTabs(id: number | null | undefined): {
       id: "businessUnits",
       label: t("fibu.businessUnits.title"),
       content: <BusinessUnitList />,
+    },
+    {
+      id: "orderAccess",
+      label: t("fibu.customerGroups.orderAccess._"),
+      content: <OrderAccessList />,
     },
   ];
   const tabs: EditPageTab[] = cards.map(({ id, label }) => ({ id, label }));
