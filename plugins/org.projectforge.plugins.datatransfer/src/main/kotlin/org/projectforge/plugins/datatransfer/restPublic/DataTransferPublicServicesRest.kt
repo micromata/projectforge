@@ -89,6 +89,7 @@ class DataTransferPublicServicesRest {
      * @param category [DataTransferPlugin.ID] ("datatransfer") expected
      */
     @GetMapping("download/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and download access to the file (hasDownloadAccess)")
     fun download(
         request: HttpServletRequest,
         @PathVariable("category", required = true) category: String,
@@ -127,6 +128,7 @@ class DataTransferPublicServicesRest {
     }
 
     @GetMapping("downloadAll/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external download enabled (isDownloadAllAvailable)")
     fun downloadAll(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -163,6 +165,7 @@ class DataTransferPublicServicesRest {
      * (e. g. first 4 chars).
      */
     @GetMapping("multiDownload/{category}/{id}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external download enabled")
     fun multiDownload(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -212,6 +215,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("multiDelete")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin), external upload enabled and own files (hasDeleteAccess)")
     fun multiDelete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.FileListData>)
             : ResponseEntity<*>? {
         val data = postData.data
@@ -287,6 +291,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("upload/{category}/{id}/{listId}")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and external upload enabled")
     fun uploadAttachment(
         request: HttpServletRequest,
         @PathVariable("category", required = true) category: String,
@@ -333,6 +338,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("delete")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasDeleteAccess)")
     fun delete(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
             : ResponseEntity<*>? {
         val category = postData.data.category
@@ -380,6 +386,7 @@ class DataTransferPublicServicesRest {
     }
 
     @PostMapping("modify")
+    @AccessChecked("PUBLIC: valid login of the area in the session (checkLogin) and own file with upload access (hasUpdateAccess)")
     fun modify(request: HttpServletRequest, @RequestBody postData: PostData<AttachmentsServicesRest.AttachmentData>)
             : ResponseEntity<*>? {
         val attachment = postData.data.attachment

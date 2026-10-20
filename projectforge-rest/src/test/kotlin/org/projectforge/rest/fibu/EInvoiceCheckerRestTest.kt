@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
+import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.BankAccountConfig
 import org.projectforge.business.fibu.EInvoiceExportService
 import org.projectforge.business.fibu.EInvoiceSellerConfig
@@ -40,8 +41,12 @@ import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.jcr.RepoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -60,6 +65,9 @@ import java.time.LocalDate
 class EInvoiceCheckerRestTest : AbstractTestBase() {
     @Autowired
     private lateinit var eInvoiceCheckerRest: EInvoiceCheckerRest
+
+    @Autowired
+    private lateinit var groupDao: GroupDao
 
     @Test
     fun `an uploaded XRechnung is answered and kept as the session's last result`() {
@@ -111,6 +119,25 @@ class EInvoiceCheckerRestTest : AbstractTestBase() {
         assertThrows<AccessException> { eInvoiceCheckerRest.getResult(request) }
         assertThrows<AccessException> { eInvoiceCheckerRest.upload(request, xmlFile("x.xml", createXRechnung())) }
         assertThrows<AccessException> { eInvoiceCheckerRest.downloadAttachment(1, request) }
+    }
+
+    @Test
+    fun `a project manager with the order book right reaches the endpoints`() {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "EInvoiceCheckerRestTest.orderBook"
+            it.addRight(UserRightDO(AuftragDao.USER_RIGHT_ID, UserRightValue.PARTLYREADWRITE))
+        })
+        val group = getGroup(PROJECT_MANAGER)
+        group.addUser(user)
+        groupDao.update(group)
+        logon(user)
+        val request = newRequest()
+        assertEquals(HttpStatus.NO_CONTENT, eInvoiceCheckerRest.getResult(request).statusCode)
+        assertEquals(
+            HttpStatus.OK,
+            eInvoiceCheckerRest.upload(request, xmlFile("XRechnung_2024002.xml", createXRechnung())).statusCode,
+        )
     }
 
     private fun newRequest() = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }

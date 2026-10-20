@@ -32,7 +32,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
+import org.projectforge.rest.core.SessionCsrfService
+import org.projectforge.rest.dto.PostData
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
 
 /** The order access grants of the customer-groups editor ([CustomerGroupPageRest]). */
 class CustomerGroupPageRestTest : AbstractTestBase() {
@@ -41,6 +46,27 @@ class CustomerGroupPageRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
+
+    @Test
+    fun `only finance and controlling read and save the definition`() {
+        logon(TEST_USER)
+        assertThrows<AccessException> { customerGroupPageRest.getData() }
+        val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+        val serverData = sessionCsrfService.createServerData(request)
+        assertThrows<AccessException> {
+            customerGroupPageRest.save(request, PostData(CustomerGroupPageRest.CustomerGroupsData(), null, serverData))
+        }
+
+        logon(TEST_FINANCE_USER)
+        val data = customerGroupPageRest.getData()
+        val response = customerGroupPageRest.save(request, PostData(data, null, serverData))
+        assertEquals(HttpStatus.OK, response.statusCode)
+        // Also a failed CSRF check answers OK, with a validation error:
+        assertTrue(response.body!!.validationErrors.isNullOrEmpty())
+    }
 
     @Test
     fun `the users a grant has no effect for are named, with the reason`() {
