@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Customers: new user right \"Customers\" (finance), like the one for projects. Creating, changing and deleting customers needs it with read and write access; being a member of the finance group is no longer enough, so admins have to grant it. The customer wizard needs it for new customers.",
-  "de": "Kunden: neues Benutzerrecht „Kunden“ (Finanzen), analog zu dem für Projekte. Kunden anlegen, ändern und löschen erfordert es mit Lese- und Schreibzugriff; die Mitgliedschaft in der Finanzgruppe reicht nicht mehr, Admins müssen es vergeben. Auch der Kundenassistent benötigt es für neue Kunden."
-}
