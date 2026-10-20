@@ -1,5 +1,0 @@
-{
-  "type": "changed",
-  "en": "Contracts migrated to the new interface: list with a period filter on the date, form with suggestions from other contracts, the configured contract types, JIRA links, attachments and cloning. A year filter stored by the former list is still shown and can be removed. Old links are redirected.",
-  "de": "Verträge auf die neue Oberfläche migriert: Liste mit Zeitraumfilter auf dem Datum, Formular mit Vorschlägen aus anderen Verträgen, den konfigurierten Vertragsarten, JIRA-Links, Anhängen und Klonen. Ein von der bisherigen Liste gespeicherter Jahr-Filter wird weiter angezeigt und lässt sich entfernen. Alte Links werden umgeleitet."
-}
