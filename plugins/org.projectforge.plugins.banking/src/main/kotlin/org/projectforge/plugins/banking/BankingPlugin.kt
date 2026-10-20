@@ -30,6 +30,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
+import org.projectforge.security.My2FAShortCut
 import org.projectforge.web.WicketSupport
 
 private val log = KotlinLogging.logger {}
@@ -49,6 +50,22 @@ class BankingPlugin : AbstractPlugin(
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         // Register it:
         register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
+        // Bank accounts and their records are for the finance group only (BankAccountDao). The import of the records
+        // (/rs/importBankAccountRecords, /rs/banking/import) doesn't pass the save of /rs/bankAccountRecord, so
+        // WRITE:bankAccountRecord doesn't catch it.
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:bankAccount;WRITE:bankAccountRecord")
+        registerShortCutClasses(
+            My2FAShortCut.FINANCE_WRITE,
+            BankAccountRecordImportPageRest::class.java,
+            BankingServicesRest::class.java,
+        )
+        registerShortCutClasses(
+            My2FAShortCut.FINANCE,
+            BankAccountPagesRest::class.java,
+            BankAccountRecordPagesRest::class.java,
+            BankAccountRecordImportPageRest::class.java,
+            BankingServicesRest::class.java,
+        )
 
         menuCreator.register(
             MenuItemDefId.FIBU,

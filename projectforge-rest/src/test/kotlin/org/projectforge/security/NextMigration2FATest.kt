@@ -84,10 +84,35 @@ class NextMigration2FATest {
     "/rs/datevRecordImport", "/rs/datevAccountImport", // wa/datevImport
   )
 
+  /**
+   * Sensitive rest urls without a gated legacy page: imports and wizards writing past the save of their entity,
+   * and the finance and admin pages added later.
+   */
+  private val sensitiveOnRead = listOf(
+    "/rs/importIncomingInvoicePos/upload", "/rs/uploadIncomingInvoices/upload",
+    "/rs/currencyPair/list", "/rs/currencyConversionRate/dynamic",
+    "/rs/adminCaches/list", "/rs/sipgate/dynamic", "/rs/taskWizard/execute",
+  )
+
+  /** As [sensitiveOnRead], gated on writing. */
+  private val sensitiveOnWrite = listOf(
+    "/rs/employeeSalaryImport/upload", "/rs/incomingInvoiceImport/upload", "/rs/importIncomingInvoicePos/upload",
+    "/rs/uploadIncomingInvoices/upload",
+    "/rs/currencyPair/${RestPaths.SAVE_OR_UDATE}", "/rs/currencyConversionRate/update",
+    "/rs/customerGroups/save", "/rs/projectWizard/execute",
+    "/rs/taskWizard/execute", "/rs/adminCaches/refresh", "/rs/adminCaches/terminate", "/rs/adminCaches/refreshAll",
+    "/rs/sipgate/downloadConfiguration", "/rs/sipgate/synchronize", "/rs/sipgate/resetContacts",
+  )
+
+  /** Open to every user, but a url of a gated rest class is their prefix (`/rs/system`). */
+  private val openToEveryUser = listOf(
+    "/rs/systemStatistics/sections", "/rs/systemStatistics/section/database",
+  )
+
   @Test
   fun `reading a migrated page requires the second factor of its legacy page`() {
     val handler = handler("ADMIN;FINANCE;HR;ORGA;SCRIPT")
-    (gatedOnRead.map { restUrl(it) } + standaloneOnRead).forEach { url ->
+    (gatedOnRead.map { restUrl(it) } + standaloneOnRead + sensitiveOnRead).forEach { url ->
       Assertions.assertNotNull(
         handler.getRemainingPeriod(url),
         "The legacy page of $url required a 2FA, so $url has to require one as well: register its rest class " +
@@ -100,12 +125,23 @@ class NextMigration2FATest {
   fun `writing on a migrated page requires the second factor of its legacy form`() {
     val handler = handler("ADMIN_WRITE;FINANCE_WRITE;HR_WRITE;ORGA_WRITE;SCRIPT_WRITE")
     // The save of a hand built page as well as of a UILayout page (see lib/rs/entity.ts):
-    (gatedOnWrite.map { "${restUrl(it)}/${RestPaths.SAVE_OR_UDATE}" } + standaloneOnWrite).forEach { url ->
+    val saves = gatedOnWrite.map { "${restUrl(it)}/${RestPaths.SAVE_OR_UDATE}" }
+    (saves + standaloneOnWrite + sensitiveOnWrite).forEach { url ->
       Assertions.assertNotNull(
         handler.getRemainingPeriod(url),
         "The legacy form of $url required a 2FA, so $url has to require one as well: add WRITE:<category> or " +
             "the rest class to the matching shortcut in ProjectForge2FAInitialization.",
       )
+    }
+  }
+
+  @Test
+  fun `pages open to every user require no second factor`() {
+    val handler = handler(
+      "ADMIN;FINANCE;HR;ORGA;SCRIPT;ADMIN_WRITE;FINANCE_WRITE;HR_WRITE;ORGA_WRITE;SCRIPT_WRITE;MY_ACCOUNT;PASSWORD"
+    )
+    openToEveryUser.forEach { url ->
+      Assertions.assertNull(handler.getRemainingPeriod(url), url)
     }
   }
 

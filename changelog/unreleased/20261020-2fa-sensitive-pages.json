@@ -1,0 +1,5 @@
+{
+  "type": "security",
+  "en": "More pages require the second factor of their area: the imports of salaries, incoming invoices and bank account records, the upload of incoming invoices, the bank accounts, currency pairs and conversion rates, the customer groups and the project wizard (finance), as well as the structure wizard, the caches and the Sipgate page (administration). The system statistics no longer require the second factor of the administration.",
+  "de": "Weitere Seiten verlangen den zweiten Faktor ihres Bereichs: die Importe von Gehältern, Eingangsrechnungen und Kontoumsätzen, der Upload von Eingangsrechnungen, die Bankkonten, Währungspaare und Wechselkurse, die Kundengruppen und der Projekt-Assistent (Finanzen) sowie der Strukturbaum-Assistent, die Caches und die Sipgate-Seite (Administration). Die Systemstatistik verlangt nicht mehr den zweiten Faktor der Administration."
+}
