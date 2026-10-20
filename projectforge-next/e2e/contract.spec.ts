@@ -3,6 +3,7 @@ import { label, userFormat } from "./fixtures/format";
 import { CONTRACT_METADATA } from "../lib/metadata/contract.generated";
 import { CONTRACT_PAGE } from "../components/features/contract/contract.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { withDeclaredColumns } from "../components/data-table/column-order";
 
 /**
  * The contracts against the live backend (see CONTRACT_PAGE and ContractEntityRest).
@@ -76,6 +77,57 @@ test.describe("contract", { tag: "@parallel" }, () => {
     await expect
       .poll(() => saveAttempted, { message: "the save reaches the backend" })
       .toBe(true);
+  });
+
+  test("shows the declared columns over a layout the React grid stored", async ({
+    loggedInPage: page,
+  }) => {
+    // The React grid kept its layout under the same category and with its own ids (`statusAsString`, not `status`).
+    // Served from here rather than stored, so the account's own layout is neither read nor overwritten.
+    const reactLayout = {
+      columnOrder: ["statusAsString", "title", "number", "date"],
+      columnSizing: { statusAsString: 120, title: 200 },
+      sorting: [{ id: "statusAsString", desc: false }],
+    };
+    await page.route("**/rs/contract/columnStates", (route) =>
+      route.fulfill({ json: reactLayout })
+    );
+    await page.route("**/rs/contract/setColumnStates", (route) =>
+      route.fulfill({ body: "OK" })
+    );
+    const listCall = page.waitForRequest(
+      (request) =>
+        request.url().includes("/rs/contract/list") &&
+        request.method() === "POST"
+    );
+
+    await goto(page, "/contract");
+
+    // The React id is dropped, and the columns its order lacks keep their declared neighbours rather than trailing.
+    const declaredIds = CONTRACT_PAGE.columns
+      .filter((column) => !column.hiddenByDefault)
+      .map(columnIdOf);
+    const expected = withDeclaredColumns(
+      reactLayout.columnOrder,
+      declaredIds
+    ).filter((id) => declaredIds.includes(id));
+    await expect
+      .poll(() =>
+        page
+          .locator("thead [data-column-id]")
+          .evaluateAll((cells) =>
+            cells.map((cell) => cell.getAttribute("data-column-id"))
+          )
+      )
+      .toEqual(expected);
+
+    // Nor does the list sort by the React id: the page's default (number, descending) applies.
+    const sent = (await listCall).postDataJSON() as {
+      sortProperties?: { property: string }[];
+    };
+    expect(sent.sortProperties?.map((entry) => entry.property)).toEqual([
+      "number",
+    ]);
   });
 
   test("redirects the old React pages", async ({ loggedInPage: page }) => {

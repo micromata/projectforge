@@ -64,3 +64,37 @@ export function withPinnedFirst(
     ...right.filter((id) => known.has(id)),
   ];
 }
+
+/**
+ * The stored column order reconciled with the columns the table actually declares: ids it doesn't
+ * declare are dropped, and a declared column the order lacks is put after its declared predecessor
+ * instead of at the end, where TanStack would append it.
+ *
+ * Both cases come from a stored order written for another set of columns: a column added later, or
+ * the layout of the legacy React grid, which kept its state under the same category and with its own
+ * column ids (`statusAsString` where the page now has `status`) — see NextMigration. Applied at render
+ * time like withLockedFirst, so nothing has to be migrated in what the user persisted.
+ *
+ * @param order The stored order; empty means "as the columns are declared" and is returned as is.
+ */
+export function withDeclaredColumns(
+  order: ColumnOrderState,
+  allIds: string[]
+): ColumnOrderState {
+  if (!order.length) return order;
+  const declared = new Set(allIds);
+  const result = order.filter((id) => declared.has(id));
+  allIds.forEach((id, index) => {
+    if (result.includes(id)) return;
+    let at = 0;
+    for (let i = index - 1; i >= 0; i--) {
+      const position = result.indexOf(allIds[i]);
+      if (position >= 0) {
+        at = position + 1;
+        break;
+      }
+    }
+    result.splice(at, 0, id);
+  });
+  return result;
+}
