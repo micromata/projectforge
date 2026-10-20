@@ -23,13 +23,18 @@
 
 package org.projectforge.business.poll
 
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
 open class PollResponseDao : BaseDao<PollResponseDO>(PollResponseDO::class.java) {
+    @Autowired
+    private lateinit var pollDao: PollDao
+
     override fun newInstance(): PollResponseDO {
         return PollResponseDO()
     }
@@ -41,6 +46,45 @@ open class PollResponseDao : BaseDao<PollResponseDO>(PollResponseDO::class.java)
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        return true
+        val result = if (obj == null) {
+            // Lists: every entry is checked on its own.
+            operationType == OperationType.SELECT
+        } else {
+            checkAccess(user, obj, oldObj, operationType)
+        }
+        if (!result && throwException) {
+            throw AccessException(AccessException.I18N_KEY_STANDARD, "PollResponseDO", operationType)
+        }
+        return result
+    }
+
+    /**
+     * A response belongs to its owner, who must take part in the poll (attendee, owner or full access). A user with
+     * full access to the poll reads all responses, answers on behalf of an attendee and deletes responses (e.g.
+     * together with the poll).
+     */
+    private fun checkAccess(
+        user: PFUserDO,
+        obj: PollResponseDO,
+        oldObj: PollResponseDO?,
+        operationType: OperationType,
+    ): Boolean {
+        val poll = obj.poll?.id?.let { pollDao.find(it, checkAccess = false) } ?: return false
+        val ownerId = obj.owner?.id ?: return false
+        val fullAccess = pollDao.hasFullAccess(poll)
+        return when (operationType) {
+            OperationType.SELECT -> ownerId == user.id || fullAccess
+            OperationType.INSERT, OperationType.UPDATE -> {
+                // An update must not move a response to another owner or poll.
+                if (oldObj != null && (oldObj.owner?.id != ownerId || oldObj.poll?.id != poll.id)) {
+                    false
+                } else if (ownerId == user.id) {
+                    fullAccess || pollDao.isAttendee(poll, ownerId)
+                } else {
+                    fullAccess && pollDao.isAttendee(poll, ownerId)
+                }
+            }
+            else -> fullAccess
+        }
     }
 }
