@@ -30,7 +30,7 @@ import org.mockito.Mockito
 import org.projectforge.common.logging.LogEventRegistry
 import org.projectforge.framework.support.BusinessLogEventCatalog
 import org.projectforge.framework.support.SupportErrorDigest
-import org.projectforge.rest.dvelop.DvelopLogEvents
+import org.projectforge.rest.sipgate.SipgateLogEvents
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.io.IOException
@@ -62,7 +62,7 @@ class GlobalExceptionRegistryTest {
     @Test
     fun `the log event of a known exception decides whether it is reported`() {
         Assertions.assertFalse(GlobalExceptionRegistry.ExInfo().sendMailToDevelopers)
-        Assertions.assertTrue(GlobalExceptionRegistry.ExInfo(logEvent = DvelopLogEvents.CALL_FAILED).sendMailToDevelopers)
+        Assertions.assertTrue(GlobalExceptionRegistry.ExInfo(logEvent = SipgateLogEvents.STORAGE_PARSE_FAILED).sendMailToDevelopers)
         Assertions.assertFalse(GlobalExceptionRegistry.ExInfo(logEvent = RestLogEvents.NO_CREDENTIALS).sendMailToDevelopers)
         Assertions.assertTrue(
             GlobalExceptionRegistry.ExInfo(logEvent = RestLogEvents.NO_CREDENTIALS, sendMailToDevelopers = true).sendMailToDevelopers,

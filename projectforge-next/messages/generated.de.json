@@ -266,6 +266,60 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "accounting": {
+        "add": "Zeile hinzufügen",
+        "creditorsAccountNumberRanges": "Kontonummern der Kreditoren",
+        "debitorsAccountNumberRanges": "Kontonummern der Debitoren",
+        "error": {
+          "accountRange": "{arg0}: keine gültigen Kontonummern: {arg1} (z. B. 4000-4799 oder 6300,6800-6855).",
+          "duplicateId": "{arg0}: Die Id {arg1} wird schon von einer anderen Zeile verwendet.",
+          "id": "{arg0}: Die Id {arg1} ist kein gültiger Name (Buchstaben, Ziffern und _, beginnend mit einem Buchstaben).",
+          "unknownRow": "{arg0}: Es gibt keine Zeile mit der Id {arg1}.",
+          "value": "{arg0}: Der Wert lässt sich nicht übersetzen (Formel oder Groovy-Skript)."
+        },
+        "heading": "Überschrift der BWA",
+        "help": {
+          "accountRange": "DATEV-Konten, deren Buchungssätze in dieser Zeile summiert werden: einzelne Konten und Bereiche, durch Kommas getrennt, z. B. 4000-4799 oder 6300,6800-6855. Leer bei berechneten Zeilen und Trennzeilen.",
+          "creditors": "Kontonummern der Kreditoren (z. B. 70000-79999): Die Kontoauswahl für Kreditoren bietet nur diese Konten an. Leer: alle Konten.",
+          "debitors": "Kontonummern der Debitoren (z. B. 10000-12999): Die Kontoauswahl für Debitoren bietet nur diese Konten an. Leer: alle Konten.",
+          "heading": "Überschrift über der betriebswirtschaftlichen Auswertung.",
+          "id": "Name der Zeile in Formeln und Skripten anderer Zeilen: Buchstaben, Ziffern und _, beginnend mit einem Buchstaben. Auf eine Zeile ohne Id kann nicht verwiesen werden.",
+          "indent": "Einrückung des Titels in der BWA, z. B. 1 oder 2 für Unterzeilen. Leer: keine.",
+          "keyRow": "Zeile (über ihre Id), aus der die BWA diese Kennzahl nimmt, z. B. für die Statistik der Buchungssätze.",
+          "no": "Nummer vor dem Titel, z. B. die Zeilennummer der DATEV-BWA. Sonst ohne Funktion.",
+          "order": "Reihenfolge: Ein Buchungssatz gehört zur ersten Zeile von oben, deren Konten zu seinem Konto oder Gegenkonto passen. Berechnete Zeilen werden ebenfalls von oben berechnet, eine berechnete Zeile, auf die eine Formel verweist, muss also darüber stehen.",
+          "priority": "Priorität: Wichtigkeit der Zeile. Eine Kurzform der BWA (z. B. in Reports oder Skripten) enthält nur Zeilen hoher oder sehr hoher Priorität. Leer: mittel.",
+          "rows": "Die Zeilen der BWA in der angezeigten Reihenfolge. Eine Zeile summiert entweder die Buchungssätze ihrer Konten, berechnet ihren Betrag über ihren Wert oder ist eine leere Trennzeile (nur eine Nummer oder nichts).",
+          "scale": "Anzahl der Nachkommastellen des Betrags, z. B. 4 für eine Quote. Leer: 2.",
+          "title": "Text der Zeile in der BWA.",
+          "unit": "Einheit hinter dem Betrag, z. B. %. Leer: die Währung.",
+          "value": "Wert: = gefolgt von einer Formel aus Zeilen-Ids (z. B. =umsatzErloese+bestVerdg) oder ein Groovy-Skript, das den Betrag liefert und in dem die Zeilen als Variablen unter ihren Ids verfügbar sind. Leer: die Summe der Buchungssätze der Konten."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Objekt; die Vorgaben werden angezeigt.",
+        "merchandisePurchase": "Zeile des Wareneinkaufs",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "notGiven": "–",
+        "overallPerformance": "Zeile der Gesamtleistung",
+        "preliminaryResult": "Zeile des vorläufigen Ergebnisses",
+        "remove": "{arg0} entfernen",
+        "row": {
+          "accountRange": "Konten",
+          "id": "Id",
+          "indent": "Einzug",
+          "no": "Nr.",
+          "priority": "Priorität",
+          "scale": "Stellen",
+          "title": "Titel",
+          "unit": "Einheit",
+          "value": {
+            "_": "Wert",
+            "placeholder": "Wert: Formel aus Zeilen-Ids wie =umsatzErloese+bestVerdg oder Groovy-Skript, das den Betrag liefert (leer: Summe der Konten)"
+          }
+        },
+        "rows": "Zeilen der betriebswirtschaftlichen Auswertung (BWA)",
+        "summary": "Debitoren {arg0}, Kreditoren {arg1}, {arg2} Zeilen der BWA"
+      },
       "categories": {
         "finance": "Finanzen",
         "hr": "Personal",
@@ -275,6 +329,24 @@
         "timesheet": "Zeitberichte"
       },
       "category": "Kategorie",
+      "contractTypes": {
+        "add": "Vertragsart hinzufügen",
+        "error": {
+          "duplicate": "Vertragsart {arg0}: Der Wert ist mehrfach vergeben.",
+          "label": "Vertragsart {arg0}: Die Bezeichnung fehlt.",
+          "value": "Vertragsart {arg0}: Der Wert fehlt."
+        },
+        "help": {
+          "label": "Name der Vertragsart in der Auswahl der Verträge.",
+          "value": "Kurzform, die im Vertrag gespeichert wird, z. B. NDA. Eindeutig; eine spätere Änderung ändert die Verträge mit dem bisherigen Wert nicht."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Array; es werden keine Vertragsarten angezeigt.",
+        "label": "Bezeichnung",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "remove": "{arg0} entfernen",
+        "value": "Wert"
+      },
       "editPage": {
         "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
         "link": "Editor öffnen"
@@ -287,8 +359,72 @@
         "vacationTaskNotBookable": "Auf dem Urlaubs-Strukturelement „{arg0}“ können keine Zeitberichte gebucht werden (geschlossen, gelöscht oder für Buchungen gesperrt).",
         "vacationTaskNotFound": "Kein Strukturelement mit der Id {arg0}."
       },
+      "holidays": {
+        "add": "Feiertag hinzufügen",
+        "dayOfMonth": "Tag",
+        "error": {
+          "date": "Feiertag {arg0}: kein gültiger Tag und Monat.",
+          "duplicate": "Feiertag {arg0}: Der vordefinierte Feiertag ist mehrfach konfiguriert.",
+          "label": "Feiertag {arg0}: Die Bezeichnung fehlt.",
+          "workFraction": "Feiertag {arg0}: Der Arbeitsanteil muss zwischen 0 und 1 liegen.",
+          "year": "Feiertag {arg0}: kein gültiges Jahr."
+        },
+        "help": {
+          "dayOfMonth": "Tag im Monat eines eigenen Feiertags (1-31).",
+          "holiday": "Eigener Feiertag oder einer der vordefinierten Feiertage, der geändert werden soll.",
+          "ignore": "Der vordefinierte Feiertag gilt nicht (z. B. Faschingsdienstag, wenn er ein Arbeitstag ist).",
+          "label": "Name im Kalender. Bei einem vordefinierten Feiertag optional: ersetzt dessen Namen.",
+          "month": "Monat eines eigenen Feiertags (1 = Januar, 12 = Dezember).",
+          "own": "Eigene Feiertage werden mit Bezeichnung, Tag und Monat ergänzt: jedes Jahr oder nur im angegebenen Jahr (z. B. ein Brückentag).",
+          "predefinedHolidays": "Die vordefinierten (deutschen) Feiertage gelten ohne Eintrag. Ein Eintrag ist nur nötig, um einen zu ändern: ignorieren, umbenennen oder zum teilweisen Arbeitstag machen.",
+          "workFraction": "Anteil eines vollen Arbeitstags, z. B. 0,5 für einen halben Arbeitstag (Heiligabend, Silvester). Nur für Arbeitstage; leer: ein voller Arbeitstag.",
+          "workingDay": "Ob ein eigener Feiertag ein Arbeitstag (z. B. mit Arbeitsanteil) oder ein freier Tag ist. Vordefinierte Feiertage behalten ihre Einstellung.",
+          "year": "Nur in diesem Jahr (z. B. ein Brückentag). Leer: jedes Jahr."
+        },
+        "holiday": "Feiertag",
+        "ignore": "Ignorieren",
+        "ignored": "ignoriert",
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Array; es werden keine Feiertage angezeigt.",
+        "label": "Bezeichnung",
+        "month": "Monat",
+        "own": "Eigener Feiertag",
+        "predefined": "Datum und Arbeitstag wie vordefiniert",
+        "remove": "{arg0} entfernen",
+        "workFraction": "Arbeitsanteil",
+        "workingDay": "Arbeitstag",
+        "year": "Jahr"
+      },
+      "jira": {
+        "add": "Server hinzufügen",
+        "baseUrl": "Browse-URL",
+        "browseBaseUrl": "Standard-Browse-URL",
+        "error": {
+          "browseBaseUrl": "Standard-Browse-URL {arg0}: keine http(s)-URL.",
+          "duplicate": "Projekt {arg0} ist auf Server {arg1} und Server {arg2} eingetragen.",
+          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit einem Buchstaben).",
+          "projectsMissing": "Server {arg0}: die Projekte fehlen.",
+          "serverUrl": "Server {arg0}: {arg1} ist keine http(s)-URL.",
+          "serverUrlMissing": "Server {arg0}: die Browse-URL fehlt."
+        },
+        "help": {
+          "baseUrl": "URL, an die der Issue-Key angehängt wird, z. B. https://customer.acme.com/jira/browse/ (mit abschließendem Schrägstrich).",
+          "browseBaseUrl": "URL, an die der Issue-Key (z. B. PROJECTFORGE-222) angehängt wird, wenn sein Projekt auf keinem der Server unten liegt, z. B. https://jira.acme.com/jira/browse/ (mit abschließendem Schrägstrich). Ohne Standard-URL und Server werden keine Issues verlinkt.",
+          "projects": "Kürzel der Projekte auf diesem Server, kommagetrennt, z. B. ACME, ADMIN. Ein Projekt liegt nur auf einem Server.",
+          "servers": "Weitere JIRA-Server nach den Projekten, die auf ihnen liegen. Die Issues aller anderen Projekte werden auf die Standard-Browse-URL verlinkt."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Objekt; es werden keine JIRA-Einstellungen angezeigt.",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "projects": "Projekte",
+        "remove": "{arg0} entfernen",
+        "servers": "Server",
+        "summary": {
+          "servers": "{arg0} Server"
+        }
+      },
       "json": {
-        "invalid": "Kein gültiges JSON."
+        "invalid": "Kein gültiges JSON.",
+        "notReadable": "Nicht lesbar: {arg0}"
       },
       "param": {
         "calendarDomain": {
@@ -317,6 +453,10 @@
           "label": "Feedback"
         },
         "fibu": {
+          "accounting": {
+            "_": "Buchhaltung",
+            "description": "Kontenbereiche der Debitoren und Kreditoren (z. B. \"10000-12999\") und das Schema der betriebswirtschaftlichen Auswertung (BWA) mit ihren Zeilen: Nummer, Id, Kontenbereich, Wert (Formel beginnend mit \"=\" oder Groovy-Skript), Priorität, Titel, Einrückung, Nachkommastellen und Einheit. Siehe Administrationshandbuch."
+          },
           "contributionMargin": {
             "_": "Deckungsbeitrag",
             "description": "Einstellungen des Deckungsbeitrags (Auftragsbuch und Scripte): die Erlöskonten, der Stundensatz für die Zeitberichte der Monate ohne importierte Buchungssätze, der Ziel-Prozentsatz mit der Rot-Grenze der Ampel und die Zuordnung von Kostenträgern ohne eigenes Projekt zu einem Projekt."
@@ -342,11 +482,19 @@
           "_": "Nomenklatur der Gruppen",
           "description": "Namenskonvention der Gruppen (Beschreibung, Muster und Endungen), nach der Projekt- und Strukturelement-Assistent die Namen neuer Gruppen vorschlagen."
         },
+        "holidays": {
+          "_": "Feiertage",
+          "description": "Zusätzliche Feiertage (Bezeichnung, Monat, Tag, optional Jahr) und Änderungen der vordefinierten über ihre Id (z. B. XMAS_EVE): ignorieren, Bezeichnung, Arbeitstag, Arbeitsanteil (z. B. 0.5 für einen halben Arbeitstag)."
+        },
         "hr": {
           "emailaddress": {
             "_": "E-Mailadresse HR",
             "description": "Mailadresse von HR für Urlaubseinträge"
           }
+        },
+        "jira": {
+          "_": "JIRA",
+          "description": "JIRA-Server, auf die Issue-Keys (z. B. PROJECTFORGE-222) in Zeitberichten und Strukturelementen verlinkt werden: eine Standard-Browse-URL und weitere Server nach den Projekten, die auf ihnen liegen. Ohne URL werden keine Issues verlinkt."
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
@@ -359,6 +507,12 @@
         "minPasswordLength": {
           "_": "Passwortmindestlänge",
           "description": "Die Mindestlänge der Benutzer:innenpasswörter."
+        },
+        "orga": {
+          "contractTypes": {
+            "_": "Vertragsarten",
+            "description": "In den Verträgen auswählbare Vertragsarten: eine Liste von Einträgen mit Wert (Kurzform, z. B. NDA) und Bezeichnung (z. B. Geheimhaltungsvereinbarung)."
+          }
         },
         "organization": {
           "_": "Organisation",
@@ -642,6 +796,25 @@
         }
       },
       "visible": "sichtbar"
+    },
+    "holiday": {
+      "ascension": "Christi Himmelfahrt",
+      "ashWednesday": "Aschermittwoch",
+      "corpusChristi": "Fronleichnam",
+      "easterMonday": "Ostermontag",
+      "easterSunday": "Ostersonntag",
+      "firstXmasDay": "1. Weihnachtstag",
+      "goodFriday": "Karfreitag",
+      "maundyThursday": "Gründonnerstag",
+      "newYear": "Neujahr",
+      "newYearsEve": "Silvester",
+      "palmSunday": "Palmsonntag",
+      "secondXmasDay": "2. Weihnachtstag",
+      "shroveMonday": "Rosenmontag",
+      "shroveTuesday": "Faschingsdienstag",
+      "whitMonday": "Pfingstmontag",
+      "whitSunday": "Pfingstsonntag",
+      "xmasEve": "Heiligabend"
     },
     "month": {
       "_": "Monat",
@@ -4338,10 +4511,6 @@
           "_": "Export 2FA configuration",
           "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
         },
-        "exportConfiguration": {
-          "_": "Export configuration",
-          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
-        },
         "formatLogEntries": {
           "_": "Format log entries",
           "textarea": {
@@ -4356,8 +4525,8 @@
         },
         "reindex": "Reindex",
         "rereadConfiguration": {
-          "_": "Reread configuration",
-          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
+          "_": "Konfiguration neu einlesen",
+          "tooltip": "Liest die Konfigurationsparameter neu ein, z. B. nachdem ein Parameter direkt in der Datenbank geändert wurde. Meist nicht nötig: Änderungen auf der Konfigurationsseite gelten sofort."
         },
         "resetIdpPasswordSync": {
           "_": "IdP-Passwort-Sync zurücksetzen",

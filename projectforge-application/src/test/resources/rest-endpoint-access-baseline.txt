@@ -81,9 +81,6 @@ org.projectforge.rest.core.AbstractPagesRest#getItemAndLayout
 org.projectforge.rest.core.AbstractPagesRest#requestInitialList
 org.projectforge.rest.core.AbstractPagesRest#resetGridState
 org.projectforge.rest.core.AbstractPagesRest#watchFields
-org.projectforge.rest.dvelop.DvelopPageRest#downloadTradingPartners
-org.projectforge.rest.dvelop.DvelopPageRest#getForm
-org.projectforge.rest.dvelop.DvelopPageRest#synchronizeTradingPartners
 org.projectforge.rest.fibu.CurrencyConversionRatePageRest#delete
 org.projectforge.rest.fibu.CurrencyConversionRatePageRest#getForm
 org.projectforge.rest.fibu.CurrencyConversionRatePageRest#insert
