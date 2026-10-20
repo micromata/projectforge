@@ -10,7 +10,7 @@
       "items" : [ "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
     }, {
       "type" : "improved",
-      "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
+      "items" : [ "Mein Menü gestalten: in die neue Oberfläche migriert. Einträge werden per Ziehen oder Klick ins eigene Menü übernommen, Gruppen lassen sich anlegen, umbenennen und entfernen; leere Gruppen werden nicht mehr als defekte Einträge gespeichert.", "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
     }, {
       "type" : "changed",
       "items" : [ "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet.", {

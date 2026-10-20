@@ -699,6 +699,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   öffnet in Next das Panel über der aktuellen Seite statt der Seite; aus dem React-Menü (volles Laden) kommt die
   Seite, deren „Auf jeder Seite einblenden“ (wie `ALT-K` dort) dann auf die Startseite statt zurück nach React führt.
   `react/costSearch/**` leitet `OrphanedLinkFilter` um.
+- **Mein Menü gestalten** (`/next/customizeMenu`, vorher handgebaute React-Seite, gelöscht samt `@dnd-kit` im
+  Webapp) – `components/features/menu-customizer/`: Favoritenmenü links, Hauptmenü als Vorlage rechts, per
+  dnd-kit (Einträge, Gruppen eine Ebene tief) oder Klick. Die Logik ist rein (`menu-tree.ts`, Vitest), der Zustand
+  ein Entwurf über der geteilten `["menu"]`-Query (nach Speichern/Zurücksetzen invalidiert, die Favoritenleiste
+  folgt ohne Neuladen). `MenuCustomizerRest` behält `customized`/`default`/`reset`; `customizer` (Texte) und
+  `saved` entfallen, die Texte kommen aus dem Katalog. Leere Gruppen werden nicht mehr gespeichert (das Backend
+  machte daraus einen Eintrag ohne Url). `react/customizeMenu` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

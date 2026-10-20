@@ -112,8 +112,6 @@ org.projectforge.rest.jobs.JobsMonitorPageRest#getForm
 org.projectforge.rest.jobs.JobsMonitorPageRest#getJobs
 org.projectforge.rest.LogoutRest#logout
 org.projectforge.rest.MenuCustomizerRest#getDefaultMenu
-org.projectforge.rest.MenuCustomizerRest#getMenuCustomizerPageData
-org.projectforge.rest.MenuCustomizerRest#getSavedMenu
 org.projectforge.rest.MenuCustomizerRest#resetMenu
 org.projectforge.rest.MenuCustomizerRest#saveCustomMenu
 org.projectforge.rest.MenuRest#getMenu

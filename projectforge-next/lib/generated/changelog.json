@@ -10,7 +10,7 @@
       "items" : [ "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
     }, {
       "type" : "improved",
-      "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
+      "items" : [ "Customize my menu: migrated to the new interface. Entries are dragged or clicked into the own menu, groups can be added, renamed and removed; empty groups are no longer stored as broken entries.", "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
     }, {
       "type" : "changed",
       "items" : [ "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected.", {

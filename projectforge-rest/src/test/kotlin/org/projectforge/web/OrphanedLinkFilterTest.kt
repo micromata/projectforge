@@ -295,6 +295,13 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/costSearch", redirectOf("/react/costSearch"))
     }
 
+    /** The old React menu customizer is gone. */
+    @Test
+    fun `the old react menu customizer is redirected to next`() {
+        Assertions.assertEquals("/next/customizeMenu", redirectOf("/react/customizeMenu"))
+        Assertions.assertEquals("/next/customizeMenu", redirectOf("/react/customizeMenu/"))
+    }
+
     /** The old React team vacation export is gone. */
     @Test
     fun `the old react vacation export is redirected to next`() {
