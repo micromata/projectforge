@@ -609,6 +609,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Vertragspartner, Ansprechpartner und Unterzeichner mit Autovervollständigung, JIRA-Links im Text, Anhänge,
   Klonen (ohne Nummer), Prüfung „kein Datum in der Zukunft“ im Backend. Entfallen: die aus der längsten Vertragsart
   berechnete Breite der Typ-Spalte. `react/contract/**` leitet `OrphanedLinkFilter` um.
+- **Währungspaare** (`currencyPair`, Liste + Formular, vorher React-UILayout `CurrencyPairPagesRest` und das Modal
+  `CurrencyConversionRatePageRest`, beide gelöscht) – layoutfrei über `CurrencyPairEntityRest` (`/rs/currencyPair`,
+  gleicher Pfad). Die Liste zeigt den heute gültigen Kurs beider Richtungen (berechnet, nicht sortierbar, mit den
+  Nachkommastellen des Kurses statt fest zwei). Die Kurse lädt das Edit-DTO mit; geschrieben werden sie sofort über
+  `POST currencyPair/rate/{insert,update,delete}` (Antwort: alle Kurse des Paares), das Paar eines Kurses kommt beim
+  Ändern/Löschen aus der Datenbank, nie aus dem Request. Tabelle und Dialog sind `components/shared/validity-entries/`,
+  erweitert um eigene Beschriftungen mit Einheit (`1 EUR =` … `USD`) und `prefill`: ein neuer Kurs (Datum heute) wird
+  beim Öffnen und bei jeder Datumsänderung aus `GET currencyPair/rate/onlineRates` vorbelegt, samt Quellenhinweis.
+  Anders als im React-Dialog überschreibt eine Datumsänderung an einem gespeicherten Kurs dessen Werte nicht mehr.
+  Der Hinweis zu automatischen Kursen steht jetzt über den Kursen im Formular statt über der Liste. Ein neues Paar
+  bleibt nach dem ersten Speichern im Formular. Kein Weg zurück; `react/currencyPair/**` leitet `OrphanedLinkFilter` um.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
@@ -684,7 +695,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   sie sofort über `POST employee/validSinceAttr/{insert,update,delete}` (Antwort: alle Einträge des Typs), nicht mit
   dem Formular. Die Tabellen und der Dialog sind die generische Komponente
   `components/shared/validity-entries/` (Einträge mit Gültigkeitszeitraum, aktuell gültiger Eintrag markiert,
-  künftige gedämpft) – gedacht auch für die Kurse der Währungspaare (`CurrencyPairPagesRest`, noch React). Ein neuer
+  künftige gedämpft), auch für die Kurse der Währungspaare (siehe dort). Ein neuer
   Eintrag bleibt nach dem ersten Speichern im Formular, damit die Einträge erfasst werden können. Kein Weg zurück;
   `react/employee/**` leitet `OrphanedLinkFilter` um.
 - **Benutzer** (`user`, Liste + Formular, vorher React-UILayout `UserPagesRest`, gelöscht) – layoutfrei über

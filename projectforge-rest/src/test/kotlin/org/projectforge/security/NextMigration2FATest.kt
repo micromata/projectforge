@@ -90,7 +90,7 @@ class NextMigration2FATest {
    */
   private val sensitiveOnRead = listOf(
     "/rs/importIncomingInvoicePos/upload", "/rs/uploadIncomingInvoices/upload",
-    "/rs/currencyPair/list", "/rs/currencyConversionRate/dynamic",
+    "/rs/currencyPair/list", "/rs/currencyPair/rate/onlineRates",
     "/rs/adminCaches/list", "/rs/sipgate/dynamic", "/rs/taskWizard/execute",
   )
 
@@ -98,7 +98,7 @@ class NextMigration2FATest {
   private val sensitiveOnWrite = listOf(
     "/rs/employeeSalaryImport/upload", "/rs/incomingInvoiceImport/upload", "/rs/importIncomingInvoicePos/upload",
     "/rs/uploadIncomingInvoices/upload",
-    "/rs/currencyPair/${RestPaths.SAVE_OR_UDATE}", "/rs/currencyConversionRate/update",
+    "/rs/currencyPair/${RestPaths.SAVE_OR_UDATE}", "/rs/currencyPair/rate/update",
     "/rs/customerGroups/save", "/rs/projectWizard/execute",
     "/rs/taskWizard/execute", "/rs/adminCaches/refresh", "/rs/adminCaches/terminate", "/rs/adminCaches/refreshAll",
     "/rs/sipgate/downloadConfiguration", "/rs/sipgate/synchronize", "/rs/sipgate/resetContacts",

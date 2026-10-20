@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatDateRange,
   formatMonthRange,
+  formatNumberUpTo,
   formatPercentageDecimal,
   formatTimestampRange,
   type FormatContext,
@@ -46,6 +47,20 @@ describe("formatTimestampRange", () => {
     expect(
       formatTimestampRange("2026-06-17T10:33:00Z", "2026-06-17T12:00:00Z", CTX)
     ).toBe("17.06.2026, 12:33 – 17.06.2026, 14:00");
+  });
+});
+
+describe("formatNumberUpTo", () => {
+  it("keeps the digits of a conversion rate, without padding them", () => {
+    expect(formatNumberUpTo(0.85, CTX, 8)).toBe("0,85");
+    expect(formatNumberUpTo("1.17647059", CTX, 8)).toBe("1,17647059");
+    expect(formatNumberUpTo(160.5, CTX, 8)).toBe("160,5");
+  });
+
+  it("rounds beyond the allowed digits and shows nothing for no value", () => {
+    expect(formatNumberUpTo(1.123456789, CTX, 8)).toBe("1,12345679");
+    expect(formatNumberUpTo(null, CTX, 8)).toBe("");
+    expect(formatNumberUpTo("", CTX, 8)).toBe("");
   });
 });
 

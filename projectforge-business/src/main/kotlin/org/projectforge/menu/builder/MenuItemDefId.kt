@@ -94,7 +94,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     INBOX_LIST("menu.orga.posteingang", getListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
-    CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
+    // Migrated to projectforge-next; the React pages were removed.
+    CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getListUrl("currencyPair")), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //

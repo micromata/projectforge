@@ -529,7 +529,7 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/", redirectOf("/wa"))
         Assertions.assertEquals("/next/", redirectOf("/wa/anything"))
         Assertions.assertEquals("/next/", redirectOf("/wa/wicket/page", mapOf("3" to "")))
-        Assertions.assertNull(redirectOf("/react/outgoingMail"))
+        Assertions.assertNull(redirectOf("/react/visitorbook"))
         Assertions.assertNull(redirectOf("/next/task"))
         Assertions.assertNull(redirectOf("/water"))
     }

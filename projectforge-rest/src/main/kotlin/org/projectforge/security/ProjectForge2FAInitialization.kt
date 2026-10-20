@@ -145,7 +145,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     // write period, as Wicket's page did. Of the report objectives (successor of /wa/reportObjectives) only the
     // import was a write (Wicket's /wa/reportEdit); evaluating them is reading, gated by FINANCE below.
     // The same for the other imports: they write without passing the save of their entity, so WRITE:<category>
-    // doesn't catch them. The rates of a currency pair are written by their own page (CurrencyConversionRatePageRest).
+    // doesn't catch them. The rates of a currency pair are written by their own endpoints (CurrencyPairEntityRest.*Rate).
     registerShortCutClasses(
       My2FAShortCut.FINANCE_WRITE,
       DatevRecordImportRest::class.java,
@@ -154,7 +154,6 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       IncomingInvoiceImportRest::class.java,
       IncomingInvoicePosImportPageRest::class.java,
       EingangsrechnungUploadPageRest::class.java,
-      CurrencyConversionRatePageRest::class.java,
     )
     // The project wizard creates customer, project, groups and their access rights in one go:
     registerShortCutMethods(
@@ -163,6 +162,9 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       ReportObjectivesPageRest::paste,
       CustomerGroupPageRest::save,
       ProjectWizardRest::execute,
+      CurrencyPairEntityRest::insertRate,
+      CurrencyPairEntityRest::updateRate,
+      CurrencyPairEntityRest::deleteRate,
     )
 
     registerShortCutValues(
@@ -190,8 +192,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       IncomingInvoiceImportRest::class.java,
       IncomingInvoicePosImportPageRest::class.java,
       EingangsrechnungUploadPageRest::class.java,
-      CurrencyPairPagesRest::class.java,
-      CurrencyConversionRatePageRest::class.java,
+      CurrencyPairEntityRest::class.java,
     )
 
     my2FARequestHandler.registerShortCutValues(

@@ -34,11 +34,6 @@ class CurrencyConversionRate(
     var inverseConversionRate: BigDecimal? = null,
     var comment: String? = null,
     var currencyPairId: Long? = null,
-    /**
-     * Information about the source of the exchange rate (e.g., fetched from API).
-     * Not persisted, only for UI display.
-     */
-    var apiSourceInfo: String? = null,
 ) : BaseDTODisplayObject<CurrencyConversionRateDO>() {
     constructor(src: CurrencyConversionRateDO?) : this() {
         id = src?.id
@@ -49,16 +44,18 @@ class CurrencyConversionRate(
         currencyPairId = src?.currencyPair?.id
     }
 
-    fun cloneAsDO(): CurrencyConversionRateDO {
+    /**
+     * @param currencyPairId The pair the rate is filed under, taken from the database by the caller rather than
+     * from [CurrencyConversionRate.currencyPairId] of the request (a posted id must not move a rate to another pair).
+     */
+    fun cloneAsDO(currencyPairId: Long): CurrencyConversionRateDO {
         val result = CurrencyConversionRateDO()
         result.id = id
         result.validFrom = validFrom
         result.conversionRate = conversionRate
         result.inverseConversionRate = inverseConversionRate
         result.comment = comment
-        currencyPairId?.let {
-            result.currencyPair = CurrencyPairDO().also { it.id = currencyPairId }
-        }
+        result.currencyPair = CurrencyPairDO().also { it.id = currencyPairId }
         return result
     }
 }

@@ -33,7 +33,10 @@ class CurrencyPair(
     var sourceCurrency: String? = null,
     var targetCurrency: String? = null,
     var comment: String? = null,
-) : BaseDTODisplayObject<CurrencyPairDO>(id, displayName = displayName) {
+) : BaseDTODisplayObject<CurrencyPairDO>(id, displayName = displayName), EntityAccessSupport {
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
+
     /**
      * Read-only field containing all conversion rates for this currency pair.
      * Used in edit form to display rate history.

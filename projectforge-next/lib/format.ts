@@ -331,6 +331,23 @@ export function formatNumber(
   }).format(numeric);
 }
 
+/**
+ * A number with as many decimals as it has, up to [maxFractionDigits] — a conversion rate (`0.85`, `1.17647059`),
+ * whose precision is its own, where [formatNumber] would round to three digits or pad to a fixed number.
+ */
+export function formatNumberUpTo(
+  value: unknown,
+  ctx: FormatContext,
+  maxFractionDigits: number
+): string {
+  if (value == null || value === "") return "";
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numeric)) return "";
+  return new Intl.NumberFormat(ctx.locale, {
+    maximumFractionDigits: maxFractionDigits,
+  }).format(numeric);
+}
+
 export function formatCurrency(
   value: unknown,
   ctx: FormatContext,

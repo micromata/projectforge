@@ -32,31 +32,31 @@ import org.junit.jupiter.api.Test
 import org.projectforge.NextMigration
 import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
-import org.projectforge.rest.orga.PostausgangPagesRest
+import org.projectforge.rest.orga.VisitorbookPagesRest
 
 class PageResolverTest {
     @Test
     fun resolveTest() {
-        assertEquals("react/outgoingMail", PagesResolver.getListPageUrl(PostausgangPagesRest::class.java))
-        assertEquals("react/outgoingMail?str=test", PagesResolver.getListPageUrl(PostausgangPagesRest::class.java, mapOf("str" to "test")))
+        assertEquals("react/visitorbook", PagesResolver.getListPageUrl(VisitorbookPagesRest::class.java))
+        assertEquals("react/visitorbook?str=test", PagesResolver.getListPageUrl(VisitorbookPagesRest::class.java, mapOf("str" to "test")))
 
-        var result = PagesResolver.getListPageUrl(PostausgangPagesRest::class.java, mapOf("str" to "test", "id" to 5))
-        assertEquals("react/outgoingMail?str=test&id=5".length, result.length)
+        var result = PagesResolver.getListPageUrl(VisitorbookPagesRest::class.java, mapOf("str" to "test", "id" to 5))
+        assertEquals("react/visitorbook?str=test&id=5".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("id=5"))
-        assertTrue(result.startsWith("react/outgoingMail?"))
+        assertTrue(result.startsWith("react/visitorbook?"))
         assertTrue(result.contains("&"))
 
-        assertEquals("react/outgoingMail/edit", PagesResolver.getEditPageUrl(PostausgangPagesRest::class.java))
-        assertEquals("react/outgoingMail/edit/42", PagesResolver.getEditPageUrl(PostausgangPagesRest::class.java, 42))
+        assertEquals("react/visitorbook/edit", PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java))
+        assertEquals("react/visitorbook/edit/42", PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java, 42))
 
-        result = PagesResolver.getEditPageUrl(PostausgangPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
-        assertEquals("react/outgoingMail/edit/42?str=test&p2=test2".length, result.length)
+        result = PagesResolver.getEditPageUrl(VisitorbookPagesRest::class.java, 42, mapOf("str" to "test", "p2" to "test2"))
+        assertEquals("react/visitorbook/edit/42?str=test&p2=test2".length, result.length)
         // Order of params may differ:
         assertTrue(result.contains("str=test"))
         assertTrue(result.contains("p2=test2"))
-        assertTrue(result.startsWith("react/outgoingMail/edit/42?"))
+        assertTrue(result.startsWith("react/visitorbook/edit/42?"))
         assertTrue(result.contains("&"))
 
         assertEquals("react/calendarSubscription/dynamic", PagesResolver.getDynamicPageUrl(CalendarSubscriptionInfoPageRest::class.java, trailingSlash = false))
@@ -79,15 +79,15 @@ class PageResolverTest {
         assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
         assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
         // Not migrated: unchanged, and the category is used as the route.
-        assertFalse(NextMigration.isMigrated("outgoingMail"))
-        assertEquals("react/outgoingMail/edit", NextMigration.newEntryUrl("outgoingMail"))
-        assertEquals("react/outgoingMail/edit/:id", NextMigration.standardEditPage("outgoingMail"))
+        assertFalse(NextMigration.isMigrated("visitorbook"))
+        assertEquals("react/visitorbook/edit", NextMigration.newEntryUrl("visitorbook"))
+        assertEquals("react/visitorbook/edit/:id", NextMigration.standardEditPage("visitorbook"))
     }
 
     /**
      * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
      * entry* url with an id appended, which is what it used to be built from. For the generic React
-     * shape both happen to be the same (`react/outgoingMail/edit` + `/id`), so the difference only shows
+     * shape both happen to be the same (`react/visitorbook/edit` + `/id`), so the difference only shows
      * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
      * form.
      */
@@ -99,7 +99,7 @@ class PageResolverTest {
             NextMigration.standardEditPage("book"),
             "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
         )
-        assertEquals("react/outgoingMail/edit/:id", NextMigration.standardEditPage("outgoingMail"))
+        assertEquals("react/visitorbook/edit/:id", NextMigration.standardEditPage("visitorbook"))
         // group has been hand built in projectforge-next since, and follows book's shape.
         assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
     }
@@ -117,7 +117,7 @@ class PageResolverTest {
         assertNull(NextMigration.legacyEditPage("book"))
         assertNull(NextMigration.legacyNewEntryUrl("book"))
         // Not migrated: the legacy page is the page itself.
-        assertEquals(NextMigration.listUrl("outgoingMail"), NextMigration.legacyListUrl("outgoingMail"))
-        assertEquals(NextMigration.standardEditPage("outgoingMail"), NextMigration.legacyEditPage("outgoingMail"))
+        assertEquals(NextMigration.listUrl("visitorbook"), NextMigration.legacyListUrl("visitorbook"))
+        assertEquals(NextMigration.standardEditPage("visitorbook"), NextMigration.legacyEditPage("visitorbook"))
     }
 }

@@ -64,7 +64,7 @@ class NextMigrationTest {
         // menu links are built with and without leading slash.
         Assertions.assertTrue(NextMigration.isNextUrl(NextMigration.listUrl("order")))
         Assertions.assertTrue(NextMigration.isNextUrl("/${NextMigration.listUrl("cost1")}"))
-        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("outgoingMail")))
+        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("visitorbook")))
         Assertions.assertFalse(NextMigration.isNextUrl("wa/cost2List"))
         Assertions.assertFalse(NextMigration.isNextUrl(null))
     }
@@ -86,7 +86,7 @@ class NextMigrationTest {
             NextMigration.nextEditPage("book"),
         )
         // Not migrated at all, so there is no next form to name.
-        Assertions.assertNull(NextMigration.nextEditPage("outgoingMail"))
+        Assertions.assertNull(NextMigration.nextEditPage("visitorbook"))
     }
 
     /**
@@ -374,6 +374,23 @@ class NextMigrationTest {
         val link = NextMigration.orphanedLinks().single { it.category == "employee" }
         Assertions.assertEquals("react/employee", link.legacyListPath)
         Assertions.assertEquals("react/employee/edit", link.legacyEditPath)
+    }
+
+    /**
+     * The currency pairs: list and form (conversion rates included) are next's, the React pages are gone, so there
+     * is no way back, but a bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the currency pair pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/currencyPair", NextMigration.listUrl("currencyPair"))
+        Assertions.assertEquals("next/currencyPair/:id", NextMigration.standardEditPage("currencyPair"))
+        Assertions.assertEquals("next/currencyPair/new", NextMigration.newEntryUrl("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyListUrl("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyEditPage("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("currencyPair"))
+        val link = NextMigration.orphanedLinks().single { it.category == "currencyPair" }
+        Assertions.assertEquals("react/currencyPair", link.legacyListPath)
+        Assertions.assertEquals("react/currencyPair/edit", link.legacyEditPath)
     }
 
     /**
