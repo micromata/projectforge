@@ -4509,6 +4509,12 @@
       "delete": "Remove",
       "deleteAll": "Remove all ({arg0})",
       "deleteInfo": "Deletes the parameter from projectforge.properties (the backup made on saving keeps it).",
+      "diff": {
+        "current": "Current file",
+        "ignoreOrder": "Ignore order",
+        "info": "Compares projectforge.properties with its backups, or two backups with each other. Values of secrets are not shown, only whether they changed.",
+        "title": "Compare projectforge.properties"
+      },
       "example": "Example",
       "expertWarning": "Internal settings: only change them if you know exactly what you are doing. A wrong value may prevent ProjectForge from starting.",
       "fileComment": "Own comment in projectforge.properties",

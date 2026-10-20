@@ -4509,6 +4509,12 @@
       "delete": "Entfernen",
       "deleteAll": "Alle entfernen ({arg0})",
       "deleteInfo": "Löscht den Parameter aus der projectforge.properties (die Sicherung beim Speichern enthält ihn weiterhin).",
+      "diff": {
+        "current": "Aktuelle Datei",
+        "ignoreOrder": "Reihenfolge ignorieren",
+        "info": "Vergleicht die projectforge.properties mit ihren Sicherungskopien oder zwei Sicherungskopien miteinander. Werte von Secrets werden nicht angezeigt, nur ob sie sich geändert haben.",
+        "title": "projectforge.properties vergleichen"
+      },
       "example": "Beispiel",
       "expertWarning": "Interne Einstellungen: Nur ändern, wenn genau klar ist, was sie bewirken. Ein falscher Wert kann den Start von ProjectForge verhindern.",
       "fileComment": "Eigener Kommentar in der projectforge.properties",

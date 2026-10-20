@@ -18,13 +18,15 @@ export function CodeVersionSelect({
   value,
   onChange,
   ariaLabel,
+  storedLabel,
 }: {
   options: CodeVersionOption[];
   value: string;
   onChange: (value: string) => void;
   ariaLabel: string;
+  storedLabel?: string;
 }) {
-  const label = useVersionLabel();
+  const label = useVersionLabel(storedLabel);
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger aria-label={ariaLabel} className="w-full sm:w-72">
@@ -41,12 +43,13 @@ export function CodeVersionSelect({
   );
 }
 
-function useVersionLabel() {
+function useVersionLabel(storedLabel?: string) {
   const t = useTranslations();
   const ctx = useFormatContext();
   return (option: CodeVersionOption): string => {
     if (option.value === EDITED) return t("codeEditor.diff.edited");
-    if (option.value === STORED) return t("codeEditor.diff.stored");
+    if (option.value === STORED)
+      return storedLabel ?? t("codeEditor.diff.stored");
     const timestamp = option.backup?.timestamp;
     return timestamp == null
       ? t("codeEditor.diff.backupWithoutDate")

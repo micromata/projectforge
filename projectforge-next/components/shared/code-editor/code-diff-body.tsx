@@ -17,6 +17,7 @@ export function CodeDiffBody({
   current,
   language,
   versions,
+  storedLabel,
   showAll,
 }: CodeDiffDialogProps & { showAll: boolean }) {
   const t = useTranslations();
@@ -31,6 +32,7 @@ export function CodeDiffBody({
             options={v.options}
             value={v.left}
             onChange={v.setLeft}
+            storedLabel={storedLabel}
             ariaLabel={t("codeEditor.diff.left")}
           />
         </SideHeader>
@@ -39,6 +41,7 @@ export function CodeDiffBody({
             options={v.options}
             value={v.right}
             onChange={v.setRight}
+            storedLabel={storedLabel}
             ariaLabel={t("codeEditor.diff.right")}
           />
         </SideHeader>

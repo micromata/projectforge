@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +19,14 @@ import type { CodeVersionSource } from "./types";
 
 export type CodeDiffDialogProps = Omit<
   CodeDiffViewProps,
-  "className" | "showAll"
+  "className" | "showAll" | "original"
 > & {
+  /** The stored code; undefined while it is still being fetched (a spinner is shown meanwhile). */
+  original: string | undefined;
   /** The former versions to choose from besides the stored and the edited code. */
   versions?: CodeVersionSource;
+  /** The name of the stored version in the pickers, where "stored" doesn't fit (a file, say). */
+  storedLabel?: string;
 };
 
 /**
@@ -33,10 +37,16 @@ export type CodeDiffDialogProps = Omit<
 export function CodeDiffDialog({
   open,
   onOpenChange,
+  title,
+  options,
   ...props
 }: CodeDiffDialogProps & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Instead of "compare versions". */
+  title?: string;
+  /** Further switches of the diff, beside "show all lines". */
+  options?: ReactNode;
 }) {
   const t = useTranslations();
   const showAllId = useId();
@@ -46,18 +56,21 @@ export function CodeDiffDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[85vh] w-[95vw] !max-w-6xl flex-col">
         <DialogHeader>
-          <DialogTitle>{t("codeEditor.diff.title")}</DialogTitle>
+          <DialogTitle>{title ?? t("codeEditor.diff.title")}</DialogTitle>
         </DialogHeader>
         {/* Mounted with each opening, so the choice of versions starts afresh (useCodeVersions). */}
         <CodeDiffBody {...props} showAll={showAll} />
         <DialogFooter>
-          <div className="flex items-center gap-2 sm:mr-auto">
-            <Switch
-              id={showAllId}
-              checked={showAll}
-              onCheckedChange={setShowAll}
-            />
-            <Label htmlFor={showAllId}>{t("codeEditor.diff.showAll")}</Label>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:mr-auto">
+            {options}
+            <div className="flex items-center gap-2">
+              <Switch
+                id={showAllId}
+                checked={showAll}
+                onCheckedChange={setShowAll}
+              />
+              <Label htmlFor={showAllId}>{t("codeEditor.diff.showAll")}</Label>
+            </div>
           </div>
           <DialogClose asChild>
             <Button type="button" variant="outline">

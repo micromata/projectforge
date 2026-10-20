@@ -1,5 +1,21 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.11",
+    "date" : "2026-10-20",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

@@ -1,0 +1,5 @@
+{
+  "type": "added",
+  "en": "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown.",
+  "de": "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben."
+}

@@ -1,5 +1,21 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.11",
+    "date" : "2026-10-20",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "added",
+      "items" : [ "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
+    }, {
+      "type" : "improved",
+      "items" : [ "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
+    }, {
+      "type" : "fixed",
+      "items" : [ "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

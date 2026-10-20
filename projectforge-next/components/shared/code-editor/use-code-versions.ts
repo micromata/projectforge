@@ -27,11 +27,12 @@ export function useCodeVersions({
   current,
   source,
 }: {
-  original: string;
+  original: string | undefined;
   current: string;
   source?: CodeVersionSource;
 }) {
-  const changed = original !== current;
+  // Nothing edited while the stored code is still being fetched.
+  const changed = original !== undefined && original !== current;
   const list = useQuery({
     queryKey: [...(source?.queryKey ?? []), "list"],
     queryFn: ({ signal }) => source!.list(signal),
@@ -65,10 +66,10 @@ export function useCodeVersions({
   };
 }
 
-/** The code of a version; undefined while a former version's code is still being fetched. */
+/** The code of a version; undefined while it (a former version, or the stored code) is still being fetched. */
 function useVersionCode(
   value: string,
-  original: string,
+  original: string | undefined,
   current: string,
   source?: CodeVersionSource
 ): string | undefined {
