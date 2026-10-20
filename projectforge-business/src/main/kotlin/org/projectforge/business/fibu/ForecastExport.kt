@@ -237,6 +237,9 @@ open class ForecastExport { // open needed by Wicket.
      * @param planningDate If given, the plan is calculated from the closest order book snapshot.
      * @param snapshotDate If given, the forecast is calculated from the closest order book snapshot instead of the
      * current order book: its versions of the orders of [orderList] (matched by id), and the invoices before it only.
+     * @param deletedOrderIds The orders deleted since, selected as [orderList] otherwise: [orderList] can't hold them,
+     * but the snapshots of [planningDate] and [snapshotDate] still do, and a plan doesn't shrink because one of its
+     * orders was deleted later (the filter based [xlsExport] keeps them as well). Not part of the current forecast.
      * @return null, if neither order positions nor invoices were found.
      */
     open fun chartData(
@@ -246,8 +249,11 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
         snapshotDate: LocalDate? = null,
+        deletedOrderIds: Set<Long> = emptySet(),
     ): ForecastChartData? {
-        return statistics(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate)?.chart
+        return statistics(
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, deletedOrderIds,
+        )?.chart
     }
 
     /**
@@ -261,9 +267,11 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
         snapshotDate: LocalDate? = null,
+        deletedOrderIds: Set<Long> = emptySet(),
     ): ForecastStatistics? {
         val result = exportSelected(
-            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, chartsOnly = true,
+            orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate, deletedOrderIds,
+            chartsOnly = true,
         ) ?: return null
         return ForecastStatistics(result.chartData, result.tables)
     }
@@ -281,7 +289,7 @@ open class ForecastExport { // open needed by Wicket.
         try {
             return exportSelected(
                 orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, snapshotDate = null,
-                chartsOnly = false,
+                deletedOrderIds = emptySet(), chartsOnly = false,
             )?.xls
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
@@ -296,9 +304,10 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate?,
         distributeUnusedBudget: Boolean?,
         snapshotDate: LocalDate?,
+        deletedOrderIds: Set<Long>,
         chartsOnly: Boolean,
     ): ExportResult? {
-        val orderIds = orderList.mapNotNull { it.id }.toSet()
+        val orderIds = orderList.mapNotNull { it.id }.toSet() + deletedOrderIds
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, null, "snapshot")
         // The snapshot's versions of the selected orders (a snapshot can't be queried, so they are matched by id).
         // Orders created after the snapshot aren't part of it.

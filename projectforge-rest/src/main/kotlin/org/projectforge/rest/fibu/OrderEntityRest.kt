@@ -1130,6 +1130,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       settings.snapshotDate,
     )
     return orderStatisticsCache.get(key) {
+      val usesSnapshots = settings.planningDate != null || settings.snapshotDate != null
       forecastExport.statistics(
         forecastOrders(magicFilter, settings.startDate),
         startDate = settings.startDate,
@@ -1137,6 +1138,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         planningDate = settings.planningDate,
         distributeUnusedBudget = settings.distributeUnusedBudget,
         snapshotDate = settings.snapshotDate,
+        deletedOrderIds = if (usesSnapshots) deletedForecastOrderIds(magicFilter, settings.startDate) else emptySet(),
       )
     }
   }
@@ -1170,13 +1172,28 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * [magicFilter] itself is left untouched.
    */
   private fun forecastOrders(magicFilter: MagicFilter, startDate: LocalDate?): List<AuftragDO> {
+    return getResultList(forecastFilter(magicFilter, startDate))
+  }
+
+  /**
+   * The ids of the orders [forecastOrders] would return if they weren't deleted: the order book snapshots of the
+   * plan and of a forecast of a past date still hold them ([ForecastExport.statistics]).
+   */
+  private fun deletedForecastOrderIds(magicFilter: MagicFilter, startDate: LocalDate?): Set<Long> {
+    val filter = forecastFilter(magicFilter, startDate)
+    filter.entries.removeIf { it.field == "deleted" }
+    filter.entries.add(MagicFilterEntry("deleted", "true"))
+    return getResultIds(filter).toSet()
+  }
+
+  private fun forecastFilter(magicFilter: MagicFilter, startDate: LocalDate?): MagicFilter {
     val filter = magicFilter.clone()
     filter.entries.removeIf { it.field == PERIOD_OF_PERFORMANCE_FILTER || it.field == MagicFilter.PAGINATION_PAGE_SIZE }
     val from = PFDay.fromOrNull(startDate)?.beginOfMonth ?: PFDay.now().beginOfYear
     filter.entries.add(MagicFilterEntry(PERIOD_OF_PERFORMANCE_FILTER).also {
       it.value.fromValue = from.plusYears(-3).isoString
     })
-    return getResultList(filter)
+    return filter
   }
 
   /** What the forecast charts tab asks for, and what is remembered of it per user. */

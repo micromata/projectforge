@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { expectedGroupName } from "./fixtures/group-nomenclature";
 import { listRows, waitForRows } from "./fixtures/list-table";
 import {
   fetchRootTaskId,
@@ -228,8 +229,12 @@ test.describe("task wizard", { tag: "@lane-task" }, () => {
     const dialog = page.getByRole("dialog");
     const name = dialog.getByLabel(format.t("name"), { exact: true });
     // Wicket only *showed* this name to be copied by hand; here it is an actual prefill. The team's
-    // group is named after the element itself, the other two get a suffix (see suggestGroupName).
-    await expect(name).toHaveValue(seededTask.title, { timeout: 20_000 });
+    // group is named after the element itself, the other two get a suffix (see suggestGroupName); a
+    // configured nomenclature may add a suffix or change the letter case.
+    await expect(name).toHaveValue(
+      await expectedGroupName(page, "team", seededTask.title),
+      { timeout: 20_000 }
+    );
 
     const created = `${MARKER} group ${uniqueSuffix()}`;
     await name.fill(created);

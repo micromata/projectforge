@@ -85,7 +85,11 @@ export default function RootLayout({
               CustomerI18nResources overrides via TanStack Query to overlay on its static catalog. */}
           <QueryProvider>
             <LocaleProvider>
-              <TooltipProvider>
+              {/* `disableHoverableContent`: a tooltip closes the moment the pointer leaves its trigger.
+                  Kept open over its own content (Radix' default), it sat in the way of whatever lies
+                  behind it — the header menu above a title-row button could not be reached. No tooltip
+                  holds anything clickable. */}
+              <TooltipProvider disableHoverableContent>
                 {children}
                 {/* More than sonner's three: a job's progress toast stays until the job is done
                     (see JobToasts) and must not be pushed out by the messages of other actions.

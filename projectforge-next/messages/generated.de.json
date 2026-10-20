@@ -1324,7 +1324,6 @@
         },
         "chart": {
           "cumulative": "Umsatzprognose kumuliert",
-          "currentMonthHint": "Anmerkung: Im aktuellen Monat wird der größere Wert verwendet: Die IST-Daten (Rechnungen) oder der Monatsforecast.",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
           "monthly": "Umsatzprognose Monatswerte",

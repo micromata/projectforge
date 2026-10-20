@@ -166,8 +166,9 @@ class OrderbookSnapshotsService {
             auftragList
         }
         log.info { "Converting ${incrementList.size}/${auftragList.size} orders..." }
-        val orderbook = orderConverterService.convertFromAuftragDO(incrementList)
-        if (orderbook.isNullOrEmpty()) {
+        val orderbook = (orderConverterService.convertFromAuftragDO(incrementList) ?: emptyList()) +
+                deletedMarkers(incrementalBasedOn)
+        if (orderbook.isEmpty()) {
             log.warn { "No orders found to store!!!" }
             return SerializedSnapshot(count = 0, gzBytes = null)
         }
@@ -177,6 +178,19 @@ class OrderbookSnapshotsService {
         log.info { "Zipping ${incrementList.size} orders..." }
         val gzBytes = gzip(json)
         return SerializedSnapshot(count = count, gzBytes = gzBytes)
+    }
+
+    /**
+     * The markers of the orders deleted at or after [incrementalBasedOn] (see [Order.deleted]): the full backup holds
+     * them, but they weren't part of the order book anymore. Empty for a full backup.
+     */
+    private fun deletedMarkers(incrementalBasedOn: LocalDate?): List<Order> {
+        incrementalBasedOn ?: return emptyList()
+        selectMeta(incrementalBasedOn) ?: return emptyList() // Fallback to a full backup, see createOrderbookSnapshot.
+        val basedOnDate = PFDateTimeUtils.getBeginOfDateAsUtildate(incrementalBasedOn)
+        return auftragDao.select(deleted = true, checkAccess = false)
+            .filter { (it.lastUpdate ?: Date()) >= basedOnDate }
+            .map { Order().apply { id = it.id; deleted = true } }
     }
 
     /**
@@ -270,18 +284,40 @@ class OrderbookSnapshotsService {
             // Load order book from the incremental based on date first:
             readSnapshot(incrementalBasedOn, orderbook)
         }
-        val serialized = entry.serializedOrderBook ?: return
-        if (serialized.isEmpty()) {
-            return
+        val serialized = entry.serializedOrderBook
+        if (serialized != null && serialized.isNotEmpty()) {
+            readSnapshot(serialized, orderbook)
         }
-        readSnapshot(serialized, orderbook)
+        if (entry.incremental) {
+            removeDeletedBefore(entry.created, orderbook)
+        }
     }
 
     private fun readSnapshot(serialized: ByteArray, orderbook: MutableMap<Long, Order>) {
         val json = gunzip(serialized)
         JsonUtils.fromJson(json, object : TypeReference<List<Order?>?>() {})?.forEach { order ->
             order?.id?.let { id ->
-                orderbook[id] = order
+                if (order.deleted == true) {
+                    orderbook.remove(id)
+                } else {
+                    orderbook[id] = order
+                }
+            }
+        }
+    }
+
+    /**
+     * Incremental snapshots stored before [Order.deleted] was introduced don't know of the orders deleted since their
+     * full backup, so these are still taken from the backup. An order deleted now whose last update is before the
+     * snapshot was created was already deleted then: marking an order as deleted updates it, and so does any later
+     * change. Not detected: an order deleted before the snapshot, but changed after it (newer snapshots have their
+     * [Order.deleted] markers for this).
+     */
+    private fun removeDeletedBefore(snapshotCreated: Date?, orderbook: MutableMap<Long, Order>) {
+        snapshotCreated ?: return
+        auftragDao.select(deleted = true, checkAccess = false).forEach { order ->
+            if ((order.lastUpdate ?: return@forEach) < snapshotCreated) {
+                orderbook.remove(order.id)
             }
         }
     }
