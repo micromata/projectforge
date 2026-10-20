@@ -721,6 +721,11 @@
     "workingDays": "Working days"
   },
   "back": "Back",
+  "birthdayButler": {
+    "organization": {
+      "notSet": "No organization is configured (projectforge.birthdaybutler.organization in projectforge.properties)."
+    }
+  },
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
@@ -2849,6 +2854,9 @@
       "contractPersonA": "contract person A",
       "contractPersonB": "contract person B",
       "number": "Contract number",
+      "sections": {
+        "general": "Contract"
+      },
       "signerA": "signer A",
       "signerB": "signer B",
       "signing": "signing",
@@ -2861,8 +2869,13 @@
         "suspended": "suspended",
         "unknown": "unknown"
       },
+      "title": {
+        "add": "New contract",
+        "list": "List of contracts"
+      },
       "type": "Type",
       "validity": {
+        "_": "Validity",
         "from": "Validity from",
         "until": "Validity until"
       }
@@ -2973,6 +2986,7 @@
     "addNewEntry": "New entry",
     "administration": "Administration",
     "availability": "Availability",
+    "birthdayButler": "Birthday butler",
     "calendar": "Calendar",
     "changePassword": "Change password",
     "changeWlanPassword": "Change WLAN/Samba password",
@@ -3049,6 +3063,12 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "orga": {
+      "_": "Organization",
+      "postausgang": "Outbox",
+      "posteingang": "Inbox",
+      "visitorbook": "Visitorbook"
+    },
     "personalStatistics": "My statistics",
     "phoneCall": "Direct call",
     "pluginAdmin": "Plugins",
@@ -3345,11 +3365,21 @@
     },
     "postausgang": {
       "empfaenger": "Receiver",
-      "person": "FAO"
+      "person": "FAO",
+      "title": {
+        "add": "New outbox entry",
+        "heading": "Outbox",
+        "list": "Outbox"
+      }
     },
     "posteingang": {
       "absender": "Sender",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "New inbox entry",
+        "heading": "Inbox",
+        "list": "Inbox"
+      }
     },
     "visitorbook": {
       "company": "Company",

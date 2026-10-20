@@ -650,6 +650,35 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the contracts (ContractEntityRest, components/features/contract), migrated
+        // from React. The types to choose from come from `contract/types` (configuration parameter orga.contractTypes).
+        // The React pages are gone (no UILayout served any more), so there is no way back; the legacy app is kept for
+        // the redirect of bookmarked React links only.
+        "contract" to NextPage(
+            route = "contract",
+            editRoute = "contract/$ID_PLACEHOLDER",
+            newEntryRoute = "contract/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
+        // Hand built list and edit pages of the inbox and the outbox ("Posteingang", "Postausgang",
+        // PosteingangEntityRest, PostausgangEntityRest, components/features/post), migrated from React. The React
+        // pages are gone (no UILayout served any more), so there is no way back; the legacy app is kept for the
+        // redirect of bookmarked React links only.
+        "incomingMail" to NextPage(
+            route = "incomingMail",
+            editRoute = "incomingMail/$ID_PLACEHOLDER",
+            newEntryRoute = "incomingMail/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
+        "outgoingMail" to NextPage(
+            route = "outgoingMail",
+            editRoute = "outgoingMail/$ID_PLACEHOLDER",
+            newEntryRoute = "outgoingMail/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Hand built list and edit page of the skill matrix (plugin skillmatrix, SkillEntryEntityRest,
         // components/features/skill-entry), migrated from React. The React pages are gone (no UILayout served any
         // more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.

@@ -276,7 +276,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             }
             return false
         }
-        if (obj.isPersonalBox() == true) {
+        if (obj.isPersonalBox() == true || oldObj?.isPersonalBox() == true) {
             if (operationType != OperationType.SELECT && throwException) {
                 // Select only on inboxes:
                 throw AccessException(user, "access.exception.userHasNotRight")
@@ -284,7 +284,9 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             // Select only on inboxes:
             return operationType == OperationType.SELECT
         }
-        val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+        // On update and delete the admins of the stored area decide, never the ones of the posted object: otherwise
+        // anybody could make himself admin by posting his own id.
+        val adminIds = StringHelper.splitToLongs((oldObj ?: obj).adminIds, ",")
         if (adminIds?.contains(user.id!!) == true) {
             return true
         }

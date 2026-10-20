@@ -21,10 +21,21 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.birthdaybutler
 
-import java.time.LocalDateTime
+package org.projectforge.rest.orga
 
-class BirthdayButlerData {
-    var month: Int = LocalDateTime.now().monthValue
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDay
+import org.projectforge.ui.ValidationError
+import java.time.LocalDate
+
+/**
+ * The check both mail books ([PosteingangEntityRest], [PostausgangEntityRest]) share: an entry is booked when the
+ * mail came in or went out, so its date can't lie in the future.
+ */
+internal fun validatePostDate(validationErrors: MutableList<ValidationError>, datum: LocalDate?) {
+    val date = PFDay.fromOrNull(datum)
+    if (date != null && PFDay.now().isBefore(date)) {
+        validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
+    }
 }

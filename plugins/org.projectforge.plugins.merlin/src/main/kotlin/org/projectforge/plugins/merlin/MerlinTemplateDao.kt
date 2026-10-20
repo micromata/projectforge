@@ -50,7 +50,9 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
         throwException: Boolean
     ): Boolean {
         obj ?: return false
-        val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+        // On update and delete the admins of the stored template decide, never the ones of the posted object:
+        // otherwise anybody could become admin by posting the own id.
+        val adminIds = StringHelper.splitToLongs((oldObj ?: obj).adminIds, ",")
         if (adminIds.contains(user.id!!)) {
             return true
         }

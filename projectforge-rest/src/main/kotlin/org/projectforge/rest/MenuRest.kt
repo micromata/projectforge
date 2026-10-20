@@ -79,6 +79,7 @@ class MenuRest {
   @Autowired
   private lateinit var recentMenuEntriesService: RecentMenuEntriesService
 
+  @AccessChecked("Own user only (menus built for the logged-in user's rights)")
   @GetMapping
   fun getMenu(): Menus {
     val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.loggedInUser!!))

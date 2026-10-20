@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjectWizardService
+import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
@@ -52,6 +54,9 @@ class ProjectWizardRestTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var projectWizardRest: ProjectWizardRest
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
 
     @Autowired
     private lateinit var taskTree: TaskTree
@@ -115,11 +120,53 @@ class ProjectWizardRestTest : AbstractTestBase() {
 
     @Test
     fun `users without the rights are refused`() {
-        logon(TEST_PROJECT_MANAGER_USER)
-        Assertions.assertFalse(projectWizardRest.init().allowed)
-        Assertions.assertThrows(AccessException::class.java) {
-            projectWizardRest.validate(ProjectWizardService.Data())
+        for (user in listOf(TEST_USER, TEST_PROJECT_MANAGER_USER)) {
+            logon(user)
+            Assertions.assertFalse(projectWizardRest.init().allowed, user)
+            Assertions.assertThrows(AccessException::class.java, {
+                projectWizardRest.validate(ProjectWizardService.Data())
+            }, user)
+            Assertions.assertThrows(AccessException::class.java, {
+                projectWizardRest.execute(ProjectWizardService.Data())
+            }, user)
         }
+    }
+
+    /** The preview would show the titles of its ancestors and the rows of the groups on them. */
+    @Test
+    fun `no preview below an element the user may not see`() {
+        logon(ADMIN_USER)
+        val hidden = TaskDO().also {
+            it.title = "ProjectWizardRestTest-hidden"
+            it.parentTask = taskTree.rootTaskNode.task
+        }
+        taskDao.insert(hidden)
+        val child = TaskDO().also {
+            it.title = "ProjectWizardRestTest-hidden-child"
+            it.parentTask = hidden
+        }
+        taskDao.insert(child)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "ProjectWizardRestTest.orga"
+            it.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
+        })
+        val group = getGroup(ORGA_GROUP)
+        group.addUser(user)
+        groupDao.update(group)
+        val data = ProjectWizardService.Data(
+            customer = ProjectWizardService.CustomerData(id = 18605L),
+            project = ProjectWizardService.ProjectData(nummer = 1, name = "ProjectWizardRestTest-hidden-child"),
+            parentTaskId = child.id,
+            teamGroup = ProjectWizardService.GroupData(name = "ProjectWizardRestTest-hidden"),
+        )
+        logon(user)
+        Assertions.assertTrue(projectWizardRest.init().projectAllowed)
+        val answer = projectWizardRest.validate(data).body!!
+        Assertions.assertNull(answer.preview)
+        Assertions.assertTrue(answer.validationErrors.any { it.fieldId == "parentTaskId" })
+        // The finance group sees every element:
+        logon(TEST_FINANCE_USER)
+        Assertions.assertNotNull(projectWizardRest.validate(data).body!!.preview)
     }
 
     @Test

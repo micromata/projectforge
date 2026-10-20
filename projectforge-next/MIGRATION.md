@@ -309,7 +309,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
   (Zellen), `JiraIssuesLinks` (Formularfeld-Zeile), `makeJiraFieldLinks(fieldName)`
-  (deklarative Felder). Offen für spätere Seiten: Contract.
+  (deklarative Felder), u. a. für Aufträge und Verträge.
 
 ## Phasen
 
@@ -368,8 +368,8 @@ bislang auf eine dynamische next-Seite.
 - **Listen** rendern mit der echten `DataTable` (Adapter `lib/dynamic/grid/`,
   Zell-Formatter-Registry `components/data-table/cells/`). **Kein `Function()`/`eval`:**
   `valueGetter`/`valueFormatter` strikt als Punktpfad; `getRowClass` deklarativ aus den
-  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `contract`, zuvor `employee`,
-  `vacation`, `skillentry`, `address`).
+  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `outgoingMail`, zuvor `contract`,
+  `employee`, `vacation`, `skillentry`, `address`).
 
 **Verbliebene Lücken:**
 
@@ -616,6 +616,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   erst nach dem nächsten Re-Index. Antworten werden erst nach dem Löschen der Umfrage mitgelöscht
   (`onAfterMarkAsDeleted`, also nach der Zugriffsprüfung) und mit ihr wiederhergestellt (`onAfterUndelete`). Eine Vorlage,
   die als Umfrage gespeichert wird, lädt ein wie eine neue (Einladungsbereich auch bei Vorlagen).
+- **Verträge** (`contract`, Liste + Formular, vorher React-UILayout `ContractPagesRest`, gelöscht) – layoutfrei
+  über `ContractEntityRest` (`/rs/contract`, gleicher Pfad). Der Jahr-Filter der React-Liste ist der Zeitraumfilter
+  der Datumsspalte (Default „Jahr“); ein beim Nutzer gespeicherter `year`-Eintrag wirkt weiter (`preProcessMagicFilter`)
+  und bleibt deshalb als (nicht angepinntes) Filterelement angeboten – sonst wäre er unsichtbar und nicht entfernbar.
+  Vertragsarten aus dem Konfigurationsparameter `orga.contractTypes` über `/rs/contract/types`; Titel,
+  Vertragspartner, Ansprechpartner und Unterzeichner mit Autovervollständigung, JIRA-Links im Text, Anhänge,
+  Klonen (ohne Nummer), Prüfung „kein Datum in der Zukunft“ im Backend. Entfallen: die aus der längsten Vertragsart
+  berechnete Breite der Typ-Spalte. `react/contract/**` leitet `OrphanedLinkFilter` um.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
@@ -625,6 +633,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
   Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. `react/skillentry/**` leitet
   `OrphanedLinkFilter` um.
+- **Posteingang / Postausgang** (`incomingMail`, `outgoingMail`, Liste + Formular, vorher React-UILayout
+  `PosteingangPagesRest` / `PostausgangPagesRest`, gelöscht) – layoutfrei über `PosteingangEntityRest` /
+  `PostausgangEntityRest` (`AbstractDOEntityRest`, ohne DTO, gleiche Pfade), beide in `components/features/post`.
+  `newBaseDO` setzt heute als Datum und den Typ (E-Mail bzw. Brief), `validate` lehnt ein Datum in der Zukunft ab.
+  Die Freitexte vervollständigen über `StringSuggestField` aus `/rs/<entity>/autocomplete?property=` (die Properties,
+  die `isAutocompletionPropertyEnabled` der DAOs freigibt). `react/incomingMail/**` und `react/outgoingMail/**`
+  leitet `OrphanedLinkFilter` um.
 - **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
   über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
   `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne
@@ -738,6 +753,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `attachment/{id}`; eine nicht prüfbare Datei ist ein 400 mit dem übersetzten Grund. Rechte unverändert
   (FIBU/ORGA oder Auftragsbuch-Recht), kein 2FA (die Legacy-URL hatte keinen). `react/eInvoiceChecker/**` leitet
   `OrphanedLinkFilter` um.
+- **Geburtstags-Butler** (`/next/birthdayButler`, vorher dynamische React-Seite, `BirthdayButlerPageRest` gelöscht) –
+  `components/features/birthday-butler/`: Monat (vorbelegt mit dem aktuellen) und Download des Word-Dokuments. Der
+  layout-freie `BirthdayButlerRest` (gleicher Pfad `/rs/birthdayButler`) liefert `init` (Monat, ob eine Organisation
+  konfiguriert ist – sonst sagt die Seite das statt eines Downloads, der nur scheitern kann) und `download`; eine
+  Liste, die sich nicht erstellen lässt (keine Geburtstage im Monat, …), ist ein 400 mit dem übersetzten Grund als
+  Text. Behoben: „keine Geburtstage" verwies auf einen nicht existierenden i18n-Schlüssel. Rechte unverändert
+  (ORGA-Team oder HR-Gruppe). `react/birthdayButler/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

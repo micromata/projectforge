@@ -721,6 +721,11 @@
     "workingDays": "Arbeitstage"
   },
   "back": "Zurück",
+  "birthdayButler": {
+    "organization": {
+      "notSet": "Es ist keine Organisation konfiguriert (projectforge.birthdaybutler.organization in projectforge.properties)."
+    }
+  },
   "book": {
     "abstract": "Zusammenfassung",
     "authors": "Autor:innen",
@@ -2849,6 +2854,9 @@
       "contractPersonA": "Ansprechpartner:in A",
       "contractPersonB": "Ansprechpartner:in B",
       "number": "Vertragsnummer",
+      "sections": {
+        "general": "Vertrag"
+      },
       "signerA": "Unterzeichner:in A",
       "signerB": "Unterzeichner:in B",
       "signing": "Unterzeichnung",
@@ -2861,8 +2869,13 @@
         "suspended": "verworfen",
         "unknown": "unbekannt"
       },
+      "title": {
+        "add": "Neuer Vertrag",
+        "list": "Verträge"
+      },
       "type": "Typ",
       "validity": {
+        "_": "Laufzeit",
         "from": "Laufzeit von",
         "until": "Laufzeit bis"
       }
@@ -2973,6 +2986,7 @@
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
     "availability": "Verfügbarkeit",
+    "birthdayButler": "Geburtstagsbutler",
     "calendar": "Kalender",
     "changePassword": "Passwort ändern",
     "changeWlanPassword": "WLAN/Samba Passwort ändern",
@@ -3049,6 +3063,12 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "orga": {
+      "_": "Organisation",
+      "postausgang": "Postausgang",
+      "posteingang": "Posteingang",
+      "visitorbook": "Besuchsbuch"
+    },
     "personalStatistics": "Meine Statistiken",
     "phoneCall": "Direktwahl",
     "pluginAdmin": "Plugins",
@@ -3345,11 +3365,21 @@
     },
     "postausgang": {
       "empfaenger": "Empfänger:in",
-      "person": "z. Hd."
+      "person": "z. Hd.",
+      "title": {
+        "add": "Postausgang anlegen",
+        "heading": "Postausgang",
+        "list": "Postausgangsbuch"
+      }
     },
     "posteingang": {
       "absender": "Absender:in",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "Posteingang anlegen",
+        "heading": "Posteingang",
+        "list": "Posteingangsbuch"
+      }
     },
     "visitorbook": {
       "company": "Firma",

@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Lists migrated to the new interface ignore columns and a sort order stored by the old list for columns it no longer has; columns missing from a stored order appear in their usual place instead of at the end.",
+  "de": "Auf die neue Oberfläche migrierte Listen ignorieren Spalten und eine Sortierung, die die alte Liste für nicht mehr vorhandene Spalten gespeichert hat; Spalten, die in einer gespeicherten Reihenfolge fehlen, erscheinen an ihrer üblichen Stelle statt am Ende."
+}

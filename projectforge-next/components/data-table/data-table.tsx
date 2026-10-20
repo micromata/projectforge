@@ -372,6 +372,8 @@ export function DataTable<TData>({
                   {hg.headers.map((header) => (
                     <TableHead
                       key={header.id}
+                      // The column's id, for the e2e specs that check the rendered order.
+                      data-column-id={header.column.id}
                       style={pinnedStyle(header.column, true, pinningSuspended)}
                       // The whole cell sorts, rather than a button around the label:
                       // such a button competes with the filter icon for space and

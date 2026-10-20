@@ -29,6 +29,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.FavoritesMenuReaderWriter
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -52,6 +53,7 @@ class MenuCustomizerRest {
      * Saves the customized menu for the current user.
      * @param customMenuData The custom menu data with the favorites menu items.
      */
+    @AccessChecked("Own user only (stores the logged-in user's menu pref)")
     @PostMapping("customized")
     fun saveCustomMenu(@RequestBody customMenuData: CustomMenuData): ResponseEntity<Any> {
         if (customMenuData.favoritesMenu == null) {
@@ -87,6 +89,7 @@ class MenuCustomizerRest {
     /**
      * Returns the default menu without saving it to user preferences.
      */
+    @AccessChecked("Own user only (the default menu of the logged-in user)")
     @GetMapping("default")
     fun getDefaultMenu(): ResponseEntity<Any> {
         val defaultMenu = favoritesMenuCreator.createDefaultFavoriteMenu()

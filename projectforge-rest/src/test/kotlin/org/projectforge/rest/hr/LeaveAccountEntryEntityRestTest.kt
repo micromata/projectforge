@@ -26,6 +26,8 @@ package org.projectforge.rest.hr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
@@ -33,7 +35,9 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.LeaveAccountEntry
@@ -70,6 +74,22 @@ class LeaveAccountEntryEntityRestTest : AbstractTestBase() {
         assertEquals(PFDateTime.now().localDate, dto.date)
         // Without the parameter, nobody is preset.
         assertNull(leaveAccountEntryEntityRest.newBaseDTO(MockHttpServletRequest()).employee)
+    }
+
+    /** The DAO has no userRightId: without its own check, BaseDao would let everybody add entries. */
+    @Test
+    fun `only HR staff may add an entry`() {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also { it.username = "LeaveAccountEntryEntityRestTest.insert" })
+        val employee = EmployeeDO().also { it.user = user }
+        employeeDao.insert(employee, checkAccess = false)
+        val request = MockHttpServletRequest().also { it.setParameter("employee", "${employee.id}") }
+        logon(TEST_USER)
+        assertFalse(leaveAccountEntryDao.hasLoggedInUserInsertAccess())
+        assertThrows(AccessException::class.java) { leaveAccountEntryEntityRest.getNewEntry(request) }
+        logon(TEST_HR_USER)
+        assertTrue(leaveAccountEntryDao.hasLoggedInUserInsertAccess())
+        assertNotNull(leaveAccountEntryEntityRest.getNewEntry(request).body)
     }
 
     /** The form posts no `created` and `lastUpdate`: an update keeps the first and sets the second itself. */

@@ -1006,8 +1006,8 @@ constructor(
      * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
      * @return redirect url
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping(RestPaths.CANCEL_MULTI_SELECTION, method = [RequestMethod.POST, RequestMethod.GET])
+    // State changing: POST only.
+    @PostMapping(RestPaths.CANCEL_MULTI_SELECTION)
     fun handleCancelUrl(request: HttpServletRequest): String {
         return MultiSelectionSupport.clear(request, this)
             ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
@@ -1820,7 +1820,7 @@ constructor(
     /**
      * A unique id which is used as parent node for all attachments. Use [enableJcr] for creating unique nodes.
      * @return unique jcr path if attachments are supported or null, if no attachment support is given (download, upload and list).
-     * @see [org.projectforge.rest.orga.ContractPagesRest] as an example.
+     * @see [org.projectforge.rest.orga.ContractEntityRest] as an example.
      */
     open var jcrPath: String? = null  // open needed by Wicket's SpringBean for proxying.
         protected set

@@ -44,7 +44,7 @@ object CoreFeatures {
         val shared: List<String> = emptyList(),
     )
 
-    private val CALENDAR_SUBSCRIPTION = listOf("calendarSubscription", "barcode")
+    private val CALENDAR_SUBSCRIPTION = listOf("calendarSubscription")
 
     /** The project wizard, offered by the lists of customers, projects and tasks. */
     private val PROJECT_WIZARD = listOf("projectWizard")

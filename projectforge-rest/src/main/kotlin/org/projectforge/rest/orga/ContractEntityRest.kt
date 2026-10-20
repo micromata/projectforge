@@ -34,24 +34,34 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Contract
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The contracts, for the hand built list and form of projectforge-next (components/features/contract). Serves no
+ * layout: the React pages it replaced are gone.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/contract")
-class ContractPagesRest
-  : AbstractDTOPagesRest<ContractDO, Contract, ContractDao>(
+class ContractEntityRest
+  : AbstractDTOEntityRest<ContractDO, Contract, ContractDao>(
   ContractDao::class.java, "legalAffaires.contract.title",
   cloneSupport = CloneSupport.CLONE
 ) {
+
+  /** A contract type of the configuration parameter `orga.contractTypes`, as the form offers it. */
+  class ContractTypeOption(val value: String, val label: String)
 
   @Autowired
   private lateinit var configurationService: ConfigurationService
@@ -66,7 +76,7 @@ class ContractPagesRest
   }
 
   /**
-   * Initializes new outbox mails for adding.
+   * Initializes new contracts for adding.
    */
   override fun newBaseDO(request: HttpServletRequest?): ContractDO {
     val contract = super.newBaseDO(request)
@@ -99,105 +109,38 @@ class ContractPagesRest
   }
 
   /**
-   * LAYOUT List page
+   * The year filter of the former React list, still offered (but not pinned): a stored filter of a user may carry it,
+   * and next restores and sends every stored entry, so without the element the list would be narrowed to a year
+   * nobody can see or remove. Contracts are looked for by the period filter of the date column instead.
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    val table = agGridSupport.prepareUIGrid4ListPage(
-      request,
-      layout,
-      magicFilter,
-      this,
-      userAccess = userAccess,
-    )
-    val typeWidth = configurationService.contractTypes.maxByOrNull { it.value.length }?.value?.length ?: 1
-    table.add(lc, "number", width = 50)
-      .add(lc, "date")
-      .add(lc, "type", width = typeWidth * 10)
-      .add(lc, "statusAsString", headerName = "status")
-      .add(lc, "attachmentsSizeFormatted") //, titleIcon = UIIconType.PAPER_CLIP)
-      .add(lc, "title", "coContractorA", "coContractorB", "resubmissionOnDate", "dueDate")
-  }
-
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-    elements.add(UIFilterElement("year", label = translate("calendar.year"), defaultFilter = true))
+    elements.add(UIFilterElement("year", label = translate("calendar.year")))
   }
 
+  /**
+   * The year filter of the former React list. The next list filters the date column by a period instead, but a
+   * `year` entry may still be stored in the filter of a user, so it is still understood (see [addMagicFilterElements]).
+   */
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
-    val filters = mutableListOf<CustomResultFilter<ContractDO>>()
     source.entries.find { it.field == "year" }?.let { entry ->
       entry.synthetic = true
       NumberHelper.parseInteger(entry.plainValue)?.let { year ->
         target.setYearAndMonth("date", year, -1)
       }
     }
-    return filters
+    return null
   }
 
   /**
-   * LAYOUT Edit page
+   * The contract types to choose from (configuration parameter `orga.contractTypes`), empty if none are configured.
    */
-  override fun createEditLayout(dto: Contract, userAccess: UILayout.UserAccess): UILayout {
-    val title = UIInput("title", lc, focus = true).enableAutoCompletion(this)
-    val coContractorA = UIInput("coContractorA", lc).enableAutoCompletion(this)
-    val coContractorB = UIInput("coContractorB", lc).enableAutoCompletion(this)
-    val contractPersonA = UIInput("contractPersonA", lc).enableAutoCompletion(this)
-    val contractPersonB = UIInput("contractPersonB", lc).enableAutoCompletion(this)
-    val signerA = UIInput("signerA", lc).enableAutoCompletion(this)
-    val signerB = UIInput("signerB", lc).enableAutoCompletion(this)
-    val number = UIReadOnlyField("number", lc)
-    val contractTypes = configurationService.contractTypes.map {
-      UISelectValue(it.value, it.label)
+  @AccessChecked("DAO: select access (ContractDao.hasLoggedInUserSelectAccess with throwException)")
+  @GetMapping("types")
+  fun getTypes(): List<ContractTypeOption> {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    return configurationService.contractTypes.mapNotNull { type ->
+      val value = type.value?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+      ContractTypeOption(value, type.label?.takeIf { it.isNotBlank() } ?: value)
     }
-    val textFieldSet = UIFieldset(UILength(lg = 6))
-    textFieldSet.add(lc, "text")
-
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(
-        UIRow()
-          .add(
-            UIFieldset(UILength(lg = 6))
-              .add(number)
-              .add(title)
-              .add(UISelect("type", lc, values = contractTypes))
-              .add(lc, "status", "reference")
-          )
-          .add(
-            UIFieldset(UILength(lg = 6))
-              .add(lc, "date", "resubmissionOnDate", "dueDate", "signingDate")
-              .add(
-                UIRow()
-                  .add(UICol(6).add(lc, "validFrom"))
-                  .add(UICol(6).add(lc, "validUntil"))
-              )
-          )
-          .add(
-            UIFieldset(UILength(lg = 6), title = "legalAffaires.contract.coContractorA")
-              .add(coContractorA)
-              .add(contractPersonA)
-              .add(signerA)
-          )
-          .add(
-            UIFieldset(UILength(lg = 6), title = "legalAffaires.contract.coContractorB")
-              .add(coContractorB)
-              .add(contractPersonB)
-              .add(signerB)
-          )
-      )
-      .add(
-        UIRow()
-          .add(textFieldSet)
-          .add(
-            UIFieldset(UILength(lg = 6))
-              .add(lc, "filing")
-          )
-      )
-      .add(
-        UIFieldset(title = "attachment.list")
-          .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
-      )
-
-    JiraSupport.createJiraElement(dto.text, layout.getLabelledElementById("text"))?.let { textFieldSet.add(it) }
-
-    return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

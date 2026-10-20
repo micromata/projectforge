@@ -25,6 +25,7 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -151,6 +152,25 @@ class GroupDaoTest : AbstractTestBase() {
      * at the hyphen), and Lucene doesn't tokenize a wildcard term - so the search used to ask for a term
      * beginning with `dhl-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
      */
+    /**
+     * The protection of the system groups decides on the stored name: posting a system group with another name
+     * doesn't delete it.
+     */
+    @Test
+    fun `a system group can't be deleted by posting it with another name`() {
+        logon(ADMIN_USER)
+        val adminGroupId = UserGroupCache.getInstance().getGroup(ProjectForgeGroup.ADMIN_GROUP)!!.id!!
+        val posted = groupDao.find(adminGroupId)!!.also { it.name = "$PREFIX.group.renamedSystemGroup" }
+        suppressErrorLogs {
+            Assertions.assertThrows(UserException::class.java) { groupDao.markAsDeleted(posted) }
+        }
+        Assertions.assertFalse(groupDao.find(adminGroupId)!!.deleted)
+        // An ordinary group may be deleted:
+        val groupId = groupDao.insert(GroupDO().also { it.name = "$PREFIX.group.deletable" })
+        groupDao.markAsDeleted(groupDao.find(groupId)!!)
+        Assertions.assertTrue(groupDao.find(groupId, checkAccess = false)!!.deleted)
+    }
+
     @Test
     fun searchStringWithHyphenTest() {
         logon(ADMIN_USER)

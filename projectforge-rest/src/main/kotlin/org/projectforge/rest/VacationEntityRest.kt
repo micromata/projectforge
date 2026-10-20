@@ -267,7 +267,7 @@ class VacationEntityRest :
      * [AvailabilityEntityRest.cloneFromVacation]. The vacation itself stays as it is.
      */
     @AccessChecked("DAO: select access; the prepared entry is saved (and access-checked) only by the availability's save")
-    @RequestMapping("switch2Availability")
+    @PostMapping("switch2Availability")
     fun switch2Availability(request: HttpServletRequest, @RequestBody postData: PostData<Vacation>): ResponseAction {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         return availabilityRest.cloneFromVacation(request, postData.data)

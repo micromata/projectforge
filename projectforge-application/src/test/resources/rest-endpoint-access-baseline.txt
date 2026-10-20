@@ -2,13 +2,6 @@
 # May only shrink: never add new endpoints here, annotate them.
 org.projectforge.plugins.banking.BankAccountRecordImportPageRest#getForm
 org.projectforge.plugins.banking.BankingServicesRest#import
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#delete
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#download
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#downloadAll
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#modify
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#multiDelete
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#multiDownload
-org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest#uploadAttachment
 org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#exportAsExcel
 org.projectforge.plugins.marketing.rest.AddressCampaignValuePagesRest#getItemAndLayout
 org.projectforge.plugins.merlin.rest.MerlinExecutionPageRest#downloadSerialExecutionTemplate
@@ -47,11 +40,8 @@ org.projectforge.rest.AttachmentsServicesRest#multiDelete
 org.projectforge.rest.AttachmentsServicesRest#multiDownload
 org.projectforge.rest.AttachmentsServicesRest#testDecryption
 org.projectforge.rest.AttachmentsServicesRest#uploadAttachment
-org.projectforge.rest.birthdaybutler.BirthdayButlerPageRest#downloadBirthdayList
-org.projectforge.rest.birthdaybutler.BirthdayButlerPageRest#getForm
 org.projectforge.rest.BookServicesRest#lendOut
 org.projectforge.rest.BookServicesRest#returnBook
-org.projectforge.rest.calendar.BarcodeServicesRest#getQrCode
 org.projectforge.rest.calendar.CalendarFilterServicesRest#changeCalendarStyle
 org.projectforge.rest.calendar.CalendarFilterServicesRest#changeDefaultCalendar
 org.projectforge.rest.calendar.CalendarFilterServicesRest#changeFirstHour
@@ -107,9 +97,6 @@ org.projectforge.rest.jobs.JobsMonitorPageRest#cancelJob
 org.projectforge.rest.jobs.JobsMonitorPageRest#getForm
 org.projectforge.rest.jobs.JobsMonitorPageRest#getJobs
 org.projectforge.rest.LogoutRest#logout
-org.projectforge.rest.MenuCustomizerRest#getDefaultMenu
-org.projectforge.rest.MenuCustomizerRest#saveCustomMenu
-org.projectforge.rest.MenuRest#getMenu
 org.projectforge.rest.my2fa.My2FAPageRest#getForm
 org.projectforge.rest.my2fa.My2FAServicesRest#checkOTP
 org.projectforge.rest.my2fa.My2FAServicesRest#sendMailCode

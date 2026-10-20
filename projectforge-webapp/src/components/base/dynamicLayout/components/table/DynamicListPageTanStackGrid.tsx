@@ -116,7 +116,7 @@ function DynamicListPageTanStackGrid({
     const handleCancel = useCallback(() => {
         if (!handleCancelUrl) return;
         fetch(getServiceURL(handleCancelUrl), {
-            method: 'GET',
+            method: 'POST',
             credentials: 'include',
         })
             .then(handleHTTPErrors)

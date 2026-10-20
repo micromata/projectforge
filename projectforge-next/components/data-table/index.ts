@@ -47,6 +47,7 @@ export {
   rememberMarkedRow,
   recallMarkedRowId,
 } from "./use-list-view-memory";
+export { columnIdOfDef } from "./column-order";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";
 export {

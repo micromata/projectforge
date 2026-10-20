@@ -64,7 +64,8 @@ class NextMigrationTest {
         // menu links are built with and without leading slash.
         Assertions.assertTrue(NextMigration.isNextUrl(NextMigration.listUrl("order")))
         Assertions.assertTrue(NextMigration.isNextUrl("/${NextMigration.listUrl("cost1")}"))
-        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("contract")))
+        // A category no page has (every React list is migrated by now): not next's.
+        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("notMigratedCategory")))
         Assertions.assertFalse(NextMigration.isNextUrl("wa/cost2List"))
         Assertions.assertFalse(NextMigration.isNextUrl(null))
     }
@@ -85,8 +86,8 @@ class NextMigrationTest {
             NextMigration.standardEditPage("book"),
             NextMigration.nextEditPage("book"),
         )
-        // Not migrated at all, so there is no next form to name.
-        Assertions.assertNull(NextMigration.nextEditPage("contract"))
+        // Not migrated at all (a category no page has), so there is no next form to name.
+        Assertions.assertNull(NextMigration.nextEditPage("notMigratedCategory"))
     }
 
     /**
@@ -307,6 +308,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The contracts: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
+     * React link is still redirected onto next.
+     */
+    @Test
+    fun `the contract pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/contract", NextMigration.listUrl("contract"))
+        Assertions.assertEquals("next/contract/:id", NextMigration.standardEditPage("contract"))
+        Assertions.assertEquals("next/contract/new", NextMigration.newEntryUrl("contract"))
+        Assertions.assertNull(NextMigration.legacyListUrl("contract"))
+        Assertions.assertNull(NextMigration.legacyEditPage("contract"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("contract"))
+        val link = NextMigration.orphanedLinks().single { it.category == "contract" }
+        Assertions.assertEquals("react/contract", link.legacyListPath)
+        Assertions.assertEquals("react/contract/edit", link.legacyEditPath)
+    }
+
+    /**
      * The skill matrix: list and form are next's, the React pages are gone, so there is no way back, but a
      * bookmarked React link is still redirected onto next.
      */
@@ -338,6 +356,25 @@ class NextMigrationTest {
         val link = NextMigration.orphanedLinks().single { it.category == "poll" }
         Assertions.assertEquals("react/poll", link.legacyListPath)
         Assertions.assertEquals("react/poll/edit", link.legacyEditPath)
+    }
+
+    /**
+     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the inbox and outbox pages are next's and offer no way back`() {
+        listOf("incomingMail", "outgoingMail").forEach { category ->
+            Assertions.assertEquals("next/$category", NextMigration.listUrl(category))
+            Assertions.assertEquals("next/$category/:id", NextMigration.standardEditPage(category))
+            Assertions.assertEquals("next/$category/new", NextMigration.newEntryUrl(category))
+            Assertions.assertNull(NextMigration.legacyListUrl(category))
+            Assertions.assertNull(NextMigration.legacyEditPage(category))
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
+            val link = NextMigration.orphanedLinks().single { it.category == category }
+            Assertions.assertEquals("react/$category", link.legacyListPath)
+            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+        }
     }
 
     /**

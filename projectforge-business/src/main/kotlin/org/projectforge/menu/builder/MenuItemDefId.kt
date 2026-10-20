@@ -52,7 +52,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     AVAILABILITY("menu.availability", getListUrl("availability")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
-    BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
+    // Migrated to projectforge-next (BirthdayButlerRest); react/birthdayButler is redirected by OrphanedLinkFilter.
+    BIRTHDAY_BUTLER("menu.birthdayButler", "next/birthdayButler"), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //
@@ -61,7 +62,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
-    CONTRACTS("menu.contracts", getReactListUrl("contract")), //
+    CONTRACTS("menu.contracts", getListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
@@ -90,7 +91,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //
-    INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
+    // Migrated to projectforge-next, list and form; react/incomingMail is redirected by OrphanedLinkFilter.
+    INBOX_LIST("menu.orga.posteingang", getListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
@@ -112,7 +114,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     // Next only: forecast and contribution margin of the order book, with a filter of their own.
     ORDER_STATISTICS("menu.fibu.orderStatistics", "next/finance/statistics"), //
-    OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
+    // Migrated to projectforge-next, list and form; react/outgoingMail is redirected by OrphanedLinkFilter.
+    OUTBOX_LIST("menu.orga.postausgang", getListUrl("outgoingMail")), //
     // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //

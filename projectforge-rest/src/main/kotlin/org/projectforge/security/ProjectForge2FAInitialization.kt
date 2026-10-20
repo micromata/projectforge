@@ -200,10 +200,10 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.ORGA,
-      PostausgangPagesRest::class.java,
-      PosteingangPagesRest::class.java,
+      PostausgangEntityRest::class.java,
+      PosteingangEntityRest::class.java,
       VisitorbookPagesRest::class.java,
-      ContractPagesRest::class.java,
+      ContractEntityRest::class.java,
     )
 
     my2FARequestHandler.registerShortCutValues(

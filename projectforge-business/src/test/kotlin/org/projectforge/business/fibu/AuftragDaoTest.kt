@@ -288,6 +288,72 @@ class AuftragDaoTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * The posted order names the project manager's own project, the stored one a foreign project: the stored order
+     * decides, so the project manager can't take over (or overwrite) a foreign order by posting it with the own
+     * project.
+     */
+    @Test
+    fun `an update can't move a foreign order into the own project`() {
+        lateinit var ownProjektId: Serializable
+        lateinit var ownAuftragId: Serializable
+        lateinit var foreignAuftragId: Serializable
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val ownGroup = initTestDB.addGroup("AuftragDaoTest.TakeOver.own", TEST_PROJECT_MANAGER_USER)
+            val foreignGroup = initTestDB.addGroup("AuftragDaoTest.TakeOver.foreign", TEST_PROJECT_ASSISTANT_USER)
+            ownProjektId = projektDao.insert(ProjektDO().also {
+                it.name = "ACME - own project"
+                it.projektManagerGroup = ownGroup
+            })
+            val foreignProjektId = projektDao.insert(ProjektDO().also {
+                it.name = "ACME - foreign project"
+                it.projektManagerGroup = foreignGroup
+            })
+            ownAuftragId = insertOrderOf(ownProjektId)
+            foreignAuftragId = insertOrderOf(foreignProjektId)
+        }
+        projektCache.setExpired() // The group assignments were made after the cache was last built.
+        logon(TEST_PROJECT_MANAGER_USER)
+        persistenceService.runInTransaction { _ ->
+            val posted = postedOrder(foreignAuftragId, ownProjektId, "taken over")
+            suppressErrorLogs {
+                Assertions.assertThrows(AccessException::class.java) { auftragDao.update(posted) }
+            }
+        }
+        persistenceService.runInTransaction { _ ->
+            // The own order stays writable:
+            auftragDao.update(postedOrder(ownAuftragId, ownProjektId, "own order updated"))
+        }
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction { _ ->
+            Assertions.assertNotEquals("taken over", auftragDao.find(foreignAuftragId, attached = true)!!.bemerkung)
+            Assertions.assertEquals("own order updated", auftragDao.find(ownAuftragId, attached = true)!!.bemerkung)
+        }
+    }
+
+    private fun insertOrderOf(projektId: Serializable): Serializable {
+        val auftrag = createOrder().also {
+            it.nummer = auftragDao.getNextNumber(it)
+            it.projekt = projektDao.find(projektId, attached = true) // Attached is important, otherwise deadlock.
+            it.addPosition(createOrderPos())
+        }
+        return auftragDao.insert(auftrag).also { dbNumber++ } // Needed for getNextNumber test.
+    }
+
+    /** The order as the next/REST layer posts it: a fresh object, its project a stub with the id only. */
+    private fun postedOrder(auftragId: Serializable, projektId: Serializable, bemerkung: String): AuftragDO {
+        val stored = auftragDao.find(auftragId, attached = true, checkAccess = false)!!
+        return AuftragDO().also {
+            it.id = stored.id
+            it.nummer = stored.nummer
+            it.status = stored.status
+            it.projekt = ProjektDO().also { p -> p.id = projektId as Long }
+            it.bemerkung = bemerkung
+            stored.positionenIncludingDeleted?.forEach { pos -> it.addPosition(pos) }
+        }
+    }
+
     @Test
     fun checkPartlyReadwriteAccess() {
         var logonUser: PFUserDO? = null

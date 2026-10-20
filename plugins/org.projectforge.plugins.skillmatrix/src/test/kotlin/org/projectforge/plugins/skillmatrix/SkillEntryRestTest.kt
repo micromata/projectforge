@@ -27,9 +27,11 @@ package org.projectforge.plugins.skillmatrix
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
@@ -137,6 +139,23 @@ class SkillEntryRestTest : AbstractTestBase() {
         val unchanged = skillEntryDao.find(colleagues.id, checkAccess = false)!!
         assertEquals(1, unchanged.rating)
         assertNull(unchanged.comment)
+    }
+
+    @Test
+    fun `an update can't move the own skill to a colleague`() {
+        val own = getUser(TEST_USER)
+        val other = getUser(TEST_USER2)
+        val entry = insert(own, "move")
+        logon(own)
+        val dto = SkillEntry(id = entry.id, skill = entry.skill, owner = User(other), rating = 3)
+        assertThrows(AccessException::class.java) {
+            skillEntryDao.update(skillEntryEntityRest.transformForDB(dto))
+        }
+        assertEquals(own.id, skillEntryDao.find(entry.id, checkAccess = false)!!.ownerId)
+        // Without changing the owner, the own skill is updated:
+        dto.owner = User(own)
+        skillEntryDao.update(skillEntryEntityRest.transformForDB(dto))
+        assertEquals(3, skillEntryDao.find(entry.id, checkAccess = false)!!.rating)
     }
 
     private fun list(filter: MagicFilter): List<Long?> = skillEntryEntityRest.listPage(
