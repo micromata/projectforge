@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test";
-import { test, expect, goto, waitForHydration } from "./fixtures/auth";
+import {
+  test,
+  expect,
+  goto,
+  loginWithOwnSession,
+  waitForHydration,
+} from "./fixtures/auth";
 import { translate, locales, type UserFormat } from "./fixtures/format";
 import {
   deleteEntity,
@@ -292,10 +298,13 @@ test.describe("public data transfer", { tag: "@parallel" }, () => {
   });
 
   test("shows who uploaded and the activities to a ProjectForge user with access to the area", async ({
-    loggedInPage: page,
+    page,
     seedRequest,
   }) => {
-    // The seed's account is the area's admin, and the one the page is logged in with.
+    // The seed's account is the area's admin, and the one the page is logged in with — in a session
+    // of its own: the area login below renews the session id, which would log out every test sharing
+    // the stored session.
+    await loginWithOwnSession(page);
     const area = await createArea(seedRequest, {
       download: true,
       upload: false,

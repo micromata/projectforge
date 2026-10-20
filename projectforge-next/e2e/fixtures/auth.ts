@@ -5,7 +5,12 @@ import {
   type Page,
 } from "@playwright/test";
 import { DEFAULT_ROLE, readCredentials, type Role } from "./credentials";
-import { createSession, loggedInRequest, readSession } from "./session";
+import {
+  createSession,
+  loggedInRequest,
+  newSession,
+  readSession,
+} from "./session";
 import { BASE_PATH } from "../../lib/config";
 import {
   createBook,
@@ -170,6 +175,22 @@ export async function login(
   if (path) {
     await goto(page, path);
   }
+}
+
+/**
+ * Logs `page` in as `role` with a session of its own rather than the shared one of [login].
+ *
+ * For a test that changes its session: a login to a data transfer area renews the session id
+ * (session fixation, `DataTransferPublicSession.login`), and done to the shared session that logs
+ * out every test running at the same time.
+ */
+export async function loginWithOwnSession(
+  page: Page,
+  role: Role = DEFAULT_ROLE
+): Promise<void> {
+  const baseURL = test.info().project.use.baseURL ?? "";
+  await page.context().clearCookies();
+  await page.context().addCookies(await newSession(baseURL, role));
 }
 
 /**
