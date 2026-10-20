@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Files: with projectforge.files.store=db, a JCR repository that can't be opened (e.g. damaged) no longer prevents the start. ProjectForge starts without it and logs an error; files not yet migrated out of the JCR are missing then, and the migration, backup and sanity check of the JCR are skipped.",
+  "de": "Dateien: Mit projectforge.files.store=db verhindert ein JCR-Repository, das sich nicht öffnen lässt (z. B. beschädigt), den Start nicht mehr. ProjectForge startet ohne es und protokolliert einen Fehler; noch nicht aus dem JCR migrierte Dateien fehlen dann, Migration, Backup und Prüfung des JCR entfallen."
+}

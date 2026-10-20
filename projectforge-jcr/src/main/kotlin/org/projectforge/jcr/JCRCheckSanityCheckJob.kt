@@ -152,7 +152,11 @@ open class JCRCheckSanityCheckJob : AbstractJob("JCR Check Sanity") {
                 }
             }
         }
-        walker.walk()
+        if (repoService.jcrAvailable) {
+            walker.walk()
+        } else {
+            jobExecutionContext.addWarning("The JCR repository isn't available (see the log of the start), only the file store is checked.")
+        }
         var numberOfVisitedFiles = walker.numberOfVisitedFiles
         repoService.fileStore?.let { fileStore ->
             var storeFiles = 0
