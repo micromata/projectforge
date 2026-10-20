@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notification03Icon } from "@hugeicons/core-free-icons";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/menubar";
 import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { cn } from "@/lib/utils";
+import { useNotificationStore } from "@/store/notification-store";
 import { NotificationCard } from "./notification-card";
 import { bySeverity } from "./severity";
 import { useMyNotifications } from "./use-my-notifications";
@@ -45,6 +47,7 @@ export function NotificationBell() {
         align="end"
         className="w-[28rem] max-w-[calc(100vw-1rem)]"
       >
+        <BellOpenMarker />
         <MenubarLabel>{t("center")}</MenubarLabel>
         <MenubarSeparator />
         {notifications.length === 0 ? (
@@ -64,4 +67,17 @@ export function NotificationBell() {
       </MenubarContent>
     </MenubarMenu>
   );
+}
+
+/**
+ * Mounted only while the bell's menu is open (Radix's `MenubarMenu` has no `onOpenChange`): tells
+ * NotificationToasts, whose toast to be confirmed would otherwise cover the menu top right.
+ */
+function BellOpenMarker() {
+  const setBellOpen = useNotificationStore((s) => s.setBellOpen);
+  useEffect(() => {
+    setBellOpen(true);
+    return () => setBellOpen(false);
+  }, [setBellOpen]);
+  return null;
 }

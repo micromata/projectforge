@@ -1,7 +1,3 @@
-"use client";
-
-import { useTranslations } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   createMissingIndices,
   createTestBooks,
@@ -15,27 +11,43 @@ import {
   rereadConfiguration,
   resetIdpPasswordSync,
   testDatabase,
+  type SystemMessageResponse,
 } from "@/lib/rs/system";
-import { SystemActionButton, type SystemAction } from "./system-action-button";
-import type { SystemAdminData } from "./types";
 
-interface ActionGroup {
+/** One administration action, an item of the System page's menu bar (see [SystemMenuBar]). */
+export interface SystemAction {
+  /** Stable key for React and for finding the action in tests. */
+  key: string;
+  /** i18n key of the item label. */
+  labelKey: string;
+  /** i18n key of the explanation shown below the label, if any. */
+  tooltipKey?: string;
+  /** What the item does: a message action ({ message }) or a file download (void). */
+  run: () => Promise<SystemMessageResponse | void>;
+  /** i18n key of a yes/no question asked before [run] fires. */
+  confirmKey?: string;
+  /** ICU values for [confirmKey] (the backend `{0}`/`{1}` placeholders become named args `arg0`/`arg1`). */
+  confirmValues?: Record<string, string | number>;
+}
+
+/** A top-level menu of the menu bar. */
+export interface SystemActionMenu {
+  id: "configuration" | "checks" | "database" | "development";
   titleKey: string;
   actions: SystemAction[];
 }
 
 /**
- * All administration actions grouped as the classic page had them. Message actions toast their
- * translated result; export actions download a file; the mutating ones confirm first. The dev-only
- * actions are appended only in development mode.
+ * All one-click administration actions, grouped into the menus of the menu bar as the classic page
+ * grouped them. The dev-only actions are appended only in development mode.
  *
  * The label keys carry the trailing `._`: each has a `.tooltip` (or `.question`)
  * sibling, so the bundle nests the base value under `_` (see the generator's `._` convention, as in
  * `t("fibu.auftrag.position._")`). Without it `t()` would return the namespace object and show the key.
  */
-export function SystemActionGroups({ data }: { data: SystemAdminData }) {
-  const t = useTranslations();
-
+export function systemActionMenus(
+  developmentMode: boolean
+): SystemActionMenu[] {
   const development: SystemAction[] = [
     {
       key: "checkI18nProperties",
@@ -50,7 +62,7 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       run: downloadDebugUserGroupCache,
     },
   ];
-  if (data.developmentMode) {
+  if (developmentMode) {
     development.push(
       {
         key: "testDatabase",
@@ -69,8 +81,9 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
     );
   }
 
-  const groups: ActionGroup[] = [
+  return [
     {
+      id: "configuration",
       titleKey:
         "system.admin.group.title.systemChecksAndFunctionality.configuration",
       actions: [
@@ -95,6 +108,7 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       ],
     },
     {
+      id: "checks",
       titleKey: "system.admin.group.title.checks",
       actions: [
         {
@@ -106,6 +120,7 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       ],
     },
     {
+      id: "database",
       titleKey: "system.admin.group.title.databaseActions",
       actions: [
         {
@@ -137,23 +152,10 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
         },
       ],
     },
-    { titleKey: "system.admin.group.title.development", actions: development },
+    {
+      id: "development",
+      titleKey: "system.admin.group.title.development",
+      actions: development,
+    },
   ];
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {groups.map((group) => (
-        <Card key={group.titleKey}>
-          <CardHeader>
-            <CardTitle>{t(group.titleKey)}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {group.actions.map((action) => (
-              <SystemActionButton key={action.key} action={action} />
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
 }

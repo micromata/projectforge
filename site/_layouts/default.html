@@ -23,6 +23,9 @@
         {% include hook-pre-closing-body-doc.html %}
     {% endif %}
 
+    {%- assign t = site.data.translation[page.lang] %}
+    <script src="{{ '/assets/js/copy-code.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-copy="{{ t.copy_code }}" data-copied="{{ t.code_copied }}" defer></script>
+
     {% include hook-pre-closing-body.html %}
 
     </body>

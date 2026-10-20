@@ -167,6 +167,24 @@ https://docs.spring.io/spring-boot/appendix/application-properties/index.html[co
 in `projectforge.properties` verwenden. Alle ProjectForge-spezifischen Optionen mit ihren Standardwerten stehen in
 https://github.com/micromata/projectforge/blob/master/projectforge-business/src/main/resources/application.properties[application.properties].
 
+[[properties_editor]]
+==== Properties-Editor
+
+Administratoren bearbeiten die `projectforge.properties` auf der Seite *Administration -> System* (Menü
+_Konfiguration_ -> _Konfigurationsdatei_). Der Editor zeigt alle Parameter der `application.properties` nach Themen
+gruppiert mit ihren Beschreibungen und Standardwerten. Parameter der eigenen Datei, die ProjectForge nicht kennt, sind
+gekennzeichnet: Die im Namensraum von ProjectForge (`projectforge.*`, `pf.*`) werden nicht mehr verwendet (oder sind
+vertippt) und stehen in der Gruppe _Nicht mehr verwendet_, wo sie sich auf einmal entfernen lassen; andere (z. B.
+Einstellungen von Spring Boot) in der Gruppe _Sonstige_. Passwörter, Schlüssel und Tokens werden nie angezeigt: Ein Geheimnis kann
+nur mit einem neuen Wert überschrieben werden.
+
+* Vor jedem Speichern wird eine Kopie der Datei mit Zeitstempel daneben abgelegt
+  (`projectforge.properties.<yyyy-MM-dd_HH-mm-ss>.bak`). Die Datei wird nach Gruppen sortiert geschrieben;
+  eigene Kommentare bleiben über dem Parameter, über dem sie standen.
+* Änderungen werden erst nach einem Neustart von ProjectForge wirksam.
+* Ein Wert, den das laufende System anders verwendet (ein Neustart steht aus oder der Wert kommt aus
+  einer Umgebungsvariablen oder der Kommandozeile), wird markiert.
+
 [[feature_toggles]]
 === Funktionen abschalten
 
@@ -370,8 +388,7 @@ Jedes Problem geht an die Empfänger seiner Zielgruppe: Entwicklung (Bugs, Daten
 Systeme, Konfiguration, Synchronisationsläufe) oder Sicherheit. Hat eine Zielgruppe keine eigenen Empfänger, erhält
 `projectforge.support.mail` ihren Digest.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
 # Wie oft der Digest höchstens versendet wird, z. B. 15m, 1h, 1d. 0 deaktiviert den Digest. Standard: 1h
@@ -548,8 +565,7 @@ Alle Kunden eines Nummernkreises müssen daher die Stellen vor diesen letzten St
 mit 2 Projektstellen umfasst höchstens die 1000 Kunden eines Blocks wie 0-999 (100 Projekte je Kunde), einer mit
 1 Projektstelle höchstens die 10000 Kunden eines Blocks wie 10000-19999.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source]
 ----
 # Früherer Nummernkreis 4: interne Projekte 4.###.##.##
@@ -680,8 +696,7 @@ Angemeldet-bleiben-Session gespeichert.
 
 Empfohlene Beispielkonfiguration:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,properties,linenums]
 ----
 projectforge.2fa.expiryPeriod.minutes1=
@@ -740,8 +755,7 @@ include /etc/openldap/schema/inetorgperson.schema
 Die Einstellung groupBase wird nur im Master-Modus benötigt. Der managerUser wird im einfachen Slave-Modus nicht
 benötigt. Weitere Informationen folgen unten.
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -787,8 +801,7 @@ In diesem Modus benötigt ProjectForge einen LDAP-Benutzer mit Schreibzugriff au
 von ProjectForge werden ins LDAP synchronisiert. Bei Konflikten zwischen LDAP und ProjectForge gelten die
 Einstellungen von ProjectForge. Die Konfiguration dieses Modus ist einfach:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -909,8 +922,7 @@ für diesen Benutzer in ProjectForge POSIX-Account-Daten angelegt wurden.
 [[managing_samba_accounts]]
 ==== Samba-Accounts verwalten
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -952,8 +964,7 @@ nur lesend zugegriffen. Es gibt 3 Modi:
 `simple,` `users` und `users-groups.` Die Konfiguration
 dieses Modus ist einfach:
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1003,8 +1014,7 @@ Dieser Modus ist noch nicht implementiert, stattdessen wird der Benutzermodus ve
 
 ProjectForge lässt sich auch ohne LDAP betreiben (Standard).
 
-*Datei:* `projectforge.properties`:
-
+.Datei: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1365,7 +1375,7 @@ Die Dateien des neuen Dateispeichers (Anhänge von Verträgen, Aufträgen, Rechn
 Beide Dumps sind voneinander unabhängig: Zwischen `pf_files` und den übrigen Tabellen gibt es keine Fremdschlüssel. Abweichungen nach dem Einspielen von Dumps verschiedener Tage melden die Integritätsprüfungen, die nachts laufen
 (`projectforge.cron.sanityChecks`) und bei Bedarf über _Administration_ -> _System_ -> _Check system integrity_ gestartet werden.
 
-Datentransfer-Dateien (`<home>/datatransfer`) sind in keinem Backup enthalten: Ihre Metadaten liegen in `pf_files`, der Inhalt aber im Dateisystem, und er ist kurzlebig.
+Datentransfer-Dateien (`<home>/datatransfer`) sind nicht Teil der Dumps: Ihre Metadaten liegen in `pf_files`, der Inhalt aber im Dateisystem. Das Backup-Skript archiviert sie als `projectforge_datatransfer_...tar` (unkomprimiert, die Dateien sind bereits komprimiert gespeichert). Sind sie verschlüsselt, ist der Schlüssel nicht Teil dieses Archivs, siehe <<encryption_of_the_data_transfer_files,Verschlüsselung der Datentransfer-Dateien>>.
 
 [[restoring_a_backup]]
 === Backup wiederherstellen
@@ -1386,7 +1396,14 @@ Anschließend die Dateien wiederherstellen (Schema `pf_files`, der Haupt-Dump en
 pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
 ----
 
-Beide Dumps werden vor dem Start von ProjectForge eingespielt: Der Haupt-Dump enthält die Flyway-Historie, daher legt Flyway das Schema `pf_files` nicht erneut an. Existiert das Schema in der Zieldatenbank bereits, wird es zuvor gelöscht (`DROP SCHEMA pf_files CASCADE;`) oder `pg_restore --clean --if-exists` verwendet. Nach dem Wiederherstellen die Integritätsprüfungen über _Administration_ -> _System_ -> _Check system integrity_ ausführen.
+Die Datentransfer-Dateien wiederherstellen (aus demselben Backup wie der Datei-Dump, da ihre Metadaten in `pf_files` liegen), bei gestopptem ProjectForge und nach dem Entfernen des vorhandenen Verzeichnisses `datatransfer`:
+
+[source,shell,linenums]
+----
+tar xf projectforge_datatransfer_2026-10-06_02-00.tar -C ~/ProjectForge
+----
+
+Beide Dumps werden vor dem Start von ProjectForge eingespielt: Der Haupt-Dump enthält die Flyway-Historie, daher legt Flyway das Schema `pf_files` nicht erneut an. Existiert das Schema in der Zieldatenbank bereits, wird es zuvor gelöscht (`DROP SCHEMA pf_files CASCADE;`) oder `pg_restore --clean --if-exists` verwendet. Nach dem Wiederherstellen die Integritätsprüfungen über _Administration_ -> _System_ -> _Check system integrity_ ausführen (sie melden auch fehlende Datentransfer-Dateien).
 
 Zum Löschen und Neuanlegen einer Datenbank siehe <<postgresql,PostgreSQL>>.
 Anschließend nicht vergessen, den Suchindex neu aufzubauen (_Administration_ -> _System_ -> _Reindex_)!
@@ -1428,7 +1445,7 @@ Nach dem Umstellen auf `db` und einem Neustart kopiert ProjectForge alle Dateien
 * Alle Dateien werden kopiert, das JCR behält sie. Daher ist ein Zurückschalten auf `jcr` oder ein Rollback auf das vorherige Release möglich; nach einem Rollback fehlen nur die unter `db` hochgeladenen Dateien.
 * Datentransfer-Dateien belegen bis zu ihrem Ablauf doppelt Speicherplatz (JCR und `<home>/datatransfer`). Gelöschte Dateien werden in beiden Speichern gelöscht.
 * Sollen die Datentransfer-Dateien verschlüsselt werden, muss der Schlüssel vor dem Umstellen auf `db` konfiguriert werden, siehe <<encryption_of_the_data_transfer_files,Verschlüsselung der Datentransfer-Dateien>>. Die Kopien im JCR bleiben unverschlüsselt, bis sie ablaufen oder das JCR entfernt wird.
-* Das nächtliche JCR-Backup läuft in beiden Modi weiter, solange das JCR existiert. Mit `db` sind die Dateien Teil des Datei-Dumps (Schema `pf_files`, siehe <<backup_script,Backup-Skript>>), Datentransfer-Dateien werden nicht gesichert.
+* Das nächtliche JCR-Backup läuft in beiden Modi weiter, solange das JCR existiert. Mit `db` sind die Dateien Teil des Datei-Dumps (Schema `pf_files`, siehe <<backup_script,Backup-Skript>>), die Datentransfer-Dateien archiviert das Backup-Skript (`<home>/datatransfer`).
 
 Vor dem Update auf ein Release ohne JCR entweder auf `db` umstellen und eine erfolgreiche Migration abwarten oder
 unmittelbar vor dem Update ein frisches JCR-Backup-ZIP erzeugen (Systemseite, Karte „Dokumenten-Repository (JCR)“,
@@ -1444,14 +1461,15 @@ enthält keine Datentransfer-Dateien.
 Auf dem ProjectForge®-Server (oder dem Datenbankserver) wird als Benutzer projectforge
 ein Crontab-Eintrag eingerichtet, der folgendes Skript startet:
 
-*Datei:* `pforgebackup.sh:`
-
+.Datei: `pforgebackup.sh`
 [source,shell,linenums]
 ----
 #!/bin/bash
 
 PGSQL_DIR=/usr/bin
 BACKUPDIR=/home/projectforge/backup
+# Home-Verzeichnis von ProjectForge:
+PF_HOME=/home/projectforge/ProjectForge
 BASENAME=projectforge
 TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
@@ -1461,8 +1479,10 @@ echo Starting backup of ProjectForge ...
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump nur der Dateien (Schema pf_files, Anhänge von Verträgen, Aufträgen, Rechnungen usw.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+# Archiv der Datentransfer-Dateien (Inhalt im Dateisystem, Metadaten in pf_files).
+DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
 
-echo Using filenames $BACKUPFILE and $FILES_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
 echo Exporting data ...
 $PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
@@ -1474,8 +1494,16 @@ echo Exporting files ...
 # Custom-Format; -Z 0: Der Inhalt ist bereits komprimiert (oder nicht komprimierbar).
 $PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
 
+if [ -d $PF_HOME/datatransfer ]; then
+  echo Archiving data transfer files ...
+  # Unkomprimiert: Die Dateien sind bereits komprimiert (oder verschlüsselt) gespeichert. Exit-Code 1 von tar bedeutet,
+  # dass sich Dateien beim Lesen geändert haben (z. B. ein Upload während des Backups), das Archiv ist trotzdem nutzbar.
+  tar cf $DATATRANSFER_BACKUPFILE -C $PF_HOME datatransfer
+  [ $? -le 1 ] || { echo "Error: archiving of data transfer files failed."; exit 1; }
+fi
+
 # Für ein Remote-Backup per scp:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Das Löschen der täglichen Backups übernimmt ProjectForge (projectforge.cron.purgeBackupDir, siehe unten). Monatliche
 # Backups werden dauerhaft aufbewahrt, da sie für finanzielle Jahresvergleiche benötigt werden.
@@ -1489,18 +1517,18 @@ ProjectForge bereinigt die täglichen Backups (wöchentliche und monatliche blei
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: kommagetrennte Präfixe der Backup-Serien. Ohne Angabe werden alle Dateien verarbeitet, die ein Datum enthalten.
-# Jede Serie (Text vor dem Datum, hier projectforge_ und projectforge_files_) wird für sich bereinigt.
+# Jede Serie (Text vor dem Datum, hier projectforge_, projectforge_files_ und projectforge_datatransfer_) wird für
+# sich bereinigt.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-Der Datei-Dump `projectforge_files_...` ist eine eigene Serie und wird daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da er damit beginnt).
+Der Datei-Dump `projectforge_files_...` und das Archiv `projectforge_datatransfer_...` sind eigene Serien und werden daher wie der Haupt-Dump bereinigt (auch mit dem Präfix `projectforge_`, da sie damit beginnen).
 
 Damit `pg_dump` ohne Passwortabfrage läuft, wird das Skript als Unix-Benutzer `projectforge` ausgeführt und
 folgende Zeile in `pg_hba.conf` ergänzt (Peer-Authentifizierung: Der Unix-Benutzername muss dem Datenbankbenutzernamen
 entsprechen):
 
-*Datei:* `pg_hba.conf`:
-
+.Datei: `pg_hba.conf`
 [source,shell,linenums]
 ----
 local projectforge projectforge peer
@@ -1535,8 +1563,7 @@ Für ein Remote-Backup per `scp` wird eine Schlüssel-Authentifizierung benötig
 Aus Sicherheitsgründen lassen sich die Backup-Dateien auch per Cronjob vom
 ProjectForge®-Server abholen, der z. B. eine Stunde später startet:
 
-*Datei:* `pforgePollBackup.sh`:
-
+.Datei: `pforgePollBackup.sh`
 ....
 #!/bin/bash
 SERVER=projectforge.mydomain

@@ -438,6 +438,134 @@
   margin: 0;
   border: 0;
 }
+/* Line numbers of [source,…,linenums]: a table of rouge, numbers in the first cell. */
+.prose .listingblock table.linenotable,
+.prose .listingblock table.linenotable td {
+  display: table;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.prose .listingblock table.linenotable td {
+  display: table-cell;
+  vertical-align: top;
+}
+.prose .listingblock table.linenotable td pre {
+  padding: 0;
+  background: none;
+  overflow: visible;
+}
+.prose .listingblock table.linenotable td.linenos {
+  padding-right: 1em;
+  color: var(--color-muted-foreground);
+  text-align: right;
+  user-select: none;
+}
+
+/*
+ * Copy button of the code blocks (assets/js/copy-code.js): above the code, right-aligned in the line of the block
+ * title (file name) or in a line of its own.
+ */
+.prose .pf-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2rem;
+  margin-top: 1.25em;
+  margin-bottom: 0.375rem;
+}
+.prose .pf-code-untitled {
+  margin-top: 0.5em;
+}
+.prose .pf-code-header + .content pre,
+.prose .pf-code-header + .highlight pre,
+.prose .pf-code-header + .highlight {
+  margin-top: 0;
+}
+.pf-code-copy {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+}
+.pf-code-copy:hover {
+  color: var(--color-foreground);
+  background: var(--color-secondary);
+}
+.pf-code-copy:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+.pf-code-copy.pf-code-copied {
+  color: var(--color-brand-teal-dark);
+}
+
+/* Syntax highlighting of the code blocks (rouge, for AsciiDoc and Markdown), light colors in the style of GitHub. */
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs {
+  color: #6e7781;
+  font-style: italic;
+}
+.highlight .cp {
+  color: #6e7781;
+}
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv,
+.highlight .ow {
+  color: #cf222e;
+}
+.highlight .kt, .highlight .nc, .highlight .nn, .highlight .ne {
+  color: #953800;
+}
+.highlight .s, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd, .highlight .s2,
+.highlight .sh, .highlight .s1, .highlight .sx, .highlight .ss {
+  color: #0a3069;
+}
+.highlight .se, .highlight .si, .highlight .sr {
+  color: #116329;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo,
+.highlight .mx {
+  color: #0550ae;
+}
+.highlight .nb, .highlight .bp, .highlight .nl {
+  color: #8250df;
+}
+.highlight .nf, .highlight .fm {
+  color: #6639ba;
+}
+.highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi, .highlight .vm, .highlight .na, .highlight .no {
+  color: #0550ae;
+}
+.highlight .nt {
+  color: #116329;
+}
+.highlight .nd {
+  color: #8250df;
+}
+.highlight .gd {
+  color: #82071e;
+  background-color: #ffebe9;
+}
+.highlight .gi {
+  color: #116329;
+  background-color: #dafbe1;
+}
+.highlight .gh, .highlight .gu {
+  color: #0550ae;
+  font-weight: 600;
+}
+.highlight .err {
+  color: inherit;
+}
 .prose #toc,
 .prose .toc {
   border: 1px solid var(--color-border);
