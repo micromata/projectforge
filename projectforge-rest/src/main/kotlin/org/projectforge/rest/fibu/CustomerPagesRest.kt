@@ -30,6 +30,9 @@ import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -89,6 +92,18 @@ class CustomerPagesRest
             UIFilterListElement("status", label = translate("status"), defaultFilter = true)
                 .buildValues(KundeStatus::class.java)
         )
+    }
+
+    /**
+     * Sorts by the customer number the list shows, which no database column holds: [KundeDO.kost] is a
+     * getter formatting [KundeDO.nummer], so the criteria query can't order by it (it would log "Could not
+     * resolve attribute" and return the rows unordered). The formatted number only segments the plain one
+     * ("5123" → "5.123"), so ordering by `nummer` is the same order.
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        target.sortProperties.replaceAll {
+            if (it.property == "kost") SortProperty("nummer", it.sortOrder) else it
+        }
     }
 
     /**
