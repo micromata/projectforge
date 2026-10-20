@@ -1151,6 +1151,7 @@
         },
         "chart": {
           "cumulative": "Revenue forecast cumulated",
+          "currentMonthHint": "Note: In the current month, the greater value is used: the actual figures (invoices) or the monthly forecast.",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
           "monthly": "Revenue forecast monthly",
@@ -4945,6 +4946,42 @@
   "uptodate": "up-to-date",
   "user": {
     "_": "User",
+    "My2FA": {
+      "setup": {
+        "authenticator": {
+          "info": "### Setup your smart phone\n\n1. Scan this barcode in Your Authenticator-App.\n2. Done.\n\nEvery time ProjectForge requests a code, enter the displayed code in your Authenticator app.\n\nYou may setup others Authenticator apps on different devices as a backup, if you want.\n\nThe code displayed in your Authenticator app is valid for up to 30 seconds after disappearing in your app.",
+          "intro": "Please, use your 2FA Authenticator app, such as Microsoft or Google Authenticator as a second factor.",
+          "title": "Authenticator apps"
+        },
+        "authenticatorKey": "Authenticator key",
+        "check2FA": "Check 2FA now",
+        "disableAuthenticatorApp": {
+          "_": "Disable Authenticator app",
+          "confirmMessage": "Do you want to disable or renew the token for Authenticator apps now? All Authenticator apps will be invalidated.",
+          "info": "Click this button to disable or renew Authentificator apps. A two-factor authentication not older than 10 minutes is required."
+        },
+        "enableAuthenticatorApp": {
+          "_": "Enable Authenticator app",
+          "confirmMessage": "Do you want to setup an Authenticator apps? Afterwards a second factor is required on login. This operation can be undone.",
+          "info": "Click this button to setup an Authentificator app."
+        },
+        "info": {
+          "1": "### Second factor authentication (2FA)\n\n* ProjectForge supports 2FA for more security. Authenticator apps, mobile phones if texting is configured and/or e-mail are supported.\n* Every time ProjectForge requests a code, you may enter it from your Authenticator app or request a one-time-password by e-mail or as text message.\n\nPlease use the stay-logged-in functionality on login to prevent annoying 2FA requests!",
+          "2": "It's highly recommended to configure a second factor via Authenticator App and/or WebAuthn (e.g. Fido2) and, if available a mobile phone number for a second factor via text messages.\n\nSome security relevant functionalities such as password reset are only available, if a second factor is configured (Authenticator-App, mobile phone, or WebAuthn).",
+          "3": "Feel free to test 2FA codes here. Modifications on this setup pages need a current 2FA authentification as well.",
+          "title": "Two-factor authentication"
+        },
+        "showAuthenticatorKey": "Show authenticator key",
+        "sms": {
+          "info": {
+            "_": "You may configure here your mobile phone number for receiving one time passwords on demand as text message.",
+            "title": "SMS configuration"
+          },
+          "mobileNumberRecommended": "It's highly recommended to configure Your mobile number here as a second factor.\n\nYou may get a second factor as a text message as an alternative.\n\nIf you want to change Your mobile number, a (new) 2FA is required (see above)."
+        },
+        "title": "Setup of two-factor-authentication (2FA)"
+      }
+    },
     "My2FACode": {
       "authentification": {
         "info": "A second factor is required for proceeding.\n\nPlease enter any 2nd factor (e.g. OTP) you have (requested): from Your Authenticator-App or received by SMS or mail or you may use any WebAuthn token you have registered."
@@ -5316,7 +5353,14 @@
   "values": "Values",
   "webauthn": {
     "entry": {
-      "displayName": "Display name",
+      "delete": {
+        "question": "Do you really want to delete this WebAuthn token? It can no longer be used as second factor afterwards."
+      },
+      "displayName": {
+        "_": "Display name",
+        "info": "Feel free to enter any name to identify your WebAuthn token."
+      },
+      "edit": "Edit WebAuthn entry",
       "signCount": {
         "_": "Sign count",
         "info": "Counter of authentications (will be incremented on every token usage)"
@@ -5327,7 +5371,11 @@
       "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",
       "validate": "Error while validating authentication."
     },
+    "info": "WebAuthn is a modern and secure standard for having secure 2FA hardware tokens. You may here register your hardware tokens.",
     "registration": {
+      "2FARequired": {
+        "info": "Please renew Your 2FA before registering Your WebAuthn token."
+      },
       "button": {
         "authenticate": {
           "_": "WebAuthn",
@@ -5335,7 +5383,8 @@
         },
         "register": "Register"
       }
-    }
+    },
+    "title": "WebAuthn (Fido2 etc.)"
   },
   "yes": "Yes"
 }

@@ -1151,6 +1151,7 @@
         },
         "chart": {
           "cumulative": "Umsatzprognose kumuliert",
+          "currentMonthHint": "Anmerkung: Im aktuellen Monat wird der größere Wert verwendet: Die IST-Daten (Rechnungen) oder der Monatsforecast.",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
           "monthly": "Umsatzprognose Monatswerte",
@@ -4945,6 +4946,42 @@
   "uptodate": "aktuell",
   "user": {
     "_": "Benutzer:in",
+    "My2FA": {
+      "setup": {
+        "authenticator": {
+          "info": "Smartphone einrichten\n\n1. Einfach den Barcode in der Authenticator-App scannen.\n2. Fertig.\n\nJedesmal, wenn ProjectForge nach einem Code fragt, einfach den in der Authenticator-App eingeblendeten Code verwenden.\n\nEs können mehrere Authenticator-Apps gleichzeitig (auch als Backup) genutzt werden.\n\nCodes aus der Authenticator-App sind noch für ca. 30 Sekunden gültig, nachdem sie in der App erneuert wurden.\n\nDiese Barcode-Ansicht ist für ca. 10 Minuten einsehbar. Anschließend wird für die erneute Anzeige eine 2FA-Authentifizierung benötigt.",
+          "intro": "Für die Zwei-Faktor-Authentifzierung sollte eine Authenticator-App eingerichtet werden (z. B. Microsoft-, Google-Authenticator oder Fortitoken).",
+          "title": "Authenticator-Apps"
+        },
+        "authenticatorKey": "Authenticator-Schlüssel",
+        "check2FA": "2FA jetzt prüfen",
+        "disableAuthenticatorApp": {
+          "_": "Authenticator-App entfernen",
+          "confirmMessage": "Soll die Authentificator-App nun entfernt bzw. erneuert werden? Alle bisherhigen Authentificator-Apps werden dann ungültig.",
+          "info": "Diesen Knopf klicken, um die Authentificator-App zu entfernen oder zu erneuern. Für diese Funktion wird selbst ein 2. Faktor benötigt, der nicht älter ist als 10 Minuten."
+        },
+        "enableAuthenticatorApp": {
+          "_": "Authentificator-Apps einrichten",
+          "confirmMessage": "Soll eine Authenticator-App nun eingerichtet werden? Anschließend wird für eine Anmeldung ein 2. Faktor benötigt. Diese Operation kann rückgängig gemacht werden.",
+          "info": "Hierüber kann eine Authenticator-App eingerichtet werden."
+        },
+        "info": {
+          "1": "### Zwei-Faktor-Authentifizierung (2FA)\n\n* ProjectForge unterstützt 2FA für eine erhöhte Sicherheit. Authenticator-Apps, SMS (wenn konfiguriert) und/oder E-Mails werden als 2. Faktor unterstützt.\n* Immer, wenn ProjectForge einen Code anfordert, kann ein Code aus der Authenticator-App eingegeben werden oder ein Einmalpasswort per E-Mail oder als SMS angefordert werden.\n\nWenn die Angemeldet-Bleiben-Funktion bei der Anmeldung verwendet wird, kann eine unnötig häufige Code-Abfrage vermieden werden!",
+          "2": "Es wird dringend empfohlen, einen zweiten Faktor über eine Authenticator-App und/oder WebAuthn (z. B. Fidu2) und, falls verfügbar, auch eine Mobilfunknummer zum Anfordern von Codes per SMS zu konfiguieren.\n\nEinige Sicherheitsfunktionen, wie z. B. ein Passwort-Reset, steht nur zur Verfügung, wenn mindestens ein 2. Faktor (Authenticator-App, SMS oder WebAuthn) konfiguriert ist.",
+          "3": "Hier können 2FA-Codes getestet werden. Außerdem benötigen Änderungen auf dieser Seite eine aktuelle 2FA-Prüfung.",
+          "title": "Zweifaktorauthentifizierung"
+        },
+        "showAuthenticatorKey": "Authenticator-Zugang anzeigen",
+        "sms": {
+          "info": {
+            "_": "Hier kann eine Mobilfunknummer hinterlegt werden, um einen 2. Faktor per SMS anzufordern.",
+            "title": "SMS-Konfiguration"
+          },
+          "mobileNumberRecommended": "Es wird dringend empfohlen, hier die eigene Mobilfunknummer anzugeben.\n\nÜber das Mobiltelefon kann ein zweiter Faktor als SMS alternativ angefordert werden.\n\nWenn die Mobilfunknummer geändert werden soll, wird eine (neue) Zweifaktorauthentifizierung benötigt (siehe oben)."
+        },
+        "title": "Zwei-Faktor-Authentifizierung (2FA) einrichten"
+      }
+    },
     "My2FACode": {
       "authentification": {
         "info": "Ein zweiter Faktor ist nun erforderlich.\n\nHier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, ein angeforderter Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token."
@@ -5316,7 +5353,14 @@
   "values": "Werte",
   "webauthn": {
     "entry": {
-      "displayName": "Anzeigename",
+      "delete": {
+        "question": "Soll dieser WebAuthn-Token wirklich gelöscht werden? Er kann danach nicht mehr als zweiter Faktor verwendet werden."
+      },
+      "displayName": {
+        "_": "Anzeigename",
+        "info": "Hier kannst du einen beliebigen Namen eingeben, um deinen Token leichter zuordnen zu können."
+      },
+      "edit": "WebAuthn-Eintrag ändern",
       "signCount": {
         "_": "Signaturzähler",
         "info": "Zähler für Authentifizierungen (wird nach jeder Benutzung hochgezählt)"
@@ -5327,7 +5371,11 @@
       "userNotOwnerOrEntryDoesnotExist": "Der/die Benutzer:in hat nicht das Recht, auf fremde WebAuthn-Einträge zuzugreifen oder der gesuchte Eintrag existiert nicht.",
       "validate": "Fehler bei der Validierung der Authentifizierungsdaten."
     },
+    "info": "WebAuthn ist ein moderner und sicherer Standard, um eine hardwarebasierte Zweifaktorauthentifizierung zu ermöglichen. Hier kannst du einen oder mehrere deiner Token registrieren, um eine bequeme und sichere 2FA zu nutzen.",
     "registration": {
+      "2FARequired": {
+        "info": "Bitte de 2FA erneuern, bevor ein WebAuthn-Token registriert werden kann."
+      },
       "button": {
         "authenticate": {
           "_": "WebAuthn",
@@ -5335,7 +5383,8 @@
         },
         "register": "Registrieren"
       }
-    }
+    },
+    "title": "WebAuthn (Fido2 etc.)"
   },
   "yes": "Ja"
 }
