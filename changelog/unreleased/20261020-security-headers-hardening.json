@@ -26,6 +26,26 @@
     {
       "en": "Requests that change something (sending 2FA codes, system actions, cancelling jobs, logout, saving list and calendar filters and favorites) are sent as POST.",
       "de": "Anfragen, die etwas ändern (2FA-Codes senden, Systemaktionen, Jobs abbrechen, Abmelden, Listen- und Kalenderfilter sowie Favoriten speichern), werden per POST gesendet."
+    },
+    {
+      "en": "Data transfer: who may change or delete an area is decided by its stored admins; a user can no longer make himself admin of an area by saving it.",
+      "de": "Datentransfer: Wer einen Bereich ändern oder löschen darf, entscheiden seine gespeicherten Admins; niemand kann sich mehr durch Speichern selbst zum Admin eines Bereichs machen."
+    },
+    {
+      "en": "Project wizard: existing access rights of a group on the parent elements are only added to, never reduced; the preview shows nothing about elements the user may not see.",
+      "de": "Projekt-Assistent: Bestehende Zugriffsrechte einer Gruppe auf den übergeordneten Elementen werden nur ergänzt, nie verringert; die Vorschau zeigt nichts über Elemente, die der Nutzer nicht sehen darf."
+    },
+    {
+      "en": "Leave account corrections can be added by HR staff with write access only, also the preset of a new one.",
+      "de": "Korrekturen des Urlaubskontos legen nur HR-Mitarbeitende mit Schreibrecht an, auch die Vorbelegung einer neuen."
+    },
+    {
+      "en": "Skill matrix: saving a skill no longer moves it to another user.",
+      "de": "Skill-Matrix: Speichern verschiebt einen Skill nicht mehr zu einem anderen Nutzer."
+    },
+    {
+      "en": "The unused QR code image endpoints are removed; QR codes are delivered as data urls only.",
+      "de": "Die ungenutzten Endpunkte für QR-Code-Bilder sind entfernt; QR-Codes kommen nur noch als Data-URLs."
     }
   ]
 }

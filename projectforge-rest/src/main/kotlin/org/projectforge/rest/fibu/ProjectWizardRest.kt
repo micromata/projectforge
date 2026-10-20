@@ -25,6 +25,8 @@ package org.projectforge.rest.fibu
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.fibu.ProjectWizardService
+import org.projectforge.business.task.TaskDao
+import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.task.TaskWizardService
 import org.projectforge.business.user.GroupDao
@@ -109,6 +111,9 @@ class ProjectWizardRest {
 
     @Autowired
     private lateinit var projectWizardService: ProjectWizardService
+
+    @Autowired
+    private lateinit var taskDao: TaskDao
 
     @Autowired
     private lateinit var taskTree: TaskTree
@@ -207,8 +212,7 @@ class ProjectWizardRest {
     private fun preview(data: ProjectWizardService.Data): TaskWizardRest.ExecuteResponse? {
         // Without a project there are no groups, so no rights to show.
         data.project ?: return null
-        val parentTaskId = data.parentTaskId ?: return null
-        taskTree.getTaskNodeById(parentTaskId) ?: return null
+        val parentTaskId = parentNodeOf(data)?.id ?: return null
         val wizardGroup = { group: ProjectWizardService.GroupData? ->
             group?.let { TaskWizardService.WizardGroup(it.id, it.name?.trim()) }
         }
@@ -259,7 +263,7 @@ class ProjectWizardRest {
                 )
             }
         }
-        val parentNode = data.parentTaskId?.let { taskTree.getTaskNodeById(it) }
+        val parentNode = parentNodeOf(data)
         if (parentNode == null) {
             if (project != null || data.parentTaskId != null) {
                 required(errors, null, "parentTaskId", "task.parentTask")
@@ -287,6 +291,17 @@ class ProjectWizardRest {
             }
         }
         return errors
+    }
+
+    /**
+     * The picked parent element, if the user may see it: the preview shows the titles of its ancestors and the
+     * rows of the groups on them, and the validation tells about its children. Unknown otherwise, as one that
+     * doesn't exist.
+     */
+    private fun parentNodeOf(data: ProjectWizardService.Data): TaskNode? {
+        val parentNode = data.parentTaskId?.let { taskTree.getTaskNodeById(it) } ?: return null
+        val task = parentNode.task ?: return null
+        return parentNode.takeIf { taskDao.hasLoggedInUserSelectAccess(task, throwException = false) }
     }
 
     private fun required(errors: MutableList<ValidationError>, value: Any?, fieldId: String, labelKey: String) {
