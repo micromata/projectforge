@@ -9,7 +9,6 @@ import CustomizedAddressPhoneNumber from './components/CustomizedAddressPhoneNum
 import CustomizedColorChooser from './components/CustomizedColorChooser';
 import CustomizedConsumptionBar from './components/CustomizedConsumptionBar';
 import CustomizedEMail from './components/CustomizedEMail';
-import CustomizedImage from './components/CustomizedImage';
 import DayRange from './components/DayRange';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedJobsMonitor from './components/CustomizedJobsMonitor';
@@ -24,7 +23,6 @@ import AccessTableComponent from './components/AccessTableComponent';
 import InvoicePositionsComponent from './components/OutgoingInvoicePositionsComponent';
 import IncomingInvoicePositionsComponent from './components/IncomingInvoicePositionsComponent';
 import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
-import WebAuthnRegister from './components/WebAuthnRegister';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -75,9 +73,6 @@ function DynamicCustomized({ id, ...props }) {
         case 'dayRange':
             Tag = DayRange;
             break;
-        case 'image':
-            Tag = CustomizedImage;
-            break;
         case 'invoice.incomingPosition':
             Tag = IncomingInvoicePositionsComponent;
             break;
@@ -101,9 +96,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'webauthn.authenticate':
             Tag = WebAuthnAuthenticate;
-            break;
-        case 'webauthn.register':
-            Tag = WebAuthnRegister;
             break;
         default:
             return <span>{`Customized field '${id}' not found!`}</span>;

@@ -249,9 +249,13 @@ authentication*:
 
 * *Authenticator apps:* Scan the displayed QR code with an authenticator app on your smartphone
 (time-based one-time passwords, TOTP).
-* *WebAuthn (Fido2 etc.):* Register a hardware token such as a YubiKey.
+* *WebAuthn (Fido2 etc.):* Register a hardware token such as a YubiKey. A click on a registered token
+renames or deletes it.
 * *SMS configuration:* Receive one-time codes by text message (if configured).
 * Codes may also be sent by e-mail, unless your administrator has disabled this.
+
+Showing the authenticator key and every change on this page require a second factor not older than
+10 minutes; if it is older, ProjectForge® asks for a code first. *Check 2FA now* lets you try a code.
 
 If a page or an action requires a second factor that is missing or expired, ProjectForge® asks for a
 code and continues afterwards. Which areas are protected and how long a second factor stays valid

@@ -15,10 +15,12 @@ function CalendarSubscriptionInfo({ values }) {
     const handleCheckBoxChange = (event) => {
         setRemindersExport(event.target.checked);
     };
-    const url = remindersExport || !subscriptionInfo.urlWithoutExportedReminders
-        ? subscriptionInfo.url : subscriptionInfo.urlWithoutExportedReminders;
+    const withReminders = remindersExport || !subscriptionInfo.urlWithoutExportedReminders;
+    const url = withReminders ? subscriptionInfo.url : subscriptionInfo.urlWithoutExportedReminders;
 
-    const barcodeImageUrl = `${subscriptionInfo.barcodeUrl}?text=${encodeURIComponent(url)}`;
+    // A data url: the feed url carries the user's token, so it must not be part of an image url.
+    const barcodeImageUrl = withReminders
+        ? subscriptionInfo.qrCode : subscriptionInfo.qrCodeWithoutExportedReminders;
 
     return React.useMemo(
         () => (

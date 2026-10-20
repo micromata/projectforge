@@ -249,14 +249,10 @@ class My2FAServicesRest {
         fill2FA(layout, fieldset, my2FAData, redirectUrl)
     }
 
-    fun fill2FA(
-        layout: UILayout,
-        col: UICol, my2FAData: My2FAData, redirectUrl: String? = null,
-        restServiceClass: Class<*> = My2FAServicesRest::class.java,
-    ) {
+    private fun fill2FA(layout: UILayout, col: UICol, my2FAData: My2FAData, redirectUrl: String? = null) {
         val row = UIRow()
         col.add(row)
-        fill2FA(layout, row, my2FAData, redirectUrl, restServiceClass = restServiceClass)
+        fill2FA(layout, row, my2FAData, redirectUrl)
     }
 
     private fun fill2FA(
@@ -264,12 +260,11 @@ class My2FAServicesRest {
         row: UIRow,
         my2FAData: My2FAData,
         redirectUrl: String? = null,
-        restServiceClass: Class<*> = My2FAServicesRest::class.java,
     ) {
         my2FAData.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
         val codeCol = UICol(md = 6)
         row.add(codeCol)
-        fillCodeCol(layout, codeCol, redirectUrl, restServiceClass = restServiceClass)
+        fillCodeCol(layout, codeCol, redirectUrl)
         //val showPasswordCol = my2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA()
         /*
           // Enable E-Mail with password (required for security reasons, if attacker has access to local client)
@@ -290,14 +285,10 @@ class My2FAServicesRest {
         last2FACol.add(UIReadOnlyField("lastSuccessful2FA", label = "user.My2FACode.lastSuccessful2FA"))
     }
 
-    /**
-     * @param restServiceClass Class with services such as checkOTP, mailCode (if configured) and sendSmsCode.
-     */
     private fun fillCodeCol(
         layout: UILayout,
         codeCol: UICol,
         redirectUrl: String? = null,
-        restServiceClass: Class<*>,
     ) {
         val mobilePhone = ThreadLocalUserContext.loggedInUser?.mobilePhone
         val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
@@ -316,7 +307,7 @@ class My2FAServicesRest {
                 "validate",
                 title = "user.My2FACode.code.validate",
                 responseAction = ResponseAction(
-                    RestResolver.getRestUrl(restServiceClass, "checkOTP", params = mapOf("redirect" to redirectUrl)),
+                    RestResolver.getRestUrl(My2FAServicesRest::class.java, "checkOTP", params = mapOf("redirect" to redirectUrl)),
                     targetType = TargetType.POST
                 ),
             )
@@ -326,17 +317,17 @@ class My2FAServicesRest {
                 UICustomized(
                     "webauthn.authenticate",
                     mutableMapOf(
-                        "authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish")
+                        "authenticateFinishUrl" to RestResolver.getRestUrl(My2FAServicesRest::class.java, "webAuthnFinish")
                     ),
                 )
             )
             WebAuthnServicesRest.addAuthenticateTranslations(layout)
         }
         if (smsAvailable) {
-            codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
+            codeCol.add(createSendButton(My2FAType.SMS))
         }
         if (!my2FAService.isMail2FADisabledForUser()) {
-            codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
+            codeCol.add(createSendButton(My2FAType.MAIL))
         }
     }
 
@@ -344,7 +335,7 @@ class My2FAServicesRest {
      * @param type [My2FAType.MAIL] and [My2FAType.SMS] supported.
      * @param usePublicServices Only true for login process (the private services aren't yet available.
      */
-    private fun createSendButton(type: My2FAType, restServiceClass: Class<*> = this::class.java): UIButton {
+    private fun createSendButton(type: My2FAType): UIButton {
         val lowerType = type.name.lowercase()
         val type = lowerType.capitalize()
         return UIButton.createLinkButton(
@@ -354,7 +345,7 @@ class My2FAServicesRest {
             // "user.My2FACode.sendCode.mail.info", "user.My2FACode.sendCode.sms.info" (needed by I18nKeysUsage)
             tooltip = "user.My2FACode.sendCode.$lowerType.info",
             responseAction = ResponseAction(
-                RestResolver.getRestUrl(restServiceClass, "send${type}Code"),
+                RestResolver.getRestUrl(My2FAServicesRest::class.java, "send${type}Code"),
                 targetType = TargetType.GET
             ),
         )

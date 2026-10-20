@@ -279,6 +279,15 @@ class OrphanedLinkFilterTest {
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
     }
 
+    /** The old React 2FA setup and its WebAuthn key page are gone, the 2FA page itself stays. */
+    @Test
+    fun `the old react 2FA setup is redirected to next`() {
+        Assertions.assertEquals("/next/2FASetup", redirectOf("/react/2FASetup/dynamic"))
+        Assertions.assertEquals("/next/2FASetup", redirectOf("/react/2FASetup"))
+        Assertions.assertEquals("/next/2FASetup", redirectOf("/react/WebAuthnSetup/dynamic", mapOf("id" to "42")))
+        Assertions.assertNotEquals("/next/2FASetup", redirectOf("/react/2FA/dynamic"))
+    }
+
     /** The old React cost search is gone. */
     @Test
     fun `the old react cost search is redirected to next`() {

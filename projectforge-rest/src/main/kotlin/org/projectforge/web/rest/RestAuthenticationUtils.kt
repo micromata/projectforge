@@ -331,7 +331,7 @@ open class RestAuthenticationUtils {
         response.status = HttpStatus.OK.value()
         response.setContentType(MediaType.APPLICATION_JSON_VALUE)
         val url = request.requestURI
-        // /rs/2FASetup/dynamic
+        // /rs/2FA/dynamic
         // /rs/group/edit
         val targetType = if (
           url.matches("""^/rs/.*/dynamic.*""".toRegex()) ||

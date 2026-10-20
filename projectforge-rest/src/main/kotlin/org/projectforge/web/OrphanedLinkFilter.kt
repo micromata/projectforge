@@ -98,6 +98,13 @@ class OrphanedLinkFilter : Filter {
             // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
             // precise segment match keeps this from catching sibling pages like /react/myScript.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}myAccount")
+        } else if (uri.endsWith("/react/2FASetup") || uri.contains("/react/2FASetup/")
+            || uri.endsWith("/react/WebAuthnSetup") || uri.contains("/react/WebAuthnSetup/")
+        ) {
+            // Old dynamic React pages of the 2FA setup and of a WebAuthn key (a dialog of the setup now), migrated to
+            // projectforge-next. The React pages were removed, so there is no "classic version" escape hatch. The
+            // precise segment match keeps this from catching the 2FA page /react/2FA. No parameters are passed on.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}2FASetup")
         } else if (uri.endsWith("/react/changePassword") || uri.contains("/react/changePassword/")
             || uri.endsWith("/react/changeWlanPassword") || uri.contains("/react/changeWlanPassword/")
         ) {

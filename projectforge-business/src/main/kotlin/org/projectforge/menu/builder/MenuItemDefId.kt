@@ -102,7 +102,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_ACCOUNT("menu.myAccount", "next/myAccount"), //
     CUSTOMIZE_MENU("menu.customizeMenu", "${Constants.REACT_APP_PATH}customizeMenu"), //
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
-    MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
+    // Migrated to projectforge-next (My2FASetupRest); react/2FASetup and react/WebAuthnSetup are redirected by
+    // OrphanedLinkFilter.
+    MY_2FA_SETUP("menu.2FASetup", "next/2FASetup"), //
     MY_SCRIPT_LIST("menu.myScriptList", getListUrl("myscript")), //
     // Next only: the rules of the notification system (NotificationRuleEntityRest).
     NOTIFICATION_RULE_LIST("menu.notificationRules", getListUrl("notificationRule")), //
