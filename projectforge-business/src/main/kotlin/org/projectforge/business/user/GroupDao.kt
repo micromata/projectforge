@@ -285,9 +285,11 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      * system rights (e.g. admin or finance) from all its members.
      */
     override fun onDelete(obj: GroupDO) {
+        // The stored name decides as well: a posted group could carry another name than the stored system group.
+        val names = setOf(obj.name, userGroupCache.getGroup(obj.id)?.name)
         for (group in ProjectForgeGroup.entries) {
-            if (group.getName() == obj.name) {
-                throw UserException("group.error.couldNotDeleteSystemGroup", obj.name)
+            if (group.getName() in names) {
+                throw UserException("group.error.couldNotDeleteSystemGroup", group.getName())
             }
         }
     }

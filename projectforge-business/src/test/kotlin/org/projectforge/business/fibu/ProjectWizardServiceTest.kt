@@ -207,11 +207,15 @@ class ProjectWizardServiceTest : AbstractTestBase() {
                 TaskWizardService.AccessStatus.CREATED,
                 // The element of the new customer:
                 TaskWizardService.AccessStatus.CREATED,
-                TaskWizardService.AccessStatus.UPDATED,
+                TaskWizardService.AccessStatus.UNCHANGED,
             ),
             result.access!!.entries.map { it.status },
-            "The parent's recursive team rights become read access.",
+            "The parent's recursive team rights are kept: the wizard only adds rights, it never takes any away.",
         )
+        logon(ADMIN_USER)
+        val access = accessDao.getEntry(parent, group, checkAccess = false)!!
+        Assertions.assertTrue(access.recursive)
+        Assertions.assertTrue(access.getAccessEntry(AccessType.OWN_TIMESHEETS)!!.accessInsert)
     }
 
     @Test

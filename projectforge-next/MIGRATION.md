@@ -618,6 +618,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
   Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. `react/skillentry/**` leitet
   `OrphanedLinkFilter` um.
+- **Posteingang / Postausgang** (`incomingMail`, `outgoingMail`, Liste + Formular, vorher React-UILayout
+  `PosteingangPagesRest` / `PostausgangPagesRest`, gelöscht) – layoutfrei über `PosteingangEntityRest` /
+  `PostausgangEntityRest` (`AbstractDOEntityRest`, ohne DTO, gleiche Pfade), beide in `components/features/post`.
+  `newBaseDO` setzt heute als Datum und den Typ (E-Mail bzw. Brief), `validate` lehnt ein Datum in der Zukunft ab.
+  Die Freitexte vervollständigen über `StringSuggestField` aus `/rs/<entity>/autocomplete?property=` (die Properties,
+  die `isAutocompletionPropertyEnabled` der DAOs freigibt). `react/incomingMail/**` und `react/outgoingMail/**`
+  leitet `OrphanedLinkFilter` um.
 - **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
   über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
   `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne

@@ -24,6 +24,7 @@
 package org.projectforge.business.poll
 
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -56,8 +57,13 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.loggedInUser?.id!!))
                 return true
         }
-        if (obj != null) {
-            return hasFullAccess(obj)
+        // On update and delete the stored poll decides, never the posted one: otherwise anybody could take over a
+        // foreign poll by posting it with the own user as owner or full access user.
+        if (obj != null && hasFullAccess(oldObj ?: obj)) {
+            return true
+        }
+        if (throwException) {
+            throw AccessException(user, "access.exception.userHasNotRight")
         }
         return false
     }

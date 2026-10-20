@@ -334,13 +334,17 @@ class TaskWizardService {
         val existing = groupId?.let {
             accessDao.getEntry(task, GroupDO().also { it.id = groupId }, checkAccess = checkAccess)
         }
+        // Without access checks (the project wizard, see grantAccess) an existing row is only added to, never
+        // weakened: its user may not manage the access rights, so he must not take away what a group may do.
+        val onlyAdd = !checkAccess && existing != null && !existing.deleted
+        val wanted = wantedRights(existing, groupType, isLeaf, onlyAdd)
         val status = if (dryRun) {
-            previewStatus(existing, groupType, isLeaf)
+            previewStatus(existing, wanted)
         } else {
             requireNotNull(groupId) { "Access rights can only be written for an existing group." }
-            writeAccessRight(existing, taskNodeId, groupId, groupType, isLeaf, checkAccess)
+            writeAccessRight(existing, taskNodeId, groupId, wanted, checkAccess)
         }
-        val entry = entryOf(groupType, group.name, taskNodeId, task.title, isLeaf, status)
+        val entry = entryOf(groupType, group.name, taskNodeId, task.title, isLeaf, status, wanted)
         // Minimal access rights for the parent element up to the root.
         return listOf(entry) + createAccessRights(
             taskNode.parent, group, groupType, isLeaf = false, dryRun = dryRun, checkAccess = checkAccess,
@@ -354,11 +358,11 @@ class TaskWizardService {
         taskTitle: String?,
         isLeaf: Boolean,
         status: AccessStatus,
+        wanted: GroupTaskAccessDO? = null,
     ): AccessEntryResult {
-        // The rights of the row afterwards, read off the template alone: it sets all four access types, so
-        // what the row says afterwards does not depend on what it said before - and this way the write and
-        // the preview report the same rights without either of them touching the loaded row.
-        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        // The rights of the row afterwards, read off [wantedRights] (the template for a new row): this way the
+        // write and the preview report the same rights without either of them touching the loaded row.
+        val template = wanted ?: GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
         return AccessEntryResult(
             groupType = groupType,
             groupName = groupName,
@@ -375,13 +379,13 @@ class TaskWizardService {
      * Writes the one row and says what became of it.
      *
      * @param existing The row of this group on this element, or null if there is none yet.
+     * @param wanted The rights the row gets, see [wantedRights].
      */
     private fun writeAccessRight(
         existing: GroupTaskAccessDO?,
         taskNodeId: Long,
         groupId: Long,
-        groupType: GroupType,
-        isLeaf: Boolean,
+        wanted: GroupTaskAccessDO,
         checkAccess: Boolean,
     ): AccessStatus {
         val wasDeleted = existing?.deleted == true
@@ -394,7 +398,11 @@ class TaskWizardService {
             // so it would persist the new rights and leave the update below nothing to report.
             accessDao.undelete(access, checkAccess)
         }
-        applyTemplate(access, groupType, isLeaf)
+        access.recursive = wanted.recursive
+        wanted.orderedEntries.forEach { entry ->
+            access.ensureAndGetAccessEntry(entry.accessType)
+                .setAccess(entry.accessSelect, entry.accessInsert, entry.accessUpdate, entry.accessDelete)
+        }
         return when {
             existing == null -> {
                 accessDao.insert(access, checkAccess)
@@ -426,8 +434,7 @@ class TaskWizardService {
      */
     private fun previewStatus(
         existing: GroupTaskAccessDO?,
-        groupType: GroupType,
-        isLeaf: Boolean,
+        wanted: GroupTaskAccessDO,
     ): AccessStatus {
         if (existing == null) {
             return AccessStatus.CREATED
@@ -436,15 +443,43 @@ class TaskWizardService {
             // An undelete writes the row whatever the rights say, exactly as in writeAccessRight.
             return AccessStatus.UPDATED
         }
-        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
-        if (existing.recursive != template.recursive) {
+        if (existing.recursive != wanted.recursive) {
             return AccessStatus.UPDATED
         }
         val current = rightsOf(existing).associateBy { it.accessType }
-        val unchanged = rightsOf(template).all { wanted ->
-            current[wanted.accessType]?.let { it.sameAs(wanted) } == true
+        val unchanged = rightsOf(wanted).all { right ->
+            current[right.accessType]?.let { it.sameAs(right) } == true
         }
         return if (unchanged) AccessStatus.UNCHANGED else AccessStatus.UPDATED
+    }
+
+    /**
+     * The rights a row gets, as a new object that shares no [org.projectforge.framework.access.AccessEntryDO]
+     * with [existing] (see [previewStatus]): the template, or with [onlyAdd] the template added to what
+     * [existing] already allows - every permission and the recursion only ever switched on, never off.
+     */
+    private fun wantedRights(
+        existing: GroupTaskAccessDO?,
+        groupType: GroupType,
+        isLeaf: Boolean,
+        onlyAdd: Boolean,
+    ): GroupTaskAccessDO {
+        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        if (!onlyAdd || existing == null) {
+            return template
+        }
+        return GroupTaskAccessDO().also { result ->
+            result.recursive = existing.recursive || template.recursive
+            template.orderedEntries.forEach { entry ->
+                val current = existing.getAccessEntry(entry.accessType)
+                result.ensureAndGetAccessEntry(entry.accessType).setAccess(
+                    entry.accessSelect || current?.accessSelect == true,
+                    entry.accessInsert || current?.accessInsert == true,
+                    entry.accessUpdate || current?.accessUpdate == true,
+                    entry.accessDelete || current?.accessDelete == true,
+                )
+            }
+        }
     }
 
     /**

@@ -552,7 +552,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
      * Turns the posted (unsaved) time sheet into a new calendar event, see
      * [org.projectforge.rest.calendar.TeamEventEntityRest.cloneFromTimesheet].
      */
-    @RequestMapping("switch2CalendarEvent")
+    @PostMapping("switch2CalendarEvent")
     fun switch2CalendarEvent(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Timesheet>)
             : ResponseAction {
         return teamEventRest.cloneFromTimesheet(request, postData.data)

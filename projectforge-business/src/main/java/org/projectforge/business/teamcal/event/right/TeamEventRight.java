@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.event.right;
 
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -134,6 +135,7 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
 
   /**
    * Owners of the given calendar and users with full access have update access to the given calendar: obj.getCalendar().
+   * On update and delete also to the calendar of the stored event: oldObj.getCalendar().
    *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
    *      java.lang.Object, java.lang.Object)
@@ -145,10 +147,16 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
       return false;
     }
     final TeamCalDO calendar = obj.getCalendar();
-    if (calendar == null) {
+    if (calendar == null || !hasUpdateAccess(user, calendar)) {
       return false;
     }
-    return hasUpdateAccess(user, calendar);
+    if (oldObj == null) {
+      return true;
+    }
+    // The calendar of the stored event decides as well, not only the posted one: otherwise anybody could change a
+    // foreign event (and move it into the own calendar) by posting it with the own calendar.
+    final TeamCalDO oldCalendar = PfCaches.getInstance().getTeamCalIfNotInitialized(oldObj.getCalendar());
+    return oldCalendar != null && hasUpdateAccess(user, oldCalendar);
   }
 
   public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO calendar)

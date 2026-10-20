@@ -57,8 +57,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 import java.io.Serializable
 import kotlin.reflect.KMutableProperty
 
@@ -455,8 +453,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
      * Drops the selection and answers where the user came from - the layout free counterpart of
      * [handleCancelUrl].
      */
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping("cancel", method = [RequestMethod.POST, RequestMethod.GET])
+    // State changing: POST only.
+    @PostMapping("cancel")
     fun cancel(request: HttpServletRequest): MultiSelectNavigation {
         return MultiSelectNavigation(url = MultiSelectionSupport.clear(request, pagesRest) ?: listPageUrl)
     }
@@ -759,9 +757,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
      * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
      * @return redirect url
      */
-    @Deprecated("Use cancel (GET cancel) instead: the layout free protocol of projectforge-next.")
-    // State changing: POST. GET only for the legacy React app, drop it together with the app.
-    @RequestMapping(RestPaths.CANCEL_MULTI_SELECTION, method = [RequestMethod.POST, RequestMethod.GET])
+    @Deprecated("Use cancel (POST cancel) instead: the layout free protocol of projectforge-next.")
+    // State changing: POST only.
+    @PostMapping(RestPaths.CANCEL_MULTI_SELECTION)
     fun handleCancelUrl(request: HttpServletRequest): ResponseAction {
         val callerUrl = MultiSelectionSupport.clear(request, pagesRest) ?: listPageUrl
         return ResponseAction(callerUrl, targetType = TargetType.REDIRECT)
@@ -972,7 +970,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             UIButton.createCancelButton(
                 ResponseAction(
                     RestResolver.getRestUrl(this::class.java, RestPaths.CANCEL_MULTI_SELECTION),
-                    targetType = TargetType.GET,
+                    targetType = TargetType.POST,
                 ),
                 title = translate("stop")
             )
