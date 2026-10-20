@@ -3049,6 +3049,7 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "orga": "Organization",
     "personalStatistics": "My statistics",
     "phoneCall": "Direct call",
     "pluginAdmin": "Plugins",
@@ -3345,11 +3346,21 @@
     },
     "postausgang": {
       "empfaenger": "Receiver",
-      "person": "FAO"
+      "person": "FAO",
+      "title": {
+        "add": "New outbox entry",
+        "heading": "Outbox",
+        "list": "Outbox"
+      }
     },
     "posteingang": {
       "absender": "Sender",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "New inbox entry",
+        "heading": "Inbox",
+        "list": "Inbox"
+      }
     },
     "visitorbook": {
       "company": "Company",
@@ -3805,10 +3816,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interest",
+      "interest": {
+        "_": "Interest",
+        "0": "Not rated",
+        "1": "Interest",
+        "2": "Deep interest",
+        "3": "Going crazy!"
+      },
       "owner": "Owner",
-      "rating": "Self-rating",
-      "skill": "Skill"
+      "rating": {
+        "_": "Self-rating",
+        "0": "Not rated",
+        "1": "Basic",
+        "2": "Advanced",
+        "3": "Expert"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Add new skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {
