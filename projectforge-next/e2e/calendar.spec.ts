@@ -144,8 +144,8 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
       const kinds = page.getByRole("group", {
         name: format.t("calendar.filter.absenceKinds._"),
       });
-      // All five kinds, here the remotely reachable ones.
-      await expect(kinds.getByRole("button")).toHaveCount(5);
+      // All four kinds, here the remotely reachable ones.
+      await expect(kinds.getByRole("button")).toHaveCount(4);
       const remote = kinds.getByRole("button", {
         name: format.t("availability.status.remoteReachable"),
       });
@@ -163,13 +163,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
       // A set on the server, in no particular order.
       expect(
         [...((await readInit(page)).filter?.absenceKinds ?? [])].sort()
-      ).toEqual(
-        [
-          "VACATION",
-          "NOT_AVAILABLE",
-          "REACHABLE_IF_NEEDED",
-        ].sort()
-      );
+      ).toEqual(["VACATION", "NOT_AVAILABLE", "REACHABLE_IF_NEEDED"].sort());
       // Shown as unpressed after the reload; pressed again, all kinds are shown (null) as found.
       expect(await toggle()).toBe("false");
       expect((await readInit(page)).filter?.absenceKinds ?? null).toBeNull();

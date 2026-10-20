@@ -8,7 +8,7 @@ import {
   findProjectsWithKost2,
   removeInvoice,
 } from "./fixtures/invoice";
-import { listRows } from "./fixtures/list-table";
+import { waitForRows } from "./fixtures/list-table";
 import { MARKER } from "./fixtures/seed";
 import {
   formatCurrency,
@@ -92,8 +92,11 @@ test.describe("invoice cost assignment", { tag: "@lane-invoice" }, () => {
 
     // And it arrives filled rather than empty — the value has to be on the lean row. Matched by the
     // shape the account's own formatter produces, never by a spelled-out "0,00 €".
+    // The rows first, as long as the heading may take: after another spec changed orders or invoices, the
+    // list waits for the invoice caches being rebuilt.
+    const rows = await waitForRows(page, 60_000);
     const column = await columnIndex(page, label);
-    const cell = listRows(page).first().locator("td").nth(column);
+    const cell = rows.first().locator("td").nth(column);
     await expect(cell).toHaveText(amountPattern(context));
 
     // Left as found: the reset returns to the declared visibility, which is this column hidden again.
@@ -342,11 +345,12 @@ function percentInput(format: UserFormat, factor: number): string {
  * The part of a cost unit's name that is its number — the term the autocomplete is given.
  *
  * `KostFormatter` writes "4.400.99.00: <project> - <customer>" (FormatType.LONG), and the number alone
- * is both selective, being unique, and free of the business content that follows it. `Kost2EntityRest`
- * searches it as `rawNumberString`, so the dots do no harm.
+ * is both selective, being unique, and free of the business content that follows it. Searched by its
+ * digits only, as `rawNumberString` (`Kost2EntityRest`): the dotted form is indexed in the segment layout
+ * of the number ranges at indexing time, which a changed configuration leaves stale until a re-index.
  */
 function searchTerm(displayName: string): string {
-  return displayName.split(":")[0].trim();
+  return displayName.split(":")[0].replace(/\D/g, "");
 }
 
 /** The index of a column in the table, so its cell can be read out of a row. */
