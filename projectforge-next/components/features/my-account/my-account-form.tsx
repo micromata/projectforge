@@ -8,6 +8,7 @@ import type { EditPageTab } from "@/components/shared/edit-page-tabs";
 import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import { InputField } from "@/components/shared/form/input-field";
+import { MenuLink } from "@/components/shared/menu-link";
 import { ReadOnlyValue } from "@/components/shared/form/read-only-value";
 import { SelectField } from "@/components/shared/form/select-field";
 import { StringSuggestField } from "@/components/shared/form/string-suggest-field";
@@ -17,7 +18,6 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import {
   fetchTimeZoneSuggestions,
   TIME_ZONE_SUGGEST_QUERY_KEY,
@@ -257,7 +257,14 @@ function AccountSection({
           <span className="flex flex-wrap items-baseline gap-x-3">
             <span>{data.mobilePhone || "–"}</span>
             {/* Changed there, as its hint says (it is the number of the SMS second factor). */}
-            <LegacyLink url={init.my2FASetupUrl} label={t("menu.2FASetup")} />
+            {init.my2FASetupUrl && (
+              <MenuLink
+                url={init.my2FASetupUrl}
+                className="text-primary hover:underline"
+              >
+                {t("menu.2FASetup")}
+              </MenuLink>
+            )}
           </span>
         </ReadOnlyValue>
         <InputField
@@ -288,21 +295,5 @@ function AccountSection({
         {data.groups}
       </ReadOnlyValue>
     </div>
-  );
-}
-
-/**
- * A page of another frontend (the 2FA setup is still React): a full page load, as the menu does it
- * (see resolveMenuUrl).
- */
-function LegacyLink({ url, label }: { url?: string | null; label: string }) {
-  if (!url) return null;
-  return (
-    <a
-      href={toAbsoluteUrl(resolveMenuUrl(url))}
-      className="text-primary hover:underline"
-    >
-      {label}
-    </a>
   );
 }

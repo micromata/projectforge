@@ -9,9 +9,11 @@
   {%- endif %}
   <meta property="og:image" content="{% if site.logo contains 'http' %}{{ site.logo }}{% else %}{{ site.uploads | absolute_url }}{{ site.logo }}{% endif %}"/>
   <link rel="preload" href="{{ '/assets/fonts/plus-jakarta-sans-latin-wght-normal.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+  {%- comment -%}?v=: the time of the build, so browsers don't combine a cached script or style sheet with a newer
+  page.{%- endcomment %}
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}">
   <link rel="shortcut icon" type="image/png" href="{{ '/uploads/favicon.png' | relative_url }}">
-  <script src="{{ '/assets/js/lang-switch.js' | relative_url }}" defer></script>
+  <script src="{{ '/assets/js/lang-switch.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
   <link rel="alternate" type="application/rss+xml" title="{{ site.title | escape }}" href="{{ '/feed.xml' | relative_url }}">
   {% if page.tipue_search_active or layout.tipue_search_active %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>

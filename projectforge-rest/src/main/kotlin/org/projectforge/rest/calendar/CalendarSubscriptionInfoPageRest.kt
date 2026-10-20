@@ -46,8 +46,8 @@ class CalendarSubscriptionInfoPageRest {
 
     /**
      * The subscription of the time sheets (default), the holidays or the weeks of year as plain JSON, for the
-     * next subscription dialog: headline, full feed url (carrying the user's personal token), the QR code url
-     * and the security advice.
+     * next subscription dialog: headline, full feed url (carrying the user's personal token), its QR code (data
+     * url) and the security advice.
      */
     @AccessChecked("Own user only (logged-in user's feed token)")
     @GetMapping("info")

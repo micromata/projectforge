@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "Availability entries: the location of a new entry is no longer preset to remote, and an empty type or location is shown as \"Not specified\". New type \"Mobile Tätigkeit\" (mobile activity) for working remotely without a workation; installations with their own list of types (projectforge.availability.types) add it there.",
-  "de": "Verfügbarkeiten: Der Ort eines neuen Eintrags ist nicht mehr mit Remote vorbelegt, ein leerer Typ oder Ort wird als „keine Angabe“ angezeigt. Neuer Typ „Mobile Tätigkeit“ für Remote-Arbeit ohne Workation; Installationen mit eigener Typenliste (projectforge.availability.types) ergänzen ihn dort."
-}

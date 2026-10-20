@@ -45,6 +45,9 @@ en:
   # Marks a link of a German page to a page that is only available in English.
   english_only:               "EN"
   english_only_title:         "English only"
+  # Button of the code blocks (assets/js/copy-code.js).
+  copy_code:                  "Copy to clipboard"
+  code_copied:                "Copied"
 
 de:
   home:                       "/de/"
@@ -85,3 +88,6 @@ de:
   language_flag:              "gb"
   english_only:               "EN"
   english_only_title:         "Nur auf Englisch"
+  # Button of the code blocks (assets/js/copy-code.js).
+  copy_code:                  "In die Zwischenablage kopieren"
+  code_copied:                "Kopiert"

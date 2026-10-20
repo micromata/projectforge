@@ -15,12 +15,14 @@ import {
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DescribedMenuItem } from "@/components/shared/described-menu-item";
 import { toast } from "@/lib/toast";
+import { PropertiesDiffDialog } from "./properties-editor/properties-diff-dialog";
 import { PropertiesEditorDialog } from "./properties-editor/properties-editor-dialog";
 import { systemActionMenus, type SystemAction } from "./system-actions";
 
 /**
  * The one-click administration actions of the System page as a row of menus, one per topic (see
- * [systemActionMenus]); the configuration menu also opens the properties editor. A message action
+ * [systemActionMenus]); the configuration menu also opens the properties editor and the comparison of
+ * projectforge.properties with its backups. A message action
  * toasts its translated result, a download action lets the browser save the file and only toasts on
  * failure, a confirming action asks first. The state lives here, not in the items, because a menu
  * unmounts its items as soon as it closes.
@@ -33,6 +35,7 @@ export function SystemMenuBar({
   const t = useTranslations();
   const [confirmAction, setConfirmAction] = useState<SystemAction | null>(null);
   const [propertiesEditorOpen, setPropertiesEditorOpen] = useState(false);
+  const [propertiesDiffOpen, setPropertiesDiffOpen] = useState(false);
 
   const mutation = useMutation({
     mutationFn: (action: SystemAction) => action.run(),
@@ -66,6 +69,11 @@ export function SystemMenuBar({
                     label={t("system.propertiesEditor.title")}
                     description={t("system.propertiesEditor.cardInfo")}
                     onSelect={() => setPropertiesEditorOpen(true)}
+                  />
+                  <DescribedMenuItem
+                    label={t("system.propertiesEditor.diff.title")}
+                    description={t("system.propertiesEditor.diff.info")}
+                    onSelect={() => setPropertiesDiffOpen(true)}
                   />
                   <DropdownMenuSeparator />
                 </>
@@ -102,6 +110,9 @@ export function SystemMenuBar({
         <PropertiesEditorDialog
           onClose={() => setPropertiesEditorOpen(false)}
         />
+      )}
+      {propertiesDiffOpen && (
+        <PropertiesDiffDialog onClose={() => setPropertiesDiffOpen(false)} />
       )}
     </>
   );

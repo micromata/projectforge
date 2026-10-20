@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 private val log = KotlinLogging.logger {}
@@ -71,6 +72,30 @@ class PropertiesEditorRest {
     fun getData(): ProjectForgePropertiesService.Data {
         checkAdminAccess()
         return propertiesService.read()
+    }
+
+    /** The backups of projectforge.properties, newest first, for comparing versions of it. */
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
+    @GetMapping("backups")
+    fun getBackups(): List<ProjectForgePropertiesService.BackupData> {
+        checkAdminAccess()
+        return propertiesService.backups()
+    }
+
+    class DiffText(val text: String)
+
+    /**
+     * A version of projectforge.properties as the diff compares it: [key] is the name of a backup, empty for the
+     * file itself. With [ignoreOrder], the parameters are sorted, so the diff shows only changed values and comments.
+     */
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
+    @GetMapping("diffText")
+    fun getDiffText(
+        @RequestParam(required = false) key: String?,
+        @RequestParam(defaultValue = "true") ignoreOrder: Boolean,
+    ): DiffText {
+        checkAdminAccess()
+        return DiffText(propertiesService.diffText(key, ignoreOrder))
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")

@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected.",
+  "de": "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet."
+}

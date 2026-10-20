@@ -41,6 +41,18 @@ export function setTwoFactorHandler(handler: TwoFactorHandler | null): void {
   twoFactorHandler = handler;
 }
 
+/**
+ * Asks for a second factor without a request having been refused, e.g. before a WebAuthn registration
+ * (its challenge is spent by the attempt, so it can't simply be repeated after a 403).
+ *
+ * @returns true once the 2FA succeeded, false if it was cancelled (or no dialog is registered).
+ */
+export function requestSecondFactor(expiryMillis?: number): Promise<boolean> {
+  return twoFactorHandler
+    ? twoFactorHandler(expiryMillis)
+    : Promise.resolve(false);
+}
+
 // --- CSRF token ---
 
 /**

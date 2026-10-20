@@ -92,6 +92,11 @@ class ApplicationPropertiesMetadataTest {
         ).forEach { assertTrue(metadata.getParam(it)!!.secret, it) }
         listOf("projectforge.ldap.storePasswords", "projectforge.idp.syncPasswords", "projectforge.domain")
             .forEach { assertFalse(metadata.getParam(it)!!.secret, it) }
+        // Also keys unknown to application.properties, e.g. own ones of the admin.
+        listOf("projectforge.receiveSmsKey", "projectforge.sms.publicRestCallAuthKey", "plugins.licensemanagement.key", "my.own-key")
+            .forEach { assertTrue(PropertiesMetadata.isSecret(it), it) }
+        listOf("projectforge.keystoreFile", "projectforge.sipgate.tokenId", "projectforge.ldap.storePasswords")
+            .forEach { assertFalse(PropertiesMetadata.isSecret(it), it) }
         assertTrue(metadata.groups.single { it.title == "Internal" }.expert)
         assertEquals("projectforge.einvoice.seller.bankAccounts[1].iban",
             metadata.findRelatedKey("projectforge.einvoice.seller.bankAccounts[5].iban"))

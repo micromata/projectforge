@@ -44,26 +44,6 @@ export const convertPublicKeyCredentialRequestOptions = (publicKeyCredentialCrea
     return result;
 }
 
-export const convertRegisterCredential = (credential, publicKeyCredentialCreationOptions) => {
-    const { response } = credential;
-    return {
-        requestId: publicKeyCredentialCreationOptions.requestId,
-        credential: {
-            type: credential.type,
-            id: credential.id,
-            rawId: bufferToBase64url(credential.rawId),
-            response: {
-                clientDataJSON: bufferToBase64url(response.clientDataJSON),
-                attestationObject: bufferToBase64url(response.attestationObject),
-                transports: response.transports,
-            },
-        },
-        clientExtensionResults: {},
-        challenge: publicKeyCredentialCreationOptions.challenge,
-        sessionToken: publicKeyCredentialCreationOptions.sessionToken,
-    }
-}
-
 export const convertAuthenticateCredential = (credential, publicKeyCredentialCreationOptions) => {
     const { response } = credential;
     return {
@@ -81,6 +61,5 @@ export const convertAuthenticateCredential = (credential, publicKeyCredentialCre
         },
         clientExtensionResults: {},
         challenge: publicKeyCredentialCreationOptions.challenge,
-        sessionToken: publicKeyCredentialCreationOptions.sessionToken,
     }
 }

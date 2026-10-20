@@ -14,7 +14,7 @@ import { MyAccountForm } from "./my-account-form";
 /**
  * The my-account page (`/next/myAccount`), successor of the React page `react/myAccount/dynamic`: the
  * logged-in user's name, personal settings, access tokens, stay-logged-in devices, groups and public keys.
- * Change password and change WLAN password open as dialogs from here; the 2FA setup is still a React page,
+ * Change password and change WLAN password open as dialogs from here; the 2FA setup (`/next/2FASetup`) is
  * linked from the form and from the user menu.
  */
 export function MyAccountPage() {

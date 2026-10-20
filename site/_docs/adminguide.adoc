@@ -388,8 +388,7 @@ Each problem goes to the recipients of its audience: developers (bugs, data prob
 systems, configuration, sync runs) or security. Without recipients of its own, an audience gets the digest
 at `projectforge.support.mail`.
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 ----
 projectforge.support.mail=support@acme.com
 # How often the digest is sent at most, e.g. 15m, 1h, 1d. 0 disables the digest. Default: 1h
@@ -558,8 +557,7 @@ So all customers of a range must share the digits in front of those last digits:
 at most the 1000 customers of one block like 0-999 (100 projects per customer), a range with 1 project digit at most
 the 10000 customers of one block like 10000-19999.
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source]
 ----
 # Former range 4: internal projects 4.###.##.##
@@ -706,8 +704,7 @@ stay-logged-in session.
 
 Recommended example configuration:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,properties,linenums]
 ----
 projectforge.2fa.expiryPeriod.minutes1=
@@ -764,8 +761,7 @@ include /etc/openldap/schema/inetorgperson.schema
 The groupBase setting is only needed in master mode. The managerUser is
 not needed in simple slave mode. For further information see below.
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -815,8 +811,7 @@ users. The ProjectForge user's will be synchronized in LDAP. If there is
 any conflict between LDAP and ProjectForge, the ProjectForge settings
 are used. The configuration of this mode is simple:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -939,8 +934,7 @@ POSIX account data were created in ProjectForge for this user.
 [[managing_samba_accounts]]
 ==== Managing Samba accounts
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -982,8 +976,7 @@ accessed in read-only mode. There are 3 modes
 available: `simple,` `users` and `users-groups.` The configuration of
 this mode is simple:
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1033,8 +1026,7 @@ This mode is not yet implemented, the users-mode is used instead.
 
 You can also use ProjectForge without LDAP (default).
 
-*File:* `projectforge.properties`:
-
+.File: `projectforge.properties`
 [source,shell,linenums]
 ----
 ...
@@ -1386,7 +1378,7 @@ The files of the new file store (attachments of contracts, orders, invoices etc.
 Both dumps are independent of each other: there are no foreign keys between `pf_files` and the other tables. Differences after restoring dumps of different days are reported by the sanity checks, which run nightly
 (`projectforge.cron.sanityChecks`) and on demand via _Administration_ -> _System_ -> _Check system integrity_.
 
-Data transfer files (`<home>/datatransfer`) are not part of any backup: their metadata is in `pf_files`, but the content is stored in the file system and is short-lived.
+Data transfer files (`<home>/datatransfer`) are not part of the dumps: their metadata is in `pf_files`, but the content is stored in the file system. The backup script archives them as `projectforge_datatransfer_...tar` (uncompressed, the files are already stored compressed). If they are encrypted, the key isn't part of this archive, see <<encryption_of_the_data_transfer_files>>.
 
 [[restoring_a_backup]]
 === Restoring a backup
@@ -1407,7 +1399,14 @@ Restoring the files afterwards (schema `pf_files`, the main dump doesn't contain
 pg_restore -U postgres -d projectforge -j 4 projectforge_files_2026-10-06_02-00.dump
 ----
 
-Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_.
+Restoring the data transfer files (from the same backup as the files dump, because their metadata is in `pf_files`), with ProjectForge stopped and after removing the existing directory `datatransfer`:
+
+[source,shell,linenums]
+----
+tar xf projectforge_datatransfer_2026-10-06_02-00.tar -C ~/ProjectForge
+----
+
+Restore both dumps before starting ProjectForge: the main dump contains the Flyway history, so Flyway doesn't create the schema `pf_files` again. If the schema already exists in the target data base, drop it first (`DROP SCHEMA pf_files CASCADE;`) or use `pg_restore --clean --if-exists`. After restoring, run the sanity checks via _Administration_ -> _System_ -> _Check system integrity_ (they also report missing data transfer files).
 
 For dropping and creating a new database, see <<postgresql>>.
 Don't forget to rebuild the search index afterwards (_Administration_ -> _System_ -> _Reindex_)!
@@ -1448,7 +1447,7 @@ After switching to `db` and restarting, ProjectForge copies all files of the JCR
 * All files are copied, the JCR keeps them. So you may switch back to `jcr` or roll back to the former release; only files uploaded under `db` are missing after a rollback.
 * Data transfer files need disk space twice (JCR and `<home>/datatransfer`) until they expire. Deleted files are deleted in both stores.
 * If the data transfer files should be encrypted, configure the key before switching to `db`, see <<encryption_of_the_data_transfer_files>>. The copies in the JCR remain unencrypted until they expire or the JCR is removed.
-* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<backup_script>>), data transfer files are not backed up.
+* The nightly JCR backup keeps running in both modes as long as the JCR exists. With `db`, the files are part of the files dump (schema `pf_files`, see <<backup_script>>), the data transfer files are archived by the backup script (`<home>/datatransfer`).
 
 Before updating to a release without JCR, either switch to `db` and wait for a successful migration, or create a
 fresh JCR backup ZIP right before the update (system page, card "Document repository (JCR)", _Create JCR backup ZIP_):
@@ -1464,14 +1463,15 @@ files.
 Install a crontab entry as user projectforge on your ProjectForge®
 server (or the database server) starting the following script:
 
-*File:* `pforgebackup.sh:`
-
+.File: `pforgebackup.sh`
 [source,shell,linenums]
 ----
 #!/bin/bash
 
 PGSQL_DIR=/usr/bin
 BACKUPDIR=/home/projectforge/backup
+# Home directory of ProjectForge:
+PF_HOME=/home/projectforge/ProjectForge
 BASENAME=projectforge
 TIMESTAMP=`date '+%Y-%m-%d_%H-%M'`
 
@@ -1481,8 +1481,10 @@ echo Starting backup of ProjectForge ...
 BACKUPFILE=$BACKUPDIR/${BASENAME}_${TIMESTAMP}.sql
 # Dump of the files only (schema pf_files, attachments of contracts, orders, invoices etc.).
 FILES_BACKUPFILE=$BACKUPDIR/${BASENAME}_files_${TIMESTAMP}.dump
+# Archive of the data transfer files (content in the file system, metadata in pf_files).
+DATATRANSFER_BACKUPFILE=$BACKUPDIR/${BASENAME}_datatransfer_${TIMESTAMP}.tar
 
-echo Using filenames $BACKUPFILE and $FILES_BACKUPFILE ...
+echo Using filenames $BACKUPFILE, $FILES_BACKUPFILE and $DATATRANSFER_BACKUPFILE ...
 
 echo Exporting data ...
 $PGSQL_DIR/pg_dump -U projectforge -N pf_files -f $BACKUPFILE || { echo "Error: export of data failed."; exit 1; }
@@ -1494,8 +1496,16 @@ echo Exporting files ...
 # Custom format; -Z 0: the content is already compressed (or not compressible).
 $PGSQL_DIR/pg_dump -U projectforge -n pf_files -Fc -Z 0 -f $FILES_BACKUPFILE || { echo "Error: export of files failed."; exit 1; }
 
+if [ -d $PF_HOME/datatransfer ]; then
+  echo Archiving data transfer files ...
+  # Uncompressed: the files are already stored compressed (or encrypted). Exit code 1 of tar means that files changed
+  # while reading (e.g. an upload during the backup), the archive is usable anyway.
+  tar cf $DATATRANSFER_BACKUPFILE -C $PF_HOME datatransfer
+  [ $? -le 1 ] || { echo "Error: archiving of data transfer files failed."; exit 1; }
+fi
+
 # For using scp for remote backup:
-#scp $BACKUPFILE.gz $FILES_BACKUPFILE <user>@backup.mydomain:backup/
+#scp $BACKUPFILE.gz $FILES_BACKUPFILE $DATATRANSFER_BACKUPFILE <user>@backup.mydomain:backup/
 
 # Deleting of daily backups is done by ProjectForge (projectforge.cron.purgeBackupDir, see below). Monthly backups
 # are kept forever, because they're needed for financial, yearly comparisons.
@@ -1509,17 +1519,17 @@ ProjectForge purges the daily backups (keeping weekly and monthly ones), if the 
 ----
 projectforge.cron.purgeBackupDir=/home/projectforge/backup
 # Optional: comma-separated prefixes of the backup series. If not given, all files containing a date are processed.
-# Each series (text in front of the date, here projectforge_ and projectforge_files_) is purged on its own.
+# Each series (text in front of the date, here projectforge_, projectforge_files_ and projectforge_datatransfer_) is
+# purged on its own.
 #projectforge.cron.purgeBackupFilesPrefix=projectforge_
 ----
 
-The files dump `projectforge_files_...` is its own series, so it is purged like the main dump (also with the prefix `projectforge_`, because it starts with it).
+The files dump `projectforge_files_...` and the archive `projectforge_datatransfer_...` are series of their own, so they are purged like the main dump (also with the prefix `projectforge_`, because they start with it).
 
 For allowing `pg_dump` without prompting a password, run the script as the Unix user `projectforge` and add
 the following line to `pg_hba.conf` (peer authentication: the Unix user name must match the database user name):
 
-*File:* `pg_hba.conf`:
-
+.File: `pg_hba.conf`
 [source,shell,linenums]
 ----
 local projectforge projectforge peer
@@ -1554,8 +1564,7 @@ For remote backup via `scp` you need to use key authorization:
 For security reasons it's also possible to get the backup files from the
 ProjectForge® server with a cronjob starting e. g. one hour later:
 
-*File:* `pforgePollBackup.sh`:
-
+.File: `pforgePollBackup.sh`
 ....
 #!/bin/bash
 SERVER=projectforge.mydomain

@@ -30,7 +30,9 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 
@@ -116,6 +118,33 @@ class ProjectForgePropertiesFile(
         }
     }
 
+    /** A backup written by [save]. [timestamp]: when it was written (taken from its name, else the file's). */
+    class Backup(val file: File, val timestamp: LocalDateTime)
+
+    /** The backups next to the file ([save]), newest first. */
+    fun backups(): List<Backup> {
+        val prefix = "${file.name}."
+        val files = file.parentFile?.listFiles { f -> f.isFile && f.name.startsWith(prefix) && f.name.endsWith(".bak") }
+            ?: return emptyList()
+        return files.map { f ->
+            val name = f.name.removePrefix(prefix).removeSuffix(".bak")
+            val timestamp = runCatching {
+                LocalDateTime.parse(name.take(BACKUP_TIMESTAMP_LENGTH), BACKUP_TIMESTAMP_FORMAT)
+            }.getOrNull() ?: LocalDateTime.ofInstant(Instant.ofEpochMilli(f.lastModified()), ZoneId.systemDefault())
+            Backup(f, timestamp)
+        }.sortedWith(
+            // Backups of the same second: `…-2.bak`, `…-3.bak` were written after `….bak` (see [backup]).
+            compareByDescending<Backup> { it.timestamp }
+                .thenByDescending { backupCounter(it.file.name) }
+                .thenByDescending { it.file.name }
+        )
+    }
+
+    /** 1 for `….bak`, n for `…-n.bak`. */
+    private fun backupCounter(name: String): Int =
+        Regex("""-(\d+)\.bak$""").find(name.substringAfter("${file.name}.").drop(BACKUP_TIMESTAMP_LENGTH))
+            ?.groupValues?.get(1)?.toIntOrNull() ?: 1
+
     private fun backup(): File {
         val timestamp = now().format(BACKUP_TIMESTAMP_FORMAT)
         var backup = File(file.parentFile, "${file.name}.$timestamp.bak")
@@ -134,6 +163,8 @@ class ProjectForgePropertiesFile(
         const val FILENAME = "projectforge.properties"
 
         private val BACKUP_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
+
+        private const val BACKUP_TIMESTAMP_LENGTH = "yyyy-MM-dd_HH-mm-ss".length
 
         internal fun load(bytes: ByteArray): Map<String, String> {
             val properties = Properties()

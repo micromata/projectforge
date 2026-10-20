@@ -86,3 +86,41 @@ export function saveProperties(
     body: JSON.stringify({ fileVersion, changes }),
   });
 }
+
+/** A backup of projectforge.properties (`ProjectForgePropertiesService.BackupData`), newest first. */
+export interface PropertiesBackup {
+  /** The backup file's name. */
+  key: string;
+  /** When it was written, in epoch millis. */
+  timestamp: number;
+}
+
+export function fetchPropertiesBackups(
+  signal?: AbortSignal
+): Promise<PropertiesBackup[]> {
+  return request<PropertiesBackup[]>(
+    "/rs/propertiesEditor/backups",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * A version of projectforge.properties as the diff compares it (`PropertiesEditorRest.getDiffText`):
+ * the file itself without [key], else the backup of that name. With [ignoreOrder], the parameters are
+ * sorted, so only changed values and comments are left to see. Values of secrets are masked.
+ */
+export async function fetchPropertiesDiffText(
+  key: string | null,
+  ignoreOrder: boolean,
+  signal?: AbortSignal
+): Promise<string> {
+  const params = new URLSearchParams({ ignoreOrder: String(ignoreOrder) });
+  if (key) params.set("key", key);
+  const { text } = await request<{ text: string }>(
+    `/rs/propertiesEditor/diffText?${params}`,
+    { method: "GET" },
+    signal
+  );
+  return text;
+}

@@ -295,8 +295,10 @@ class TaskWizardService {
             GroupType.EXTERNAL to externalGroupId,
         ).mapNotNull { (groupType, groupId) ->
             // Without access check: the caller has checked who may run the wizard, and the group is
-            // only read for its name here.
-            val group = groupId?.let { groupDao.find(it, checkAccess = false) } ?: return@mapNotNull null
+            // only read for its name here. Attached: the project wizard calls this within its transaction,
+            // right after inserting the group, and a detaching find would pull the new group out of it.
+            val group = groupId?.let { groupDao.find(it, checkAccess = false, attached = true) }
+                ?: return@mapNotNull null
             GrantedAccess(groupType, group.name, entries(GroupRef(group.id, group.name), groupType))
         }
     }

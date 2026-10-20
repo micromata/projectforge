@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.stereotype.Service
 import java.io.File
+import java.time.ZoneId
 
 /**
  * The properties editor (Administration → Properties editor): the known parameters of [PropertiesMetadata] with
@@ -136,6 +137,31 @@ class ProjectForgePropertiesService {
         }
         require(changes.map { it.key }.toSet().size == changes.size) { "Duplicate keys in changes." }
         return propertiesFile.save(changes, fileVersion)
+    }
+
+    /** A backup of projectforge.properties for the diff: [key] is its file name, [timestamp] in epoch millis. */
+    class BackupData(val key: String, val timestamp: Long)
+
+    /** The backups of projectforge.properties, newest first. */
+    fun backups(): List<BackupData> = propertiesFile.backups().map { backup ->
+        BackupData(backup.file.name, backup.timestamp.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+    }
+
+    /**
+     * The text of projectforge.properties ([key] null) or of one of its backups for the diff ([PropertiesDiffText]),
+     * values of secrets masked.
+     */
+    fun diffText(key: String?, ignoreOrder: Boolean): String {
+        val file = propertiesFile
+        val source = if (key.isNullOrEmpty()) {
+            file.file
+        } else {
+            // Only a listed backup, never a path given by the client.
+            file.backups().firstOrNull { it.file.name == key }?.file
+                ?: throw IllegalArgumentException("Unknown backup: '$key'.")
+        }
+        val content = if (source.exists()) String(source.readBytes(), Charsets.ISO_8859_1) else ""
+        return PropertiesDiffText.build(content, metadata, ignoreOrder)
     }
 
     private fun toParamData(

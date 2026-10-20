@@ -259,9 +259,14 @@ einrichten* konfiguriert:
 
 * *Authenticator-Apps:* Den angezeigten QR-Code mit einer Authenticator-App auf dem Smartphone scannen
 (zeitbasierte Einmalpasswörter, TOTP).
-* *WebAuthn (Fido2 etc.):* Einen Hardware-Token wie einen YubiKey registrieren.
+* *WebAuthn (Fido2 etc.):* Einen Hardware-Token wie einen YubiKey registrieren. Ein Klick auf einen
+registrierten Token benennt ihn um oder löscht ihn.
 * *SMS-Konfiguration:* Einmalcodes per SMS erhalten (falls konfiguriert).
 * Codes lassen sich auch per E-Mail versenden, sofern die Administration dies nicht abgeschaltet hat.
+
+Das Anzeigen des Authenticator-Schlüssels und jede Änderung auf dieser Seite erfordern einen zweiten
+Faktor, der nicht älter als 10 Minuten ist; sonst fragt ProjectForge® zuerst nach einem Code. Mit *2FA
+jetzt prüfen* lässt sich ein Code ausprobieren.
 
 Erfordert eine Seite oder Aktion einen zweiten Faktor, der fehlt oder abgelaufen ist, fragt ProjectForge®
 nach einem Code und fährt anschließend fort. Welche Bereiche geschützt sind und wie lange ein zweiter
