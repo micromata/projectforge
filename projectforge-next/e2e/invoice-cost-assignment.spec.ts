@@ -9,7 +9,7 @@ import {
   removeInvoice,
 } from "./fixtures/invoice";
 import { waitForRows } from "./fixtures/list-table";
-import { MARKER } from "./fixtures/seed";
+import { MARKER, writeHeaders } from "./fixtures/seed";
 import {
   formatCurrency,
   formatPercentageDecimal,
@@ -56,8 +56,8 @@ test.describe("invoice cost assignment", { tag: "@lane-invoice" }, () => {
   // (AbstractEntityRest.resetListFilter drops the grid state along with the filter).
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get(`/rs/${ENTITY}/filter/reset`, {
-        headers: { "X-PF-Frontend": "next" },
+      .post(`/rs/${ENTITY}/filter/reset`, {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

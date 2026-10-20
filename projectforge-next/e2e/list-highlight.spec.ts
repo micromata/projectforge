@@ -4,8 +4,7 @@ import {
   createBook,
   MARKER,
   uniqueSuffix,
-  type SeededBook,
-} from "./fixtures/seed";
+  type SeededBook, writeHeaders } from "./fixtures/seed";
 import type { ResultSet } from "../lib/rs/types";
 
 /**
@@ -40,7 +39,9 @@ test.describe("list highlight", { tag: "@lane-book" }, () => {
   // marked. Resets what the server stores for this account, as the other list specs do.
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

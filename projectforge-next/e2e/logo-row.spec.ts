@@ -8,6 +8,7 @@ import { test, goto, waitForHydration } from "./fixtures/auth";
 import { locales, translate, userFormat } from "./fixtures/format";
 import { waitForRows } from "./fixtures/list-table";
 import { LOGO_ROW_HEIGHT } from "../hooks/use-collapse-on-scroll";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The logo row at the very top gives way when the user scrolls, and comes back at the top again.
@@ -27,7 +28,9 @@ test.describe("logo row", { tag: "@lane-book" }, () => {
   // for it, as the other list specs do.
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

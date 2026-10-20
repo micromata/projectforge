@@ -6,6 +6,7 @@ import type { SeededCustomer } from "./fixtures/seed";
 import { CUSTOMER_PAGE } from "../components/features/customer/customer.page";
 import { KUNDE_METADATA } from "../lib/metadata/kunde.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The customer (Kunde) page of projectforge-next — list and form, both rendered from CUSTOMER_PAGE.
@@ -26,8 +27,8 @@ test.describe("customer page", { tag: "@lane-customer" }, () => {
     // The list filter is stored per user and per entity: a term or status left behind by another run
     // would decide whether the seeded customer is in the list at all.
     await page.request
-      .get("/rs/customer/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/customer/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

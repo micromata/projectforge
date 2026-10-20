@@ -33,8 +33,8 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
     // The list filter is stored per user and per entity: a term or status left behind by another run
     // would decide whether the seeded project is in the list at all.
     await page.request
-      .get("/rs/project/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/project/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });
@@ -406,9 +406,9 @@ async function massUpdateKost2Arts(
   } finally {
     // The selection stays in the session otherwise, and the list would restore it on its next visit:
     // selection mode, and the late `select` re-laying out the table under a pointer hovering a cell.
-    await request.get("/rs/projectSelected/cancel", {
-      headers: { "X-PF-Frontend": "next" },
-    });
+    await request.post("/rs/projectSelected/cancel", {
+        headers: await writeHeaders(request),
+      });
   }
 }
 

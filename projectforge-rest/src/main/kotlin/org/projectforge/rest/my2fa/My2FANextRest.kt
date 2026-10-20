@@ -98,13 +98,13 @@ open class My2FANextRest {
     }
 
     @AccessChecked("Own user only (2FA of the logged-in user)")
-    @GetMapping("sendSmsCode")
+    @PostMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): NextTwoFactorResult {
         return twoFactorSupport.sendSmsCode(request)
     }
 
     @AccessChecked("Own user only (2FA of the logged-in user)")
-    @GetMapping("sendMailCode")
+    @PostMapping("sendMailCode")
     fun sendMailCode(request: HttpServletRequest): NextTwoFactorResult {
         return twoFactorSupport.sendMailCode(request)
     }

@@ -4,6 +4,7 @@ import { userFormat, type UserFormat } from "./fixtures/format";
 import { listRows } from "./fixtures/list-table";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
 import { MULTI_SELECTION_PARAM } from "../lib/rs/multi-select";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The selection mode of the invoice list against the live backend: what it makes appear, whether the
@@ -22,15 +23,15 @@ test.describe("invoice selection mode", { tag: "@lane-invoice" }, () => {
     // A criterion another run left behind would decide which rows the first page shows, and two cases
     // below compare the list before and after a filter change.
     await page.request
-      .get(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
-        headers: { "X-PF-Frontend": "next" },
+      .post(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
     // And a selection another run left behind would restore itself into this one, mode and all (see
     // the selection store's `restore` and `listMeta.selectedIds`).
     await page.request
-      .get(`/rs/${MASS_UPDATE.endpoint}/cancel`, {
-        headers: { "X-PF-Frontend": "next" },
+      .post(`/rs/${MASS_UPDATE.endpoint}/cancel`, {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

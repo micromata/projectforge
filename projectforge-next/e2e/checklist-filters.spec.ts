@@ -18,6 +18,7 @@ import type {
   MagicFilterEntry,
 } from "../lib/rs/types";
 import type { Page, Response } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 type Translate = UserFormat["t"];
 
@@ -148,7 +149,9 @@ for (const list of LISTS) {
     test.beforeEach(async ({ loggedInPage: page }) => {
       // The filter is stored per user: start from the default, so no picked criterion narrows the check.
       await page.request
-        .get(`/rs/${list.entity}/filter/reset`, { headers: HEADERS })
+        .post(`/rs/${list.entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
+      })
         .catch(() => undefined);
     });
 
@@ -156,7 +159,9 @@ for (const list of LISTS) {
       // And leave it at the default: the ticked criterion would otherwise narrow every later spec of
       // this lane, which looks for its own freshly seeded row (without customer or project).
       await page.request
-        .get(`/rs/${list.entity}/filter/reset`, { headers: HEADERS })
+        .post(`/rs/${list.entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
+      })
         .catch(() => undefined);
     });
 

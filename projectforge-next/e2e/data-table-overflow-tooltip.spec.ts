@@ -1,6 +1,7 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { waitForRow, waitForRows } from "./fixtures/list-table";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The overflow tooltip of the data table against the live backend.
@@ -18,7 +19,9 @@ test.describe("data table overflow tooltip", { tag: "@lane-order" }, () => {
     // The filter is stored per user, and a criterion left behind by another spec of this lane would
     // hide the seeded order the search is meant to find.
     await page.request
-      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

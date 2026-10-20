@@ -32,8 +32,8 @@ test.describe("todo", { tag: "@parallel" }, () => {
       "the todo plugin isn't activated in this instance"
     );
     await page.request
-      .get("/rs/todo/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/todo/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });
@@ -166,7 +166,7 @@ test.describe("todo", { tag: "@parallel" }, () => {
       for (const template of templates.filter((f) =>
         f.name.startsWith(MARKER)
       )) {
-        await request.get(`/rs/todo/templates/delete?id=${template.id}`, {
+        await request.post(`/rs/todo/templates/delete?id=${template.id}`, {
           headers: await writeHeaders(request),
         });
       }

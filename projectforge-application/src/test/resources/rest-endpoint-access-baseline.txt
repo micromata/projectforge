@@ -133,7 +133,6 @@ org.projectforge.rest.poll.PollPageRest#deleteQuestion
 org.projectforge.rest.poll.PollPageRest#export
 org.projectforge.rest.poll.PollResponsePageRest#addResponse
 org.projectforge.rest.poll.PollResponsePageRest#getForm
-org.projectforge.rest.poll.PollResponsePageRest#showDelegatedUser
 org.projectforge.rest.poll.PollResponsePageRest#watchFields
 org.projectforge.rest.pub.AuthenticationPublicServicesRest#getAuthenticationCredentials
 org.projectforge.rest.pub.CalendarSubscriptionServiceRest#exportCalendar

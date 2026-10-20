@@ -71,9 +71,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var userService: UserService
 
-    private var pollId: Long? = null
-    private var questionOwnerId: Long? = null
-
     @GetMapping("dynamic")
     fun getForm(
         request: HttpServletRequest,
@@ -81,13 +78,13 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") delUser: String?,
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
-        if (pollId == null || pollStringId != null) {
-            pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
-        }
+        // Request scoped, never fields: this controller is a singleton shared by all users.
+        val pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
         val pollData = pollDao.find(pollId, checkAccess = false) ?: PollDO()
 
         val answerTitle: String
+        val questionOwnerId: Long?
         if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toLong())) {
             questionOwnerId = delUser.toLong()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
@@ -246,50 +243,41 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
+    /**
+     * Saves the answers of the logged-in user, or of an attendee on whose behalf a user with full access to the
+     * poll answers (the same rule as [getForm]). The poll and the stored response are taken from the database, not
+     * from the posted data: a posted id would otherwise overwrite the response of anybody.
+     */
     @PostMapping("addResponse/")
     fun addResponse(
         @RequestBody postData: PostData<PollResponse>,
         @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction> {
-        val pollResponseDO = PollResponseDO()
-
-        // most ugly workaround in existence - for now - TODO mnuhn
-        val poll = pollDao.find(pollId, checkAccess = false)
-        val inputFields = ObjectMapper().readValue(poll!!.inputFields, MutableList::class.java)
-        postData.data.responses?.forEachIndexed { index, response ->
-            val question = inputFields[index] as Map<*, *>
-            if (question["type"] == "PollSingleResponseQuestion") {
-                val originalAnswers = question["answers"] as List<*>
-                val boolList = MutableList(originalAnswers.size) { false }
-                response.answers?.forEachIndexed { idx, ans ->
-                    if (ans == true && idx in originalAnswers.indices) {
-                        boolList[idx] = true
-                    }
-                }
+        val loggedInUser = ThreadLocalUserContext.loggedInUser!!
+        val poll = postData.data.poll?.id?.let { pollDao.find(it, checkAccess = false) }
+            ?: throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
+        val ownerId = questionOwner ?: loggedInUser.id!!
+        if (ownerId == loggedInUser.id) {
+            if (poll.getPollAssignment().contains(PollAssignment.OTHER)) {
+                throw AccessException("access.exception.noAccess", "Du darfst nicht auf diese Umfrage antworten.")
             }
-            else if (question["type"] == "PollMultiResponseQuestion") {
-                val originalAnswers = question["answers"] as List<*>
-                val boolList = MutableList(originalAnswers.size) { false }
-                response.answers?.forEachIndexed { idx, ans ->
-                    if (ans == true && idx in originalAnswers.indices) {
-                        boolList[idx] = true
-                    }
-                }
-            }
+        } else if (!pollDao.hasFullAccess(poll) || !pollDao.isAttendee(poll, ownerId)) {
+            throw AccessException("access.exception.noAccess", "Du darfst nicht für diesen Teilnehmer antworten.")
         }
 
+        val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
-        pollResponseDO.owner = userService.getUser(questionOwner)
-
-        val existingResponse = pollResponseDao.selectAll(checkAccess = false)
+        pollResponseDO.poll = poll
+        pollResponseDO.owner = userService.getUser(ownerId)
+        pollResponseDO.id = pollResponseDao.selectAll(checkAccess = false)
             .firstOrNull { response ->
-                response.owner?.id == questionOwner && response.poll?.id == postData.data.poll?.id
-            }
+                response.owner?.id == ownerId && response.poll?.id == poll.id
+            }?.id
 
         pollResponseDao.insertOrUpdate(pollResponseDO)
 
-        if (ThreadLocalUserContext.loggedInUser != pollResponseDO.owner) {
-            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.loggedInUser!!)
+        if (loggedInUser.id != ownerId) {
+            sendMailResponseToOwner(pollResponseDO, loggedInUser)
         }
 
         return ResponseEntity.ok(
@@ -316,42 +304,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         )
     }
 
-    @GetMapping("showDelegatedUser")
-    fun showDelegatedUser(): ResponseEntity<ResponseAction>? {
-        val poll = pollDao.find(pollId, checkAccess = false)
-        val attendees = listOfNotNull(
-            poll!!.attendeeIds,
-            poll.fullAccessUserIds,
-            poll.owner?.id
-        )
-        val joinedAttendeeIds = attendees.joinToString(", ")
-        if (questionOwnerId == ThreadLocalUserContext.loggedInUserId) {
-            return ResponseEntity.ok(
-                ResponseAction()
-            )
-        }
-        if (joinedAttendeeIds.split(", ").any { it.toLong() == questionOwnerId }) {
-            return ResponseEntity.ok(
-                ResponseAction(
-                    url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
-                    targetType = TargetType.REDIRECT
-                )
-            )
-        } else {
-            return ResponseEntity.badRequest().body(
-                ResponseAction(
-                    url = "/react/poll",
-                    targetType = TargetType.REDIRECT,
-                    message = ResponseAction.Message("poll.exception.noAttendee")
-                )
-            )
-        }
-    }
-
-
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(@Valid @RequestBody postData: PostData<Poll>): ResponseEntity<ResponseAction> {
-        questionOwnerId = postData.data.delegationUser?.id
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE))
     }
 

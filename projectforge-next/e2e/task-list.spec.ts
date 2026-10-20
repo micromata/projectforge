@@ -40,7 +40,9 @@ test.describe("task list", { tag: "@lane-task" }, () => {
     variables = await listVariables(page.request);
     // A criterion another run left in the account's stored filter would empty the list under test.
     await page.request
-      .get("/rs/task/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/task/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

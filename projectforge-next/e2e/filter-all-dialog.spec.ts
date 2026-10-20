@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import type { FilterElement } from "../lib/rs/types";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The grouped "all filters" dialog of the next lists, against the live backend.
@@ -23,9 +24,9 @@ test.describe("all-filters dialog", { tag: "@isolated" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     for (const entity of ["order", "book"]) {
       await page.request
-        .get(`/rs/${entity}/filter/reset`, {
-          headers: { "X-PF-Frontend": "next" },
-        })
+        .post(`/rs/${entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
+      })
         .catch(() => undefined);
     }
   });

@@ -28,7 +28,9 @@ test.describe("group page", { tag: "@parallel" }, () => {
     // The filter is stored per user and per entity: a status left behind by another run (or by the
     // case below) would decide whether the seeded group is in the list at all.
     await page.request
-      .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/group/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -233,7 +235,9 @@ test.describe("group page", { tag: "@parallel" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/group/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 });

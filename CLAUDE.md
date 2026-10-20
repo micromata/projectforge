@@ -64,6 +64,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   planned release, rename its scripts to the next release before merging. Check open feature branches for
   versions already taken in the same release.
 
+## Security
+Rules from security reviews; each one was broken somewhere before.
+- **Access is checked on the server, per endpoint.** Hiding a page, menu entry or button in the client protects
+  nothing: every `/rs` endpoint checks it itself (`@AccessChecked`; the baseline of `RestEndpointAccessCheckTest`
+  may only shrink). This includes endpoints that only read a preset or metadata (`newEntry`, `listMeta`).
+- **`BaseDao.hasLoggedInUser*Access()` answers, it doesn't throw.** Discarding its result checks nothing: throw
+  yourself (`AbstractEntityRest.checkLoggedInUserInsertAccess()`), or use the variants with `throwException`.
+- **A DAO without a `userRightId` allows everybody by default** (e.g. `BaseDao.hasInsertAccess(user)`). Such a DAO
+  overrides `hasAccess` *and* `hasInsertAccess`; `hasAccess` never simply returns `true`.
+- **Ownership comes from the database and the logged-in user, never from the request.** Take the owner, the parent
+  (poll, task, …) and the id of the stored entry from the database; a posted id or `?owner=` would otherwise let
+  anybody overwrite or act for somebody else. An update must not move an entry to another owner or parent.
+- **Controllers and services are singletons:** no request or user state in fields, it is shared by all users.
+- **State changing means POST/PUT/DELETE, never GET.** The CSRF token (`RestCsrfProtection`) is only checked for
+  state changing methods, and a GET can be triggered by any link or `<img>`. Sending a mail or SMS, starting or
+  cancelling a job, writing a user pref or a filter all count. In next: `request(path, { method: "POST" })`; in e2e:
+  `headers: await writeHeaders(request)`.
+- **Text stays text.** React escapes, so no `dangerouslySetInnerHTML` and no `rehypeRaw` without a sanitizer
+  (`RichText` with DOMPurify, `rehype-sanitize`). Html built in the backend escapes every value (`HtmlElement`
+  does); an endpoint answering an html fragment produces `text/plain` or JSON, never `text/html`. Mail templates
+  escape user data (`pf.getString`, `HtmlSanitizer`).
+- **SQL/HQL with bind parameters only.** What can't be bound (a table or column name) is checked against a
+  whitelist or an identifier pattern.
+- **The Content Security Policy has no `'unsafe-eval'` and allows no external hosts**
+  (`projectforge.security.csp-header-value`). A new library that compiles code (`eval`, `new Function`) or loads
+  scripts, fonts or images from elsewhere is refused by the browser: check the browser console for CSP violations
+  after adding a dependency, and widen the policy only on purpose. Security headers are set by
+  `SecurityHeaderFilter` with `setHeader` (not `addHeader`), consistent with the headers config of Spring Security.
+- **A session that gains privileges gets a new id** (login: `LoginService.internalLogin`, second factor:
+  `onSecondFactorSucceeded`).
+- **An access rule comes with a test** that shows both halves: refused for an ordinary user (`TEST_USER`), allowed
+  for the user it is meant for.
+
 ## Code Style Guidelines
 - Use Kotlin JVM target 17 for all code; legacy code is in Java
 - Follow standard Kotlin naming conventions (camelCase for variables/functions, PascalCase for classes)

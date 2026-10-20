@@ -365,7 +365,7 @@ export function cancelMultiSelection(
 ): Promise<MultiSelectNavigation> {
   return request<MultiSelectNavigation>(
     `/rs/${page}/cancel`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

@@ -5,6 +5,7 @@ import {
   EMPTY_TERM_MAX_ENTRIES,
   LOOKUP_PAGE_SIZE,
 } from "../lib/rs/autocomplete-url";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * An entity picker lists a short list the moment it opens, but asks to type for a long one — its first
@@ -22,7 +23,9 @@ import {
 test.describe("entity lookup", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -30,7 +33,9 @@ test.describe("entity lookup", { tag: "@lane-book" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 

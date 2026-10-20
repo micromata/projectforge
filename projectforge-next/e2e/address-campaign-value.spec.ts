@@ -4,6 +4,7 @@ import { isPluginActive } from "./fixtures/plugins";
 import { ADDRESS_CAMPAIGN_VALUE_METADATA } from "../lib/metadata/address-campaign-value.generated";
 import { ADDRESS_CAMPAIGN_VALUE_PAGE } from "../components/features/address-campaign-value/address-campaign-value.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The address campaign values of the marketing plugin against the live backend (see
@@ -19,8 +20,8 @@ test.describe("address campaign values", { tag: "@parallel" }, () => {
       "the marketing plugin is not active on this instance"
     );
     await page.request
-      .get("/rs/addressCampaignValue/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/addressCampaignValue/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

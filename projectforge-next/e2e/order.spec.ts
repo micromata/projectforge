@@ -37,7 +37,9 @@ test.describe("order book", { tag: "@lane-order" }, () => {
     // by another run — or by someone working with the account — would otherwise decide what these tests
     // see. One call resets both: `AbstractEntityRest.resetListFilter` drops the grid state as well.
     await page.request
-      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page),
+      })
       .catch(() => undefined);
   });
 
