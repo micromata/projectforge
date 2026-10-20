@@ -415,6 +415,21 @@ class OrphanedLinkFilterTest {
     }
 
     /**
+     * The old React answer page of a poll (linked by its mails) and its guide are gone; only a numeric poll id is
+     * passed on. The list and form of the polls are redirected by their [NextMigration] entry.
+     */
+    @Test
+    fun `the old react poll answer and guide pages are redirected to next`() {
+        Assertions.assertEquals(
+            "/next/poll/42/answer",
+            redirectOf("/react/pollResponse/dynamic/", mapOf("pollId" to "42")),
+        )
+        Assertions.assertEquals("/next/poll", redirectOf("/react/pollResponse/dynamic", mapOf("pollId" to "4x")))
+        Assertions.assertEquals("/next/poll", redirectOf("/react/pollInfo/dynamic"))
+        Assertions.assertNull(redirectOf("/rs/pollAnswer/42"))
+    }
+
+    /**
      * The Wicket user preference pages are gone without a replacement, so their links land on the next start page.
      */
     @Test

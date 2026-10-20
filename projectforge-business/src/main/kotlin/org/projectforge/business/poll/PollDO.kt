@@ -23,21 +23,27 @@
 
 package org.projectforge.business.poll
 
+import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.projectforge.business.poll.filter.PollAssignment
-import org.projectforge.business.poll.filter.PollState
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.HistoryIdList
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.context.annotation.DependsOn
 import java.time.LocalDate
-import jakarta.persistence.*
 
-
+/**
+ * A poll: questions ([questions], json of [PollQuestion]) answered by its attendees until the [deadline].
+ *
+ * Attendees and the users with full access (who edit the poll and see all answers) are users and groups, stored
+ * as csv lists of ids. Groups are resolved when checked ([PollDao]), so a later member of a group takes part, too.
+ *
+ * A [template] is a poll nobody answers: no invitation, no reminders, it is only cloned or its questions taken into
+ * another poll.
+ */
 @Entity
 @Indexed
 @Table(name = "t_poll")
@@ -45,11 +51,11 @@ import jakarta.persistence.*
 @DependsOn("org.projectforge.framework.persistence.user.entities.PFUserDO")
 open class PollDO : DefaultBaseDO() {
 
-    @PropertyInfo(i18nKey = "poll.title")
+    @get:PropertyInfo(i18nKey = "poll.title", required = true)
     @get:Column(name = "title", nullable = false, length = 1000)
     open var title: String? = null
 
-    @PropertyInfo(i18nKey = "poll.description")
+    @get:PropertyInfo(i18nKey = "poll.description")
     @get:Column(name = "description", length = 10000)
     open var description: String? = null
 
@@ -58,80 +64,60 @@ open class PollDO : DefaultBaseDO() {
     @get:JoinColumn(name = "owner_fk", nullable = false)
     open var owner: PFUserDO? = null
 
-    @PropertyInfo(i18nKey = "poll.location")
-    @get:Column(name = "location")
+    @get:PropertyInfo(i18nKey = "poll.location")
+    @get:Column(name = "location", length = 1000)
     open var location: String? = null
 
-    @PropertyInfo(i18nKey = "poll.deadline")
+    @get:PropertyInfo(i18nKey = "poll.deadline")
     @get:Column(name = "deadline", nullable = false)
     open var deadline: LocalDate? = null
 
-
-    @PropertyInfo(i18nKey = "poll.attendees")
-    @get:Column(name = "attendeeIds", nullable = true)
+    @get:PropertyInfo(i18nKey = "poll.attendees")
+    @get:Column(name = "attendee_user_ids", length = 4000)
     @HistoryIdList(HistoryIdList.Type.USER)
-    open var attendeeIds: String? = null
+    open var attendeeUserIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.attendee_groups")
-    @get:Column(name = "groupAttendeeIds", nullable = true)
+    @get:PropertyInfo(i18nKey = "poll.attendeeGroups")
+    @get:Column(name = "attendee_group_ids", length = 4000)
     @HistoryIdList(HistoryIdList.Type.GROUP)
-    open var groupAttendeeIds: String? = null
+    open var attendeeGroupIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.full_access_groups")
-    @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
-    open var fullAccessGroupIds: String? = null
-
-    @PropertyInfo(i18nKey = "poll.full_access_user")
-    @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
+    @get:PropertyInfo(i18nKey = "poll.fullAccessUsers")
+    @get:Column(name = "full_access_user_ids", length = 4000)
+    @HistoryIdList(HistoryIdList.Type.USER)
     open var fullAccessUserIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.inputFields")
-    @get:Column(name = "inputFields", length = 1000)
-    open var inputFields: String? = null
+    @get:PropertyInfo(i18nKey = "poll.fullAccessGroups")
+    @get:Column(name = "full_access_group_ids", length = 4000)
+    @HistoryIdList(HistoryIdList.Type.GROUP)
+    open var fullAccessGroupIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.state")
-    @get:Column(name = "state", nullable = false)
+    /** The questions, json of a list of [PollQuestion] (see [PollJson]). */
+    @get:PropertyInfo(i18nKey = "poll.questions")
+    @get:Column(name = "questions", length = 100000)
+    open var questions: String? = null
+
+    @get:PropertyInfo(i18nKey = "poll.state")
+    @get:Enumerated(EnumType.STRING)
+    @get:Column(name = "state", length = 20, nullable = false)
     open var state: State = State.RUNNING
 
-    @Transient
-    fun getPollAssignment(): MutableList<PollAssignment> {
-        val currentUserId = ThreadLocalUserContext.loggedInUserId!!
-        val assignmentList = mutableListOf<PollAssignment>()
-        if (currentUserId == this.owner?.id) {
-            assignmentList.add(PollAssignment.OWNER)
-        }
-        val accessUserIds = toLongArray(fullAccessUserIds)
-        if (accessUserIds?.contains(currentUserId) == true) {
-            assignmentList.add(PollAssignment.ACCESS)
-        }
-        val attendeeUserIds = toLongArray(attendeeIds)
-        if (attendeeUserIds?.contains(currentUserId) == true) {
-            assignmentList.add(PollAssignment.ATTENDEE)
-        }
-        if (assignmentList.isEmpty())
-            assignmentList.add(PollAssignment.OTHER)
+    @get:PropertyInfo(i18nKey = "poll.template", tooltip = "poll.template.info")
+    @get:Column(name = "template", nullable = false)
+    open var template: Boolean = false
 
-        return assignmentList
-    }
+    /** Answers are taken until the poll is finished: by hand, or the day after its deadline (see PollCronJobs). */
+    enum class State(val key: String) : I18nEnum {
+        RUNNING("running"), FINISHED("finished");
 
-    @Transient
-    fun getPollStatus(): PollState {
-        return if (this.state == State.FINISHED) {
-            PollState.FINISHED
-        } else if (this.state == State.RUNNING) {
-            PollState.RUNNING
-        } else {
-            PollState.FINISHED_AND_MAIL_SENT
-        }
-    }
-
-    enum class State {
-        RUNNING, FINISHED, FINISHED_AND_MAIL_SENT
+        override val i18nKey: String
+            get() = "poll.state.$key"
     }
 
     companion object {
-        fun toLongArray(str: String?): LongArray? {
-            if (str.isNullOrBlank()) return null
+        /** The ids of a csv list of ids (`attendeeUserIds`, `fullAccessGroupIds`, ...). */
+        fun toLongArray(str: String?): LongArray {
+            if (str.isNullOrBlank()) return LongArray(0)
             return StringHelper.splitToLongs(str, ",", false)
         }
     }

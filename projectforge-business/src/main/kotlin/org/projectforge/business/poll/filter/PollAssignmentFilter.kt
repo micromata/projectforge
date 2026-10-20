@@ -23,37 +23,15 @@
 
 package org.projectforge.business.poll.filter
 
-import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
-import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilter<PollDO> {
-
+/** The polls the logged-in user is one of [values] to (owner, full access, attendee). */
+class PollAssignmentFilter(val values: List<PollAssignment>, private val pollDao: PollDao) : CustomResultFilter<PollDO> {
     override fun match(list: MutableList<PollDO>, element: PollDO): Boolean {
-        var foundUser: PFUserDO? = null
-        if (!element.fullAccessGroupIds.isNullOrEmpty()) {
-            val groupIds = element.fullAccessGroupIds!!.split(", ").map { it.toLong() }.toLongArray()
-            val accessUsers = groupService.getGroupUsers(groupIds)
-            val localUser = ThreadLocalUserContext.loggedInUserId!!
-            foundUser = accessUsers.firstOrNull { user -> user.id == localUser }
-        }
-
-        values.forEach { filter ->
-            if (element.getPollAssignment()
-                    .contains(filter) || (filter == PollAssignment.ACCESS && foundUser != null)
-            ) {
-                return true
-            }
-        }
-        return false
-    }
-
-    companion object {
-        private val groupService: GroupService by lazy {
-            ApplicationContextProvider.getApplicationContext().getBean(GroupService::class.java)
-        }
+        val assignments = pollDao.getAssignments(element, ThreadLocalUserContext.loggedInUserId)
+        return values.any { assignments.contains(it) }
     }
 }

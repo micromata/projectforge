@@ -74,7 +74,7 @@ object CoreFeatures {
         MenuItemDefId.OUTGOING_INVOICE_LIST to Extras(rest = listOf("invoice")),
         MenuItemDefId.PHONE_CALL to Extras(rest = listOf("sipgate")),
         MenuItemDefId.PLUGIN_ADMIN to Extras(rest = listOf("pluginList")),
-        MenuItemDefId.POLL to Extras(rest = listOf("pollInfo", "pollResponse")),
+        MenuItemDefId.POLL to Extras(rest = listOf("pollAnswer")),
         MenuItemDefId.PROJECT_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
         MenuItemDefId.SCRIPT_LIST to Extras(rest = listOf("scriptExecute")),
         MenuItemDefId.SYSTEM to Extras(

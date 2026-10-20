@@ -1,0 +1,90 @@
+[
+  {
+    "key": "teamEvent",
+    "title": { "en": "Team event: participation and food", "de": "Teamevent: Teilnahme und Essen" },
+    "questions": [
+      {
+        "type": "SINGLE_CHOICE",
+        "text": { "en": "Will you take part?", "de": "Bist du dabei?" },
+        "options": [
+          { "en": "Yes", "de": "Ja" },
+          { "en": "No", "de": "Nein" },
+          { "en": "Not sure yet", "de": "Weiß ich noch nicht" }
+        ]
+      },
+      {
+        "type": "SINGLE_CHOICE",
+        "text": { "en": "Will you bring a companion?", "de": "Bringst du eine Begleitung mit?" },
+        "options": [
+          { "en": "Yes", "de": "Ja" },
+          { "en": "No", "de": "Nein" }
+        ]
+      },
+      {
+        "type": "SINGLE_CHOICE",
+        "text": { "en": "What would you like to eat?", "de": "Was möchtest du essen?" },
+        "options": [
+          { "en": "Meat", "de": "Fleisch" },
+          { "en": "Fish", "de": "Fisch" },
+          { "en": "Vegetarian", "de": "Vegetarisch" },
+          { "en": "Vegan", "de": "Vegan" }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "text": { "en": "Allergies or intolerances", "de": "Allergien oder Unverträglichkeiten" }
+      }
+    ]
+  },
+  {
+    "key": "findDate",
+    "title": { "en": "Find a date", "de": "Terminfindung" },
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": { "en": "Which dates suit you?", "de": "Welche Termine passen dir?" },
+        "options": [
+          { "en": "Date 1", "de": "Termin 1" },
+          { "en": "Date 2", "de": "Termin 2" },
+          { "en": "Date 3", "de": "Termin 3" }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "text": { "en": "Remarks", "de": "Anmerkungen" }
+      }
+    ]
+  },
+  {
+    "key": "eventFeedback",
+    "title": { "en": "Feedback on an event", "de": "Feedback zu einer Veranstaltung" },
+    "questions": [
+      {
+        "type": "SINGLE_CHOICE",
+        "text": { "en": "How did you like the event?", "de": "Wie hat dir die Veranstaltung gefallen?" },
+        "options": [
+          { "en": "Very good", "de": "Sehr gut" },
+          { "en": "Good", "de": "Gut" },
+          { "en": "Fair", "de": "Geht so" },
+          { "en": "Poor", "de": "Schlecht" }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "text": { "en": "What did you like best?", "de": "Was hat dir am besten gefallen?" }
+      },
+      {
+        "type": "TEXT",
+        "text": { "en": "What should be improved?", "de": "Was sollte besser werden?" }
+      },
+      {
+        "type": "SINGLE_CHOICE",
+        "text": { "en": "Would you take part again?", "de": "Würdest du wieder teilnehmen?" },
+        "options": [
+          { "en": "Yes", "de": "Ja" },
+          { "en": "No", "de": "Nein" }
+        ]
+      }
+    ]
+  }
+]

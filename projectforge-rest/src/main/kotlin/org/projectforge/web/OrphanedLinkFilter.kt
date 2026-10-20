@@ -115,6 +115,15 @@ class OrphanedLinkFilter : Filter {
             val userId = servletRequest.getParameter("userId")?.toLongOrNull()
             val query = if (userId != null) "?userId=$userId" else ""
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$page$query")
+        } else if (uri.endsWith("/react/pollResponse") || uri.contains("/react/pollResponse/")
+            || uri.endsWith("/react/pollInfo") || uri.contains("/react/pollInfo/")
+        ) {
+            // Old dynamic React pages of the polls: the answer page (linked by the mails of a poll) and the guide,
+            // migrated to projectforge-next. The React pages were removed, so there is no "classic version" escape
+            // hatch. The poll id is interpolated into the Location header, so only a number is passed on.
+            val pollId = servletRequest.getParameter("pollId")?.toLongOrNull()
+            val target = if (uri.contains("/react/pollResponse") && pollId != null) "poll/$pollId/answer" else "poll"
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}$target")
         } else if (uri.endsWith("/react/vacationAccount") || uri.contains("/react/vacationAccount/")) {
             // Old dynamic React page of the vacation account, migrated to projectforge-next. The React page was
             // removed, so there is no "classic version" escape hatch. The employee (HR staff, as path segment

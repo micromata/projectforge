@@ -23,22 +23,27 @@
 
 package org.projectforge.business.poll
 
-import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.filter.PollAssignment
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+/**
+ * Access to polls. There is no user right: everybody may create a poll, and a poll is seen by its attendees and the
+ * users with full access only (see [hasFullAccess], [isAttendee]). Groups are resolved on every check.
+ */
 @Service
 open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
-    @Autowired
-    private lateinit var groupService: GroupService
-
     override fun newInstance(): PollDO {
         return PollDO()
+    }
+
+    /** Every user may create a poll (as its owner, see [hasAccess]). */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return true
     }
 
     override fun hasAccess(
@@ -48,45 +53,106 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-
-        if (obj == null && operationType == OperationType.SELECT) {
-            return true
-        };
-        if (obj != null && operationType == OperationType.SELECT) {
-            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.loggedInUser?.id!!))
-                return true
-        }
-        if (obj != null) {
-            return hasFullAccess(obj)
-        }
-        return false
-    }
-
-    // returns true if current user has full access, otherwise returns false
-    fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUserId = ThreadLocalUserContext.loggedInUserId!!
-        if (!obj.fullAccessUserIds.isNullOrBlank()) {
-            val userIdArray = PollDO.toLongArray(obj.fullAccessUserIds)
-            if (userIdArray?.contains(loggedInUserId) == true) {
-                return true
+        val userId = user.id
+        val result = when {
+            userId == null -> false
+            // Lists: every entry is checked on its own.
+            obj == null -> operationType == OperationType.SELECT || operationType == OperationType.INSERT
+            operationType == OperationType.SELECT -> hasFullAccess(obj, userId) || (!obj.template && isAttendee(obj, userId))
+            // A new poll belongs to the user creating it (an id is an undelete, decided by the stored poll).
+            operationType == OperationType.INSERT && obj.id == null -> obj.owner?.id == userId
+            // Decided by the stored poll, never by the posted one: otherwise anybody could add themselves to the
+            // users with full access. A finished poll isn't changed anymore (but deleted).
+            else -> {
+                val dbObj = oldObj ?: obj.id?.let { find(it, checkAccess = false) }
+                dbObj != null && hasFullAccess(dbObj, userId)
+                        && (operationType != OperationType.UPDATE || dbObj.state == PollDO.State.RUNNING)
             }
         }
-        if (obj.owner?.id == loggedInUserId) {
-            return true
+        if (!result && throwException) {
+            throw AccessException(AccessException.I18N_KEY_STANDARD, "PollDO", operationType)
         }
-        if (!obj.fullAccessGroupIds.isNullOrBlank()) {
-            val groupIdArray = PollDO.toLongArray(obj.fullAccessGroupIds)
-            val groupUsers = groupService.getGroupUsers(groupIdArray)
-            groupUsers.map { it.id }.forEach { id ->
-                if (id == loggedInUserId) {
-                    return true
-                }
-            }
-        }
-        return false
+        return result
     }
 
-    fun isAttendee(obj: PollDO, user: Long): Boolean {
-        return PollDO.toLongArray(obj.attendeeIds)?.contains(user) == true
+    /** The owner, the users with full access and the members of the groups with full access. */
+    fun hasFullAccess(poll: PollDO, userId: Long?): Boolean {
+        userId ?: return false
+        return poll.owner?.id == userId
+                || PollDO.toLongArray(poll.fullAccessUserIds).contains(userId)
+                || isMemberOfAnyGroup(userId, poll.fullAccessGroupIds)
+    }
+
+    /** The attendees and the members of the attending groups. A template has no attendees. */
+    fun isAttendee(poll: PollDO, userId: Long?): Boolean {
+        userId ?: return false
+        if (poll.template) {
+            return false
+        }
+        return PollDO.toLongArray(poll.attendeeUserIds).contains(userId)
+                || isMemberOfAnyGroup(userId, poll.attendeeGroupIds)
+    }
+
+    /** What the given user is to the poll; empty if nothing (no access at all). */
+    fun getAssignments(poll: PollDO, userId: Long?): Set<PollAssignment> {
+        val result = mutableSetOf<PollAssignment>()
+        if (userId == null) {
+            return result
+        }
+        if (poll.owner?.id == userId) {
+            result.add(PollAssignment.OWNER)
+        }
+        if (hasFullAccess(poll, userId)) {
+            result.add(PollAssignment.ACCESS)
+        }
+        if (isAttendee(poll, userId)) {
+            result.add(PollAssignment.ATTENDEE)
+        }
+        return result
+    }
+
+    /**
+     * The ids of all attendees: the attending users and the members of the attending groups (deleted and deactivated
+     * users excluded).
+     */
+    fun getAttendeeIds(poll: PollDO): Set<Long> {
+        if (poll.template) {
+            return emptySet()
+        }
+        return resolveUserIds(poll.attendeeUserIds, poll.attendeeGroupIds)
+    }
+
+    /** The ids of all users with full access, the owner included (deleted and deactivated users excluded). */
+    fun getFullAccessUserIds(poll: PollDO): Set<Long> {
+        val result = resolveUserIds(poll.fullAccessUserIds, poll.fullAccessGroupIds).toMutableSet()
+        poll.owner?.id?.let { ownerId ->
+            if (isActiveUser(ownerId)) result.add(ownerId)
+        }
+        return result
+    }
+
+    private fun resolveUserIds(userIds: String?, groupIds: String?): Set<Long> {
+        val result = mutableSetOf<Long>()
+        PollDO.toLongArray(userIds).forEach { result.add(it) }
+        PollDO.toLongArray(groupIds).forEach { groupId ->
+            val group = userGroupCache.getGroup(groupId)
+            if (group != null && !group.deleted) {
+                group.assignedUsers?.forEach { user -> user.id?.let { result.add(it) } }
+            }
+        }
+        return result.filter { isActiveUser(it) }.toSet()
+    }
+
+    private fun isActiveUser(userId: Long): Boolean {
+        val user = userGroupCache.getUser(userId) ?: return false
+        return !user.deleted && !user.deactivated
+    }
+
+    private fun isMemberOfAnyGroup(userId: Long, groupIds: String?): Boolean {
+        val ids = PollDO.toLongArray(groupIds)
+        if (ids.isEmpty()) {
+            return false
+        }
+        return userGroupCache.isUserMemberOfAtLeastOneGroup(userId, *ids.toTypedArray())
     }
 }

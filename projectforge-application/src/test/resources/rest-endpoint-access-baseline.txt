@@ -119,17 +119,6 @@ org.projectforge.rest.orga.VisitorbookEntryPageRest#delete
 org.projectforge.rest.orga.VisitorbookEntryPageRest#getForm
 org.projectforge.rest.orga.VisitorbookEntryPageRest#insert
 org.projectforge.rest.orga.VisitorbookEntryPageRest#update
-org.projectforge.rest.poll.PollInfoPageRest#getForm
-org.projectforge.rest.poll.PollPageRest#addAnswerForMultipleChoice
-org.projectforge.rest.poll.PollPageRest#addPremadeQuestionsField
-org.projectforge.rest.poll.PollPageRest#addQuestionField
-org.projectforge.rest.poll.PollPageRest#changeStateToFinish
-org.projectforge.rest.poll.PollPageRest#deleteAnswerOfSingleAndMultipleResponseQuestion
-org.projectforge.rest.poll.PollPageRest#deleteQuestion
-org.projectforge.rest.poll.PollPageRest#export
-org.projectforge.rest.poll.PollResponsePageRest#addResponse
-org.projectforge.rest.poll.PollResponsePageRest#getForm
-org.projectforge.rest.poll.PollResponsePageRest#watchFields
 org.projectforge.rest.pub.AuthenticationPublicServicesRest#getAuthenticationCredentials
 org.projectforge.rest.pub.CalendarSubscriptionServiceRest#exportCalendar
 org.projectforge.rest.pub.LogoServiceRest#getGifLogo

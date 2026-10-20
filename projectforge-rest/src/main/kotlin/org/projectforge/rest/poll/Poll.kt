@@ -23,61 +23,69 @@
 
 package org.projectforge.rest.poll
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import org.projectforge.business.common.BaseUserGroupRightService
 import org.projectforge.business.poll.PollDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.business.poll.PollJson
+import org.projectforge.business.poll.PollQuestion
 import org.projectforge.rest.dto.BaseDTO
+import org.projectforge.rest.dto.EntityAccessSupport
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
-import org.projectforge.rest.poll.types.Question
 import java.time.LocalDate
 
+/**
+ * A poll as the next pages see it (list and edit, see PollEntityRest). The users and groups are stored as csv lists
+ * of ids, the questions as json ([PollDO.questions]).
+ */
 class Poll(
     var title: String? = null,
     var description: String? = null,
-    var owner: PFUserDO? = null,
+    var owner: User? = null,
     var location: String? = null,
     var deadline: LocalDate? = null,
-    var state: PollDO.State? = PollDO.State.RUNNING,
-    var questionType: String? = null,
-    var customemailsubject: String? = null,
-    var customemailcontent: String? = null,
-    var prequestionType: String? = null,
-    var inputFields: MutableList<Question>? = mutableListOf(),
-    var fullAccessGroups: List<Group>? = null,
+    var state: PollDO.State = PollDO.State.RUNNING,
+    var template: Boolean = false,
+    var questions: MutableList<PollQuestion> = mutableListOf(),
+    var attendeeUsers: List<User>? = null,
+    var attendeeGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
-    var groupAttendees: List<Group>? = null,
-    var attendees: List<User>? = null,
-    var delegationUser: User? = null
-) : BaseDTO<PollDO>() {
+    var fullAccessGroups: List<Group>? = null,
+    /** Subject of the invitation mail, only used when the poll is created (not stored). */
+    var invitationSubject: String? = null,
+    /** Text of the invitation mail, only used when the poll is created (not stored). */
+    var invitationText: String? = null,
+    /** Whether the logged-in user has full access (edits the poll and sees all answers); set for list and edit. */
+    var fullAccess: Boolean? = null,
+    /** Whether the logged-in user takes part in the poll; set for list and edit. */
+    var attendee: Boolean? = null,
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<PollDO>(), EntityAccessSupport {
+
     override fun copyFrom(src: PollDO) {
         super.copyFrom(src)
-        fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
+        questions = PollJson.questions(src.questions)
+        attendeeUsers = User.toUserList(src.attendeeUserIds)
+        attendeeGroups = Group.toGroupList(src.attendeeGroupIds)
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
-        groupAttendees = Group.toGroupList(src.groupAttendeeIds)
-        attendees = User.toUserList(src.attendeeIds)
-        if (src.inputFields != null) {
-            val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
-            inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
-        }
+        fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
     }
 
     override fun copyTo(dest: PollDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toLongList(fullAccessUsers)
-        dest.groupAttendeeIds = Group.toLongList(groupAttendees)
-        dest.attendeeIds = User.toLongList(attendees)
-        if (inputFields != null) {
-            dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
-        }
+        dest.questions = PollJson.toJson(questions)
+        dest.attendeeUserIds = BaseUserGroupRightService.asSortedIdStrings(attendeeUsers)
+        dest.attendeeGroupIds = BaseUserGroupRightService.asSortedIdStrings(attendeeGroups)
+        dest.fullAccessUserIds = BaseUserGroupRightService.asSortedIdStrings(fullAccessUsers)
+        dest.fullAccessGroupIds = BaseUserGroupRightService.asSortedIdStrings(fullAccessGroups)
     }
 
-    fun isAlreadyCreated(): Boolean {
-        return id != null
-    }
-
-    fun isFinished(): Boolean {
-        return state == PollDO.State.FINISHED
+    /** Display names of all users and groups, for the list and the multi selects of the form. */
+    fun restoreDisplayNames() {
+        User.restoreDisplayNames(attendeeUsers)
+        User.restoreDisplayNames(fullAccessUsers)
+        Group.restoreDisplayNames(attendeeGroups)
+        Group.restoreDisplayNames(fullAccessGroups)
+        owner?.let { User.restoreDisplayNames(listOf(it)) }
     }
 }
