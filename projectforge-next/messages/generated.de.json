@@ -1562,15 +1562,28 @@
     },
     "currencyConversion": {
       "conversionRate": "Umrechnungskurs",
-      "inverseConversionRate": "Inverser Umrechnungskurs"
+      "currentInverseRate": "Aktueller inverser Umrechnungskurs",
+      "currentRate": "Aktueller Umrechnungskurs",
+      "inverseConversionRate": "Inverser Umrechnungskurs",
+      "rates": "Umrechnungskurse"
     },
     "currencyPair": {
       "_": "Währungspaar",
       "currencyCode": {
         "tooltip": "ISO-Währungscode (3 Buchstaben) wird empfohlen, z.B. USD, EUR, GBP.\n\nDiese Codes werden auch beim Import oder Anlage von Währungen im System genutzt."
       },
+      "insert": {
+        "hint": "Bitte erstelle zunächst das Währungspaar. Umrechnungskurse können nach der Erstellung hinzugefügt werden."
+      },
+      "onlineRates": {
+        "info": "**Automatische Wechselkurse**: ProjectForge kann aktuelle Wechselkurse automatisch aus Online-Quellen abrufen. Beim Hinzufügen von Umrechnungsraten versucht das System, die aktuellsten Kurse für das angegebene Datum abzurufen, was die Pflege aktueller Währungspaare sehr einfach macht."
+      },
       "sourceCurrency": "Quellwährung",
-      "targetCurrency": "Zielwährung"
+      "targetCurrency": "Zielwährung",
+      "title": {
+        "add": "Währungspaar anlegen",
+        "list": "Liste der Währungspaare"
+      }
     },
     "customerGroups": {
       "add": "Kundengruppe hinzufügen",

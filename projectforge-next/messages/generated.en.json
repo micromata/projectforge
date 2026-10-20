@@ -1562,15 +1562,28 @@
     },
     "currencyConversion": {
       "conversionRate": "Conversion rate",
-      "inverseConversionRate": "Inverse conversion rate"
+      "currentInverseRate": "Current inverse exchange rate",
+      "currentRate": "Current exchange rate",
+      "inverseConversionRate": "Inverse conversion rate",
+      "rates": "Conversion rates"
     },
     "currencyPair": {
       "_": "Currency pair",
       "currencyCode": {
         "tooltip": "ISO currency code (3 letters) is recommended, e.g. USD, EUR, GBP.\n\nThese codes are also used when importing or creating currencies in the system."
       },
+      "insert": {
+        "hint": "Please create the currency pair first. Conversion rates can be added after creation."
+      },
+      "onlineRates": {
+        "info": "**Automatic exchange rates**: ProjectForge can automatically fetch current exchange rates from online sources. When you add conversion rates, the system will attempt to retrieve the latest rates for the specified date, making it very easy to maintain up-to-date currency pairs."
+      },
       "sourceCurrency": "Source currency",
-      "targetCurrency": "Target currency"
+      "targetCurrency": "Target currency",
+      "title": {
+        "add": "Add currency pair",
+        "list": "List of currency pairs"
+      }
     },
     "customerGroups": {
       "add": "Add customer group",
