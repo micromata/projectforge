@@ -131,7 +131,8 @@ class CalendarServicesRest {
      * Force to poll (refresh) external calendars (if currently displayed). If no external calendar is displayed, nothing
      * is done.
      */
-    @GetMapping("refresh")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("refresh", method = [RequestMethod.POST, RequestMethod.GET])
     fun refresh(): ResponseEntity<Any> {
         val filter = calendarFilterServicesRest.getCurrentFilter()
         val visibleCalendarIds = mutableListOf<Long>()

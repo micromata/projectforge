@@ -57,8 +57,7 @@ export async function fetchJobs(signal?: AbortSignal): Promise<JobInfo[]> {
 }
 
 /**
- * Asks the backend to cancel a job. GET despite changing state — the endpoint is shared with the
- * legacy frontend. Answers with the updated job list.
+ * Asks the backend to cancel a job. Answers with the updated job list.
  */
 export async function cancelJob(
   jobId: number,
@@ -66,7 +65,7 @@ export async function cancelJob(
 ): Promise<JobInfo[]> {
   const action = await request<ResponseAction>(
     `/rs/jobsMonitor/cancel?jobId=${jobId}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return readJobs(action);

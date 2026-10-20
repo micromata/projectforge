@@ -5,6 +5,7 @@ import { BOOK_METADATA } from "../lib/metadata/book.generated";
 import { BOOK_PAGE } from "../components/features/book/book.page";
 import type { SeededBook } from "./fixtures/seed";
 import type { ResultSet } from "../lib/rs/types";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The sort order a user set survives leaving the list and coming back.
@@ -35,13 +36,17 @@ test.describe("list sort persistence", { tag: "@lane-book" }, () => {
     // Drops the stored filter *and* the grid state, so the order under test is the one this test sets
     // rather than one a previous run left behind.
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
   test.afterEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

@@ -49,12 +49,13 @@ export function setAlertMessage(
 // backend sends (RestUtils.downloadFile), so it is never guessed here (see ./download.ts).
 export const downloadExport2FAConfiguration = () =>
   downloadFile("/rs/system/export2FAConfiguration");
+// POST: these two change data (a report into the data transfer box, all address images rewritten).
 export const downloadCheckSystemIntegrity = () =>
-  downloadFile("/rs/system/checkSystemIntegrity");
+  downloadFile("/rs/system/checkSystemIntegrity", { method: "POST" });
 export const downloadExportSchema = () =>
   downloadFile("/rs/system/exportSchema");
 export const downloadOptimizeAddressImages = () =>
-  downloadFile("/rs/system/optimizeAddressImages");
+  downloadFile("/rs/system/optimizeAddressImages", { method: "POST" });
 export const downloadCheckI18nProperties = () =>
   downloadFile("/rs/system/checkI18nProperties");
 export const downloadDebugUserGroupCache = () =>

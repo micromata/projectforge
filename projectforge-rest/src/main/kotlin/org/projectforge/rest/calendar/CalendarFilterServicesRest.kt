@@ -283,7 +283,8 @@ class CalendarFilterServicesRest {
     return currentFilter.isModified(favoriteFilter)
   }
 
-  @GetMapping("changeStyle")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeStyle", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeCalendarStyle(
     @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("bgColor") bgColor: String?
@@ -312,7 +313,8 @@ class CalendarFilterServicesRest {
   /**
    * @return The currentFilter with changed set of invisibleCalendars.
    */
-  @GetMapping("setVisibility")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("setVisibility", method = [RequestMethod.POST, RequestMethod.GET])
   fun setVisibility(
     @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("visible", required = true) visible: Boolean
@@ -328,7 +330,8 @@ class CalendarFilterServicesRest {
     )
   }
 
-  @GetMapping("changeDefaultCalendar")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeDefaultCalendar", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeDefaultCalendar(@RequestParam("id", required = true) id: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.defaultCalendarId = NumberHelper.parseLong(id)
@@ -338,7 +341,8 @@ class CalendarFilterServicesRest {
   /**
    * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
    */
-  @GetMapping("changeTimesheetUser")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeTimesheetUser", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeTimesheetUser(@RequestParam("userId") userIdString: String?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     val userId = NumberHelper.parseLong(userIdString)
@@ -357,7 +361,8 @@ class CalendarFilterServicesRest {
   /**
    * @param userIdString Change user for displaying time sheets if allowed. If null, no time sheets will be displayed.
    */
-  @GetMapping("changeShowBreaks")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeShowBreaks", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeShowBreaks(@RequestParam("showBreaks") showBreaks: Boolean?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.showBreaks = showBreaks
@@ -389,7 +394,8 @@ class CalendarFilterServicesRest {
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
-  @GetMapping("changeGridSize")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeGridSize", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeGridSize(@RequestParam("size", required = true) size: Int): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     if (size in intArrayOf(5, 10, 15, 30, 60)) {
@@ -398,7 +404,8 @@ class CalendarFilterServicesRest {
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
-  @GetMapping("changeFirstHour")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("changeFirstHour", method = [RequestMethod.POST, RequestMethod.GET])
   fun changeFirstHour(@RequestParam("hour", required = true) hour: Int): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     if (hour >= 0 && hour < 24) {
@@ -410,7 +417,8 @@ class CalendarFilterServicesRest {
   /**
    * @return The currentFilter with changed name and defaultCalendarId and the new list of filterFavorites (id's with titles).
    */
-  @GetMapping("createNewFilter")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("createNewFilter", method = [RequestMethod.POST, RequestMethod.GET])
   fun createFavoriteFilter(@RequestParam("newFilterName", required = true) newFilterName: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.name = newFilterName
@@ -429,7 +437,8 @@ class CalendarFilterServicesRest {
    * Updates the named Filter with the values of the current filter.
    * @return The current filter with flag modified=false.
    */
-  @GetMapping("updateFilter")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("updateFilter", method = [RequestMethod.POST, RequestMethod.GET])
   fun updateFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     getFilterFavorites().get(id)?.copyFrom(currentFilter)
@@ -439,14 +448,16 @@ class CalendarFilterServicesRest {
   /**
    * @return The new list of filterFavorites (id's with titles) without the deleted filter.
    */
-  @GetMapping("deleteFilter")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("deleteFilter", method = [RequestMethod.POST, RequestMethod.GET])
   fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val favorites = getFilterFavorites()
     favorites.remove(id)
     return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
   }
 
-  @GetMapping("selectFilter")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("selectFilter", method = [RequestMethod.POST, RequestMethod.GET])
   fun selectFilter(@RequestParam("id", required = true) id: Long): CalendarInit {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
@@ -462,7 +473,8 @@ class CalendarFilterServicesRest {
   /**
    * @return new filterFavorites
    */
-  @GetMapping("renameFilter")
+  // State changing: POST. GET only for the legacy React app, drop it together with the app.
+  @RequestMapping("renameFilter", method = [RequestMethod.POST, RequestMethod.GET])
   fun renameFavoriteFilter(
     @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String

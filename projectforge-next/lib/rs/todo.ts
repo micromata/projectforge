@@ -61,7 +61,7 @@ export async function deleteToDoTemplate(
 ): Promise<FavoriteIdTitle[]> {
   const result = await request<TemplatesResult>(
     `${TEMPLATES}/delete?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.templates ?? [];
@@ -74,7 +74,7 @@ export async function renameToDoTemplate(
 ): Promise<FavoriteIdTitle[]> {
   const result = await request<TemplatesResult>(
     `${TEMPLATES}/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.templates ?? [];

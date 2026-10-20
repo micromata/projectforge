@@ -9,7 +9,7 @@ import {
 import { formatDateInput } from "../lib/date-parse";
 import { formatNumberInput } from "../lib/number-parse";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
-import { MARKER, uniqueSuffix } from "./fixtures/seed";
+import { MARKER, uniqueSuffix, writeHeaders } from "./fixtures/seed";
 import {
   createInvoice as seedInvoice,
   fetchInvoice,
@@ -60,9 +60,9 @@ test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
       // A criterion another run left behind decides which rows the list shows, and the row of a planned
       // invoice has to be among them (see invoice-selection.spec.ts, which resets it for the same reason).
       await page.request
-        .get(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
-          headers: { "X-PF-Frontend": "next" },
-        })
+        .post(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
+      })
         .catch(() => undefined);
       await goto(page, "/invoice");
 

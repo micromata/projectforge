@@ -546,7 +546,8 @@ constructor(
      * @return [ListMetaData]. [AbstractPagesRest] answers with its `InitialListData` instead, which is
      * why the return type is [Any]: the two clients need a different payload for the same action.
      */
-    @GetMapping("filter/select")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("filter/select", method = [RequestMethod.POST, RequestMethod.GET])
     open fun selectFavoriteFilter(
         request: HttpServletRequest,
         @RequestParam("id", required = true) id: Long
@@ -575,7 +576,8 @@ constructor(
     /**
      * @return new filterFavorites
      */
-    @GetMapping("filter/rename")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("filter/rename", method = [RequestMethod.POST, RequestMethod.GET])
     fun renameFavoriteFilter(
         @RequestParam("id", required = true) id: Long,
         @RequestParam("newName", required = true) newName: String
@@ -616,7 +618,8 @@ constructor(
     /**
      * @return The new list of filterFavorites (id's with titles) without the deleted filter.
      */
-    @GetMapping("filter/delete")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("filter/delete", method = [RequestMethod.POST, RequestMethod.GET])
     fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
         val favorites = getFilterFavorites()
         favorites.remove(id)
@@ -626,7 +629,8 @@ constructor(
     /**
      * Resets the current filter from the server.
      */
-    @GetMapping("filter/reset")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("filter/reset", method = [RequestMethod.POST, RequestMethod.GET])
     fun resetListFilter(): ResponseAction {
         saveCurrentFilter(newMagicFilter())
         agGridSupport.resetGridState(category)
@@ -637,7 +641,8 @@ constructor(
     /**
      * The current filter will be reset and returned.
      */
-    @GetMapping(RestPaths.FILTER_RESET)
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping(RestPaths.FILTER_RESET, method = [RequestMethod.POST, RequestMethod.GET])
     fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
@@ -1001,7 +1006,8 @@ constructor(
      * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
      * @return redirect url
      */
-    @GetMapping(RestPaths.CANCEL_MULTI_SELECTION)
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping(RestPaths.CANCEL_MULTI_SELECTION, method = [RequestMethod.POST, RequestMethod.GET])
     fun handleCancelUrl(request: HttpServletRequest): String {
         return MultiSelectionSupport.clear(request, this)
             ?: PagesResolver.getListPageUrl(this::class.java, absolute = true)
@@ -1397,7 +1403,8 @@ constructor(
      * Rebuilds the index by the search engine for the newest entries.
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */
-    @GetMapping("reindexNewest")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("reindexNewest", method = [RequestMethod.POST, RequestMethod.GET])
     fun reindexNewest(request: HttpServletRequest): ResponseAction {
         startReindexOrRunIt(request, full = false, adminRequired = false)?.let { return it }
         baseDao.rebuildDatabaseIndex4NewestEntries()
@@ -1412,7 +1419,8 @@ constructor(
      * be here.
      * @see [BaseDao.rebuildDatabaseIndex]
      */
-    @GetMapping("reindexFull")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("reindexFull", method = [RequestMethod.POST, RequestMethod.GET])
     fun reindexFull(request: HttpServletRequest): ResponseAction {
         // An admin's run stays admin-only to watch and cancel; a regular user's (small) run is their own.
         val adminRequired = accessChecker.isLoggedInUserMemberOfAdminGroup

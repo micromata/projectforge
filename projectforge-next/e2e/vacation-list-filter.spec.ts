@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The period of the vacation list, as the backend remembers it (getList → saveCurrentFilter) and the list
@@ -10,10 +11,10 @@ import { userFormat } from "./fixtures/format";
  * (useMagicFilterQuery's `staleTime`). Writes nothing but the list filter, reset before and after.
  */
 test.describe("vacation list filter", { tag: "@lane-vacation" }, () => {
-  const reset = (page: import("@playwright/test").Page) =>
+  const reset = async (page: import("@playwright/test").Page) =>
     page.request
-      .get("/rs/vacation/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/vacation/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
 

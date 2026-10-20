@@ -10,6 +10,7 @@ import {
 } from "./fixtures/filter-pill";
 import { pickKind } from "./fixtures/period-kind";
 import { periodKindOf, type PeriodKind } from "../lib/date-period";
+import { writeHeaders } from "./fixtures/seed";
 
 const YEAR_TO_DATE = periodKindOf("yearToDate") as PeriodKind;
 
@@ -152,8 +153,8 @@ async function dropOwnFavorites(page: Page): Promise<void> {
   };
   for (const favorite of meta.filterFavorites ?? []) {
     if (favorite.name !== NAME) continue;
-    await page.request.get(`/rs/${ENTITY}/filter/delete?id=${favorite.id}`, {
-      headers: { "X-PF-Frontend": "next" },
-    });
+    await page.request.post(`/rs/${ENTITY}/filter/delete?id=${favorite.id}`, {
+        headers: await writeHeaders(page.request),
+      });
   }
 }

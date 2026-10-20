@@ -255,7 +255,7 @@ class SystemRest {
     // ------------------------------------------------------------------------------------------
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("checkSystemIntegrity")
+    @PostMapping("checkSystemIntegrity")
     fun checkSystemIntegrity(): ResponseEntity<*> {
         checkWriteAccess()
         log.info { "Administration: check system integrity." }
@@ -286,7 +286,7 @@ class SystemRest {
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("optimizeAddressImages")
+    @PostMapping("optimizeAddressImages")
     fun optimizeAddressImages(): ResponseEntity<*> {
         checkWriteAccess()
         log.info { "Administration: shrink all address images and rebuild previews." }

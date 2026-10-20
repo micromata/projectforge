@@ -1,6 +1,7 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import type { Locator, Page } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * A table says that the rows on screen are not the answer to the question just asked: the loading
@@ -76,7 +77,9 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
   }) => {
     const format = await userFormat(page);
     // A year stored in the list filter by an earlier visit would narrow the list (ContractPagesRest).
-    await page.request.get("/rs/contract/filter/reset");
+    await page.request.post("/rs/contract/filter/reset", {
+        headers: await writeHeaders(page.request),
+      });
     await goto(page, "/contract");
     // No contract is created here, so an empty list is the database's state, not a failure.
     const hasRow = await page

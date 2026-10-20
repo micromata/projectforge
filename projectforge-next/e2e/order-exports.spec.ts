@@ -2,6 +2,7 @@ import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import type { Page } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The two exports of the order book, which Wicket offers in its content menu and the migrated list in
@@ -24,7 +25,9 @@ test.describe("order book exports", { tag: "@lane-order" }, () => {
     // The filter is stored per user, and a criterion left behind by another spec of this lane would
     // hide the seeded order the search is meant to find.
     await page.request
-      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

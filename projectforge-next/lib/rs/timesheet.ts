@@ -203,7 +203,7 @@ export async function deleteTimesheetFavorite(
 ): Promise<TimesheetFavorite[]> {
   const result = await request<FavoritesResult>(
     `${FAVORITES}/delete?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.timesheetFavorites ?? [];
@@ -216,7 +216,7 @@ export async function renameTimesheetFavorite(
 ): Promise<TimesheetFavorite[]> {
   const result = await request<FavoritesResult>(
     `${FAVORITES}/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
   return result.timesheetFavorites ?? [];

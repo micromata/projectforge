@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { FilterElement } from "../../lib/rs/types";
 import type { UserFormat } from "./format";
+import { writeHeaders } from "./seed";
 
 /**
  * The filter pills of a list page, as a spec drives them: which fields a list offers, how a pill is
@@ -118,6 +119,8 @@ export async function listRequest(
 /** Throws the stored filter of a list away, so a case cannot leak into the next one. */
 export async function resetFilter(page: Page, entity: string): Promise<void> {
   await page.request
-    .get(`/rs/${entity}/filter/reset`, { headers: { "X-PF-Frontend": "next" } })
+    .post(`/rs/${entity}/filter/reset`, {
+        headers: await writeHeaders(page.request),
+      })
     .catch(() => undefined);
 }

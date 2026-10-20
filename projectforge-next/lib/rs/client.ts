@@ -297,7 +297,7 @@ export async function fetchUserStatus(
 
 export async function logout(signal?: AbortSignal): Promise<unknown> {
   try {
-    return await request<unknown>("/rs/logout", { method: "GET" }, signal);
+    return await request<unknown>("/rs/logout", { method: "POST" }, signal);
   } finally {
     // The token belonged to the session that just ended; the next login fetches a new one.
     setCsrfToken(null);
@@ -321,7 +321,7 @@ export function selectFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/select?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -360,12 +360,12 @@ export function renameFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/rename?id=${id}&newName=${encodeURIComponent(newName)}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
 
-/** GET despite deleting — the endpoint is shared with the legacy frontend. */
+/** Deletes a saved filter. */
 export function deleteFilterFavorite(
   entity: string,
   id: number,
@@ -373,7 +373,7 @@ export function deleteFilterFavorite(
 ): Promise<FilterFavoritesResponse> {
   return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/delete?id=${id}`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

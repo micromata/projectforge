@@ -223,7 +223,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
     }
 
     @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
-    @GetMapping("sendSmsCode")
+    @PostMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendSmsCode(request) }
     }

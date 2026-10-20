@@ -368,7 +368,8 @@ constructor(
      * Resets the AG Grid column states (position, width, pinning) from the server.
      * This will clear all user preferences for the grid and update the UI with default column definitions.
      */
-    @GetMapping("resetGridState")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("resetGridState", method = [RequestMethod.POST, RequestMethod.GET])
     fun resetGridState(request: HttpServletRequest): ResponseAction {
         agGridSupport.resetGridState(category)
         val initialList = getInitialList(request, getCurrentFilter())

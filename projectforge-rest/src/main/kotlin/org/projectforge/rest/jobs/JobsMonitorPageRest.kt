@@ -34,6 +34,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
@@ -109,9 +110,11 @@ class JobsMonitorPageRest : AbstractDynamicPageRest() {
   }
 
   /**
+   * POST for projectforge-next. GET only for the legacy React app (CustomizedJobsMonitor.jsx): drop it together with
+   * the app.
    * @param id Job id of [JobHandler]
    */
-  @GetMapping("cancel")
+  @RequestMapping("cancel", method = [RequestMethod.POST, RequestMethod.GET])
   fun cancelJob(
     @RequestParam("jobId", required = true) jobId: Int,
     @RequestParam("all") all: Boolean?

@@ -4,6 +4,7 @@ import { hasEntries, waitForRows } from "./fixtures/list-table";
 import { KONTO_METADATA } from "../lib/metadata/konto.generated";
 import { ACCOUNT_PAGE } from "../components/features/account/account.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The account page against the live backend (see ACCOUNT_PAGE and KontoEntityRest).
@@ -16,7 +17,9 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 test.describe("account", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/account/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/account/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
