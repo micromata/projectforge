@@ -203,7 +203,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       PostausgangPagesRest::class.java,
       PosteingangPagesRest::class.java,
       VisitorbookPagesRest::class.java,
-      ContractPagesRest::class.java,
+      ContractEntityRest::class.java,
     )
 
     my2FARequestHandler.registerShortCutValues(

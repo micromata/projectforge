@@ -2849,6 +2849,9 @@
       "contractPersonA": "Ansprechpartner:in A",
       "contractPersonB": "Ansprechpartner:in B",
       "number": "Vertragsnummer",
+      "sections": {
+        "general": "Vertrag"
+      },
       "signerA": "Unterzeichner:in A",
       "signerB": "Unterzeichner:in B",
       "signing": "Unterzeichnung",
@@ -2861,8 +2864,13 @@
         "suspended": "verworfen",
         "unknown": "unbekannt"
       },
+      "title": {
+        "add": "Neuer Vertrag",
+        "list": "Verträge"
+      },
       "type": "Typ",
       "validity": {
+        "_": "Laufzeit",
         "from": "Laufzeit von",
         "until": "Laufzeit bis"
       }
@@ -3049,6 +3057,7 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "orga": "Organisation",
     "personalStatistics": "Meine Statistiken",
     "phoneCall": "Direktwahl",
     "pluginAdmin": "Plugins",
@@ -3805,10 +3814,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interesse",
+      "interest": {
+        "_": "Interesse",
+        "0": "Ohne Einstufung",
+        "1": "Interesse",
+        "2": "Großes Interesse",
+        "3": "Going crazy!"
+      },
       "owner": "Eigner",
-      "rating": "Selbsteinschätzung",
-      "skill": "Skill"
+      "rating": {
+        "_": "Selbsteinschätzung",
+        "0": "Keine Einschätzung",
+        "1": "Basis",
+        "2": "Fortgeschritten",
+        "3": "Experte"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Neuer Skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {

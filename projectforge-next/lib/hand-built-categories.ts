@@ -24,6 +24,7 @@ export const HAND_BUILT_CATEGORIES = [
   "book",
   "calendar",
   "configuration",
+  "contract",
   "cost1",
   "cost2",
   "cost2Type",

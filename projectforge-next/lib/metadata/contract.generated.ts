@@ -76,7 +76,7 @@ export const CONTRACT_METADATA = {
     },
     number: {
       dataType: "INT",
-      i18nKey: "'C-",
+      i18nKey: "legalAffaires.contract.number",
       required: false,
       tooltipI18nKey: "fibu.tooltip.nummerWirdAutomatischVergeben",
     },

@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Contracts migrated to the new interface: list with a period filter on the date, form with suggestions from other contracts, the configured contract types, JIRA links, attachments and cloning. Old links are redirected.",
+  "de": "Verträge auf die neue Oberfläche migriert: Liste mit Zeitraumfilter auf dem Datum, Formular mit Vorschlägen aus anderen Verträgen, den konfigurierten Vertragsarten, JIRA-Links, Anhängen und Klonen. Alte Links werden umgeleitet."
+}
