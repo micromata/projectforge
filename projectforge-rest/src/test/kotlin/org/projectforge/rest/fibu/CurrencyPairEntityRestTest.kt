@@ -33,6 +33,8 @@ import org.projectforge.business.fibu.CurrencyPairDO
 import org.projectforge.business.fibu.CurrencyPairDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.dto.CurrencyConversionRate
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
@@ -41,6 +43,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.TimeZone
 
 /**
  * The conversion rates of a currency pair, written through [CurrencyPairEntityRest] (`currencyPair/rate/...`):
@@ -108,7 +111,7 @@ class CurrencyPairEntityRestTest : AbstractTestBase() {
         assertEquals(
             listOf("validFrom"),
             validationFields(
-                currencyPairEntityRest.insertRate(post(rate(pairId, LocalDate.now().plusDays(1), "1", "1")))
+                currencyPairEntityRest.insertRate(post(rate(pairId, PFDateTime.now().localDate.plusDays(1), "1", "1")))
             ),
         )
         entries(currencyPairEntityRest.insertRate(post(rate(pairId, date, "0.5", "2"))))
@@ -116,6 +119,35 @@ class CurrencyPairEntityRestTest : AbstractTestBase() {
             listOf("validFrom"),
             validationFields(currencyPairEntityRest.insertRate(post(rate(pairId, date, "0.6", "1.6")))),
         )
+    }
+
+    /**
+     * "In the future" is the user's future: just after midnight in the user's zone the server's zone may still be on the
+     * day before (or already on the next). One of the two zones is on another day than UTC at any hour.
+     */
+    @Test
+    fun `today is the user's today`() {
+        // A pair per zone: the today of one zone may be the tomorrow of the other.
+        val pairIds = listOf(createPair("XQI", "XQJ"), createPair("XQK", "XQL"))
+        // The user of the thread context, whose zone [PFDateTime] reads:
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val zoneBefore = user.timeZone
+        try {
+            listOf("Pacific/Kiritimati", "Pacific/Pago_Pago").zip(pairIds).forEach { (zone, pairId) ->
+                user.timeZone = TimeZone.getTimeZone(zone)
+                val today = PFDateTime.now().localDate
+                assertEquals(
+                    listOf("validFrom"),
+                    validationFields(currencyPairEntityRest.insertRate(post(rate(pairId, today.plusDays(1), "1", "1")))),
+                    zone,
+                )
+                assertEquals(1, entries(currencyPairEntityRest.insertRate(post(rate(pairId, today, "1", "1")))).count {
+                    it.validFrom == today
+                }, zone)
+            }
+        } finally {
+            user.timeZone = zoneBefore
+        }
     }
 
     private fun createPair(source: String, target: String): Long {
