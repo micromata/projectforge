@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "Birthday butler: migrated to the new interface. The current month is preselected, and without a configured organization the page says so instead of offering a download that can only fail.",
+  "de": "Geburtstags-Butler: in die neue Oberfläche migriert. Der aktuelle Monat ist vorbelegt, und ohne konfigurierte Organisation weist die Seite darauf hin, statt einen Download anzubieten, der nur scheitern kann."
+}
