@@ -87,10 +87,6 @@ org.projectforge.rest.fibu.CurrencyConversionRatePageRest#insert
 org.projectforge.rest.fibu.CurrencyConversionRatePageRest#update
 org.projectforge.rest.fibu.CurrencyConversionRatePageRest#watchFields
 org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest#exportTransfers
-org.projectforge.rest.fibu.EInvoiceCheckerPageRest#downloadAttachmentAction
-org.projectforge.rest.fibu.EInvoiceCheckerPageRest#downloadAttachmentFile
-org.projectforge.rest.fibu.EInvoiceCheckerPageRest#getForm
-org.projectforge.rest.fibu.EInvoiceCheckerPageRest#upload
 org.projectforge.rest.fibu.importer.IncomingInvoicePosImportPageRest#getForm
 org.projectforge.rest.GroupEntityRest#createGid
 org.projectforge.rest.GroupEntityRest#exportAsExcel

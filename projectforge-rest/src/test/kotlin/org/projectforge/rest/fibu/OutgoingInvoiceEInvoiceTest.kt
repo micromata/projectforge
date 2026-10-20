@@ -65,7 +65,7 @@ import java.time.LocalDate
  * showing a failed download (Wicket's error line does the same); that an invoice which isn't ready is refused
  * with that very list rather than with the `IllegalStateException` the service throws; that the section can
  * write the form it sits in, since everything else here works on the stored invoice; and that all of them
- * require the groups of `EInvoiceCheckerPageRest` — an e-invoice is the document that goes to the customer.
+ * require the groups of `EInvoiceCheckerRest` — an e-invoice is the document that goes to the customer.
  *
  * A test installation configures no seller (`projectforge.einvoice.seller.*`), which is exactly the state
  * `configured = false` is for. The exporting cases therefore configure one on the bean for their duration and

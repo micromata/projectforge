@@ -74,7 +74,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
     DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
-    E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
+    // Migrated to projectforge-next (EInvoiceCheckerRest); react/eInvoiceChecker is redirected by OrphanedLinkFilter.
+    E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", "next/eInvoiceChecker"), //
     // Migrated to projectforge-next; the React pages were removed.
     EMPLOYEE_LIST("menu.fibu.employees", getListUrl("employee")), //
     // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.

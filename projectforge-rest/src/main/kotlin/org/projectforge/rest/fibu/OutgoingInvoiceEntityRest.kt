@@ -800,7 +800,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
-     * The groups the e-invoice functions require, as `EInvoiceCheckerPageRest.checkAccess` requires them.
+     * The groups the e-invoice functions require, as `EInvoiceCheckerRest.checkAccess` requires them.
      *
      * On top of the select right of the category: reading an invoice and handling the document that leaves
      * the house for it are two different permissions, and the classic frontends only ever hid the menu entry

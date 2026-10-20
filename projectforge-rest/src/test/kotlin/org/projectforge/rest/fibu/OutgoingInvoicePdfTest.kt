@@ -220,7 +220,7 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
         val id = insertInvoice("Invoice PDF access")
 
         logon(TEST_USER)
-        // The e-invoice functions require the groups of `EInvoiceCheckerPageRest`, and the two writing ones
+        // The e-invoice functions require the groups of `EInvoiceCheckerRest`, and the two writing ones
         // additionally the write access to this very invoice: uploading a PDF changes what an e-invoice of
         // it looks like.
         assertThrows<AccessException> { outgoingInvoiceEntityRest.getInvoicePdfInfo(id) }

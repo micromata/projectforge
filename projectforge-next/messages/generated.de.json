@@ -1580,6 +1580,21 @@
       "matches": "Trifft {arg0} Kunden",
       "matchesNone": "Trifft noch keinen Kunden",
       "name": "Name",
+      "orderAccess": {
+        "_": "Auftragsfreigaben",
+        "add": "Auftragsfreigabe hinzufügen",
+        "empty": "Noch keine Auftragsfreigaben.",
+        "ineffective": {
+          "_": "Ohne Wirkung für {arg0} Benutzer",
+          "deactivated": "deaktiviert",
+          "noOrderBookRight": "kein Zugriff auf das Auftragsbuch (Recht)",
+          "noProjectManager": "weder Projektmanager noch Projektassistent"
+        },
+        "intro": "Gewährt lesenden Zugriff auf alle Aufträge der gewählten Kunden, Kundengruppen und Business Units, samt Rechnungen, Forecast und Deckungsbeiträgen. Berechtigt werden nur Benutzer, die Projektmanager oder Projektassistent sind (PF_ProjectManager, PF_ProjectAssistant) und Zugriff auf das Auftragsbuch haben. Ändern lässt sich ein Auftrag weiterhin nur als Kontaktperson oder als Projektmanager des Projekts.",
+        "remove": "Auftragsfreigabe {arg0} entfernen",
+        "userGroups": "Gruppen (deren Mitglieder)",
+        "users": "Benutzer"
+      },
       "remove": "Kundengruppe {arg0} entfernen",
       "saved": "Kundengruppen gespeichert.",
       "texts": "Kundennamen",
@@ -1604,7 +1619,23 @@
       }
     },
     "eInvoiceChecker": {
-      "description": "Hier kann eine ZUGFeRD-PDF oder XRechnung-XML-Datei hochgeladen werden, um die enthaltenen Rechnungsdaten zu prüfen."
+      "amountDue": "Zahlbetrag",
+      "amounts": "Beträge",
+      "attachments": "Anhänge",
+      "buyer": "Käufer / Rechnungsempfänger",
+      "buyerReference": "Käufer-Referenz (Leitweg-ID)",
+      "description": "Hier kann eine ZUGFeRD-PDF oder XRechnung-XML-Datei hochgeladen werden, um die enthaltenen Rechnungsdaten zu prüfen.",
+      "documentTypeCode": "Dokumenttyp-Code",
+      "format": "Format",
+      "invalid": "Die E-Rechnung weist Fehler auf.",
+      "lineItems": "Positionen",
+      "metadata": "Rechnungsdaten",
+      "mimeType": "MIME-Typ",
+      "profile": "Profil",
+      "seller": "Verkäufer / Rechnungssteller",
+      "title": "E-Rechnungs-Checker",
+      "unit": "Einheit",
+      "valid": "Die E-Rechnung ist gültig."
     },
     "eingangsrechnung": {
       "_": "Kreditorenrechnung",

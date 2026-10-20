@@ -132,6 +132,10 @@ class OrphanedLinkFilter : Filter {
             // Old React menu customizer, migrated to projectforge-next (removed, so no "classic version" escape
             // hatch). It took no parameters. Also reached by favorites menus still holding the old url.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}customizeMenu")
+        } else if (uri.endsWith("/react/eInvoiceChecker") || uri.contains("/react/eInvoiceChecker/")) {
+            // Old dynamic React page of the e-invoice checker, migrated to projectforge-next (removed, so no
+            // "classic version" escape hatch). It took no parameters.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}eInvoiceChecker")
         } else if (uri.endsWith("/react/vacationExport") || uri.contains("/react/vacationExport/")) {
             // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.

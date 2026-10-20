@@ -706,6 +706,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   folgt ohne Neuladen). `MenuCustomizerRest` behält `customized`/`default`/`reset`; `customizer` (Texte) und
   `saved` entfallen, die Texte kommen aus dem Katalog. Leere Gruppen werden nicht mehr gespeichert (das Backend
   machte daraus einen Eintrag ohne Url). `react/customizeMenu` leitet `OrphanedLinkFilter` um.
+- **E-Rechnungsprüfung** (`/next/eInvoiceChecker`, vorher dynamische React-Seite, `EInvoiceCheckerPageRest`
+  gelöscht) – `components/features/e-invoice-checker/`: Drop-Bereich über dem Ergebnis, Gültigkeit/Fehler/Warnungen,
+  Rechnungsdaten, Beträge (in der Währung der Rechnung), Verkäufer, Käufer, Positionen und Anhänge. Der layout-freie
+  `EInvoiceCheckerRest` (gleicher Pfad `/rs/eInvoiceChecker`) antwortet `upload` mit dem `EInvoiceData`, behält das
+  letzte Ergebnis 30 Minuten in der Session (`result`, 204 ohne) und liefert eingebettete Anhänge über
+  `attachment/{id}`; eine nicht prüfbare Datei ist ein 400 mit dem übersetzten Grund. Rechte unverändert
+  (FIBU/ORGA oder Auftragsbuch-Recht), kein 2FA (die Legacy-URL hatte keinen). `react/eInvoiceChecker/**` leitet
+  `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

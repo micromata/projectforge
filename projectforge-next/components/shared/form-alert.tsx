@@ -1,12 +1,13 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
-type Tone = "error" | "info" | "success";
+type Tone = "error" | "info" | "success" | "warning";
 
 const TONE_CLASSES: Record<Tone, string> = {
   error: "border-destructive/40 bg-destructive/10",
   info: "border-primary/30 bg-primary/5",
   success: "border-emerald-600/30 bg-emerald-600/10",
+  warning: "border-warning/40 bg-warning/10",
 };
 
 interface FormAlertProps {

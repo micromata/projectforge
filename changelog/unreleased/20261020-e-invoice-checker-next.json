@@ -1,0 +1,5 @@
+{
+  "type": "improved",
+  "en": "E-invoice checker: migrated to the new interface. Validity, invoice data, seller, buyer and amounts are shown side by side, amounts in the invoice's currency; embedded attachments are downloaded with a click.",
+  "de": "E-Rechnungsprüfung: in die neue Oberfläche migriert. Gültigkeit, Rechnungsdaten, Verkäufer, Käufer und Beträge stehen nebeneinander, Beträge in der Währung der Rechnung; eingebettete Anhänge werden per Klick heruntergeladen."
+}

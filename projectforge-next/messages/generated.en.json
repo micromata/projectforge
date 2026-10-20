@@ -1580,6 +1580,21 @@
       "matches": "Matches {arg0} customers",
       "matchesNone": "Matches no customer yet",
       "name": "Name",
+      "orderAccess": {
+        "_": "Order access",
+        "add": "Add order access",
+        "empty": "No order access granted yet.",
+        "ineffective": {
+          "_": "Without effect for {arg0} users",
+          "deactivated": "deactivated",
+          "noOrderBookRight": "no access to the order book (right)",
+          "noProjectManager": "neither project manager nor project assistant"
+        },
+        "intro": "Grants read access to all orders of the chosen customers, customer groups and business units, including their invoices, forecast and contribution margins. Only users who are project managers or project assistants (PF_ProjectManager, PF_ProjectAssistant) and have access to the order book are granted. Changing an order still requires being its contact person or a project manager of its project.",
+        "remove": "Remove order access {arg0}",
+        "userGroups": "Groups (their members)",
+        "users": "Users"
+      },
       "remove": "Remove customer group {arg0}",
       "saved": "Customer groups saved.",
       "texts": "Customer names",
@@ -1604,7 +1619,23 @@
       }
     },
     "eInvoiceChecker": {
-      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
+      "amountDue": "Amount due",
+      "amounts": "Amounts",
+      "attachments": "Attachments",
+      "buyer": "Buyer",
+      "buyerReference": "Buyer reference (Leitweg-ID)",
+      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data.",
+      "documentTypeCode": "Document type code",
+      "format": "Format",
+      "invalid": "The e-invoice has validation errors.",
+      "lineItems": "Line items",
+      "metadata": "Invoice data",
+      "mimeType": "MIME type",
+      "profile": "Profile",
+      "seller": "Seller",
+      "title": "E-Invoice Checker",
+      "unit": "Unit",
+      "valid": "The e-invoice is valid."
     },
     "eingangsrechnung": {
       "_": "Creditor invoice",
