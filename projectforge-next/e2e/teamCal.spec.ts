@@ -93,7 +93,7 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     const kinds = page.getByRole("group", {
       name: t("plugins.teamcal.absenceKinds._"),
     });
-    await expect(kinds.getByRole("button")).toHaveCount(5);
+    await expect(kinds.getByRole("button")).toHaveCount(4);
     for (const button of await kinds.getByRole("button").all()) {
       await expect(button).toHaveAttribute("aria-pressed", "true");
     }

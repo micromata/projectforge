@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { expectedGroupName } from "./fixtures/group-nomenclature";
 import { waitForRows } from "./fixtures/list-table";
 import { resetTreeState } from "./fixtures/task-tree";
 
@@ -55,16 +56,20 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
       name: format.t("project.wizard.finish"),
     });
     await expect(finish).toBeDisabled({ timeout: 20_000 });
+    // Numbered „1. Kunde“ etc. (WizardStepCard), matched whole: „Kunde“ is part of other headings too.
+    // An existing customer is the default, which names the third step.
     for (const heading of [
       format.t("fibu.kunde._"),
       format.t("fibu.projekt._"),
-      format.t("task.parentTask"),
+      format.t("project.wizard.parentTask.existingCustomer._"),
       format.t("task.wizard.team._"),
       format.t("task.wizard.managerGroup._"),
       format.t("task.wizard.externalGroup._"),
     ]) {
       await expect(
-        page.getByRole("heading", { name: new RegExp(escape(heading)) })
+        page.getByRole("heading", {
+          name: new RegExp(`^\\d+\\. ${escape(heading)}$`),
+        })
       ).toBeVisible();
     }
   });
@@ -82,7 +87,8 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
       page.getByRole("textbox", { name: format.t("fibu.kunde.nummer") })
     ).toBeVisible({ timeout: 20_000 });
 
-    // The suggested group names follow the project's name as it is typed.
+    // The suggested group names follow the project's name as it is typed, shaped by the configured
+    // nomenclature (suffix, letter case) if there is one.
     const name = `E2E wizard ${Date.now()}`;
     await page
       .getByRole("textbox", {
@@ -94,7 +100,12 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
       page.getByRole("textbox", {
         name: `${format.t("name")}: ${format.t("task.wizard.team._")}`,
       })
-    ).toHaveValue(name, { timeout: 20_000 });
+    ).toHaveValue(
+      await expectedGroupName(page, "team", { project: { name } }),
+      {
+        timeout: 20_000,
+      }
+    );
   });
 });
 
