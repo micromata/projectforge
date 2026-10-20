@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { writeHeaders } from "./fixtures/seed";
 import { formatMonthName } from "../lib/format";
 
 /**
@@ -39,6 +40,15 @@ test.describe("birthday butler", { tag: "@parallel" }, () => {
         page.getByText(t("birthdayButler.organization.notSet"))
       ).toBeVisible();
       await expect(button).toBeDisabled();
+      // The endpoint itself refuses with the reason as text (what the page would show as toast).
+      const refused = await page.request.post("/rs/birthdayButler/download", {
+        headers: await writeHeaders(page.request),
+        data: { month },
+      });
+      expect(refused.status()).toBe(400);
+      expect(await refused.text()).toBe(
+        t("birthdayButler.organization.notSet")
+      );
       return;
     }
     // A month without birthdays is answered with a toast; any month with one gives the document.
