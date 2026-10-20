@@ -26,7 +26,7 @@ package org.projectforge.business.lanesandplanes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.common.logging.error
 import org.projectforge.common.logging.warn
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import org.projectforge.framework.integration.IntegrationConfig
 import org.projectforge.framework.integration.IntegrationErrors
 import org.projectforge.framework.integration.PooledHttpClients
@@ -90,7 +90,7 @@ open class LanesAndPlanesSyncService(
                 run.abort("build failed: ${ex.message}")
                 return
             }
-            val stateFile = File(ConfigXml.getInstance().workingDirectory, STATE_FILENAME)
+            val stateFile = File(ApplicationDirectories.workingDirectory, STATE_FILENAME)
             val state = LanesAndPlanesPushState.load(stateFile)
             if (state == null && !config.dryRun) {
                 log.warn(LanesAndPlanesLogEvents.STATE_MISSING) {
@@ -113,7 +113,7 @@ open class LanesAndPlanesSyncService(
             }
             val json = JsonUtils.toJson(LanesAndPlanesUsersRequest(users), ignoreNullableProps = true)
             if (config.dryRun) {
-                val file = File(ConfigXml.getInstance().workingDirectory, DRY_RUN_FILENAME)
+                val file = File(ApplicationDirectories.workingDirectory, DRY_RUN_FILENAME)
                 file.writeText(json)
                 log.info {
                     "Lanes & Planes dry run (projectforge.lanesandplanes.dryRun=true): ${users.size} users with " +

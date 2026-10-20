@@ -501,7 +501,7 @@ bin/pfDev.sh reset 1        # deletes ~/ProjectForge-1 (asks first), then `setup
 Notes:
 
 * `setup` needs the `projectforge.properties` of the main home dir (`~/ProjectForge`). It copies
-  `projectforge.properties`, `config.xml`, `resources` and `styles` from there and
+  `projectforge.properties`, `config.xml` (if not yet migrated), `resources` and `styles` from there and
   appends a block that switches to an own HSQLDB in `~/ProjectForge-n/database` and turns off sending mails
   and the gateway push. Database, search index and JCR of the main instance are not copied.
 * Port, domain, base dir and cookie name are passed by `pfDev.sh` as system properties, so the main

@@ -312,8 +312,8 @@ Feiertage und Wochenenden sind hervorgehoben.
 === Feiertage
 
 ProjectForge® unterstützt die deutschen Feiertage von Haus aus (in der Grundkonfiguration zählen
-Heiligabend und Silvester als halbe Arbeitstage). Die Administration kann in `config.xml` eigene Feiertage
-ergänzen oder die eingebauten ändern.
+Heiligabend und Silvester als halbe Arbeitstage). Die Administration kann im Konfigurationsparameter _Feiertage_
+(_Administration_ -> _Konfiguration_) eigene Feiertage ergänzen oder die eingebauten ändern.
 
 [[support_of_different_time_zones]]
 === Unterstützung verschiedener Zeitzonen

@@ -15,6 +15,10 @@ import { ForecastConfigSummary } from "./forecast-config-summary";
 import { GroupNomenclatureConfigSummary } from "./group-nomenclature-config-summary";
 import { GROUP_NOMENCLATURE_PARAM } from "@/lib/group-nomenclature";
 import { LanesAndPlanesConfigSummary } from "./lanes-and-planes-config-summary";
+import { ACCOUNTING_PARAM } from "../accounting-config";
+import { HOLIDAYS_PARAM } from "../holidays-config";
+import { AccountingConfigSummary } from "./accounting-config-summary";
+import { HolidaysConfigSummary } from "./holidays-config-summary";
 
 /**
  * The current value of a configuration parameter, read-only, formatted for the type it is stored as —
@@ -68,6 +72,12 @@ export function ConfigurationValueCell({
             highlight={highlight}
           />
         );
+      }
+      if (row.parameter === HOLIDAYS_PARAM) {
+        return <HolidaysConfigSummary json={row.stringValue} />;
+      }
+      if (row.parameter === ACCOUNTING_PARAM) {
+        return <AccountingConfigSummary json={row.stringValue} />;
       }
       if (row.parameter === FORECAST_PARAM) {
         return (

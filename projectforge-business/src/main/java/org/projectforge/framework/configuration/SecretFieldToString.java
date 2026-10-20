@@ -21,20 +21,36 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+
 package org.projectforge.framework.configuration;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import static java.lang.annotation.ElementType.FIELD;
+import java.lang.reflect.Field;
 
 /**
- * Annotation for marking fields of the ConfigXml as secret fields. Such fields will not be hidden in the export functionality of the
- * config.xml as well as in toString() methods. The value is displayed as "******" instead.
- * @author Kai Reinhard
+ * toString() of configuration objects without revealing their secrets.
  */
-@Target({ FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ConfigXmlSecretField {
+public class SecretFieldToString {
+    private static final String SECRET_PROPERTY_STRING = "******";
+
+    /**
+     * Replaces field values with annotation {@link SecretField} by "******".
+     *
+     * @param configObject
+     * @return String representation of the given object.
+     * @see ReflectionToStringBuilder#ReflectionToStringBuilder(Object)
+     */
+    public static String toString(final Object configObject) {
+        return new ReflectionToStringBuilder(configObject) {
+            @Override
+            protected Object getValue(final Field field) throws IllegalArgumentException, IllegalAccessException {
+                if (field.isAnnotationPresent(SecretField.class)) {
+                    return SECRET_PROPERTY_STRING;
+                }
+                return super.getValue(field);
+            }
+
+        }.toString();
+    }
 }

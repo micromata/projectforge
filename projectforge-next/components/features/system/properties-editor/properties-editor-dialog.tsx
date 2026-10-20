@@ -40,7 +40,7 @@ export function PropertiesEditorDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && void requestClose()}>
-      <DialogContent className="flex h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+      <DialogContent className="flex h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(96vw,88rem)]">
         <DialogHeader className="shrink-0 gap-2 px-6 pt-5 pb-3">
           <DialogTitle>{t("system.propertiesEditor.title")}</DialogTitle>
           <DialogDescription className="break-all font-mono text-xs">

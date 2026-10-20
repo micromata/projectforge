@@ -27,8 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
-import org.projectforge.business.test.ConfigXmlTest
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import java.io.File
 import java.util.*
 import kotlin.io.path.Path
@@ -67,9 +66,9 @@ private fun readSipgateConfiguration(sipgateClient: SipgateClient) {
   sipgateService.postConstruct()
   val sipgateSyncService = SipgateSyncService()
   sipgateSyncService.sipgateService = sipgateService
-  ConfigXmlTest.createTestConfiguration().workingDirectory = "/tmp"
+  ApplicationDirectories.internalSet(ApplicationDirectories.Dir.WORK, File("/tmp"))
   val workbook = SipgateExcelExporter.export(sipgateSyncService.readStorage())
-  val file = File(ConfigXml.getInstance().workingDirectory, "sipgateConfiguarion.xlsx")
+  val file = File(ApplicationDirectories.workingDirectory, "sipgateConfiguarion.xlsx")
   println("Writing excel file `${file.absolutePath}'...")
   file.writeBytes(workbook)
 }

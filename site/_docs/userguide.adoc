@@ -303,7 +303,7 @@ Holidays and weekends are highlighted.
 
 ProjectForge® supports the German holidays out of the box (in the initial configuration Christmas
 Eve and New Year's Eve count as half working days). Your administrator may add own holidays or modify
-the built-in ones in `config.xml`.
+the built-in ones in the configuration parameter _Holidays_ (_Administration_ -> _Configuration_).
 
 [[support_of_different_time_zones]]
 === Support of different time zones

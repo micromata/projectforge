@@ -28,6 +28,7 @@ import jakarta.annotation.PreDestroy;
 import net.fortuna.ical4j.util.CompatibilityHints;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.system.SystemInfoCache;
 import org.projectforge.common.CanonicalFileUtils;
@@ -35,7 +36,7 @@ import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.common.StringModifier;
 import org.projectforge.database.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
-import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.ApplicationDirectories;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
@@ -85,7 +86,7 @@ public class ProjectForgeApp {
     private static boolean junitTestMode = false;
 
     /**
-     * Set by AbstractTestBase for avoiding the creation of config files (projectforge.properties, config.xml and attrschema.xml).
+     * Set by AbstractTestBase for avoiding the creation of config files (projectforge.properties).
      */
     public static void internalSetJunitTestMode() {
         junitTestMode = true;
@@ -131,8 +132,13 @@ public class ProjectForgeApp {
         springApplication = springApplicationClass;
     }
 
+    /**
+     * @param configurationService Not used directly, but it has to be initialized first: it sets the directories
+     *                             ({@link ApplicationDirectories}).
+     */
     @Autowired
     ProjectForgeApp(ApplicationContext applicationContext,
+                    ConfigurationService configurationService,
                     DatabaseService databaseService,
                     DomainService domainService,
                     Environment environment,
@@ -156,9 +162,9 @@ public class ProjectForgeApp {
     void postConstruct() {
         Registry.getInstance().init(applicationContext);
         if (!junitTestMode) { // On test cases on repo will be used, if any.
-            repoService.init(new File(ConfigXml.getInstance().getJcrDirectory()));
+            repoService.init(ApplicationDirectories.getJcrDirectory());
         }
-        repoBackupService.initBackupDir(new File(ConfigXml.getInstance().getBackupDirectory()));
+        repoBackupService.initBackupDir(ApplicationDirectories.getBackupDirectory());
     }
 
     @EventListener(ApplicationReadyEvent.class)

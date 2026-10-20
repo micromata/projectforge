@@ -23,6 +23,7 @@
 
 package org.projectforge.business.orga;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 import org.projectforge.framework.utils.ILabelValueBean;
 import org.projectforge.framework.xmlstream.XmlField;
@@ -31,11 +32,14 @@ import org.projectforge.framework.xmlstream.XmlObject;
 import java.io.Serializable;
 
 /**
- * Can't use LabelValueBean because XStream doesn't support generics (does it?).
+ * A type of contract, stored as JSON in the configuration parameter orga.contractTypes. The xml annotations are only
+ * used for reading the former config.xml.
  * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "contractType")
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ContractType implements ILabelValueBean<String, String>, Serializable
 {
   private static final long serialVersionUID = 553564992110970022L;

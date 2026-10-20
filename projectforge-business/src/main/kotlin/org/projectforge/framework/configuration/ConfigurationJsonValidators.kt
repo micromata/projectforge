@@ -23,8 +23,12 @@
 
 package org.projectforge.framework.configuration
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.json.JsonUtils
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -44,6 +48,26 @@ object ConfigurationJsonValidators {
 
   fun register(param: IConfigurationParam, validator: Validator) {
     validators[param.key] = validator
+  }
+
+  /**
+   * Registers a validator checking that the value is readable as the given type (no unknown properties) and,
+   * if so, by the given [check] of the read value.
+   */
+  fun <T> registerType(
+    param: IConfigurationParam,
+    typeReference: TypeReference<T>,
+    check: ((T) -> List<String>)? = null,
+  ) {
+    register(param) { json ->
+      try {
+        val value = JsonUtils.fromJson(json, typeReference)
+        if (value != null && check != null) check(value) else emptyList()
+      } catch (ex: Exception) {
+        val message = (ex as? JsonProcessingException)?.originalMessage ?: ex.message ?: ex::class.java.simpleName
+        listOf(translateMsg("administration.configuration.json.notReadable", message))
+      }
+    }
   }
 
   /** The translated error messages of the [json] value of the parameter with the given key. Blank is valid. */

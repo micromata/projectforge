@@ -76,7 +76,7 @@ public abstract class LdapLoginHandler implements LoginHandler {
       // May-be already set by test class.
       this.ldapConfig = ldapService.getLdapConfig();
       if (ldapConfig == null || ldapConfig.getServer() == null) {
-        log.warn("No LDAP configured in config.xml, so any login will be impossible!");
+        log.warn("No LDAP configured (projectforge.ldap.*), so any login will be impossible!");
       }
     }
     baseDN = ldapConfig.getBaseDN();

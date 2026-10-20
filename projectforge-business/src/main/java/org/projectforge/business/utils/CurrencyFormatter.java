@@ -61,7 +61,7 @@ public class CurrencyFormatter
   }
 
   /**
-   * Uses the currency symbol of ConfigXml.
+   * Uses the currency symbol of the configuration (projectforge.currencySymbol).
    * @param value
    * @param locale
    * @return 1,234.00 €
@@ -72,7 +72,7 @@ public class CurrencyFormatter
   }
 
   /**
-   * Uses the currency symbol of ConfigXml.
+   * Uses the currency symbol of the configuration (projectforge.currencySymbol).
    * @param value
    * @param locale
    * @param withCurrencySymbol If true, appends currency symbol (default true for backward compatibility)

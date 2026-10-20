@@ -242,7 +242,7 @@ abstract class AbstractTestBase protected constructor() {
         DatabaseHelper.clearDatabase(persistenceService)
 
         Configuration(configurationService, persistenceService)
-        ConfigXmlTest.createTestConfiguration()
+        TestConfigurationParams.init()
 
         Registry.getInstance().init(applicationContext)
 

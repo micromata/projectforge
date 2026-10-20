@@ -264,6 +264,11 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
             param.legacyProperty?.let { property ->
                 takeOverLegacyProperty(configuration, param, applicationContext?.environment?.getProperty(property))
             }
+            ConfigXmlMigration.getJsonValue(param)?.let { json ->
+                // The value of the former config.xml instead of the default.
+                configuration.stringValue = json
+                ConfigXmlMigration.logTakeOver(param)
+            }
         }
         insert(configuration, checkAccess = false)
     }

@@ -25,7 +25,7 @@ package org.projectforge.plugins.datatransfer
 
 import org.projectforge.NextMigration
 import org.projectforge.business.admin.SystemStatistics
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.jcr.RepoService
 import org.projectforge.menu.Menu
@@ -62,7 +62,7 @@ class DataTransferPlugin :
         // Files of data transfer areas are stored in the file system by the new file store (projectforge.files.store=db):
         WicketSupport.get(RepoService::class.java).registerFileSystemPath(
             dataTransferAreaEntityRest.jcrPath!!,
-            File(ConfigXml.getInstance().applicationHomeDir, FILE_SYSTEM_DIR),
+            File(WicketSupport.get(ConfigurationService::class.java).applicationHomeDir, FILE_SYSTEM_DIR),
         )
 
         // Register it:

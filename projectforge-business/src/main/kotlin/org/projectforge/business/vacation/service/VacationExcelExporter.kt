@@ -39,14 +39,14 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.calendar.Holidays
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ConfigurationJsonValues
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.xmlstream.XmlHelper
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -499,18 +499,12 @@ object VacationExcelExporter {
 
   @JvmStatic
   fun main(vararg args: String) {
-    val xml = XmlHelper.replaceQuotes(
-      """<config>
-  <holidays>
-    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>
-    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>
-    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>
-    <holiday id='SHROVE_TUESDAY' ignore='true'/>
-    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>
-  </holidays>
-</config>"""
+    ConfigurationJsonValues.internalSetForTest(
+      ConfigurationParam.HOLIDAYS,
+      """[{"label":"Erster Mai","month":5,"dayOfMonth":1},{"label":"Dritter Oktober","month":10,"dayOfMonth":3},
+        |{"id":"XMAS_EVE","workingDay":true,"workFraction":0.5},{"id":"SHROVE_TUESDAY","ignore":true},
+        |{"id":"NEW_YEARS_EVE","workingDay":true,"workFraction":0.5}]""".trimMargin()
     )
-    ConfigXml.internalSetInstance(xml)
     val vacationsByEmployee = mutableListOf<VacationService.VacationsByEmployee>()
     val kai = createEmployee("Kai", "Reinhard")
     var vacations = mutableListOf<VacationDO>()

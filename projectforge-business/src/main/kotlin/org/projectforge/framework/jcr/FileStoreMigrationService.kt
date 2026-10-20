@@ -24,7 +24,7 @@
 package org.projectforge.framework.jcr
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jobs.AbstractJob
 import org.projectforge.framework.jobs.JobHandler
@@ -58,7 +58,7 @@ class FileStoreMigrationService {
      * The report of the last migration run.
      */
     val reportFile: File
-        get() = File(ConfigXml.getInstance().applicationHomeDir, REPORT_FILENAME)
+        get() = File(ConfigurationServiceAccessor.get().applicationHomeDir, REPORT_FILENAME)
 
     /**
      * True, if all files are stored by the file store (`projectforge.files.store=db`).

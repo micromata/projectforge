@@ -29,7 +29,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import java.io.Serializable;
 
 /**
- * Bean used by ConfigXML (config.xml).
+ * Part of the LDAP settings (see LdapConfig).
  * 
  * @author Kai Reinhard
  */

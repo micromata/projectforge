@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * This LDAP login handler acts as a LDAP slave, meaning, that LDAP will be accessed in read-only mode. There are 3
  * modes available: simple, users and users-groups.
- * <h4>Simple mode</h4> The simple mode is assumed if no ldap managerUser is given in the config.xml.
+ * <h4>Simple mode</h4> The simple mode is assumed if no ldap managerUser is configured (projectforge.ldap.managerUser).
  * <ul>
  * <li>Simple means that only username and password is checked, all other user settings such as assigned groups and user
  * name etc. are managed by ProjectForge.</li>
@@ -59,7 +59,7 @@ import java.util.List;
  * uses his stay-logged-in-method! (If not acceptable please use the normal user mode instead.)</li>
  * <li>For local users any LDAP setting is ignored.</li>
  * </ul>
- * <h4>Normal users mode</h4> The normal user mode is assumed if a ldap managerUser is given in the config.xml.
+ * <h4>Normal users mode</h4> The normal user mode is assumed if a ldap managerUser is configured (projectforge.ldap.managerUser).
  * <ul>
  * <li>Normal means that username and password is checked and all other user settings such as user name etc. are read by
  * a given ldap manager user.</li>

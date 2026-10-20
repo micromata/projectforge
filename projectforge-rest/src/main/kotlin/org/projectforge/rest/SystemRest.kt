@@ -234,17 +234,8 @@ class SystemRest {
     fun rereadConfiguration(): MessageResponse {
         checkWriteAccess()
         log.info { "Administration: reread configuration." }
-        val result = systemService.rereadConfiguration()
-        return MessageResponse(translateMsg("administration.rereadConfiguration", result ?: ""))
-    }
-
-    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
-    @GetMapping("exportConfiguration")
-    fun exportConfiguration(): ResponseEntity<*> {
-        checkWriteAccess()
-        log.info { "Administration: export configuration." }
-        val filename = "config-${DateHelper.getDateAsFilenameSuffix(Date())}.xml"
-        return RestUtils.downloadFile(filename, systemService.exportConfiguration() ?: "")
+        systemService.rereadConfiguration()
+        return MessageResponse(translate("administration.rereadConfiguration"))
     }
 
     @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")

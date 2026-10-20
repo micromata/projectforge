@@ -133,7 +133,8 @@ ProjectForge finds it. The following files and directories are created if they d
 
 [width="100%",cols="50%,50%",]
 |===
-|`projectforge.properties`, `config.xml` |Configuration files, written by the setup wizard.
+|`projectforge.properties` |Configuration file, written by the setup wizard. A former `config.xml` is taken over
+into the configuration parameters on the first start and renamed to `config.xml.migrated` (may be removed afterwards).
 
 |`database` |The embedded database (HSQLDB), if used.
 
@@ -151,8 +152,14 @@ directory and rebuild the indices via _Administration_ -> _System_ -> _Reindex_.
 
 |`jcr` |The former document repository (JCR), only for installations not yet migrated, see <<moving_the_files_out_of_the_jcr>>.
 
-|`work` |Working directory for temporary files.
+|`work` |Working directory, e.g. for states of synchronizations.
+
+|`tmp` |Temporary files, e.g. debug logs.
 |===
+
+The directories `jcr`, `work`, `tmp` and `backup` may be placed elsewhere by the properties `projectforge.dir.jcr`,
+`projectforge.dir.work`, `projectforge.dir.tmp` and `projectforge.dir.backup` (absolute or relative to the home
+directory).
 
 [[configuration_file_application_properties]]
 === Configuration file application.properties
@@ -270,9 +277,11 @@ To find available i18n keys that you can override, refer to:
 === Configuration settings (web interface)
 
 Under _Administration_ -> _Configuration_ you can set further parameters of ProjectForge® such as the default time
-zone, the country phone prefix or cost-unit accounting. Each parameter is explained there.
+zone, the country phone prefix or cost-unit accounting. Each parameter is explained there. Structured settings are
+JSON values, e.g. the holidays (additional ones and changes of the built-in ones), the JIRA servers, the contract types
+and the accounting settings including the business assessment (see <<business_assessment_bwa>>).
 
-_Administration_ -> _System_ offers among others: re-reading and exporting `config.xml`, exporting the 2FA
+_Administration_ -> _System_ offers among others: re-reading the configuration parameters, exporting the 2FA
 configuration, re-indexing the search index and system integrity checks.
 
 [[using_ttf_fonts_for_pdf_render_engine]]
@@ -610,13 +619,36 @@ belongs to a project, otherwise the element's title.
 === business assessment / BWA
 
 If you work with accounting records (DATEV) you may want to have
-business assessments (BWA in German). They are configured in `config.xml` (element `businessAssessment`).
+business assessments (BWA in German). They are configured in the configuration parameter _Accounting_
+(`fibu.accounting`, element `businessAssessment`).
 The business assessments of DATEV consist of rows. Each row has a line number (no) and a title (for
 displaying). The `accountRange` defines which DATEV accounts match the
 row. Please note that a record is assigned to the first row found. +
 If the priority of a row is not high, the row will not be shown in the
 short form of business assessments. The value defines row amounts which
-are calculated (see the example in the `config.xml` created by the setup wizard).
+are calculated: a formula of row ids starting with `=` or a Groovy script returning the amount. The account number
+ranges of debitors and creditors are part of this parameter, too. Example:
+
+[source,json]
+----
+{
+  "debitorsAccountNumberRanges": "10000-12999",
+  "creditorsAccountNumberRanges": "70000-79999",
+  "businessAssessment": {
+    "heading": "BWA",
+    "overallPerformance": "gesamtleistung",
+    "merchandisePurchase": "matWareneinkauf",
+    "preliminaryResult": "vorlaeufigesErgebnis",
+    "rows": [
+      {"no": "1020", "id": "umsatzErloese", "accountRange": "4000-4799", "priority": "MIDDLE", "title": "Umsatzerlöse", "indent": 1},
+      {"no": "1051", "id": "gesamtleistung", "value": "=umsatzErloese", "priority": "HIGH", "title": "Gesamtleistung"},
+      {"no": "1060", "id": "matWareneinkauf", "accountRange": "5700-5999", "priority": "HIGH", "title": "Mat./Wareneinkauf"},
+      {"no": "1380", "id": "vorlaeufigesErgebnis", "value": "=gesamtleistung+matWareneinkauf", "priority": "HIGH", "title": "Vorläufiges Ergebnis"},
+      {"id": "relativePerformance", "value": "if (gesamtleistung != 0.0) { return vorlaeufigesErgebnis / gesamtleistung } else { return 0.0 }", "priority": "HIGH", "title": "relative Performance", "scale": 4}
+    ]
+  }
+}
+----
 
 [[securityconfig]]
 === SecurityConfig

@@ -106,7 +106,7 @@ public class LdapPosixAccountsUtils
   }
 
   /**
-   * Sets next free uid, the gid (configured in config.xml), the home directory (built of standard prefix and the given
+   * Sets next free uid, the gid (projectforge.ldap.posixAccountsDefaultGidNumber), the home directory (built of standard prefix and the given
    * user's username) and the configured login-shell.
    *
    * @param ldapUserValues
@@ -118,7 +118,7 @@ public class LdapPosixAccountsUtils
   }
 
   /**
-   * Sets next free uid, the gid (configured in config.xml), the home directory (built of standard prefix and the given
+   * Sets next free uid, the gid (projectforge.ldap.posixAccountsDefaultGidNumber), the home directory (built of standard prefix and the given
    * user's username) and the configured login-shell.
    *
    * @param ldapUserValues

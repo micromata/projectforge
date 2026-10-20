@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.calendar;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xmlstream.XmlField;
 import org.projectforge.framework.xmlstream.XmlObject;
@@ -30,12 +32,16 @@ import org.projectforge.framework.xmlstream.XmlObject;
 import java.math.BigDecimal;
 
 /**
- * Used in config.xml for (re-)definition of holidays.
+ * (Re-)definition of a holiday, stored as JSON in the configuration parameter holidays (see HolidaysConfig). The xml
+ * annotations are only used for reading the former config.xml.
  *
  * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "holiday")
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ConfigureHoliday
 {
   @XmlField(asAttribute = true)

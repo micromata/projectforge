@@ -29,8 +29,7 @@ import org.projectforge.framework.xmlstream.XmlObject;
 import java.io.Serializable;
 
 /**
- * Bean used for serialization and deserialization of the ldap values as xml string in {@link GroupDO#getLdapValues()} ConfigXML
- * (config.xml).
+ * Bean used for serialization and deserialization of the ldap values as xml string in {@link GroupDO#getLdapValues()}.
  * @author Kai Reinhard
  */
 @XmlObject(alias = "values")
