@@ -51,6 +51,13 @@ open class MyScriptDao : AbstractScriptDao() {
   }
 
   /**
+   * Executing users never add scripts here, see [hasAccess].
+   */
+  override fun hasInsertAccess(user: PFUserDO): Boolean {
+    return false
+  }
+
+  /**
    * User must be member of group controlling or finance.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao.hasDeleteAccess
