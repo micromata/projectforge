@@ -200,8 +200,11 @@ test.describe("skillentry", { tag: "@parallel" }, () => {
         format.t("plugins.skillmatrix.rating.3")
       );
       await dialog.getByRole("button", { name: format.t("save") }).click();
+      // The comment is declared with an append option, so the form presets its flag; without a text it
+      // changes nothing (TextFieldModification).
       expect((await posted).postDataJSON()).toEqual({
         rating: { textValue: "3" },
+        comment: { append: true },
       });
     } finally {
       await cancelSelection(page);

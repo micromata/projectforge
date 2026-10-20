@@ -416,7 +416,7 @@ export function ProjectWizard() {
           onFinish={() => execute.mutate()}
           finishLabel={
             withProject
-              ? t("project.wizard.finish")
+              ? t("project.wizard.finish._")
               : t("project.wizard.finish.customer")
           }
         />

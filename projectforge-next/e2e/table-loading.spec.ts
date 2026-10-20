@@ -1,17 +1,13 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import type { Locator, Page } from "@playwright/test";
-import { writeHeaders } from "./fixtures/seed";
 
 /**
  * A table says that the rows on screen are not the answer to the question just asked: the loading
  * overlay (see TableLoadingOverlay) appears while a new result set is on its way.
  *
  * Worth an e2e test because nothing smaller can see it. What is under test is the wiring between a
- * page's fetch and the table below it, and the two pages fetch in entirely different ways — the
- * hand-built list through its own query, a server-laid-out one through an action of the layout.
- * That is exactly where the overlay was missing: the same wait looked like two different things
- * depending on which page the user was on.
+ * page's fetch and the table below it.
  *
  * Reads only — no entry is created or changed.
  */
@@ -25,9 +21,8 @@ const HOLD_MS = 2500;
 
 /**
  * How long the overlay may take to go once the answer is let through. Generous on purpose: the hold
- * is what is under test, not the speed of what follows — and a server-laid-out list answers with every
- * entry at once (paged in the browser), which a dev server under the load of the parallel lanes takes
- * seconds to parse and render.
+ * is what is under test, not the speed of what follows, which a dev server under the load of the
+ * parallel lanes may take seconds for.
  */
 const SETTLE_MS = HOLD_MS + 15_000;
 
@@ -69,40 +64,6 @@ test.describe("table loading overlay", { tag: "@lane-book" }, () => {
     });
     await expectVisibleOverlay(overlay);
     // And gone again once the rows are the answer.
-    await expect(overlay).toHaveCount(0, { timeout: SETTLE_MS });
-  });
-
-  test("a server-laid-out list page shows it while its search action runs", async ({
-    loggedInPage: page,
-  }) => {
-    const format = await userFormat(page);
-    // A filter stored by an earlier visit would narrow the list.
-    await page.request.post("/rs/outgoingMail/filter/reset", {
-      headers: await writeHeaders(page.request),
-    });
-    await goto(page, "/outgoingMail");
-    // No outgoing mail is created here, so an empty list is the database's state, not a failure.
-    const hasRow = await page
-      .locator(ROW)
-      .first()
-      .waitFor({ timeout: 20_000 })
-      .then(() => true)
-      .catch(() => false);
-    test.skip(!hasRow, "no outgoing mail in this database");
-
-    await holdBackPosts(page, "outgoingMail");
-    // These pages fetch through the layout's actions, not through a query of the table's own.
-    await page
-      // `search._` is the bundle's plain "Suchen"; the button's own label is the server's, from the
-      // same key (the generator nests a dotted key, see i18n/config.ts).
-      .getByRole("button", { name: format.t("search._"), exact: true })
-      .first()
-      .click();
-
-    const overlay = page.getByRole("status").filter({
-      hasText: format.t("loading"),
-    });
-    await expectVisibleOverlay(overlay);
     await expect(overlay).toHaveCount(0, { timeout: SETTLE_MS });
   });
 

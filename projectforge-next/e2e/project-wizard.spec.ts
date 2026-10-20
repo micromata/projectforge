@@ -53,7 +53,7 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
     await goto(page, PAGE);
 
     const finish = page.getByRole("button", {
-      name: format.t("project.wizard.finish"),
+      name: format.t("project.wizard.finish._"),
     });
     await expect(finish).toBeDisabled({ timeout: 20_000 });
     // Numbered „1. Kunde“ etc. (WizardStepCard), matched whole: „Kunde“ is part of other headings too.
