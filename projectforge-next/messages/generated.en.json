@@ -2849,6 +2849,9 @@
       "contractPersonA": "contract person A",
       "contractPersonB": "contract person B",
       "number": "Contract number",
+      "sections": {
+        "general": "Contract"
+      },
       "signerA": "signer A",
       "signerB": "signer B",
       "signing": "signing",
@@ -2861,8 +2864,13 @@
         "suspended": "suspended",
         "unknown": "unknown"
       },
+      "title": {
+        "add": "New contract",
+        "list": "List of contracts"
+      },
       "type": "Type",
       "validity": {
+        "_": "Validity",
         "from": "Validity from",
         "until": "Validity until"
       }

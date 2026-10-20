@@ -2849,6 +2849,9 @@
       "contractPersonA": "Ansprechpartner:in A",
       "contractPersonB": "Ansprechpartner:in B",
       "number": "Vertragsnummer",
+      "sections": {
+        "general": "Vertrag"
+      },
       "signerA": "Unterzeichner:in A",
       "signerB": "Unterzeichner:in B",
       "signing": "Unterzeichnung",
@@ -2861,8 +2864,13 @@
         "suspended": "verworfen",
         "unknown": "unbekannt"
       },
+      "title": {
+        "add": "Neuer Vertrag",
+        "list": "Verträge"
+      },
       "type": "Typ",
       "validity": {
+        "_": "Laufzeit",
         "from": "Laufzeit von",
         "until": "Laufzeit bis"
       }
