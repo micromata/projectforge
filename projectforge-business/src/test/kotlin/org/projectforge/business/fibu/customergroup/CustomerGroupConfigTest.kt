@@ -41,6 +41,20 @@ class CustomerGroupConfigTest {
         assertEquals(listOf("ACME Holding GmbH", "ACME*"), config.groups[0].texts)
         assertEquals(listOf("acmeg1"), config.businessUnits[0].groups)
         assertEquals(listOf("*Spedition"), config.businessUnits[0].texts)
+        val grant = config.orderAccess.single()
+        assertEquals("BU Logistics", grant.name)
+        assertEquals(listOf(7L), grant.userIds)
+        assertEquals(listOf(8L), grant.groupIds)
+        assertEquals(listOf(101L), grant.customers)
+        assertEquals(listOf("othrg2"), grant.groups)
+        assertEquals(listOf("logbu1"), grant.businessUnits)
+    }
+
+    @Test
+    fun `a version 1 config without order access grants still reads`() {
+        val config = CustomerGroupConfig.parse("""{"version":1,"groups":[{"key":"acmeg1","name":"ACME"}]}""")
+        assertEquals("ACME", config.groups.single().name)
+        assertTrue(config.orderAccess.isEmpty())
     }
 
     @Test
@@ -142,6 +156,27 @@ class CustomerGroupConfigTest {
             businessUnits = mutableListOf(
                 businessUnit("logbu1", "Logistics", listOf("acmeg1"), listOf(310), listOf("*Spedition")),
             ),
+            orderAccess = mutableListOf(
+                grant("grant1", "BU Logistics", listOf(7), listOf(8), listOf(101), listOf("othrg2"), listOf("logbu1")),
+            ),
         )
+
+        fun grant(
+            key: String?,
+            name: String?,
+            userIds: List<Long> = emptyList(),
+            groupIds: List<Long> = emptyList(),
+            customers: List<Long> = emptyList(),
+            groups: List<String> = emptyList(),
+            businessUnits: List<String> = emptyList(),
+        ) = OrderAccessGrant().also {
+            it.key = key
+            it.name = name
+            it.userIds = userIds.toMutableList()
+            it.groupIds = groupIds.toMutableList()
+            it.customers = customers.toMutableList()
+            it.groups = groups.toMutableList()
+            it.businessUnits = businessUnits.toMutableList()
+        }
     }
 }

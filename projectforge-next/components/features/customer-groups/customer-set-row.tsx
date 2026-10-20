@@ -16,11 +16,13 @@ import type { CustomerSetValues } from "./types";
 export interface CustomerSetRowProps {
   /** Name prefix of the row's fields, e.g. `groups[2].`. */
   prefix: string;
-  set: CustomerSetValues;
+  set: Pick<CustomerSetValues, "name" | "customers" | "texts">;
   /** Names of a business unit's groups, listed ahead of its customers; none for a group. */
   groupNames?: string[];
   /** A business unit's tasks; listed by their own title, the last segment of the path. */
   tasks?: EntityRef[];
+  /** Listed first, before the groups: e.g. the users of an order access grant. */
+  leading?: ReactNode[];
   /** Added in this edit: open, since it is there to be filled in. */
   isNew: boolean;
   onRemove: () => void;
@@ -40,6 +42,7 @@ export function CustomerSetRow({
   set,
   groupNames = [],
   tasks = [],
+  leading = [],
   isNew,
   onRemove,
   removeLabel,
@@ -79,6 +82,7 @@ export function CustomerSetRow({
             </span>
           }
           details={[
+            ...leading,
             ...sorted(groupNames).map((name) => (
               <Badge
                 key={`g-${name}`}

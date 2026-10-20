@@ -1,0 +1,23 @@
+{
+  "type": "security",
+  "en": "Security hardening",
+  "de": "Sicherheits-Härtung",
+  "items": [
+    {
+      "en": "Stricter Content Security Policy by default (no eval, no foreign frames, objects or form targets), new Referrer-Policy and Permissions-Policy headers, no conflicting X-Frame-Options any more. An own value of projectforge.security.csp-header-value stays as it is.",
+      "de": "Strengere Content Security Policy als Standard (kein eval, keine fremden Frames, Objekte oder Formularziele), neue Header Referrer-Policy und Permissions-Policy, keine widersprüchlichen X-Frame-Options mehr. Ein eigener Wert von projectforge.security.csp-header-value bleibt unverändert."
+    },
+    {
+      "en": "The session id is renewed after a successful second factor.",
+      "de": "Die Session-ID wird nach einem erfolgreichen zweiten Faktor erneuert."
+    },
+    {
+      "en": "The preset of a new entry and the cloning of an entry require the right to add entries of this kind.",
+      "de": "Die Vorbelegung eines neuen Eintrags und das Klonen setzen das Recht voraus, solche Einträge anzulegen."
+    },
+    {
+      "en": "Html of the forecast analysis and of list notes is escaped or sanitized more thoroughly.",
+      "de": "HTML der Forecast-Analyse und von Listenhinweisen wird gründlicher escaped bzw. bereinigt."
+    }
+  ]
+}

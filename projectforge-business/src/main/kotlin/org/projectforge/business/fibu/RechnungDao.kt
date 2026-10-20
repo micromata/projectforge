@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFil
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightServiceImpl
 import org.projectforge.business.user.UserRightValue
@@ -70,9 +69,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
-
-    @Autowired
-    private lateinit var projektCache: ProjektCache
 
     /**
      * @return the rechnungCache
@@ -712,27 +708,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             return true
         }
         // Otherwise the user must be tied to the order as (additional) contact person, or to its project as one or
-        // through the project's manager group.
-        var hasAccess = false
-        if (orderInfo.isContact(user.id)) {
-            hasAccess = true
-        }
-        projektCache.getProjekt(orderInfo.projektId)?.let { projekt ->
-            if (UserGroupCache.getInstance().isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
-                || projekt.isContact(user.id)
-            ) {
-                hasAccess = true
-            }
-        }
-        if (!hasAccess) {
-            return false
-        }
-        if (!orderInfo.isVollstaendigFakturiert) {
-            return true
-        }
-        // Fully invoiced orders stay visible for a while, keyed off the performance/offer date (see AuftragRight).
-        val endDate = orderInfo.periodOfPerformanceEnd ?: orderInfo.angebotsDatum ?: return false
-        return LocalDate.now().toEpochDay() - endDate.toEpochDay() <= AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
+        // through the project's manager group, or be granted it (an invoice is only read).
+        return OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(orderInfo), includeGrants = true)
     }
 
     companion object {

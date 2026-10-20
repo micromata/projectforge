@@ -74,6 +74,7 @@ import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
 import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -790,9 +791,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * Only the id based overload of [ForecastOrderAnalysis.htmlExport] is exposed: it loads the order
    * through [AuftragDao] and thereby checks the read access, while the `htmlExport(orderInfo)` overload
    * takes an already loaded order and checks nothing.
+   *
+   * As text/plain: the html is meant for the dialog that inserts it, a browser opening the url directly must not
+   * render it.
    */
   @AccessChecked("DAO: AuftragDao.find")
-  @GetMapping("forecastAnalysis/{id}")
+  @GetMapping("forecastAnalysis/{id}", produces = [MediaType.TEXT_PLAIN_VALUE])
   fun forecastAnalysis(@PathVariable("id") id: Long): String {
     return forecastOrderAnalysis.htmlExport(orderId = id)
   }

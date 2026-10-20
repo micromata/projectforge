@@ -32,6 +32,7 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.InternalErrorException
@@ -303,7 +304,23 @@ constructor(
      */
     @GetMapping("newEntry")
     fun getNewEntry(request: HttpServletRequest): ResponseEntity<Any> {
+        // The preset may carry more than defaults (e.g. the variable names a script can use), so only for a user
+        // who may add an entry at all.
+        checkLoggedInUserInsertAccess()
         return ResponseEntity(newBaseDTO(request), HttpStatus.OK)
+    }
+
+    /**
+     * Throws an [AccessException] (HTTP 403 for projectforge-next, see GlobalDefaultExceptionHandler) if the
+     * logged-in user may not add entries of this entity at all. The entity wide check without an object: the DAO
+     * checks the actual entry again on insert.
+     *
+     * [BaseDao.hasLoggedInUserInsertAccess] only answers, it doesn't throw.
+     */
+    protected fun checkLoggedInUserInsertAccess() {
+        if (!baseDao.hasLoggedInUserInsertAccess()) {
+            throw AccessException("access.exception.noWriteAccess")
+        }
     }
 
     // ------------------------------------------------------------------------------------------
@@ -1137,9 +1154,8 @@ constructor(
         if (cloneSupport == CloneSupport.NONE) {
             return ResponseEntity(HttpStatus.NOT_IMPLEMENTED)
         }
-        // Throws an AccessException, which the exception handler answers as HTTP 406 with a validation
-        // error - the client shouldn't have offered the button (see ListMetaData.userAccess.insert).
-        baseDao.hasLoggedInUserInsertAccess()
+        // The client shouldn't have offered the button (see ListMetaData.userAccess.insert).
+        checkLoggedInUserInsertAccess()
         return ResponseEntity(prepareClone(postData.data) as Any, HttpStatus.OK)
     }
 
@@ -1173,8 +1189,8 @@ constructor(
             }
             // Validation or other errors: not saved, the client proceeds with editing the clone.
         } else {
-            // Throws an AccessException (HTTP 406), see cloneData.
-            baseDao.hasLoggedInUserInsertAccess()
+            // See cloneData.
+            checkLoggedInUserInsertAccess()
         }
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", clone))
     }

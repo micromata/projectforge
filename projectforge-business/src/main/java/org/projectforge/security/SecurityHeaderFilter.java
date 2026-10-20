@@ -52,16 +52,21 @@ public class SecurityHeaderFilter implements Filter
     if (response instanceof HttpServletResponse) {
       final HttpServletResponse res = (HttpServletResponse) response;
 
-      res.addHeader("X-XSS-Protection", "1; mode=block");
-      res.addHeader("X-DNS-Prefetch-Control", "off");
-      res.addHeader("X-Frame-Options", "SAMEORIGIN");
-      res.addHeader("X-Content-Type-Options", "nosniff");
+      // setHeader, not addHeader: Spring Security's header writer sends some of these, too, and a header sent twice
+      // with different values is ignored by the browser. Its X-Frame-Options is configured to SAMEORIGIN as well
+      // (SpringSecurityConfig, GatewaySecurityConfig).
+      // The XSS auditor this header used to switch on is gone from all browsers, and could be abused itself: 0 is
+      // the recommended value.
+      res.setHeader("X-XSS-Protection", "0");
+      res.setHeader("X-DNS-Prefetch-Control", "off");
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+      res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
 
-      // add Content Security Policy header if available, see http://cspisawesome.com/
+      // add Content Security Policy header if available (projectforge.security.csp-header-value)
       if (StringUtils.isNotBlank(cspHeaderValue)) {
-        res.addHeader("Content-Security-Policy", cspHeaderValue);
-        res.addHeader("X-Content-Security-Policy", cspHeaderValue);
-        res.addHeader("X-WebKit-CSP", cspHeaderValue);
+        res.setHeader("Content-Security-Policy", cspHeaderValue);
       }
     }
 

@@ -54,7 +54,51 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         checkClaims(
             businessUnitClaims(config, buOfGroup), BUSINESS_UNITS, ERROR_MEMBER_IN_TWO_BUSINESS_UNITS, errors,
         )
+        checkOrderAccess(config, errors)
         return errors
+    }
+
+    /**
+     * A name, someone granted and something granted, all of it known. Whether a user granted is a project manager
+     * or assistant is not checked: memberships change at any time, and the access check leaves out the others
+     * anyway (the editor shows them as a hint).
+     */
+    private fun checkOrderAccess(config: CustomerGroupConfig, errors: MutableList<CustomerGroupError>) {
+        val groupKeys = config.groups.mapNotNull { it.key }.toSet()
+        val businessUnitKeys = config.businessUnits.mapNotNull { it.key }.toSet()
+        val keys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
+        config.orderAccess.forEachIndexed { i, grant ->
+            val prefix = "$ORDER_ACCESS[$i]"
+            if (grant.name.isNullOrBlank()) {
+                errors.add(CustomerGroupError("$prefix.name", ERROR_NAME_REQUIRED))
+            }
+            grant.key?.let { key ->
+                if (!KEY_REGEX.matches(key) || !keys.add(key)) {
+                    errors.add(CustomerGroupError("$prefix.name", ERROR_INVALID_KEY, listOf(key)))
+                }
+            }
+            if (grant.userIds.isEmpty() && grant.groupIds.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.users", ERROR_GRANT_NOBODY))
+            }
+            if (grant.customers.isEmpty() && grant.groups.isEmpty() && grant.businessUnits.isEmpty()) {
+                errors.add(CustomerGroupError("$prefix.customers", ERROR_GRANT_NOTHING))
+            }
+            grant.userIds.filterNot { directory.userExists(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.users", ERROR_UNKNOWN_USER, listOf(it)))
+            }
+            grant.groupIds.filterNot { directory.groupExists(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.userGroups", ERROR_UNKNOWN_USER_GROUP, listOf(it)))
+            }
+            grant.customers.filterNot { directory.customers.containsKey(it) }.forEach {
+                errors.add(CustomerGroupError("$prefix.customers", ERROR_UNKNOWN_CUSTOMER, listOf(it)))
+            }
+            grant.groups.filterNot { it in groupKeys }.forEach {
+                errors.add(CustomerGroupError("$prefix.groups", ERROR_UNKNOWN_GROUP, listOf(it)))
+            }
+            grant.businessUnits.filterNot { it in businessUnitKeys }.forEach {
+                errors.add(CustomerGroupError("$prefix.businessUnits", ERROR_UNKNOWN_BUSINESS_UNIT, listOf(it)))
+            }
+        }
     }
 
     private fun checkSets(sets: List<CustomerSet>, list: String, errors: MutableList<CustomerGroupError>) {
@@ -261,6 +305,7 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
     companion object {
         const val GROUPS = "groups"
         const val BUSINESS_UNITS = "businessUnits"
+        const val ORDER_ACCESS = "orderAccess"
 
         /** Keys are assigned by the server (or a client for a group a business unit refers to in the same save). */
         val KEY_REGEX = Regex("^[a-z0-9]{4,20}$")
@@ -282,6 +327,11 @@ class CustomerGroupValidator(private val directory: CustomerDirectory) {
         const val ERROR_UNKNOWN_TASK = "fibu.customerGroups.error.unknownTask"
         const val ERROR_TASK_OVERLAP = "fibu.customerGroups.error.taskOverlap"
         const val ERROR_TASK_CONTAINS = "fibu.customerGroups.error.taskContains"
+        const val ERROR_GRANT_NOBODY = "fibu.customerGroups.error.grantNobody"
+        const val ERROR_GRANT_NOTHING = "fibu.customerGroups.error.grantNothing"
+        const val ERROR_UNKNOWN_USER = "fibu.customerGroups.error.unknownUser"
+        const val ERROR_UNKNOWN_USER_GROUP = "fibu.customerGroups.error.unknownUserGroup"
+        const val ERROR_UNKNOWN_BUSINESS_UNIT = "fibu.customerGroups.error.unknownBusinessUnit"
         const val ERROR_TOO_LARGE = "fibu.customerGroups.error.tooLarge"
         const val ERROR_MODIFIED_MEANWHILE = "fibu.customerGroups.error.modifiedMeanwhile"
     }

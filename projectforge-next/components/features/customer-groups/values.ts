@@ -5,6 +5,7 @@ import type {
   CustomerGroupsValues,
   CustomerSetData,
   CustomerSetValues,
+  OrderAccessValues,
 } from "./types";
 
 const KEY_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -24,9 +25,12 @@ export function newKey(used: ReadonlySet<string>): string {
   }
 }
 
+/** The keys of the groups, business units and order access grants: one key space on the server. */
 export function usedKeys(values: CustomerGroupsValues): Set<string> {
   return new Set(
-    [...values.groups, ...values.businessUnits].map((set) => set.key)
+    [...values.groups, ...values.businessUnits, ...values.orderAccess].map(
+      (row) => row.key
+    )
   );
 }
 
@@ -53,7 +57,7 @@ export function toFormValues(
   format?: FormatContext
 ): CustomerGroupsValues {
   const used = new Set<string>();
-  const byName = <T extends CustomerSetValues>(sets: T[]) =>
+  const byName = <T extends { name: string }>(sets: T[]) =>
     format ? sets.sort((a, b) => compareText(a.name, b.name, format)) : sets;
   return {
     groups: byName(
@@ -68,6 +72,22 @@ export function toFormValues(
         })
       )
     ),
+    orderAccess: byName(
+      (data.orderAccess ?? []).map((grant): OrderAccessValues => {
+        const key = grant.key || newKey(used);
+        used.add(key);
+        return {
+          key,
+          name: grant.name ?? "",
+          remark: grant.remark ?? "",
+          users: grant.users ?? [],
+          userGroups: grant.userGroups ?? [],
+          customers: grant.customers ?? [],
+          groups: grant.groups ?? [],
+          businessUnits: grant.businessUnits ?? [],
+        };
+      })
+    ),
     remark: data.remark ?? "",
     lastUpdate: data.lastUpdate ?? null,
   };
@@ -76,21 +96,30 @@ export function toFormValues(
 export const EMPTY_VALUES: CustomerGroupsValues = {
   groups: [],
   businessUnits: [],
+  orderAccess: [],
   remark: "",
   lastUpdate: null,
 };
 
 /**
- * What is posted: a business unit's reference to a group removed in this edit is dropped — the user
- * removed the group, and the server would refuse the dangling key.
+ * What is posted: a business unit's or grant's reference to a group (or a grant's to a business unit)
+ * removed in this edit is dropped — the user removed it, and the server would refuse the dangling key.
  */
 export function toPayload(values: CustomerGroupsValues): CustomerGroupsValues {
   const groupKeys = new Set(values.groups.map((group) => group.key));
+  const businessUnitKeys = new Set(values.businessUnits.map((bu) => bu.key));
   return {
     ...values,
     businessUnits: values.businessUnits.map((bu) => ({
       ...bu,
       groups: bu.groups.filter((key) => groupKeys.has(key)),
+    })),
+    orderAccess: values.orderAccess.map((grant) => ({
+      ...grant,
+      groups: grant.groups.filter((key) => groupKeys.has(key)),
+      businessUnits: grant.businessUnits.filter((key) =>
+        businessUnitKeys.has(key)
+      ),
     })),
   };
 }
