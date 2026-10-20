@@ -62,7 +62,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CHANGE_PASSWORD("menu.changePassword", "next/changePassword"), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", "next/changeWlanPassword"), //
     CONFIGURATION("menu.configuration", getListUrl("configuration")), //
-    CONTRACTS("menu.contracts", getReactListUrl("contract")), //
+    CONTRACTS("menu.contracts", getListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket pages (wa/cost1List, wa/cost2List, wa/cost2TypeList) were removed.
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //

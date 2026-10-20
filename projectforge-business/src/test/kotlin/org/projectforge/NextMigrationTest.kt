@@ -64,7 +64,7 @@ class NextMigrationTest {
         // menu links are built with and without leading slash.
         Assertions.assertTrue(NextMigration.isNextUrl(NextMigration.listUrl("order")))
         Assertions.assertTrue(NextMigration.isNextUrl("/${NextMigration.listUrl("cost1")}"))
-        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("contract")))
+        Assertions.assertFalse(NextMigration.isNextUrl(NextMigration.listUrl("outgoingMail")))
         Assertions.assertFalse(NextMigration.isNextUrl("wa/cost2List"))
         Assertions.assertFalse(NextMigration.isNextUrl(null))
     }
@@ -86,7 +86,7 @@ class NextMigrationTest {
             NextMigration.nextEditPage("book"),
         )
         // Not migrated at all, so there is no next form to name.
-        Assertions.assertNull(NextMigration.nextEditPage("contract"))
+        Assertions.assertNull(NextMigration.nextEditPage("outgoingMail"))
     }
 
     /**
@@ -304,6 +304,23 @@ class NextMigrationTest {
         val link = NextMigration.orphanedLinks().single { it.category == "leaveAccountEntry" }
         Assertions.assertEquals("react/leaveAccountEntry", link.legacyListPath)
         Assertions.assertEquals("react/leaveAccountEntry/edit", link.legacyEditPath)
+    }
+
+    /**
+     * The contracts: list and form are next's, the React pages are gone, so there is no way back, but a bookmarked
+     * React link is still redirected onto next.
+     */
+    @Test
+    fun `the contract pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/contract", NextMigration.listUrl("contract"))
+        Assertions.assertEquals("next/contract/:id", NextMigration.standardEditPage("contract"))
+        Assertions.assertEquals("next/contract/new", NextMigration.newEntryUrl("contract"))
+        Assertions.assertNull(NextMigration.legacyListUrl("contract"))
+        Assertions.assertNull(NextMigration.legacyEditPage("contract"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("contract"))
+        val link = NextMigration.orphanedLinks().single { it.category == "contract" }
+        Assertions.assertEquals("react/contract", link.legacyListPath)
+        Assertions.assertEquals("react/contract/edit", link.legacyEditPath)
     }
 
     /**

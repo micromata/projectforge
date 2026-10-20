@@ -279,6 +279,14 @@ class OrphanedLinkFilterTest {
         Assertions.assertNotEquals("/next/vacation", redirectOf("/react/vacationExport/dynamic"))
     }
 
+    /** The old React contract pages are gone, list and form are next's. */
+    @Test
+    fun `the old react contract pages are redirected to next`() {
+        Assertions.assertEquals("/next/contract", redirectOf("/react/contract"))
+        Assertions.assertEquals("/next/contract/42", redirectOf("/react/contract/edit/42"))
+        Assertions.assertEquals("/next/contract/new", redirectOf("/react/contract/edit"))
+    }
+
     /** The old React 2FA setup and its WebAuthn key page are gone, the 2FA page itself stays. */
     @Test
     fun `the old react 2FA setup is redirected to next`() {
@@ -528,7 +536,7 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/", redirectOf("/wa"))
         Assertions.assertEquals("/next/", redirectOf("/wa/anything"))
         Assertions.assertEquals("/next/", redirectOf("/wa/wicket/page", mapOf("3" to "")))
-        Assertions.assertNull(redirectOf("/react/contract"))
+        Assertions.assertNull(redirectOf("/react/outgoingMail"))
         Assertions.assertNull(redirectOf("/next/task"))
         Assertions.assertNull(redirectOf("/water"))
     }

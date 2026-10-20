@@ -256,13 +256,19 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
         return persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onDelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "markAsDeleted")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could delete
+                // a foreign entry by posting it with the own user as owner (or into the own calendar, task, ...).
+                baseDao?.checkLoggedInUserDeleteAccess(dbObj, dbObj)
+            }
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
+            if (checkAccess) {
+                // The posted values are taken along, so they have to pass too.
                 baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
             }
             obj.deleted = true
@@ -313,13 +319,19 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UNDELETE)
         return persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onUndelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "undelete")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could take
+                // over a foreign deleted entry by posting it with the own user as owner.
+                baseDao?.checkLoggedInUserInsertAccess(dbObj)
+            }
+            baseDao?.changedRegistry?.onUndelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
+            if (checkAccess) {
+                // The posted values are taken along (an entry re-created by undeleting it), so they have to pass too.
                 baseDao?.checkLoggedInUserInsertAccess(obj)
             }
             obj.deleted = false
@@ -385,15 +397,16 @@ class BaseDOPersistenceService {
         }
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
-            baseDao?.changedRegistry?.onDelete(obj)
-            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
             val dbObj = requireDbObj(context, useClass, obj.id, "delete (force=$force)")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
+                // The stored entry decides, before the hooks act (e.g. remove dependent data).
+                baseDao?.checkLoggedInUserDeleteAccess(dbObj, dbObj)
             }
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             context.delete(dbObj) // Don't use em.remove directly, due to PersistenceCallsStats.
             em.flush()
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {

@@ -309,7 +309,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
   (Zellen), `JiraIssuesLinks` (Formularfeld-Zeile), `makeJiraFieldLinks(fieldName)`
-  (deklarative Felder). Offen für spätere Seiten: Contract.
+  (deklarative Felder), u. a. für Aufträge und Verträge.
 
 ## Phasen
 
@@ -368,8 +368,8 @@ bislang auf eine dynamische next-Seite.
 - **Listen** rendern mit der echten `DataTable` (Adapter `lib/dynamic/grid/`,
   Zell-Formatter-Registry `components/data-table/cells/`). **Kein `Function()`/`eval`:**
   `valueGetter`/`valueFormatter` strikt als Punktpfad; `getRowClass` deklarativ aus den
-  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `contract`, zuvor `employee`,
-  `vacation`, `skillentry`, `address`).
+  Prädikat-Formen der Sender. Verifiziert (`e2e/dynamic-grid.spec.ts`: `outgoingMail`, zuvor `contract`,
+  `employee`, `vacation`, `skillentry`, `address`).
 
 **Verbliebene Lücken:**
 
@@ -601,6 +601,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `newBaseDTO` setzt heute als Datum und den Mitarbeiter aus `?employee=`. Neu: HR (Schreibrecht) legt im
   Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter an (`newLeaveAccountEntryUrl`). Rückweg:
   Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
+- **Verträge** (`contract`, Liste + Formular, vorher React-UILayout `ContractPagesRest`, gelöscht) – layoutfrei
+  über `ContractEntityRest` (`/rs/contract`, gleicher Pfad). Der Jahr-Filter der React-Liste ist der Zeitraumfilter
+  der Datumsspalte (Default „Jahr“); ein beim Nutzer gespeicherter `year`-Eintrag wirkt weiter (`preProcessMagicFilter`)
+  und bleibt deshalb als (nicht angepinntes) Filterelement angeboten – sonst wäre er unsichtbar und nicht entfernbar.
+  Vertragsarten aus dem Konfigurationsparameter `orga.contractTypes` über `/rs/contract/types`; Titel,
+  Vertragspartner, Ansprechpartner und Unterzeichner mit Autovervollständigung, JIRA-Links im Text, Anhänge,
+  Klonen (ohne Nummer), Prüfung „kein Datum in der Zukunft“ im Backend. Entfallen: die aus der längsten Vertragsart
+  berechnete Breite der Typ-Spalte. `react/contract/**` leitet `OrphanedLinkFilter` um.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von

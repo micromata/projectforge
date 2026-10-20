@@ -24,6 +24,7 @@ import {
 } from "@tanstack/react-table";
 import {
   columnIdOfDef,
+  withDeclaredColumns,
   withLockedFirst,
   withPinnedFirst,
 } from "./column-order";
@@ -169,11 +170,16 @@ export function useDataTable<TData>({
   // The order the table renders in — not the one the caller holds and persists: a pinned column has
   // to be rendered in its pinning group, or its sticky offset and its slot in the row disagree and the
   // pinned columns overlap (see withPinnedFirst). The locked ones go first, before that fix-up runs, so
-  // withPinnedFirst finds them in the order it works over (it drops a pinned id the order lacks).
+  // withPinnedFirst finds them in the order it works over (it drops a pinned id the order lacks). Before
+  // both, the stored order is reconciled with the declared columns (see withDeclaredColumns).
   const effectiveOrder = useMemo(
     () =>
       withPinnedFirst(
-        withLockedFirst(columnOrder ?? internalOrder, lockedIds, allIds),
+        withLockedFirst(
+          withDeclaredColumns(columnOrder ?? internalOrder, allIds),
+          lockedIds,
+          allIds
+        ),
         effectivePinning,
         allIds
       ),

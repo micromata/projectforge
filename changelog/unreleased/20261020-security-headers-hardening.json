@@ -46,6 +46,30 @@
     {
       "en": "The unused QR code image endpoints are removed; QR codes are delivered as data urls only.",
       "de": "Die ungenutzten Endpunkte für QR-Code-Bilder sind entfernt; QR-Codes kommen nur noch als Data-URLs."
+    },
+    {
+      "en": "Order book: whether a project manager may change or delete an order is decided by the stored order as well; saving a foreign order with the own project no longer takes it over.",
+      "de": "Auftragsbuch: Ob Projektleitende einen Auftrag ändern oder löschen dürfen, entscheidet auch der gespeicherte Auftrag; ein fremder Auftrag lässt sich nicht mehr durch Speichern mit dem eigenen Projekt übernehmen."
+    },
+    {
+      "en": "Ending a mass update (cancel) is sent as POST.",
+      "de": "Das Beenden einer Massenänderung (Abbrechen) wird per POST gesendet."
+    },
+    {
+      "en": "Deleting and restoring an entry are decided by the stored entry as well, not only by the posted one: a foreign entry (e.g. a memo, timesheet or calendar) can no longer be taken over by deleting or restoring it with the own user as owner.",
+      "de": "Ob ein Eintrag gelöscht oder wiederhergestellt werden darf, entscheidet auch der gespeicherte Eintrag, nicht nur der gesendete: Ein fremder Eintrag (z. B. Memo, Zeitbericht oder Kalender) lässt sich nicht mehr durch Löschen oder Wiederherstellen mit dem eigenen Benutzer als Besitzer übernehmen."
+    },
+    {
+      "en": "Calendar events: changing or deleting an event also requires write access to its stored calendar; a foreign event can no longer be moved into the own calendar.",
+      "de": "Kalendertermine: Ändern oder Löschen eines Termins verlangt auch Schreibzugriff auf seinen gespeicherten Kalender; ein fremder Termin lässt sich nicht mehr in den eigenen Kalender verschieben."
+    },
+    {
+      "en": "To-dos, Merlin templates and polls: whether an entry may be changed is decided by the stored entry as well (assignee, admins, owner), not only by the saved one.",
+      "de": "To-dos, Merlin-Vorlagen und Umfragen: Ob ein Eintrag geändert werden darf, entscheidet auch der gespeicherte Eintrag (Zuständige, Admins, Besitzer), nicht nur der gesendete."
+    },
+    {
+      "en": "System groups can no longer be deleted by sending them under another name.",
+      "de": "Systemgruppen lassen sich nicht mehr löschen, indem sie unter anderem Namen gesendet werden."
     }
   ]
 }

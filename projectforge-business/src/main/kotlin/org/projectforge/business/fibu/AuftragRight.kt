@@ -151,9 +151,13 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
         } else if (obj != null) {
             // User should be a PROJECT_MANAGER or PROJECT_ASSISTANT or user has PARTLYREADWRITE access: tied to the
             // order, or granted it for reading only.
-            return OrderSelectAccess.hasAccess(
-                user, OrderAccessFacts.of(obj), includeGrants = operationType == OperationType.SELECT,
-            )
+            val includeGrants = operationType == OperationType.SELECT
+            if (!OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(obj), includeGrants)) {
+                return false
+            }
+            // On update and delete the stored order decides as well, not only the posted one: otherwise anybody
+            // could take over a foreign order by posting it with the own project or as its contact person.
+            return oldObj == null || OrderSelectAccess.hasAccess(user, OrderAccessFacts.of(oldObj), includeGrants)
         }
         return true
     }
