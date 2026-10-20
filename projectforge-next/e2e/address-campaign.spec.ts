@@ -3,6 +3,7 @@ import { userFormat } from "./fixtures/format";
 import { ADDRESS_CAMPAIGN_METADATA } from "../lib/metadata/address-campaign.generated";
 import { ADDRESS_CAMPAIGN_PAGE } from "../components/features/address-campaign/address-campaign.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The address campaign page of the marketing plugin against the live backend (see ADDRESS_CAMPAIGN_PAGE
@@ -14,8 +15,8 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 test.describe("address campaign", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/addressCampaign/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/addressCampaign/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

@@ -25,43 +25,46 @@ package org.projectforge.plugins.skillmatrix
 
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
-import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.Employee
-import org.projectforge.rest.dto.Kost1
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.SkillEntry
 import org.projectforge.rest.dto.User
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * The layout-free REST endpoint of the skill matrix, serving the hand-built projectforge-next page (see
+ * components/features/skill-entry). Replaces the retired `SkillEntryPagesRest`, whose server-side `UILayout`
+ * (React) moved onto the frontend; the path `/rs/skillentry` is unchanged.
+ *
+ * Everybody reads the skills of all users, but writes only the own ones ([SkillRight]). The list shows only the
+ * own skills by default (filter "my skills"), and a clone always belongs to the logged-in user.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/skillentry")
-class SkillEntryPagesRest() : AbstractDTOPagesRest<SkillEntryDO, SkillEntry, SkillEntryDao>(
+class SkillEntryEntityRest : AbstractDTOEntityRest<SkillEntryDO, SkillEntry, SkillEntryDao>(
     SkillEntryDao::class.java,
     "plugins.skillmatrix.title",
-    cloneSupport = CloneSupport.CLONE
+    cloneSupport = CloneSupport.CLONE,
 ) {
     @Autowired
     private lateinit var caches: PfCaches
 
     /**
-     * Initializes new memos for adding.
+     * A new skill belongs to the logged-in user.
      */
     override fun newBaseDO(request: HttpServletRequest?): SkillEntryDO {
-        val memo = super.newBaseDO(request)
-        memo.owner = ThreadLocalUserContext.loggedInUser
-        return memo
+        val entry = super.newBaseDO(request)
+        entry.owner = ThreadLocalUserContext.loggedInUser
+        return entry
     }
 
     override fun transformFromDB(obj: SkillEntryDO, editMode: Boolean): SkillEntry {
@@ -80,38 +83,6 @@ class SkillEntryPagesRest() : AbstractDTOPagesRest<SkillEntryDO, SkillEntry, Ski
         val entryDO = SkillEntryDO()
         dto.copyTo(entryDO)
         return entryDO
-    }
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            userAccess = userAccess,
-        )
-            .add(lc, "lastUpdate", "skill", "owner")
-            .add(lc, "rating", formatter = UIAgGridColumnDef.Formatter.RATING)
-            .add(lc, "interest", formatter = UIAgGridColumnDef.Formatter.RATING)
-            .add(lc, "comment")
-            .withMultiRowSelection(request, magicFilter)
-
-        layout.add(
-            MenuItem(
-                "skillmatrix.export",
-                i18nKey = "exportAsXls",
-                url = SkillMatrixServicesRest.REST_EXCEL_EXPORT_PATH,
-                type = MenuItemTargetType.DOWNLOAD
-            )
-        )
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -150,42 +121,5 @@ class SkillEntryPagesRest() : AbstractDTOPagesRest<SkillEntryDO, SkillEntry, Ski
         val clone = super.prepareClone(dto)
         clone.owner = User(ThreadLocalUserContext.requiredLoggedInUser)
         return clone
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: SkillEntry, userAccess: UILayout.UserAccess): UILayout {
-        val skillRating = UIRatingStars(
-            "rating",
-            lc,
-            Array(SkillEntryDO.MAX_VAL_RATING + 1) { idx -> translate("plugins.skillmatrix.rating.$idx") },
-            label = "plugins.skillmatrix.rating"
-        )
-        val interestRating = UIRatingStars(
-            "interest",
-            lc,
-            Array(SkillEntryDO.MAX_VAL_INTEREST + 1) { idx -> translate("plugins.skillmatrix.interest.$idx") },
-            label = "plugins.skillmatrix.interest"
-        )
-        val skill = UIInput("skill", lc).enableAutoCompletion(this)
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(skill)
-            .add(
-                UIRow()
-                    .add(
-                        UICol(UILength(md = 4)).add(
-                            UIReadOnlyField(
-                                "owner.displayName",
-                                lc,
-                                label = "plugins.skillmatrix.owner"
-                            )
-                        )
-                    )
-                    .add(UICol(UILength(md = 4)).add(skillRating))
-                    .add(UICol(UILength(md = 4)).add(interestRating))
-            )
-            .add(lc, "comment")
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

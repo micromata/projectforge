@@ -1,4 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * Opening an entry from a list creates its history entry within the click, and back returns to the
@@ -16,7 +17,9 @@ const ROW = "tbody tr[data-row-id]";
 test.describe("back navigation", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
     // Records for every pushState whether a click was being dispatched at that moment.
     await page.addInitScript(() => {

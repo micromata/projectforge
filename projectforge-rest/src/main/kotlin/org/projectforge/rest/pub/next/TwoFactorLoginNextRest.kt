@@ -78,13 +78,13 @@ open class TwoFactorLoginNextRest {
     }
 
     @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
-    @GetMapping("sendSmsCode")
+    @PostMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendSmsCode(request) }
     }
 
     @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
-    @GetMapping("sendMailCode")
+    @PostMapping("sendMailCode")
     fun sendMailCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendMailCode(request) }
     }

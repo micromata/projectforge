@@ -6,6 +6,7 @@ import { EMPLOYEE_METADATA } from "../lib/metadata/employee.generated";
 import { EMPLOYEE_PAGE } from "../components/features/employee/employee.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import type { Page } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The employee page against the live backend (see EMPLOYEE_PAGE and EmployeeEntityRest).
@@ -17,8 +18,8 @@ import type { Page } from "@playwright/test";
 test.describe("employee", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/employee/filter/reset", {
-        headers: { "X-PF-Frontend": "next" },
+      .post("/rs/employee/filter/reset", {
+        headers: await writeHeaders(page.request),
       })
       .catch(() => undefined);
   });

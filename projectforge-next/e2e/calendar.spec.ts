@@ -121,7 +121,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     );
 
     // Leave the account's setting as it was found.
-    await calendarGet(page, `changeGridSize?size=${original}`);
+    await calendarPost(page, `changeGridSize?size=${original}`);
   });
 
   test("remembers which absences are shown across a reload", async ({
@@ -205,7 +205,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     ).toHaveClass(/line-through/);
 
     // Restore the calendar's original visibility.
-    await calendarGet(
+    await calendarPost(
       page,
       `setVisibility?calendarId=${id}&visible=${visible}`
     );
@@ -253,7 +253,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
     // The account may not show its own timesheets by default; make sure it does for this case.
     const init = await readInit(page);
     const originalTimesheetUser = init.filter?.timesheetUserId ?? null;
-    await calendarGet(page, `changeTimesheetUser?userId=${userId}`);
+    await calendarPost(page, `changeTimesheetUser?userId=${userId}`);
 
     const timesheet = await seedTimesheet(page, seededTask.child.id, userId);
     try {
@@ -290,7 +290,7 @@ test.describe("calendar", { tag: "@lane-calendar" }, () => {
       );
     } finally {
       await markAsDeleted(page.request, "timesheet", timesheet.id);
-      await calendarGet(
+      await calendarPost(
         page,
         originalTimesheetUser != null
           ? `changeTimesheetUser?userId=${originalTimesheetUser}`
@@ -336,10 +336,10 @@ async function showAllAbsenceKinds(page: Page): Promise<void> {
   expect(res.ok()).toBe(true);
 }
 
-/** Fires one of the `change*` / `setVisibility` GET endpoints — used to set up and to restore state. */
-async function calendarGet(page: Page, pathAndQuery: string): Promise<void> {
-  await page.request.get(`/rs/calendar/${pathAndQuery}`, {
-    headers: { "X-PF-Frontend": "next" },
+/** Fires one of the `change*` / `setVisibility` POST endpoints — used to set up and to restore state. */
+async function calendarPost(page: Page, pathAndQuery: string): Promise<void> {
+  await page.request.post(`/rs/calendar/${pathAndQuery}`, {
+    headers: await writeHeaders(page.request),
   });
 }
 
@@ -479,6 +479,6 @@ async function dropOwnFavorites(page: Page): Promise<void> {
   const init = await readInit(page).catch(() => null);
   for (const favorite of init?.filterFavorites ?? []) {
     if (favorite.name !== FAVORITE_NAME) continue;
-    await calendarGet(page, `deleteFilter?id=${favorite.id}`);
+    await calendarPost(page, `deleteFilter?id=${favorite.id}`);
   }
 }

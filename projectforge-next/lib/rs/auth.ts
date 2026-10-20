@@ -150,7 +150,7 @@ export function sendSmsCode(
 ): Promise<TwoFactorResult> {
   return request<TwoFactorResult>(
     `${TWO_FACTOR_PATHS[context]}/sendSmsCode`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -162,7 +162,7 @@ export function sendMailCode(
 ): Promise<TwoFactorResult> {
   return request<TwoFactorResult>(
     `${TWO_FACTOR_PATHS[context]}/sendMailCode`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

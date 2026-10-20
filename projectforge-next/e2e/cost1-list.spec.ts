@@ -4,6 +4,7 @@ import { KOST1_METADATA } from "../lib/metadata/kost1.generated";
 import { COST1_PAGE } from "../components/features/cost1/cost1.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import type { SeededCost1 } from "./fixtures/seed";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The cost 1 list against the live backend — the first page rendered entirely from a declaration
@@ -25,7 +26,9 @@ test.describe("cost 1 list", { tag: "@lane-cost1" }, () => {
   test.beforeEach(async ({ loggedInPage: page, seededCost1 }) => {
     cost1 = seededCost1;
     await page.request
-      .get("/rs/cost1/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/cost1/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

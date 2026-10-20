@@ -26,7 +26,7 @@ export function reindexNewest(
 ): Promise<ResponseAction> {
   return request<ResponseAction>(
     `/rs/${entity}/reindexNewest`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }
@@ -45,7 +45,7 @@ export function reindexFull(
 ): Promise<ResponseAction> {
   return request<ResponseAction>(
     `/rs/${entity}/reindexFull`,
-    { method: "GET" },
+    { method: "POST" },
     signal
   );
 }

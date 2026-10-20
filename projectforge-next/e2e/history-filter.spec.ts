@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { formatTimeInput, hourLabelOf, timeOf } from "../lib/time-parse";
+import { writeHeaders } from "./fixtures/seed";
 
 /** The message lookup of [userFormat], the only source of expected texts. */
 type Translate = (
@@ -26,7 +27,9 @@ test.describe("history filter", { tag: "@lane-book" }, () => {
   // list request at all, which is what the assertions here wait for.
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 
@@ -34,7 +37,9 @@ test.describe("history filter", { tag: "@lane-book" }, () => {
     // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
     // refused and left the filter behind.
     await seedRequest
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/book/filter/reset", {
+        headers: await writeHeaders(seedRequest),
+      })
       .catch(() => undefined);
   });
 

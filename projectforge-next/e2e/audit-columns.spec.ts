@@ -5,6 +5,7 @@ import { AUFTRAG_METADATA } from "../lib/metadata/auftrag.generated";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import { columnIdOf } from "../lib/page-def/define-page";
 import { AUDIT_COLUMN_NAMES } from "../lib/page-def/audit-columns";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The two timestamps every declared list offers — `created` and `lastUpdate` (see
@@ -23,7 +24,9 @@ test.describe("audit columns", { tag: "@lane-order" }, () => {
     // Drops the stored filter *and* the grid state (AbstractEntityRest.resetListFilter), so the
     // visibility under test is the declared one rather than one a previous run left behind.
     await page.request
-      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .post("/rs/order/filter/reset", {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   });
 

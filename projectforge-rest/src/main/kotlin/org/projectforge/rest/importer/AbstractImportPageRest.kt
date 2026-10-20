@@ -44,9 +44,10 @@ import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import kotlin.reflect.KProperty
 
 private val log = KotlinLogging.logger {}
@@ -285,7 +286,8 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     /**
      * Called from UIButton cancel above.
      */
-    @GetMapping("cancel")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("cancel", method = [RequestMethod.POST, RequestMethod.GET])
     fun cancel(request: HttpServletRequest): ResponseAction {
         val callerPage = callerPage(request) // must be called before clearImportStorage!
         clearImportStorage(request)
@@ -312,7 +314,8 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     /**
      * Called by DynamicListPageAgGrid
      */
-    @GetMapping("cancelAndGetUrl")
+    // State changing: POST. GET only for the legacy React app, drop it together with the app.
+    @RequestMapping("cancelAndGetUrl", method = [RequestMethod.POST, RequestMethod.GET])
     fun cancelAndGetUrl(request: HttpServletRequest): String {
         val callerPage = callerPage(request) // must be called before clearImportStorage!
         clearImportStorage(request)

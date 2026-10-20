@@ -18,6 +18,14 @@
     {
       "en": "Html of the forecast analysis and of list notes is escaped or sanitized more thoroughly.",
       "de": "HTML der Forecast-Analyse und von Listenhinweisen wird gründlicher escaped bzw. bereinigt."
+    },
+    {
+      "en": "Polls: only participants answer, for themselves, and a user with full access on behalf of an attendee; the answers of others can no longer be overwritten, and parallel users no longer mix up their polls.",
+      "de": "Umfragen: Nur Teilnehmende antworten, und zwar für sich selbst, ein Nutzer mit Vollzugriff auch für Teilnehmende; fremde Antworten lassen sich nicht mehr überschreiben, und gleichzeitige Nutzer vermischen ihre Umfragen nicht mehr."
+    },
+    {
+      "en": "Requests that change something (sending 2FA codes, system actions, cancelling jobs, logout, saving list and calendar filters and favorites) are sent as POST.",
+      "de": "Anfragen, die etwas ändern (2FA-Codes senden, Systemaktionen, Jobs abbrechen, Abmelden, Listen- und Kalenderfilter sowie Favoriten speichern), werden per POST gesendet."
     }
   ]
 }

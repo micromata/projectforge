@@ -307,6 +307,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The skill matrix: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the skill matrix pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/skillentry", NextMigration.listUrl("skillentry"))
+        Assertions.assertEquals("next/skillentry/:id", NextMigration.standardEditPage("skillentry"))
+        Assertions.assertEquals("next/skillentry/new", NextMigration.newEntryUrl("skillentry"))
+        Assertions.assertNull(NextMigration.legacyListUrl("skillentry"))
+        Assertions.assertNull(NextMigration.legacyEditPage("skillentry"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("skillentry"))
+        val link = NextMigration.orphanedLinks().single { it.category == "skillentry" }
+        Assertions.assertEquals("react/skillentry", link.legacyListPath)
+        Assertions.assertEquals("react/skillentry/edit", link.legacyEditPath)
+    }
+
+    /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
      * there is no way back, but a bookmarked React link is still redirected onto next.
      */

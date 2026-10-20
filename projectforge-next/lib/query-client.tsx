@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RsError } from "@/lib/rs/client";
+// For its side effect, before the first schema parses: the root layout loads this module on every page.
+import "@/lib/zod-config";
 
 function makeQueryClient() {
   return new QueryClient({

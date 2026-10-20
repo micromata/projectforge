@@ -2,6 +2,7 @@ import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { listRows } from "./fixtures/list-table";
 import type { Page } from "@playwright/test";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The server-laid-out list page (`components/dynamic/components/grid/`) against the live backend.
@@ -90,10 +91,14 @@ test.describe("dynamic grid", { tag: "@lane-book" }, () => {
   // that hides a column would otherwise dictate what the next one (or the next run) sees. Resetting
   // through the endpoint rather than through the UI keeps it independent of a failed assertion.
   test.beforeEach(async ({ loggedInPage: page }) => {
-    await page.request.get("/rs/contract/resetGridState");
+    await page.request.post("/rs/contract/resetGridState", {
+        headers: await writeHeaders(page.request),
+      });
     // And the list filter: a year stored by an earlier visit (ContractPagesRest's "year" element) would narrow
     // the list to that year's contracts, and an empty list skips the cases that need a row.
-    await page.request.get("/rs/contract/filter/reset");
+    await page.request.post("/rs/contract/filter/reset", {
+        headers: await writeHeaders(page.request),
+      });
   });
 
   test("renders the layout's columns, formatted values and row colours", async ({

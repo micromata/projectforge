@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import type { UserFormat } from "./format";
 import { listRows } from "./list-table";
+import { writeHeaders } from "./seed";
 
 /**
  * The moves every structure-tree spec makes: put the account's tree state back to a known one, and
@@ -51,7 +52,9 @@ export async function resetTreeState(
       )
       .catch(() => undefined);
     await page.request
-      .get(`/rs/task/tree/resetGridState/?select=${select ? "true" : "false"}`)
+      .post(`/rs/task/tree/resetGridState/?select=${select ? "true" : "false"}`, {
+        headers: await writeHeaders(page.request),
+      })
       .catch(() => undefined);
   }
 }

@@ -46,7 +46,11 @@ function failOnDialog(page: Page) {
 /** The payload is shown as text and did nothing. */
 async function expectInert(page: Page, suffix: string) {
   await expect(
-    page.getByText(`${PROOF}${suffix}<img`, { exact: false }).first()
+    // The visible one: a page may keep a copy hidden (an inactive tab, a collapsed tooltip).
+    page
+      .getByText(`${PROOF}${suffix}<img`, { exact: false })
+      .filter({ visible: true })
+      .first()
   ).toBeVisible({ timeout: 30_000 });
   expect(
     await page.evaluate(
@@ -172,8 +176,8 @@ test.describe("stored XSS: invoice remarks", { tag: "@lane-invoice" }, () => {
       // A criterion left behind by another run decides which rows the list shows (see
       // invoice-edit.spec.ts).
       await page.request
-        .get(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
-          headers: { "X-PF-Frontend": "next" },
+        .post(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
+          headers: await writeHeaders(page.request),
         })
         .catch(() => undefined);
       await goto(page, "/invoice");
