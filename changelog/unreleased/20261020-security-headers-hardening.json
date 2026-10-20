@@ -56,8 +56,8 @@
       "de": "Das Beenden einer Massenänderung (Abbrechen) wird per POST gesendet."
     },
     {
-      "en": "Deleting and restoring an entry are decided by the stored entry and change only its deleted flag: a foreign entry (e.g. a memo, timesheet or calendar) can no longer be taken over by deleting or restoring it with the own user as owner.",
-      "de": "Ob ein Eintrag gelöscht oder wiederhergestellt werden darf, entscheidet der gespeicherte Eintrag, und es ändert sich nur seine Löschmarkierung: Ein fremder Eintrag (z. B. Memo, Zeitbericht oder Kalender) lässt sich nicht mehr durch Löschen oder Wiederherstellen mit dem eigenen Benutzer als Besitzer übernehmen."
+      "en": "Deleting and restoring an entry are decided by the stored entry as well, not only by the posted one: a foreign entry (e.g. a memo, timesheet or calendar) can no longer be taken over by deleting or restoring it with the own user as owner.",
+      "de": "Ob ein Eintrag gelöscht oder wiederhergestellt werden darf, entscheidet auch der gespeicherte Eintrag, nicht nur der gesendete: Ein fremder Eintrag (z. B. Memo, Zeitbericht oder Kalender) lässt sich nicht mehr durch Löschen oder Wiederherstellen mit dem eigenen Benutzer als Besitzer übernehmen."
     },
     {
       "en": "Calendar events: changing or deleting an event also requires write access to its stored calendar; a foreign event can no longer be moved into the own calendar.",
@@ -70,6 +70,18 @@
     {
       "en": "System groups can no longer be deleted by sending them under another name.",
       "de": "Systemgruppen lassen sich nicht mehr löschen, indem sie unter anderem Namen gesendet werden."
+    },
+    {
+      "en": "Bank accounts: whether an account may be changed or deleted is decided by the stored account; saving a foreign account with the own user as owner no longer takes it over.",
+      "de": "Bankkonten: Ob ein Konto geändert oder gelöscht werden darf, entscheidet das gespeicherte Konto; ein fremdes Konto lässt sich nicht mehr durch Speichern mit dem eigenen Benutzer als Besitzer übernehmen."
+    },
+    {
+      "en": "Addresses: adding an address to an address book requires full access to that book, also when it is saved along with an own one.",
+      "de": "Adressen: Eine Adresse in ein Adressbuch aufzunehmen, setzt Vollzugriff auf dieses Buch voraus, auch wenn sie zusammen mit einem eigenen gespeichert wird."
+    },
+    {
+      "en": "Invoices: deleting an invoice is decided by its stored type and cancelled invoice; deleting it as a posted cancellation no longer resets the status of another invoice.",
+      "de": "Rechnungen: Beim Löschen gelten Typ und stornierte Rechnung des gespeicherten Eintrags; eine Rechnung, die als Storno-Rechnung gesendet und so gelöscht wird, setzt den Status einer anderen Rechnung nicht mehr zurück."
     }
   ]
 }

@@ -310,6 +310,13 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/customizeMenu", redirectOf("/react/customizeMenu/"))
     }
 
+    /** The old React birthday butler is gone. */
+    @Test
+    fun `the old react birthday butler is redirected to next`() {
+        Assertions.assertEquals("/next/birthdayButler", redirectOf("/react/birthdayButler/dynamic"))
+        Assertions.assertEquals("/next/birthdayButler", redirectOf("/react/birthdayButler"))
+    }
+
     /** The old React e-invoice checker is gone. */
     @Test
     fun `the old react e-invoice checker is redirected to next`() {

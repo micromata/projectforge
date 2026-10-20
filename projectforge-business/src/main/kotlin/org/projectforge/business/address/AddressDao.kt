@@ -280,6 +280,20 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         throwException: Boolean
     ): Boolean {
         val addressbookList = addressbookCache.getAddressbooksForAddress(obj) ?: obj?.addressbookList
+        if (operationType != OperationType.SELECT) {
+            // Adding an address to an address book writes into it: every book not stored yet needs full access,
+            // otherwise anybody could put an address into a foreign book by posting it along with an own one.
+            val storedIds = addressbookCache.getAddressbooksForAddress(obj)?.map { it.id }.orEmpty()
+            obj?.addressbookList?.filter { it.id !in storedIds }?.forEach { ab ->
+                val addressBook = addressbookCache.getAddressbook(ab)
+                if (addressBook == null || !addressbookRight.hasFullAccess(addressBook, user.id)) {
+                    if (throwException) {
+                        throw AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType)
+                    }
+                    return false
+                }
+            }
+        }
         if (addressbookList.isNullOrEmpty()) {
             return true
         }

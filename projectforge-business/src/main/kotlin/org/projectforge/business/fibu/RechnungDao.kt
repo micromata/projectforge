@@ -220,8 +220,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
-        if (operationType == OperationType.UPDATE && obj.id != null) {
-            checkStoredCancellationUnchanged(obj)
+        if (operationType != OperationType.INSERT && obj.id != null) {
+            checkStoredCancellationUnchanged(obj, operationType)
         }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
             // A projection, not find(): find() detaches the managed instance this update is just writing, and the
@@ -392,14 +392,20 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * A stored cancellation keeps its type and its original: the original's status was set to STORNIERT for
      * it, and a cancellation turned into an invoice or moved to another original would leave that status
      * behind. Deleting the cancellation (and creating a new one) is the way to go instead.
+     *
+     * Checked on delete and undelete as well: the hook acts on the posted type and original, so a stored invoice
+     * deleted as a posted cancellation would reset the status of any cancelled invoice.
      */
-    private fun checkStoredCancellationUnchanged(obj: RechnungDO) {
+    private fun checkStoredCancellationUnchanged(obj: RechnungDO, operationType: OperationType) {
         val stored = persistenceService.selectNamedSingleResult(
             RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
             Tuple::class.java,
             Pair("id", obj.id),
         ) ?: return
         if (stored.get("typ") != RechnungTyp.CANCELLATION) {
+            if (operationType == OperationType.DELETE && obj.typ == RechnungTyp.CANCELLATION) {
+                throw UserException("fibu.rechnung.error.cancellation.unchangeable")
+            }
             return
         }
         if (obj.typ != RechnungTyp.CANCELLATION || obj.originalRechnung?.id != stored.get("originalId")) {

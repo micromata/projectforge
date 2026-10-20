@@ -162,6 +162,32 @@ class RechnungDaoTest : AbstractTestBase() {
                 })
             }
 
+            // Deleting decides by the stored type and original as well, not by the posted ones: an ordinary
+            // invoice deleted as a posted cancellation of the original doesn't revert the original, and the
+            // cancellation deleted as a posted invoice doesn't leave it cancelled.
+            val other = RechnungDO()
+            other.datum = LocalDate.now()
+            other.faelligkeit = LocalDate.now()
+            other.projekt = original.projekt
+            other.nummer = rechnungDao.getNextNumber(other)
+            other.status = RechnungStatus.GESTELLT
+            other.addPosition(createPosition(1, "50.00", "0.19", "test"))
+            val otherId = rechnungDao.insert(other)
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.markAsDeleted(RechnungDO().also {
+                    it.id = otherId
+                    it.typ = RechnungTyp.CANCELLATION
+                    it.originalRechnung = RechnungDO().also { ref -> ref.id = originalId }
+                })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.markAsDeleted(RechnungDO().also {
+                    it.id = cancellationId
+                    it.typ = RechnungTyp.RECHNUNG
+                })
+            }
+            Assertions.assertEquals(RechnungStatus.STORNIERT, rechnungDao.find(originalId, attached = true)!!.status)
+
             // Deleting the cancellation reverts the original.
             rechnungDao.markAsDeleted(cancellation)
             Assertions.assertEquals(RechnungStatus.GESTELLT, rechnungDao.find(originalId, attached = true)!!.status)

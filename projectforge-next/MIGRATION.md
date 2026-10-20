@@ -749,6 +749,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `attachment/{id}`; eine nicht prüfbare Datei ist ein 400 mit dem übersetzten Grund. Rechte unverändert
   (FIBU/ORGA oder Auftragsbuch-Recht), kein 2FA (die Legacy-URL hatte keinen). `react/eInvoiceChecker/**` leitet
   `OrphanedLinkFilter` um.
+- **Geburtstags-Butler** (`/next/birthdayButler`, vorher dynamische React-Seite, `BirthdayButlerPageRest` gelöscht) –
+  `components/features/birthday-butler/`: Monat (vorbelegt mit dem aktuellen) und Download des Word-Dokuments. Der
+  layout-freie `BirthdayButlerRest` (gleicher Pfad `/rs/birthdayButler`) liefert `init` (Monat, ob eine Organisation
+  konfiguriert ist – sonst sagt die Seite das statt eines Downloads, der nur scheitern kann) und `download`; eine
+  Liste, die sich nicht erstellen lässt (keine Geburtstage im Monat, …), ist ein 400 mit dem übersetzten Grund als
+  Text. Behoben: „keine Geburtstage" verwies auf einen nicht existierenden i18n-Schlüssel. Rechte unverändert
+  (ORGA-Team oder HR-Gruppe). `react/birthdayButler/**` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie
