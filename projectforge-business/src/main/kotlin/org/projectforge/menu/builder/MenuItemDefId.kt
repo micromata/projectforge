@@ -52,7 +52,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     AVAILABILITY("menu.availability", getListUrl("availability")), //
     ADMIN_ERRORS("system.dashboard.title", "next/systemDashboard"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
-    BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
+    // Migrated to projectforge-next (BirthdayButlerRest); react/birthdayButler is redirected by OrphanedLinkFilter.
+    BIRTHDAY_BUTLER("menu.birthdayButler", "next/birthdayButler"), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
     CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getListUrl("teamCal")), //

@@ -40,8 +40,6 @@ org.projectforge.rest.AttachmentsServicesRest#multiDelete
 org.projectforge.rest.AttachmentsServicesRest#multiDownload
 org.projectforge.rest.AttachmentsServicesRest#testDecryption
 org.projectforge.rest.AttachmentsServicesRest#uploadAttachment
-org.projectforge.rest.birthdaybutler.BirthdayButlerPageRest#downloadBirthdayList
-org.projectforge.rest.birthdaybutler.BirthdayButlerPageRest#getForm
 org.projectforge.rest.BookServicesRest#lendOut
 org.projectforge.rest.BookServicesRest#returnBook
 org.projectforge.rest.calendar.CalendarFilterServicesRest#changeCalendarStyle

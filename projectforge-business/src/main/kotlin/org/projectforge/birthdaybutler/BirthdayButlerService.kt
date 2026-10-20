@@ -229,7 +229,9 @@ class BirthdayButlerService {
                 val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
                 check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
                 val wordDocument = birthdayButlerTemplate.inputStream.use {
-                    WordDocument(it, birthdayButlerTemplate.file.name).use { document ->
+                    // The resource's own name, not `file.name`: the template is a classpath resource inside the
+                    // application jar unless overridden, and a resource in a jar has no file.
+                    WordDocument(it, birthdayButlerTemplate.filename ?: "BirthdayButlerTemplate.docx").use { document ->
                         generateBirthdayTableRows(document.document, birthdayList)
                         document.process(variables)
                         document.asByteArrayOutputStream

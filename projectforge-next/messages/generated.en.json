@@ -721,6 +721,11 @@
     "workingDays": "Working days"
   },
   "back": "Back",
+  "birthdayButler": {
+    "organization": {
+      "notSet": "No organization is configured (projectforge.birthdaybutler.organization in projectforge.properties)."
+    }
+  },
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
@@ -2973,6 +2978,7 @@
     "addNewEntry": "New entry",
     "administration": "Administration",
     "availability": "Availability",
+    "birthdayButler": "Birthday butler",
     "calendar": "Calendar",
     "changePassword": "Change password",
     "changeWlanPassword": "Change WLAN/Samba password",
@@ -3049,7 +3055,12 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
-    "orga": "Organization",
+    "orga": {
+      "_": "Organization",
+      "postausgang": "Outbox",
+      "posteingang": "Inbox",
+      "visitorbook": "Visitorbook"
+    },
     "personalStatistics": "My statistics",
     "phoneCall": "Direct call",
     "pluginAdmin": "Plugins",
