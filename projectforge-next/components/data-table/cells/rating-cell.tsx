@@ -10,6 +10,20 @@ const MAX_STARS = 3;
  * cell, so a rated and an unrated row are distinguishable at a glance.
  */
 export function RatingCell({ value, t }: CellRenderProps) {
+  return <RatingStars value={value} label={t("rating")} />;
+}
+
+/**
+ * The stars of [RatingCell] on their own, for a list declaring its column by hand (the skill matrix).
+ * [label] names the rating for screen readers ("Self-rating: 2").
+ */
+export function RatingStars({
+  value,
+  label,
+}: {
+  value: unknown;
+  label: string;
+}) {
   const rating = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(rating) || rating <= 0) {
     return <span className="text-muted-foreground">—</span>;
@@ -19,7 +33,7 @@ export function RatingCell({ value, t }: CellRenderProps) {
     <span
       className="inline-flex items-center gap-0.5 text-brand-yellow"
       role="img"
-      aria-label={`${t("rating")}: ${stars}`}
+      aria-label={`${label}: ${stars}`}
     >
       {Array.from({ length: stars }, (_, index) => (
         <HugeiconsIcon

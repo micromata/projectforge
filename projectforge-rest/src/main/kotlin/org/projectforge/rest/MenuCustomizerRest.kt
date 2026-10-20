@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.builder.FavoritesMenuCreator
@@ -37,74 +36,17 @@ import org.springframework.web.bind.annotation.*
 private val log = KotlinLogging.logger {}
 
 /**
- * REST service for customizing the user's menu via drag and drop interface.
+ * REST service of the menu customizer (`/next/customizeMenu`): the user composes the favorites menu by drag and
+ * drop. The current menus come from [MenuRest]; the texts from the generated i18n catalogs of the client.
  */
 @RestController
 @RequestMapping("${Rest.URL}/menu")
 class MenuCustomizerRest {
 
     class CustomMenuData(val favoritesMenu: List<MenuItem>? = null)
-    
-    class MenuCustomizerPageData(
-        val translations: Map<String, String>,
-    )
-    
+
     @Autowired
     private lateinit var favoritesMenuCreator: FavoritesMenuCreator
-
-    /**
-     * Returns page data including translations and Excel menu URL.
-     */
-    @GetMapping("customizer")
-    fun getMenuCustomizerPageData(): ResponseEntity<MenuCustomizerPageData> {
-        val translations = mapOf(
-            "title" to translate("menu.customizer.title"),
-            "customMenuSection" to translate("menu.customizer.customMenuSection"),
-            "templateMenuSection" to translate("menu.customizer.templateMenuSection"),
-            "addGroup" to translate("menu.customizer.addGroup"),
-            "groupName" to translate("menu.customizer.groupName"),
-            "add" to translate("add"),
-            "cancel" to translate("cancel"),
-            "save" to translate("save"),
-            "reset" to translate("reset"),
-            "saveChanges" to translate("menu.customizer.saveChanges"),
-            "resetToDefault" to translate("menu.customizer.resetToDefault"),
-            "dragItemsHere" to translate("menu.customizer.dragItemsHere"),
-            "noItemsInCategory" to translate("menu.customizer.noItemsInCategory"),
-            "dropItemsHere" to translate("menu.customizer.dropItemsHere"),
-            "removeFromGroup" to translate("menu.customizer.removeFromGroup"),
-            "removeFromFavorites" to translate("menu.customizer.removeFromFavorites"),
-            "editGroupName" to translate("menu.customizer.editGroupName"),
-            "removeGroup" to translate("menu.customizer.removeGroup"),
-            "groupNameCannotBeEmpty" to translate("menu.customizer.groupNameCannotBeEmpty"),
-            "menuSavedSuccessfully" to translate("menu.customizer.menuSavedSuccessfully"),
-            "menuResetSuccessfully" to translate("menu.customizer.menuResetSuccessfully"),
-            "errorLoadingMenu" to translate("menu.customizer.errorLoadingMenu"),
-            "errorSavingMenu" to translate("menu.customizer.errorSavingMenu"),
-            "errorResettingMenu" to translate("menu.customizer.errorResettingMenu"),
-            "confirmReset" to translate("menu.customizer.confirmReset"),
-            "undo" to translate("menu.customizer.undo"),
-            "loadDefault" to translate("menu.customizer.loadDefault"),
-            "subtitle" to translate("menu.customizer.subtitle"),
-            "legendMyMenu" to translate("menu.customizer.legendMyMenu"),
-            "legendTemplate" to translate("menu.customizer.legendTemplate"),
-            "templateTitle" to translate("menu.customizer.templateTitle"),
-            "templateLabel" to translate("menu.customizer.templateLabel"),
-            "searchPlaceholder" to translate("menu.customizer.searchPlaceholder"),
-            "searchHint" to translate("menu.customizer.searchHint"),
-            "noResults" to translate("menu.customizer.noResults"),
-            "alreadyAdded" to translate("menu.customizer.alreadyAdded"),
-            "emptyMenuTitle" to translate("menu.customizer.emptyMenuTitle"),
-            "emptyMenuText" to translate("menu.customizer.emptyMenuText"),
-            "group" to translate("menu.customizer.group")
-        )
-        
-        val pageData = MenuCustomizerPageData(
-            translations = translations,
-        )
-        
-        return ResponseEntity.ok(pageData)
-    }
 
     /**
      * Saves the customized menu for the current user.
@@ -149,25 +91,5 @@ class MenuCustomizerRest {
     fun getDefaultMenu(): ResponseEntity<Any> {
         val defaultMenu = favoritesMenuCreator.createDefaultFavoriteMenu()
         return ResponseEntity.ok(mapOf("favoritesMenu" to defaultMenu.menuItems))
-    }
-
-    /**
-     * Returns the currently saved menu from user preferences.
-     */
-    @GetMapping("saved")
-    fun getSavedMenu(): ResponseEntity<Any> {
-        val savedMenu = favoritesMenuCreator.getFavoriteMenu()
-        return ResponseEntity.ok(mapOf("favoritesMenu" to savedMenu.menuItems))
-    }
-
-    /**
-     * Resets the user's menu to the default menu (permanently saves it).
-     */
-    @PostMapping("reset")
-    fun resetMenu(): ResponseEntity<Any> {
-        log.info { "Clear the user preference for favorites menu." }
-        FavoritesMenuReaderWriter.storeAsUserPref(null)
-
-        return ResponseEntity.ok(mapOf("status" to "success"))
     }
 }

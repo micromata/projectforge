@@ -45,6 +45,7 @@ export const HAND_BUILT_CATEGORIES = [
   "outgoingInvoice",
   "project",
   "script",
+  "skillentry",
   "task",
   "teamCal",
   "teamEvent",

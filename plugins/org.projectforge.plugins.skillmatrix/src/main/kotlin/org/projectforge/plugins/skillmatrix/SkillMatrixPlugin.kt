@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
@@ -55,8 +55,9 @@ class SkillMatrixPlugin : AbstractPlugin(
 
         menuCreator.register(
             MenuItemDefId.PROJECT_MANAGEMENT,
-            MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Constants.REACT_APP_PATH}skillentry")
-        );
+            // Migrated to projectforge-next (SkillEntryEntityRest); the React pages were removed.
+            MenuItemDef(info.id, "plugins.skillmatrix.menu", NextMigration.listUrl(CATEGORY))
+        )
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
@@ -64,5 +65,8 @@ class SkillMatrixPlugin : AbstractPlugin(
 
     companion object {
         const val RESOURCE_BUNDLE_NAME = "SkillMatrixI18nResources"
+
+        /** The REST category (`/rs/skillentry`) and the route of the next page. */
+        const val CATEGORY = "skillentry"
     }
 }

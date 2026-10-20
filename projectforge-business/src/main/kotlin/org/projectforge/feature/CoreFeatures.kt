@@ -58,7 +58,7 @@ object CoreFeatures {
         MenuItemDefId.CURRENCY_PAIR_LIST to Extras(rest = listOf("currencyConversionRate")),
         // The number ranges of the number fields of customers and projects.
         MenuItemDefId.CUSTOMER_LIST to Extras(rest = listOf("numberRanges") + PROJECT_WIZARD, next = PROJECT_WIZARD),
-        MenuItemDefId.CUSTOMIZE_MENU to Extras(rest = listOf("menu/customizer", "menu/customized")),
+        MenuItemDefId.CUSTOMIZE_MENU to Extras(rest = listOf("menu/customized", "menu/default", "menu/reset")),
         MenuItemDefId.DATEV_IMPORT to Extras(rest = listOf("datevAccountImport", "datevRecordImport")),
         MenuItemDefId.EMPLOYEE_SALARY_LIST to Extras(rest = listOf("employeeSalaryImport")),
         MenuItemDefId.GANTT to Extras(rest = listOf("ganttServices")),

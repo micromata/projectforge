@@ -601,6 +601,15 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `newBaseDTO` setzt heute als Datum und den Mitarbeiter aus `?employee=`. Neu: HR (Schreibrecht) legt im
   Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter an (`newLeaveAccountEntryUrl`). Rückweg:
   Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
+- **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
+  gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
+  (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
+  `UIRatingStars`, Klick auf den aktuellen Stern setzt auf 0), Skill mit Autovervollständigung, Excel-Export der
+  Statistik (`SkillMatrixServicesRest`) als Listenaktion. Kopie gehört dem angemeldeten Nutzer (`prepareClone`).
+  Neu: Massenänderung (`SkillEntryMultiSelectedPageRest`, `/rs/skillentrySelected`) von Selbsteinschätzung und
+  Interesse (Auswahl der Stufentexte, ohne Löschen, Stufe 0 ist eine Auswahl) und Kommentar; Skill (Dubletten) und
+  Besitzer nicht. Fremde Einträge scheitern pro Eintrag am `SkillRight`. `react/skillentry/**` leitet
+  `OrphanedLinkFilter` um.
 - **Teamkalender** (`teamCal`, Liste + Formular, vorher React-UILayout `TeamCalPagesRest`, gelöscht) – layoutfrei
   über `TeamCalEntityRest` (`/rs/teamCal`). Die Custom-Komponenten `calendar.editExternalSubscription` und
   `calendar.subscriptionInfo` sind handgebaut; die Abo-Infos eines gespeicherten Kalenders (Feed-Url mit/ohne
@@ -699,6 +708,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   öffnet in Next das Panel über der aktuellen Seite statt der Seite; aus dem React-Menü (volles Laden) kommt die
   Seite, deren „Auf jeder Seite einblenden“ (wie `ALT-K` dort) dann auf die Startseite statt zurück nach React führt.
   `react/costSearch/**` leitet `OrphanedLinkFilter` um.
+- **Mein Menü gestalten** (`/next/customizeMenu`, vorher handgebaute React-Seite, gelöscht samt `@dnd-kit` im
+  Webapp) – `components/features/menu-customizer/`: Favoritenmenü links, Hauptmenü als Vorlage rechts, per
+  dnd-kit (Einträge, Gruppen eine Ebene tief) oder Klick. Die Logik ist rein (`menu-tree.ts`, Vitest), der Zustand
+  ein Entwurf über der geteilten `["menu"]`-Query (nach Speichern/Zurücksetzen invalidiert, die Favoritenleiste
+  folgt ohne Neuladen). `MenuCustomizerRest` behält `customized`/`default`/`reset`; `customizer` (Texte) und
+  `saved` entfallen, die Texte kommen aus dem Katalog. Leere Gruppen werden nicht mehr gespeichert (das Backend
+  machte daraus einen Eintrag ohne Url). `react/customizeMenu` leitet `OrphanedLinkFilter` um.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

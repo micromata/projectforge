@@ -14,7 +14,6 @@ import ModalRoutes from './ModalRoutes';
 import RedirectToServer from './RedirectToServer';
 import RedirectToNext from './RedirectToNext';
 import FormModal from './page/form/FormModal';
-import MenuCustomizerPanel from './panel/menu/MenuCustomizerPanel';
 
 // Old Wicket urls (/wa/...): a full page load, the server redirects them into projectforge-next.
 export const legacyWicketRoute = (
@@ -78,10 +77,6 @@ function AuthorizedRoutes(
             <Route
                 path={`${prefix}taskTree`}
                 element={<TaskTreePage />}
-            />
-            <Route
-                path={`${prefix}customizeMenu`}
-                element={<MenuCustomizerPanel />}
             />
             <Route
                 path={`${prefix}:category/:type/:id?/:tab?`}
