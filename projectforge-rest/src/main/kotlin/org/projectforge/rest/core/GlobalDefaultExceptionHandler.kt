@@ -154,6 +154,7 @@ internal class GlobalDefaultExceptionHandler {
         val logMsg = "$msg (${request.method} ${request.requestURI})"
         when (exInfo.logLevel) {
             LogLevel.INFO -> log.info { logMsg }
+            LogLevel.WARN -> log.warn { logMsg }
             else -> log.error { logMsg }
         }
         return ResponseEntity(msg, exInfo.status)
