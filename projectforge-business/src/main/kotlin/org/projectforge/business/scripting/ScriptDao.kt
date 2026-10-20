@@ -130,6 +130,14 @@ open class ScriptDao : AbstractScriptDao() {
     }
 
     /**
+     * Same as [hasAccess]: without a user right, [BaseDao.hasInsertAccess] would allow every user to add a script
+     * (and to fetch the preset of a new one, which lists the variables and services available to scripts).
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return hasAccess(user, null, null, OperationType.INSERT, false)
+    }
+
+    /**
      * User must be member of group controlling or finance.
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.hasDeleteAccess

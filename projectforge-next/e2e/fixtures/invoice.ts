@@ -53,6 +53,9 @@ export interface InvoiceOptions {
    * otherwise: `zahlungsZielInTagen` is `@Transient`, so an invoice stores the date and nothing else.
    */
   faelligkeit?: string;
+  /** Free texts of the invoice (`bemerkung`, `besonderheiten`), for the cases that render them. */
+  bemerkung?: string;
+  besonderheiten?: string;
 }
 
 /**
@@ -83,6 +86,10 @@ export async function createInvoice(
           ? {}
           : { faelligkeit: options.faelligkeit }),
         betreff: options.subject,
+        ...(options.bemerkung == null ? {} : { bemerkung: options.bemerkung }),
+        ...(options.besonderheiten == null
+          ? {}
+          : { besonderheiten: options.besonderheiten }),
         // Required, not decoration: a position of type SEEABOVE - the default - refers to the invoice's
         // period, which makes the invoice's begin date mandatory (`PeriodOfPerformanceValidator`, and
         // Wicket's `setRequiredSupplier` on the same field).

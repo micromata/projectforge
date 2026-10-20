@@ -92,6 +92,26 @@ server.ssl.key-store-type=PKCS12
 . Exportieren: `keytool -exportcert -alias selfsigned -keystore keystore.p12 -storetype PKCS12 -file selfsigned.crt -rfc`
 . In den Zertifikatsspeicher des Systems oder des Browsers importieren und als vertrauenswürdig markieren.
 
+[[reverse_proxy_security_headers]]
+==== Hinter einem Reverse Proxy: sicheres Cookie, HSTS und CSP
+
+Beendet der Reverse Proxy https, sieht ProjectForge selbst nur http-Requests. Dann fehlt dem Session-Cookie das
+`Secure`-Flag, und es wird kein `Strict-Transport-Security`-Header (HSTS) gesendet. Das ursprüngliche Protokoll wird
+ProjectForge in `~/ProjectForge/projectforge.properties` mitgeteilt:
+
+[source]
+----
+# Der Proxy muss X-Forwarded-Proto senden (siehe doc/misc/nginx_sites-available_projectforge):
+server.forward-headers-strategy=native
+# Oder, wenn ohnehin jeder Zugriff über https erfolgt:
+#server.servlet.session.cookie.secure=true
+----
+
+Seine Sicherheits-Header sendet ProjectForge selbst (Content Security Policy, `X-Frame-Options`, `Referrer-Policy`,
+`Permissions-Policy` usw.). Im Proxy sollten sie nicht noch einmal gesetzt werden: Einen doppelt gesendeten Header mit
+unterschiedlichen Werten ignoriert der Browser. Die Content Security Policy lässt sich durch einen eigenen Wert von
+`projectforge.security.csp-header-value` ersetzen (ein leerer Wert sendet keine, was nicht zu empfehlen ist).
+
 [[postgresql]]
 === PostgreSQL
 

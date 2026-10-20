@@ -75,6 +75,8 @@ class LoginServiceTest : AbstractTestBase() {
 
             // The second factor was checked successfully (My2FAServicesRest.updateCookieAndSession):
             loginService.onSecondFactorSucceeded(request, response)
+            // The session gained privileges, so it gets a new id (session fixation):
+            Mockito.verify(request).changeSessionId()
             val cookie = stayLoggedInCookie(response)
             Assertions.assertNotNull(cookie, "Cookie is issued after the second factor.")
             Assertions.assertEquals(userId, stayLoggedInTokenDao.getValidToken(cookie!!.value)?.user?.id)
