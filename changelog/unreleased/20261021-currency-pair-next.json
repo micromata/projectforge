@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Currency pairs migrated to the new interface: list with the rate valid today, form with the conversion rates of the pair, edited in a dialog directly in the form. For a new rate, the rates of both directions are proposed from the online source for its date; the rate valid today is marked, rates still ahead are shown muted. Old links are redirected.",
+  "de": "Währungspaare auf die neue Oberfläche migriert: Liste mit dem heute gültigen Kurs, Formular mit den Umrechnungskursen des Paares, bearbeitet in einem Dialog direkt im Formular. Für einen neuen Kurs werden die Kurse beider Richtungen für sein Datum aus der Online-Quelle vorgeschlagen; der heute gültige Kurs ist markiert, künftige Kurse sind abgeschwächt dargestellt. Alte Links werden umgeleitet."
+}

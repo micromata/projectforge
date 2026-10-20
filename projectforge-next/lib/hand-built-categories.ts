@@ -28,6 +28,7 @@ export const HAND_BUILT_CATEGORIES = [
   "cost1",
   "cost2",
   "cost2Type",
+  "currencyPair",
   "customer",
   "datatransfer",
   "employee",

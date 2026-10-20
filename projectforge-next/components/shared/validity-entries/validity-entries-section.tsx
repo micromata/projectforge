@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatNumber, formatNumberUpTo } from "@/lib/format";
 import { todayOf } from "@/lib/user-zone";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +23,11 @@ import {
   sortByValidity,
   validityOf,
 } from "./validity-entries-model";
-import { toNumber, ValidityEntryDialog } from "./validity-entry-dialog";
+import {
+  toNumber,
+  ValidityEntryDialog,
+  type ValidityEntryDialogProps,
+} from "./validity-entry-dialog";
 import type {
   ValidityEntriesAdapter,
   ValidityEntry,
@@ -46,6 +50,8 @@ export interface ValidityEntriesSectionProps<T extends ValidityEntry> {
   readOnly?: boolean;
   /** After every successful write, with the fresh entries. */
   onChanged: (entries: T[]) => void;
+  /** Values proposed for a new entry, see [ValidityEntryDialogProps.prefill]. */
+  prefill?: ValidityEntryDialogProps<T>["prefill"];
 }
 
 /**
@@ -66,6 +72,7 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
   adapter,
   readOnly,
   onChanged,
+  prefill,
 }: ValidityEntriesSectionProps<T>) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -79,12 +86,21 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
   );
   const current = currentEntry(sorted, dateOf, today);
 
+  // A number with a unit reads as one (`0,92 USD`), below a header like `1 EUR =`.
+  const withSuffix = (field: ValidityValueField, text: string) =>
+    field.suffix && text ? `${text} ${field.suffix}` : text;
+
   const formatValue = (field: ValidityValueField, value: unknown) => {
     switch (field.kind) {
       case "int":
-        return formatNumber(toNumber(value), ctx, 0);
+        return withSuffix(field, formatNumber(toNumber(value), ctx, 0));
       case "decimal":
-        return formatNumber(toNumber(value), ctx, field.fractionDigits);
+        return withSuffix(
+          field,
+          field.maxFractionDigits != null
+            ? formatNumberUpTo(toNumber(value), ctx, field.maxFractionDigits)
+            : formatNumber(toNumber(value), ctx, field.fractionDigits)
+        );
       case "select": {
         const option = field.options?.find((o) => o.value === value);
         return option ? t(option.labelKey) : value == null ? "" : String(value);
@@ -111,7 +127,7 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
                         "text-right"
                     )}
                   >
-                    {t(field.labelKey)}
+                    {field.label ?? t(field.labelKey)}
                   </TableHead>
                 ))}
                 <TableHead>{t("comment")}</TableHead>
@@ -192,6 +208,7 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
             onChanged(fresh);
           }}
           onClose={() => setEditing(null)}
+          prefill={prefill}
         />
       )}
     </div>

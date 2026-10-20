@@ -23,11 +23,17 @@ export interface ValidityValueField {
   /** Property of the entry, and the `fieldId` the backend names in its validation errors. */
   name: string;
   labelKey: string;
+  /** A label built by the caller (`1 EUR =`), shown instead of [labelKey] in the table and the dialog. */
+  label?: string;
+  /** Shown inside the input of an `int` or `decimal`, after the number (a unit, `USD`). */
+  suffix?: string;
   kind: ValidityValueKind;
   /** The choices of a `select`. */
   options?: readonly ValidityValueOption[];
   /** Fixed fraction digits of a `decimal` in the table; the user's typed digits are kept in the dialog. */
   fractionDigits?: number;
+  /** Instead of [fractionDigits]: a `decimal` shows its own digits in the table, up to this many. */
+  maxFractionDigits?: number;
   /** Marks the field as mandatory; the check itself is the backend's. */
   required?: boolean;
 }
@@ -40,6 +46,16 @@ export type ValidityWriteResult<T> =
   | { kind: "ok"; entries: T[] }
   | { kind: "validationErrors"; validationErrors: ValidationError[] }
   | { kind: "rejected"; message: string };
+
+/**
+ * Values proposed for a new entry once its date is known (the rates of a currency pair, fetched online), and a
+ * note on where they came from. `null` if there is nothing to propose.
+ */
+export interface ValidityPrefill<T extends ValidityEntry> {
+  values?: Partial<T>;
+  /** An authored text of the backend (i18n bundle), rendered as markdown. */
+  info?: string | null;
+}
 
 /** The endpoints the entries are written through; each answers with all entries of the list. */
 export interface ValidityEntriesAdapter<T extends ValidityEntry> {

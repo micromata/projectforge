@@ -395,6 +395,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The currency pairs: list and form (conversion rates included) are next's, the React pages are gone, so there
+     * is no way back, but a bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the currency pair pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/currencyPair", NextMigration.listUrl("currencyPair"))
+        Assertions.assertEquals("next/currencyPair/:id", NextMigration.standardEditPage("currencyPair"))
+        Assertions.assertEquals("next/currencyPair/new", NextMigration.newEntryUrl("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyListUrl("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyEditPage("currencyPair"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("currencyPair"))
+        val link = NextMigration.orphanedLinks().single { it.category == "currencyPair" }
+        Assertions.assertEquals("react/currencyPair", link.legacyListPath)
+        Assertions.assertEquals("react/currencyPair/edit", link.legacyEditPath)
+    }
+
+    /**
      * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
      * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
      */

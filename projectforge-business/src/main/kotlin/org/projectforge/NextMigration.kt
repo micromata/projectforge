@@ -358,6 +358,17 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
             offerLegacyLink = false,
         ),
+        // Hand built list and edit page of the currency pairs (CurrencyPairEntityRest, components/features/currency-pair),
+        // migrated from React; the conversion rates of a pair are edited in dialogs of the form (`currencyPair/rate/...`).
+        // The React pages are gone (no UILayout served any more), so there is no way back; the legacy app is kept for
+        // the redirect of bookmarked React links only.
+        "currencyPair" to NextPage(
+            route = "currencyPair",
+            editRoute = "currencyPair/$ID_PLACEHOLDER",
+            newEntryRoute = "currencyPair/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList).
         // EmployeeSalaryEntityRest serves no layout, so there is no React page. The Wicket pages (the salary
         // import included, now a button in the next list) have been removed: the way back is no longer

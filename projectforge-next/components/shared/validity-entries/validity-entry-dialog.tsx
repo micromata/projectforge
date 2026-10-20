@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -23,6 +23,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DateInput } from "@/components/shared/date-input";
 import { FormAlert } from "@/components/shared/form-alert";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { NumberBox } from "@/components/shared/form/number-box";
@@ -34,6 +35,7 @@ import { RsError } from "@/lib/rs/client";
 import type { ValidationError } from "@/lib/rs/types";
 import type {
   ValidityEntry,
+  ValidityPrefill,
   ValidityValueField,
   ValidityWriteResult,
 } from "./types";
@@ -51,6 +53,11 @@ export interface ValidityEntryDialogProps<T extends ValidityEntry> {
   /** After a successful write, with the entries the backend answered with. */
   onDone: (entries: T[]) => void;
   onClose: () => void;
+  /**
+   * Proposes values for a new entry: when the dialog opens and whenever its date changes. Not asked for a stored
+   * entry, whose values are the user's.
+   */
+  prefill?: (entry: T, date: string) => Promise<ValidityPrefill<T> | null>;
 }
 
 /**
@@ -70,6 +77,7 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
   onDelete,
   onDone,
   onClose,
+  prefill,
 }: ValidityEntryDialogProps<T>) {
   const t = useTranslations();
   const [values, setValues] = useState<Record<string, unknown>>(() => ({
@@ -79,10 +87,40 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
   const [rejected, setRejected] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const shortcutHint = useSubmitShortcutHint();
+  // Only the answer to the latest date counts: an earlier one may arrive after it.
+  const prefillRequest = useRef(0);
 
   const set = (name: string, value: unknown) =>
     setValues((prev) => ({ ...prev, [name]: value }));
+
+  // Without a date (cleared, or not a date yet) there is nothing to ask for.
+  const runPrefill = (date: string | null) => {
+    if (!prefill || entry.id != null || !date) return;
+    const request = ++prefillRequest.current;
+    prefill(entry, date)
+      .then((result) => {
+        if (request !== prefillRequest.current) return;
+        if (result?.values) {
+          setValues((prev) => ({ ...prev, ...result.values }));
+        }
+        setInfo(result?.info ?? null);
+      })
+      // Nothing proposed: the user types the values.
+      .catch(() => {
+        if (request === prefillRequest.current) setInfo(null);
+      });
+  };
+
+  useEffect(() => {
+    runPrefill(
+      ((entry as Record<string, unknown>)[dateField] as string | null) ?? null
+    );
+    // Once, for the entry the dialog opened with; later dates come through the date field.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const errorsOf = (name: string) =>
     errors.filter((e) => e.fieldId === name).map((e) => e.message);
   const fieldNames = new Set([
@@ -157,7 +195,10 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
               label={t(dateLabelKey)}
               value={values[dateField] as string | null | undefined}
               errors={errorsOf(dateField)}
-              onChange={(value) => set(dateField, value)}
+              onChange={(value) => {
+                set(dateField, value);
+                if (value !== values[dateField]) runPrefill(value);
+              }}
             />
             {valueFields.map((field) => (
               <ValueField
@@ -168,6 +209,11 @@ export function ValidityEntryDialog<T extends ValidityEntry>({
                 onChange={(value) => set(field.name, value)}
               />
             ))}
+            {info && (
+              <FormAlert tone="info">
+                <MarkdownText text={info} />
+              </FormAlert>
+            )}
             <CommentField
               value={(values.comment as string | null | undefined) ?? ""}
               errors={errorsOf("comment")}
@@ -267,7 +313,7 @@ function ValueField({
   const t = useTranslations();
   const ids = useFieldIds();
   const invalid = errors.length > 0;
-  const label = t(field.labelKey);
+  const label = field.label ?? t(field.labelKey);
   return (
     <FieldShell
       name={field.name}
@@ -311,6 +357,7 @@ function ValueField({
           value={toNumber(value)}
           onChange={onChange}
           fractionDigits={field.kind === "int" ? 0 : undefined}
+          suffix={field.suffix}
           invalid={invalid}
           aria-label={label}
         />
