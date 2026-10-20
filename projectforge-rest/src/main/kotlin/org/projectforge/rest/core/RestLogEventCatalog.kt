@@ -25,7 +25,6 @@ package org.projectforge.rest.core
 
 import jakarta.annotation.PostConstruct
 import org.projectforge.common.logging.LogEventRegistry
-import org.projectforge.rest.dvelop.DvelopLogEvents
 import org.projectforge.rest.sipgate.SipgateLogEvents
 import org.springframework.stereotype.Component
 
@@ -44,7 +43,6 @@ class RestLogEventCatalog {
         val HOLDERS = arrayOf(
             RestLogEvents,
             SipgateLogEvents,
-            DvelopLogEvents,
         )
     }
 }

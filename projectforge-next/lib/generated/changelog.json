@@ -13,10 +13,16 @@
       "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "The monthly chart in the forecast tab of the order statistics shows the note of the forecast Excel at its top right, if the current month is shown: in the current month, the greater value is used, the invoiced figures or the monthly forecast.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
     }, {
       "type" : "changed",
-      "items" : [ "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected." ]
+      "items" : [ "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected.", {
+        "title" : "config.xml replaced by configuration parameters",
+        "items" : [ "Holidays, JIRA servers, contract types and the accounting settings (account number ranges, business assessment) are maintained on the configuration page as parameters, each with an own editor (rows of the business assessment movable, formulas and scripts checked on saving, JIRA urls and project keys checked as well); changes of the holidays apply without restart.", "An existing config.xml is taken over automatically on the first start (into the parameters still empty, its directories into projectforge.dir.* of projectforge.properties) and renamed to config.xml.migrated afterwards.", "The export of config.xml in the system administration is removed." ]
+      } ]
     }, {
       "type" : "fixed",
       "items" : [ "Customer list: sorting by the customer number works again.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+    }, {
+      "type" : "removed",
+      "items" : [ "The d.velop interface (synchronization of customers and vendors as trading partners) was removed." ]
     }, {
       "type" : "security",
       "items" : [ "The QR codes of the authenticator key (two-factor setup), of the REST client token (my account) and of the calendar subscriptions are sent within the response instead of as an image link, so the secret or token no longer shows up in access logs. QR code images are not cached anymore. The WebAuthn options no longer contain the session id, and changes of the two-factor setup check the CSRF token themselves." ]

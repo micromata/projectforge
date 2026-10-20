@@ -13,10 +13,16 @@
       "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Die Grafik der Monatswerte im Forecast-Reiter der Auftragsstatistik zeigt oben rechts den Hinweis aus der Forecast-Excel-Datei, sofern der aktuelle Monat angezeigt wird: Im aktuellen Monat wird der größere Wert verwendet, die IST-Daten (Rechnungen) oder der Monatsforecast.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
     }, {
       "type" : "changed",
-      "items" : [ "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet." ]
+      "items" : [ "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet.", {
+        "title" : "config.xml durch Konfigurationsparameter ersetzt",
+        "items" : [ "Feiertage, JIRA-Server, Vertragsarten und die Buchhaltungseinstellungen (Kontenbereiche, betriebswirtschaftliche Auswertung) werden auf der Konfigurationsseite als Parameter gepflegt, jeweils mit eigenem Editor (Zeilen der BWA verschiebbar, Formeln und Skripte sowie JIRA-URLs und Projektkürzel beim Speichern geprüft); Änderungen der Feiertage gelten ohne Neustart.", "Eine vorhandene config.xml wird beim ersten Start automatisch übernommen (in die noch leeren Parameter, ihre Verzeichnisse nach projectforge.dir.* in projectforge.properties) und danach in config.xml.migrated umbenannt.", "Der Export der config.xml in der Systemadministration ist entfernt." ]
+      } ]
     }, {
       "type" : "fixed",
       "items" : [ "Kundenliste: Die Sortierung nach Kundennummer funktioniert wieder.", "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
+    }, {
+      "type" : "removed",
+      "items" : [ "Die d.velop-Schnittstelle (Abgleich von Kunden und Kreditoren als Geschäftspartner) wurde entfernt." ]
     }, {
       "type" : "security",
       "items" : [ "Die QR-Codes des Authenticator-Schlüssels (Einrichtung der Zwei-Faktor-Authentifizierung), des REST-Client-Tokens (Mein Konto) und der Kalender-Abonnements werden in der Antwort mitgeschickt statt als Bild-Link, Geheimnis oder Token landen so nicht mehr in Zugriffsprotokollen. QR-Code-Bilder werden nicht mehr zwischengespeichert. Die WebAuthn-Optionen enthalten die Session-ID nicht mehr, und Änderungen an der Zwei-Faktor-Einrichtung prüfen das CSRF-Token selbst." ]

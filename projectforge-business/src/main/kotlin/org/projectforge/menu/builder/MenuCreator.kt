@@ -27,7 +27,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.availability.ConflictingAvailabilitiesCache
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportService
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -100,9 +99,6 @@ open class MenuCreator {
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
-
-    @Autowired
-    private lateinit var dvelopConfiguration: DvelopConfiguration
 
     @Autowired
     private lateinit var sipgateConfiguration: SipgateConfiguration
@@ -476,12 +472,6 @@ open class MenuCreator {
             MenuItemDef(MenuItemDefId.CUSTOMER_GROUPS,
                 checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
         )
-        if (dvelopConfiguration.isConfigured()) {
-            fibuMenu.add(
-                MenuItemDef(MenuItemDefId.DVELOP,
-                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
-            )
-        }
 
         // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
         fibuMenu.add(
