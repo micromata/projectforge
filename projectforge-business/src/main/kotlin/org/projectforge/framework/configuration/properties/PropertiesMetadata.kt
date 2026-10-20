@@ -140,9 +140,13 @@ class PropertiesMetadata(
 
         private val OWN_NAMESPACES = listOf("projectforge.", "pf.")
 
-        /** Last segment of keys whose values must never leave the server (e.g. `managerPassword`, `apiKey`). */
+        /**
+         * Last segment of keys whose values must never leave the server (e.g. `managerPassword`, `apiKey`). Any
+         * `…key` counts (`receiveSmsKey`, `fileSystemEncryptionKey`, `licensemanagement.key`): better a value hidden
+         * too many than a credential shown.
+         */
         private val secretRegex =
-            Regex("(password|secret|token|pepper|apikey|encryptionkey|passphrase|authkey|lookupkey)$", RegexOption.IGNORE_CASE)
+            Regex("(password|secret|token|pepper|key|passphrase)$", RegexOption.IGNORE_CASE)
 
         fun isSecret(key: String): Boolean = secretRegex.containsMatchIn(key.substringAfterLast('.'))
 
