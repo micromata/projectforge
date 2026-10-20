@@ -32,6 +32,7 @@ import org.projectforge.business.fibu.kost.AccountingConfig
 import org.projectforge.business.fibu.kost.AccountingConfigValidator
 import org.projectforge.business.orga.ContractType
 import org.projectforge.framework.calendar.HolidaysConfig
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.jira.JiraConfig
 import org.projectforge.framework.configuration.*
@@ -244,7 +245,7 @@ open class ConfigurationService {
     ApplicationDirectories.init(applicationHomeDir, directories)
     ConfigurationJsonValidators.registerType(ConfigurationParam.HOLIDAYS, HolidaysConfig.typeReference, HolidaysConfig::validate)
     ConfigurationJsonValidators.registerType(ConfigurationParam.JIRA, object : TypeReference<JiraConfig>() {})
-    ConfigurationJsonValidators.registerType(ConfigurationParam.CONTRACT_TYPES, contractTypesTypeReference)
+    ConfigurationJsonValidators.registerType(ConfigurationParam.CONTRACT_TYPES, contractTypesTypeReference, ::validateContractTypes)
     ConfigurationJsonValidators.registerType(
       ConfigurationParam.FIBU_ACCOUNTING,
       object : TypeReference<AccountingConfig>() {},
@@ -354,7 +355,8 @@ open class ConfigurationService {
         return emptyList()
       }
       return try {
-        JsonUtils.fromJson(json, contractTypesTypeReference, failOnUnknownProps = false) ?: emptyList()
+        (JsonUtils.fromJson(json, contractTypesTypeReference, failOnUnknownProps = false) ?: emptyList())
+          .map { ContractType().setValue(it.value?.trim()).setLabel(it.label?.trim()) }
       } catch (ex: Exception) {
         log.warn { "Contract types: configuration (orga.contractTypes) not readable: ${ex.message}" }
         emptyList()
@@ -619,6 +621,29 @@ open class ConfigurationService {
     var staticApplicationHomeDir: String? = null
       private set
     private val contractTypesTypeReference = object : TypeReference<List<ContractType>>() {}
+
+    /**
+     * The translated errors of the contract types of the configuration page: every type needs a value (unique,
+     * it's stored in the contracts) and a label.
+     */
+    @JvmStatic
+    internal fun validateContractTypes(types: List<ContractType>): List<String> {
+      val errors = mutableListOf<String>()
+      val values = mutableSetOf<String>()
+      types.forEachIndexed { index, type ->
+        val value = type.value?.trim()?.ifEmpty { null }
+        val name = type.label?.trim()?.ifEmpty { null } ?: value ?: "${index + 1}"
+        if (value == null) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.value", name))
+        } else if (!values.add(value)) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.duplicate", value))
+        }
+        if (type.label.isNullOrBlank()) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.label", name))
+        }
+      }
+      return errors
+    }
 
     private const val DEFAULT_RESOURCES_DIR = "resources"
     private val DEFAULT_FONTS_DIR = DEFAULT_RESOURCES_DIR + File.separator + "fonts"

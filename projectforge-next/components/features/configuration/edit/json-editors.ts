@@ -11,6 +11,8 @@ import { HOLIDAYS_PARAM } from "../holidays-config";
 import { HolidaysConfigEditor } from "./holidays-config-editor";
 import { ACCOUNTING_PARAM } from "../accounting-config";
 import { AccountingConfigEditor } from "./accounting-config-editor";
+import { CONTRACT_TYPES_PARAM } from "../contract-types-config";
+import { ContractTypesConfigEditor } from "./contract-types-config-editor";
 
 /** What the editor of a JSON parameter gets; it binds to the form value `stringValue` itself. */
 export interface JsonEditorProps {
@@ -30,4 +32,5 @@ export const JSON_EDITORS: Record<string, ComponentType<JsonEditorProps>> = {
   [GROUP_NOMENCLATURE_PARAM]: GroupNomenclatureConfigEditor,
   [HOLIDAYS_PARAM]: HolidaysConfigEditor,
   [ACCOUNTING_PARAM]: AccountingConfigEditor,
+  [CONTRACT_TYPES_PARAM]: ContractTypesConfigEditor,
 };

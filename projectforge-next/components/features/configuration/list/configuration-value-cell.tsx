@@ -19,6 +19,8 @@ import { ACCOUNTING_PARAM } from "../accounting-config";
 import { HOLIDAYS_PARAM } from "../holidays-config";
 import { AccountingConfigSummary } from "./accounting-config-summary";
 import { HolidaysConfigSummary } from "./holidays-config-summary";
+import { CONTRACT_TYPES_PARAM } from "../contract-types-config";
+import { ContractTypesConfigSummary } from "./contract-types-config-summary";
 
 /**
  * The current value of a configuration parameter, read-only, formatted for the type it is stored as —
@@ -75,6 +77,9 @@ export function ConfigurationValueCell({
       }
       if (row.parameter === HOLIDAYS_PARAM) {
         return <HolidaysConfigSummary json={row.stringValue} />;
+      }
+      if (row.parameter === CONTRACT_TYPES_PARAM) {
+        return <ContractTypesConfigSummary json={row.stringValue} />;
       }
       if (row.parameter === ACCOUNTING_PARAM) {
         return <AccountingConfigSummary json={row.stringValue} />;

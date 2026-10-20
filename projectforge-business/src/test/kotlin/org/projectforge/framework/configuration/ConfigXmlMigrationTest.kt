@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.AccountingConfig
 import org.projectforge.business.fibu.kost.AccountingConfigValidator
 import org.projectforge.business.orga.ContractType
@@ -165,6 +166,15 @@ class ConfigXmlMigrationTest {
     }
 
     @Test
+    fun contractTypesValidation() {
+        fun errors(json: String) = ConfigurationJsonValidators.validate(ConfigurationParam.CONTRACT_TYPES.key, json)
+        Assertions.assertEquals(emptyList<String>(), errors("""[{"value":"NDA","label":"NDA"},{"value":"AV","label":"AV"}]"""))
+        Assertions.assertEquals(1, errors("""[{"value":" ","label":"NDA"}]""").size, "Value missing.")
+        Assertions.assertEquals(1, errors("""[{"value":"NDA","label":""}]""").size, "Label missing.")
+        Assertions.assertEquals(1, errors("""[{"value":"NDA","label":"a"},{"value":"NDA ","label":"b"}]""").size)
+    }
+
+    @Test
     fun takeOverAndRename(@TempDir homeDir: File) {
         val configXml = File(homeDir, LegacyConfigXml.CONFIG_XML_FILE)
         configXml.writeText(CONFIG_XML)
@@ -210,7 +220,9 @@ class ConfigXmlMigrationTest {
                 ConfigurationParam.JIRA, object : com.fasterxml.jackson.core.type.TypeReference<JiraConfig>() {})
             ConfigurationJsonValidators.registerType(
                 ConfigurationParam.CONTRACT_TYPES,
-                object : com.fasterxml.jackson.core.type.TypeReference<List<ContractType>>() {})
+                object : com.fasterxml.jackson.core.type.TypeReference<List<ContractType>>() {},
+                ConfigurationService::validateContractTypes,
+            )
             ConfigurationJsonValidators.registerType(
                 ConfigurationParam.FIBU_ACCOUNTING,
                 object : com.fasterxml.jackson.core.type.TypeReference<AccountingConfig>() {},
