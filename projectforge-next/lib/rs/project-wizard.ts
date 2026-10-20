@@ -2,9 +2,14 @@ import { rawRequest, request, RsError } from "./client";
 import type { TaskWizardGroupType, TaskWizardResult } from "./task";
 import type { ValidationError } from "./types";
 
-/** `ProjectWizardRest.InitResponse`: whether the logged-in user may run the wizard at all. */
+/**
+ * `ProjectWizardRest.InitResponse`: whether the logged-in user may run the wizard at all, and which parts
+ * of it — a new customer (`customerAllowed`), a project (`projectAllowed`).
+ */
 export interface ProjectWizardInit {
   allowed: boolean;
+  customerAllowed: boolean;
+  projectAllowed: boolean;
   rootTaskId?: number | null;
 }
 
@@ -48,7 +53,8 @@ export interface ProjectWizardGroup {
  */
 export interface ProjectWizardRequest {
   customer: ProjectWizardCustomer;
-  project: ProjectWizardProject;
+  /** Null for a new customer only, without project, groups and access rights. */
+  project: ProjectWizardProject | null;
   parentTaskId?: number | null;
   managerGroup?: ProjectWizardGroup | null;
   teamGroup?: ProjectWizardGroup | null;
@@ -75,13 +81,14 @@ export interface ProjectWizardResult {
   customerId: number;
   customerName?: string | null;
   customerCreated: boolean;
-  /** The customer's structure element, the parent of the project's. */
-  customerTaskId: number;
-  projectId: number;
+  /** The customer's structure element, the parent of the project's; null for a customer only without one. */
+  customerTaskId?: number | null;
+  /** Null, as `taskId` and `access`, for a new customer only. */
+  projectId?: number | null;
   projectName?: string | null;
-  taskId: number;
+  taskId?: number | null;
   groups: ProjectWizardResultGroup[];
-  access: TaskWizardResult;
+  access?: TaskWizardResult | null;
 }
 
 export type ProjectWizardExecuteResult =

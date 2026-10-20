@@ -39,6 +39,8 @@ const NEW_CUSTOMER_SECTION: SectionDef<typeof KUNDE_METADATA> = {
 
 interface WizardCustomerStepProps {
   mode: CustomerMode;
+  /** The modes the user's rights allow: an existing customer with a project only, a new one with the right for customers. */
+  modes: CustomerMode[];
   onModeChange: (mode: CustomerMode) => void;
   customer: EntityRef | null;
   onCustomerChange: (customer: EntityRef | null) => void;
@@ -48,13 +50,15 @@ interface WizardCustomerStepProps {
 }
 
 /**
- * Step 1: the customer of the project — an existing one, or a new one created with it.
+ * Step 1: the customer of the project — an existing one, or a new one created with it (or alone). Only
+ * the modes the user may use are offered, and no choice at all if that is only one.
  *
  * A new customer is entered with the fields of the customer form itself (number with the hints of the
  * number ranges, name, ...), inside a form of their own so these fields find what they expect.
  */
 export function WizardCustomerStep({
   mode,
+  modes,
   onModeChange,
   customer,
   onCustomerChange,
@@ -68,16 +72,21 @@ export function WizardCustomerStep({
       heading={t("fibu.kunde._")}
       intro={t("project.wizard.customer.intro")}
     >
-      <WizardModeRadio<CustomerMode>
-        id="wizard-customer-mode"
-        value={mode}
-        onChange={onModeChange}
-        ariaLabel={t("fibu.kunde._")}
-        options={[
-          { value: "existing", label: t("project.wizard.existing.customer") },
-          { value: "new", label: t("project.wizard.new.customer") },
-        ]}
-      />
+      {modes.length > 1 && (
+        <WizardModeRadio<CustomerMode>
+          id="wizard-customer-mode"
+          value={mode}
+          onChange={onModeChange}
+          ariaLabel={t("fibu.kunde._")}
+          options={modes.map((value) => ({
+            value,
+            label:
+              value === "existing"
+                ? t("project.wizard.existing.customer")
+                : t("project.wizard.new.customer"),
+          }))}
+        />
+      )}
       {mode === "existing" ? (
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="wizard-customer" className="text-xs">

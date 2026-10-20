@@ -60,8 +60,13 @@ import { WizardRoleStep } from "./wizard-role-step";
 /**
  * The project wizard: sets up a project in one go — its customer (an existing or a new one), the
  * project, a structure element for it below a picked one, the groups of its team, managers and
- * externals (existing ones or new ones with their members), and their rights on the new element, as
- * the structure wizard grants them (TaskWizard, whose preview and report it shows as well).
+ * externals (existing ones or new ones with their members, none by default), and their rights on the
+ * new element, as the structure wizard grants them (TaskWizard, whose preview and report it shows as
+ * well).
+ *
+ * The user's rights leave parts out (`ProjectWizardRest.init`): without the right for customers only an
+ * existing customer is picked; without the one for projects only a new customer is created, without
+ * project and groups — which a user with both rights may choose as well ("No project").
  *
  * The customer and the project are entered with the fields of their own forms, inside a TanStack form
  * each, as those fields expect one; the rest is plain state, as in the structure wizard. Nothing is
@@ -82,6 +87,13 @@ export function ProjectWizard() {
     retry: false,
   });
   const allowed = init.data?.allowed === true;
+  const customerAllowed = init.data?.customerAllowed === true;
+  const projectAllowed = init.data?.projectAllowed === true;
+  // An existing customer is only worth picking for a new project.
+  const customerModes: CustomerMode[] = [
+    ...(projectAllowed ? (["existing"] as const) : []),
+    ...(customerAllowed ? (["new"] as const) : []),
+  ];
   // The preset of a new project, which carries the cost 2 types it may get.
   const projectPreset = useQuery({
     queryKey: ["projectWizardPreset"],
@@ -90,7 +102,15 @@ export function ProjectWizard() {
     staleTime: Infinity,
   });
 
-  const [customerMode, setCustomerMode] = useState<CustomerMode>("existing");
+  const [pickedCustomerMode, setCustomerMode] =
+    useState<CustomerMode>("existing");
+  // The picked mode as far as the rights allow it, otherwise the first one they do.
+  const customerMode = customerModes.includes(pickedCustomerMode)
+    ? pickedCustomerMode
+    : (customerModes[0] ?? "existing");
+  const [wantsProject, setWantsProject] = useState(true);
+  const withProject =
+    projectAllowed && (customerMode === "existing" || wantsProject);
   const [customer, setCustomer] = useState<EntityRef | null>(null);
   const customerForm = useForm({ defaultValues: emptyCustomerValues() });
   const projectForm = useForm({ defaultValues: emptyProjectValues() });
@@ -192,28 +212,33 @@ export function ProjectWizard() {
             division: customerValues.division,
             status: customerValues.status,
           },
-    project: {
-      nummer: projectValues.nummer as number,
-      projektnummer: projectValues.projektnummer,
-      name: projectValues.name,
-      identifier: projectValues.identifier,
-      status: projectValues.status,
-      description: projectValues.description,
-      contactPersonId: projectValues.contactPerson?.id ?? null,
-      additionalContactIds: projectValues.additionalContacts.map(
-        (contact) => contact.id
-      ),
-      kost2ArtIds: projectValues.kost2Arts
-        .filter((art) => art.selected)
-        .map((art) => art.id),
-    },
+    project: !withProject
+      ? null
+      : {
+          nummer: projectValues.nummer as number,
+          projektnummer: projectValues.projektnummer,
+          name: projectValues.name,
+          identifier: projectValues.identifier,
+          status: projectValues.status,
+          description: projectValues.description,
+          contactPersonId: projectValues.contactPerson?.id ?? null,
+          additionalContactIds: projectValues.additionalContacts.map(
+            (contact) => contact.id
+          ),
+          kost2ArtIds: projectValues.kost2Arts
+            .filter((art) => art.selected)
+            .map((art) => art.id),
+        },
     parentTaskId,
-    ...Object.fromEntries(
-      GROUP_STEPS.map((step) => [
-        ROLE_FIELDS[step.key],
-        toGroup(roles[step.key], suggestedNames[step.key]),
-      ])
-    ),
+    // No groups without a project: they are given rights on its element.
+    ...(withProject
+      ? Object.fromEntries(
+          GROUP_STEPS.map((step) => [
+            ROLE_FIELDS[step.key],
+            toGroup(roles[step.key], suggestedNames[step.key]),
+          ])
+        )
+      : {}),
   };
 
   // Asked again as the user types, but not on every key stroke.
@@ -280,6 +305,7 @@ export function ProjectWizard() {
     setAttempted(false);
     setExecuteErrors([]);
     setCustomerMode("existing");
+    setWantsProject(true);
     setCustomer(null);
     customerForm.reset(emptyCustomerValues());
     projectForm.reset({
@@ -311,9 +337,13 @@ export function ProjectWizard() {
   }
 
   const preview = validation.data?.preview;
-  const anyGroup = GROUP_STEPS.some(
-    (step) => toGroup(roles[step.key], suggestedNames[step.key]) != null
-  );
+  const anyGroup =
+    withProject &&
+    GROUP_STEPS.some(
+      (step) => toGroup(roles[step.key], suggestedNames[step.key]) != null
+    );
+  // The steps are numbered as they are shown: the project's only for users who may create projects.
+  const parentStepNumber = projectAllowed ? 3 : 2;
   return (
     <div className="flex flex-col gap-4">
       {/* As wide as an edit page: the steps carry the three-column grids of the customer and project forms. */}
@@ -328,15 +358,27 @@ export function ProjectWizard() {
         </p>
         <WizardCustomerStep
           mode={customerMode}
+          modes={customerModes}
           onModeChange={setCustomerMode}
           customer={customer}
           onCustomerChange={pickCustomer}
           form={customerForm}
           errors={errors}
         />
-        <WizardProjectStep form={projectForm} />
+        {projectAllowed && (
+          <WizardProjectStep
+            form={projectForm}
+            number={2}
+            withProject={withProject}
+            onWithProjectChange={
+              customerMode === "new" ? setWantsProject : undefined
+            }
+          />
+        )}
         <WizardParentTaskStep
+          number={parentStepNumber}
           newCustomer={customerMode === "new"}
+          customerOnly={!withProject}
           customerName={customerValues.name?.trim() ?? ""}
           rootTaskId={init.data?.rootTaskId}
           parentTaskId={parentTaskId}
@@ -344,20 +386,21 @@ export function ProjectWizard() {
           projectName={projectName}
           errors={errors}
         />
-        {GROUP_STEPS.map((step, index) => (
-          <WizardRoleStep
-            key={step.key}
-            step={step}
-            number={index + 4}
-            value={roles[step.key]}
-            onChange={(value: RoleState) =>
-              setRoles((previous) => ({ ...previous, [step.key]: value }))
-            }
-            suggestedName={suggestedNames[step.key]}
-            nomenclatureDescription={nomenclature?.description}
-            errors={errors}
-          />
-        ))}
+        {withProject &&
+          GROUP_STEPS.map((step, index) => (
+            <WizardRoleStep
+              key={step.key}
+              step={step}
+              number={parentStepNumber + 1 + index}
+              value={roles[step.key]}
+              onChange={(value: RoleState) =>
+                setRoles((previous) => ({ ...previous, [step.key]: value }))
+              }
+              suggestedName={suggestedNames[step.key]}
+              nomenclatureDescription={nomenclature?.description}
+              errors={errors}
+            />
+          ))}
       </div>
       {preview && anyGroup && (
         <div className="flex max-w-6xl flex-col">
@@ -367,11 +410,15 @@ export function ProjectWizard() {
       <div className="flex max-w-6xl flex-col">
         <WizardActionStep
           hasAction={anyGroup}
-          canFinish={parentTaskId != null}
+          canFinish={!withProject || parentTaskId != null}
           isPending={execute.isPending}
           onCancel={() => navigateInGesture(router, "/project")}
           onFinish={() => execute.mutate()}
-          finishLabel={t("project.wizard.finish")}
+          finishLabel={
+            withProject
+              ? t("project.wizard.finish")
+              : t("project.wizard.finish.customer")
+          }
         />
       </div>
     </div>

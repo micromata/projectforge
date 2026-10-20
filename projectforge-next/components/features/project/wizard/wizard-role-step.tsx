@@ -64,9 +64,9 @@ export function WizardRoleStep({
         onChange={(mode) => set({ mode })}
         ariaLabel={heading}
         options={[
-          { value: "new", label: t("project.wizard.new.group") },
-          { value: "existing", label: t("project.wizard.existing.group") },
           { value: "none", label: t("project.wizard.none.group") },
+          { value: "existing", label: t("project.wizard.existing.group") },
+          { value: "new", label: t("project.wizard.new.group") },
         ]}
       />
       {value.mode === "existing" && (

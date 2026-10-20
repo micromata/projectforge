@@ -49,8 +49,9 @@ private val log = KotlinLogging.logger {}
  * The project wizard ([ProjectWizardService]): customer, project, structure element, groups and access
  * rights in one go. Serves the hand built page of projectforge-next (`/next/projectWizard`).
  *
- * Only for users who may create customers, projects and structure elements ([ProjectWizardService.isAllowed]),
- * checked by every endpoint - the frontend hiding its entry is no access check.
+ * Only for users who may create customers or projects, and structure elements ([ProjectWizardService.isAllowed]),
+ * checked by every endpoint - the frontend hiding its entry is no access check. What the user may create of
+ * it is checked on [execute] ([ProjectWizardService.checkAllowed]).
  *
  * The field ids of the validation errors are the paths of [ProjectWizardService.Data]: `customer.nummer`,
  * `project.name`, `parentTaskId`, `teamGroup.name`, ...
@@ -62,9 +63,13 @@ private val log = KotlinLogging.logger {}
 class ProjectWizardRest {
     /**
      * @param allowed Whether the logged-in user may run the wizard, for the entry points.
+     * @param customerAllowed Whether a new customer may be created ([ProjectWizardService.customerAllowed]).
+     * @param projectAllowed Whether a project may be created ([ProjectWizardService.projectAllowed]).
      */
     class InitResponse(
         val allowed: Boolean,
+        val customerAllowed: Boolean,
+        val projectAllowed: Boolean,
         val rootTaskId: Long?,
     )
 
@@ -88,12 +93,12 @@ class ProjectWizardRest {
         val customerId: Long,
         val customerName: String?,
         val customerCreated: Boolean,
-        val customerTaskId: Long,
-        val projectId: Long,
+        val customerTaskId: Long?,
+        val projectId: Long?,
         val projectName: String?,
-        val taskId: Long,
+        val taskId: Long?,
         val groups: List<ResultGroup>,
-        val access: TaskWizardRest.ExecuteResponse,
+        val access: TaskWizardRest.ExecuteResponse?,
     )
 
     @Autowired
@@ -114,7 +119,12 @@ class ProjectWizardRest {
     @AccessChecked("Answers only whether ProjectWizardService.isAllowed, no data")
     @GetMapping("init")
     fun init(): InitResponse {
-        return InitResponse(allowed = projectWizardService.isAllowed(), rootTaskId = taskTree.rootTaskNode.id)
+        return InitResponse(
+            allowed = projectWizardService.isAllowed(),
+            customerAllowed = projectWizardService.customerAllowed(),
+            projectAllowed = projectWizardService.projectAllowed(),
+            rootTaskId = taskTree.rootTaskNode.id,
+        )
     }
 
     /**
@@ -183,7 +193,7 @@ class ProjectWizardRest {
                 projectName = result.projectName,
                 taskId = result.taskId,
                 groups = result.groups.map { ResultGroup(it.groupType.name, it.id, it.name, it.created) },
-                access = TaskWizardRest.toResponse(result.access),
+                access = result.access?.let { TaskWizardRest.toResponse(it) },
             )
         )
     }
@@ -195,6 +205,8 @@ class ProjectWizardRest {
     }
 
     private fun preview(data: ProjectWizardService.Data): TaskWizardRest.ExecuteResponse? {
+        // Without a project there are no groups, so no rights to show.
+        data.project ?: return null
         val parentTaskId = data.parentTaskId ?: return null
         taskTree.getTaskNodeById(parentTaskId) ?: return null
         val wizardGroup = { group: ProjectWizardService.GroupData? ->
@@ -226,27 +238,32 @@ class ProjectWizardRest {
             required(errors, customer.id, "customer.id", "fibu.kunde")
             customer.id
         }
-        val project = data.project ?: ProjectWizardService.ProjectData()
-        val projectName = project.name?.trim()
-        required(errors, projectName, "project.name", "fibu.projekt.name")
-        val nummer = project.nummer
-        required(errors, nummer, "project.nummer", "fibu.projekt.nummer")
-        // Only once the customer's number is fine, otherwise the project's range is a guess:
-        if (nummer != null && errors.none { it.fieldId == "customer.nummer" }) {
-            fibuNumberValidation.validateProjectNumbers(
-                errors,
-                kundeNummer = kundeNummer,
-                projectId = null,
-                nummer = nummer,
-                projektnummer = project.projektnummer,
-                internKost2_4 = null,
-                newKost2Requested = !project.kost2ArtIds.isNullOrEmpty(),
-                fieldPrefix = "project.",
-            )
+        // A new customer only, without project (and so without groups): the parent is optional then.
+        val project = data.project
+        val projectName = project?.name?.trim()
+        if (project != null) {
+            required(errors, projectName, "project.name", "fibu.projekt.name")
+            val nummer = project.nummer
+            required(errors, nummer, "project.nummer", "fibu.projekt.nummer")
+            // Only once the customer's number is fine, otherwise the project's range is a guess:
+            if (nummer != null && errors.none { it.fieldId == "customer.nummer" }) {
+                fibuNumberValidation.validateProjectNumbers(
+                    errors,
+                    kundeNummer = kundeNummer,
+                    projectId = null,
+                    nummer = nummer,
+                    projektnummer = project.projektnummer,
+                    internKost2_4 = null,
+                    newKost2Requested = !project.kost2ArtIds.isNullOrEmpty(),
+                    fieldPrefix = "project.",
+                )
+            }
         }
         val parentNode = data.parentTaskId?.let { taskTree.getTaskNodeById(it) }
         if (parentNode == null) {
-            required(errors, null, "parentTaskId", "task.parentTask")
+            if (project != null || data.parentTaskId != null) {
+                required(errors, null, "parentTaskId", "task.parentTask")
+            }
         } else {
             // The new element below the picked one is titled by the new customer or else by the project, and
             // sister elements must differ (TaskDao).
@@ -254,6 +271,9 @@ class ProjectWizardRest {
             if (!newTitle.isNullOrBlank() && parentNode.children?.any { !it.isDeleted && it.task?.title == newTitle } == true) {
                 errors.add(ValidationError(translate("task.error.duplicateChildTasks"), "parentTaskId"))
             }
+        }
+        if (project == null) {
+            return errors
         }
         val newNames = mutableSetOf<String>()
         data.groups.forEach { (groupType, group) ->

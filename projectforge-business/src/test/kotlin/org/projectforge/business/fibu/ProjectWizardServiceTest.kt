@@ -47,9 +47,9 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * The project wizard as a user of the finance group with the rights for customers and projects (who may
- * create customers, projects and structure elements, but neither groups nor access rights outside of the
- * wizard).
+ * The project wizard, mostly as a user of the finance group with the rights for customers and projects
+ * (who may create customers, projects and structure elements, but neither groups nor access rights
+ * outside of the wizard), and with only one of the two rights.
  */
 class ProjectWizardServiceTest : AbstractTestBase() {
     @Autowired
@@ -147,7 +147,7 @@ class ProjectWizardServiceTest : AbstractTestBase() {
         Assertions.assertNotNull(accessDao.getEntry(parent, GroupDO().also { it.id = team.id }, checkAccess = false))
         Assertions.assertEquals(
             9,
-            result.access.entries.size,
+            result.access!!.entries.size,
             "Project element, customer element and parent for each of the three groups.",
         )
     }
@@ -209,7 +209,7 @@ class ProjectWizardServiceTest : AbstractTestBase() {
                 TaskWizardService.AccessStatus.CREATED,
                 TaskWizardService.AccessStatus.UPDATED,
             ),
-            result.access.entries.map { it.status },
+            result.access!!.entries.map { it.status },
             "The parent's recursive team rights become read access.",
         )
     }
@@ -231,10 +231,11 @@ class ProjectWizardServiceTest : AbstractTestBase() {
     }
 
     @Test
-    fun `finance users without the customer right are refused`() {
+    fun `finance users without the customer right may not create customers`() {
         val parent = createParent("noCustomerRight")
         logon(addUser("ProjectWizardServiceTest.finance", FINANCE_GROUP, UserRightId.PM_PROJECT))
-        Assertions.assertFalse(projectWizardService.isAllowed())
+        Assertions.assertTrue(projectWizardService.isAllowed(), "Projects for existing customers.")
+        Assertions.assertFalse(projectWizardService.customerAllowed())
         Assertions.assertThrows(AccessException::class.java) {
             projectWizardService.execute(
                 ProjectWizardService.Data(
@@ -252,6 +253,100 @@ class ProjectWizardServiceTest : AbstractTestBase() {
             addUser("ProjectWizardServiceTest.orga", ORGA_GROUP, UserRightId.PM_PROJECT, UserRightId.FIBU_CUSTOMER)
         )
         Assertions.assertTrue(projectWizardService.isAllowed())
+    }
+
+    @Test
+    fun `the customer right alone creates a customer, with or without its element`() {
+        val parent = createParent("customerOnly")
+        val user = addUser("ProjectWizardServiceTest.customerOnly", FINANCE_GROUP, UserRightId.FIBU_CUSTOMER)
+        logon(user)
+        Assertions.assertTrue(projectWizardService.isAllowed())
+        Assertions.assertFalse(projectWizardService.projectAllowed())
+        val alone = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18506L, name = "$PREFIX customerOnly"),
+            )
+        )
+        Assertions.assertEquals(18506L, alone.customerId)
+        Assertions.assertNull(alone.customerTaskId)
+        Assertions.assertNull(alone.projectId)
+        Assertions.assertNull(alone.access)
+        Assertions.assertNotNull(kundeDao.find(18506L, checkAccess = false))
+
+        val withElement = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18507L, name = "$PREFIX customerElement"),
+                parentTaskId = parent.id,
+            )
+        )
+        val customerNode = taskTree.getTaskNodeById(withElement.customerTaskId)!!
+        Assertions.assertEquals("$PREFIX customerElement", customerNode.task?.title)
+        Assertions.assertEquals(parent.id, customerNode.parent?.id)
+        Assertions.assertTrue(customerNode.children.isNullOrEmpty())
+
+        // A project needs the project right:
+        Assertions.assertThrows(AccessException::class.java) {
+            projectWizardService.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(nummer = 18508L, name = "$PREFIX customerProject"),
+                    project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-customerOnly-project"),
+                    parentTaskId = parent.id,
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `the project right alone sets up a project for an existing customer`() {
+        val parent = createParent("projectOnly")
+        logon(TEST_FINANCE_USER)
+        kundeDao.insert(KundeDO().also {
+            it.nummer = 18509L
+            it.name = "$PREFIX projectOnly"
+        })
+        logon(addUser("ProjectWizardServiceTest.projectOnly", FINANCE_GROUP, UserRightId.PM_PROJECT))
+        Assertions.assertTrue(projectWizardService.isAllowed())
+        Assertions.assertFalse(projectWizardService.customerAllowed())
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(existing = true, id = 18509L),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-projectOnly-project"),
+                parentTaskId = parent.id,
+                teamGroup = ProjectWizardService.GroupData(name = "$PREFIX-projectOnly"),
+            )
+        )
+        Assertions.assertFalse(result.customerCreated)
+        Assertions.assertEquals(parent.id, taskTree.getTaskNodeById(result.taskId)?.parent?.id)
+        Assertions.assertTrue(result.groups.single().created)
+    }
+
+    @Test
+    fun `without groups the project gets no access rights`() {
+        val parent = createParent("noGroups")
+        logon(TEST_FINANCE_USER)
+        val result = projectWizardService.execute(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18510L, name = "$PREFIX noGroups"),
+                project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-noGroups-project"),
+                parentTaskId = parent.id,
+            )
+        )
+        Assertions.assertNotNull(result.projectId)
+        Assertions.assertTrue(result.groups.isEmpty())
+        Assertions.assertTrue(result.access!!.entries.isEmpty())
+    }
+
+    @Test
+    fun `groups without a project are refused`() {
+        logon(TEST_FINANCE_USER)
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            projectWizardService.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(nummer = 18511L, name = "$PREFIX groupsOnly"),
+                    teamGroup = ProjectWizardService.GroupData(name = "$PREFIX-groupsOnly"),
+                )
+            )
+        }
     }
 
     /** A new user in the given group, with read and write access of the given rights. */

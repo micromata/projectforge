@@ -12,6 +12,9 @@ import {
 import { WizardStepCard } from "@/components/features/task/wizard/wizard-step-card";
 import { PROJEKT_METADATA } from "@/lib/metadata/projekt.generated";
 import type { SectionDef } from "@/lib/page-def/types";
+import { WizardModeRadio } from "./wizard-mode-radio";
+
+type ProjectMode = "new" | "none";
 
 const ProjectAdditionalContactsField = makeAdditionalContactsField(
   "fibu.projekt.contacts.info"
@@ -42,26 +45,57 @@ const PROJECT_SECTION: SectionDef<typeof PROJEKT_METADATA> = {
   ],
 };
 
+interface WizardProjectStepProps {
+  form: EntityForm;
+  number: number;
+  withProject: boolean;
+  /**
+   * Given where the project may be left out (a new customer, by a user who may create projects): the
+   * choice between a new project and none, the customer only.
+   */
+  onWithProjectChange?: (withProject: boolean) => void;
+}
+
 /**
  * Step 2: the project. Its number takes the shape of the customer's number range as in the project
  * form (ProjectNumberField), for which the customer of step 1 is kept in this form's `customer`.
  */
-export function WizardProjectStep({ form }: { form: EntityForm }) {
+export function WizardProjectStep({
+  form,
+  number,
+  withProject,
+  onWithProjectChange,
+}: WizardProjectStepProps) {
   const t = useTranslations();
+  const heading = t("fibu.projekt._");
   return (
     <WizardStepCard
-      number={2}
-      heading={t("fibu.projekt._")}
+      number={number}
+      heading={heading}
       intro={t("project.wizard.project.intro")}
     >
-      <EntityEditFormProvider
-        value={{ form, metadata: PROJEKT_METADATA, readOnly: false }}
-      >
-        <DeclaredSectionFields
-          section={PROJECT_SECTION}
-          metadata={PROJEKT_METADATA}
+      {onWithProjectChange && (
+        <WizardModeRadio<ProjectMode>
+          id="wizard-project-mode"
+          value={withProject ? "new" : "none"}
+          onChange={(mode) => onWithProjectChange(mode === "new")}
+          ariaLabel={heading}
+          options={[
+            { value: "new", label: t("project.wizard.new.project") },
+            { value: "none", label: t("project.wizard.none.project") },
+          ]}
         />
-      </EntityEditFormProvider>
+      )}
+      {withProject && (
+        <EntityEditFormProvider
+          value={{ form, metadata: PROJEKT_METADATA, readOnly: false }}
+        >
+          <DeclaredSectionFields
+            section={PROJECT_SECTION}
+            metadata={PROJEKT_METADATA}
+          />
+        </EntityEditFormProvider>
+      )}
     </WizardStepCard>
   );
 }

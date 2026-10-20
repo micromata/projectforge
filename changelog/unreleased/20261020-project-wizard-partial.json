@@ -1,0 +1,5 @@
+{
+  "type": "changed",
+  "en": "Customer wizard: also usable with only one of the rights for customers and projects. With the right for customers only, a new customer is created (and optionally its structure element); with the right for projects only, a project is set up for an existing customer. With both, \"No project\" creates the customer only. The groups and their access rights are optional, and no group is preselected any more.",
+  "de": "Kundenassistent: auch mit nur einem der Rechte für Kunden und Projekte nutzbar. Mit dem Recht für Kunden allein wird ein neuer Kunde angelegt (optional mit seinem Strukturelement), mit dem Recht für Projekte allein ein Projekt für einen vorhandenen Kunden eingerichtet. Mit beiden legt „Kein Projekt“ nur den Kunden an. Gruppen samt Zugriffsrechten sind optional, vorausgewählt ist keine Gruppe mehr."
+}

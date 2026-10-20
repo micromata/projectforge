@@ -82,7 +82,11 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
       page.getByRole("textbox", { name: format.t("fibu.kunde.nummer") })
     ).toBeVisible({ timeout: 20_000 });
 
-    // The suggested group names follow the project's name as it is typed.
+    // The suggested group names follow the project's name as it is typed (no group by default).
+    await page
+      .getByRole("radio", { name: format.t("project.wizard.new.group") })
+      .first()
+      .click();
     const name = `E2E wizard ${Date.now()}`;
     await page
       .getByRole("textbox", {

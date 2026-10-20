@@ -4036,27 +4036,35 @@
   "project": {
     "wizard": {
       "customer": {
-        "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird."
+        "intro": "Der Kunde des Projekts: ein vorhandener oder ein neuer, der zusammen mit dem Projekt angelegt wird – oder auch allein."
       },
       "existing": {
         "customer": "Vorhandener Kunde",
         "group": "Vorhandene Gruppe"
       },
-      "finish": "Projekt einrichten",
-      "intro": "Mit diesem Assistenten wird ein neues Projekt in einem Schritt eingerichtet: der Kunde (vorhanden oder neu), das Projekt, sein Strukturelement und die Gruppen von Team, Teammanager:innen und Externen samt ihrer Zugriffsrechte. Gespeichert wird erst beim Einrichten, dann alles auf einmal.",
+      "finish": {
+        "_": "Projekt einrichten",
+        "customer": "Kunde anlegen"
+      },
+      "intro": "Mit diesem Assistenten werden ein neuer Kunde und/oder ein neues Projekt in einem Schritt eingerichtet: der Kunde (vorhanden oder neu), das Projekt, sein Strukturelement und bei Bedarf die Gruppen von Team, Teammanager:innen und Externen samt ihrer Zugriffsrechte. Gespeichert wird erst am Ende, dann alles auf einmal.",
       "managerGroup": {
         "projectManagerGroup": "Diese Gruppe wird zugleich die Projektmanager-Gruppe des Projekts."
       },
       "new": {
         "customer": "Neuer Kunde",
-        "group": "Neue Gruppe"
+        "group": "Neue Gruppe",
+        "project": "Neues Projekt"
       },
       "none": {
-        "group": "Keine Gruppe"
+        "group": "Keine Gruppe",
+        "project": "Kein Projekt"
       },
-      "notAllowed": "Der Kundenassistent steht nur Benutzer:innen zur Verfügung, die Kunden, Projekte und Strukturelemente anlegen dürfen.",
+      "notAllowed": "Der Kundenassistent steht nur Benutzer:innen zur Verfügung, die Kunden oder Projekte und Strukturelemente anlegen dürfen.",
       "pageTitle": "Kundenassistent",
       "parentTask": {
+        "customerOnly": {
+          "intro": "Optional: Unterhalb dieses Elements wird das Strukturelement des neuen Kunden angelegt, mit dem Namen des Kunden als Titel. Ohne Element wird nur der Kunde angelegt."
+        },
         "existingCustomer": {
           "_": "Strukturelement des Kunden",
           "intro": "Das Element des Kunden, soweit bekannt aus seinen Projekten vorbelegt. Darunter wird das Strukturelement des Projekts angelegt, mit dem Namen des Projekts als Titel, und mit dem Projekt verknüpft."

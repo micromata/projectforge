@@ -56,10 +56,15 @@ private val log = KotlinLogging.logger {}
  * on the top level. So for an existing customer the project's element is created below the customer's
  * element, for a new customer the customer's element is created first, below the chosen one.
  *
- * Only for users who may create customers, projects and structure elements anyway ([isAllowed]). As an
- * exception, these users may create groups and access rights through the wizard - which only admins
- * may otherwise -, which is why those two are written without the access checks of their DAOs, after
- * the wizard checked its own rule.
+ * Parts of it are left out by the rights of the user ([checkAllowed]): who may create customers only gets a
+ * new customer (and its element, if a parent is picked), without project, groups and access rights; who
+ * may create projects only picks an existing customer. Who may do both may create a customer only as well
+ * ([Data.project] null). The groups are optional anyway.
+ *
+ * Only for users who may create customers or projects and structure elements anyway ([isAllowed]). As an
+ * exception, users who may create projects may create groups and access rights through the wizard -
+ * which only admins may otherwise -, which is why those two are written without the access checks of
+ * their DAOs, after the wizard checked its own rule.
  *
  * All of it in one transaction: a failure anywhere leaves nothing behind.
  *
@@ -164,9 +169,10 @@ class ProjectWizardService {
     }
 
     /**
+     * @param project Null for a new customer only, without project, groups and access rights.
      * @param parentTaskId For an existing customer its element, which the project's element is created
      * below; for a new customer the element its own element (titled by its name) is created below, and
-     * the project's below that.
+     * the project's below that. Optional for a new customer only: without it no element is created.
      * @param managerGroup Also becomes the project manager group of the project.
      */
     class Data(
@@ -194,43 +200,67 @@ class ProjectWizardService {
     )
 
     /**
-     * @param customerTaskId The customer's element, the parent of the project's.
+     * @param customerTaskId The customer's element, the parent of the project's; null for a new customer
+     * only without a parent.
+     * @param projectId Null, as [projectName], [taskId] and [access], for a new customer only.
      */
     class Result(
         val customerId: Long,
         val customerName: String?,
         val customerCreated: Boolean,
-        val customerTaskId: Long,
-        val projectId: Long,
+        val customerTaskId: Long?,
+        val projectId: Long?,
         val projectName: String?,
-        val taskId: Long,
+        val taskId: Long?,
         val groups: List<ResultGroup>,
-        val access: TaskWizardService.Result,
+        val access: TaskWizardService.Result?,
     )
 
     /**
-     * Whether the user may run the wizard: create customers (`FIBU_CUSTOMER`, read and write), projects
-     * (`PM_PROJECT`, read and write) and structure elements - the last one depends on the parent and is
-     * checked by [checkAllowed] as well. Restricted and demo users never, they may not write anything.
+     * Whether the user may run the wizard: create customers ([customerAllowed]) or projects
+     * ([projectAllowed]), and structure elements - the last one depends on the parent and is checked by
+     * [checkAllowed] as well.
      */
-    fun isAllowed(): Boolean {
+    fun isAllowed(): Boolean = customerAllowed() || projectAllowed()
+
+    /**
+     * Whether the user may create customers (`FIBU_CUSTOMER`, read and write). Restricted and demo users
+     * never, they may not write anything.
+     */
+    fun customerAllowed(): Boolean {
         if (accessChecker.isRestrictedOrDemoUser) {
             return false
         }
-        val user = ThreadLocalUserContext.requiredLoggedInUser
-        return kundeDao.hasInsertAccess(user, KundeDO(), false) && projektDao.hasInsertAccess(user, ProjektDO(), false)
+        return kundeDao.hasInsertAccess(ThreadLocalUserContext.requiredLoggedInUser, KundeDO(), false)
+    }
+
+    /** Whether the user may create projects (`PM_PROJECT`, read and write), see [customerAllowed]. */
+    fun projectAllowed(): Boolean {
+        if (accessChecker.isRestrictedOrDemoUser) {
+            return false
+        }
+        return projektDao.hasInsertAccess(ThreadLocalUserContext.requiredLoggedInUser, ProjektDO(), false)
     }
 
     /**
-     * @throws AccessException unless [isAllowed] and the user may create an element below [parentTaskId].
+     * @throws AccessException unless the user may do what [data] asks for: a new customer needs
+     * [customerAllowed], a project [projectAllowed], and the parent the right to create an element below it.
+     * @throws IllegalArgumentException for neither a new customer nor a project, or groups without a project.
      */
-    fun checkAllowed(parentTaskId: Long) {
+    fun checkAllowed(data: Data) {
         val user = ThreadLocalUserContext.requiredLoggedInUser
-        if (!isAllowed()) {
+        val customer = data.customer ?: CustomerData()
+        if (data.project == null) {
+            require(customer.isNew) { "Neither a new customer nor a project." }
+            require(data.groups.none { it.second?.isGiven == true }) { "Groups without a project." }
+        }
+        if ((customer.isNew && !customerAllowed()) || (data.project != null && !projectAllowed())) {
             throw AccessException(user, "access.exception.noAccess")
         }
-        val task = TaskDO().also { it.parentTask = TaskDO().also { parent -> parent.id = parentTaskId } }
-        taskDao.hasInsertAccess(user, task, throwException = true)
+        data.parentTaskId?.let { parentTaskId ->
+            val task = TaskDO().also { it.parentTask = TaskDO().also { parent -> parent.id = parentTaskId } }
+            taskDao.hasInsertAccess(user, task, throwException = true)
+        }
     }
 
     /**
@@ -244,24 +274,40 @@ class ProjectWizardService {
      * @throws IllegalArgumentException if a required value is missing.
      */
     fun execute(data: Data): Result {
-        val parentTaskId = requireNotNull(data.parentTaskId) { "Parent task required." }
         val customerData = requireNotNull(data.customer) { "Customer required." }
-        val projectData = requireNotNull(data.project) { "Project required." }
-        require(!projectData.name.isNullOrBlank()) { "Project name required." }
-        checkAllowed(parentTaskId)
+        val projectData = data.project
+        if (projectData != null) {
+            requireNotNull(data.parentTaskId) { "Parent task required." }
+            require(!projectData.name.isNullOrBlank()) { "Project name required." }
+        }
+        checkAllowed(data)
+        val parentTaskId = data.parentTaskId
         var success = false
         try {
             val result = persistenceService.runInTransaction { _ ->
                 val (kunde, customerCreated) = customerOf(customerData)
-                val customerTaskId = if (customerCreated) {
+                val customerTaskId = if (customerCreated && parentTaskId != null) {
                     val customerTask = TaskDO().also { it.title = kunde.name?.trim() }
                     taskDao.setParentTask(customerTask, parentTaskId)
                     taskDao.insert(customerTask)
                 } else {
                     parentTaskId
                 }
+                if (projectData == null) {
+                    return@runInTransaction Result(
+                        customerId = kunde.id!!,
+                        customerName = kunde.name,
+                        customerCreated = true,
+                        customerTaskId = customerTaskId,
+                        projectId = null,
+                        projectName = null,
+                        taskId = null,
+                        groups = emptyList(),
+                        access = null,
+                    )
+                }
                 val task = TaskDO().also { it.title = projectData.name?.trim() }
-                taskDao.setParentTask(task, customerTaskId)
+                taskDao.setParentTask(task, customerTaskId!!)
                 taskDao.insert(task)
                 val groups = data.groups.mapNotNull { (groupType, groupData) ->
                     groupData?.let { groupOf(groupType, it) }
@@ -307,9 +353,14 @@ class ProjectWizardService {
             }
             success = true
             log.info {
-                "Project wizard: project #${result.projectId} '${result.projectName}' set up for customer " +
-                        "#${result.customerId} (new: ${result.customerCreated}), task #${result.taskId}, " +
-                        "${result.groups.count { it.created }} new group(s), ${result.access.entries.size} access entries."
+                if (result.projectId == null) {
+                    "Project wizard: customer #${result.customerId} created, task #${result.customerTaskId}."
+                } else {
+                    "Project wizard: project #${result.projectId} '${result.projectName}' set up for customer " +
+                            "#${result.customerId} (new: ${result.customerCreated}), task #${result.taskId}, " +
+                            "${result.groups.count { it.created }} new group(s), " +
+                            "${result.access?.entries?.size ?: 0} access entries."
+                }
             }
             return result
         } finally {

@@ -14,8 +14,11 @@ import type { ValidationError } from "@/lib/rs/types";
 import { WizardFieldError } from "./wizard-field-error";
 
 interface WizardParentTaskStepProps {
+  number: number;
   /** Whether the customer is created with the project, which decides what is picked here. */
   newCustomer: boolean;
+  /** A new customer without project: the element is optional, without it only the customer is created. */
+  customerOnly: boolean;
   parentTaskId: number | null;
   onChange: (taskId: number | null) => void;
   /** The title of the customer's new element, the customer's name. */
@@ -37,11 +40,15 @@ interface WizardParentTaskStepProps {
  * - a new one: the element its own element is created below (a customer group, a business unit or the
  *   top level), and the project's below that.
  *
+ * - a new customer only, without project: optionally the element its own element is created below.
+ *
  * Built like the first step of the structure wizard (WizardTaskStep), from the select control and
  * dialog directly, as this is no entity form.
  */
 export function WizardParentTaskStep({
+  number,
   newCustomer,
+  customerOnly,
   parentTaskId,
   onChange,
   customerName,
@@ -67,19 +74,23 @@ export function WizardParentTaskStep({
     ...(newCustomer && customerName
       ? [{ title: customerName, isNew: true }]
       : []),
-    ...(projectName ? [{ title: projectName, isNew: true }] : []),
+    ...(projectName && !customerOnly
+      ? [{ title: projectName, isNew: true }]
+      : []),
   ];
   const heading = newCustomer
     ? t("project.wizard.parentTask.newCustomer._")
     : t("project.wizard.parentTask.existingCustomer._");
   return (
     <WizardStepCard
-      number={3}
+      number={number}
       heading={heading}
       intro={
-        newCustomer
-          ? t("project.wizard.parentTask.newCustomer.intro")
-          : t("project.wizard.parentTask.existingCustomer.intro")
+        customerOnly
+          ? t("project.wizard.parentTask.customerOnly.intro")
+          : newCustomer
+            ? t("project.wizard.parentTask.newCustomer.intro")
+            : t("project.wizard.parentTask.existingCustomer.intro")
       }
     >
       <HintTooltip

@@ -123,7 +123,7 @@ class ProjectWizardRestTest : AbstractTestBase() {
     }
 
     @Test
-    fun `finance users without the customer right are refused`() {
+    fun `finance users without the customer right may create projects only`() {
         logon(TEST_ADMIN_USER)
         val user = initTestDB.addUser(PFUserDO().also {
             it.username = "ProjectWizardRestTest.finance"
@@ -133,9 +133,32 @@ class ProjectWizardRestTest : AbstractTestBase() {
         group.addUser(user)
         groupDao.update(group)
         logon(user)
-        Assertions.assertFalse(projectWizardRest.init().allowed)
+        val init = projectWizardRest.init()
+        Assertions.assertTrue(init.allowed)
+        Assertions.assertFalse(init.customerAllowed)
+        Assertions.assertTrue(init.projectAllowed)
         Assertions.assertThrows(AccessException::class.java) {
-            projectWizardRest.execute(ProjectWizardService.Data())
+            projectWizardRest.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(nummer = 18603L, name = "ProjectWizardRestTest"),
+                    project = ProjectWizardService.ProjectData(nummer = 1, name = "ProjectWizardRestTest-finance"),
+                    parentTaskId = taskTree.rootTaskNode.id,
+                )
+            )
         }
+    }
+
+    @Test
+    fun `a customer alone needs neither project nor parent`() {
+        logon(TEST_FINANCE_USER)
+        val init = projectWizardRest.init()
+        Assertions.assertTrue(init.customerAllowed && init.projectAllowed)
+        val answer = projectWizardRest.validate(
+            ProjectWizardService.Data(
+                customer = ProjectWizardService.CustomerData(nummer = 18604L, name = "ProjectWizardRestTest-alone"),
+            )
+        ).body!!
+        Assertions.assertEquals(emptyList<String>(), answer.validationErrors.map { "${it.fieldId}: ${it.message}" })
+        Assertions.assertNull(answer.preview)
     }
 }

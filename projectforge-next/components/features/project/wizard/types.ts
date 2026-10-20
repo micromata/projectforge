@@ -20,8 +20,8 @@ export interface RoleState {
 export type RoleStates = Record<WizardGroupKey, RoleState>;
 
 /**
- * The roles a new project starts with: a new team and a new group of managers, which most projects
- * have, but no externals, which few have.
+ * The roles a new project starts with: no group at all, so nothing is granted unless a group is picked
+ * or a new one entered.
  */
 export function initialRoles(): RoleStates {
   const role = (mode: RoleMode): RoleState => ({
@@ -31,8 +31,8 @@ export function initialRoles(): RoleStates {
     members: [],
   });
   return {
-    team: role("new"),
-    managerGroup: role("new"),
+    team: role("none"),
+    managerGroup: role("none"),
     externalGroup: role("none"),
   };
 }
