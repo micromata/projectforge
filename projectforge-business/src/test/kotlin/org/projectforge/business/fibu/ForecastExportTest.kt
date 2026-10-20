@@ -755,6 +755,57 @@ class ForecastExportTest : AbstractTestBase() {
         assertAmounts(beforeChange.ist, fromSnapshot.ist, "IST of the snapshot")
     }
 
+    /**
+     * An order deleted after the planning date is still part of the plan (the snapshot holds it), if its id is given
+     * as deleted order, but not of the current forecast.
+     */
+    @Test
+    fun deletedOrderStaysInPlanTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-2)
+        val kept = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1000.0, baseDate, baseDate, today.plusMonths(3),
+        )
+        val deleted = createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 3000.0, baseDate, baseDate, today.plusMonths(3),
+        )
+        // The plan counts the projects of the forecast only, so the deleted order shares the project of the kept one.
+        val projekt = ProjektDO()
+        projekt.nummer = 5
+        projekt.name = "ForecastExportTest - deleted order"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+        listOf(kept, deleted).forEach { order ->
+            auftragDao.find(order.id)!!.let {
+                it.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+                auftragDao.update(it)
+            }
+        }
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
+        val before = forecastExport.statistics(
+            listOf(auftragDao.find(kept.id)!!, auftragDao.find(deleted.id)!!), baseDate.localDate, unfiltered = false,
+            planningDate = today.localDate, distributeUnusedBudget = true,
+        )!!.chart
+
+        auftragDao.markAsDeleted(auftragDao.find(deleted.id)!!)
+        auftragsCache.setExpired()
+        fun statistics(deletedOrderIds: Set<Long>) = forecastExport.statistics(
+            listOf(auftragDao.find(kept.id)!!), baseDate.localDate, unfiltered = false,
+            planningDate = today.localDate, distributeUnusedBudget = true, deletedOrderIds = deletedOrderIds,
+        )!!.chart
+        val withoutDeleted = statistics(emptySet())
+        val withDeleted = statistics(setOf(deleted.id!!))
+
+        assertAmounts(before.plan!!, withDeleted.plan!!, "Plan with the deleted order")
+        Assertions.assertTrue(
+            withoutDeleted.plan!!.sumOf { it } < withDeleted.plan!!.sumOf { it },
+            "Without its id the deleted order is missing in the plan.",
+        )
+        assertAmounts(withoutDeleted.total, withDeleted.total, "Current forecast without the deleted order")
+    }
+
     private fun assertAmounts(expected: List<BigDecimal>, actual: List<BigDecimal>, name: String) {
         Assertions.assertEquals(
             expected.map { it.setScale(2, RoundingMode.HALF_UP) },

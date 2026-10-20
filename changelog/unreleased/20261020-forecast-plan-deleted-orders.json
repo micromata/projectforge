@@ -1,0 +1,5 @@
+{
+  "type": "fixed",
+  "en": "Forecast plan: the plan is the order book of the planning date. The forecast charts of the order statistics now include the orders deleted since, as the Excel export does. Orders already deleted on the planning date are no longer part of it: daily (incremental) order book snapshots kept the orders deleted since the beginning of the month. This is corrected for existing snapshots as well.",
+  "de": "Forecast-Plan: Der Plan ist das Auftragsbuch zum Plandatum. Die Forecast-Grafiken der Auftragsstatistik enthalten jetzt auch die seitdem gelöschten Aufträge, wie der Excel-Export. Zum Plandatum bereits gelöschte Aufträge sind nicht mehr enthalten: Die täglichen (inkrementellen) Snapshots des Auftragsbuchs behielten die seit Monatsbeginn gelöschten Aufträge. Das ist auch für bestehende Snapshots korrigiert."
+}
