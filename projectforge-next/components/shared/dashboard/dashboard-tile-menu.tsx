@@ -40,13 +40,15 @@ export function DashboardTileMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {/* Solid orange like the drag handle, so both controls of edit mode stand out from the chart. */}
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="h-7 w-7"
+          className="h-8 w-8 border-orange-500 bg-orange-500 text-white shadow-sm hover:bg-orange-600 hover:text-white aria-expanded:bg-orange-600 aria-expanded:text-white dark:bg-orange-500 dark:hover:bg-orange-600"
           aria-label={t("tileMenu")}
+          title={t("tileMenu")}
         >
-          <HugeiconsIcon icon={MoreVerticalIcon} size={14} />
+          <HugeiconsIcon icon={MoreVerticalIcon} size={18} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">

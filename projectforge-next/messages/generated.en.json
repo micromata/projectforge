@@ -266,60 +266,6 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
-      "accounting": {
-        "add": "Add row",
-        "creditorsAccountNumberRanges": "Account numbers of creditors",
-        "debitorsAccountNumberRanges": "Account numbers of debitors",
-        "error": {
-          "accountRange": "{arg0}: no valid account numbers: {arg1} (e.g. 4000-4799 or 6300,6800-6855).",
-          "duplicateId": "{arg0}: the id {arg1} is used by another row already.",
-          "id": "{arg0}: the id {arg1} is no valid name (letters, digits and _, starting with a letter).",
-          "unknownRow": "{arg0}: there is no row with the id {arg1}.",
-          "value": "{arg0}: the value can''t be compiled (formula or Groovy script)."
-        },
-        "heading": "Heading of the business assessment",
-        "help": {
-          "accountRange": "DATEV accounts whose records are summed up in this row: single accounts and ranges, separated by commas, e.g. 4000-4799 or 6300,6800-6855. Empty for calculated rows and separator lines.",
-          "creditors": "Account numbers of the creditors (e.g. 70000-79999): the account selection of creditors offers these accounts only. Empty: all accounts.",
-          "debitors": "Account numbers of the debitors (e.g. 10000-12999): the account selection of debitors offers these accounts only. Empty: all accounts.",
-          "heading": "Heading shown above the business assessment.",
-          "id": "Name of the row in formulas and scripts of other rows: letters, digits and _, starting with a letter. A row without id can't be referred to.",
-          "indent": "Indentation of the title in the business assessment, e.g. 1 or 2 for sub rows. Empty: none.",
-          "keyRow": "Row (by its id) the business assessment takes this key figure of, e.g. for the statistics of the accounting records.",
-          "no": "Number shown in front of the title, e.g. the row number of the DATEV business assessment. Without any function otherwise.",
-          "order": "Order: a record belongs to the first row from the top whose accounts match its account or contra account. Calculated rows are calculated from the top as well, so a calculated row a formula refers to has to be above it.",
-          "priority": "Priority: importance of the row. A short form of the business assessment (e.g. in reports or scripts) contains only rows of high or highest priority. Empty: middle.",
-          "rows": "The rows of the business assessment in the order shown. A row either sums up the records of its accounts, or calculates its amount by its value, or is an empty separator line (only a number or nothing).",
-          "scale": "Number of fraction digits of the amount, e.g. 4 for a ratio. Empty: 2.",
-          "title": "Text of the row shown in the business assessment.",
-          "unit": "Unit shown behind the amount, e.g. %. Empty: the currency.",
-          "value": "Value: = followed by a formula of row ids (e.g. =umsatzErloese+bestVerdg), or a Groovy script returning the amount, in which the rows are available as variables by their ids. Empty: the sum of the records of the accounts."
-        },
-        "invalidJson": "The stored value is no valid JSON object; the defaults are shown.",
-        "merchandisePurchase": "Row of the merchandise purchase",
-        "moveDown": "Move {arg0} down",
-        "moveUp": "Move {arg0} up",
-        "notGiven": "–",
-        "overallPerformance": "Row of the overall performance",
-        "preliminaryResult": "Row of the preliminary result",
-        "remove": "Remove {arg0}",
-        "row": {
-          "accountRange": "Accounts",
-          "id": "Id",
-          "indent": "Indent",
-          "no": "No.",
-          "priority": "Priority",
-          "scale": "Digits",
-          "title": "Title",
-          "unit": "Unit",
-          "value": {
-            "_": "Value",
-            "placeholder": "Value: formula of row ids such as =umsatzErloese+bestVerdg, or a Groovy script returning the amount (empty: sum of the accounts)"
-          }
-        },
-        "rows": "Rows of the business assessment (BWA)",
-        "summary": "Debitors {arg0}, creditors {arg1}, {arg2} rows of the business assessment"
-      },
       "categories": {
         "finance": "Finance",
         "hr": "Human resources",
@@ -329,24 +275,6 @@
         "timesheet": "Time sheets"
       },
       "category": "Category",
-      "contractTypes": {
-        "add": "Add contract type",
-        "error": {
-          "duplicate": "Contract type {arg0}: the value is used more than once.",
-          "label": "Contract type {arg0}: the label is missing.",
-          "value": "Contract type {arg0}: the value is missing."
-        },
-        "help": {
-          "label": "Name of the type shown in the selection of the contracts.",
-          "value": "Short form stored in the contract, e.g. NDA. Unique; changing it later doesn't change the contracts of the former value."
-        },
-        "invalidJson": "The stored value is no valid JSON array; no contract types are shown.",
-        "label": "Label",
-        "moveDown": "Move {arg0} down",
-        "moveUp": "Move {arg0} up",
-        "remove": "Remove {arg0}",
-        "value": "Value"
-      },
       "editPage": {
         "hint": "This parameter is maintained on a page of its own.",
         "link": "Open the editor"
@@ -359,72 +287,8 @@
         "vacationTaskNotBookable": "No time sheets can be booked on the vacation task ''{arg0}'' (closed, deleted or closed for booking).",
         "vacationTaskNotFound": "No task with the id {arg0}."
       },
-      "holidays": {
-        "add": "Add holiday",
-        "dayOfMonth": "Day",
-        "error": {
-          "date": "Holiday {arg0}: no valid day and month.",
-          "duplicate": "Holiday {arg0}: the pre-defined holiday is configured more than once.",
-          "label": "Holiday {arg0}: the label is missing.",
-          "workFraction": "Holiday {arg0}: the work fraction must be between 0 and 1.",
-          "year": "Holiday {arg0}: no valid year."
-        },
-        "help": {
-          "dayOfMonth": "Day of the month of an own holiday (1-31).",
-          "holiday": "Own holiday or one of the pre-defined holidays to change.",
-          "ignore": "The pre-defined holiday doesn't apply (e.g. Shrove Tuesday, if it's a working day).",
-          "label": "Name shown in the calendar. For a pre-defined holiday optional: replaces its name.",
-          "month": "Month of an own holiday (1 = January, 12 = December).",
-          "own": "Own holidays are added with label, day and month: every year, or in the given year only (e.g. a moved working day).",
-          "predefinedHolidays": "The pre-defined (German) holidays apply without any entry. An entry is needed only to change one: ignore it, rename it or make it a partial working day.",
-          "workFraction": "Share of a full working day, e.g. 0.5 for a half working day (Christmas Eve, New Year's Eve). Only for working days; empty: a full working day.",
-          "workingDay": "Whether an own holiday is a working day (e.g. with a work fraction) or a day off. Pre-defined holidays keep their own setting.",
-          "year": "Only in this year (e.g. a bridge day). Empty: every year."
-        },
-        "holiday": "Holiday",
-        "ignore": "Ignore",
-        "ignored": "ignored",
-        "invalidJson": "The stored value is no valid JSON array; no holidays are shown.",
-        "label": "Label",
-        "month": "Month",
-        "own": "Own holiday",
-        "predefined": "Date and working day as pre-defined",
-        "remove": "Remove {arg0}",
-        "workFraction": "Work fraction",
-        "workingDay": "Working day",
-        "year": "Year"
-      },
-      "jira": {
-        "add": "Add server",
-        "baseUrl": "Browse url",
-        "browseBaseUrl": "Default browse url",
-        "error": {
-          "browseBaseUrl": "Default browse url {arg0}: no http(s) url.",
-          "duplicate": "Project {arg0} is hosted on server {arg1} and server {arg2}.",
-          "project": "Server {arg0}: {arg1} is no valid project key (letters, digits, underscore; starting with a letter).",
-          "projectsMissing": "Server {arg0}: the projects are missing.",
-          "serverUrl": "Server {arg0}: {arg1} is no http(s) url.",
-          "serverUrlMissing": "Server {arg0}: the browse url is missing."
-        },
-        "help": {
-          "baseUrl": "Url the issue key is appended to, e.g. https://customer.acme.com/jira/browse/ (with closing slash).",
-          "browseBaseUrl": "Url the issue key (e.g. PROJECTFORGE-222) is appended to, if its project isn't hosted on one of the servers below, e.g. https://jira.acme.com/jira/browse/ (with closing slash). Without default url and servers, no issues are linked.",
-          "projects": "Keys of the projects hosted on this server, comma separated, e.g. ACME, ADMIN. A project is hosted on one server only.",
-          "servers": "Further JIRA servers by the projects hosted on them. The issues of all other projects are linked to the default browse url."
-        },
-        "invalidJson": "The stored value is no valid JSON object; no JIRA settings are shown.",
-        "moveDown": "Move {arg0} down",
-        "moveUp": "Move {arg0} up",
-        "projects": "Projects",
-        "remove": "Remove {arg0}",
-        "servers": "Servers",
-        "summary": {
-          "servers": "{arg0} server(s)"
-        }
-      },
       "json": {
-        "invalid": "No valid JSON.",
-        "notReadable": "Not readable: {arg0}"
+        "invalid": "No valid JSON."
       },
       "param": {
         "calendarDomain": {
@@ -453,10 +317,6 @@
           "label": "Feed-back"
         },
         "fibu": {
-          "accounting": {
-            "_": "Accounting",
-            "description": "Account number ranges of debitors and creditors (e.g. \"10000-12999\") and the schema of the business assessment (BWA) with its rows: number, id, account range, value (a formula starting with \"=\" or a Groovy script), priority, title, indent, scale and unit. See the administration guide."
-          },
           "contributionMargin": {
             "_": "Contribution margin",
             "description": "Settings of the contribution margin (order book and scripts): the revenue accounts, the hourly rate for the time sheets of months without imported accounting records, the target percentage with the red threshold of the traffic light, and the assignment of cost 2 units without an own project to a project."
@@ -482,19 +342,11 @@
           "_": "Group nomenclature",
           "description": "Naming convention of the groups (description, pattern and suffixes), which the project and structure wizards follow when suggesting names of new groups."
         },
-        "holidays": {
-          "_": "Holidays",
-          "description": "Additional holidays (label, month, day of month, optional year) and changes of the pre-defined ones by id (e.g. XMAS_EVE): ignore, label, working day, work fraction (e.g. 0.5 for a half working day)."
-        },
         "hr": {
           "emailaddress": {
             "_": "HR-Emailaddress",
             "description": "Mailaddress of HR for request of leave"
           }
-        },
-        "jira": {
-          "_": "JIRA",
-          "description": "JIRA servers issue keys (e.g. PROJECTFORGE-222) in time sheets and tasks are linked to: a default browse url and further servers by the projects hosted on them. Without any url, no issues are linked."
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
@@ -507,12 +359,6 @@
         "minPasswordLength": {
           "_": "Minimal Password Length",
           "description": "The minimal length of the user passwords."
-        },
-        "orga": {
-          "contractTypes": {
-            "_": "Contract types",
-            "description": "Types of contracts selectable in the contracts: a list of entries with value (short form, e.g. NDA) and label (e.g. Non-disclosure agreement)."
-          }
         },
         "organization": {
           "_": "Organization",
@@ -796,25 +642,6 @@
         }
       },
       "visible": "visible"
-    },
-    "holiday": {
-      "ascension": "Ascension",
-      "ashWednesday": "Ash Wednesday",
-      "corpusChristi": "Corpus Christi",
-      "easterMonday": "Easter Monday",
-      "easterSunday": "Easter Sunday",
-      "firstXmasDay": "First Christmas day",
-      "goodFriday": "Good Friday",
-      "maundyThursday": "Maundy Thursday",
-      "newYear": "New year",
-      "newYearsEve": "New year's eve",
-      "palmSunday": "Palm Sunday",
-      "secondXmasDay": "Second Christmas day",
-      "shroveMonday": "Shrove Monday",
-      "shroveTuesday": "Shrove Tuesday",
-      "whitMonday": "Whit Monday",
-      "whitSunday": "Whit Sunday",
-      "xmasEve": "Christmas Eve"
     },
     "month": {
       "_": "Month",
@@ -1324,6 +1151,7 @@
         },
         "chart": {
           "cumulative": "Revenue forecast cumulated",
+          "currentMonthHint": "Note: In the current month, the greater value is used: the actual figures (invoices) or the monthly forecast.",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
           "monthly": "Revenue forecast monthly",
@@ -4510,6 +4338,10 @@
           "_": "Export 2FA configuration",
           "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
         },
+        "exportConfiguration": {
+          "_": "Export configuration",
+          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
+        },
         "formatLogEntries": {
           "_": "Format log entries",
           "textarea": {
@@ -4525,7 +4357,7 @@
         "reindex": "Reindex",
         "rereadConfiguration": {
           "_": "Reread configuration",
-          "tooltip": "Rereads the configuration parameters, e.g. after a parameter was modified directly in the data base. Usually not needed: changes on the configuration page apply at once."
+          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
         },
         "resetIdpPasswordSync": {
           "_": "Reset IdP password sync",
