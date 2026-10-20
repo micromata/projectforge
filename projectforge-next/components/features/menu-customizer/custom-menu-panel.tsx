@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Folder01Icon, FolderAddIcon } from "@hugeicons/core-free-icons";
+import { FolderAddIcon } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { MenuItem } from "@/lib/rs/types";
@@ -20,9 +20,11 @@ import {
   renameGroup,
 } from "./menu-tree";
 import { FAVORITES, type DragData } from "./types";
-import { CustomizerPanel } from "./customizer-panel";
 
-/** The user's own menu: its entries and groups, sortable, and the drop area for the template's entries. */
+/**
+ * The user's own menu, drawn like the favorites bar it becomes: its entries in a row, each group as its
+ * menu button with the menu opened below it. Sortable, and the drop area for the template's entries.
+ */
 export function CustomMenuPanel({
   menu,
   update,
@@ -38,30 +40,10 @@ export function CustomMenuPanel({
   });
 
   return (
-    <CustomizerPanel
-      title={t("menu.customizer.customMenuSection")}
-      actions={
-        addingGroup ? (
-          <GroupNameInput
-            label={t("menu.customizer.groupName")}
-            onCommit={(name) => {
-              update((m) => addGroup(m, name, `custom_group_${Date.now()}`));
-              setAddingGroup(false);
-            }}
-            onCancel={() => setAddingGroup(false)}
-          />
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAddingGroup(true)}
-          >
-            <HugeiconsIcon icon={FolderAddIcon} />
-            {t("menu.customizer.addGroup")}
-          </Button>
-        )
-      }
-    >
+    <section className="flex flex-col gap-1.5">
+      <h2 className="text-sm font-semibold">
+        {t("menu.customizer.customMenuSection")}
+      </h2>
       <SortableContext
         items={menu.map((item) => `${FAVORITES}:${itemId(item)}`)}
         strategy={rectSortingStrategy}
@@ -70,8 +52,8 @@ export function CustomMenuPanel({
           ref={setNodeRef}
           data-testid="custom-menu"
           className={cn(
-            "flex min-h-40 flex-1 flex-wrap content-start gap-2 rounded-md p-1",
-            isOver && "bg-primary/5"
+            "flex min-h-9 flex-wrap items-start gap-1 rounded-lg border bg-background p-1 shadow-xs",
+            isOver && "border-primary bg-primary/5"
           )}
         >
           {menu.map((item) =>
@@ -96,19 +78,40 @@ export function CustomMenuPanel({
               />
             )
           )}
-          {menu.length === 0 && (
-            <div className="flex w-full flex-col items-center gap-1 py-10 text-center text-muted-foreground">
-              <HugeiconsIcon icon={Folder01Icon} size={28} />
-              <p className="text-sm font-medium text-foreground">
+          {menu.length === 0 && !addingGroup && (
+            <p className="self-center px-2 text-xs/relaxed text-muted-foreground">
+              <span className="font-medium text-foreground">
                 {t("menu.customizer.emptyMenuTitle")}
-              </p>
-              <p className="max-w-xs text-xs">
-                {t("menu.customizer.emptyMenuText")}
-              </p>
-            </div>
+              </span>{" "}
+              {t("menu.customizer.emptyMenuText")}
+            </p>
           )}
+          <div className="ml-auto flex h-6 items-center">
+            {addingGroup ? (
+              <GroupNameInput
+                label={t("menu.customizer.groupName")}
+                onCommit={(name) => {
+                  update((m) =>
+                    addGroup(m, name, `custom_group_${Date.now()}`)
+                  );
+                  setAddingGroup(false);
+                }}
+                onCancel={() => setAddingGroup(false)}
+              />
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => setAddingGroup(true)}
+              >
+                <HugeiconsIcon icon={FolderAddIcon} />
+                {t("menu.customizer.addGroup")}
+              </Button>
+            )}
+          </div>
         </div>
       </SortableContext>
-    </CustomizerPanel>
+    </section>
   );
 }

@@ -10,7 +10,10 @@ import { cn } from "@/lib/utils";
 import { itemId } from "./menu-tree";
 import { FAVORITES, type DragData } from "./types";
 
-/** An entry of the user's menu: dragged as a whole, with a button removing it. */
+/**
+ * An entry of the user's menu, dragged as a whole: a menu button in the bar, a menu item inside a group.
+ * The button removing it shows on hover and focus, and always on a touch screen.
+ */
 export function CustomMenuChip({
   item,
   container,
@@ -31,27 +34,29 @@ export function CustomMenuChip({
     transition,
     isDragging,
   } = useSortable({ id: `${container}:${itemId(item)}`, data });
-  const removeLabel =
-    container === FAVORITES
-      ? t("menu.customizer.removeFromFavorites")
-      : t("menu.customizer.removeFromGroup");
+  const topLevel = container === FAVORITES;
+  const removeLabel = topLevel
+    ? t("menu.customizer.removeFromFavorites")
+    : t("menu.customizer.removeFromGroup");
 
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      // Translate only: the sorting strategy also scales an entry to the size of the one it replaces.
+      style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        "flex cursor-grab touch-none items-center gap-1.5 rounded-md border bg-card py-1 pl-2.5 pr-1 text-sm shadow-xs",
+        "group/entry flex cursor-grab touch-none items-center gap-1 rounded-md text-xs/relaxed hover:bg-muted",
+        // The sizes of the bar's ENTRY_CLASS (FavoritesBar) and of a MenubarItem.
+        topLevel ? "h-6 pr-0.5 pl-1.5 font-medium" : "min-h-7 py-1 pr-1 pl-2",
         isDragging && "opacity-40"
       )}
       {...attributes}
       {...listeners}
     >
-      <span className="size-1.5 shrink-0 rounded-full bg-primary" />
       <span className="truncate">{item.title}</span>
       <button
         type="button"
-        className="ml-auto rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-destructive"
+        className="ml-auto rounded-sm p-0.5 text-muted-foreground hover:bg-background hover:text-destructive focus-visible:opacity-100 group-hover/entry:opacity-100 pointer-fine:opacity-0"
         aria-label={`${removeLabel}: ${item.title}`}
         // Not the start of a drag, and not the keyboard sensor's Enter/Space.
         onPointerDown={(e) => e.stopPropagation()}

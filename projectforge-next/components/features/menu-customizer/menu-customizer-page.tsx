@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FormActionBar } from "@/components/shared/form-action-bar";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
@@ -19,13 +17,12 @@ import { useMenuDragDrop } from "./use-menu-drag-drop";
  * "Customize my menu" (`/next/customizeMenu`), successor of the old React page: the user composes the
  * favorites menu (the bar at the top) from the entries of the main menu — by drag and drop or by click
  * — in their own order and groups. Nothing is stored before Save; Undo returns to the stored menu, "Load
- * default" offers the default as a draft, Reset drops the user's own menu altogether.
+ * default" offers the default as a draft.
  */
 export function MenuCustomizerPage() {
   const t = useTranslations();
   const customizer = useMenuCustomizer();
   const { dragged, contextProps } = useMenuDragDrop(customizer.update);
-  const [confirmReset, setConfirmReset] = useState(false);
   const { menuQuery, menu, dirty, busy } = customizer;
 
   return (
@@ -47,20 +44,23 @@ export function MenuCustomizerPage() {
             )}
             {menuQuery.data && (
               <DndContext {...contextProps}>
-                <div className="grid items-start gap-4 lg:grid-cols-2">
+                {/*
+                 * From sm: on, stays in view while scrolling through the template, so there is always a
+                 * drop target. On a phone it would cover most of the screen, and entries are tapped there.
+                 */}
+                <div className="z-10 -mx-4 bg-background px-4 pt-1 pb-4 sm:sticky sm:top-0 sm:max-h-[45vh] sm:overflow-y-auto">
                   <CustomMenuPanel menu={menu} update={customizer.update} />
-                  <TemplatePanel
-                    categories={customizer.template}
-                    menu={menu}
-                    onAdd={(item) =>
-                      customizer.update((m) => insertItem(m, FAVORITES, item))
-                    }
-                  />
                 </div>
+                <TemplatePanel
+                  categories={customizer.template}
+                  menu={menu}
+                  onAdd={(item) =>
+                    customizer.update((m) => insertItem(m, FAVORITES, item))
+                  }
+                />
                 <DragOverlay>
                   {dragged && (
-                    <div className="flex items-center gap-1.5 rounded-md border bg-popover px-2.5 py-1 text-sm shadow-lg">
-                      <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+                    <div className="flex h-6 items-center rounded-md border bg-popover px-1.5 text-xs/relaxed font-medium shadow-lg">
                       {dragged.title}
                     </div>
                   )}
@@ -69,7 +69,7 @@ export function MenuCustomizerPage() {
             )}
           </div>
         </div>
-        {/* Wraps on a phone: four buttons are wider than its screen. */}
+        {/* Wraps on a phone: three buttons are wider than its screen. */}
         <FormActionBar className="flex-wrap gap-2">
           <Button
             variant="outline"
@@ -89,24 +89,8 @@ export function MenuCustomizerPage() {
           >
             {t("menu.customizer.loadDefault")}
           </Button>
-          <Button
-            variant="destructive"
-            disabled={busy}
-            onClick={() => setConfirmReset(true)}
-          >
-            {t("menu.customizer.resetToDefault")}
-          </Button>
         </FormActionBar>
       </div>
-      <ConfirmDialog
-        open={confirmReset}
-        onOpenChange={setConfirmReset}
-        title={t("menu.customizer.resetToDefault")}
-        description={t("menu.customizer.confirmReset")}
-        confirmLabel={t("menu.customizer.resetToDefault")}
-        destructive
-        onConfirm={customizer.reset}
-      />
     </PageShell>
   );
 }

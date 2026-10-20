@@ -92,15 +92,4 @@ class MenuCustomizerRest {
         val defaultMenu = favoritesMenuCreator.createDefaultFavoriteMenu()
         return ResponseEntity.ok(mapOf("favoritesMenu" to defaultMenu.menuItems))
     }
-
-    /**
-     * Resets the user's menu to the default menu (permanently saves it).
-     */
-    @PostMapping("reset")
-    fun resetMenu(): ResponseEntity<Any> {
-        log.info { "Clear the user preference for favorites menu." }
-        FavoritesMenuReaderWriter.storeAsUserPref(null)
-
-        return ResponseEntity.ok(mapOf("status" to "success"))
-    }
 }

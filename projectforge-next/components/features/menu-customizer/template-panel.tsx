@@ -1,23 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { SearchInput } from "@/components/shared/list/search-input";
+import { useMenuLayout } from "@/components/shared/main-menu-browse";
+import { balanceMenuColumns } from "@/lib/menu-columns";
 import type { MenuItem } from "@/lib/rs/types";
-import { cn } from "@/lib/utils";
-import { CustomizerPanel } from "./customizer-panel";
 import { containsItem, itemId } from "./menu-tree";
 import { TemplateChip } from "./template-chip";
 
-/** The template: the main menu by its categories, searchable, each category collapsible. */
+/** The template: the main menu in balanced columns of categories, as its dropdown shows it, searchable. */
 export function TemplatePanel({
   categories,
   menu,
@@ -30,89 +22,87 @@ export function TemplatePanel({
 }) {
   const t = useTranslations();
   const [search, setSearch] = useState("");
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const { columns } = useMenuLayout();
 
   const term = search.trim().toLowerCase();
-  const shown = useMemo(
+  const balanced = useMemo(
     () =>
-      categories
-        .map((category) => ({
-          category,
-          entries: (category.subMenu ?? []).filter(
+      balanceMenuColumns(
+        categories.map((category) => ({
+          ...category,
+          subMenu: (category.subMenu ?? []).filter(
             (entry) => !term || entry.title.toLowerCase().includes(term)
           ),
-        }))
-        .filter(({ entries }) => entries.length > 0),
-    [categories, term]
+        })),
+        columns
+      ),
+    [categories, term, columns]
   );
 
-  const toggle = (id: string, open: boolean) =>
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (open) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
   return (
-    <CustomizerPanel
-      title={t("menu.customizer.templateTitle")}
-      label={t("menu.customizer.templateLabel")}
-    >
-      <div className="relative">
-        <SearchInput value={search} onChange={setSearch} />
+    <section className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <h2 className="text-sm font-semibold">
+          {t("menu.customizer.templateTitle")}
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          {t("menu.customizer.searchHint")}
+        </p>
+        <div className="relative w-full sm:ml-auto sm:w-64">
+          <SearchInput value={search} onChange={setSearch} />
+        </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t("menu.customizer.searchHint")}
-      </p>
-      <div className="flex flex-col gap-1" data-testid="menu-template">
-        {shown.map(({ category, entries }) => {
-          const id = itemId(category);
-          // A search shows every match, whatever was collapsed before.
-          const open = !!term || !collapsed.has(id);
-          const added = entries.filter((e) =>
-            containsItem(menu, itemId(e))
-          ).length;
-          return (
-            <Collapsible
-              key={id}
-              open={open}
-              onOpenChange={(o) => toggle(id, o)}
-            >
-              <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-sm font-medium hover:bg-muted">
-                <HugeiconsIcon
-                  icon={ArrowDown01Icon}
-                  size={14}
-                  className={cn("transition-transform", !open && "-rotate-90")}
-                />
-                <span className="truncate">{category.title}</span>
-                <Badge
-                  variant={added > 0 ? "default" : "secondary"}
-                  className="ml-auto"
-                >
-                  {added > 0 && <HugeiconsIcon icon={Tick02Icon} />}
-                  {added > 0 ? `${added}/${entries.length}` : entries.length}
-                </Badge>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="flex flex-wrap gap-1.5 px-1 pb-2 pt-1">
-                {entries.map((entry) => (
-                  <TemplateChip
-                    key={itemId(entry)}
-                    item={entry}
-                    added={containsItem(menu, itemId(entry))}
-                    onAdd={() => onAdd(entry)}
-                  />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
-        {shown.length === 0 && (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+      <div className="flex items-start gap-6" data-testid="menu-template">
+        {balanced.map((column, index) => (
+          // basis-0: the columns share the width evenly, as in the main menu (MainMenuBrowse).
+          <div
+            key={index}
+            className="flex min-w-0 flex-1 basis-0 flex-col gap-4"
+          >
+            {column.map((category) => (
+              <TemplateCategory
+                key={itemId(category)}
+                category={category}
+                menu={menu}
+                onAdd={onAdd}
+              />
+            ))}
+          </div>
+        ))}
+        {balanced.length === 0 && (
+          <p className="w-full py-6 text-center text-sm text-muted-foreground">
             {t("menu.customizer.noResults")}
           </p>
         )}
       </div>
-    </CustomizerPanel>
+    </section>
+  );
+}
+
+function TemplateCategory({
+  category,
+  menu,
+  onAdd,
+}: {
+  category: MenuItem;
+  menu: MenuItem[];
+  onAdd: (item: MenuItem) => void;
+}) {
+  const entries = category.subMenu ?? [];
+  return (
+    <div className="flex flex-col gap-0.5">
+      {/* The brand-teal label of the main menu's columns (MenuColumnHeading). */}
+      <span className="truncate px-2 py-1 text-xs font-semibold tracking-wide text-brand-teal uppercase">
+        {category.title}
+      </span>
+      {entries.map((entry) => (
+        <TemplateChip
+          key={itemId(entry)}
+          item={entry}
+          added={containsItem(menu, itemId(entry))}
+          onAdd={() => onAdd(entry)}
+        />
+      ))}
+    </div>
   );
 }

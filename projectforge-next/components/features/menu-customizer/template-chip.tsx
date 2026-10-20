@@ -11,9 +11,9 @@ import { itemId } from "./menu-tree";
 import { TEMPLATE, type DragData } from "./types";
 
 /**
- * An entry of the template: a button adding it to the end of the user's menu, and draggable to a place
- * of its own choosing. Only the pointer drags it — Enter and Space stay the button's, so the keyboard adds.
- * An entry already in the menu is shown ticked and does neither.
+ * An entry of the template, one line as in the main menu: a button adding it to the end of the user's
+ * menu, and draggable to a place of its own choosing. Only the pointer drags it — Enter and Space stay the
+ * button's, so the keyboard adds. An entry already in the menu is shown ticked and does neither.
  */
 export function TemplateChip({
   item,
@@ -35,9 +35,13 @@ export function TemplateChip({
   if (added) {
     return (
       <HintTooltip text={t("menu.customizer.alreadyAdded")} openOnTap>
-        <span className="flex items-center gap-1.5 rounded-md border border-dashed px-2.5 py-1 text-sm text-muted-foreground">
-          <HugeiconsIcon icon={Tick02Icon} size={12} className="text-primary" />
-          {item.title}
+        <span className="flex items-center gap-1.5 px-2 py-0.5 text-xs/relaxed text-muted-foreground">
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            size={12}
+            className="shrink-0 text-primary"
+          />
+          <span className="truncate">{item.title}</span>
         </span>
       </HintTooltip>
     );
@@ -48,7 +52,7 @@ export function TemplateChip({
       type="button"
       data-testid="template-entry"
       className={cn(
-        "flex cursor-grab touch-none items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-sm hover:border-primary hover:bg-primary/5",
+        "flex w-full cursor-grab touch-none items-center rounded-sm py-0.5 pr-2 pl-[1.625rem] text-left text-xs/relaxed hover:bg-muted",
         isDragging && "opacity-40"
       )}
       {...listeners}
@@ -56,8 +60,7 @@ export function TemplateChip({
       onKeyDown={undefined}
       onClick={onAdd}
     >
-      <span className="size-1.5 shrink-0 rounded-full bg-muted-foreground" />
-      {item.title}
+      <span className="truncate">{item.title}</span>
     </button>
   );
 }

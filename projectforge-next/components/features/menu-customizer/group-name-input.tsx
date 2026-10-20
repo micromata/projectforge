@@ -29,7 +29,7 @@ export function GroupNameInput({
       value={name}
       aria-label={label}
       placeholder={label}
-      className="h-7 min-w-0 flex-1 text-sm"
+      className="h-6 min-w-0 flex-1 text-xs"
       onChange={(e) => setName(e.target.value)}
       onPointerDown={(e) => e.stopPropagation()}
       onKeyDown={(e) => {

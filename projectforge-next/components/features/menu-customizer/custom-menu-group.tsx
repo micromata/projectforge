@@ -4,19 +4,17 @@ import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
-  rectSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ArrowDown01Icon,
   Delete02Icon,
-  DragDropVerticalIcon,
-  Folder01Icon,
   PencilEdit02Icon,
 } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { MenuItem } from "@/lib/rs/types";
 import { cn } from "@/lib/utils";
@@ -26,8 +24,8 @@ import { itemId } from "./menu-tree";
 import { FAVORITES, type DragData } from "./types";
 
 /**
- * A group of the user's menu: moved by its handle among the top-level entries, renamed and removed in its
- * header, and a drop area of its own for its entries.
+ * A group of the user's menu, drawn as it shows in the bar: its menu button (the handle moving it among
+ * the top-level entries, with rename and remove) and its menu opened below, a drop area of its own.
  */
 export function CustomMenuGroup({
   group,
@@ -62,70 +60,71 @@ export function CustomMenuGroup({
     <div
       ref={setNodeRef}
       data-testid="custom-menu-group"
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      // Translate only: the sorting strategy also scales an entry to the size of the one it replaces.
+      style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        "w-full rounded-lg border bg-muted/40",
+        "flex w-max max-w-72 min-w-36 flex-col gap-1",
         isDragging && "opacity-40"
       )}
     >
-      <div className="flex items-center gap-2 border-b px-2 py-1.5">
-        <button
-          type="button"
-          className="cursor-grab touch-none text-muted-foreground"
-          aria-label={`${t("columns.dragToSort")}: ${group.title}`}
-          {...attributes}
-          {...listeners}
-        >
-          <HugeiconsIcon icon={DragDropVerticalIcon} size={14} />
-        </button>
-        <HugeiconsIcon icon={Folder01Icon} size={14} className="text-primary" />
+      <div className="flex h-6 items-center gap-0.5 rounded-md bg-muted pr-0.5 text-xs/relaxed font-medium">
         {editing ? (
-          <GroupNameInput
-            initial={group.title}
-            label={t("menu.customizer.groupName")}
-            commitOnBlur
-            onCommit={(title) => {
-              onRename(title);
-              setEditing(false);
-            }}
-            onCancel={() => setEditing(false)}
-          />
+          <div className="flex min-w-0 flex-1 px-0.5">
+            <GroupNameInput
+              initial={group.title}
+              label={t("menu.customizer.groupName")}
+              commitOnBlur
+              onCommit={(title) => {
+                onRename(title);
+                setEditing(false);
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          </div>
         ) : (
-          <span className="truncate text-sm font-medium">{group.title}</span>
+          <button
+            type="button"
+            className="flex h-full min-w-0 flex-1 cursor-grab touch-none items-center gap-1 pl-1.5"
+            aria-label={`${t("columns.dragToSort")}: ${group.title}`}
+            {...attributes}
+            {...listeners}
+          >
+            <span className="truncate">{group.title}</span>
+            <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
+          </button>
         )}
-        <Badge variant="secondary">{entries.length}</Badge>
-        <div className="ml-auto flex items-center">
-          {!editing && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`${t("menu.customizer.editGroupName")}: ${group.title}`}
-              onClick={() => setEditing(true)}
-            >
-              <HugeiconsIcon icon={PencilEdit02Icon} />
-            </Button>
-          )}
+        {!editing && (
           <Button
             variant="ghost"
-            size="icon-sm"
-            className="hover:text-destructive"
-            aria-label={`${t("menu.customizer.removeGroup")}: ${group.title}`}
-            onClick={onRemove}
+            size="icon-xs"
+            className="text-muted-foreground"
+            aria-label={`${t("menu.customizer.editGroupName")}: ${group.title}`}
+            onClick={() => setEditing(true)}
           >
-            <HugeiconsIcon icon={Delete02Icon} />
+            <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />
           </Button>
-        </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground hover:text-destructive"
+          aria-label={`${t("menu.customizer.removeGroup")}: ${group.title}`}
+          onClick={onRemove}
+        >
+          <HugeiconsIcon icon={Delete02Icon} className="size-3.5" />
+        </Button>
       </div>
       <SortableContext
         id={id}
         items={entries.map((entry) => `${id}:${itemId(entry)}`)}
-        strategy={rectSortingStrategy}
+        strategy={verticalListSortingStrategy}
       >
+        {/* The opened menu, styled like the bar's MenubarContent. */}
         <div
           ref={setBodyRef}
           className={cn(
-            "flex min-h-11 flex-wrap gap-1.5 p-2",
-            bodyIsOver && "bg-primary/5"
+            "flex min-h-9 flex-col rounded-lg border bg-popover p-1 shadow-md",
+            bodyIsOver && "border-primary bg-primary/5"
           )}
         >
           {entries.map((entry) => (
@@ -137,7 +136,7 @@ export function CustomMenuGroup({
             />
           ))}
           {entries.length === 0 && (
-            <p className="self-center text-xs text-muted-foreground">
+            <p className="px-2 py-1 text-xs text-muted-foreground">
               {t("menu.customizer.dropItemsHere")}
             </p>
           )}

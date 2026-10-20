@@ -27,8 +27,3 @@ export async function fetchDefaultMenu(
   );
   return data.favoritesMenu ?? [];
 }
-
-/** Drops the user's own menu, so the default one applies again. */
-export async function resetCustomMenu(): Promise<void> {
-  await request("/rs/menu/reset", { method: "POST", body: "{}" });
-}
