@@ -35,16 +35,21 @@ import org.projectforge.business.task.TaskWizardService
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
- * The project wizard as a user of the finance group (which may create customers, projects and
- * structure elements, but neither groups nor access rights outside of the wizard).
+ * The project wizard as a user of the finance group with the rights for customers and projects (who may
+ * create customers, projects and structure elements, but neither groups nor access rights outside of the
+ * wizard).
  */
 class ProjectWizardServiceTest : AbstractTestBase() {
     @Autowired
@@ -223,6 +228,43 @@ class ProjectWizardServiceTest : AbstractTestBase() {
                 )
             )
         }
+    }
+
+    @Test
+    fun `finance users without the customer right are refused`() {
+        val parent = createParent("noCustomerRight")
+        logon(addUser("ProjectWizardServiceTest.finance", FINANCE_GROUP, UserRightId.PM_PROJECT))
+        Assertions.assertFalse(projectWizardService.isAllowed())
+        Assertions.assertThrows(AccessException::class.java) {
+            projectWizardService.execute(
+                ProjectWizardService.Data(
+                    customer = ProjectWizardService.CustomerData(nummer = 18505L, name = "$PREFIX noCustomerRight"),
+                    project = ProjectWizardService.ProjectData(nummer = 1, name = "$PREFIX-noCustomerRight-project"),
+                    parentTaskId = parent.id,
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `the rights for customers and projects are enough, no admin needed`() {
+        logon(
+            addUser("ProjectWizardServiceTest.orga", ORGA_GROUP, UserRightId.PM_PROJECT, UserRightId.FIBU_CUSTOMER)
+        )
+        Assertions.assertTrue(projectWizardService.isAllowed())
+    }
+
+    /** A new user in the given group, with read and write access of the given rights. */
+    private fun addUser(username: String, groupName: String, vararg rightIds: UserRightId): PFUserDO {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also { user ->
+            user.username = username
+            rightIds.forEach { user.addRight(UserRightDO(it, UserRightValue.READWRITE)) }
+        })
+        val group = getGroup(groupName)
+        group.addUser(user)
+        groupDao.update(group)
+        return user
     }
 
     /** A structure element below the root, created by the admin. */

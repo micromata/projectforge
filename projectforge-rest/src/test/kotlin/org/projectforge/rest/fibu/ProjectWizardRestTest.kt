@@ -31,8 +31,12 @@ import org.projectforge.business.fibu.ProjectWizardService
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -115,6 +119,23 @@ class ProjectWizardRestTest : AbstractTestBase() {
         Assertions.assertFalse(projectWizardRest.init().allowed)
         Assertions.assertThrows(AccessException::class.java) {
             projectWizardRest.validate(ProjectWizardService.Data())
+        }
+    }
+
+    @Test
+    fun `finance users without the customer right are refused`() {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also {
+            it.username = "ProjectWizardRestTest.finance"
+            it.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
+        })
+        val group = getGroup(FINANCE_GROUP)
+        group.addUser(user)
+        groupDao.update(group)
+        logon(user)
+        Assertions.assertFalse(projectWizardRest.init().allowed)
+        Assertions.assertThrows(AccessException::class.java) {
+            projectWizardRest.execute(ProjectWizardService.Data())
         }
     }
 }

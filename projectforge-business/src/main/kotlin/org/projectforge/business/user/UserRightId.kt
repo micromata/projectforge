@@ -79,6 +79,11 @@ enum class UserRightId
         "access.right.fibu.currencyConversion"
     ),
 
+    FIBU_CUSTOMER(
+        "FIBU_CUSTOMER", "fibu9",
+        "access.right.fibu.customer"
+    ),
+
     MISC_ADDRESSBOOK("MISC_ADDRESSBOOK", "misc2", "access.right.misc.addressbook"),
 
     PM_GANTT("PM_GANTT", "pm1", "access.right.pm.gantt"),

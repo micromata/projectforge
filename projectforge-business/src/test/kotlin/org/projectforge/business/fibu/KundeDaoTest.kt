@@ -25,13 +25,21 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.GroupDao
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 
 class KundeDaoTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var groupDao: GroupDao
+
     @Autowired
     private lateinit var kundeDao: KundeDao
 
@@ -59,6 +67,52 @@ class KundeDaoTest : AbstractTestBase() {
 
         logon(TEST_ADMIN_USER)
         checkNoAccess(id, kunde, "Admin ")
+    }
+
+    @Test
+    fun `writing customers needs the right, not the finance group`() {
+        logon(TEST_FINANCE_USER)
+        val kunde = KundeDO().also {
+            it.name = "ACME right"
+            it.id = 43L
+        }
+        val id = kundeDao.insert(kunde)
+
+        // Finance without the right: still reads all customers, but may not write them.
+        logon(addUser("KundeDaoTest.financeWithoutRight", FINANCE_GROUP))
+        kundeDao.select(BaseSearchFilter())
+        Assertions.assertNotNull(kundeDao.find(id))
+        Assertions.assertFalse(kundeDao.hasLoggedInUserInsertAccess())
+        checkNoWriteAccess(kundeDao.find(id)!!, "Finance without the right")
+
+        // Not in the finance group, but with the right (read and write): may write.
+        logon(addUser("KundeDaoTest.orgaWithRight", ORGA_GROUP, UserRightValue.READWRITE))
+        Assertions.assertTrue(kundeDao.hasLoggedInUserInsertAccess())
+        kundeDao.insert(KundeDO().also {
+            it.name = "ACME orga"
+            it.id = 44L
+        })
+        val dbKunde = kundeDao.find(id)!!
+        dbKunde.description = "Orga"
+        kundeDao.update(dbKunde)
+
+        // Read only: reads, but may not write.
+        logon(addUser("KundeDaoTest.orgaReadOnly", ORGA_GROUP, UserRightValue.READONLY))
+        Assertions.assertNotNull(kundeDao.find(id))
+        checkNoWriteAccess(kundeDao.find(id)!!, "Read only")
+    }
+
+    /** A new user in the given group, with the customer right of the given value (none if null). */
+    private fun addUser(username: String, groupName: String, value: UserRightValue? = null): PFUserDO {
+        logon(TEST_ADMIN_USER)
+        val user = initTestDB.addUser(PFUserDO().also { user ->
+            user.username = username
+            value?.let { user.addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, it)) }
+        })
+        val group = getGroup(groupName)
+        group.addUser(user)
+        groupDao.update(group)
+        return user
     }
 
     private fun checkNoAccess(id: Serializable, kunde: KundeDO, who: String) {

@@ -209,9 +209,9 @@ class ProjectWizardService {
     )
 
     /**
-     * Whether the user may run the wizard: create customers (finance), projects (`PM_PROJECT`, read and
-     * write) and structure elements - the last one depends on the parent and is checked by
-     * [checkAllowed] as well. Restricted and demo users never, they may not write anything.
+     * Whether the user may run the wizard: create customers (`FIBU_CUSTOMER`, read and write), projects
+     * (`PM_PROJECT`, read and write) and structure elements - the last one depends on the parent and is
+     * checked by [checkAllowed] as well. Restricted and demo users never, they may not write anything.
      */
     fun isAllowed(): Boolean {
         if (accessChecker.isRestrictedOrDemoUser) {

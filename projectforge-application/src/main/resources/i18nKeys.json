@@ -173,6 +173,7 @@
   {"i18nKey":"access.right.fibu.ausgangsrechnungen","bundleName":"I18nResources","translation":"Outgoing invoices","translationDE":"Debitorenrechnungen","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"access.right.fibu.costUnit","bundleName":"I18nResources","translation":"Cost unit","translationDE":"Kostenträger","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"access.right.fibu.currencyConversion","bundleName":"I18nResources","translation":"Currency conversion","translationDE":"Währungsumrechnung","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
+  {"i18nKey":"access.right.fibu.customer","bundleName":"I18nResources","translation":"Customers","translationDE":"Kunden","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"access.right.fibu.datevImport","bundleName":"I18nResources","translation":"Datev import","translationDE":"Datev-Import","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"access.right.fibu.eingangsrechnungen","bundleName":"I18nResources","translation":"Incoming invoices","translationDE":"Kreditorenrechnungen","usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"access.right.fibu.employee","bundleName":"I18nResources","translation":"Employees","translationDE":"Mitarbeiter:in","usedInClasses":[],"usedInFiles":[]},

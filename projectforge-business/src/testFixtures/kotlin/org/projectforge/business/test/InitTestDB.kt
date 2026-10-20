@@ -305,6 +305,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)) //
@@ -328,6 +329,7 @@ class InitTestDB {
             .addRight(UserRightDO(UserRightId.FIBU_CURRENCY_CONVERSION, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
+            .addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)) //
             .addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)) //
         user = addUser(user)

@@ -147,6 +147,7 @@ class DatabaseService {
             adminUser.addRight(UserRightDO(UserRightId.ORGA_INCOMING_MAIL, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
+            adminUser.addRight(UserRightDO(UserRightId.FIBU_CUSTOMER, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE))
             adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.insert(obj, checkAccess = false) })

@@ -458,7 +458,10 @@ open class MenuCreator {
         // NumberRangeService).
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.CUSTOMER_LIST,
-                checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+                checkAccess = {
+                    isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) ||
+                            hasRight(KundeDao.USER_RIGHT_ID, *READONLY_READWRITE)
+                })
         )
             .add(
                 MenuItemDef(MenuItemDefId.PROJECT_LIST,
