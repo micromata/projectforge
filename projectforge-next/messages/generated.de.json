@@ -3765,10 +3765,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interesse",
+      "interest": {
+        "_": "Interesse",
+        "0": "Ohne Einstufung",
+        "1": "Interesse",
+        "2": "Großes Interesse",
+        "3": "Going crazy!"
+      },
       "owner": "Eigner",
-      "rating": "Selbsteinschätzung",
-      "skill": "Skill"
+      "rating": {
+        "_": "Selbsteinschätzung",
+        "0": "Keine Einschätzung",
+        "1": "Basis",
+        "2": "Fortgeschritten",
+        "3": "Experte"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Neuer Skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {
