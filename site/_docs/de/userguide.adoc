@@ -1338,7 +1338,9 @@ wird je Bereich konfiguriert.
 === Weitere Funktionen
 
 * *Umfragen* (_Verschiedenes > Umfragen_): Umfragen mit Einfachauswahl-, Mehrfachauswahl- und Textfragen
-erstellen, Teilnehmende einladen und die Ergebnisse exportieren.
+erstellen (auch aus Vorlagen), Benutzer:innen und Gruppen einladen und die Ergebnisse auf der Seite oder als
+Excel-Datei ansehen. Wer Vollzugriff hat, bearbeitet die Umfrage, sieht alle Antworten und antwortet
+stellvertretend für Teilnehmer:innen.
 * *Merlin-Word®-Vorlagen* (_Verschiedenes > Merlin-Word®-Vorlagen_): Word-Dokumente wie Verträge oder
 Briefe aus Vorlagen mit Variablen erzeugen, auch als Serienbriefe aus einer Excel-Tabelle.
 * *Lizenzen / Hardware* (_Verschiedenes > Lizenzen / Hardware_): Softwarelizenzen, Lizenzschlüssel und

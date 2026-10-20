@@ -1307,7 +1307,8 @@ configured per area.
 === Further features
 
 * *Polls* (_Miscellaneous > Polls_): create polls with single choice, multiple choice and text
-questions, invite attendees and export the results.
+questions (also from templates), invite users and groups, and see the results on the page or as Excel
+file. Users with full access edit the poll, see all answers and answer on behalf of attendees.
 * *Merlin Word® templates* (_Miscellaneous > Merlin Word® templates_): generate Word documents
 such as contracts or letters from templates with variables, also as serial documents from an Excel
 sheet.

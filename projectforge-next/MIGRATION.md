@@ -601,6 +601,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `newBaseDTO` setzt heute als Datum und den Mitarbeiter aus `?employee=`. Neu: HR (Schreibrecht) legt im
   Urlaubskonto direkt eine Korrektur für den angezeigten Mitarbeiter an (`newLeaveAccountEntryUrl`). Rückweg:
   Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
+- **Umfragen** (`poll`, Liste + Formular + Antwortseite, vorher React-UILayout `PollPageRest`, `PollResponsePageRest`,
+  `PollInfoPageRest`, gelöscht; Azubi-Modul, dabei das Datenmodell aufgeräumt, Flyway `V9.0.12.1`–`V9_0_12_3`) –
+  layoutfrei über `PollEntityRest` (`/rs/poll`: CRUD, `finish/{id}`, `exportAsExcel/{id}`, `templates`) und
+  `PollAnswerRest` (`/rs/pollAnswer`: Antworten, auch stellvertretend, und Ergebnisse). Fragen und Antworten als
+  JSON, Antworten nennen Fragen und Optionen per uid (nie per Position); Teilnehmer und Vollzugriff als User und
+  Gruppen, Gruppen live aufgelöst (`PollDao`). Zugriff nur im DAO und am gespeicherten Objekt; die Ergebnisse (Reiter
+  `?tab=results`, Excel) nur mit Vollzugriff; beendet = schreibgeschützt (`EditDef.readOnlyWithoutWriteAccess`).
+  Fragen-Editor mit Hoch/Runter (`useFieldArray().move`), Vorlagen: eingebaute neutrale Muster de/en
+  (`poll/templates.json`) und Umfragen mit `template=true` (nie versendet, klonbar). Zeilenklick: Formular bei
+  Vollzugriff, sonst Antwortseite (`/poll/<id>/answer`). `react/poll/**` leitet `NextMigration` um,
+  `react/pollResponse/dynamic?pollId=` (Mail-Links) und `react/pollInfo` `OrphanedLinkFilter`.
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von
