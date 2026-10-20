@@ -37,7 +37,9 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Contract
+import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -107,8 +109,17 @@ class ContractEntityRest
   }
 
   /**
+   * The year filter of the former React list, still offered (but not pinned): a stored filter of a user may carry it,
+   * and next restores and sends every stored entry, so without the element the list would be narrowed to a year
+   * nobody can see or remove. Contracts are looked for by the period filter of the date column instead.
+   */
+  override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+    elements.add(UIFilterElement("year", label = translate("calendar.year")))
+  }
+
+  /**
    * The year filter of the former React list. The next list filters the date column by a period instead, but a
-   * `year` entry may still be stored in the filter of a user, so it is still understood.
+   * `year` entry may still be stored in the filter of a user, so it is still understood (see [addMagicFilterElements]).
    */
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ContractDO>>? {
     source.entries.find { it.field == "year" }?.let { entry ->

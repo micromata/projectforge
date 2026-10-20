@@ -28,20 +28,31 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.projectforge.business.orga.ContractDO
+import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ConfigurationJsonValues
 import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.rest.dto.Contract
+import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
 import java.time.LocalDate
 
 /**
- * The contracts of projectforge-next ([ContractEntityRest]): the types the form offers, the check of the date and the
- * clone.
+ * The contracts of projectforge-next ([ContractEntityRest]): the types the form offers, the check of the date, the
+ * clone and the year filter of the former React list.
  */
 class ContractEntityRestTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var contractDao: ContractDao
+
     @Autowired
     private lateinit var contractEntityRest: ContractEntityRest
 
@@ -81,6 +92,29 @@ class ContractEntityRestTest : AbstractTestBase() {
         val clone = contractEntityRest.prepareClone(Contract(id = 42, number = 1000, title = "Lease"))
         assertNull(clone.number)
         assertEquals("Lease", clone.title)
+    }
+
+    /** A year stored by the former React list still narrows the list, and is offered, so it can be seen and removed. */
+    @Test
+    fun `a stored year filter is offered and applied`() {
+        val elements = mutableListOf<UILabelledElement>()
+        contractEntityRest.addMagicFilterElements(elements)
+        assertEquals(listOf("year"), elements.map { (it as UIFilterElement).id })
+
+        logon(TEST_FINANCE_USER) // Writes contracts (the full access user only reads them).
+        val title = "Year filter ${System.nanoTime()}"
+        listOf(2020, 2021).forEach { year ->
+            contractDao.insert(ContractDO().also {
+                it.title = title
+                it.date = LocalDate.of(year, 6, 1)
+            })
+        }
+        // Picked by title rather than searched for: a fresh insert is not yet in the full text index.
+        val filter = MagicFilter().also { it.entries.add(MagicFilterEntry("year", "2020")) }
+        val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+        val dates = contractEntityRest.getList(request, filter, doNotStore = true).resultSet
+            .map { it as Contract }.filter { it.title == title }.map { it.date }
+        assertEquals(listOf(LocalDate.of(2020, 6, 1)), dates)
     }
 
     private fun validate(date: LocalDate?): List<ValidationError> {

@@ -603,7 +603,8 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Liste, Urlaubskonto (`?returnTo=/vacationAccount`). `react/leaveAccountEntry/**` leitet `OrphanedLinkFilter` um.
 - **Verträge** (`contract`, Liste + Formular, vorher React-UILayout `ContractPagesRest`, gelöscht) – layoutfrei
   über `ContractEntityRest` (`/rs/contract`, gleicher Pfad). Der Jahr-Filter der React-Liste ist der Zeitraumfilter
-  der Datumsspalte (Default „Jahr“); ein beim Nutzer gespeicherter `year`-Eintrag wirkt weiter (`preProcessMagicFilter`).
+  der Datumsspalte (Default „Jahr“); ein beim Nutzer gespeicherter `year`-Eintrag wirkt weiter (`preProcessMagicFilter`)
+  und bleibt deshalb als (nicht angepinntes) Filterelement angeboten – sonst wäre er unsichtbar und nicht entfernbar.
   Vertragsarten aus dem Konfigurationsparameter `orga.contractTypes` über `/rs/contract/types`; Titel,
   Vertragspartner, Ansprechpartner und Unterzeichner mit Autovervollständigung, JIRA-Links im Text, Anhänge,
   Klonen (ohne Nummer), Prüfung „kein Datum in der Zukunft“ im Backend. Entfallen: die aus der längsten Vertragsart

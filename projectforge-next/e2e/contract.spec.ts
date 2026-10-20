@@ -4,6 +4,7 @@ import { CONTRACT_METADATA } from "../lib/metadata/contract.generated";
 import { CONTRACT_PAGE } from "../components/features/contract/contract.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import { withDeclaredColumns } from "../components/data-table/column-order";
+import { writeHeaders } from "./fixtures/seed";
 
 /**
  * The contracts against the live backend (see CONTRACT_PAGE and ContractEntityRest).
@@ -128,6 +129,92 @@ test.describe("contract", { tag: "@parallel" }, () => {
     expect(sent.sortProperties?.map((entry) => entry.property)).toEqual([
       "number",
     ]);
+  });
+
+  test("shows a year filter the React list stored, so it can be removed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // The React list offered the year as a pinned filter, so the remembered filter of many users carries it. Served
+    // from here, and the list calls answered here too: they would store the filter as the account's current one.
+    await page.route("**/rs/contract/listMeta*", async (route) => {
+      const json = await (await route.fetch()).json();
+      json.filter = {
+        ...(json.filter ?? {}),
+        entries: [{ field: "year", value: { value: "2020" } }],
+      };
+      return route.fulfill({ json });
+    });
+    const sentYears: (string | undefined)[] = [];
+    await page.route("**/rs/contract/{list,listPage}*", (route) => {
+      // The glob matches listMeta, too.
+      if (route.request().method() !== "POST") return route.fallback();
+      const body = route.request().postDataJSON() as {
+        entries?: { field: string; value?: { value?: string } }[];
+        filter?: { entries?: { field: string; value?: { value?: string } }[] };
+      };
+      const entries = body.entries ?? body.filter?.entries ?? [];
+      sentYears.push(
+        entries.find((entry) => entry.field === "year")?.value?.value
+      );
+      return route.fulfill({ json: { resultSet: [], totalSize: 0 } });
+    });
+
+    await goto(page, "/contract");
+
+    // The backend still narrows by it (ContractEntityRest.preProcessMagicFilter), so it must be on the filter row.
+    const remove = page.getByRole("button", {
+      name: format.t("filter.removeEntry", { arg0: format.t("calendar.year") }),
+    });
+    await expect(remove).toBeVisible();
+    await expect.poll(() => sentYears[0]).toBe("2020");
+
+    await remove.click();
+    // Asked again without it.
+    await expect
+      .poll(() => sentYears.length > 1 && sentYears.at(-1) === undefined)
+      .toBe(true);
+  });
+
+  test("opens a clone as a new contract without the number", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // Any stored contract: the clone (`cloneData`) only prepares the copy, nothing is saved. Asked without storing the
+    // filter, so the account's list filter stays as it is.
+    const response = await page.request.post(
+      "/rs/contract/list?doNotStore=true",
+      { headers: await writeHeaders(page.request), data: { entries: [] } }
+    );
+    expect(response.ok()).toBe(true);
+    const contracts = (
+      (await response.json()) as {
+        resultSet: { id: number; title?: string; number?: number }[];
+      }
+    ).resultSet.filter((contract) => contract.title && contract.number);
+    test.skip(!contracts.length, "the database has no contract to clone");
+    const contract = contracts[0];
+
+    await goto(page, `/contract/${contract.id}`);
+    const number = page.getByLabel(
+      label(format, "legalAffaires.contract.number"),
+      { exact: true }
+    );
+    await expect(number).toHaveValue(String(contract.number));
+    await page
+      .getByRole("button", { name: format.t("clone"), exact: true })
+      .click();
+
+    await expect(page).toHaveURL(/\/contract\/new\?clone=1$/);
+    // The clone button needs a stored entry: gone once the page has become the add page.
+    await expect(
+      page.getByRole("button", { name: format.t("clone"), exact: true })
+    ).toHaveCount(0);
+    // The number is handed out on saving (ContractEntityRest.prepareClone), the rest is the original's.
+    await expect(number).toHaveValue("");
+    await expect(
+      page.getByRole("combobox", { name: label(format, "title") }).first()
+    ).toHaveValue(contract.title!);
   });
 
   test("redirects the old React pages", async ({ loggedInPage: page }) => {
