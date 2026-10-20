@@ -244,7 +244,7 @@ open class ConfigurationService {
     )
     ApplicationDirectories.init(applicationHomeDir, directories)
     ConfigurationJsonValidators.registerType(ConfigurationParam.HOLIDAYS, HolidaysConfig.typeReference, HolidaysConfig::validate)
-    ConfigurationJsonValidators.registerType(ConfigurationParam.JIRA, object : TypeReference<JiraConfig>() {})
+    ConfigurationJsonValidators.registerType(ConfigurationParam.JIRA, object : TypeReference<JiraConfig>() {}, JiraConfig::validate)
     ConfigurationJsonValidators.registerType(ConfigurationParam.CONTRACT_TYPES, contractTypesTypeReference, ::validateContractTypes)
     ConfigurationJsonValidators.registerType(
       ConfigurationParam.FIBU_ACCOUNTING,

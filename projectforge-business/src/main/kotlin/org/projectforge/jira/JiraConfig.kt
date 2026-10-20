@@ -29,7 +29,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.framework.configuration.ConfigurationJsonValues
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.ConfigureJiraServer
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
+import java.net.URI
 
 private val log = KotlinLogging.logger {}
 
@@ -66,6 +68,55 @@ class JiraConfig(
             return parse(json).also {
                 cachedConfig = it
                 cachedJson = json
+            }
+        }
+
+        private val PROJECT_REGEX = Regex("[A-Z][A-Z_0-9]*")
+
+        /**
+         * The errors of the given settings (i18n), empty if they are valid: the urls must be http(s) urls, every
+         * server needs a url and projects, and a project key is hosted on one server only.
+         */
+        fun validate(config: JiraConfig): List<String> {
+            val errors = mutableListOf<String>()
+            config.browseBaseUrl?.trim()?.takeIf { it.isNotEmpty() }?.let { url ->
+                if (!isHttpUrl(url)) {
+                    errors.add(translateMsg("administration.configuration.jira.error.browseBaseUrl", url))
+                }
+            }
+            val projectServers = mutableMapOf<String, Int>()
+            config.servers?.forEachIndexed { index, server ->
+                val no = index + 1
+                val url = server.baseUrl?.trim()
+                if (url.isNullOrEmpty()) {
+                    errors.add(translateMsg("administration.configuration.jira.error.serverUrlMissing", no))
+                } else if (!isHttpUrl(url)) {
+                    errors.add(translateMsg("administration.configuration.jira.error.serverUrl", no, url))
+                }
+                val projects = server.projects
+                if (projects.isNullOrEmpty()) {
+                    errors.add(translateMsg("administration.configuration.jira.error.projectsMissing", no))
+                }
+                projects?.forEach { project ->
+                    if (!PROJECT_REGEX.matches(project)) {
+                        errors.add(translateMsg("administration.configuration.jira.error.project", no, project))
+                    } else {
+                        val other = projectServers.putIfAbsent(project, no)
+                        if (other != null && other != no) {
+                            errors.add(translateMsg("administration.configuration.jira.error.duplicate", project, other, no))
+                        }
+                    }
+                }
+            }
+            return errors
+        }
+
+        private fun isHttpUrl(url: String): Boolean {
+            return try {
+                val uri = URI(url)
+                (uri.scheme == "http" || uri.scheme == "https") && !uri.host.isNullOrBlank()
+            } catch (_: Exception) {
+                false
             }
         }
 

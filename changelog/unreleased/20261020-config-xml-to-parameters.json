@@ -4,8 +4,8 @@
   "de": "config.xml durch Konfigurationsparameter ersetzt",
   "items": [
     {
-      "en": "Holidays, JIRA servers, contract types and the accounting settings (account number ranges, business assessment) are maintained on the configuration page as parameters, holidays, contract types and accounting with an own editor (rows of the business assessment movable, formulas and scripts checked on saving); changes of the holidays apply without restart.",
-      "de": "Feiertage, JIRA-Server, Vertragsarten und die Buchhaltungseinstellungen (Kontenbereiche, betriebswirtschaftliche Auswertung) werden auf der Konfigurationsseite als Parameter gepflegt, Feiertage, Vertragsarten und Buchhaltung mit eigenem Editor (Zeilen der BWA verschiebbar, Formeln und Skripte beim Speichern geprüft); Änderungen der Feiertage gelten ohne Neustart."
+      "en": "Holidays, JIRA servers, contract types and the accounting settings (account number ranges, business assessment) are maintained on the configuration page as parameters, each with an own editor (rows of the business assessment movable, formulas and scripts checked on saving, JIRA urls and project keys checked as well); changes of the holidays apply without restart.",
+      "de": "Feiertage, JIRA-Server, Vertragsarten und die Buchhaltungseinstellungen (Kontenbereiche, betriebswirtschaftliche Auswertung) werden auf der Konfigurationsseite als Parameter gepflegt, jeweils mit eigenem Editor (Zeilen der BWA verschiebbar, Formeln und Skripte sowie JIRA-URLs und Projektkürzel beim Speichern geprüft); Änderungen der Feiertage gelten ohne Neustart."
     },
     {
       "en": "An existing config.xml is taken over automatically on the first start (into the parameters still empty, its directories into projectforge.dir.* of projectforge.properties) and renamed to config.xml.migrated afterwards.",

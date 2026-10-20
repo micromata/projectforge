@@ -394,6 +394,34 @@
         "workingDay": "Working day",
         "year": "Year"
       },
+      "jira": {
+        "add": "Add server",
+        "baseUrl": "Browse url",
+        "browseBaseUrl": "Default browse url",
+        "error": {
+          "browseBaseUrl": "Default browse url {arg0}: no http(s) url.",
+          "duplicate": "Project {arg0} is hosted on server {arg1} and server {arg2}.",
+          "project": "Server {arg0}: {arg1} is no valid project key (letters, digits, underscore; starting with a letter).",
+          "projectsMissing": "Server {arg0}: the projects are missing.",
+          "serverUrl": "Server {arg0}: {arg1} is no http(s) url.",
+          "serverUrlMissing": "Server {arg0}: the browse url is missing."
+        },
+        "help": {
+          "baseUrl": "Url the issue key is appended to, e.g. https://customer.acme.com/jira/browse/ (with closing slash).",
+          "browseBaseUrl": "Url the issue key (e.g. PROJECTFORGE-222) is appended to, if its project isn't hosted on one of the servers below, e.g. https://jira.acme.com/jira/browse/ (with closing slash). Without default url and servers, no issues are linked.",
+          "projects": "Keys of the projects hosted on this server, comma separated, e.g. ACME, ADMIN. A project is hosted on one server only.",
+          "servers": "Further JIRA servers by the projects hosted on them. The issues of all other projects are linked to the default browse url."
+        },
+        "invalidJson": "The stored value is no valid JSON object; no JIRA settings are shown.",
+        "moveDown": "Move {arg0} down",
+        "moveUp": "Move {arg0} up",
+        "projects": "Projects",
+        "remove": "Remove {arg0}",
+        "servers": "Servers",
+        "summary": {
+          "servers": "{arg0} server(s)"
+        }
+      },
       "json": {
         "invalid": "No valid JSON.",
         "notReadable": "Not readable: {arg0}"
@@ -466,7 +494,7 @@
         },
         "jira": {
           "_": "JIRA",
-          "description": "JIRA servers issue keys (e.g. PROJECTFORGE-222) in time sheets and tasks are linked to: the default browse url (browseBaseUrl, e.g. https://jira.acme.com/jira/browse/) and servers (baseUrl) by the projects hosted on them (projects, e.g. \"ACME, ADMIN\"). Without any url, no issues are linked."
+          "description": "JIRA servers issue keys (e.g. PROJECTFORGE-222) in time sheets and tasks are linked to: a default browse url and further servers by the projects hosted on them. Without any url, no issues are linked."
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",

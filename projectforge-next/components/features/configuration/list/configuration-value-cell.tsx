@@ -21,6 +21,8 @@ import { AccountingConfigSummary } from "./accounting-config-summary";
 import { HolidaysConfigSummary } from "./holidays-config-summary";
 import { CONTRACT_TYPES_PARAM } from "../contract-types-config";
 import { ContractTypesConfigSummary } from "./contract-types-config-summary";
+import { JIRA_PARAM } from "../jira-config";
+import { JiraConfigSummary } from "./jira-config-summary";
 
 /**
  * The current value of a configuration parameter, read-only, formatted for the type it is stored as —
@@ -80,6 +82,9 @@ export function ConfigurationValueCell({
       }
       if (row.parameter === CONTRACT_TYPES_PARAM) {
         return <ContractTypesConfigSummary json={row.stringValue} />;
+      }
+      if (row.parameter === JIRA_PARAM) {
+        return <JiraConfigSummary json={row.stringValue} />;
       }
       if (row.parameter === ACCOUNTING_PARAM) {
         return <AccountingConfigSummary json={row.stringValue} />;

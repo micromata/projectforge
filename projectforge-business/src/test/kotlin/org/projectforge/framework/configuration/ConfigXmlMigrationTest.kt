@@ -175,6 +175,25 @@ class ConfigXmlMigrationTest {
     }
 
     @Test
+    fun jiraValidation() {
+        fun errors(json: String) = ConfigurationJsonValidators.validate(ConfigurationParam.JIRA.key, json)
+        Assertions.assertEquals(
+            emptyList<String>(),
+            errors("""{"browseBaseUrl":"https://jira.acme.com/browse/","servers":[{"baseUrl":"https://a.acme.com/browse/","projects":"ACME, adm"}]}"""),
+        )
+        Assertions.assertEquals(emptyList<String>(), errors("""{"browseBaseUrl":" ","servers":[]}"""))
+        Assertions.assertEquals(1, errors("""{"browseBaseUrl":"jira.acme.com"}""").size, "No http url.")
+        Assertions.assertEquals(1, errors("""{"servers":[{"baseUrl":"","projects":"ACME"}]}""").size, "Url missing.")
+        Assertions.assertEquals(1, errors("""{"servers":[{"baseUrl":"https://a.acme.com/"}]}""").size, "Projects missing.")
+        Assertions.assertEquals(1, errors("""{"servers":[{"baseUrl":"https://a.acme.com/","projects":"AC-ME"}]}""").size)
+        Assertions.assertEquals(
+            1,
+            errors("""{"servers":[{"baseUrl":"https://a.acme.com/","projects":"ACME"},{"baseUrl":"https://b.acme.com/","projects":"acme"}]}""").size,
+            "Project on two servers.",
+        )
+    }
+
+    @Test
     fun takeOverAndRename(@TempDir homeDir: File) {
         val configXml = File(homeDir, LegacyConfigXml.CONFIG_XML_FILE)
         configXml.writeText(CONFIG_XML)
@@ -217,7 +236,7 @@ class ConfigXmlMigrationTest {
             ConfigurationJsonValidators.registerType(
                 ConfigurationParam.HOLIDAYS, HolidaysConfig.typeReference, HolidaysConfig::validate)
             ConfigurationJsonValidators.registerType(
-                ConfigurationParam.JIRA, object : com.fasterxml.jackson.core.type.TypeReference<JiraConfig>() {})
+                ConfigurationParam.JIRA, object : com.fasterxml.jackson.core.type.TypeReference<JiraConfig>() {}, JiraConfig::validate)
             ConfigurationJsonValidators.registerType(
                 ConfigurationParam.CONTRACT_TYPES,
                 object : com.fasterxml.jackson.core.type.TypeReference<List<ContractType>>() {},

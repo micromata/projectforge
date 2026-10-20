@@ -394,6 +394,34 @@
         "workingDay": "Arbeitstag",
         "year": "Jahr"
       },
+      "jira": {
+        "add": "Server hinzufügen",
+        "baseUrl": "Browse-URL",
+        "browseBaseUrl": "Standard-Browse-URL",
+        "error": {
+          "browseBaseUrl": "Standard-Browse-URL {arg0}: keine http(s)-URL.",
+          "duplicate": "Projekt {arg0} ist auf Server {arg1} und Server {arg2} eingetragen.",
+          "project": "Server {arg0}: {arg1} ist kein gültiges Projektkürzel (Buchstaben, Ziffern, Unterstrich; beginnend mit einem Buchstaben).",
+          "projectsMissing": "Server {arg0}: die Projekte fehlen.",
+          "serverUrl": "Server {arg0}: {arg1} ist keine http(s)-URL.",
+          "serverUrlMissing": "Server {arg0}: die Browse-URL fehlt."
+        },
+        "help": {
+          "baseUrl": "URL, an die der Issue-Key angehängt wird, z. B. https://customer.acme.com/jira/browse/ (mit abschließendem Schrägstrich).",
+          "browseBaseUrl": "URL, an die der Issue-Key (z. B. PROJECTFORGE-222) angehängt wird, wenn sein Projekt auf keinem der Server unten liegt, z. B. https://jira.acme.com/jira/browse/ (mit abschließendem Schrägstrich). Ohne Standard-URL und Server werden keine Issues verlinkt.",
+          "projects": "Kürzel der Projekte auf diesem Server, kommagetrennt, z. B. ACME, ADMIN. Ein Projekt liegt nur auf einem Server.",
+          "servers": "Weitere JIRA-Server nach den Projekten, die auf ihnen liegen. Die Issues aller anderen Projekte werden auf die Standard-Browse-URL verlinkt."
+        },
+        "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON-Objekt; es werden keine JIRA-Einstellungen angezeigt.",
+        "moveDown": "{arg0} nach unten verschieben",
+        "moveUp": "{arg0} nach oben verschieben",
+        "projects": "Projekte",
+        "remove": "{arg0} entfernen",
+        "servers": "Server",
+        "summary": {
+          "servers": "{arg0} Server"
+        }
+      },
       "json": {
         "invalid": "Kein gültiges JSON.",
         "notReadable": "Nicht lesbar: {arg0}"
@@ -466,7 +494,7 @@
         },
         "jira": {
           "_": "JIRA",
-          "description": "JIRA-Server, auf die Issue-Keys (z. B. PROJECTFORGE-222) in Zeitberichten und Strukturelementen verlinkt werden: die Standard-URL (browseBaseUrl, z. B. https://jira.acme.com/jira/browse/) und Server (baseUrl) nach den Projekten, die sie hosten (projects, z. B. \"ACME, ADMIN\"). Ohne URL werden keine Issues verlinkt."
+          "description": "JIRA-Server, auf die Issue-Keys (z. B. PROJECTFORGE-222) in Zeitberichten und Strukturelementen verlinkt werden: eine Standard-Browse-URL und weitere Server nach den Projekten, die auf ihnen liegen. Ohne URL werden keine Issues verlinkt."
         },
         "lanesAndPlanes": {
           "_": "Lanes & Planes",
