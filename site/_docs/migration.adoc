@@ -21,6 +21,19 @@ TIP: Always back up your database (and, if you still use it, the JCR repository)
 
 === Version 9.0.x
 
+. config.xml replaced by configuration parameters (9.0.11)
++
+The file `config.xml` in the home directory isn't used anymore. Its settings are taken over automatically on the first
+start: the holidays, the JIRA servers, the contract types and the accounting settings (account number ranges and
+business assessment) into the configuration parameters _Holidays_, _JIRA_, _Contract types_ and _Accounting_
+(_Administration_ -> _Configuration_, JSON values), each only if the parameter is still empty. Directories differing from
+the defaults (`jcrDirectory`, `workingDirectory`, `tempDirectory`, `backupDirectory`) are written to
+`projectforge.properties` as `projectforge.dir.jcr`, `projectforge.dir.work`, `projectforge.dir.tmp` and
+`projectforge.dir.backup`; `databaseDirectory`, `loggingDirectory`, `storageConfig` and `portletMode` were already
+without effect. Afterwards `config.xml` is renamed to `config.xml.migrated`, which may be removed. If the take-over
+fails (e.g. `projectforge.properties` not writable), the file is kept, the system dashboard reports it and the take-over
+is retried on the next start. The export of `config.xml` (_Administration_ -> _System_) is removed.
+
 . Project contact persons (9.0.11)
 +
 Projects now have one contact person plus any number of further contact persons, as orders do, instead of the fixed

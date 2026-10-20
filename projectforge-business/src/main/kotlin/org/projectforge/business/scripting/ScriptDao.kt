@@ -27,7 +27,7 @@ import de.micromata.merlin.utils.ReplaceUtils.encodeFilename
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.stereotype.Service
@@ -59,7 +59,7 @@ open class ScriptDao : AbstractScriptDao() {
             val filename =
                 encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
             val backupDir = getBackupDir()
-            ConfigXml.ensureDir(backupDir)
+            ApplicationDirectories.ensureDir(backupDir)
             val file = File(backupDir, filename)
             try {
                 log.info { "Writing backup of script to: " + file.absolutePath }
@@ -114,7 +114,7 @@ open class ScriptDao : AbstractScriptDao() {
     }
 
     private fun getBackupDir(): File {
-        return File(ConfigXml.getInstance().backupDirectory, "scripts")
+        return File(ApplicationDirectories.backupDirectory, "scripts")
     }
 
     private fun getBackupBasefilename(obj: ScriptDO): String {

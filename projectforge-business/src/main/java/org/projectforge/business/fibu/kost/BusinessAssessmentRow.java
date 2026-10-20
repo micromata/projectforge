@@ -42,8 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
- * assessment.
+ * A single row of the business assessment of the schema configured in the parameter fibu.accounting.
  *
  * @author Kai Reinhard
  *

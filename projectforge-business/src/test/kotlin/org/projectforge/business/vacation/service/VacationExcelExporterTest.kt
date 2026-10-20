@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -71,8 +70,6 @@ class VacationExcelExporterTest {
     val user = PFUserDO()
     user.locale = Locale.ENGLISH
     ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
-    // The holidays need a configuration; without a Spring context there is none unless another test set it.
-    runCatching { ConfigXml.getInstance() }.onFailure { ConfigXml.internalSetInstance("<config><holidays></holidays></config>") }
     val employee = EmployeeDO().also {
       it.user = PFUserDO().also { u ->
         u.firstname = "Berta"
@@ -109,7 +106,6 @@ class VacationExcelExporterTest {
     val user = PFUserDO()
     user.locale = Locale.ENGLISH
     ThreadLocalUserContext.userContext = UserContext.createTestInstance(user)
-    runCatching { ConfigXml.getInstance() }.onFailure { ConfigXml.internalSetInstance("<config><holidays></holidays></config>") }
     val employee = EmployeeDO().also {
       it.user = PFUserDO().also { u ->
         u.firstname = "Berta"

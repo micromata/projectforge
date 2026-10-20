@@ -130,7 +130,7 @@ public class KundeDao extends BaseDao<KundeDO> {
         if (customer == null || customer.getNummer() == null) {
             return false;
         }
-        KundeDO existingCustomer = find(customer.getNummer(), false);
-        return existingCustomer != null;
+        // Not find(): a free number is the expected case here, and find() logs a missing object as error.
+        return getPersistenceService().find(KundeDO.class, customer.getNummer()) != null;
     }
 }

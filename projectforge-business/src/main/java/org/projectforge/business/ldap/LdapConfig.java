@@ -24,12 +24,12 @@
 package org.projectforge.business.ldap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigXmlSecretField;
+import org.projectforge.framework.configuration.SecretFieldToString;
+import org.projectforge.framework.configuration.SecretField;
 import org.projectforge.framework.xmlstream.XmlField;
 
 /**
- * Bean used by ConfigXML (config.xml).
+ * LDAP settings, configured by the properties projectforge.ldap.* (see LdapServiceImpl).
  * @author Kai Reinhard
  */
 public class LdapConfig
@@ -44,7 +44,7 @@ public class LdapConfig
 
   private String managerUser;
 
-  @ConfigXmlSecretField
+  @SecretField
   private String managerPassword;
 
   private String authentication = "simple";
@@ -302,11 +302,11 @@ public class LdapConfig
   }
 
   /**
-   * @see ConfigXml#toString(Object)
+   * @see SecretFieldToString#toString(Object)
    */
   @Override
   public String toString()
   {
-    return ConfigXml.toString(this);
+    return SecretFieldToString.toString(this);
   }
 }

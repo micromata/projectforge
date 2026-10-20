@@ -47,7 +47,8 @@ export function PropertyRow({
   const undocumented = isUndocumented(param);
 
   return (
-    <div className="grid gap-1 py-1.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_4.5rem] sm:items-center sm:gap-3">
+    // From lg on, the key column is wide enough for the long keys (list indices, map entries) not to wrap.
+    <div className="grid gap-1 py-1.5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_4.5rem] sm:items-center sm:gap-3 lg:grid-cols-[30rem_minmax(0,1fr)_4.5rem]">
       <div className="flex min-w-0 items-center gap-1.5">
         <span className="font-mono text-xs break-all">
           <HighlightedText text={param.key} query={query} />

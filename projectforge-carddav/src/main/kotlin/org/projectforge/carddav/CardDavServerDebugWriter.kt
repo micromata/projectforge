@@ -28,7 +28,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.carddav.CardDavServerDebugWriter.sanitizeContent
 import org.projectforge.common.CSVWriter
-import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.configuration.ApplicationDirectories
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.utils.RequestLog
@@ -170,7 +170,7 @@ internal object CardDavServerDebugWriter {
     }
 
     private fun prepareLogFile(filename: String, introText: String): File {
-        val tempDir = ConfigXml.getInstance().tempDirectory
+        val tempDir = ApplicationDirectories.tempDirectory
         val file = File(tempDir, filename)
         if (!file.exists()) {
             file.writeText(introText)

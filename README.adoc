@@ -136,7 +136,6 @@ ProjectForge support plugins. The existing menu can be modified and own entities
 
 Please note: We're working highly on a new release (will be published soon). Wicket will be replaced by ReactJS and Rest technology. The implementation of plugins will be changed as well.
 
-The menu is customizable (you can add or remove menu entries in the config.xml file).
 Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
 Register your plugins in the administration menu at the web gui. You need to restart the server.
 One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!

@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu.kost;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xmlstream.XmlField;
 import org.projectforge.framework.xmlstream.XmlObject;
@@ -31,13 +33,16 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in different
- * accounting areas, such as for DATEV accounting records.
+ * The definition of the used business assessment schema (part of {@link AccountingConfig}). The business assessment is
+ * displayed in different accounting areas, such as for DATEV accounting records.
  *
  * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "businessAssessment")
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BusinessAssessmentConfig implements Serializable
 {
   private static final long serialVersionUID = -8466818920551754849L;

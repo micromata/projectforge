@@ -41,6 +41,20 @@ object ConfigurationLogEvents {
                 "(logged on every start as long as it is set).",
     )
 
+    /** See [ConfigXmlMigration]. */
+    @JvmField
+    val CONFIG_XML_NOT_MIGRATED = LogEvent(
+        code = "configuration.configXmlNotMigrated",
+        category = LogCategory.CONFIG,
+        notify = LogNotify.DIGEST_IF_NEW,
+        explanation = "The former config.xml in the base dir couldn't be taken over completely into the configuration " +
+                "parameters (holidays, jira, contract types, accounting) and the properties projectforge.dir.* " +
+                "(directories). It is kept and the take-over is retried on the next start.",
+        action = "Check the log for the cause (e.g. config.xml not readable, projectforge.properties not writable). " +
+                "Alternatively maintain the parameters on the configuration page and the directories in " +
+                "projectforge.properties and remove config.xml.",
+    )
+
     @JvmField
     val UNKNOWN_ENTRY = LogEvent(
         code = "configuration.unknownEntry",

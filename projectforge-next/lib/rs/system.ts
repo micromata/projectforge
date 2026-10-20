@@ -47,8 +47,6 @@ export function setAlertMessage(
 
 // The export actions answer with a file; the filename comes from the Content-Disposition header the
 // backend sends (RestUtils.downloadFile), so it is never guessed here (see ./download.ts).
-export const downloadExportConfiguration = () =>
-  downloadFile("/rs/system/exportConfiguration");
 export const downloadExport2FAConfiguration = () =>
   downloadFile("/rs/system/export2FAConfiguration");
 export const downloadCheckSystemIntegrity = () =>

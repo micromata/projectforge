@@ -92,6 +92,29 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   GROUP_NOMENCLATURE("groupNomenclature", ConfigurationType.JSON), //
   /**
+   * The account number ranges of debitors and creditors and the schema of the business assessment (BWA) as JSON
+   * object, see {@code AccountingConfig}. Formerly configured in config.xml.
+   */
+  FIBU_ACCOUNTING("fibu.accounting", ConfigurationType.JSON), //
+  /**
+   * The (re-)definitions of holidays as JSON array (additional holidays, ignored or half working days of the
+   * pre-defined ones), see {@code HolidaysConfig}. Formerly configured in config.xml; the default makes Christmas Eve
+   * and New Year's Eve half working days.
+   */
+  HOLIDAYS("holidays", ConfigurationType.JSON,
+      "[{\"id\":\"XMAS_EVE\",\"workingDay\":true,\"workFraction\":0.5},"
+          + "{\"id\":\"NEW_YEARS_EVE\",\"workingDay\":true,\"workFraction\":0.5}]"), //
+  /**
+   * The JIRA servers issue keys are linked to as JSON object (default browse url and servers by project), see
+   * {@code JiraConfig}. Formerly configured in config.xml.
+   */
+  JIRA("jira", ConfigurationType.JSON), //
+  /**
+   * The types of contracts as JSON array of value and label, see {@code ContractType}. Formerly configured in
+   * config.xml.
+   */
+  CONTRACT_TYPES("orga.contractTypes", ConfigurationType.JSON), //
+  /**
    * Note on the time sheet edit page regarding the savings by AI (rich text, see {@link #isRichText()}).
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //
@@ -253,6 +276,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case CUSTOMER_GROUPS:
       case LANES_AND_PLANES:
       case FIBU_FORECAST:
+      case FIBU_ACCOUNTING:
       case GROUP_NOMENCLATURE:
         return ConfigurationEditors.FINANCE;
       case TIMESHEET_OVERLAP_GROUPS:
@@ -274,6 +298,7 @@ public enum ConfigurationParam implements IConfigurationParam
       case MESSAGE_OF_THE_DAY:
       case CALENDAR_DOMAIN:
       case PLUGIN_ACTIVATED:
+      case JIRA:
         return ConfigurationCategory.SYSTEM;
       case MIN_PASSWORD_LENGTH:
       case PASSWORD_FLAG_CHECK_CHANGE:
@@ -283,11 +308,13 @@ public enum ConfigurationParam implements IConfigurationParam
       case DATE_FORMATS:
       case EXCEL_DATE_FORMATS:
       case DEFAULT_COUNTRY_PHONE_PREFIX:
+      case HOLIDAYS:
         return ConfigurationCategory.REGIONAL;
       case FIBU_DEFAULT_VAT:
       case COST_CONFIGURED:
       case FIBU_CONTRIBUTION_MARGIN:
       case FIBU_FORECAST:
+      case FIBU_ACCOUNTING:
       case CUSTOMER_GROUPS:
       case LANES_AND_PLANES:
       case GROUP_NOMENCLATURE:
@@ -302,6 +329,7 @@ public enum ConfigurationParam implements IConfigurationParam
         return ConfigurationCategory.TIMESHEET;
       case HR_MAILADDRESS:
       case END_DATE_VACATION_LAST_YEAR:
+      case CONTRACT_TYPES:
         return ConfigurationCategory.HR;
     }
     throw new IllegalStateException("No category given for configuration parameter " + this);

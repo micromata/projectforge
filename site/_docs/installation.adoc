@@ -183,7 +183,7 @@ h|Setting | Start ProjectForge – if checked, ProjectForge is started after cli
 h|Setting | Enable CORS filter – for frontend development only. Never use it on productive systems!
 |===
 
-The wizard writes `projectforge.properties` (and `config.xml`) into the home directory, including a randomly
+The wizard writes `projectforge.properties` into the home directory, including a randomly
 generated password pepper and token encryption key. After clicking *Finish*, ProjectForge is initialized and started.
 Open your browser at `http://localhost:8080` (or your domain, e.g. `https://projectforge.acme.com`).
 
@@ -257,12 +257,9 @@ link:/docs/adminguide/[Administration guide].
 === Configuration parameters
 
 Further parameters (e.g. default time zone, cost-unit accounting, phone prefix) are set in the web application under
-_Administration_ -> _Configuration_.
-
-=== Special configurations, file `config.xml`
-
-`config.xml` in the home directory is also created by the setup wizard. It holds special settings such as your
-specific holidays, contract types, JIRA servers and the rows of the business assessment (BWA).
+_Administration_ -> _Configuration_. This includes special settings such as your specific holidays, contract types,
+JIRA servers and the rows of the business assessment (BWA), formerly configured in the file `config.xml`: an existing
+`config.xml` is taken over automatically on the first start (see link:/docs/migration/[Migration]).
 
 == Secure http connection (SSL/https)
 

@@ -21,19 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+
 package org.projectforge.framework.configuration
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.projectforge.framework.xmlstream.XmlField
 import org.projectforge.framework.xmlstream.XmlObject
 import org.projectforge.framework.xmlstream.XmlOmitField
 
 /**
- * Used in config.xml for defining jira server urls (by space names).
+ * A jira server hosting the given projects (part of the configuration parameter jira, see
+ * [org.projectforge.jira.JiraConfig]). The xml annotations are only used for reading the former config.xml.
  *
  * @author Kai Reinhard
  */
 @XmlObject(alias = "jiraServer")
+@JsonAutoDetect(
+  fieldVisibility = JsonAutoDetect.Visibility.ANY,
+  getterVisibility = JsonAutoDetect.Visibility.NONE,
+  isGetterVisibility = JsonAutoDetect.Visibility.NONE,
+  setterVisibility = JsonAutoDetect.Visibility.NONE,
+)
 class ConfigureJiraServer {
   /**
    * @return jira base url for projects.
@@ -45,35 +55,32 @@ class ConfigureJiraServer {
    * @return List of projects hosted on this server (csv, e. g. "ACME;ADMIN;SUPPORT;PORTAL".
    */
   @XmlField(asAttribute = true, alias = "projects")
+  @field:JsonProperty("projects")
   var projectsAsString: String? = null
 
-  @XmlOmitField
-  var projects: Array<String>? = null
+  /**
+   * The projects of [projectsAsString] (upper case), null if none is given.
+   */
+  val projects: Array<String>?
     get() {
-      if (!intialized) {
-        intialized = true
-        projectsAsString.let { value ->
-          if (value.isNullOrBlank()) {
-            projects = null
-          } else {
-            val list = mutableListOf<String>()
-            value.split(";", ",").forEach {
-              val project = it.trim().uppercase()
-              if (project.isNotBlank()) {
-                list.add(project)
-              }
-            }
-            if (list.isNotEmpty()) {
-              projects = list.toTypedArray()
-            }
-          }
-        }
+      if (!initialized) {
+        initialized = true
+        parsedProjects = projectsAsString?.split(";", ",")
+          ?.map { it.trim().uppercase() }
+          ?.filter { it.isNotBlank() }
+          ?.takeIf { it.isNotEmpty() }
+          ?.toTypedArray()
       }
-      return field
+      return parsedProjects
     }
-    private set
 
-  private var intialized = false
+  @XmlOmitField
+  @Transient
+  private var parsedProjects: Array<String>? = null
+
+  @XmlOmitField
+  @Transient
+  private var initialized = false
 
   override fun toString(): String {
     val builder = ReflectionToStringBuilder(this)

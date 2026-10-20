@@ -5,7 +5,6 @@ import {
   downloadCheckSystemIntegrity,
   downloadDebugUserGroupCache,
   downloadExport2FAConfiguration,
-  downloadExportConfiguration,
   downloadExportSchema,
   downloadOptimizeAddressImages,
   rereadConfiguration,
@@ -92,12 +91,6 @@ export function systemActionMenus(
           labelKey: "system.admin.button.rereadConfiguration._",
           tooltipKey: "system.admin.button.rereadConfiguration.tooltip",
           run: rereadConfiguration,
-        },
-        {
-          key: "exportConfiguration",
-          labelKey: "system.admin.button.exportConfiguration._",
-          tooltipKey: "system.admin.button.exportConfiguration.tooltip",
-          run: downloadExportConfiguration,
         },
         {
           key: "export2FAConfiguration",

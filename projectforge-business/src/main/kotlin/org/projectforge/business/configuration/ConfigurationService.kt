@@ -27,7 +27,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeApp
+import com.fasterxml.jackson.core.type.TypeReference
+import org.projectforge.business.fibu.kost.AccountingConfig
+import org.projectforge.business.fibu.kost.AccountingConfigValidator
 import org.projectforge.business.orga.ContractType
+import org.projectforge.framework.calendar.HolidaysConfig
+import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.json.JsonUtils
+import org.projectforge.jira.JiraConfig
 import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.time.TimeNotation
@@ -53,8 +60,6 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class ConfigurationService {
-  private lateinit var configXml: ConfigXml
-
   @Autowired
   private lateinit var applicationContext: ApplicationContext
 
@@ -92,8 +97,8 @@ open class ConfigurationService {
     protected set
 
   /**
-   * For additional certificates you can set the file name of the jssecert file in your ProjectForge home (config)
-   * directory (path of your confix.xml). <br></br>
+   * For additional certificates you can set the file name of the jssecert file in your ProjectForge home
+   * directory. <br></br>
    * If given then the key-store file is used.
    */
   @Value("\${projectforge.keystoreFile}")
@@ -209,11 +214,43 @@ open class ConfigurationService {
   @Value("\${projectforge.max-file-size.xml-dump-import}")
   open var maxFileSizeXmlDumpImport: String? = null
 
+  /** See [ApplicationDirectories]. */
+  @Value("\${projectforge.dir.jcr:}")
+  private var jcrDir: String? = null
+
+  @Value("\${projectforge.dir.work:}")
+  private var workDir: String? = null
+
+  @Value("\${projectforge.dir.tmp:}")
+  private var tmpDir: String? = null
+
+  @Value("\${projectforge.dir.backup:}")
+  private var backupDir: String? = null
+
   @PostConstruct
   private fun init() {
     ConfigurationServiceAccessor.setConfigurationService(this)
     staticApplicationHomeDir = applicationHomeDir
-    configXml = ConfigXml(applicationHomeDir)
+    ensureDir(File(applicationHomeDir))
+    ConfigXmlMigration.init(applicationHomeDir)
+    val directories = ConfigXmlMigration.takeOverDirectories(
+      applicationHomeDir,
+      mapOf(
+        ApplicationDirectories.Dir.JCR to jcrDir,
+        ApplicationDirectories.Dir.WORK to workDir,
+        ApplicationDirectories.Dir.TMP to tmpDir,
+        ApplicationDirectories.Dir.BACKUP to backupDir,
+      ),
+    )
+    ApplicationDirectories.init(applicationHomeDir, directories)
+    ConfigurationJsonValidators.registerType(ConfigurationParam.HOLIDAYS, HolidaysConfig.typeReference, HolidaysConfig::validate)
+    ConfigurationJsonValidators.registerType(ConfigurationParam.JIRA, object : TypeReference<JiraConfig>() {}, JiraConfig::validate)
+    ConfigurationJsonValidators.registerType(ConfigurationParam.CONTRACT_TYPES, contractTypesTypeReference, ::validateContractTypes)
+    ConfigurationJsonValidators.registerType(
+      ConfigurationParam.FIBU_ACCOUNTING,
+      object : TypeReference<AccountingConfig>() {},
+      AccountingConfigValidator::validate,
+    )
     if (StringUtils.isBlank(resourceDirName)) {
       resourceDirName = DEFAULT_RESOURCES_DIR
     }
@@ -310,8 +347,21 @@ open class ConfigurationService {
   open val isSendMailConfigured: Boolean
     get() = sendMail.isConfigured
 
+  /** The types of contracts (configuration parameter orga.contractTypes), empty if not configured. */
   open val contractTypes: List<ContractType>
-    get() = configXml.contractTypes
+    get() {
+      val json = ConfigurationJsonValues.get(ConfigurationParam.CONTRACT_TYPES)
+      if (json.isNullOrBlank()) {
+        return emptyList()
+      }
+      return try {
+        (JsonUtils.fromJson(json, contractTypesTypeReference, failOnUnknownProps = false) ?: emptyList())
+          .map { ContractType().setValue(it.value?.trim()).setLabel(it.label?.trim()) }
+      } catch (ex: Exception) {
+        log.warn { "Contract types: configuration (orga.contractTypes) not readable: ${ex.message}" }
+        emptyList()
+      }
+    }
   open val isSecurityConfigured: Boolean
     get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
 
@@ -570,6 +620,31 @@ open class ConfigurationService {
     @JvmStatic
     var staticApplicationHomeDir: String? = null
       private set
+    private val contractTypesTypeReference = object : TypeReference<List<ContractType>>() {}
+
+    /**
+     * The translated errors of the contract types of the configuration page: every type needs a value (unique,
+     * it's stored in the contracts) and a label.
+     */
+    @JvmStatic
+    internal fun validateContractTypes(types: List<ContractType>): List<String> {
+      val errors = mutableListOf<String>()
+      val values = mutableSetOf<String>()
+      types.forEachIndexed { index, type ->
+        val value = type.value?.trim()?.ifEmpty { null }
+        val name = type.label?.trim()?.ifEmpty { null } ?: value ?: "${index + 1}"
+        if (value == null) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.value", name))
+        } else if (!values.add(value)) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.duplicate", value))
+        }
+        if (type.label.isNullOrBlank()) {
+          errors.add(translateMsg("administration.configuration.contractTypes.error.label", name))
+        }
+      }
+      return errors
+    }
+
     private const val DEFAULT_RESOURCES_DIR = "resources"
     private val DEFAULT_FONTS_DIR = DEFAULT_RESOURCES_DIR + File.separator + "fonts"
     private fun showNonExistingMessage(file: File, directory: Boolean) {

@@ -23,15 +23,18 @@
 
 package org.projectforge.framework.configuration;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
+
 /**
- * Register your ConfigurationListener in Configuration class for get any required notification.
+ * Annotation for marking fields of configuration objects as secret fields. Such fields are hidden in toString() methods
+ * (see SecretFieldToString): the value is displayed as "******" instead.
  * @author Kai Reinhard
- * 
  */
-public interface ConfigurationListener
-{
-  /**
-   * Notification after reading the config file (also re-read).
-   */
-  public void afterRead();
+@Target({ FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SecretField {
 }

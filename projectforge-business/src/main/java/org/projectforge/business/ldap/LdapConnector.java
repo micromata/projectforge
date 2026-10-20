@@ -24,8 +24,6 @@
 package org.projectforge.business.ldap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigurationListener;
 import org.projectforge.framework.integration.IntegrationConfig;
 import org.projectforge.framework.integration.IntegrationErrors;
 import org.projectforge.framework.integration.IntegrationTimeouts;
@@ -41,13 +39,13 @@ import java.io.File;
 import java.util.Hashtable;
 
 /**
- * Should be initialized on start-up and will be called every time if config.xml is reread. This class is needed for
- * initialization of the spring beans with properties configured in config.xml.
+ * Connects to the LDAP server configured by the properties projectforge.ldap.* (see LdapServiceImpl). Initialized lazily
+ * on first use.
  *
  * @author Kai Reinhard
  */
 @Component
-public class LdapConnector implements ConfigurationListener {
+public class LdapConnector {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapConnector.class);
 
   @Autowired
@@ -72,8 +70,7 @@ public class LdapConnector implements ConfigurationListener {
       if (initialized) {
         return;
       }
-      ConfigXml.getInstance().register(this);
-      afterRead();
+      readConfig();
       initialized = true;
     }
   }
@@ -205,11 +202,7 @@ public class LdapConnector implements ConfigurationListener {
     initialized = true;
   }
 
-  /**
-   * @see org.projectforge.framework.configuration.ConfigurationListener#afterRead()
-   */
-  @Override
-  public void afterRead() {
+  private void readConfig() {
     this.ldapConfig = ldapService.getLdapConfig();
     if (this.ldapConfig != null && StringUtils.isNotBlank(this.ldapConfig.getSslCertificateFile())) {
       // Try to load SSL certificate.

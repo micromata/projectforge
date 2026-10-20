@@ -138,7 +138,9 @@ angelegt, falls sie noch nicht existieren:
 
 [width="100%",cols="50%,50%",]
 |===
-|`projectforge.properties`, `config.xml` |Konfigurationsdateien, vom Einrichtungsassistenten geschrieben.
+|`projectforge.properties` |Konfigurationsdatei, vom Einrichtungsassistenten geschrieben. Eine frühere `config.xml`
+wird beim ersten Start in die Konfigurationsparameter übernommen und in `config.xml.migrated` umbenannt (kann danach
+gelöscht werden).
 
 |`database` |Die eingebettete Datenbank (HSQLDB), sofern verwendet.
 
@@ -156,8 +158,14 @@ Verzeichnisses löschen und die Indizes über _Administration_ -> _System_ -> _R
 
 |`jcr` |Das frühere Dokumenten-Repository (JCR), nur bei noch nicht migrierten Installationen, siehe <<moving_the_files_out_of_the_jcr,Dateien aus dem JCR übernehmen>>.
 
-|`work` |Arbeitsverzeichnis für temporäre Dateien.
+|`work` |Arbeitsverzeichnis, z. B. für Stände von Synchronisationen.
+
+|`tmp` |Temporäre Dateien, z. B. Debug-Logs.
 |===
+
+Die Verzeichnisse `jcr`, `work`, `tmp` und `backup` lassen sich über die Properties `projectforge.dir.jcr`,
+`projectforge.dir.work`, `projectforge.dir.tmp` und `projectforge.dir.backup` an anderer Stelle ablegen (absolut
+oder relativ zum Home-Verzeichnis).
 
 [[configuration_file_application_properties]]
 === Konfigurationsdatei application.properties
@@ -276,9 +284,12 @@ Die verfügbaren i18n-Schlüssel, die sich überschreiben lassen, finden sich hi
 === Konfigurationseinstellungen (Weboberfläche)
 
 Unter _Administration_ -> _Konfiguration_ lassen sich weitere Parameter von ProjectForge® einstellen, etwa die
-Standardzeitzone, die Ländervorwahl oder die Kostenträgerrechnung. Jeder Parameter ist dort erläutert.
+Standardzeitzone, die Ländervorwahl oder die Kostenträgerrechnung. Jeder Parameter ist dort erläutert. Strukturierte
+Einstellungen sind JSON-Werte, etwa die Feiertage (zusätzliche und Änderungen der mitgelieferten), die JIRA-Server, die
+Vertragsarten und die Buchhaltungseinstellungen samt betriebswirtschaftlicher Auswertung (siehe
+<<business_assessment_bwa,BWA>>).
 
-_Administration_ -> _System_ bietet unter anderem: `config.xml` neu einlesen und exportieren, die 2FA-Konfiguration
+_Administration_ -> _System_ bietet unter anderem: die Konfigurationsparameter neu einlesen, die 2FA-Konfiguration
 exportieren, den Suchindex neu aufbauen und die Systemintegrität prüfen.
 
 [[using_ttf_fonts_for_pdf_render_engine]]
@@ -630,13 +641,36 @@ gewählte Element zu einem Projekt gehört, sonst den Titel des Elements.
 === Betriebswirtschaftliche Auswertung / BWA
 
 Wer mit Buchungssätzen (DATEV) arbeitet, möchte vermutlich auch betriebswirtschaftliche Auswertungen (BWA) nutzen.
-Sie werden in `config.xml` konfiguriert (Element `businessAssessment`). Die betriebswirtschaftlichen Auswertungen von
+Sie werden im Konfigurationsparameter _Buchhaltung_ (`fibu.accounting`, Element `businessAssessment`) konfiguriert.
+Die betriebswirtschaftlichen Auswertungen von
 DATEV bestehen aus Zeilen. Jede Zeile hat eine Zeilennummer (no) und einen Titel (für die Anzeige). Der
 `accountRange` legt fest, welche DATEV-Konten zur Zeile gehören. Ein Buchungssatz wird dabei der ersten passenden
 Zeile zugeordnet. +
 Ist die Priorität einer Zeile nicht hoch, wird die Zeile in der Kurzform der betriebswirtschaftlichen Auswertung
-nicht angezeigt. Der Wert definiert berechnete Zeilenbeträge (siehe das Beispiel in der vom Einrichtungsassistenten
-angelegten `config.xml`).
+nicht angezeigt. Der Wert definiert berechnete Zeilenbeträge: eine Formel aus Zeilen-Ids, beginnend mit `=`, oder ein
+Groovy-Skript, das den Betrag liefert. Auch die Kontenbereiche der Debitoren und Kreditoren gehören zu diesem
+Parameter. Beispiel:
+
+[source,json]
+----
+{
+  "debitorsAccountNumberRanges": "10000-12999",
+  "creditorsAccountNumberRanges": "70000-79999",
+  "businessAssessment": {
+    "heading": "BWA",
+    "overallPerformance": "gesamtleistung",
+    "merchandisePurchase": "matWareneinkauf",
+    "preliminaryResult": "vorlaeufigesErgebnis",
+    "rows": [
+      {"no": "1020", "id": "umsatzErloese", "accountRange": "4000-4799", "priority": "MIDDLE", "title": "Umsatzerlöse", "indent": 1},
+      {"no": "1051", "id": "gesamtleistung", "value": "=umsatzErloese", "priority": "HIGH", "title": "Gesamtleistung"},
+      {"no": "1060", "id": "matWareneinkauf", "accountRange": "5700-5999", "priority": "HIGH", "title": "Mat./Wareneinkauf"},
+      {"no": "1380", "id": "vorlaeufigesErgebnis", "value": "=gesamtleistung+matWareneinkauf", "priority": "HIGH", "title": "Vorläufiges Ergebnis"},
+      {"id": "relativePerformance", "value": "if (gesamtleistung != 0.0) { return vorlaeufigesErgebnis / gesamtleistung } else { return 0.0 }", "priority": "HIGH", "title": "relative Performance", "scale": 4}
+    ]
+  }
+}
+----
 
 [[securityconfig]]
 === Sicherheitskonfiguration

@@ -29,7 +29,6 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.start.ProjectForgeApplication
@@ -101,10 +100,6 @@ object ProjectForgeInitializer {
         )
         result
       }
-    )
-    ensureConfigFile(
-      applicationHomeDir,
-      ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog
     )
 /*    @Suppress("UNUSED_VALUE")
     counter = ensureConfigFile(

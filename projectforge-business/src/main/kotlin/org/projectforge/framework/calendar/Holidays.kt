@@ -24,8 +24,6 @@
 package org.projectforge.framework.calendar
 
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.framework.calendar.HolidayDefinition
-import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.time.IPFDate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.withDate
@@ -46,7 +44,15 @@ class Holidays private constructor() {
      */
     private val holidaysByYear: MutableMap<Int, Map<Int, Holiday?>?> = HashMap()
     private val reconfiguredHolidays: MutableMap<HolidayDefinition, ConfigureHoliday?> = HashMap()
-    private var xmlConfiguration: ConfigXml? = null
+
+    /** The configured holidays ([HolidaysConfig]) of [configuredJson]. */
+    private var configuredHolidays: List<ConfigureHoliday> = emptyList()
+
+    /** The JSON value the holidays were computed of, the holidays are recomputed if the parameter is changed. */
+    private var configuredJson: String? = null
+
+    private var configurationRead = false
+
     private fun computeHolidays(year: Int): Map<Int, Holiday?> {
         log.info("Compute holidays for year: $year")
         val holidays: MutableMap<Int, Holiday?> = HashMap()
@@ -75,23 +81,21 @@ class Holidays private constructor() {
                 putEasterHoliday(holidays, day, holiday)
             }
         }
-        if (xmlConfiguration!!.holidays != null) {
-            for (cfgHoliday in xmlConfiguration!!.holidays) {
-                if (cfgHoliday.id == null && !cfgHoliday.isIgnore) {
-                    val month = getMonth(cfgHoliday.month)
-                    // New Holiday.
-                    if (month == null || cfgHoliday.dayOfMonth == null || StringUtils.isBlank(cfgHoliday.label)) {
-                        log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: $cfgHoliday")
-                        break
-                    }
-                    if (cfgHoliday.year != null && cfgHoliday.year != year) { // Holiday affects not the current year.
-                        continue
-                    }
-                    day = day.withMonth(month).withDayOfMonth(cfgHoliday.dayOfMonth)
-                    val holiday = Holiday(null, cfgHoliday.label, cfgHoliday.isWorkingDay, cfgHoliday.workFraction)
-                    putHoliday(holidays, day.dayOfYear, holiday)
-                    log.info("Configured holiday added: $holiday")
+        for (cfgHoliday in configuredHolidays) {
+            if (cfgHoliday.id == null && !cfgHoliday.isIgnore) {
+                val month = getMonth(cfgHoliday.month)
+                // New Holiday.
+                if (month == null || cfgHoliday.dayOfMonth == null || StringUtils.isBlank(cfgHoliday.label)) {
+                    log.error("Holiday not full configured (month, dayOfMonth, label, ...) missed: $cfgHoliday")
+                    continue
                 }
+                if (cfgHoliday.year != null && cfgHoliday.year != year) { // Holiday affects not the current year.
+                    continue
+                }
+                day = day.withMonth(month).withDayOfMonth(cfgHoliday.dayOfMonth)
+                val holiday = Holiday(null, cfgHoliday.label, cfgHoliday.isWorkingDay, cfgHoliday.workFraction)
+                putHoliday(holidays, day.dayOfYear, holiday)
+                log.info("Configured holiday added: $holiday")
             }
         }
         return holidays
@@ -140,7 +144,7 @@ class Holidays private constructor() {
 
     private fun putHoliday(holidays: MutableMap<Int, Holiday?>, dayOfYear: Int, holiday: Holiday) {
         if (holidays.containsKey(dayOfYear)) {
-            log.warn("Holiday does already exist (may-be use ignore in config.xml?): "
+            log.warn("Holiday does already exist (may-be use ignore in the configuration parameter holidays?): "
                     + holidays[dayOfYear]
                     + "! Overwriting it by new one: "
                     + holiday)
@@ -150,16 +154,18 @@ class Holidays private constructor() {
 
     @Synchronized
     private fun getHolidays(year: Int): Map<Int, Holiday?>? {
-        if (xmlConfiguration == null) {
-            xmlConfiguration = ConfigXml.getInstance()
-            xmlConfiguration!!.let { xmlConfiguration ->
-                for (holiday in xmlConfiguration.holidays) {
-                    if (holiday.id != null) {
-                        reconfiguredHolidays[holiday.id] = holiday
-                    }
+        val json = HolidaysConfig.json
+        if (!configurationRead || json != configuredJson) {
+            configurationRead = true
+            configuredJson = json
+            configuredHolidays = HolidaysConfig.parse(json)
+            reconfiguredHolidays.clear()
+            for (holiday in configuredHolidays) {
+                if (holiday.id != null) {
+                    reconfiguredHolidays[holiday.id] = holiday
                 }
-                holidaysByYear.clear()
             }
+            holidaysByYear.clear()
         }
         var holidays = holidaysByYear[year]
         if (holidays == null) {
