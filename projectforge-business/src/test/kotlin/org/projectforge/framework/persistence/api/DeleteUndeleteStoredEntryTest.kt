@@ -37,8 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.Date
 
 /**
- * Marking as deleted and undeleting decide on the stored entry and only flip its deleted flag: posting a foreign
- * entry with the own user as owner (or into the own calendar) takes nothing over.
+ * Marking as deleted and undeleting check the stored entry as well as the posted one: posting a foreign entry with the
+ * own user as owner (or into the own calendar) takes nothing over.
  */
 class DeleteUndeleteStoredEntryTest : AbstractTestBase() {
     @Autowired
@@ -66,12 +66,14 @@ class DeleteUndeleteStoredEntryTest : AbstractTestBase() {
         }
         assertTrue(teamCalDao.find(calId, checkAccess = false)!!.deleted)
 
-        // The owner may undelete, but only the deleted flag changes:
+        assertEquals("Undelete test", teamCalDao.find(calId, checkAccess = false)!!.title)
+
+        // The owner may undelete (and change it on the way):
         logon(TEST_USER)
         teamCalDao.undelete(teamCalDao.find(calId, checkAccess = false)!!.also { it.title = "changed on undelete" })
         val stored = teamCalDao.find(calId, checkAccess = false)!!
         assertFalse(stored.deleted)
-        assertEquals("Undelete test", stored.title)
+        assertEquals("changed on undelete", stored.title)
         assertEquals(owner.id, stored.owner?.id)
     }
 

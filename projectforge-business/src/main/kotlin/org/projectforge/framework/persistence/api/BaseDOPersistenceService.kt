@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.api
 import jakarta.persistence.EntityManager
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
-import org.projectforge.common.KClassUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
@@ -262,18 +261,23 @@ class BaseDOPersistenceService {
             val dbObj = requireDbObj(context, useClass, obj.id, "markAsDeleted")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                // The stored entry decides (see allPropertiesExceptDeleted), before the hooks act on the posted one.
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could delete
+                // a foreign entry by posting it with the own user as owner (or into the own calendar, task, ...).
                 baseDao?.checkLoggedInUserDeleteAccess(dbObj, dbObj)
             }
             baseDao?.changedRegistry?.onDelete(obj)
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
+            if (checkAccess) {
+                // The posted values are taken along, so they have to pass too.
+                baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
+            }
             obj.deleted = true
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
-                ignoreProperties = *allPropertiesExceptDeleted(obj),
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.MarkAsDeleted
-            )
+            ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
             if (modStatus != EntityCopyStatus.NONE) { // May be MINOR if is already marked as deleted before.
                 dbObj.setLastUpdate()
@@ -320,18 +324,23 @@ class BaseDOPersistenceService {
             val dbObj = requireDbObj(context, useClass, obj.id, "undelete")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                // The stored entry decides (see allPropertiesExceptDeleted), before the hooks act on the posted one.
+                // The stored entry has to pass, before the hooks act on the posted one: otherwise anybody could take
+                // over a foreign deleted entry by posting it with the own user as owner.
                 baseDao?.checkLoggedInUserInsertAccess(dbObj)
             }
             baseDao?.changedRegistry?.onUndelete(obj)
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
+            if (checkAccess) {
+                // The posted values are taken along (an entry re-created by undeleting it), so they have to pass too.
+                baseDao?.checkLoggedInUserInsertAccess(obj)
+            }
             obj.deleted = false
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
-                ignoreProperties = *allPropertiesExceptDeleted(obj),
+                ignoreProperties = *IGNORE_ON_EXISTING,
                 entityOpType = EntityOpType.Undelete
-            )
+            ) // If user has made additional changes.
             val modStatus = candHContext.currentCopyStatus
             if (modStatus != EntityCopyStatus.NONE) { // May be MINOR if already was not deleted before.
                 dbObj.setLastUpdate()
@@ -453,15 +462,6 @@ class BaseDOPersistenceService {
          * date, and a differing one alone would count as a change.
          */
         private val IGNORE_ON_EXISTING = arrayOf("created", "lastUpdate")
-
-        /**
-         * Marking as deleted and undeleting only flip the deleted flag of the stored entry, and its access check
-         * decides on the stored entry: copying the posted values as well would let anybody take over a foreign entry
-         * (post it with the own user as owner, e.g. undelete a foreign memo or move a foreign timesheet on deletion).
-         */
-        private fun allPropertiesExceptDeleted(obj: BaseDO<*>): Array<String> =
-            KClassUtils.filterPublicMutableProperties(HibernateUtils.getRealClass(obj).kotlin)
-                .map { it.name }.filter { it != "deleted" }.toTypedArray()
 
         @JvmStatic
         @JvmOverloads

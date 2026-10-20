@@ -56,8 +56,8 @@
       "de": "Das Beenden einer Massenänderung (Abbrechen) wird per POST gesendet."
     },
     {
-      "en": "Deleting and restoring an entry are decided by the stored entry and change only its deleted flag: a foreign entry (e.g. a memo, timesheet or calendar) can no longer be taken over by deleting or restoring it with the own user as owner.",
-      "de": "Ob ein Eintrag gelöscht oder wiederhergestellt werden darf, entscheidet der gespeicherte Eintrag, und es ändert sich nur seine Löschmarkierung: Ein fremder Eintrag (z. B. Memo, Zeitbericht oder Kalender) lässt sich nicht mehr durch Löschen oder Wiederherstellen mit dem eigenen Benutzer als Besitzer übernehmen."
+      "en": "Deleting and restoring an entry are decided by the stored entry as well, not only by the posted one: a foreign entry (e.g. a memo, timesheet or calendar) can no longer be taken over by deleting or restoring it with the own user as owner.",
+      "de": "Ob ein Eintrag gelöscht oder wiederhergestellt werden darf, entscheidet auch der gespeicherte Eintrag, nicht nur der gesendete: Ein fremder Eintrag (z. B. Memo, Zeitbericht oder Kalender) lässt sich nicht mehr durch Löschen oder Wiederherstellen mit dem eigenen Benutzer als Besitzer übernehmen."
     },
     {
       "en": "Calendar events: changing or deleting an event also requires write access to its stored calendar; a foreign event can no longer be moved into the own calendar.",
