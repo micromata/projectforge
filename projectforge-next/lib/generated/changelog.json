@@ -10,10 +10,16 @@
       "items" : [ "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
     }, {
       "type" : "improved",
-      "items" : [ "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
+      "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "The monthly chart in the forecast tab of the order statistics shows the note of the forecast Excel at its top right, if the current month is shown: in the current month, the greater value is used, the invoiced figures or the monthly forecast.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+      "items" : [ "Customer list: sorting by the customer number works again.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+    }, {
+      "type" : "security",
+      "items" : [ "The QR codes of the authenticator key (two-factor setup), of the REST client token (my account) and of the calendar subscriptions are sent within the response instead of as an image link, so the secret or token no longer shows up in access logs. QR code images are not cached anymore. The WebAuthn options no longer contain the session id, and changes of the two-factor setup check the CSRF token themselves." ]
     } ]
   },
   "groups" : [ {

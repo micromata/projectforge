@@ -81,12 +81,13 @@ export function DashboardTileCard({
           <button
             type="button"
             ref={setActivatorNodeRef}
-            className="-ml-1 flex cursor-grab touch-none rounded-sm p-1 text-muted-foreground hover:bg-accent active:cursor-grabbing"
+            className="-ml-1 flex cursor-grab touch-none rounded-md bg-orange-500 p-1.5 text-white shadow-sm hover:bg-orange-600 active:cursor-grabbing"
             aria-label={t("dragHandle")}
+            title={t("dragHandle")}
             {...attributes}
             {...listeners}
           >
-            <HugeiconsIcon icon={DragDropIcon} size={14} />
+            <HugeiconsIcon icon={DragDropIcon} size={18} />
           </button>
         )}
         <CardTitle className="flex-1 font-semibold">{title}</CardTitle>

@@ -10,10 +10,16 @@
       "items" : [ "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
     }, {
       "type" : "improved",
-      "items" : [ "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
+      "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Die Grafik der Monatswerte im Forecast-Reiter der Auftragsstatistik zeigt oben rechts den Hinweis aus der Forecast-Excel-Datei, sofern der aktuelle Monat angezeigt wird: Im aktuellen Monat wird der größere Wert verwendet, die IST-Daten (Rechnungen) oder der Monatsforecast.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
+    }, {
+      "type" : "changed",
+      "items" : [ "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet." ]
     }, {
       "type" : "fixed",
-      "items" : [ "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
+      "items" : [ "Kundenliste: Die Sortierung nach Kundennummer funktioniert wieder.", "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
+    }, {
+      "type" : "security",
+      "items" : [ "Die QR-Codes des Authenticator-Schlüssels (Einrichtung der Zwei-Faktor-Authentifizierung), des REST-Client-Tokens (Mein Konto) und der Kalender-Abonnements werden in der Antwort mitgeschickt statt als Bild-Link, Geheimnis oder Token landen so nicht mehr in Zugriffsprotokollen. QR-Code-Bilder werden nicht mehr zwischengespeichert. Die WebAuthn-Optionen enthalten die Session-ID nicht mehr, und Änderungen an der Zwei-Faktor-Einrichtung prüfen das CSRF-Token selbst." ]
     } ]
   },
   "groups" : [ {
