@@ -118,7 +118,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
     // Migrated to projectforge-next (PhoneCallRest); wa/phoneCall is redirected by OrphanedLinkFilter.
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
-    POLL("menu.poll", getReactListUrl("poll")), //
+    // Migrated to projectforge-next (PollEntityRest, PollAnswerRest); the React pages were removed.
+    POLL("menu.poll", getListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
     // Migrated to projectforge-next (ReportObjectivesPageRest); the Wicket page (wa/reportObjectives) was removed.
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "next/reportObjectives"), //

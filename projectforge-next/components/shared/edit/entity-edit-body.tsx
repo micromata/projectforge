@@ -253,6 +253,11 @@ export function EntityEditBody<
   // What the backend says this user may do with this entry — the counterpart of Wicket's
   // `AbstractEditForm.updateButtonVisibility`.
   const access = entityAccess(data, id == null);
+  // Shown, not edited: a deleted entry (until it is restored), and one the user may not save where the page
+  // asks for it (EditDef.readOnlyWithoutWriteAccess).
+  const shownOnly =
+    access.deleted ||
+    (edit.readOnlyWithoutWriteAccess === true && !access.write);
 
   const {
     runCancel,
@@ -354,12 +359,12 @@ export function EntityEditBody<
               active={active}
             />
           );
-          return access.deleted ? (
+          return shownOnly ? (
             <fieldset
               key={section.id}
               disabled
               className="contents"
-              aria-label={t("deleted")}
+              aria-label={access.deleted ? t("deleted") : undefined}
             >
               {rendered}
             </fieldset>
@@ -469,7 +474,7 @@ export function EntityEditBody<
       value={{
         form,
         metadata: page.metadata,
-        readOnly: access.deleted,
+        readOnly: shownOnly,
         data,
       }}
     >

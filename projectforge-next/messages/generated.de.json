@@ -3805,10 +3805,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interesse",
+      "interest": {
+        "_": "Interesse",
+        "0": "Ohne Einstufung",
+        "1": "Interesse",
+        "2": "Großes Interesse",
+        "3": "Going crazy!"
+      },
       "owner": "Eigner",
-      "rating": "Selbsteinschätzung",
-      "skill": "Skill"
+      "rating": {
+        "_": "Selbsteinschätzung",
+        "0": "Keine Einschätzung",
+        "1": "Basis",
+        "2": "Fortgeschritten",
+        "3": "Experte"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Neuer Skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {
@@ -4068,13 +4084,104 @@
     }
   },
   "poll": {
-    "attendees": "Teilnehmer:innen",
-    "deadline": "Antwortfrist",
+    "answer": {
+      "for": "Antworten von",
+      "lastUpdate": "Zuletzt gespeichert",
+      "notOpen": "Die Umfrage ist beendet, die Antworten können nicht mehr geändert werden.",
+      "save": "Antworten speichern",
+      "saved": "Die Antworten sind gespeichert.",
+      "title": "Umfrage beantworten"
+    },
+    "answers": "Antworten",
+    "attendeeGroups": "Teilnehmende Gruppen",
+    "attendees": {
+      "_": "Teilnehmer:innen",
+      "tooltip": "Die Teilnehmer:innen beantworten die Umfrage. Alle Mitglieder einer teilnehmenden Gruppe nehmen teil, auch wer später dazukommt."
+    },
+    "deadline": {
+      "_": "Antwortfrist",
+      "tooltip": "Antworten sind bis zum Ende dieses Tages möglich. Am nächsten Morgen wird die Umfrage beendet."
+    },
     "description": "Beschreibung",
+    "error": {
+      "oneQuestionRequired": "Mindestens eine Frage ist erforderlich."
+    },
+    "finish": {
+      "_": "Umfrage beenden",
+      "confirm": "Die Umfrage jetzt beenden? Danach können keine Antworten mehr gegeben oder geändert werden. Alle werden per Mail informiert, wer Vollzugriff hat, bekommt die Ergebnisse.",
+      "done": "Die Umfrage ist beendet."
+    },
+    "fullAccess": {
+      "tooltip": "Ersteller:in und Benutzer:innen mit Vollzugriff bearbeiten die Umfrage, sehen alle Antworten, beenden sie und antworten stellvertretend für Teilnehmer:innen."
+    },
+    "fullAccessGroups": "Gruppen mit Vollzugriff",
+    "fullAccessUsers": "Benutzer:innen mit Vollzugriff",
+    "heading": {
+      "access": "Teilnehmer:innen und Zugriff",
+      "general": "Umfrage",
+      "invitation": "Einladungsmail",
+      "questions": "Fragen"
+    },
+    "info": "Alle Teilnehmer:innen und wer Vollzugriff hat, bekommen eine Einladungsmail, wenn die Umfrage zum ersten Mal gespeichert wird. Bis zur Antwortfrist können die Antworten geändert werden. Am Tag danach wird die Umfrage beendet, und wer Vollzugriff hat, bekommt die Ergebnisse.",
+    "invitation": {
+      "subject": {
+        "_": "Betreff",
+        "tooltip": "Leer lassen für den Standardbetreff."
+      },
+      "text": {
+        "_": "Text",
+        "tooltip": "Leer lassen für den Standardtext. Der Link zur Umfrage und die Antwortfrist werden unter dem Text ergänzt."
+      }
+    },
     "location": "Ort",
+    "option": {
+      "_": "Option",
+      "add": "Option hinzufügen",
+      "remove": "Option entfernen"
+    },
     "owner": "Ersteller:in",
-    "state": "Status",
-    "title": "Titel"
+    "question": {
+      "_": "Frage",
+      "add": "Frage hinzufügen",
+      "moveDown": "Nach unten",
+      "moveUp": "Nach oben",
+      "remove": "Frage entfernen"
+    },
+    "questionTemplate": {
+      "_": "Fragen aus Vorlage übernehmen",
+      "taken": "Die Fragen der Vorlage wurden ergänzt."
+    },
+    "questionType": {
+      "_": "Art der Frage",
+      "MULTIPLE_CHOICE": "Mehrfachauswahl",
+      "SINGLE_CHOICE": "Einfachauswahl",
+      "TEXT": "Text"
+    },
+    "questions": "Fragen",
+    "response": {
+      "owner": "Teilnehmer:in"
+    },
+    "results": {
+      "_": "Ergebnisse",
+      "answered": "{arg0} von {arg1} Teilnehmer:innen haben geantwortet",
+      "missing": "Noch keine Antworten",
+      "notAttendee": "nicht Teilnehmer:in"
+    },
+    "state": {
+      "_": "Status",
+      "finished": "Beendet",
+      "running": "Laufend"
+    },
+    "template": {
+      "_": "Vorlage",
+      "info": "Eine Vorlage wird nie verschickt: Ihre Fragen werden in andere Umfragen übernommen, oder sie wird geklont."
+    },
+    "title": {
+      "_": "Titel",
+      "add": "Neue Umfrage",
+      "edit": "Umfrage bearbeiten",
+      "list": "Umfragen"
+    }
   },
   "preview": "Vorschau",
   "print": "Drucken",

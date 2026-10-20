@@ -607,6 +607,12 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   clone?: boolean | "autosave";
   /**
+   * Shows the form read-only where the entry may not be saved (`writeAccess` false), the way a deleted entry
+   * is shown — instead of editable fields without a save button. For an entity whose entries are closed at
+   * some point, a finished poll: whoever opens it reads it, nobody changes it.
+   */
+  readOnlyWithoutWriteAccess?: boolean;
+  /**
    * Turns this entry into an entry of a *different* entity — a time sheet into a calendar event and
    * back (`plugins.teamcal.switchToTeamEventButton` / `switchToTimesheetButton`).
    *

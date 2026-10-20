@@ -3805,10 +3805,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interest",
+      "interest": {
+        "_": "Interest",
+        "0": "Not rated",
+        "1": "Interest",
+        "2": "Deep interest",
+        "3": "Going crazy!"
+      },
       "owner": "Owner",
-      "rating": "Self-rating",
-      "skill": "Skill"
+      "rating": {
+        "_": "Self-rating",
+        "0": "Not rated",
+        "1": "Basic",
+        "2": "Advanced",
+        "3": "Expert"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Add new skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {
@@ -4068,13 +4084,104 @@
     }
   },
   "poll": {
-    "attendees": "Attendees",
-    "deadline": "Deadline",
+    "answer": {
+      "for": "Answers of",
+      "lastUpdate": "Last saved",
+      "notOpen": "The poll is finished, the answers can no longer be changed.",
+      "save": "Save answers",
+      "saved": "The answers are saved.",
+      "title": "Answer the poll"
+    },
+    "answers": "Answers",
+    "attendeeGroups": "Attending groups",
+    "attendees": {
+      "_": "Attendees",
+      "tooltip": "The attendees answer the poll. All members of an attending group take part, also those joining it later."
+    },
+    "deadline": {
+      "_": "Deadline",
+      "tooltip": "Answers are taken until the end of this day. The poll is finished the next morning."
+    },
     "description": "Description",
+    "error": {
+      "oneQuestionRequired": "At least one question is required."
+    },
+    "finish": {
+      "_": "Finish poll",
+      "confirm": "Finish the poll now? Afterwards, answers can no longer be given or changed. Everybody is informed by mail, the users with full access get the results.",
+      "done": "The poll is finished."
+    },
+    "fullAccess": {
+      "tooltip": "The owner and the users with full access edit the poll, see all answers, finish it and answer on behalf of attendees."
+    },
+    "fullAccessGroups": "Groups with full access",
+    "fullAccessUsers": "Users with full access",
+    "heading": {
+      "access": "Attendees and access",
+      "general": "Poll",
+      "invitation": "Invitation mail",
+      "questions": "Questions"
+    },
+    "info": "All attendees and the users with full access get an invitation mail when the poll is saved for the first time. The attendees can change their answers until the deadline. The day after, the poll is finished and the users with full access get the results.",
+    "invitation": {
+      "subject": {
+        "_": "Subject",
+        "tooltip": "Leave empty for the standard subject."
+      },
+      "text": {
+        "_": "Text",
+        "tooltip": "Leave empty for the standard text. The link to the poll and its deadline are added below the text."
+      }
+    },
     "location": "Location",
+    "option": {
+      "_": "Option",
+      "add": "Add option",
+      "remove": "Remove option"
+    },
     "owner": "Owner",
-    "state": "State",
-    "title": "Title"
+    "question": {
+      "_": "Question",
+      "add": "Add question",
+      "moveDown": "Move down",
+      "moveUp": "Move up",
+      "remove": "Remove question"
+    },
+    "questionTemplate": {
+      "_": "Take questions from a template",
+      "taken": "The questions of the template were added."
+    },
+    "questionType": {
+      "_": "Type of question",
+      "MULTIPLE_CHOICE": "Multiple choice",
+      "SINGLE_CHOICE": "Single choice",
+      "TEXT": "Text"
+    },
+    "questions": "Questions",
+    "response": {
+      "owner": "Attendee"
+    },
+    "results": {
+      "_": "Results",
+      "answered": "{arg0} of {arg1} attendees answered",
+      "missing": "No answers yet",
+      "notAttendee": "not an attendee"
+    },
+    "state": {
+      "_": "State",
+      "finished": "Finished",
+      "running": "Running"
+    },
+    "template": {
+      "_": "Template",
+      "info": "A template is never sent: its questions are taken into other polls, or it is cloned."
+    },
+    "title": {
+      "_": "Title",
+      "add": "New poll",
+      "edit": "Edit poll",
+      "list": "Polls"
+    }
   },
   "preview": "Preview",
   "print": "Print",

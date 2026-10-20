@@ -653,6 +653,16 @@ object NextMigration {
         // Hand built list and edit page of the skill matrix (plugin skillmatrix, SkillEntryEntityRest,
         // components/features/skill-entry), migrated from React. The React pages are gone (no UILayout served any
         // more), so there is no way back; the legacy app is kept for the redirect of bookmarked React links only.
+        // The polls (PollEntityRest, components/features/poll): hand built, the React pages are removed. The answer
+        // page (/poll/<id>/answer, PollAnswerRest) is a page of its own; old links of the React answer page are
+        // redirected by OrphanedLinkFilter.
+        "poll" to NextPage(
+            route = "poll",
+            editRoute = "poll/$ID_PLACEHOLDER",
+            newEntryRoute = "poll/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
         "skillentry" to NextPage(
             route = "skillentry",
             editRoute = "skillentry/$ID_PLACEHOLDER",

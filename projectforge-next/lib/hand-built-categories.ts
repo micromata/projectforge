@@ -43,6 +43,7 @@ export const HAND_BUILT_CATEGORIES = [
   "myscript",
   "order",
   "outgoingInvoice",
+  "poll",
   "project",
   "script",
   "skillentry",

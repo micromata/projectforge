@@ -324,6 +324,23 @@ class NextMigrationTest {
     }
 
     /**
+     * The polls: list, form and answer page are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next (the answer page by OrphanedLinkFilter).
+     */
+    @Test
+    fun `the poll pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/poll", NextMigration.listUrl("poll"))
+        Assertions.assertEquals("next/poll/:id", NextMigration.standardEditPage("poll"))
+        Assertions.assertEquals("next/poll/new", NextMigration.newEntryUrl("poll"))
+        Assertions.assertNull(NextMigration.legacyListUrl("poll"))
+        Assertions.assertNull(NextMigration.legacyEditPage("poll"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("poll"))
+        val link = NextMigration.orphanedLinks().single { it.category == "poll" }
+        Assertions.assertEquals("react/poll", link.legacyListPath)
+        Assertions.assertEquals("react/poll/edit", link.legacyEditPath)
+    }
+
+    /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
      * there is no way back, but a bookmarked React link is still redirected onto next.
      */

@@ -8,11 +8,17 @@ export const POLL_METADATA = {
   entity: "PollDO",
   historizable: true,
   fields: {
-    attendeeIds: {
+    attendeeGroupIds: {
+      dataType: "STRING",
+      i18nKey: "poll.attendeeGroups",
+      required: false,
+      maxLength: 4000,
+    },
+    attendeeUserIds: {
       dataType: "STRING",
       i18nKey: "poll.attendees",
       required: false,
-      maxLength: 255,
+      maxLength: 4000,
     },
     created: {
       dataType: "TIMESTAMP",
@@ -37,32 +43,20 @@ export const POLL_METADATA = {
     },
     fullAccessGroupIds: {
       dataType: "STRING",
-      i18nKey: "poll.full_access_groups",
+      i18nKey: "poll.fullAccessGroups",
       required: false,
       maxLength: 4000,
     },
     fullAccessUserIds: {
       dataType: "STRING",
-      i18nKey: "poll.full_access_user",
+      i18nKey: "poll.fullAccessUsers",
       required: false,
       maxLength: 4000,
-    },
-    groupAttendeeIds: {
-      dataType: "STRING",
-      i18nKey: "poll.attendee_groups",
-      required: false,
-      maxLength: 255,
     },
     id: {
       dataType: "LONG",
       i18nKey: "id",
       required: false,
-    },
-    inputFields: {
-      dataType: "STRING",
-      i18nKey: "poll.inputFields",
-      required: false,
-      maxLength: 1000,
     },
     lastUpdate: {
       dataType: "TIMESTAMP",
@@ -73,12 +67,18 @@ export const POLL_METADATA = {
       dataType: "STRING",
       i18nKey: "poll.location",
       required: false,
-      maxLength: 255,
+      maxLength: 1000,
     },
     owner: {
       dataType: "USER",
       i18nKey: "poll.owner",
       required: false,
+    },
+    questions: {
+      dataType: "STRING",
+      i18nKey: "poll.questions",
+      required: false,
+      maxLength: 100000,
     },
     state: {
       dataType: "STRING",
@@ -87,14 +87,19 @@ export const POLL_METADATA = {
       enumValues: [
         {
           value: "RUNNING",
+          i18nKey: "poll.state.running",
         },
         {
           value: "FINISHED",
-        },
-        {
-          value: "FINISHED_AND_MAIL_SENT",
+          i18nKey: "poll.state.finished",
         },
       ],
+    },
+    template: {
+      dataType: "BOOLEAN",
+      i18nKey: "poll.template",
+      required: false,
+      tooltipI18nKey: "poll.template.info",
     },
     title: {
       dataType: "STRING",
