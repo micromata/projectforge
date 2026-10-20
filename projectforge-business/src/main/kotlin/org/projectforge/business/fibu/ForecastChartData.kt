@@ -49,7 +49,8 @@ class ForecastChartData(
     val prevPrevYear: List<BigDecimal>,
     /**
      * The plan per month: the planning forecast plus the invoices before the planning date, the same sum as the
-     * plan of the project overview ([ForecastProjectRow.plan]). Null, if no planning date was given.
+     * plan of the project overview ([ForecastProjectRow.plan]) and row 'Gesamt' of the Excel sheet Planning_Data.
+     * Null, if no planning date was given.
      */
     val plan: List<BigDecimal>?,
     /** The date of the order book snapshot actually used as plan (the closest one to the requested date). */
@@ -61,10 +62,10 @@ class ForecastChartData(
     val snapshotDate: LocalDate? = null,
 ) {
     /**
-     * Per month IST plus the remaining forecast, the base of the cumulated forecast curve. Not the max of both as in
-     * the Excel ('Gesamt' of sheet 'Umsatz kumuliert'): the remaining forecast of the current month is already reduced
-     * by its invoices, so only the sum adds up to the forecast of the project overview ([ForecastProjectRow.forecast]). A stored field (not a computed getter), because the REST json mapper serializes
-     * fields only.
+     * Per month IST plus the remaining forecast, the base of the cumulated forecast curve, as 'Gesamt' of the Excel
+     * sheet 'Umsatz kumuliert'. Not the max of both: the remaining forecast of the current month is already reduced by
+     * its invoices, so only the sum adds up to the forecast of the project overview ([ForecastProjectRow.forecast]).
+     * A stored field (not a computed getter), because the REST json mapper serializes fields only.
      */
     val total: List<BigDecimal> = List(ist.size) { i ->
         val forecast = forecastByStatus.values.fold(BigDecimal.ZERO) { acc, values -> acc + values[i] }

@@ -19,13 +19,13 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Customer list: sorting by the customer number works again.", "Forecast tab of the order statistics: in the current month, the charts add the invoiced figures and the remaining forecast (as well as the invoices and the forecast of the plan), instead of taking the greater value. The cumulated forecast and plan now match the sums of the project overview.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+      "items" : [ "Customer list: sorting by the customer number works again.", "Forecast of the order statistics and its Excel export: in the current month, the invoiced figures and the remaining forecast are added (as well as the invoices and the forecast of the plan), instead of taking the greater value. The cumulated forecast and plan now match the sums of the project overview. The note on this in the Excel sheet 'Grafiken 1' is removed.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
     }, {
       "type" : "removed",
       "items" : [ "The d.velop interface (synchronization of customers and vendors as trading partners) was removed." ]
     }, {
       "type" : "security",
-      "items" : [ "The QR codes of the authenticator key (two-factor setup), of the REST client token (my account) and of the calendar subscriptions are sent within the response instead of as an image link, so the secret or token no longer shows up in access logs. QR code images are not cached anymore. The WebAuthn options no longer contain the session id, and changes of the two-factor setup check the CSRF token themselves." ]
+      "items" : [ "More pages require the second factor of their area: the imports of salaries, incoming invoices and bank account records, the upload of incoming invoices, the bank accounts, currency pairs and conversion rates, the customer groups and the project wizard (finance), as well as the structure wizard, the caches and the Sipgate page (administration). The system statistics no longer require the second factor of the administration.", "The QR codes of the authenticator key (two-factor setup), of the REST client token (my account) and of the calendar subscriptions are sent within the response instead of as an image link, so the secret or token no longer shows up in access logs. QR code images are not cached anymore. The WebAuthn options no longer contain the session id, and changes of the two-factor setup check the CSRF token themselves." ]
     } ]
   },
   "groups" : [ {

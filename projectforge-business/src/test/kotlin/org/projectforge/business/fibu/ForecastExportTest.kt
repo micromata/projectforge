@@ -564,10 +564,9 @@ class ForecastExportTest : AbstractTestBase() {
             }
             assertAmounts(excelRow(forecastSheet, 7, firstMonthCol), chartData.ist, "IST")
             val cumulatedSheet = workbook.getSheet("Umsatz kumuliert")!!
-            // The Excel's 'Gesamt' takes the max of IST and forecast per month, the chart their sum (see
-            // ForecastChartData.total):
+            // 'Gesamt' adds IST and forecast per month, as the chart does:
             val forecastSums = List(12) { i -> chartData.forecastByStatus.values.sumOf { it[i] } }
-            assertAmounts(excelRow(cumulatedSheet, 3, 1), List(12) { i -> chartData.ist[i].max(forecastSums[i]) }, "Gesamt")
+            assertAmounts(excelRow(cumulatedSheet, 3, 1), chartData.total, "Gesamt")
             assertAmounts(List(12) { i -> chartData.ist[i] + forecastSums[i] }, chartData.total, "Total")
             assertAmounts(excelRow(cumulatedSheet, 7, 1), chartData.prevYear, "Vorjahr")
             assertAmounts(excelRow(cumulatedSheet, 10, 1), chartData.prevPrevYear, "Vorvorjahr")

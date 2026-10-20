@@ -1,5 +1,5 @@
 {
   "type": "fixed",
-  "en": "Forecast tab of the order statistics: in the current month, the charts add the invoiced figures and the remaining forecast (as well as the invoices and the forecast of the plan), instead of taking the greater value. The cumulated forecast and plan now match the sums of the project overview.",
-  "de": "Forecast-Reiter der Auftragsstatistik: Im aktuellen Monat addieren die Grafiken die IST-Daten (Rechnungen) und den restlichen Forecast (ebenso Rechnungen und Forecast des Plans), statt den größeren Wert zu nehmen. Kumulierter Forecast und Plan stimmen damit mit den Summen der Projektübersicht überein."
+  "en": "Forecast of the order statistics and its Excel export: in the current month, the invoiced figures and the remaining forecast are added (as well as the invoices and the forecast of the plan), instead of taking the greater value. The cumulated forecast and plan now match the sums of the project overview. The note on this in the Excel sheet 'Grafiken 1' is removed.",
+  "de": "Forecast der Auftragsstatistik und sein Excel-Export: Im aktuellen Monat werden die IST-Daten (Rechnungen) und der restliche Forecast addiert (ebenso Rechnungen und Forecast des Plans), statt den größeren Wert zu nehmen. Kumulierter Forecast und Plan stimmen damit mit den Summen der Projektübersicht überein. Die Anmerkung dazu im Excel-Blatt 'Grafiken 1' entfällt."
 }
