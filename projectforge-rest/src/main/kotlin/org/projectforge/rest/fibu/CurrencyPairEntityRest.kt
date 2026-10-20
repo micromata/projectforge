@@ -32,7 +32,7 @@ import org.projectforge.business.fibu.ExchangeRateApiService
 import org.projectforge.common.extensions.formatForUser
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
@@ -95,15 +95,15 @@ class CurrencyPairEntityRest :
         // Load current rate only for existing entries (id != null)
         obj.id?.let { id ->
             currencyPair.currentRate =
-                currencyConversionService.getConversionRate(obj, LocalDate.now())
+                currencyConversionService.getConversionRate(obj, today())
             currencyPair.currentInverseRate =
                 currencyConversionService.getConversionRate(
                     obj,
-                    LocalDate.now(),
+                    today(),
                     inverseRate = true,
                 )
             currencyPair.currentRateDate =
-                currencyConversionService.getConversionRateDate(obj, LocalDate.now())
+                currencyConversionService.getConversionRateDate(obj, today())
             if (editMode) {
                 currencyPair.rateEntries = selectRates(id)
             }
@@ -151,7 +151,7 @@ class CurrencyPairEntityRest :
         if (sourceCurrency.isNullOrBlank() || targetCurrency.isNullOrBlank()) {
             return OnlineRates()
         }
-        val day = date ?: LocalDate.now()
+        val day = date ?: today()
         val (rate, inverseRate) = exchangeRateApiService.fetchBothRates(sourceCurrency, targetCurrency, day)
         val info = if (rate != null || inverseRate != null) {
             translateMsg("fibu.currencyConversion.api.sourceInfo", day.formatForUser())
@@ -258,7 +258,7 @@ class CurrencyPairEntityRest :
             }
         }
         rateDO.validFrom?.let { validFrom ->
-            if (PFDay.now().isBefore(PFDay.from(validFrom))) {
+            if (validFrom.isAfter(today())) {
                 validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "validFrom"))
             }
             // Another rate of the pair on the same date:
@@ -271,4 +271,10 @@ class CurrencyPairEntityRest :
         }
         return null
     }
+
+    /**
+     * Today in the user's time zone, as the dialog proposes it: the server's own zone may still be on the day
+     * before (a rate entered just after midnight would be refused as in the future).
+     */
+    private fun today(): LocalDate = PFDateTime.now().localDate
 }

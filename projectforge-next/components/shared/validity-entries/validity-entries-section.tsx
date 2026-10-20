@@ -183,7 +183,6 @@ export function ValidityEntriesSection<T extends ValidityEntry>({
         <div>
           <Button
             type="button"
-            variant="outline"
             size="sm"
             onClick={() => setEditing(newEntry())}
           >
