@@ -18,10 +18,16 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import type { MenuItem } from "@/lib/rs/types";
 import { cn } from "@/lib/utils";
-import { CustomMenuChip } from "./custom-menu-chip";
+import {
+  CustomMenuChip,
+  DROP_LINE,
+  DROP_LINE_LEFT,
+  DROP_LINE_RIGHT,
+} from "./custom-menu-chip";
 import { GroupNameInput } from "./group-name-input";
 import { itemId } from "./menu-tree";
 import { FAVORITES, type DragData } from "./types";
+import { useDropTarget } from "./use-drop-target";
 
 /**
  * A group of the user's menu, drawn as it shows in the bar: its menu button (the handle moving it among
@@ -55,6 +61,10 @@ export function CustomMenuGroup({
     id: `group:${id}`,
     data: { kind: "item", container: id } satisfies DragData,
   });
+  const target = useDropTarget();
+  // Highlighted also while over one of its entries: the entry is dropped into this group.
+  const dropInto = bodyIsOver || target?.container === id;
+  const dropHere = target?.container === FAVORITES && target.id === id;
 
   return (
     <div
@@ -63,8 +73,9 @@ export function CustomMenuGroup({
       // Translate only: the sorting strategy also scales an entry to the size of the one it replaces.
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        "flex w-max max-w-72 min-w-36 flex-col gap-1",
-        isDragging && "opacity-40"
+        "relative flex w-max max-w-72 min-w-36 flex-col gap-1",
+        isDragging && "opacity-40",
+        dropHere && [DROP_LINE, target.after ? DROP_LINE_RIGHT : DROP_LINE_LEFT]
       )}
     >
       <div className="flex h-6 items-center gap-0.5 rounded-md bg-muted pr-0.5 text-xs/relaxed font-medium">
@@ -124,7 +135,7 @@ export function CustomMenuGroup({
           ref={setBodyRef}
           className={cn(
             "flex min-h-9 flex-col rounded-lg border bg-popover p-1 shadow-md",
-            bodyIsOver && "border-primary bg-primary/5"
+            dropInto && "border-primary bg-primary/5 ring-1 ring-primary"
           )}
         >
           {entries.map((entry) => (

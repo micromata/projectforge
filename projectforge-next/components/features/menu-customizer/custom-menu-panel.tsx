@@ -20,6 +20,7 @@ import {
   renameGroup,
 } from "./menu-tree";
 import { FAVORITES, type DragData } from "./types";
+import { useDropTarget } from "./use-drop-target";
 
 /**
  * The user's own menu, drawn like the favorites bar it becomes: its entries in a row, each group as its
@@ -38,6 +39,8 @@ export function CustomMenuPanel({
     id: FAVORITES,
     data: { kind: "item", container: FAVORITES } satisfies DragData,
   });
+  const target = useDropTarget();
+  const dropInto = isOver || target?.container === FAVORITES;
 
   return (
     <section className="flex flex-col gap-1.5">
@@ -53,7 +56,7 @@ export function CustomMenuPanel({
           data-testid="custom-menu"
           className={cn(
             "flex min-h-9 flex-wrap items-start gap-1 rounded-lg border bg-background p-1 shadow-xs",
-            isOver && "border-primary bg-primary/5"
+            dropInto && "border-primary bg-primary/5"
           )}
         >
           {menu.map((item) =>

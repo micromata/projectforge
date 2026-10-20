@@ -104,6 +104,27 @@ describe("menu tree", () => {
     ).toEqual(["a", "g[c,b]", "d"]);
   });
 
+  it("inserts behind the entry it was dropped onto, up to the last place", () => {
+    const drag = {
+      kind: "item" as const,
+      item: entry("a"),
+      container: FAVORITES,
+    };
+    const onto = (id: string) => ({
+      kind: "item" as const,
+      item: entry(id),
+      container: "g",
+    });
+    expect(ids(applyDrop(menu, drag, onto("c"), true))).toEqual([
+      "g[b,c,a]",
+      "d",
+    ]);
+    expect(ids(applyDrop(menu, drag, onto("b"), true))).toEqual([
+      "g[b,a,c]",
+      "d",
+    ]);
+  });
+
   it("moves between containers", () => {
     const drag = {
       kind: "item" as const,

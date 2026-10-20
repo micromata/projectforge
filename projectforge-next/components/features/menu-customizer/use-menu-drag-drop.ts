@@ -16,6 +16,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { MenuItem } from "@/lib/rs/types";
 import { applyDrop } from "./menu-tree";
 import type { DragData } from "./types";
+import { dropsAfter } from "./use-drop-target";
 
 /**
  * The drop target under the pointer, the innermost first (an entry, then the group around it, then the
@@ -45,7 +46,12 @@ export function useMenuDragDrop(
     const activeData = active.data.current as DragData | undefined;
     if (!activeData || !over || active.id === over.id) return;
     update((menu) =>
-      applyDrop(menu, activeData, over.data.current as DragData | undefined)
+      applyDrop(
+        menu,
+        activeData,
+        over.data.current as DragData | undefined,
+        dropsAfter(active, over)
+      )
     );
   };
 

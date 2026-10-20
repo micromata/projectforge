@@ -102,13 +102,15 @@ export function renameGroup(
  * The result of dropping [active] onto [over] (what dnd-kit reports at the end of a drag; no [over]
  * means outside of every drop area):
  * - from the template: added where it was dropped, unless it is in the menu already,
+ *   before [over] or, with [after], behind it (also for a move into another container),
  * - within one container: moved to the drop position (onto the container itself: to its end),
  * - into another container: moved there. Groups stay at the top level, nothing goes into the template.
  */
 export function applyDrop(
   menu: MenuItem[],
   active: DragData,
-  over: DragData | undefined
+  over: DragData | undefined,
+  after = false
 ): MenuItem[] {
   if (!over || !active.item) return menu;
   const target = over.container;
@@ -116,9 +118,10 @@ export function applyDrop(
   if (active.kind === "group" && target !== FAVORITES) return menu;
   const id = itemId(active.item);
   const overIndex = over.item ? indexIn(menu, target, itemId(over.item)) : -1;
+  const insertIndex = overIndex >= 0 && after ? overIndex + 1 : overIndex;
 
   if (active.container === TEMPLATE) {
-    return insertItem(menu, target, active.item, overIndex);
+    return insertItem(menu, target, active.item, insertIndex);
   }
   if (active.container === target) {
     const entries = entriesOf(menu, target);
@@ -130,7 +133,7 @@ export function applyDrop(
   }
   const removed = removeItem(menu, id, active.container);
   if (removed === menu || !entriesOf(removed, target)) return menu;
-  return insertItem(removed, target, active.item, overIndex);
+  return insertItem(removed, target, active.item, insertIndex);
 }
 
 /**
