@@ -15,7 +15,6 @@ import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip
 import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
-import { todayOf } from "@/lib/user-zone";
 import { niceScale } from "@/lib/chart-scale";
 import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { ForecastChartData } from "@/lib/rs/order";
@@ -32,9 +31,7 @@ import {
 /**
  * The monthly forecast ('Umsatzprognose Monatswerte' of the Excel export, in its colours): the remaining
  * forecast of each position status and the invoiced sums (IST) as stacked, outlined bars, with the plan (if
- * a planning date is set) and the invoiced sums of the two previous years as lines. Top right the note of the
- * Excel chart on the current month (the greater of IST and forecast, see `ForecastChartData.total`), if that
- * month is shown at all. With an order book snapshot, its day is the forecast's "today".
+ * a planning date is set) and the invoiced sums of the two previous years as lines.
  */
 export function OrderForecastMonthlyChart({
   data,
@@ -51,8 +48,6 @@ export function OrderForecastMonthlyChart({
   const bars = useMemo(() => monthlyBarKeys(data), [data]);
   const lines = useMemo(() => monthlyLineKeys(data), [data]);
   const showYear = spansMultipleYears(data);
-  const currentMonth = (data.snapshotDate ?? todayOf(ctx)).slice(0, 7);
-  const showCurrentMonthHint = data.months.includes(currentMonth);
   // The stacked bars reach up to their monthly sum, so the axis is scaled on that sum next to the lines.
   const scale = useMemo(
     () =>
@@ -65,80 +60,73 @@ export function OrderForecastMonthlyChart({
     [rows, bars, lines]
   );
   return (
-    <div className="flex flex-col gap-1">
-      {showCurrentMonthHint && (
-        <p className="text-right text-sm font-medium text-red-600 dark:text-red-400">
-          {t("fibu.auftrag.forecast.chart.currentMonthHint")}
-        </p>
-      )}
-      <ChartContainer
-        config={config}
-        className={className}
-        role="img"
-        aria-label={t("fibu.auftrag.forecast.chart.monthly")}
+    <ChartContainer
+      config={config}
+      className={className}
+      role="img"
+      aria-label={t("fibu.auftrag.forecast.chart.monthly")}
+    >
+      <ComposedChart
+        data={rows}
+        margin={{ left: 4, right: 12, top: 8 }}
+        // Half of recharts' default bar width: a 30% gap on each side of a month leaves 40% for the bar.
+        barCategoryGap="30%"
       >
-        <ComposedChart
-          data={rows}
-          margin={{ left: 4, right: 12, top: 8 }}
-          // Half of recharts' default bar width: a 30% gap on each side of a month leaves 40% for the bar.
-          barCategoryGap="30%"
-        >
-          <CartesianGrid
-            vertical={false}
-            stroke="var(--muted-foreground)"
-            strokeOpacity={0.35}
+        <CartesianGrid
+          vertical={false}
+          stroke="var(--muted-foreground)"
+          strokeOpacity={0.35}
+        />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tickFormatter={(value) =>
+            formatChartMonth(String(value), ctx, showYear)
+          }
+        />
+        <YAxis
+          width={96}
+          tickLine={false}
+          axisLine={false}
+          domain={scale.domain}
+          ticks={scale.ticks}
+          tickFormatter={(value) => formatCurrency(value, ctx, 0)}
+        />
+        <ChartValueTooltip
+          config={config}
+          formatValue={(value) => formatCurrency(value, ctx, 0)}
+          formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
+        />
+        <ChartLegend
+          content={<SeriesLegendContent config={config} reversed />}
+        />
+        {bars.map((key) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId="forecast"
+            stroke={`var(--color-${key})`}
+            strokeWidth={1.5}
+            fill={`var(--color-${key})`}
+            fillOpacity={CHART_BAR_FILL_OPACITY}
+            isAnimationActive={false}
           />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tickFormatter={(value) =>
-              formatChartMonth(String(value), ctx, showYear)
-            }
+        ))}
+        {lines.map((key) => (
+          <Line
+            key={key}
+            dataKey={key}
+            type="linear"
+            stroke={`var(--color-${key})`}
+            strokeWidth={2}
+            strokeDasharray={lineDashArray(key)}
+            dot={false}
+            isAnimationActive={false}
           />
-          <YAxis
-            width={96}
-            tickLine={false}
-            axisLine={false}
-            domain={scale.domain}
-            ticks={scale.ticks}
-            tickFormatter={(value) => formatCurrency(value, ctx, 0)}
-          />
-          <ChartValueTooltip
-            config={config}
-            formatValue={(value) => formatCurrency(value, ctx, 0)}
-            formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
-          />
-          <ChartLegend
-            content={<SeriesLegendContent config={config} reversed />}
-          />
-          {bars.map((key) => (
-            <Bar
-              key={key}
-              dataKey={key}
-              stackId="forecast"
-              stroke={`var(--color-${key})`}
-              strokeWidth={1.5}
-              fill={`var(--color-${key})`}
-              fillOpacity={CHART_BAR_FILL_OPACITY}
-              isAnimationActive={false}
-            />
-          ))}
-          {lines.map((key) => (
-            <Line
-              key={key}
-              dataKey={key}
-              type="linear"
-              stroke={`var(--color-${key})`}
-              strokeWidth={2}
-              strokeDasharray={lineDashArray(key)}
-              dot={false}
-              isAnimationActive={false}
-            />
-          ))}
-        </ComposedChart>
-      </ChartContainer>
-    </div>
+        ))}
+      </ComposedChart>
+    </ChartContainer>
   );
 }

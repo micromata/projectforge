@@ -10,7 +10,7 @@
       "items" : [ "System page: projectforge.properties can be compared with its backups, or two backups with each other. Optionally the order is ignored, so only changed values and comments are shown; values of secrets stay hidden, only whether they changed is shown." ]
     }, {
       "type" : "improved",
-      "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "The monthly chart in the forecast tab of the order statistics shows the note of the forecast Excel at its top right, if the current month is shown: in the current month, the greater value is used, the invoiced figures or the monthly forecast.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
+      "items" : [ "When arranging chart dashboards, the drag handle (top left of a tile) and the tile menu (top right) are shown in solid orange.", "Notifications to be confirmed: several of them are shown underneath each other in one toast instead of stacked behind each other, and the toast steps aside while the bell's list is open." ]
     }, {
       "type" : "changed",
       "items" : [ "Two-factor authentication setup migrated to the new interface: mobile phone, authenticator app and WebAuthn tokens on one page, a token is renamed or deleted in a dialog. Deleting a WebAuthn token now also requires a recent second factor. Old links are redirected.", {
@@ -19,7 +19,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Customer list: sorting by the customer number works again.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
+      "items" : [ "Customer list: sorting by the customer number works again.", "Forecast tab of the order statistics: in the current month, the charts add the invoiced figures and the remaining forecast (as well as the invoices and the forecast of the plan), instead of taking the greater value. The cumulated forecast and plan now match the sums of the project overview.", "Properties editor: values of all parameters ending in \"key\" (e.g. projectforge.receiveSmsKey) are treated as secrets and no longer shown." ]
     }, {
       "type" : "removed",
       "items" : [ "The d.velop interface (synchronization of customers and vendors as trading partners) was removed." ]

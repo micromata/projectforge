@@ -1324,7 +1324,6 @@
         },
         "chart": {
           "cumulative": "Revenue forecast cumulated",
-          "currentMonthHint": "Note: In the current month, the greater value is used: the actual figures (invoices) or the monthly forecast.",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
           "monthly": "Revenue forecast monthly",

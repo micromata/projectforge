@@ -138,8 +138,8 @@ export function monthlyRows(
 }
 
 /**
- * A row per month with the running totals ('Umsatz kumuliert' of the Excel): the forecast (per month the
- * max of invoiced and remaining forecast), the plan and the previous years.
+ * A row per month with the running totals ('Umsatz kumuliert' of the Excel): the forecast (per month
+ * invoiced plus remaining forecast), the plan and the previous years.
  */
 export function cumulativeRows(
   data: ForecastChartData

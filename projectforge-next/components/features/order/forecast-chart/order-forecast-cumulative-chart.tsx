@@ -21,7 +21,7 @@ import {
 
 /**
  * The cumulated forecast ('Umsatzprognose kumuliert' of the Excel export): the running totals of the
- * forecast (per month the max of invoiced and remaining forecast), the plan (if a planning date is set) and
+ * forecast (per month invoiced plus remaining forecast), the plan (if a planning date is set) and
  * the invoiced sums of the two previous years. The counterpart of {@link OrderForecastMonthlyChart}.
  */
 export function OrderForecastCumulativeChart({

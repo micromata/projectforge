@@ -564,7 +564,11 @@ class ForecastExportTest : AbstractTestBase() {
             }
             assertAmounts(excelRow(forecastSheet, 7, firstMonthCol), chartData.ist, "IST")
             val cumulatedSheet = workbook.getSheet("Umsatz kumuliert")!!
-            assertAmounts(excelRow(cumulatedSheet, 3, 1), chartData.total, "Gesamt")
+            // The Excel's 'Gesamt' takes the max of IST and forecast per month, the chart their sum (see
+            // ForecastChartData.total):
+            val forecastSums = List(12) { i -> chartData.forecastByStatus.values.sumOf { it[i] } }
+            assertAmounts(excelRow(cumulatedSheet, 3, 1), List(12) { i -> chartData.ist[i].max(forecastSums[i]) }, "Gesamt")
+            assertAmounts(List(12) { i -> chartData.ist[i] + forecastSums[i] }, chartData.total, "Total")
             assertAmounts(excelRow(cumulatedSheet, 7, 1), chartData.prevYear, "Vorjahr")
             assertAmounts(excelRow(cumulatedSheet, 10, 1), chartData.prevPrevYear, "Vorvorjahr")
         }
@@ -618,6 +622,7 @@ class ForecastExportTest : AbstractTestBase() {
         assertAmounts(chart.prevPrevYear, invoiceSums(ForecastInvoiceRow.Kind.PREV_PREV_YEAR), "Previous previous year")
         val forecast = chart.forecastByStatus.values.flatten().sumOf { it } + chart.ist.sumOf { it }
         assertAmount(tables.projects.sumOf { it.forecast }, forecast.toDouble())
+        assertAmount(tables.projects.sumOf { it.forecast }, chart.total.sumOf { it }.toDouble())
         assertAmount(tables.projects.sumOf { it.prevYear }, chart.prevYear.sumOf { it }.toDouble())
         Assertions.assertTrue(tables.projects.all { it.plan == null }, "No plan without planning date.")
         Assertions.assertEquals(tables.projects.size, tables.projects.map { it.projectId }.toSet().size)

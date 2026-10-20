@@ -1,5 +1,0 @@
-{
-  "type": "improved",
-  "en": "The monthly chart in the forecast tab of the order statistics shows the note of the forecast Excel at its top right, if the current month is shown: in the current month, the greater value is used, the invoiced figures or the monthly forecast.",
-  "de": "Die Grafik der Monatswerte im Forecast-Reiter der Auftragsstatistik zeigt oben rechts den Hinweis aus der Forecast-Excel-Datei, sofern der aktuelle Monat angezeigt wird: Im aktuellen Monat wird der größere Wert verwendet, die IST-Daten (Rechnungen) oder der Monatsforecast."
-}

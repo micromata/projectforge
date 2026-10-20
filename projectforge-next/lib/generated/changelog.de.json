@@ -10,7 +10,7 @@
       "items" : [ "System-Seite: Die projectforge.properties lässt sich mit ihren Sicherungskopien vergleichen, oder zwei Sicherungskopien miteinander. Wahlweise wird die Reihenfolge ignoriert, sodass nur geänderte Werte und Kommentare angezeigt werden; Werte von Secrets bleiben verborgen, angezeigt wird nur, ob sie sich geändert haben." ]
     }, {
       "type" : "improved",
-      "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Die Grafik der Monatswerte im Forecast-Reiter der Auftragsstatistik zeigt oben rechts den Hinweis aus der Forecast-Excel-Datei, sofern der aktuelle Monat angezeigt wird: Im aktuellen Monat wird der größere Wert verwendet, die IST-Daten (Rechnungen) oder der Monatsforecast.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
+      "items" : [ "Beim Anordnen von Grafik-Dashboards sind der Anfasser zum Verschieben (oben links an der Kachel) und das Kachelmenü (oben rechts) vollfarbig orange dargestellt.", "Zu bestätigende Benachrichtigungen: Mehrere werden untereinander in einem Toast angezeigt statt hintereinander gestapelt, und der Toast weicht aus, solange die Liste der Glocke geöffnet ist." ]
     }, {
       "type" : "changed",
       "items" : [ "Einrichtung der Zwei-Faktor-Authentifizierung auf die neue Oberfläche migriert: Mobilfunknummer, Authenticator-App und WebAuthn-Token auf einer Seite, ein Token wird in einem Dialog umbenannt oder gelöscht. Das Löschen eines WebAuthn-Tokens erfordert jetzt ebenfalls einen aktuellen zweiten Faktor. Alte Links werden umgeleitet.", {
@@ -19,7 +19,7 @@
       } ]
     }, {
       "type" : "fixed",
-      "items" : [ "Kundenliste: Die Sortierung nach Kundennummer funktioniert wieder.", "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
+      "items" : [ "Kundenliste: Die Sortierung nach Kundennummer funktioniert wieder.", "Forecast-Reiter der Auftragsstatistik: Im aktuellen Monat addieren die Grafiken die IST-Daten (Rechnungen) und den restlichen Forecast (ebenso Rechnungen und Forecast des Plans), statt den größeren Wert zu nehmen. Kumulierter Forecast und Plan stimmen damit mit den Summen der Projektübersicht überein.", "Properties-Editor: Werte aller Parameter, die auf „key“ enden (z. B. projectforge.receiveSmsKey), gelten als Secrets und werden nicht mehr angezeigt." ]
     }, {
       "type" : "removed",
       "items" : [ "Die d.velop-Schnittstelle (Abgleich von Kunden und Kreditoren als Geschäftspartner) wurde entfernt." ]

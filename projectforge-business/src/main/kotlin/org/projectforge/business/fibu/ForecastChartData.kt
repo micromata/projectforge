@@ -48,8 +48,8 @@ class ForecastChartData(
     /** Invoiced net sums of the 12 months two years before. */
     val prevPrevYear: List<BigDecimal>,
     /**
-     * The plan per month (row 9 of Forecast_Data = row 7 of Planning_Data): max of the planning forecast and the
-     * invoices before the planning date. Null, if no planning date was given.
+     * The plan per month: the planning forecast plus the invoices before the planning date, the same sum as the
+     * plan of the project overview ([ForecastProjectRow.plan]). Null, if no planning date was given.
      */
     val plan: List<BigDecimal>?,
     /** The date of the order book snapshot actually used as plan (the closest one to the requested date). */
@@ -61,13 +61,14 @@ class ForecastChartData(
     val snapshotDate: LocalDate? = null,
 ) {
     /**
-     * Per month the max of IST and the remaining forecast ('Gesamt' of sheet 'Umsatz kumuliert'), the base of the
-     * cumulated forecast curve. A stored field (not a computed getter), because the REST json mapper serializes
+     * Per month IST plus the remaining forecast, the base of the cumulated forecast curve. Not the max of both as in
+     * the Excel ('Gesamt' of sheet 'Umsatz kumuliert'): the remaining forecast of the current month is already reduced
+     * by its invoices, so only the sum adds up to the forecast of the project overview ([ForecastProjectRow.forecast]). A stored field (not a computed getter), because the REST json mapper serializes
      * fields only.
      */
     val total: List<BigDecimal> = List(ist.size) { i ->
         val forecast = forecastByStatus.values.fold(BigDecimal.ZERO) { acc, values -> acc + values[i] }
-        ist[i].max(forecast)
+        ist[i] + forecast
     }
 }
 
@@ -136,7 +137,7 @@ internal class ForecastChartTotals {
         val plan = planningDate?.let {
             val planningForecast = sumVisible(planningForecastByProject)
             val planningIst = sumVisible(invoicesByProject[InvoiceKind.PLANNING]!!)
-            List(MONTHS) { i -> planningForecast[i].max(planningIst[i]) }
+            List(MONTHS) { i -> planningForecast[i] + planningIst[i] }
         }
         return ForecastChartData(
             months = months(startDate),
