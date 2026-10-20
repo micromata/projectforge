@@ -108,7 +108,12 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |===
 |Stop|`podman stop projectforge-postgres`
 |Start|`podman start projectforge-postgres`
-|Import dump (optional)|`podman exec -i projectforge-postgres psql -U projectforge -d projectforge < ~/ProjectForgeBackup/pf.sql`
+|Import dump (optional)|`podman exec -i projectforge-postgres psql -U projectforge -d projectforge < ~/ProjectForgeBackup/pf.sql` +
+Files dump: `podman exec -i projectforge-postgres pg_restore -U projectforge -d projectforge --no-owner < ~/ProjectForgeBackup/projectforge_files_2026-10-20_02-00.dump` +
+Schema `pf_files` (attachments), custom format, so `pg_restore` instead of `psql`. Import it after the main dump and
+before starting ProjectForge. If the schema already exists, drop it first (`DROP SCHEMA pf_files CASCADE;`) or add
+`--clean --if-exists`. Afterwards run _Administration_ -> _System_ -> _Check system integrity_. See the
+https://projectforge.org/docs/adminguide/#restoring_a_backup[admin guide].
 |PSQL|`podman exec -it projectforge-postgres psql -U projectforge -d projectforge`
 |Reset passwords (optional)|`update t_pf_user_password SET password_hash='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null; update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@localhost';` +
 password is now `test123`.
