@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.12",
+    "date" : "2026-10-21",
+    "title" : "Noch nicht veröffentlicht",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "Benutzerliste: Deaktivierte Benutzer:innen werden durchgestrichen angezeigt." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {

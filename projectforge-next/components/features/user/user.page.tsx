@@ -1,3 +1,4 @@
+import { INACTIVE_ROW_CLASS } from "@/lib/dynamic/grid/row-class";
 import { PF_USER_METADATA } from "@/lib/metadata/pf-user.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { UserAccessFields } from "./user-access-fields";
@@ -42,6 +43,10 @@ export const USER_PAGE = definePage<
   titleKey: "user.title.list",
   columns: USER_COLUMNS,
   listActions: UserListActions,
+  // A deactivated user reads struck through (thin, grey), as the selection boxes strike them
+  // (DEACTIVATED_REF_CLASS), set apart from a deleted one.
+  inactiveLabelKey: "user.legend.deactivated",
+  rowClassName: (row) => (row.deactivated ? INACTIVE_ROW_CLASS : undefined),
   edit: {
     schema: userSchema,
     fieldNames: USER_FIELDS,

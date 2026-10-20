@@ -5475,6 +5475,9 @@
       "tooltip": "Wird nur gebraucht, wenn dieser von dem ProjectForge-Benutzer:innamen abweicht und der oder die Benutzer:in aus ProjectForge heraus mit JIRA arbeiten möchte."
     },
     "ldapValues": "LDAP",
+    "legend": {
+      "deactivated": "Deaktiviert"
+    },
     "localUser": {
       "_": "Lokale:r Benutzer:in",
       "not": "Allgemeine:r Benutzer:in",

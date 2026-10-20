@@ -1,5 +1,15 @@
 {
   "_generated" : "Generated from changelog/changelog.json by GenerateChangelogMain — do not edit.",
+  "unreleased" : {
+    "id" : "unreleased",
+    "version" : "9.0.12",
+    "date" : "2026-10-21",
+    "title" : "Not yet released",
+    "sections" : [ {
+      "type" : "improved",
+      "items" : [ "User list: deactivated users are shown struck through." ]
+    } ]
+  },
   "groups" : [ {
     "major" : "9",
     "head" : {
