@@ -3354,11 +3354,21 @@
     },
     "postausgang": {
       "empfaenger": "Receiver",
-      "person": "FAO"
+      "person": "FAO",
+      "title": {
+        "add": "New outbox entry",
+        "heading": "Outbox",
+        "list": "Outbox"
+      }
     },
     "posteingang": {
       "absender": "Sender",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "New inbox entry",
+        "heading": "Inbox",
+        "list": "Inbox"
+      }
     },
     "visitorbook": {
       "company": "Company",

@@ -3354,11 +3354,21 @@
     },
     "postausgang": {
       "empfaenger": "Empfänger:in",
-      "person": "z. Hd."
+      "person": "z. Hd.",
+      "title": {
+        "add": "Postausgang anlegen",
+        "heading": "Postausgang",
+        "list": "Postausgangsbuch"
+      }
     },
     "posteingang": {
       "absender": "Absender:in",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "Posteingang anlegen",
+        "heading": "Posteingang",
+        "list": "Posteingangsbuch"
+      }
     },
     "visitorbook": {
       "company": "Firma",
