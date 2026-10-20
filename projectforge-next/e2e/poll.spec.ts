@@ -1,7 +1,13 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
-import { insert, markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
+import {
+  insert,
+  markAsDeleted,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
 
 /**
  * The polls against the live backend (see POLL_PAGE, PollEntityRest and PollAnswerRest).
@@ -113,6 +119,16 @@ test.describe("poll", { tag: "@parallel" }, () => {
       ],
     });
     try {
+      // Found by the search of the list (title, description and location are indexed).
+      await page.request.post("/rs/poll/filter/reset", {
+        headers: await writeHeaders(page.request),
+      });
+      await goto(page, "/poll");
+      await page.getByPlaceholder(format.t("filter.searchList")).fill(title);
+      await expect(
+        page.getByRole("cell", { name: title, exact: true })
+      ).toBeVisible({ timeout: 30_000 });
+
       await goto(page, `/poll/${id}/answer`);
       const questions = page.getByTestId("poll-answer-question");
       await expect(questions).toHaveCount(3, { timeout: 30_000 });

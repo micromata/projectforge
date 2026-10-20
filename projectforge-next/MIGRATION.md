@@ -611,7 +611,11 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Fragen-Editor mit Hoch/Runter (`useFieldArray().move`), Vorlagen: eingebaute neutrale Muster de/en
   (`poll/templates.json`) und Umfragen mit `template=true` (nie versendet, klonbar). Zeilenklick: Formular bei
   Vollzugriff, sonst Antwortseite (`/poll/<id>/answer`). `react/poll/**` leitet `NextMigration` um,
-  `react/pollResponse/dynamic?pollId=` (Mail-Links) und `react/pollInfo` `OrphanedLinkFilter`.
+  `react/pollResponse/dynamic?pollId=` (Mail-Links) und `react/pollInfo` `OrphanedLinkFilter`. Neu im Suchindex:
+  Titel, Beschreibung und Ort (vorher `@Indexed` ohne Felder, die Listensuche fand nichts); bestehende Umfragen
+  erst nach dem nächsten Re-Index. Antworten werden erst nach dem Löschen der Umfrage mitgelöscht
+  (`onAfterMarkAsDeleted`, also nach der Zugriffsprüfung) und mit ihr wiederhergestellt (`onAfterUndelete`). Eine Vorlage,
+  die als Umfrage gespeichert wird, lädt ein wie eine neue (Einladungsbereich auch bei Vorlagen).
 - **Skillmatrix** (`skillentry`, Plugin skillmatrix, Liste + Formular, vorher React-UILayout `SkillEntryPagesRest`,
   gelöscht) – layoutfrei über `SkillEntryEntityRest` (`/rs/skillentry`, gleicher Pfad). Filter „Meine Skills“
   (Default an) bleibt backendseitig; Selbsteinschätzung und Interesse als Sterne (`RatingField`, Nachfolger von

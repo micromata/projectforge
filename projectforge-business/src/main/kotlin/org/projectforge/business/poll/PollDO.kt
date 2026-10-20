@@ -24,6 +24,7 @@
 package org.projectforge.business.poll
 
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -52,10 +53,12 @@ import java.time.LocalDate
 open class PollDO : DefaultBaseDO() {
 
     @get:PropertyInfo(i18nKey = "poll.title", required = true)
+    @FullTextField
     @get:Column(name = "title", nullable = false, length = 1000)
     open var title: String? = null
 
     @get:PropertyInfo(i18nKey = "poll.description")
+    @FullTextField
     @get:Column(name = "description", length = 10000)
     open var description: String? = null
 
@@ -65,6 +68,7 @@ open class PollDO : DefaultBaseDO() {
     open var owner: PFUserDO? = null
 
     @get:PropertyInfo(i18nKey = "poll.location")
+    @FullTextField
     @get:Column(name = "location", length = 1000)
     open var location: String? = null
 

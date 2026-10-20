@@ -40,12 +40,16 @@ open class PollResponseDao : BaseDao<PollResponseDO>(PollResponseDO::class.java)
         return PollResponseDO()
     }
 
-    /** All responses to the poll (not deleted), without access check: the caller checks the access to the poll. */
-    open fun getResponses(pollId: Long): List<PollResponseDO> {
+    /**
+     * The responses to the poll, without access check: the caller checks the access to the poll.
+     * @param deleted true for the deleted responses only (to restore them with the poll).
+     */
+    open fun getResponses(pollId: Long, deleted: Boolean = false): List<PollResponseDO> {
         return persistenceService.executeQuery(
-            "SELECT r FROM PollResponseDO r WHERE r.poll.id = :pollId AND r.deleted = false",
+            "SELECT r FROM PollResponseDO r WHERE r.poll.id = :pollId AND r.deleted = :deleted",
             PollResponseDO::class.java,
             Pair("pollId", pollId),
+            Pair("deleted", deleted),
         )
     }
 

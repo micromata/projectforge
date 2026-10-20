@@ -40,6 +40,7 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
@@ -130,9 +131,15 @@ class PollEntityRest :
         val deadline = dto.deadline
         if (deadline == null) {
             validationErrors.add(ValidationError.createFieldRequired(PollDO::class.java, "deadline"))
-        } else if (dto.id == null && deadline.isBefore(LocalDate.now())) {
+        } else if (isInvited(dto) && deadline.isBefore(LocalDate.now())) {
             validationErrors.add(ValidationError(translate("poll.error.deadlineInPast"), fieldId = "deadline"))
         }
+    }
+
+    /** Whether saving the poll invites its attendees: a new one, or a template becoming a poll. */
+    private fun isInvited(dto: Poll): Boolean {
+        val id = dto.id ?: return !dto.template
+        return !dto.template && baseDao.find(id, checkAccess = false)?.template == true
     }
 
     /**
@@ -145,6 +152,11 @@ class PollEntityRest :
             obj.owner = ThreadLocalUserContext.loggedInUser
         } else {
             obj.owner = dbObj.owner
+            if (dbObj.template && !obj.template) {
+                // A template becomes a poll: invited like a new one (see onAfterSaveOrUpdate). Kept in the request,
+                // this bean is shared by all requests.
+                request.setAttribute(INVITE_ATTRIBUTE, true)
+            }
         }
         obj.state = PollDO.State.RUNNING
         if (obj.template) {
@@ -164,17 +176,29 @@ class PollEntityRest :
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, obj, postData)
-        if (postData.data.id == null && !obj.template) {
+        val invite = postData.data.id == null || request.getAttribute(INVITE_ATTRIBUTE) == true
+        if (invite && !obj.template) {
             pollMailService.sendInvitation(obj, postData.data.invitationSubject, postData.data.invitationText)
         }
     }
 
-    /** The responses go with the poll. */
-    override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+    /**
+     * The responses go with the poll: after it is deleted, so only after the access check of [PollDao] (the responses
+     * are deleted without one).
+     */
+    override fun onAfterMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>): ResponseAction {
         obj.id?.let { pollId ->
             pollResponseDao.getResponses(pollId).forEach { pollResponseDao.markAsDeleted(it, checkAccess = false) }
         }
-        super.onBeforeMarkAsDeleted(request, obj, postData)
+        return super.onAfterMarkAsDeleted(request, obj, postData)
+    }
+
+    /** The responses come back with the poll (they are deleted with it only, see [onAfterMarkAsDeleted]). */
+    override fun onAfterUndelete(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>): ResponseAction {
+        obj.id?.let { pollId ->
+            pollResponseDao.getResponses(pollId, deleted = true).forEach { pollResponseDao.undelete(it, checkAccess = false) }
+        }
+        return super.onAfterUndelete(request, obj, postData)
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -291,5 +315,10 @@ class PollEntityRest :
         }
         val template = PollTemplates.get(key) ?: return emptyList()
         return PollTemplates.questions(template, ThreadLocalUserContext.locale)
+    }
+
+    companion object {
+        /** Request attribute: the saved poll was a template until now, so its attendees are invited. */
+        private const val INVITE_ATTRIBUTE = "poll.invite"
     }
 }

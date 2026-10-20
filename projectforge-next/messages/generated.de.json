@@ -4122,7 +4122,7 @@
       "invitation": "Einladungsmail",
       "questions": "Fragen"
     },
-    "info": "Alle Teilnehmer:innen und wer Vollzugriff hat, bekommen eine Einladungsmail, wenn die Umfrage zum ersten Mal gespeichert wird. Bis zur Antwortfrist können die Antworten geändert werden. Am Tag danach wird die Umfrage beendet, und wer Vollzugriff hat, bekommt die Ergebnisse.",
+    "info": "Alle Teilnehmer:innen und wer Vollzugriff hat, bekommen eine Einladungsmail, wenn die Umfrage zum ersten Mal gespeichert wird (eine Vorlage: wenn sie als Umfrage gespeichert wird). Bis zur Antwortfrist können die Antworten geändert werden. Am Tag danach wird die Umfrage beendet, und wer Vollzugriff hat, bekommt die Ergebnisse.",
     "invitation": {
       "subject": {
         "_": "Betreff",
@@ -4174,7 +4174,7 @@
     },
     "template": {
       "_": "Vorlage",
-      "info": "Eine Vorlage wird nie verschickt: Ihre Fragen werden in andere Umfragen übernommen, oder sie wird geklont."
+      "info": "Eine Vorlage wird nie verschickt: Ihre Fragen werden in andere Umfragen übernommen, oder sie wird geklont. Ohne diese Markierung gespeichert, wird sie zur Umfrage, und die Teilnehmer:innen werden eingeladen."
     },
     "title": {
       "_": "Titel",

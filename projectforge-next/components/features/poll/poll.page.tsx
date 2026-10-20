@@ -124,7 +124,9 @@ export const POLL_PAGE = definePage<
         // Sent on the first save only, so there is nothing to show for a stored poll.
         id: "invitation",
         titleKey: "poll.heading.invitation",
-        visible: ({ data }) => data == null || data.id == null,
+        // Sent on the first save of a poll: a new one, or a template saved as a poll.
+        visible: ({ data }) =>
+          data == null || data.id == null || data.template === true,
         fields: [
           { custom: PollInvitationSubjectField, span: 3 },
           { custom: PollInvitationTextField, span: 3 },

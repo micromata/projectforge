@@ -5,8 +5,9 @@ import { InputField } from "@/components/shared/form/input-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 
 /**
- * Subject and text of the invitation mail, sent when the poll is saved for the first time. Not stored: the
- * DTO only carries them for that save (`Poll.invitationSubject`), so the section is shown for a new poll only.
+ * Subject and text of the invitation mail, sent when the poll is saved for the first time (a template: when it is
+ * saved as a poll). Not stored: the DTO only carries them for that save (`Poll.invitationSubject`), so the section
+ * is shown for a new poll or a template only.
  */
 export function PollInvitationSubjectField({
   className,

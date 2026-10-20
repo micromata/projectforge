@@ -98,3 +98,7 @@ export interface PollResults {
     answers: PollAnswer[];
   }[];
 }
+
+/** Rows of the field array: a question or an option has no id of its own, only a uid (or none yet). */
+export type QuestionRow = PollQuestion & { id?: null; deleted?: boolean };
+export type OptionRow = PollOption & { id?: null; deleted?: boolean };

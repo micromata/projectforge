@@ -33,8 +33,13 @@ import org.projectforge.business.poll.*
 import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
+import org.projectforge.rest.core.markAsDeleted
+import org.projectforge.rest.core.undelete
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
 import java.time.LocalDate
 
 /**
@@ -205,6 +210,53 @@ class PollAccessTest : AbstractTestBase() {
         assertNotNull(lastUpdate)
         pollCronJobs.run(null, LocalDate.now())
         assertEquals(lastUpdate, pollDao.find(poll.id, checkAccess = false)!!.lastUpdate)
+    }
+
+    @Test
+    fun `the responses are deleted with the poll, by its owner only`() {
+        val poll = createPoll()
+        logon(TEST_USER2)
+        save(poll, null, answer(single, "yes"))
+        val postData = PostData(Poll().also { it.id = poll.id }, null, null)
+
+        logon(TEST_USER)
+        markAsDeleted(MockHttpServletRequest(), pollDao, pollDao.find(poll.id, checkAccess = false)!!, postData, pollEntityRest, null)
+        assertEquals(false, pollDao.find(poll.id, checkAccess = false)!!.deleted)
+        assertEquals(1, pollResponseDao.getResponses(poll.id!!).size, "Refused: the responses are kept.")
+
+        logon(TEST_HR_USER)
+        markAsDeleted(MockHttpServletRequest(), pollDao, pollDao.find(poll.id, checkAccess = false)!!, postData, pollEntityRest, null)
+        assertEquals(true, pollDao.find(poll.id, checkAccess = false)!!.deleted)
+        assertEquals(0, pollResponseDao.getResponses(poll.id!!).size)
+
+        // Restored, the poll gets its responses back:
+        undelete(MockHttpServletRequest(), pollDao, pollDao.find(poll.id, checkAccess = false)!!, postData, pollEntityRest, null)
+        assertEquals(false, pollDao.find(poll.id, checkAccess = false)!!.deleted)
+        assertEquals(1, pollResponseDao.getResponses(poll.id!!).size)
+    }
+
+    @Test
+    fun `a template becoming a poll invites its attendees`() {
+        val template = createPoll(deadline = LocalDate.now().minusDays(3)).also {
+            it.template = true
+            pollDao.update(it, checkAccess = false)
+        }
+        logon(TEST_HR_USER)
+        val dto = Poll().also { it.copyFrom(pollDao.find(template.id)!!) }
+        dto.template = false
+        // Invited like a new poll: the deadline must not have passed.
+        val errors = mutableListOf<ValidationError>()
+        pollEntityRest.validate(errors, dto)
+        assertEquals(listOf("deadline"), errors.map { it.fieldId })
+
+        val request = MockHttpServletRequest()
+        pollEntityRest.onBeforeSaveOrUpdate(request, pollEntityRest.transformForDB(dto), PostData(dto, null, null))
+        assertEquals(true, request.getAttribute("poll.invite"))
+        // A poll saved again isn't:
+        val stored = Poll().also { it.copyFrom(createPoll()) }
+        val second = MockHttpServletRequest()
+        pollEntityRest.onBeforeSaveOrUpdate(second, pollEntityRest.transformForDB(stored), PostData(stored, null, null))
+        assertNull(second.getAttribute("poll.invite"))
     }
 
     @Test
