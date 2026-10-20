@@ -324,6 +324,25 @@ class NextMigrationTest {
     }
 
     /**
+     * The inbox and the outbox: list and form are next's, the React pages are gone, so there is no way back, but a
+     * bookmarked React link is still redirected onto next.
+     */
+    @Test
+    fun `the inbox and outbox pages are next's and offer no way back`() {
+        listOf("incomingMail", "outgoingMail").forEach { category ->
+            Assertions.assertEquals("next/$category", NextMigration.listUrl(category))
+            Assertions.assertEquals("next/$category/:id", NextMigration.standardEditPage(category))
+            Assertions.assertEquals("next/$category/new", NextMigration.newEntryUrl(category))
+            Assertions.assertNull(NextMigration.legacyListUrl(category))
+            Assertions.assertNull(NextMigration.legacyEditPage(category))
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category))
+            val link = NextMigration.orphanedLinks().single { it.category == category }
+            Assertions.assertEquals("react/$category", link.legacyListPath)
+            Assertions.assertEquals("react/$category/edit", link.legacyEditPath)
+        }
+    }
+
+    /**
      * The employees: list and form (time-dependent attributes included) are next's, the React pages are gone, so
      * there is no way back, but a bookmarked React link is still redirected onto next.
      */

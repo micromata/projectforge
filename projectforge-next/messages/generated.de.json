@@ -3049,6 +3049,7 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "orga": "Organisation",
     "personalStatistics": "Meine Statistiken",
     "phoneCall": "Direktwahl",
     "pluginAdmin": "Plugins",
@@ -3345,11 +3346,21 @@
     },
     "postausgang": {
       "empfaenger": "Empfänger:in",
-      "person": "z. Hd."
+      "person": "z. Hd.",
+      "title": {
+        "add": "Postausgang anlegen",
+        "heading": "Postausgang",
+        "list": "Postausgangsbuch"
+      }
     },
     "posteingang": {
       "absender": "Absender:in",
-      "person": "Person"
+      "person": "Person",
+      "title": {
+        "add": "Posteingang anlegen",
+        "heading": "Posteingang",
+        "list": "Posteingangsbuch"
+      }
     },
     "visitorbook": {
       "company": "Firma",
@@ -3805,10 +3816,26 @@
       }
     },
     "skillmatrix": {
-      "interest": "Interesse",
+      "interest": {
+        "_": "Interesse",
+        "0": "Ohne Einstufung",
+        "1": "Interesse",
+        "2": "Großes Interesse",
+        "3": "Going crazy!"
+      },
       "owner": "Eigner",
-      "rating": "Selbsteinschätzung",
-      "skill": "Skill"
+      "rating": {
+        "_": "Selbsteinschätzung",
+        "0": "Keine Einschätzung",
+        "1": "Basis",
+        "2": "Fortgeschritten",
+        "3": "Experte"
+      },
+      "skill": "Skill",
+      "title": {
+        "add": "Neuer Skill",
+        "list": "Skillmatrix"
+      }
     },
     "teamcal": {
       "absenceKinds": {
