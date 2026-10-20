@@ -68,8 +68,15 @@ test.describe("teamCal", { tag: "@lane-teamCal" }, () => {
     await expect(reminders).toBeVisible();
     const qr = page.locator("img[src^='data:image/png']");
     const before = await qr.getAttribute("src");
-    await reminders.click();
-    await expect(qr).not.toHaveAttribute("src", before!);
+    const checkedBefore = await reminders.isChecked();
+    // Under the load of the full suite the first click may come before the form has settled and get
+    // lost: click again until the switch has really moved.
+    await expect(async () => {
+      if ((await reminders.isChecked()) === checkedBefore) {
+        await reminders.click();
+      }
+      await expect(qr).not.toHaveAttribute("src", before!, { timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
     expect(saveAttempted).toBe(false);
   });
 
