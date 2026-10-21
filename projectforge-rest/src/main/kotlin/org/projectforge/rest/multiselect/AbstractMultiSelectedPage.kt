@@ -43,14 +43,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -145,11 +139,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
     /**
      * Everything a hand built mass update page needs: which fields it may change, how many entries are
-     * selected, and what those add up to.
-     *
-     * The layout free counterpart of [getForm], which answers the same information as a `UILayout` of
-     * rows, inputs, checkboxes and buttons. Same relation as `{entity}/listMeta` to `initialList` (see
-     * [MultiSelectMetaData]).
+     * selected, and what those add up to (see [MultiSelectMetaData]).
      */
     @GetMapping("meta")
     fun requestMeta(request: HttpServletRequest): MultiSelectMetaData {
@@ -164,7 +154,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             listPage = listPageUrl,
             maxMassUpdate = BaseDao.MAX_MASS_UPDATE,
             info = infoMessageKey()?.let { translate(it) },
-            statistics = getStatistics(selectedIds),
             statisticsData = getStatisticsData(selectedIds),
             initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
             supportsDelete = supportsMassDeletion(),
@@ -205,10 +194,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Runs the mass update and answers what it did.
-     *
-     * The layout free counterpart of [massUpdate], which answers the same counters and errors wrapped in
-     * a `UILayout` of markdown alerts. A failure the user can fix - nothing selected, nothing to do, two
+     * Runs the mass update and answers what it did. A failure the user can fix - nothing selected, nothing to do, two
      * actions on one field - stays an HTTP 406 with `validationErrors`, exactly as everywhere else in
      * this app.
      */
@@ -430,11 +416,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Stores the ticked subset of the registered ids and answers where the mass update page lives.
-     *
-     * The layout free counterpart of [selected], which answers the same url as a redirect
-     * `ResponseAction`. A hand built client knows its own route, but posts here all the same: the
-     * selection is session state, and [requestMeta] reads it from there.
+     * Stores the ticked subset of the registered ids and answers where the mass update page lives. A hand
+     * built client knows its own route, but posts here all the same: the selection is session state, and
+     * [requestMeta] reads it from there.
      */
     @PostMapping("select")
     fun select(request: HttpServletRequest, @RequestBody selection: MultiSelection?): MultiSelectNavigation {
@@ -469,10 +453,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val params = massUpdateContext.massUpdateParams
         return params.filter { checkParamHasAction(params, it.value, it.key) }
             .map { (field, param) ->
-                // The `UILayout` path fills displayName (the field's i18n key) when it builds the row, so
-                // translating it yields the label. The layout free `update` endpoint receives the client's
-                // params, which carry no displayName - falling back to the field's own translation keeps
-                // the changed fields from rendering as "???" (see [getFieldTranslation]).
+                // A displayName (an i18n key) set by the page wins. The client's params carry none - falling
+                // back to the field's own translation keeps the changed fields from rendering as "???" (see
+                // [getFieldTranslation]).
                 param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) } ?: getFieldTranslation(field)
             }
     }
@@ -578,10 +561,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * The fields this page may update, in the order they are shown - the single source of the field set of
-     * a page migrated to projectforge-next.
-     *
-     * Empty at default, so a page that only serves the legacy `UILayout` path ([fillForm]) keeps working.
+     * The fields this page may update, in the order they are shown - the single source of the field set.
      */
     protected open fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         return emptyList()
@@ -595,23 +575,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * What the selected entries add up to, as markdown - the invoice statistics.
-     *
-     * Null at default. The shape is the entity's own (`RechnungsStatistik.asMarkdown`), which is why this
-     * is text rather than numbers: it is a summary a reader reads, not a value anything computes with.
-     */
-    protected open fun getStatistics(selectedIds: Collection<Serializable>?): String? {
-        return null
-    }
-
-    /**
-     * The same summary as [getStatistics], as values rather than as markdown - for a client that renders
-     * its own statistics line.
-     *
-     * Null at default, and served *next to* the markdown rather than instead of it: the `UILayout` form
-     * has nowhere to put a number but a `UIAlert`, so it needs the pre-rendered text, while a hand built
-     * page needs the numbers - only they can be formatted in the user's locale and currency, and the
-     * markdown carries `<span style="color:blue">` for its colours, which no next page renders.
+     * What the selected entries add up to, as values - for a client that renders its own statistics line
+     * (only values can be formatted in the user's locale and currency). Null at default.
      *
      * Typed as [Any] because the shape is the entity's own (`InvoiceStatistics` for the invoice) and this
      * class has nothing in common to say about it; the page that declares the field set also knows what
@@ -622,11 +587,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Resolves what a declaration leaves out from the entity itself, so the layout free answer and the
-     * `UILayout` say the same thing about a field.
+     * Resolves what a declaration leaves out from the entity itself (the element the layout context builds for
+     * the field).
      *
      * The value property in particular must not be derived by the client: which property of a
-     * [MassUpdateParameter] a value goes into is this class's mapping (see `createInputFieldRow`), and a
+     * [MassUpdateParameter] a value goes into is this class's mapping (see [valuePropertyOf]), and a
      * second copy of it in the frontend would silently drop values the day a type is added.
      */
     private fun resolveFieldMeta(lc: LayoutContext, declaration: MassUpdateFieldDeclaration): MassUpdateFieldMeta {
@@ -659,15 +624,14 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         return MassUpdateFieldMeta(
             field = field,
             valueProperty = if (declaration.values != null) "textValue" else valuePropertyOf(el, dataType),
-            // Translated here, not passed on: `LayoutUtils.setLabels` puts the *key* into `element.label`
-            // and the `UILayout` path translates it on its way out (`processAllElements`) - which this
-            // layout free answer does not go through, so an untranslated key would reach the client.
+            // Translated here, not passed on: `LayoutUtils.setLabels` puts the *key* into `element.label`,
+            // which only a `UILayout` translates on its way out (`processAllElements`).
             label = ((el as? UILabelledElement)?.label ?: elementInfo?.i18nKey)?.let { translate(it) },
             dataType = dataType ?: if (el is UISelect<*>) UIDataType.STRING else null,
             maxLength = elementInfo?.maxLength,
             rows = (el as? UITextArea)?.rows,
             values = values,
-            // The default of the `UILayout` path as well: a field the entity requires cannot be emptied.
+            // A field the entity requires cannot be emptied.
             deleteOption = declaration.showDeleteOption ?: (elementInfo?.required != true),
             replaceOption = declaration.showReplaceOption != false && isString,
             // A text area offers appending; so does any field a page explicitly presets it for
@@ -705,46 +669,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         }
     }
 
-    // ------------------------------------------------------------------------------------------
-    // The UILayout protocol (deprecated, see the layout free endpoints above)
-    // ------------------------------------------------------------------------------------------
-
-    @Deprecated("Use requestMeta (GET meta) instead: the layout free protocol of projectforge-next.")
-    @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest): FormLayoutData {
-        val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
-        val variables = mutableMapOf<String, Any>()
-        val layout = getLayout(request, massUpdateData, variables)
-        return FormLayoutData(massUpdateData, layout, createServerData(request), variables)
-    }
-
-    @Deprecated("Use update (POST update) instead: the layout free protocol of projectforge-next.")
-    @PostMapping("massUpdate")
-    fun massUpdate(
-        request: HttpServletRequest,
-        @RequestBody postData: PostData<Map<String, MassUpdateParameter>>
-    ): ResponseEntity<*> {
-        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
-
-        val massUpdateContext = object : MassUpdateContext<T>(postData.data.toMutableMap()) {
-            override fun getId(obj: T): Long {
-                return this@AbstractMultiSelectedPage.getId(obj)
-            }
-        }
-        handleClientMassUpdateCall(request, massUpdateContext)
-        massUpdate(request, selectedIds, massUpdateContext)?.let { return it }
-        storeProtocol(request, massUpdateContext, changedFieldsOf(massUpdateContext))
-        val variables = mutableMapOf<String, Any>()
-
-        val massUpdateData = postData.data.toMutableMap()
-        val layout = getLayout(request, massUpdateData, variables, massUpdateContext)
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("ui", layout)
-                .addVariable("data", massUpdateData)
-        )
-    }
-
     @GetMapping("download")
     fun download(request: HttpServletRequest): ResponseEntity<*> {
         val downloadFile = downloadFileSupport.getDownloadFile(request)
@@ -752,19 +676,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         log.info { "Downloading '${downloadFile.filename}' of size ${downloadFile.sizeHumanReadable}." }
         return RestUtils.downloadFile(downloadFile.filename, downloadFile.bytes)
     }
-
-    /**
-     * This rest service will be called on multi selection list pages, if the user wants to cancel the multi selection.
-     * @return redirect url
-     */
-    @Deprecated("Use cancel (POST cancel) instead: the layout free protocol of projectforge-next.")
-    // State changing: POST only.
-    @PostMapping(RestPaths.CANCEL_MULTI_SELECTION)
-    fun handleCancelUrl(request: HttpServletRequest): ResponseAction {
-        val callerUrl = MultiSelectionSupport.clear(request, pagesRest) ?: listPageUrl
-        return ResponseAction(callerUrl, targetType = TargetType.REDIRECT)
-    }
-
 
     /**
      * Used by TimesheetMultiSelectedPage for fixing kost2 issues. Does nothing at default.
@@ -925,267 +836,6 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         }
     }
 
-    /**
-     * Builds the form of the legacy React app as a `UILayout` (see [getForm]).
-     *
-     * Only for the pages not yet migrated to projectforge-next (address, address campaign value), which
-     * have no alternative yet - hence deprecated along with [getForm], but not annotated. A migrated page
-     * declares its fields in [fieldDeclarations] instead and leaves this empty: its legacy React list is
-     * redirected to next, so nothing asks for this layout any more.
-     */
-    open fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-    }
-
-    protected fun getLayout(
-        request: HttpServletRequest,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        variables: MutableMap<String, Any>,
-        massUpdateContext: MassUpdateContext<T>? = null,
-    ): UILayout {
-        val layout = UILayout(getTitleKey())
-
-        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
-        val formattedSize = NumberFormatter.format(selectedIds?.size)
-        if (selectedIds.isNullOrEmpty()) {
-            layout.add(UIAlert("massUpdate.error.noEntriesSelected", color = UIColor.DANGER))
-        } else {
-            layout.add(
-                UIAlert(
-                    "'${translateMsg("massUpdate.entriesFound", formattedSize)}",
-                    color = UIColor.SUCCESS
-                )
-            )
-        }
-
-        fillForm(request, layout, massUpdateData, selectedIds, variables)
-
-        layout.add(UIAlert(message = "massUpdate.info", color = UIColor.INFO))
-        layout.add(
-            UIButton.createCancelButton(
-                ResponseAction(
-                    RestResolver.getRestUrl(this::class.java, RestPaths.CANCEL_MULTI_SELECTION),
-                    targetType = TargetType.POST,
-                ),
-                title = translate("stop")
-            )
-        )
-        if (!MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java).isNullOrEmpty()) {
-            layout.add(
-                UIButton.createBackButton(
-                    ResponseAction(
-                        PagesResolver.getMultiSelectionPageUrl(pagesRest::class.java, absolute = true),
-                        targetType = TargetType.REDIRECT
-                    ),
-                    title = "massUpdate.changeSelection",
-                )
-            )
-        }
-        if (!selectedIds.isNullOrEmpty()) {
-            layout.add(
-                UIButton.createDefaultButton(
-                    id = "execute",
-                    title = "execute",
-                    responseAction = ResponseAction(
-                        url = "${getRestPath()}/massUpdate",
-                        targetType = TargetType.POST
-                    ),
-                    confirmMessage = translateMsg("massUpdate.confirmQuestion", formattedSize),
-                )
-            )
-        }
-        massUpdateContext?.let { stats ->
-            if (stats.errorCounter > 0) {
-                val sb = StringBuilder()
-                sb.appendLine("'*${stats.resultMessage}*")
-                sb.appendLine()
-                sb.appendLine("| # | ${translate("massUpdate.error.table.element")} | ${translate("massUpdate.error.table.message")}    |")
-                    .appendLine("| --: | :-- | :-- |")
-                stats.errorMessages.forEachIndexed { index, error ->
-                    sb.appendLine("| ${index + 1} | ${error.identifier} | ${error.message} |")
-                }
-                layout.add(
-                    UIAlert(
-                        sb.toString(),
-                        title = "massUpdate.error.table.title",
-                        color = UIColor.DANGER,
-                        markdown = true
-                    )
-                )
-            } else if (stats.total > 0) {
-                layout.add(UIAlert(message = "'${stats.resultMessage}"))
-            } else {
-                // Do nothing.
-            }
-        }
-        downloadFileSupport.getDownloadFile(request)?.let { downloadFile ->
-            val download = DownloadFileSupport.Download(downloadFile)
-            variables["download"] = download
-            layout.add(
-                UIRow().add(
-                    downloadFileSupport.createDownloadFieldset(
-                        "massUpdate.excel.download",
-                        "${getRestPath()}/download",
-                        download,
-                        useDataObject = false,
-                    )
-                )
-            )
-        }
-        ensureUserLogSubscription()?.let { logSubscription ->
-            layout.add(
-                MenuItem(
-                    "logViewer",
-                    i18nKey = "plugins.merlin.viewLogs",
-                    url = LogViewerRest.viewerUrl(logSubscription.id),
-                    type = MenuItemTargetType.REDIRECT,
-                )
-            )
-        }
-        LayoutUtils.process(layout)
-        return layout
-    }
-
-    @Deprecated("Use select (POST select) instead: the layout free protocol of projectforge-next.")
-    @PostMapping(URL_PATH_SELECTED)
-    fun selected(
-        request: HttpServletRequest,
-        @RequestBody selectedIds: MultiSelection?
-    ): ResponseEntity<*> {
-        MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selectedIds?.selectedIds)
-        return ResponseEntity.ok(
-            ResponseAction(
-                targetType = TargetType.REDIRECT,
-                url = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true)
-            )
-        )
-    }
-
-    /**
-     * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
-     * @param showDeleteOption If set, controls whether the delete checkbox is shown (overrides default behavior)
-     * @param showReplaceOption If set to false, hides the replace text input (default is to show for text fields)
-     */
-    protected fun createInputFieldRow(
-        lc: LayoutContext,
-        field: String,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
-        showDeleteOption: Boolean? = null,
-        showReplaceOption: Boolean? = null,
-    ): UIRow {
-        val el = LayoutUtils.buildLabelInputElement(lc, field, minLengthOfTextArea)
-        if (el is UIInput) {
-            el.id = when (el.dataType) {
-                UIDataType.DATE -> "$field.localDateValue"
-                UIDataType.AMOUNT, UIDataType.DECIMAL -> "$field.decimalValue"
-                UIDataType.INT -> "$field.intValue"
-                UIDataType.KONTO, UIDataType.USER, UIDataType.TASK, UIDataType.GROUP, UIDataType.EMPLOYEE -> field
-                UIDataType.BOOLEAN -> "$field.booleanValue"
-                UIDataType.TIMESTAMP -> "$field.timestampValue"
-                UIDataType.TIME -> "$field.timeValue"
-                else -> "$field.textValue"
-            }
-            el.required = false //
-        } else if (el is IUIId) {
-            el.id = "$field.textValue"
-        }
-        if (el is UILabelledElement) {
-            el.tooltip = null
-        }
-        val elementInfo = ElementsRegistry.getElementInfo(lc, field)
-        return createInputFieldRow(
-            field,
-            el,
-            massUpdateData,
-            showDeleteOption = showDeleteOption ?: (elementInfo?.required != true),
-            showReplaceOption = showReplaceOption,
-        )
-    }
-
-    protected fun createInputFieldRow(
-        field: String,
-        el: UIElement,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        showDeleteOption: Boolean = false,
-        showReplaceOption: Boolean? = null,
-        myOptions: List<UIElement>? = null,
-        displayName: String? = null,
-    ): UIRow {
-        val useDisplayName = displayName ?: if (el is UILabelledElement) el.label ?: field else field
-        val param = massUpdateData[field] ?: MassUpdateParameter(field, useDisplayName)
-        param.delete = false
-        massUpdateData[field] = param
-        UIRow().let { row ->
-            row.add(UICol(md = 7).add(el))
-            val optionsGroup = UIInlineGroup()
-            row.add(UICol(md = 5).add(optionsGroup))
-
-            if (showDeleteOption) {
-                optionsGroup.add(
-                    UICheckbox(
-                        "$field.delete",
-                        label = "massUpdate.field.checkbox4deletion",
-                        tooltip = "massUpdate.field.checkbox4deletion.info",
-                    )
-                )
-            }
-            // Show replace option only if showReplaceOption is true (default) or null (auto-detect)
-            if (showReplaceOption != false && (el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING))) {
-                optionsGroup.add(
-                    UIInput(
-                        "$field.replaceText",
-                        label = "massUpdate.field.replace",
-                        tooltip = "massUpdate.field.replace.info"
-                    )
-                )
-            }
-            if (el is UITextArea) {
-                optionsGroup.add(
-                    UICheckbox(
-                        "$field.append",
-                        label = "massUpdate.field.checkbox4appending",
-                        tooltip = "massUpdate.field.checkbox4appending.info"
-                    )
-                )
-            }
-            myOptions?.let { options ->
-                options.forEach { optionsGroup.add(it) }
-            }
-            return row
-        }
-    }
-
-    /**
-     * @param minLengthOfTextArea See [LayoutUtils.buildLabelInputElement]
-     * @param showAppendOption If true, the append checkbox will be preset (without function for non-text-area-fields)
-     * @param showDeleteOption If set, controls whether the delete checkbox is shown (overrides default behavior)
-     * @param showReplaceOption If set to false, hides the replace text input (default is to show for text fields)
-     */
-    protected fun createAndAddFields(
-        lc: LayoutContext,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        container: IUIContainer,
-        vararg fields: String,
-        minLengthOfTextArea: Int = LayoutUtils.DEFAULT_MIN_LENGTH_OF_TEXT_AREA,
-        showAppendOption: Boolean? = null,
-        showDeleteOption: Boolean? = null,
-        showReplaceOption: Boolean? = null,
-    ) {
-        fields.forEach { field ->
-            if (massUpdateData[field] == null && showAppendOption == true) { // Only preset for the initial call:
-                val displayName = ElementsRegistry.getElementInfo(lc, field)?.i18nKey ?: field
-                ensureMassUpdateParam(massUpdateData, field, displayName).append = true
-            }
-            container.add(createInputFieldRow(lc, field, massUpdateData, minLengthOfTextArea, showDeleteOption, showReplaceOption))
-        }
-    }
-
     protected fun showNoEntriesValidationError(): ResponseEntity<ResponseAction> {
         return showValidationErrors(ValidationError(translate("massUpdate.error.noEntriesSelected")))
     }
@@ -1195,20 +845,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     companion object {
-        const val URL_PATH_SELECTED = "selected"
         const val URL_SUFFIX_SELECTED = "Selected"
-
-        fun ensureMassUpdateParam(
-            massUpdateData: MutableMap<String, MassUpdateParameter>,
-            name: String,
-            displayName: String,
-        ): MassUpdateParameter {
-            massUpdateData[name]?.let { return it }
-            MassUpdateParameter(name, displayName = displayName).let {
-                massUpdateData[name] = it
-                return it
-            }
-        }
 
         fun processTextParameter(
             data: Any,

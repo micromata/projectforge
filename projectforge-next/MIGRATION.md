@@ -301,8 +301,9 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
   (`meta`/`preview`/`update`/`select`/`selectedList`/`cancel`); die Felder deklariert
-  `fieldDeclarations()`. `fillForm` und die deprecated UILayout-Endpunkte (`dynamic`, `massUpdate`,
-  `selected`) bedient keine Seite mehr, seit die React-Seite der Adresskampagnen-Werte entfernt ist.
+  `fieldDeclarations()`. Das UILayout-Protokoll (`dynamic`, `massUpdate`, `selected`, `fillForm`, das
+  Markdown-`statistics` der `meta`, `{entity}/startMultiSelection`/`cancelMultiSelection`) ist mit der letzten
+  React-Seite (Adresskampagnen-Werte) entfernt.
 - **Excel-Export** generisch: `lib/rs/list-export.ts` (`downloadListExcel`).
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`

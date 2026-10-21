@@ -117,8 +117,6 @@ export function fetchCurrentList(
 
 export function exportCurrentList(): ThunkAction;
 
-export function startMultiSelection(): ThunkAction;
-
 export function openEditPage(
     id: string | number
 ): ThunkAction<void>;

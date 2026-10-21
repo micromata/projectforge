@@ -161,7 +161,6 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
                 layout,
                 agGrid,
                 this,
-                pageAfterMultiSelect = this::class.java,
             )
             agGrid.handleCancelUrl = RestResolver.getRestUrl(this::class.java, "cancelAndGetUrl")
             agGrid.urlAfterMultiSelect = RestResolver.getRestUrl(this::class.java, "import")

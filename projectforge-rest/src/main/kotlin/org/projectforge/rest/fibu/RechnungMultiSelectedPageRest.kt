@@ -83,16 +83,8 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     return "fibu.rechnung.multiselected.info"
   }
 
-  override fun getStatistics(selectedIds: Collection<Serializable>?): String {
-    return buildStatistics(selectedIds).asMarkdown
-  }
-
   /**
-   * The same numbers [getStatistics] renders as markdown, as the values the list serves.
-   *
-   * The markdown (`MultiSelectMetaData.statistics`) is deprecated: it carries the `<span style="color:blue">`
-   * `MarkdownBuilder` colours it with. The hand built page renders its own statistics line and needs the
-   * numbers, which is also the only way it can format an amount in the *user's* locale and currency.
+   * The invoice statistics of the selection, as the values the list serves.
    */
   override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
     return OutgoingInvoiceEntityRest.InvoiceStatistics(buildStatistics(selectedIds))

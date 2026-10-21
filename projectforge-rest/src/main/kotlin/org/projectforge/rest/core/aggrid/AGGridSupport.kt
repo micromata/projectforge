@@ -81,14 +81,14 @@ class AGGridSupport {
     }
 
     /**
-     * Prepares an AG-Grid for a list page, handling multi-selection if applicable.
+     * Prepares an AG-Grid for a list page. A list page of the legacy frontend offers no multi selection any more:
+     * the mass updates are pages of projectforge-next.
      */
     fun prepareUIGrid4ListPage(
         request: HttpServletRequest,
         layout: UILayout,
         magicFilter: MagicFilter,
         pagesRest: AbstractPagesRest<*, *, *>,
-        pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
         userAccess: UILayout.UserAccess,
         rowClickUrl: String? = null,
         legendText: String? = null,
@@ -98,37 +98,29 @@ class AGGridSupport {
         agGrid.enablePagination()
         magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
         // The page size the user selected last, stored along with the column state. Applied here and not
-        // in [restoreColumnsFromUserPref], because that runs after this method (LayoutUtils.processListPage)
-        // and would override the page size a multi selection deliberately remembered in the session below.
+        // in [restoreColumnsFromUserPref], because that runs after this method (LayoutUtils.processListPage).
         getGridState(pagesRest.category)?.paginationPageSize?.let { agGrid.paginationPageSize = it }
         layout.add(agGrid)
-        if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
-            prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
-        } else {
-            if (userAccess.update == true) {
-                // The edit page with the id placeholder, resolved per row by both frontends. Not the new-entry
-                // url with "/id" appended: that only happened to match for the generic React shape
-                // (react/<category>/edit + /id), while e.g. book uses next/book/new and next/book/:id, which
-                // turned a row click into next/book/new/<id> - the empty *new* form. Asking the pages rest also
-                // honours its getStandardEditPage() override (address, script, project, poll ...) and keeps a
-                // user who is looking at the legacy list of a migrated page in the legacy app.
-                val redirectUrl = rowClickUrl ?: "/${pagesRest.getEditPage(request)}"
-                agGrid.withRowClickRedirectUrl(redirectUrl, openModal = pagesRest.useModalEditDialog)
-                if (pageAfterMultiSelect != null) {
-                    layout.multiSelectionSupported = true
-                }
-            }
-            val message = if (legendText.isNullOrBlank()) {
-                "agGrid.sortInfo"
-            } else {
-                "'$legendText\n${translate("agGrid.sortInfo")}"
-            }
-            layout.add(UIAlert(message = message, color = UIColor.INFO, markdown = true))
-            agGrid.onColumnStatesChangedUrl =
-                RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
-            agGrid.resetGridStateUrl =
-                RestResolver.getRestUrl(pagesRest::class.java, "resetGridState")
+        if (userAccess.update == true) {
+            // The edit page with the id placeholder, resolved per row by both frontends. Not the new-entry
+            // url with "/id" appended: that only happened to match for the generic React shape
+            // (react/<category>/edit + /id), while e.g. book uses next/book/new and next/book/:id, which
+            // turned a row click into next/book/new/<id> - the empty *new* form. Asking the pages rest also
+            // honours its getStandardEditPage() override (address, script, project, poll ...) and keeps a
+            // user who is looking at the legacy list of a migrated page in the legacy app.
+            val redirectUrl = rowClickUrl ?: "/${pagesRest.getEditPage(request)}"
+            agGrid.withRowClickRedirectUrl(redirectUrl, openModal = pagesRest.useModalEditDialog)
         }
+        val message = if (legendText.isNullOrBlank()) {
+            "agGrid.sortInfo"
+        } else {
+            "'$legendText\n${translate("agGrid.sortInfo")}"
+        }
+        layout.add(UIAlert(message = message, color = UIColor.INFO, markdown = true))
+        agGrid.onColumnStatesChangedUrl =
+            RestResolver.getRestUrl(pagesRest::class.java, RestPaths.SET_COLUMN_STATES)
+        agGrid.resetGridStateUrl =
+            RestResolver.getRestUrl(pagesRest::class.java, "resetGridState")
         return agGrid
     }
 
@@ -137,7 +129,6 @@ class AGGridSupport {
         layout: UILayout,
         agGrid: UIAgGrid,
         callerRest: Any,
-        pageAfterMultiSelect: Class<out AbstractDynamicPageRest>? = null,
     ) {
         MultiSelectionSupport.getSessionContext(
             request,
@@ -145,11 +136,6 @@ class AGGridSupport {
         )?.paginationPageSize?.let { paginationPageSize ->
             agGrid.paginationPageSize = paginationPageSize
         }
-        if (pageAfterMultiSelect != null) {
-            agGrid.urlAfterMultiSelect =
-                RestResolver.getRestUrl(pageAfterMultiSelect, AbstractMultiSelectedPage.URL_PATH_SELECTED)
-        }
-        agGrid.handleCancelUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.CANCEL_MULTI_SELECTION)
         agGrid.selectionColumnDef = UIAgGridColumnDef().also {
             it.pinned = "left"
             it.resizable = false
