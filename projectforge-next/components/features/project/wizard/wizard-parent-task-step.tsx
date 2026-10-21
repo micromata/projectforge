@@ -1,7 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
@@ -9,9 +8,9 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { TaskSelectControl } from "@/components/shared/tasks/task-select-control";
 import { TaskSelectModal } from "@/components/shared/tasks/task-select-modal";
 import { WizardStepCard } from "@/components/features/task/wizard/wizard-step-card";
-import { fetchTaskInfo } from "@/lib/rs/task";
 import type { ValidationError } from "@/lib/rs/types";
 import { WizardFieldError } from "./wizard-field-error";
+import { WizardStructurePath } from "./wizard-structure-path";
 
 interface WizardParentTaskStepProps {
   number: number;
@@ -58,26 +57,6 @@ export function WizardParentTaskStep({
 }: WizardParentTaskStepProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  // The same query as the select control's, so the picked element's path costs no second request.
-  const { data: picked } = useQuery({
-    queryKey: ["taskInfo", parentTaskId],
-    queryFn: ({ signal }) => fetchTaskInfo(parentTaskId!, signal),
-    enabled: parentTaskId != null,
-    staleTime: Infinity,
-  });
-  const path: { title: string; isNew: boolean }[] = [
-    ...(picked
-      ? [...(picked.path ?? []), picked]
-          .filter((node) => !node.root && node.id !== rootTaskId)
-          .map((node) => ({ title: node.title ?? "", isNew: false }))
-      : []),
-    ...(newCustomer && customerName
-      ? [{ title: customerName, isNew: true }]
-      : []),
-    ...(projectName && !customerOnly
-      ? [{ title: projectName, isNew: true }]
-      : []),
-  ];
   const heading = newCustomer
     ? t("project.wizard.parentTask.newCustomer._")
     : t("project.wizard.parentTask.existingCustomer._");
@@ -117,25 +96,14 @@ export function WizardParentTaskStep({
         onOpenChange={setOpen}
       />
       <WizardFieldError errors={errors} fieldId="parentTaskId" />
-      {parentTaskId != null && path.some((segment) => segment.isNew) && (
-        <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-          <span>{t("project.wizard.parentTask.newPath")}</span>
-          {path.map((segment, index) => (
-            <Fragment key={index}>
-              {index > 0 && <span aria-hidden>→</span>}
-              <span
-                className={
-                  segment.isNew ? "font-medium text-foreground" : undefined
-                }
-              >
-                {segment.title}
-                {segment.isNew &&
-                  ` (${t("project.wizard.preview.newElement")})`}
-              </span>
-            </Fragment>
-          ))}
-        </p>
-      )}
+      <WizardStructurePath
+        parentTaskId={parentTaskId}
+        newCustomer={newCustomer}
+        customerOnly={customerOnly}
+        customerName={customerName}
+        projectName={projectName}
+        rootTaskId={rootTaskId}
+      />
     </WizardStepCard>
   );
 }

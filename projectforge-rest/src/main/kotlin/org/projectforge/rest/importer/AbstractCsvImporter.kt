@@ -157,11 +157,12 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
         // Handle number format auto-detection
         processAutodetectedNumberFormats(autodetectNumberFormatMap)
 
-        // Finalize import with custom logic
-        finalizeImport(records, importStorage)
+        // Drop rows that aren't entities of their own (e.g. payment offsets), then finalize with custom logic
+        val acceptedRecords = filterRecords(records, importStorage)
+        finalizeImport(acceptedRecords, importStorage)
 
         // Commit all records
-        records.forEach { record ->
+        acceptedRecords.forEach { record ->
             importStorage.commitEntity(record)
         }
     }
@@ -220,6 +221,17 @@ abstract class AbstractCsvImporter<O : ImportPairEntry.Modified<O>> {
      */
     protected open fun postProcessEntity(entity: O, rowIndex: Int, importStorage: ImportStorage<O>) {
         // Default: no additional processing
+    }
+
+    /**
+     * Hook to drop parsed rows before [finalizeImport]; dropped rows aren't committed to the import storage.
+     *
+     * @param records all parsed records
+     * @param importStorage the import storage
+     * @return the records to keep (default: all)
+     */
+    protected open fun filterRecords(records: List<O>, importStorage: ImportStorage<O>): List<O> {
+        return records
     }
 
     /**

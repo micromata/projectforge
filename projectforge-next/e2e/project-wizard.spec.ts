@@ -46,7 +46,7 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 
-  test("all steps are on one page, and Finish waits for the parent element", async ({
+  test("all steps are on one page, and Finish tells a missing parent element at its step", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -55,7 +55,7 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
     const finish = page.getByRole("button", {
       name: format.t("project.wizard.finish._"),
     });
-    await expect(finish).toBeDisabled({ timeout: 20_000 });
+    await expect(finish).toBeEnabled({ timeout: 20_000 });
     // Numbered „1. Kunde“ etc. (WizardStepCard), matched whole: „Kunde“ is part of other headings too.
     // An existing customer is the default, which names the third step.
     for (const heading of [
@@ -72,6 +72,34 @@ test.describe("project wizard", { tag: "@lane-task" }, () => {
         })
       ).toBeVisible();
     }
+    // The tab bar of the edit pages, a tab per step, the three groups under one.
+    for (const tab of [
+      format.t("fibu.kunde._"),
+      format.t("fibu.projekt._"),
+      format.t("task._"),
+      format.t("group.groups"),
+      format.t("task.wizard.action._"),
+    ]) {
+      await expect(
+        page.getByRole("tab", { name: tab, exact: true })
+      ).toBeVisible();
+    }
+    // The action step tells at once what is missing, before Finish is pressed.
+    await expect(
+      page.getByRole("listitem").filter({
+        hasText: format
+          .t("project.wizard.action.projectNotCreated", { arg0: "" })
+          .trim(),
+      })
+    ).toBeVisible({ timeout: 20_000 });
+    // Nothing is filled in, so nothing is created: the server names the missing element at step 3.
+    await finish.click();
+    await expect(
+      page
+        .getByRole("alert")
+        .filter({ hasText: format.t("task.parentTask") })
+        .and(page.locator("p"))
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   test("a new customer is entered with the fields of the customer form", async ({

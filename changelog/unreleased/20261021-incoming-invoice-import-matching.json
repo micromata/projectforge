@@ -1,0 +1,23 @@
+{
+  "type": "fixed",
+  "en": "Import of incoming invoices",
+  "de": "Import der Eingangsrechnungen",
+  "items": [
+    {
+      "en": "An imported invoice no longer overwrites another stored invoice of the same creditor (number, date and currency of an older invoice were replaced).",
+      "de": "Eine importierte Rechnung überschreibt keine andere gespeicherte Rechnung desselben Kreditors mehr (Nummer, Datum und Währung einer älteren Rechnung wurden ersetzt)."
+    },
+    {
+      "en": "Credit-card payment offsets (credit note on a credit-card clearing account) are skipped; their date becomes the paid date of the invoice if it has none. Other credit notes are imported with a negative amount.",
+      "de": "Gegenbuchungen von Kreditkartenzahlungen (Gutschrift auf einem Kreditkarten-Verrechnungskonto) werden übersprungen; ihr Datum wird Zahldatum der Rechnung, falls diese keines hat. Andere Gutschriften werden mit negativem Betrag importiert."
+    },
+    {
+      "en": "A header-only import no longer offers stored invoices for deletion; a position import only those within its periods.",
+      "de": "Ein Import nur mit Rechnungsköpfen bietet keine gespeicherten Rechnungen mehr zum Löschen an, ein Positions-Import nur solche innerhalb seiner Perioden."
+    },
+    {
+      "en": "Warnings for a paid date before the invoice date and for invoices with EUR and another currency (EUR is taken).",
+      "de": "Warnungen bei einem Zahldatum vor dem Rechnungsdatum und bei Rechnungen mit EUR und einer anderen Währung (EUR wird übernommen)."
+    }
+  ]
+}

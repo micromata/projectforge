@@ -55,8 +55,19 @@ class NumberRange {
     /** Number of digits of the local project number (per customer or, without customers, of the whole range). */
     var projectDigits: Int = 2
 
-    /** Segments of the 8-digit Kost2 for display and input, e.g. 1,3,2,2 for `#.###.##.##`. */
-    var segments: List<Int> = DEFAULT_SEGMENTS
+    private var configuredSegments: List<Int>? = null
+
+    /**
+     * Segments of the 8-digit Kost2 for display and input, e.g. 1,3,2,2 for `#.###.##.##`. If not configured, a range
+     * with customers gets `1, customerDigits, projectDigits, 2` (1,4,1,2 for 1 project digit), any other range
+     * [DEFAULT_SEGMENTS].
+     */
+    var segments: List<Int>
+        get() = configuredSegments
+            ?: if (hasCustomers && customerDigits > 0) listOf(1, customerDigits, projectDigits, 2) else DEFAULT_SEGMENTS
+        set(value) {
+            configuredSegments = value
+        }
 
     val hasCustomers: Boolean
         get() = customerMin != null

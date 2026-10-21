@@ -141,6 +141,22 @@ class NumberRangesTest {
     }
 
     @Test
+    fun `segments not configured follow the digits of the range`() {
+        val range7 = range(prefix = 7, customerMin = 70001, customerMax = 79999, projectDigits = 1)
+        assertEquals(listOf(1, 4, 1, 2), range7.segments)
+        assertEquals(listOf(1, 3, 2, 2), legacy.segments)
+        assertEquals(NumberRange.DEFAULT_SEGMENTS, internal.segments, "Range without customers.")
+        assertEquals(listOf(1, 2, 3, 2), range(prefix = 5, customerMin = 0, customerMax = 99, projectDigits = 3).segments)
+        val ranges = NumberRanges(listOf(internal, legacy, range7))
+        assertEquals("7.0001.0", ranges.formatProjectNumber(700010))
+        assertEquals("7.0001", ranges.formatCustomerNumber(70001))
+        assertEquals("7.0001.0.02", ranges.formatKost2(70001002))
+        // Configured segments win:
+        assertEquals(listOf(1, 3, 2, 2), range(prefix = 7, customerMin = 70001, customerMax = 79999, projectDigits = 1,
+            segments = listOf(1, 3, 2, 2)).segments)
+    }
+
+    @Test
     fun `numbers are validated against the ranges`() {
         assertNull(micromata.validateCustomerNumber(10001))
         assertNull(micromata.validateCustomerNumber(0))
@@ -224,12 +240,12 @@ class NumberRangesTest {
         customerMin: Long? = null,
         customerMax: Long? = null,
         projectDigits: Int = 2,
-        segments: List<Int> = NumberRange.DEFAULT_SEGMENTS,
+        segments: List<Int>? = null,
     ) = NumberRange().also {
         it.prefix = prefix
         it.customerMin = customerMin
         it.customerMax = customerMax
         it.projectDigits = projectDigits
-        it.segments = segments
+        segments?.let { segments -> it.segments = segments }
     }
 }

@@ -27,7 +27,8 @@ export default function ProjectWizardPage() {
       <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
         <h1 className="text-lg font-bold tracking-tight">{title}</h1>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col p-4">
+      {/* No padding: the wizard has the frame of an edit page, tab bar and pinned action bar. */}
+      <div className="flex min-h-0 flex-1 flex-col">
         <ProjectWizard />
       </div>
     </PageShell>
