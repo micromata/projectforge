@@ -1,5 +1,0 @@
-{
-  "type": "added",
-  "en": "Project groups: projects belonging together under a common parent project can be combined into a group on the customer groups page. The project filters of the order book, invoices, projects, cost 2, timesheets and order statistics offer the group like a single project; forecast, contribution margin and the Excel exports of the forecast, order book and invoice list show a project group column as soon as one of their projects belongs to a group.",
-  "de": "Projektgruppen: Zusammengehörende Projekte eines gemeinsamen Oberprojekts lassen sich auf der Seite der Kundengruppen zu einer Gruppe zusammenfassen. Die Projektfilter von Auftragsbuch, Rechnungen, Projekten, Kost2, Zeitberichten und Auftragsstatistik bieten die Gruppe wie ein einzelnes Projekt an; Forecast, Deckungsbeitrag und die Excel-Exporte von Forecast, Auftragsbuch und Rechnungsliste zeigen eine Spalte Projektgruppe, sobald eines ihrer Projekte zu einer Gruppe gehört."
-}
