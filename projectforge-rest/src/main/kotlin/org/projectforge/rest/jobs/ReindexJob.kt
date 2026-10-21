@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Rebuilds the search index of one or more entities as a job, so the client doesn't have to wait for it: a full
- * re-index of a large table takes minutes. The client polls JobsMonitorPageRest for the progress.
+ * re-index of a large table takes minutes. The client polls JobsMonitorRest for the progress.
  *
  * @param classes The entities to re-index, in this order (see BaseDao.reindexClasses).
  * @param settings Empty for a full run, or with a fromDate for the newest entries only.

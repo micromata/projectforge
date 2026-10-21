@@ -26,6 +26,7 @@ package org.projectforge.rest.importer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.common.extensions.format
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -39,7 +40,6 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.jobs.JobsMonitorPageRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -273,11 +273,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         val caller = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true)
         return ResponseEntity.ok(
             ResponseAction(
-                url = PagesResolver.getDynamicPageUrl(
-                    JobsMonitorPageRest::class.java,
-                    absolute = true,
-                    params = mapOf("jobId" to jobId, "caller" to caller),
-                ),
+                // The job monitor of projectforge-next, which returns to the caller once the job has finished.
+                url = "/${Constants.NEXT_APP_PATH}jobsMonitor" +
+                        RestResolver.getQueryString(mapOf("jobId" to jobId, "caller" to caller)),
                 targetType = TargetType.REDIRECT,
             )
         )

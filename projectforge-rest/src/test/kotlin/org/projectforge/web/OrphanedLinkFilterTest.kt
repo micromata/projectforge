@@ -339,6 +339,21 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/vacationExport", redirectOf("/react/vacationExport"))
     }
 
+    /** The old React job monitor is gone; only a numeric job id is passed on, never the caller url. */
+    @Test
+    fun `the old react job monitor is redirected to next`() {
+        Assertions.assertEquals("/next/jobsMonitor", redirectOf("/react/jobsMonitor/dynamic"))
+        Assertions.assertEquals("/next/jobsMonitor", redirectOf("/react/jobsMonitor"))
+        Assertions.assertEquals(
+            "/next/jobsMonitor?jobId=42",
+            redirectOf("/react/jobsMonitor/dynamic", mapOf("jobId" to "42", "caller" to "https://evil.example")),
+        )
+        Assertions.assertEquals(
+            "/next/jobsMonitor",
+            redirectOf("/react/jobsMonitor/dynamic", mapOf("jobId" to "42%0d%0aSet-Cookie:x")),
+        )
+    }
+
     /**
      * The old React vacation account is gone; only a numeric employee id (HR staff) is passed on.
      */

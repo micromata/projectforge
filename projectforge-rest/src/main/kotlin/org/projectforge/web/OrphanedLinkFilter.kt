@@ -153,6 +153,13 @@ class OrphanedLinkFilter : Filter {
             // Old dynamic React page of the team vacation export, migrated to projectforge-next (removed, so no
             // "classic version" escape hatch). It took no parameters.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}vacationExport")
+        } else if (uri.endsWith("/react/jobsMonitor") || uri.contains("/react/jobsMonitor/")) {
+            // Old dynamic React page of the job monitor, migrated to projectforge-next (removed, so no "classic
+            // version" escape hatch). The job id is interpolated into the Location header, so only a number is
+            // passed on; the caller (a url) is not, a bookmarked link has nothing to return to.
+            val jobId = servletRequest.getParameter("jobId")?.toIntOrNull()
+            val query = if (jobId != null) "?jobId=$jobId" else ""
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}jobsMonitor$query")
         } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
             || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
         ) {

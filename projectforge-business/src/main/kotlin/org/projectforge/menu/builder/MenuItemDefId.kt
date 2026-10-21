@@ -97,7 +97,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     // Migrated to projectforge-next; the React pages were removed.
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getListUrl("currencyPair")), //
-    JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
+    // Migrated to projectforge-next; react/jobsMonitor is redirected by OrphanedLinkFilter.
+    JOB_MONITOR("jobs.monitor.title", "next/jobsMonitor"), //
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "next/monthlyEmployeeReport"), //
     // Migrated to projectforge-next (MyAccountRest); react/myAccount and react/tokenInfo are redirected by

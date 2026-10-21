@@ -375,7 +375,7 @@ bislang auf eine dynamische next-Seite.
 
 1. Fehlende UIElement-Typen (`UIElementType.kt`): Entity-Picker (USER/GROUP/EMPLOYEE/
    COST1/COST2/KONTO/LOCALE/TIMEZONE/PICTURE – TASK ist über `TaskSelectField` da),
-   RATING (da), EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS, `pageMenu`.
+   RATING (da), EDITOR, ATTACHMENT_LIST, DROP_AREA, PROGRESS (entfernt, Jobmonitor handgebaut), `pageMenu`.
 2. `MODAL`/`CLOSE_MODAL` richtig (Modal-Stack in `store/ui-store.ts`; kein teilbarer
    Modal-Deep-Link – Konsequenz des Static-Exports).
 3. `UICustomized`-Escape-Hatch als Registry (~30 String-IDs → bespoke Komponenten,
@@ -783,6 +783,16 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Liste, die sich nicht erstellen lässt (keine Geburtstage im Monat, …), ist ein 400 mit dem übersetzten Grund als
   Text. Behoben: „keine Geburtstage" verwies auf einen nicht existierenden i18n-Schlüssel. Rechte unverändert
   (ORGA-Team oder HR-Gruppe). `react/birthdayButler/**` leitet `OrphanedLinkFilter` um.
+- **Jobmonitor** (`/next/jobsMonitor`, vorher dynamische React-Seite `CustomizedJobsMonitor`, `JobsMonitorPageRest`
+  wird zum layout-freien `JobsMonitorRest`, gleicher Pfad `/rs/jobsMonitor`) – `components/features/jobs-monitor/`:
+  die Jobs des Benutzers (laufende zuerst, beendete eine Stunde lang), Fortschritt über `components/shared/jobs/job-progress.tsx`
+  wie im Job-Toast; die Seite pollt alle 2 s unter demselben Query-Key `["jobs"]` wie `JobToasts`. Abbrechen
+  (`POST cancel`, GET entfernt) mit Bestätigung. `?jobId=` setzt den Job nach oben und hebt ihn hervor; `?caller=`
+  (React-Importseiten, `AbstractImportPageRest`) wird jetzt im Client angesteuert, sobald der Job erfolgreich beendet
+  ist, und nur bei gleicher Origin (vorher ein serverseitiger REDIRECT auf eine beliebige URL aus dem Request).
+  `UIProgress`/`PROGRESS` und `DynamicProgress.jsx` entfernt. Rechte unverändert: jeder sieht nur die Jobs, die er
+  lesen darf (`AbstractJob.readAccess`), Menü für Admin- und Finanzgruppe. `react/jobsMonitor/**` leitet
+  `OrphanedLinkFilter` um (nur eine numerische `jobId`, kein `caller`).
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

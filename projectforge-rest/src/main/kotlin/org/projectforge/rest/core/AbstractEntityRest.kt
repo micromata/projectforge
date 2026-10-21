@@ -1433,7 +1433,7 @@ constructor(
     }
 
     /**
-     * projectforge-next shows a progress toast, so it gets the id of a job to poll (see JobsMonitorPageRest).
+     * projectforge-next shows a progress toast, so it gets the id of a job to poll (see JobsMonitorRest).
      * The classic clients have no such display and keep waiting for the toast of the finished run.
      *
      * @return The response for projectforge-next, or null if the caller has to do the run synchronously.

@@ -1,5 +1,5 @@
 /**
- * Background jobs of the backend (`JobsMonitorPageRest`, `org.projectforge.framework.jobs`).
+ * Background jobs of the backend (`JobsMonitorRest`, `org.projectforge.framework.jobs`).
  *
  * Long-running operations answer with a job id instead of blocking (see startReindexOrRunIt in
  * AbstractPagesRest); the client polls this controller for the progress. The endpoints are shared with

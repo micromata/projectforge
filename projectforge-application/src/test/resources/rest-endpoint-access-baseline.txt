@@ -84,9 +84,6 @@ org.projectforge.rest.importer.AbstractImportPageRest#import
 org.projectforge.rest.importer.AbstractImportPageRest#reconcile
 org.projectforge.rest.importer.AbstractImportPageRest#watchFields
 org.projectforge.rest.IndexRest#getTranslations
-org.projectforge.rest.jobs.JobsMonitorPageRest#cancelJob
-org.projectforge.rest.jobs.JobsMonitorPageRest#getForm
-org.projectforge.rest.jobs.JobsMonitorPageRest#getJobs
 org.projectforge.rest.LogoutRest#logout
 org.projectforge.rest.my2fa.My2FAPageRest#getForm
 org.projectforge.rest.my2fa.My2FAServicesRest#checkOTP
